@@ -50,9 +50,7 @@ class CancelledError(Error):
     """The Future was cancelled."""
     pass
 
-class TimeoutError(Error):
-    """The operation exceeded the given deadline."""
-    pass
+TimeoutError = TimeoutError  # make local alias for the standard exception
 
 class InvalidStateError(Error):
     """The operation is not allowed in this state."""
@@ -284,7 +282,7 @@ def wait(fs, timeout=None, return_when=ALL_COMPLETED):
         A named 2-tuple of sets. The first set, named 'done', contains the
         futures that completed (is finished or cancelled) before the wait
         completed. The second set, named 'not_done', contains uncompleted
-        futures. Duplicate futures given to *fs* are removed and will be 
+        futures. Duplicate futures given to *fs* are removed and will be
         returned only once.
     """
     fs = set(fs)

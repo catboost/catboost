@@ -492,4 +492,4 @@
 # needed to allow to use Arcadia's Cython with non-Arcadia python in open source builds
 - source_filter: "^contrib/tools/cython/Cython/Utility"
   includes:
-    - internal/pycore_frame.h
+    - internal/pycore_frame.h: contrib/libs/python/Include/internal/pycore_frame.h

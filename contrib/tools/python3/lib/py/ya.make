@@ -43,6 +43,7 @@ NO_LINT()
 PY_SRCS(
     TOP_LEVEL
     __future__.py
+    __hello__.py
     _aix_support.py
     _bootsubprocess.py
     _collections_abc.py
@@ -65,6 +66,7 @@ PY_SRCS(
     ast.py
     asynchat.py
     asyncio/__init__.py
+    asyncio/__main__.py
     asyncio/base_events.py
     asyncio/base_futures.py
     asyncio/base_subprocess.py
@@ -87,8 +89,10 @@ PY_SRCS(
     asyncio/staggered.py
     asyncio/streams.py
     asyncio/subprocess.py
+    asyncio/taskgroups.py
     asyncio/tasks.py
     asyncio/threads.py
+    asyncio/timeouts.py
     asyncio/transports.py
     asyncio/trsock.py
     asyncio/unix_events.py
@@ -97,10 +101,8 @@ PY_SRCS(
     asyncore.py
     base64.py
     bdb.py
-    binhex.py
     bisect.py
     bz2.py
-    cProfile.py
     calendar.py
     cgi.py
     cgitb.py
@@ -123,6 +125,7 @@ PY_SRCS(
     contextvars.py
     copy.py
     copyreg.py
+    cProfile.py
     crypt.py
     csv.py
     ctypes/__init__.py
@@ -157,7 +160,6 @@ PY_SRCS(
     distutils/command/__init__.py
     distutils/command/bdist.py
     distutils/command/bdist_dumb.py
-    distutils/command/bdist_msi.py
     distutils/command/bdist_rpm.py
     distutils/command/build.py
     distutils/command/build_clib.py
@@ -351,7 +353,7 @@ PY_SRCS(
     encodings/uu_codec.py
     encodings/zlib_codec.py
     ensurepip/__init__.py
-    ensurepip/_bundled/__init__.py
+    ensurepip/__main__.py
     ensurepip/_uninstall.py
     enum.py
     filecmp.py
@@ -383,10 +385,8 @@ PY_SRCS(
     imp.py
     importlib/__init__.py
     importlib/_abc.py
-    importlib/_adapters.py
     importlib/_bootstrap.py
     importlib/_bootstrap_external.py
-    importlib/_common.py
     importlib/abc.py
     importlib/machinery.py
     importlib/metadata/__init__.py
@@ -397,7 +397,15 @@ PY_SRCS(
     importlib/metadata/_meta.py
     importlib/metadata/_text.py
     importlib/readers.py
-    importlib/resources.py
+    importlib/resources/__init__.py
+    importlib/resources/_adapters.py
+    importlib/resources/_common.py
+    importlib/resources/_itertools.py
+    importlib/resources/_legacy.py
+    importlib/resources/abc.py
+    importlib/resources/readers.py
+    importlib/resources/simple.py
+    importlib/simple.py
     importlib/util.py
     inspect.py
     io.py
@@ -476,7 +484,11 @@ PY_SRCS(
     queue.py
     quopri.py
     random.py
-    re.py
+    re/__init__.py
+    re/_casefix.py
+    re/_compiler.py
+    re/_constants.py
+    re/_parser.py
     reprlib.py
     rlcompleter.py
     runpy.py
@@ -519,6 +531,10 @@ PY_SRCS(
     timeit.py
     token.py
     tokenize.py
+    tomllib/__init__.py
+    tomllib/_parser.py
+    tomllib/_re.py
+    tomllib/_types.py
     trace.py
     traceback.py
     tracemalloc.py
@@ -527,6 +543,7 @@ PY_SRCS(
     types.py
     typing.py
     unittest/__init__.py
+    unittest/__main__.py
     unittest/_log.py
     unittest/async_case.py
     unittest/case.py
@@ -547,6 +564,7 @@ PY_SRCS(
     uu.py
     uuid.py
     venv/__init__.py
+    venv/__main__.py
     warnings.py
     wave.py
     weakref.py
@@ -555,23 +573,24 @@ PY_SRCS(
     wsgiref/handlers.py
     wsgiref/headers.py
     wsgiref/simple_server.py
+    wsgiref/types.py
     wsgiref/util.py
     wsgiref/validate.py
     xdrlib.py
     xml/__init__.py
-    xml/dom/NodeFilter.py
     xml/dom/__init__.py
     xml/dom/domreg.py
     xml/dom/expatbuilder.py
     xml/dom/minicompat.py
     xml/dom/minidom.py
+    xml/dom/NodeFilter.py
     xml/dom/pulldom.py
     xml/dom/xmlbuilder.py
+    xml/etree/__init__.py
+    xml/etree/cElementTree.py
     xml/etree/ElementInclude.py
     xml/etree/ElementPath.py
     xml/etree/ElementTree.py
-    xml/etree/__init__.py
-    xml/etree/cElementTree.py
     xml/parsers/__init__.py
     xml/parsers/expat.py
     xml/sax/__init__.py

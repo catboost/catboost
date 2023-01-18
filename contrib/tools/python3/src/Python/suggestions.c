@@ -1,7 +1,8 @@
 #include "Python.h"
-#include "frameobject.h"
+#include "pycore_frame.h"
 
 #include "pycore_pyerrors.h"
+#include "pycore_code.h"        // _PyCode_GetVarnames()
 
 #define MAX_CANDIDATE_ITEMS 750
 #define MAX_STRING_SIZE 40
@@ -76,9 +77,11 @@ levenshtein_distance(const char *a, size_t a_size,
     // Instead of producing the whole traditional len(a)-by-len(b)
     // matrix, we can update just one row in place.
     // Initialize the buffer row
+    size_t tmp = MOVE_COST;
     for (size_t i = 0; i < a_size; i++) {
         // cost from b[:0] to a[:i+1]
-        buffer[i] = (i + 1) * MOVE_COST;
+        buffer[i] = tmp;
+        tmp += MOVE_COST;
     }
 
     size_t result = 0;
@@ -219,9 +222,15 @@ offer_suggestions_for_name_error(PyNameErrorObject *exc)
 
     PyFrameObject *frame = traceback->tb_frame;
     assert(frame != NULL);
-    PyCodeObject *code = frame->f_code;
-    assert(code != NULL && code->co_varnames != NULL);
-    PyObject *dir = PySequence_List(code->co_varnames);
+    PyCodeObject *code = PyFrame_GetCode(frame);
+    assert(code != NULL && code->co_localsplusnames != NULL);
+    PyObject *varnames = _PyCode_GetVarnames(code);
+    if (varnames == NULL) {
+        return NULL;
+    }
+    PyObject *dir = PySequence_List(varnames);
+    Py_DECREF(varnames);
+    Py_DECREF(code);
     if (dir == NULL) {
         return NULL;
     }
@@ -232,7 +241,7 @@ offer_suggestions_for_name_error(PyNameErrorObject *exc)
         return suggestions;
     }
 
-    dir = PySequence_List(frame->f_globals);
+    dir = PySequence_List(frame->f_frame->f_globals);
     if (dir == NULL) {
         return NULL;
     }
@@ -242,7 +251,7 @@ offer_suggestions_for_name_error(PyNameErrorObject *exc)
         return suggestions;
     }
 
-    dir = PySequence_List(frame->f_builtins);
+    dir = PySequence_List(frame->f_frame->f_builtins);
     if (dir == NULL) {
         return NULL;
     }

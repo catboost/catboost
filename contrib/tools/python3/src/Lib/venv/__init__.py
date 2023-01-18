@@ -51,6 +51,7 @@ class EnvBuilder:
         self.symlinks = symlinks
         self.upgrade = upgrade
         self.with_pip = with_pip
+        self.orig_prompt = prompt
         if prompt == '.':  # see bpo-38901
             prompt = os.path.basename(os.getcwd())
         self.prompt = prompt
@@ -92,6 +93,15 @@ class EnvBuilder:
             elif os.path.isdir(fn):
                 shutil.rmtree(fn)
 
+    def _venv_path(self, env_dir, name):
+        vars = {
+            'base': env_dir,
+            'platbase': env_dir,
+            'installed_base': env_dir,
+            'installed_platbase': env_dir,
+        }
+        return sysconfig.get_path(name, scheme='venv', vars=vars)
+
     def ensure_directories(self, env_dir):
         """
         Create the directories for the environment.
@@ -106,6 +116,9 @@ class EnvBuilder:
             elif os.path.islink(d) or os.path.isfile(d):
                 raise ValueError('Unable to create directory %r' % d)
 
+        if os.pathsep in os.fspath(env_dir):
+            raise ValueError(f'Refusing to create a venv in {env_dir} because '
+                             f'it contains the PATH separator {os.pathsep}.')
         if os.path.exists(env_dir) and self.clear:
             self.clear_directory(env_dir)
         context = types.SimpleNamespace()
@@ -124,18 +137,12 @@ class EnvBuilder:
         context.executable = executable
         context.python_dir = dirname
         context.python_exe = exename
-        if sys.platform == 'win32':
-            binname = 'Scripts'
-            incpath = 'Include'
-            libpath = os.path.join(env_dir, 'Lib', 'site-packages')
-        else:
-            binname = 'bin'
-            incpath = 'include'
-            libpath = os.path.join(env_dir, 'lib',
-                                   'python%d.%d' % sys.version_info[:2],
-                                   'site-packages')
-        context.inc_path = path = os.path.join(env_dir, incpath)
-        create_if_needed(path)
+        binpath = self._venv_path(env_dir, 'scripts')
+        incpath = self._venv_path(env_dir, 'include')
+        libpath = self._venv_path(env_dir, 'purelib')
+
+        context.inc_path = incpath
+        create_if_needed(incpath)
         create_if_needed(libpath)
         # Issue 21197: create lib64 as a symlink to lib on 64-bit non-OS X POSIX
         if ((sys.maxsize > 2**32) and (os.name == 'posix') and
@@ -143,8 +150,8 @@ class EnvBuilder:
             link_path = os.path.join(env_dir, 'lib64')
             if not os.path.exists(link_path):   # Issue #21643
                 os.symlink('lib', link_path)
-        context.bin_path = binpath = os.path.join(env_dir, binname)
-        context.bin_name = binname
+        context.bin_path = binpath
+        context.bin_name = os.path.relpath(binpath, env_dir)
         context.env_exe = os.path.join(binpath, exename)
         create_if_needed(binpath)
         # Assign and update the command to use when launching the newly created
@@ -183,6 +190,29 @@ class EnvBuilder:
             f.write('version = %d.%d.%d\n' % sys.version_info[:3])
             if self.prompt is not None:
                 f.write(f'prompt = {self.prompt!r}\n')
+            f.write('executable = %s\n' % os.path.realpath(sys.executable))
+            args = []
+            nt = os.name == 'nt'
+            if nt and self.symlinks:
+                args.append('--symlinks')
+            if not nt and not self.symlinks:
+                args.append('--copies')
+            if not self.with_pip:
+                args.append('--without-pip')
+            if self.system_site_packages:
+                args.append('--system-site-packages')
+            if self.clear:
+                args.append('--clear')
+            if self.upgrade:
+                args.append('--upgrade')
+            if self.upgrade_deps:
+                args.append('--upgrade-deps')
+            if self.orig_prompt is not None:
+                args.append(f'--prompt="{self.orig_prompt}"')
+
+            args.append(context.env_dir)
+            args = ' '.join(args)
+            f.write(f'command = {sys.executable} -m venv {args}\n')
 
     if os.name != 'nt':
         def symlink_or_copy(self, src, dst, relative_symlinks_ok=False):
@@ -229,7 +259,7 @@ class EnvBuilder:
                                  basename + ext)
             # Builds or venv's from builds need to remap source file
             # locations, as we do not put them into Lib/venv/scripts
-            if sysconfig.is_python_build(True) or not os.path.isfile(srcfn):
+            if sysconfig.is_python_build() or not os.path.isfile(srcfn):
                 if basename.endswith('_d'):
                     ext = '_d' + ext
                     basename = basename[:-2]
@@ -280,7 +310,7 @@ class EnvBuilder:
                     f for f in os.listdir(dirname) if
                     os.path.normcase(os.path.splitext(f)[1]) in ('.exe', '.dll')
                 ]
-                if sysconfig.is_python_build(True):
+                if sysconfig.is_python_build():
                     suffixes = [
                         f for f in suffixes if
                         os.path.normcase(f).startswith(('python', 'vcruntime'))
@@ -295,7 +325,7 @@ class EnvBuilder:
                 if os.path.lexists(src):
                     copier(src, os.path.join(binpath, suffix))
 
-            if sysconfig.is_python_build(True):
+            if sysconfig.is_python_build():
                 # copy init.tcl
                 for root, dirs, files in os.walk(context.python_dir):
                     if 'init.tcl' in files:

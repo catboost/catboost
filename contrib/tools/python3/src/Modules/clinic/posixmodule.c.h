@@ -28,7 +28,7 @@ PyDoc_STRVAR(os_stat__doc__,
 "  an open file descriptor.");
 
 #define OS_STAT_METHODDEF    \
-    {"stat", (PyCFunction)(void(*)(void))os_stat, METH_FASTCALL|METH_KEYWORDS, os_stat__doc__},
+    {"stat", _PyCFunction_CAST(os_stat), METH_FASTCALL|METH_KEYWORDS, os_stat__doc__},
 
 static PyObject *
 os_stat_impl(PyObject *module, path_t *path, int dir_fd, int follow_symlinks);
@@ -87,7 +87,7 @@ PyDoc_STRVAR(os_lstat__doc__,
 "Equivalent to stat(path, follow_symlinks=False).");
 
 #define OS_LSTAT_METHODDEF    \
-    {"lstat", (PyCFunction)(void(*)(void))os_lstat, METH_FASTCALL|METH_KEYWORDS, os_lstat__doc__},
+    {"lstat", _PyCFunction_CAST(os_lstat), METH_FASTCALL|METH_KEYWORDS, os_lstat__doc__},
 
 static PyObject *
 os_lstat_impl(PyObject *module, path_t *path, int dir_fd);
@@ -159,7 +159,7 @@ PyDoc_STRVAR(os_access__doc__,
 "  has the specified access to the path.");
 
 #define OS_ACCESS_METHODDEF    \
-    {"access", (PyCFunction)(void(*)(void))os_access, METH_FASTCALL|METH_KEYWORDS, os_access__doc__},
+    {"access", _PyCFunction_CAST(os_access), METH_FASTCALL|METH_KEYWORDS, os_access__doc__},
 
 static int
 os_access_impl(PyObject *module, path_t *path, int mode, int dir_fd,
@@ -297,7 +297,7 @@ PyDoc_STRVAR(os_chdir__doc__,
 "  If this functionality is unavailable, using it raises an exception.");
 
 #define OS_CHDIR_METHODDEF    \
-    {"chdir", (PyCFunction)(void(*)(void))os_chdir, METH_FASTCALL|METH_KEYWORDS, os_chdir__doc__},
+    {"chdir", _PyCFunction_CAST(os_chdir), METH_FASTCALL|METH_KEYWORDS, os_chdir__doc__},
 
 static PyObject *
 os_chdir_impl(PyObject *module, path_t *path);
@@ -339,7 +339,7 @@ PyDoc_STRVAR(os_fchdir__doc__,
 "Equivalent to os.chdir(fd).");
 
 #define OS_FCHDIR_METHODDEF    \
-    {"fchdir", (PyCFunction)(void(*)(void))os_fchdir, METH_FASTCALL|METH_KEYWORDS, os_fchdir__doc__},
+    {"fchdir", _PyCFunction_CAST(os_fchdir), METH_FASTCALL|METH_KEYWORDS, os_fchdir__doc__},
 
 static PyObject *
 os_fchdir_impl(PyObject *module, int fd);
@@ -395,7 +395,7 @@ PyDoc_STRVAR(os_chmod__doc__,
 "  If they are unavailable, using them will raise a NotImplementedError.");
 
 #define OS_CHMOD_METHODDEF    \
-    {"chmod", (PyCFunction)(void(*)(void))os_chmod, METH_FASTCALL|METH_KEYWORDS, os_chmod__doc__},
+    {"chmod", _PyCFunction_CAST(os_chmod), METH_FASTCALL|METH_KEYWORDS, os_chmod__doc__},
 
 static PyObject *
 os_chmod_impl(PyObject *module, path_t *path, int mode, int dir_fd,
@@ -461,7 +461,7 @@ PyDoc_STRVAR(os_fchmod__doc__,
 "Equivalent to os.chmod(fd, mode).");
 
 #define OS_FCHMOD_METHODDEF    \
-    {"fchmod", (PyCFunction)(void(*)(void))os_fchmod, METH_FASTCALL|METH_KEYWORDS, os_fchmod__doc__},
+    {"fchmod", _PyCFunction_CAST(os_fchmod), METH_FASTCALL|METH_KEYWORDS, os_fchmod__doc__},
 
 static PyObject *
 os_fchmod_impl(PyObject *module, int fd, int mode);
@@ -508,7 +508,7 @@ PyDoc_STRVAR(os_lchmod__doc__,
 "Equivalent to chmod(path, mode, follow_symlinks=False).\"");
 
 #define OS_LCHMOD_METHODDEF    \
-    {"lchmod", (PyCFunction)(void(*)(void))os_lchmod, METH_FASTCALL|METH_KEYWORDS, os_lchmod__doc__},
+    {"lchmod", _PyCFunction_CAST(os_lchmod), METH_FASTCALL|METH_KEYWORDS, os_lchmod__doc__},
 
 static PyObject *
 os_lchmod_impl(PyObject *module, path_t *path, int mode);
@@ -560,7 +560,7 @@ PyDoc_STRVAR(os_chflags__doc__,
 "unavailable, using it will raise a NotImplementedError.");
 
 #define OS_CHFLAGS_METHODDEF    \
-    {"chflags", (PyCFunction)(void(*)(void))os_chflags, METH_FASTCALL|METH_KEYWORDS, os_chflags__doc__},
+    {"chflags", _PyCFunction_CAST(os_chflags), METH_FASTCALL|METH_KEYWORDS, os_chflags__doc__},
 
 static PyObject *
 os_chflags_impl(PyObject *module, path_t *path, unsigned long flags,
@@ -621,7 +621,7 @@ PyDoc_STRVAR(os_lchflags__doc__,
 "Equivalent to chflags(path, flags, follow_symlinks=False).");
 
 #define OS_LCHFLAGS_METHODDEF    \
-    {"lchflags", (PyCFunction)(void(*)(void))os_lchflags, METH_FASTCALL|METH_KEYWORDS, os_lchflags__doc__},
+    {"lchflags", _PyCFunction_CAST(os_lchflags), METH_FASTCALL|METH_KEYWORDS, os_lchflags__doc__},
 
 static PyObject *
 os_lchflags_impl(PyObject *module, path_t *path, unsigned long flags);
@@ -668,7 +668,7 @@ PyDoc_STRVAR(os_chroot__doc__,
 "Change root directory to path.");
 
 #define OS_CHROOT_METHODDEF    \
-    {"chroot", (PyCFunction)(void(*)(void))os_chroot, METH_FASTCALL|METH_KEYWORDS, os_chroot__doc__},
+    {"chroot", _PyCFunction_CAST(os_chroot), METH_FASTCALL|METH_KEYWORDS, os_chroot__doc__},
 
 static PyObject *
 os_chroot_impl(PyObject *module, path_t *path);
@@ -709,7 +709,7 @@ PyDoc_STRVAR(os_fsync__doc__,
 "Force write of fd to disk.");
 
 #define OS_FSYNC_METHODDEF    \
-    {"fsync", (PyCFunction)(void(*)(void))os_fsync, METH_FASTCALL|METH_KEYWORDS, os_fsync__doc__},
+    {"fsync", _PyCFunction_CAST(os_fsync), METH_FASTCALL|METH_KEYWORDS, os_fsync__doc__},
 
 static PyObject *
 os_fsync_impl(PyObject *module, int fd);
@@ -769,7 +769,7 @@ PyDoc_STRVAR(os_fdatasync__doc__,
 "Force write of fd to disk without forcing update of metadata.");
 
 #define OS_FDATASYNC_METHODDEF    \
-    {"fdatasync", (PyCFunction)(void(*)(void))os_fdatasync, METH_FASTCALL|METH_KEYWORDS, os_fdatasync__doc__},
+    {"fdatasync", _PyCFunction_CAST(os_fdatasync), METH_FASTCALL|METH_KEYWORDS, os_fdatasync__doc__},
 
 static PyObject *
 os_fdatasync_impl(PyObject *module, int fd);
@@ -831,7 +831,7 @@ PyDoc_STRVAR(os_chown__doc__,
 "  If they are unavailable, using them will raise a NotImplementedError.");
 
 #define OS_CHOWN_METHODDEF    \
-    {"chown", (PyCFunction)(void(*)(void))os_chown, METH_FASTCALL|METH_KEYWORDS, os_chown__doc__},
+    {"chown", _PyCFunction_CAST(os_chown), METH_FASTCALL|METH_KEYWORDS, os_chown__doc__},
 
 static PyObject *
 os_chown_impl(PyObject *module, path_t *path, uid_t uid, gid_t gid,
@@ -902,7 +902,7 @@ PyDoc_STRVAR(os_fchown__doc__,
 "Equivalent to os.chown(fd, uid, gid).");
 
 #define OS_FCHOWN_METHODDEF    \
-    {"fchown", (PyCFunction)(void(*)(void))os_fchown, METH_FASTCALL|METH_KEYWORDS, os_fchown__doc__},
+    {"fchown", _PyCFunction_CAST(os_fchown), METH_FASTCALL|METH_KEYWORDS, os_fchown__doc__},
 
 static PyObject *
 os_fchown_impl(PyObject *module, int fd, uid_t uid, gid_t gid);
@@ -952,7 +952,7 @@ PyDoc_STRVAR(os_lchown__doc__,
 "Equivalent to os.chown(path, uid, gid, follow_symlinks=False).");
 
 #define OS_LCHOWN_METHODDEF    \
-    {"lchown", (PyCFunction)(void(*)(void))os_lchown, METH_FASTCALL|METH_KEYWORDS, os_lchown__doc__},
+    {"lchown", _PyCFunction_CAST(os_lchown), METH_FASTCALL|METH_KEYWORDS, os_lchown__doc__},
 
 static PyObject *
 os_lchown_impl(PyObject *module, path_t *path, uid_t uid, gid_t gid);
@@ -1048,7 +1048,7 @@ PyDoc_STRVAR(os_link__doc__,
 "  NotImplementedError.");
 
 #define OS_LINK_METHODDEF    \
-    {"link", (PyCFunction)(void(*)(void))os_link, METH_FASTCALL|METH_KEYWORDS, os_link__doc__},
+    {"link", _PyCFunction_CAST(os_link), METH_FASTCALL|METH_KEYWORDS, os_link__doc__},
 
 static PyObject *
 os_link_impl(PyObject *module, path_t *src, path_t *dst, int src_dir_fd,
@@ -1133,7 +1133,7 @@ PyDoc_STRVAR(os_listdir__doc__,
 "entries \'.\' and \'..\' even if they are present in the directory.");
 
 #define OS_LISTDIR_METHODDEF    \
-    {"listdir", (PyCFunction)(void(*)(void))os_listdir, METH_FASTCALL|METH_KEYWORDS, os_listdir__doc__},
+    {"listdir", _PyCFunction_CAST(os_listdir), METH_FASTCALL|METH_KEYWORDS, os_listdir__doc__},
 
 static PyObject *
 os_listdir_impl(PyObject *module, path_t *path);
@@ -1244,7 +1244,7 @@ PyDoc_STRVAR(os__getvolumepathname__doc__,
 "A helper function for ismount on Win32.");
 
 #define OS__GETVOLUMEPATHNAME_METHODDEF    \
-    {"_getvolumepathname", (PyCFunction)(void(*)(void))os__getvolumepathname, METH_FASTCALL|METH_KEYWORDS, os__getvolumepathname__doc__},
+    {"_getvolumepathname", _PyCFunction_CAST(os__getvolumepathname), METH_FASTCALL|METH_KEYWORDS, os__getvolumepathname__doc__},
 
 static PyObject *
 os__getvolumepathname_impl(PyObject *module, path_t *path);
@@ -1285,7 +1285,7 @@ PyDoc_STRVAR(os__path_splitroot__doc__,
 "Removes everything after the root on Win32.");
 
 #define OS__PATH_SPLITROOT_METHODDEF    \
-    {"_path_splitroot", (PyCFunction)(void(*)(void))os__path_splitroot, METH_FASTCALL|METH_KEYWORDS, os__path_splitroot__doc__},
+    {"_path_splitroot", _PyCFunction_CAST(os__path_splitroot), METH_FASTCALL|METH_KEYWORDS, os__path_splitroot__doc__},
 
 static PyObject *
 os__path_splitroot_impl(PyObject *module, path_t *path);
@@ -1317,6 +1317,38 @@ exit:
 
 #endif /* defined(MS_WINDOWS) */
 
+PyDoc_STRVAR(os__path_normpath__doc__,
+"_path_normpath($module, /, path)\n"
+"--\n"
+"\n"
+"Basic path normalization.");
+
+#define OS__PATH_NORMPATH_METHODDEF    \
+    {"_path_normpath", _PyCFunction_CAST(os__path_normpath), METH_FASTCALL|METH_KEYWORDS, os__path_normpath__doc__},
+
+static PyObject *
+os__path_normpath_impl(PyObject *module, PyObject *path);
+
+static PyObject *
+os__path_normpath(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+{
+    PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"path", NULL};
+    static _PyArg_Parser _parser = {NULL, _keywords, "_path_normpath", 0};
+    PyObject *argsbuf[1];
+    PyObject *path;
+
+    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 1, 1, 0, argsbuf);
+    if (!args) {
+        goto exit;
+    }
+    path = args[0];
+    return_value = os__path_normpath_impl(module, path);
+
+exit:
+    return return_value;
+}
+
 PyDoc_STRVAR(os_mkdir__doc__,
 "mkdir($module, /, path, mode=511, *, dir_fd=None)\n"
 "--\n"
@@ -1332,7 +1364,7 @@ PyDoc_STRVAR(os_mkdir__doc__,
 "value is first masked out.");
 
 #define OS_MKDIR_METHODDEF    \
-    {"mkdir", (PyCFunction)(void(*)(void))os_mkdir, METH_FASTCALL|METH_KEYWORDS, os_mkdir__doc__},
+    {"mkdir", _PyCFunction_CAST(os_mkdir), METH_FASTCALL|METH_KEYWORDS, os_mkdir__doc__},
 
 static PyObject *
 os_mkdir_impl(PyObject *module, path_t *path, int mode, int dir_fd);
@@ -1426,7 +1458,7 @@ PyDoc_STRVAR(os_getpriority__doc__,
 "Return program scheduling priority.");
 
 #define OS_GETPRIORITY_METHODDEF    \
-    {"getpriority", (PyCFunction)(void(*)(void))os_getpriority, METH_FASTCALL|METH_KEYWORDS, os_getpriority__doc__},
+    {"getpriority", _PyCFunction_CAST(os_getpriority), METH_FASTCALL|METH_KEYWORDS, os_getpriority__doc__},
 
 static PyObject *
 os_getpriority_impl(PyObject *module, int which, int who);
@@ -1470,7 +1502,7 @@ PyDoc_STRVAR(os_setpriority__doc__,
 "Set program scheduling priority.");
 
 #define OS_SETPRIORITY_METHODDEF    \
-    {"setpriority", (PyCFunction)(void(*)(void))os_setpriority, METH_FASTCALL|METH_KEYWORDS, os_setpriority__doc__},
+    {"setpriority", _PyCFunction_CAST(os_setpriority), METH_FASTCALL|METH_KEYWORDS, os_setpriority__doc__},
 
 static PyObject *
 os_setpriority_impl(PyObject *module, int which, int who, int priority);
@@ -1523,7 +1555,7 @@ PyDoc_STRVAR(os_rename__doc__,
 "  If they are unavailable, using them will raise a NotImplementedError.");
 
 #define OS_RENAME_METHODDEF    \
-    {"rename", (PyCFunction)(void(*)(void))os_rename, METH_FASTCALL|METH_KEYWORDS, os_rename__doc__},
+    {"rename", _PyCFunction_CAST(os_rename), METH_FASTCALL|METH_KEYWORDS, os_rename__doc__},
 
 static PyObject *
 os_rename_impl(PyObject *module, path_t *src, path_t *dst, int src_dir_fd,
@@ -1591,7 +1623,7 @@ PyDoc_STRVAR(os_replace__doc__,
 "  If they are unavailable, using them will raise a NotImplementedError.");
 
 #define OS_REPLACE_METHODDEF    \
-    {"replace", (PyCFunction)(void(*)(void))os_replace, METH_FASTCALL|METH_KEYWORDS, os_replace__doc__},
+    {"replace", _PyCFunction_CAST(os_replace), METH_FASTCALL|METH_KEYWORDS, os_replace__doc__},
 
 static PyObject *
 os_replace_impl(PyObject *module, path_t *src, path_t *dst, int src_dir_fd,
@@ -1658,7 +1690,7 @@ PyDoc_STRVAR(os_rmdir__doc__,
 "  If it is unavailable, using it will raise a NotImplementedError.");
 
 #define OS_RMDIR_METHODDEF    \
-    {"rmdir", (PyCFunction)(void(*)(void))os_rmdir, METH_FASTCALL|METH_KEYWORDS, os_rmdir__doc__},
+    {"rmdir", _PyCFunction_CAST(os_rmdir), METH_FASTCALL|METH_KEYWORDS, os_rmdir__doc__},
 
 static PyObject *
 os_rmdir_impl(PyObject *module, path_t *path, int dir_fd);
@@ -1706,7 +1738,7 @@ PyDoc_STRVAR(os_system__doc__,
 "Execute the command in a subshell.");
 
 #define OS_SYSTEM_METHODDEF    \
-    {"system", (PyCFunction)(void(*)(void))os_system, METH_FASTCALL|METH_KEYWORDS, os_system__doc__},
+    {"system", _PyCFunction_CAST(os_system), METH_FASTCALL|METH_KEYWORDS, os_system__doc__},
 
 static long
 os_system_impl(PyObject *module, const Py_UNICODE *command);
@@ -1763,7 +1795,7 @@ PyDoc_STRVAR(os_system__doc__,
 "Execute the command in a subshell.");
 
 #define OS_SYSTEM_METHODDEF    \
-    {"system", (PyCFunction)(void(*)(void))os_system, METH_FASTCALL|METH_KEYWORDS, os_system__doc__},
+    {"system", _PyCFunction_CAST(os_system), METH_FASTCALL|METH_KEYWORDS, os_system__doc__},
 
 static long
 os_system_impl(PyObject *module, PyObject *command);
@@ -1800,6 +1832,8 @@ exit:
 
 #endif /* defined(HAVE_SYSTEM) && !defined(MS_WINDOWS) */
 
+#if defined(HAVE_UMASK)
+
 PyDoc_STRVAR(os_umask__doc__,
 "umask($module, mask, /)\n"
 "--\n"
@@ -1828,6 +1862,8 @@ exit:
     return return_value;
 }
 
+#endif /* defined(HAVE_UMASK) */
+
 PyDoc_STRVAR(os_unlink__doc__,
 "unlink($module, /, path, *, dir_fd=None)\n"
 "--\n"
@@ -1840,7 +1876,7 @@ PyDoc_STRVAR(os_unlink__doc__,
 "  If it is unavailable, using it will raise a NotImplementedError.");
 
 #define OS_UNLINK_METHODDEF    \
-    {"unlink", (PyCFunction)(void(*)(void))os_unlink, METH_FASTCALL|METH_KEYWORDS, os_unlink__doc__},
+    {"unlink", _PyCFunction_CAST(os_unlink), METH_FASTCALL|METH_KEYWORDS, os_unlink__doc__},
 
 static PyObject *
 os_unlink_impl(PyObject *module, path_t *path, int dir_fd);
@@ -1891,7 +1927,7 @@ PyDoc_STRVAR(os_remove__doc__,
 "  If it is unavailable, using it will raise a NotImplementedError.");
 
 #define OS_REMOVE_METHODDEF    \
-    {"remove", (PyCFunction)(void(*)(void))os_remove, METH_FASTCALL|METH_KEYWORDS, os_remove__doc__},
+    {"remove", _PyCFunction_CAST(os_remove), METH_FASTCALL|METH_KEYWORDS, os_remove__doc__},
 
 static PyObject *
 os_remove_impl(PyObject *module, path_t *path, int dir_fd);
@@ -1985,7 +2021,7 @@ PyDoc_STRVAR(os_utime__doc__,
 "  If they are unavailable, using them will raise a NotImplementedError.");
 
 #define OS_UTIME_METHODDEF    \
-    {"utime", (PyCFunction)(void(*)(void))os_utime, METH_FASTCALL|METH_KEYWORDS, os_utime__doc__},
+    {"utime", _PyCFunction_CAST(os_utime), METH_FASTCALL|METH_KEYWORDS, os_utime__doc__},
 
 static PyObject *
 os_utime_impl(PyObject *module, path_t *path, PyObject *times, PyObject *ns,
@@ -2060,7 +2096,7 @@ PyDoc_STRVAR(os__exit__doc__,
 "Exit to the system with specified status, without normal exit processing.");
 
 #define OS__EXIT_METHODDEF    \
-    {"_exit", (PyCFunction)(void(*)(void))os__exit, METH_FASTCALL|METH_KEYWORDS, os__exit__doc__},
+    {"_exit", _PyCFunction_CAST(os__exit), METH_FASTCALL|METH_KEYWORDS, os__exit__doc__},
 
 static PyObject *
 os__exit_impl(PyObject *module, int status);
@@ -2102,7 +2138,7 @@ PyDoc_STRVAR(os_execv__doc__,
 "    Tuple or list of strings.");
 
 #define OS_EXECV_METHODDEF    \
-    {"execv", (PyCFunction)(void(*)(void))os_execv, METH_FASTCALL, os_execv__doc__},
+    {"execv", _PyCFunction_CAST(os_execv), METH_FASTCALL, os_execv__doc__},
 
 static PyObject *
 os_execv_impl(PyObject *module, path_t *path, PyObject *argv);
@@ -2148,7 +2184,7 @@ PyDoc_STRVAR(os_execve__doc__,
 "    Dictionary of strings mapping to strings.");
 
 #define OS_EXECVE_METHODDEF    \
-    {"execve", (PyCFunction)(void(*)(void))os_execve, METH_FASTCALL|METH_KEYWORDS, os_execve__doc__},
+    {"execve", _PyCFunction_CAST(os_execve), METH_FASTCALL|METH_KEYWORDS, os_execve__doc__},
 
 static PyObject *
 os_execve_impl(PyObject *module, path_t *path, PyObject *argv, PyObject *env);
@@ -2216,7 +2252,7 @@ PyDoc_STRVAR(os_posix_spawn__doc__,
 "    A tuple with the scheduler policy (optional) and parameters.");
 
 #define OS_POSIX_SPAWN_METHODDEF    \
-    {"posix_spawn", (PyCFunction)(void(*)(void))os_posix_spawn, METH_FASTCALL|METH_KEYWORDS, os_posix_spawn__doc__},
+    {"posix_spawn", _PyCFunction_CAST(os_posix_spawn), METH_FASTCALL|METH_KEYWORDS, os_posix_spawn__doc__},
 
 static PyObject *
 os_posix_spawn_impl(PyObject *module, path_t *path, PyObject *argv,
@@ -2343,7 +2379,7 @@ PyDoc_STRVAR(os_posix_spawnp__doc__,
 "    A tuple with the scheduler policy (optional) and parameters.");
 
 #define OS_POSIX_SPAWNP_METHODDEF    \
-    {"posix_spawnp", (PyCFunction)(void(*)(void))os_posix_spawnp, METH_FASTCALL|METH_KEYWORDS, os_posix_spawnp__doc__},
+    {"posix_spawnp", _PyCFunction_CAST(os_posix_spawnp), METH_FASTCALL|METH_KEYWORDS, os_posix_spawnp__doc__},
 
 static PyObject *
 os_posix_spawnp_impl(PyObject *module, path_t *path, PyObject *argv,
@@ -2454,7 +2490,7 @@ PyDoc_STRVAR(os_spawnv__doc__,
 "    Tuple or list of strings.");
 
 #define OS_SPAWNV_METHODDEF    \
-    {"spawnv", (PyCFunction)(void(*)(void))os_spawnv, METH_FASTCALL, os_spawnv__doc__},
+    {"spawnv", _PyCFunction_CAST(os_spawnv), METH_FASTCALL, os_spawnv__doc__},
 
 static PyObject *
 os_spawnv_impl(PyObject *module, int mode, path_t *path, PyObject *argv);
@@ -2507,7 +2543,7 @@ PyDoc_STRVAR(os_spawnve__doc__,
 "    Dictionary of strings mapping to strings.");
 
 #define OS_SPAWNVE_METHODDEF    \
-    {"spawnve", (PyCFunction)(void(*)(void))os_spawnve, METH_FASTCALL, os_spawnve__doc__},
+    {"spawnve", _PyCFunction_CAST(os_spawnve), METH_FASTCALL, os_spawnve__doc__},
 
 static PyObject *
 os_spawnve_impl(PyObject *module, int mode, path_t *path, PyObject *argv,
@@ -2566,7 +2602,7 @@ PyDoc_STRVAR(os_register_at_fork__doc__,
 "\'after_in_child\' and \'after_in_parent\' callbacks are called in order.");
 
 #define OS_REGISTER_AT_FORK_METHODDEF    \
-    {"register_at_fork", (PyCFunction)(void(*)(void))os_register_at_fork, METH_FASTCALL|METH_KEYWORDS, os_register_at_fork__doc__},
+    {"register_at_fork", _PyCFunction_CAST(os_register_at_fork), METH_FASTCALL|METH_KEYWORDS, os_register_at_fork__doc__},
 
 static PyObject *
 os_register_at_fork_impl(PyObject *module, PyObject *before,
@@ -2670,7 +2706,7 @@ PyDoc_STRVAR(os_sched_get_priority_max__doc__,
 "Get the maximum scheduling priority for policy.");
 
 #define OS_SCHED_GET_PRIORITY_MAX_METHODDEF    \
-    {"sched_get_priority_max", (PyCFunction)(void(*)(void))os_sched_get_priority_max, METH_FASTCALL|METH_KEYWORDS, os_sched_get_priority_max__doc__},
+    {"sched_get_priority_max", _PyCFunction_CAST(os_sched_get_priority_max), METH_FASTCALL|METH_KEYWORDS, os_sched_get_priority_max__doc__},
 
 static PyObject *
 os_sched_get_priority_max_impl(PyObject *module, int policy);
@@ -2709,7 +2745,7 @@ PyDoc_STRVAR(os_sched_get_priority_min__doc__,
 "Get the minimum scheduling priority for policy.");
 
 #define OS_SCHED_GET_PRIORITY_MIN_METHODDEF    \
-    {"sched_get_priority_min", (PyCFunction)(void(*)(void))os_sched_get_priority_min, METH_FASTCALL|METH_KEYWORDS, os_sched_get_priority_min__doc__},
+    {"sched_get_priority_min", _PyCFunction_CAST(os_sched_get_priority_min), METH_FASTCALL|METH_KEYWORDS, os_sched_get_priority_min__doc__},
 
 static PyObject *
 os_sched_get_priority_min_impl(PyObject *module, int policy);
@@ -2822,7 +2858,7 @@ PyDoc_STRVAR(os_sched_setscheduler__doc__,
 "param is an instance of sched_param.");
 
 #define OS_SCHED_SETSCHEDULER_METHODDEF    \
-    {"sched_setscheduler", (PyCFunction)(void(*)(void))os_sched_setscheduler, METH_FASTCALL, os_sched_setscheduler__doc__},
+    {"sched_setscheduler", _PyCFunction_CAST(os_sched_setscheduler), METH_FASTCALL, os_sched_setscheduler__doc__},
 
 static PyObject *
 os_sched_setscheduler_impl(PyObject *module, pid_t pid, int policy,
@@ -2894,7 +2930,7 @@ PyDoc_STRVAR(os_sched_setparam__doc__,
 "param should be an instance of sched_param.");
 
 #define OS_SCHED_SETPARAM_METHODDEF    \
-    {"sched_setparam", (PyCFunction)(void(*)(void))os_sched_setparam, METH_FASTCALL, os_sched_setparam__doc__},
+    {"sched_setparam", _PyCFunction_CAST(os_sched_setparam), METH_FASTCALL, os_sched_setparam__doc__},
 
 static PyObject *
 os_sched_setparam_impl(PyObject *module, pid_t pid, PyObject *param_obj);
@@ -2989,7 +3025,7 @@ PyDoc_STRVAR(os_sched_setaffinity__doc__,
 "mask should be an iterable of integers identifying CPUs.");
 
 #define OS_SCHED_SETAFFINITY_METHODDEF    \
-    {"sched_setaffinity", (PyCFunction)(void(*)(void))os_sched_setaffinity, METH_FASTCALL, os_sched_setaffinity__doc__},
+    {"sched_setaffinity", _PyCFunction_CAST(os_sched_setaffinity), METH_FASTCALL, os_sched_setaffinity__doc__},
 
 static PyObject *
 os_sched_setaffinity_impl(PyObject *module, pid_t pid, PyObject *mask);
@@ -3070,6 +3106,41 @@ os_openpty(PyObject *module, PyObject *Py_UNUSED(ignored))
 }
 
 #endif /* (defined(HAVE_OPENPTY) || defined(HAVE__GETPTY) || defined(HAVE_DEV_PTMX)) */
+
+#if (defined(HAVE_LOGIN_TTY) || defined(HAVE_FALLBACK_LOGIN_TTY))
+
+PyDoc_STRVAR(os_login_tty__doc__,
+"login_tty($module, fd, /)\n"
+"--\n"
+"\n"
+"Prepare the tty of which fd is a file descriptor for a new login session.\n"
+"\n"
+"Make the calling process a session leader; make the tty the\n"
+"controlling tty, the stdin, the stdout, and the stderr of the\n"
+"calling process; close fd.");
+
+#define OS_LOGIN_TTY_METHODDEF    \
+    {"login_tty", (PyCFunction)os_login_tty, METH_O, os_login_tty__doc__},
+
+static PyObject *
+os_login_tty_impl(PyObject *module, int fd);
+
+static PyObject *
+os_login_tty(PyObject *module, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    int fd;
+
+    if (!_PyLong_FileDescriptor_Converter(arg, &fd)) {
+        goto exit;
+    }
+    return_value = os_login_tty_impl(module, fd);
+
+exit:
+    return return_value;
+}
+
+#endif /* (defined(HAVE_LOGIN_TTY) || defined(HAVE_FALLBACK_LOGIN_TTY)) */
 
 #if defined(HAVE_FORKPTY)
 
@@ -3200,7 +3271,7 @@ PyDoc_STRVAR(os_getgrouplist__doc__,
 "    base group id of the user");
 
 #define OS_GETGROUPLIST_METHODDEF    \
-    {"getgrouplist", (PyCFunction)(void(*)(void))os_getgrouplist, METH_FASTCALL, os_getgrouplist__doc__},
+    {"getgrouplist", _PyCFunction_CAST(os_getgrouplist), METH_FASTCALL, os_getgrouplist__doc__},
 
 static PyObject *
 os_getgrouplist_impl(PyObject *module, const char *user, int basegid);
@@ -3254,7 +3325,7 @@ PyDoc_STRVAR(os_getgrouplist__doc__,
 "    base group id of the user");
 
 #define OS_GETGROUPLIST_METHODDEF    \
-    {"getgrouplist", (PyCFunction)(void(*)(void))os_getgrouplist, METH_FASTCALL, os_getgrouplist__doc__},
+    {"getgrouplist", _PyCFunction_CAST(os_getgrouplist), METH_FASTCALL, os_getgrouplist__doc__},
 
 static PyObject *
 os_getgrouplist_impl(PyObject *module, const char *user, gid_t basegid);
@@ -3328,7 +3399,7 @@ PyDoc_STRVAR(os_initgroups__doc__,
 "group id.");
 
 #define OS_INITGROUPS_METHODDEF    \
-    {"initgroups", (PyCFunction)(void(*)(void))os_initgroups, METH_FASTCALL, os_initgroups__doc__},
+    {"initgroups", _PyCFunction_CAST(os_initgroups), METH_FASTCALL, os_initgroups__doc__},
 
 static PyObject *
 os_initgroups_impl(PyObject *module, PyObject *oname, int gid);
@@ -3374,7 +3445,7 @@ PyDoc_STRVAR(os_initgroups__doc__,
 "group id.");
 
 #define OS_INITGROUPS_METHODDEF    \
-    {"initgroups", (PyCFunction)(void(*)(void))os_initgroups, METH_FASTCALL, os_initgroups__doc__},
+    {"initgroups", _PyCFunction_CAST(os_initgroups), METH_FASTCALL, os_initgroups__doc__},
 
 static PyObject *
 os_initgroups_impl(PyObject *module, PyObject *oname, gid_t gid);
@@ -3415,7 +3486,7 @@ PyDoc_STRVAR(os_getpgid__doc__,
 "Call the system call getpgid(), and return the result.");
 
 #define OS_GETPGID_METHODDEF    \
-    {"getpgid", (PyCFunction)(void(*)(void))os_getpgid, METH_FASTCALL|METH_KEYWORDS, os_getpgid__doc__},
+    {"getpgid", _PyCFunction_CAST(os_getpgid), METH_FASTCALL|METH_KEYWORDS, os_getpgid__doc__},
 
 static PyObject *
 os_getpgid_impl(PyObject *module, pid_t pid);
@@ -3562,7 +3633,7 @@ PyDoc_STRVAR(os_kill__doc__,
 "Kill a process with a signal.");
 
 #define OS_KILL_METHODDEF    \
-    {"kill", (PyCFunction)(void(*)(void))os_kill, METH_FASTCALL, os_kill__doc__},
+    {"kill", _PyCFunction_CAST(os_kill), METH_FASTCALL, os_kill__doc__},
 
 static PyObject *
 os_kill_impl(PyObject *module, pid_t pid, Py_ssize_t signal);
@@ -3595,7 +3666,7 @@ PyDoc_STRVAR(os_killpg__doc__,
 "Kill a process group with a signal.");
 
 #define OS_KILLPG_METHODDEF    \
-    {"killpg", (PyCFunction)(void(*)(void))os_killpg, METH_FASTCALL, os_killpg__doc__},
+    {"killpg", _PyCFunction_CAST(os_killpg), METH_FASTCALL, os_killpg__doc__},
 
 static PyObject *
 os_killpg_impl(PyObject *module, pid_t pgid, int signal);
@@ -3753,7 +3824,7 @@ PyDoc_STRVAR(os_setreuid__doc__,
 "Set the current process\'s real and effective user ids.");
 
 #define OS_SETREUID_METHODDEF    \
-    {"setreuid", (PyCFunction)(void(*)(void))os_setreuid, METH_FASTCALL, os_setreuid__doc__},
+    {"setreuid", _PyCFunction_CAST(os_setreuid), METH_FASTCALL, os_setreuid__doc__},
 
 static PyObject *
 os_setreuid_impl(PyObject *module, uid_t ruid, uid_t euid);
@@ -3791,7 +3862,7 @@ PyDoc_STRVAR(os_setregid__doc__,
 "Set the current process\'s real and effective group ids.");
 
 #define OS_SETREGID_METHODDEF    \
-    {"setregid", (PyCFunction)(void(*)(void))os_setregid, METH_FASTCALL, os_setregid__doc__},
+    {"setregid", _PyCFunction_CAST(os_setregid), METH_FASTCALL, os_setregid__doc__},
 
 static PyObject *
 os_setregid_impl(PyObject *module, gid_t rgid, gid_t egid);
@@ -3876,7 +3947,7 @@ PyDoc_STRVAR(os_wait3__doc__,
 "  (pid, status, rusage)");
 
 #define OS_WAIT3_METHODDEF    \
-    {"wait3", (PyCFunction)(void(*)(void))os_wait3, METH_FASTCALL|METH_KEYWORDS, os_wait3__doc__},
+    {"wait3", _PyCFunction_CAST(os_wait3), METH_FASTCALL|METH_KEYWORDS, os_wait3__doc__},
 
 static PyObject *
 os_wait3_impl(PyObject *module, int options);
@@ -3918,7 +3989,7 @@ PyDoc_STRVAR(os_wait4__doc__,
 "  (pid, status, rusage)");
 
 #define OS_WAIT4_METHODDEF    \
-    {"wait4", (PyCFunction)(void(*)(void))os_wait4, METH_FASTCALL|METH_KEYWORDS, os_wait4__doc__},
+    {"wait4", _PyCFunction_CAST(os_wait4), METH_FASTCALL|METH_KEYWORDS, os_wait4__doc__},
 
 static PyObject *
 os_wait4_impl(PyObject *module, pid_t pid, int options);
@@ -3964,7 +4035,7 @@ PyDoc_STRVAR(os_waitid__doc__,
 "no children in a waitable state.");
 
 #define OS_WAITID_METHODDEF    \
-    {"waitid", (PyCFunction)(void(*)(void))os_waitid, METH_FASTCALL, os_waitid__doc__},
+    {"waitid", _PyCFunction_CAST(os_waitid), METH_FASTCALL, os_waitid__doc__},
 
 static PyObject *
 os_waitid_impl(PyObject *module, idtype_t idtype, id_t id, int options);
@@ -4003,7 +4074,7 @@ PyDoc_STRVAR(os_waitpid__doc__,
 "The options argument is ignored on Windows.");
 
 #define OS_WAITPID_METHODDEF    \
-    {"waitpid", (PyCFunction)(void(*)(void))os_waitpid, METH_FASTCALL, os_waitpid__doc__},
+    {"waitpid", _PyCFunction_CAST(os_waitpid), METH_FASTCALL, os_waitpid__doc__},
 
 static PyObject *
 os_waitpid_impl(PyObject *module, pid_t pid, int options);
@@ -4041,7 +4112,7 @@ PyDoc_STRVAR(os_waitpid__doc__,
 "The options argument is ignored on Windows.");
 
 #define OS_WAITPID_METHODDEF    \
-    {"waitpid", (PyCFunction)(void(*)(void))os_waitpid, METH_FASTCALL, os_waitpid__doc__},
+    {"waitpid", _PyCFunction_CAST(os_waitpid), METH_FASTCALL, os_waitpid__doc__},
 
 static PyObject *
 os_waitpid_impl(PyObject *module, intptr_t pid, int options);
@@ -4102,7 +4173,7 @@ PyDoc_STRVAR(os_pidfd_open__doc__,
 "signals.");
 
 #define OS_PIDFD_OPEN_METHODDEF    \
-    {"pidfd_open", (PyCFunction)(void(*)(void))os_pidfd_open, METH_FASTCALL|METH_KEYWORDS, os_pidfd_open__doc__},
+    {"pidfd_open", _PyCFunction_CAST(os_pidfd_open), METH_FASTCALL|METH_KEYWORDS, os_pidfd_open__doc__},
 
 static PyObject *
 os_pidfd_open_impl(PyObject *module, pid_t pid, unsigned int flags);
@@ -4143,7 +4214,7 @@ PyDoc_STRVAR(os_readlink__doc__,
 "using it will raise a NotImplementedError.");
 
 #define OS_READLINK_METHODDEF    \
-    {"readlink", (PyCFunction)(void(*)(void))os_readlink, METH_FASTCALL|METH_KEYWORDS, os_readlink__doc__},
+    {"readlink", _PyCFunction_CAST(os_readlink), METH_FASTCALL|METH_KEYWORDS, os_readlink__doc__},
 
 static PyObject *
 os_readlink_impl(PyObject *module, path_t *path, int dir_fd);
@@ -4203,7 +4274,7 @@ PyDoc_STRVAR(os_symlink__doc__,
 "  If it is unavailable, using it will raise a NotImplementedError.");
 
 #define OS_SYMLINK_METHODDEF    \
-    {"symlink", (PyCFunction)(void(*)(void))os_symlink, METH_FASTCALL|METH_KEYWORDS, os_symlink__doc__},
+    {"symlink", _PyCFunction_CAST(os_symlink), METH_FASTCALL|METH_KEYWORDS, os_symlink__doc__},
 
 static PyObject *
 os_symlink_impl(PyObject *module, path_t *src, path_t *dst,
@@ -4353,7 +4424,7 @@ PyDoc_STRVAR(os_setpgid__doc__,
 "Call the system call setpgid(pid, pgrp).");
 
 #define OS_SETPGID_METHODDEF    \
-    {"setpgid", (PyCFunction)(void(*)(void))os_setpgid, METH_FASTCALL, os_setpgid__doc__},
+    {"setpgid", _PyCFunction_CAST(os_setpgid), METH_FASTCALL, os_setpgid__doc__},
 
 static PyObject *
 os_setpgid_impl(PyObject *module, pid_t pid, pid_t pgrp);
@@ -4418,7 +4489,7 @@ PyDoc_STRVAR(os_tcsetpgrp__doc__,
 "Set the process group associated with the terminal specified by fd.");
 
 #define OS_TCSETPGRP_METHODDEF    \
-    {"tcsetpgrp", (PyCFunction)(void(*)(void))os_tcsetpgrp, METH_FASTCALL, os_tcsetpgrp__doc__},
+    {"tcsetpgrp", _PyCFunction_CAST(os_tcsetpgrp), METH_FASTCALL, os_tcsetpgrp__doc__},
 
 static PyObject *
 os_tcsetpgrp_impl(PyObject *module, int fd, pid_t pgid);
@@ -4454,7 +4525,7 @@ PyDoc_STRVAR(os_open__doc__,
 "  If it is unavailable, using it will raise a NotImplementedError.");
 
 #define OS_OPEN_METHODDEF    \
-    {"open", (PyCFunction)(void(*)(void))os_open, METH_FASTCALL|METH_KEYWORDS, os_open__doc__},
+    {"open", _PyCFunction_CAST(os_open), METH_FASTCALL|METH_KEYWORDS, os_open__doc__},
 
 static int
 os_open_impl(PyObject *module, path_t *path, int flags, int mode, int dir_fd);
@@ -4524,7 +4595,7 @@ PyDoc_STRVAR(os_close__doc__,
 "Close a file descriptor.");
 
 #define OS_CLOSE_METHODDEF    \
-    {"close", (PyCFunction)(void(*)(void))os_close, METH_FASTCALL|METH_KEYWORDS, os_close__doc__},
+    {"close", _PyCFunction_CAST(os_close), METH_FASTCALL|METH_KEYWORDS, os_close__doc__},
 
 static PyObject *
 os_close_impl(PyObject *module, int fd);
@@ -4559,7 +4630,7 @@ PyDoc_STRVAR(os_closerange__doc__,
 "Closes all file descriptors in [fd_low, fd_high), ignoring errors.");
 
 #define OS_CLOSERANGE_METHODDEF    \
-    {"closerange", (PyCFunction)(void(*)(void))os_closerange, METH_FASTCALL, os_closerange__doc__},
+    {"closerange", _PyCFunction_CAST(os_closerange), METH_FASTCALL, os_closerange__doc__},
 
 static PyObject *
 os_closerange_impl(PyObject *module, int fd_low, int fd_high);
@@ -4621,6 +4692,8 @@ exit:
     return return_value;
 }
 
+#if ((defined(HAVE_DUP3) || defined(F_DUPFD) || defined(MS_WINDOWS)))
+
 PyDoc_STRVAR(os_dup2__doc__,
 "dup2($module, /, fd, fd2, inheritable=True)\n"
 "--\n"
@@ -4628,7 +4701,7 @@ PyDoc_STRVAR(os_dup2__doc__,
 "Duplicate file descriptor.");
 
 #define OS_DUP2_METHODDEF    \
-    {"dup2", (PyCFunction)(void(*)(void))os_dup2, METH_FASTCALL|METH_KEYWORDS, os_dup2__doc__},
+    {"dup2", _PyCFunction_CAST(os_dup2), METH_FASTCALL|METH_KEYWORDS, os_dup2__doc__},
 
 static int
 os_dup2_impl(PyObject *module, int fd, int fd2, int inheritable);
@@ -4676,6 +4749,8 @@ exit:
     return return_value;
 }
 
+#endif /* ((defined(HAVE_DUP3) || defined(F_DUPFD) || defined(MS_WINDOWS))) */
+
 #if defined(HAVE_LOCKF)
 
 PyDoc_STRVAR(os_lockf__doc__,
@@ -4692,7 +4767,7 @@ PyDoc_STRVAR(os_lockf__doc__,
 "    The number of bytes to lock, starting at the current position.");
 
 #define OS_LOCKF_METHODDEF    \
-    {"lockf", (PyCFunction)(void(*)(void))os_lockf, METH_FASTCALL, os_lockf__doc__},
+    {"lockf", _PyCFunction_CAST(os_lockf), METH_FASTCALL, os_lockf__doc__},
 
 static PyObject *
 os_lockf_impl(PyObject *module, int fd, int command, Py_off_t length);
@@ -4737,7 +4812,7 @@ PyDoc_STRVAR(os_lseek__doc__,
 "relative to the beginning of the file.");
 
 #define OS_LSEEK_METHODDEF    \
-    {"lseek", (PyCFunction)(void(*)(void))os_lseek, METH_FASTCALL, os_lseek__doc__},
+    {"lseek", _PyCFunction_CAST(os_lseek), METH_FASTCALL, os_lseek__doc__},
 
 static Py_off_t
 os_lseek_impl(PyObject *module, int fd, Py_off_t position, int how);
@@ -4782,7 +4857,7 @@ PyDoc_STRVAR(os_read__doc__,
 "Read from a file descriptor.  Returns a bytes object.");
 
 #define OS_READ_METHODDEF    \
-    {"read", (PyCFunction)(void(*)(void))os_read, METH_FASTCALL, os_read__doc__},
+    {"read", _PyCFunction_CAST(os_read), METH_FASTCALL, os_read__doc__},
 
 static PyObject *
 os_read_impl(PyObject *module, int fd, Py_ssize_t length);
@@ -4836,7 +4911,7 @@ PyDoc_STRVAR(os_readv__doc__,
 "which may be less than the total capacity of all the buffers.");
 
 #define OS_READV_METHODDEF    \
-    {"readv", (PyCFunction)(void(*)(void))os_readv, METH_FASTCALL, os_readv__doc__},
+    {"readv", _PyCFunction_CAST(os_readv), METH_FASTCALL, os_readv__doc__},
 
 static Py_ssize_t
 os_readv_impl(PyObject *module, int fd, PyObject *buffers);
@@ -4881,7 +4956,7 @@ PyDoc_STRVAR(os_pread__doc__,
 "the beginning of the file.  The file offset remains unchanged.");
 
 #define OS_PREAD_METHODDEF    \
-    {"pread", (PyCFunction)(void(*)(void))os_pread, METH_FASTCALL, os_pread__doc__},
+    {"pread", _PyCFunction_CAST(os_pread), METH_FASTCALL, os_pread__doc__},
 
 static PyObject *
 os_pread_impl(PyObject *module, int fd, Py_ssize_t length, Py_off_t offset);
@@ -4947,7 +5022,7 @@ PyDoc_STRVAR(os_preadv__doc__,
 "Using non-zero flags requires Linux 4.6 or newer.");
 
 #define OS_PREADV_METHODDEF    \
-    {"preadv", (PyCFunction)(void(*)(void))os_preadv, METH_FASTCALL, os_preadv__doc__},
+    {"preadv", _PyCFunction_CAST(os_preadv), METH_FASTCALL, os_preadv__doc__},
 
 static Py_ssize_t
 os_preadv_impl(PyObject *module, int fd, PyObject *buffers, Py_off_t offset,
@@ -5001,7 +5076,7 @@ PyDoc_STRVAR(os_write__doc__,
 "Write a bytes object to a file descriptor.");
 
 #define OS_WRITE_METHODDEF    \
-    {"write", (PyCFunction)(void(*)(void))os_write, METH_FASTCALL, os_write__doc__},
+    {"write", _PyCFunction_CAST(os_write), METH_FASTCALL, os_write__doc__},
 
 static Py_ssize_t
 os_write_impl(PyObject *module, int fd, Py_buffer *data);
@@ -5053,7 +5128,7 @@ PyDoc_STRVAR(os_sendfile__doc__,
 "Copy count bytes from file descriptor in_fd to file descriptor out_fd.");
 
 #define OS_SENDFILE_METHODDEF    \
-    {"sendfile", (PyCFunction)(void(*)(void))os_sendfile, METH_FASTCALL|METH_KEYWORDS, os_sendfile__doc__},
+    {"sendfile", _PyCFunction_CAST(os_sendfile), METH_FASTCALL|METH_KEYWORDS, os_sendfile__doc__},
 
 static PyObject *
 os_sendfile_impl(PyObject *module, int out_fd, int in_fd, Py_off_t offset,
@@ -5132,7 +5207,7 @@ PyDoc_STRVAR(os_sendfile__doc__,
 "Copy count bytes from file descriptor in_fd to file descriptor out_fd.");
 
 #define OS_SENDFILE_METHODDEF    \
-    {"sendfile", (PyCFunction)(void(*)(void))os_sendfile, METH_FASTCALL|METH_KEYWORDS, os_sendfile__doc__},
+    {"sendfile", _PyCFunction_CAST(os_sendfile), METH_FASTCALL|METH_KEYWORDS, os_sendfile__doc__},
 
 static PyObject *
 os_sendfile_impl(PyObject *module, int out_fd, int in_fd, Py_off_t offset,
@@ -5219,7 +5294,7 @@ PyDoc_STRVAR(os_sendfile__doc__,
 "Copy count bytes from file descriptor in_fd to file descriptor out_fd.");
 
 #define OS_SENDFILE_METHODDEF    \
-    {"sendfile", (PyCFunction)(void(*)(void))os_sendfile, METH_FASTCALL|METH_KEYWORDS, os_sendfile__doc__},
+    {"sendfile", _PyCFunction_CAST(os_sendfile), METH_FASTCALL|METH_KEYWORDS, os_sendfile__doc__},
 
 static PyObject *
 os_sendfile_impl(PyObject *module, int out_fd, int in_fd, PyObject *offobj,
@@ -5279,7 +5354,7 @@ PyDoc_STRVAR(os__fcopyfile__doc__,
 "Efficiently copy content or metadata of 2 regular file descriptors (macOS).");
 
 #define OS__FCOPYFILE_METHODDEF    \
-    {"_fcopyfile", (PyCFunction)(void(*)(void))os__fcopyfile, METH_FASTCALL, os__fcopyfile__doc__},
+    {"_fcopyfile", _PyCFunction_CAST(os__fcopyfile), METH_FASTCALL, os__fcopyfile__doc__},
 
 static PyObject *
 os__fcopyfile_impl(PyObject *module, int in_fd, int out_fd, int flags);
@@ -5325,7 +5400,7 @@ PyDoc_STRVAR(os_fstat__doc__,
 "Equivalent to os.stat(fd).");
 
 #define OS_FSTAT_METHODDEF    \
-    {"fstat", (PyCFunction)(void(*)(void))os_fstat, METH_FASTCALL|METH_KEYWORDS, os_fstat__doc__},
+    {"fstat", _PyCFunction_CAST(os_fstat), METH_FASTCALL|METH_KEYWORDS, os_fstat__doc__},
 
 static PyObject *
 os_fstat_impl(PyObject *module, int fd);
@@ -5464,7 +5539,7 @@ PyDoc_STRVAR(os_writev__doc__,
 "buffers must be a sequence of bytes-like objects.");
 
 #define OS_WRITEV_METHODDEF    \
-    {"writev", (PyCFunction)(void(*)(void))os_writev, METH_FASTCALL, os_writev__doc__},
+    {"writev", _PyCFunction_CAST(os_writev), METH_FASTCALL, os_writev__doc__},
 
 static Py_ssize_t
 os_writev_impl(PyObject *module, int fd, PyObject *buffers);
@@ -5510,7 +5585,7 @@ PyDoc_STRVAR(os_pwrite__doc__,
 "current file offset.");
 
 #define OS_PWRITE_METHODDEF    \
-    {"pwrite", (PyCFunction)(void(*)(void))os_pwrite, METH_FASTCALL, os_pwrite__doc__},
+    {"pwrite", _PyCFunction_CAST(os_pwrite), METH_FASTCALL, os_pwrite__doc__},
 
 static Py_ssize_t
 os_pwrite_impl(PyObject *module, int fd, Py_buffer *buffer, Py_off_t offset);
@@ -5582,7 +5657,7 @@ PyDoc_STRVAR(os_pwritev__doc__,
 "Using non-zero flags requires Linux 4.7 or newer.");
 
 #define OS_PWRITEV_METHODDEF    \
-    {"pwritev", (PyCFunction)(void(*)(void))os_pwritev, METH_FASTCALL, os_pwritev__doc__},
+    {"pwritev", _PyCFunction_CAST(os_pwritev), METH_FASTCALL, os_pwritev__doc__},
 
 static Py_ssize_t
 os_pwritev_impl(PyObject *module, int fd, PyObject *buffers, Py_off_t offset,
@@ -5653,7 +5728,7 @@ PyDoc_STRVAR(os_copy_file_range__doc__,
 "respectively for offset_dst.");
 
 #define OS_COPY_FILE_RANGE_METHODDEF    \
-    {"copy_file_range", (PyCFunction)(void(*)(void))os_copy_file_range, METH_FASTCALL|METH_KEYWORDS, os_copy_file_range__doc__},
+    {"copy_file_range", _PyCFunction_CAST(os_copy_file_range), METH_FASTCALL|METH_KEYWORDS, os_copy_file_range__doc__},
 
 static PyObject *
 os_copy_file_range_impl(PyObject *module, int src, int dst, Py_ssize_t count,
@@ -5743,7 +5818,7 @@ PyDoc_STRVAR(os_splice__doc__,
 "descriptor that refers to a pipe must be None.");
 
 #define OS_SPLICE_METHODDEF    \
-    {"splice", (PyCFunction)(void(*)(void))os_splice, METH_FASTCALL|METH_KEYWORDS, os_splice__doc__},
+    {"splice", _PyCFunction_CAST(os_splice), METH_FASTCALL|METH_KEYWORDS, os_splice__doc__},
 
 static PyObject *
 os_splice_impl(PyObject *module, int src, int dst, Py_ssize_t count,
@@ -5830,7 +5905,7 @@ PyDoc_STRVAR(os_mkfifo__doc__,
 "  If it is unavailable, using it will raise a NotImplementedError.");
 
 #define OS_MKFIFO_METHODDEF    \
-    {"mkfifo", (PyCFunction)(void(*)(void))os_mkfifo, METH_FASTCALL|METH_KEYWORDS, os_mkfifo__doc__},
+    {"mkfifo", _PyCFunction_CAST(os_mkfifo), METH_FASTCALL|METH_KEYWORDS, os_mkfifo__doc__},
 
 static PyObject *
 os_mkfifo_impl(PyObject *module, path_t *path, int mode, int dir_fd);
@@ -5906,7 +5981,7 @@ PyDoc_STRVAR(os_mknod__doc__,
 "  If it is unavailable, using it will raise a NotImplementedError.");
 
 #define OS_MKNOD_METHODDEF    \
-    {"mknod", (PyCFunction)(void(*)(void))os_mknod, METH_FASTCALL|METH_KEYWORDS, os_mknod__doc__},
+    {"mknod", _PyCFunction_CAST(os_mknod), METH_FASTCALL|METH_KEYWORDS, os_mknod__doc__},
 
 static PyObject *
 os_mknod_impl(PyObject *module, path_t *path, int mode, dev_t device,
@@ -6052,7 +6127,7 @@ PyDoc_STRVAR(os_makedev__doc__,
 "Composes a raw device number from the major and minor device numbers.");
 
 #define OS_MAKEDEV_METHODDEF    \
-    {"makedev", (PyCFunction)(void(*)(void))os_makedev, METH_FASTCALL, os_makedev__doc__},
+    {"makedev", _PyCFunction_CAST(os_makedev), METH_FASTCALL, os_makedev__doc__},
 
 static dev_t
 os_makedev_impl(PyObject *module, int major, int minor);
@@ -6097,7 +6172,7 @@ PyDoc_STRVAR(os_ftruncate__doc__,
 "Truncate a file, specified by file descriptor, to a specific length.");
 
 #define OS_FTRUNCATE_METHODDEF    \
-    {"ftruncate", (PyCFunction)(void(*)(void))os_ftruncate, METH_FASTCALL, os_ftruncate__doc__},
+    {"ftruncate", _PyCFunction_CAST(os_ftruncate), METH_FASTCALL, os_ftruncate__doc__},
 
 static PyObject *
 os_ftruncate_impl(PyObject *module, int fd, Py_off_t length);
@@ -6139,7 +6214,7 @@ PyDoc_STRVAR(os_truncate__doc__,
 "  If this functionality is unavailable, using it raises an exception.");
 
 #define OS_TRUNCATE_METHODDEF    \
-    {"truncate", (PyCFunction)(void(*)(void))os_truncate, METH_FASTCALL|METH_KEYWORDS, os_truncate__doc__},
+    {"truncate", _PyCFunction_CAST(os_truncate), METH_FASTCALL|METH_KEYWORDS, os_truncate__doc__},
 
 static PyObject *
 os_truncate_impl(PyObject *module, path_t *path, Py_off_t length);
@@ -6187,7 +6262,7 @@ PyDoc_STRVAR(os_posix_fallocate__doc__,
 "starting at offset bytes from the beginning and continuing for length bytes.");
 
 #define OS_POSIX_FALLOCATE_METHODDEF    \
-    {"posix_fallocate", (PyCFunction)(void(*)(void))os_posix_fallocate, METH_FASTCALL, os_posix_fallocate__doc__},
+    {"posix_fallocate", _PyCFunction_CAST(os_posix_fallocate), METH_FASTCALL, os_posix_fallocate__doc__},
 
 static PyObject *
 os_posix_fallocate_impl(PyObject *module, int fd, Py_off_t offset,
@@ -6239,7 +6314,7 @@ PyDoc_STRVAR(os_posix_fadvise__doc__,
 "POSIX_FADV_DONTNEED.");
 
 #define OS_POSIX_FADVISE_METHODDEF    \
-    {"posix_fadvise", (PyCFunction)(void(*)(void))os_posix_fadvise, METH_FASTCALL, os_posix_fadvise__doc__},
+    {"posix_fadvise", _PyCFunction_CAST(os_posix_fadvise), METH_FASTCALL, os_posix_fadvise__doc__},
 
 static PyObject *
 os_posix_fadvise_impl(PyObject *module, int fd, Py_off_t offset,
@@ -6288,7 +6363,7 @@ PyDoc_STRVAR(os_putenv__doc__,
 "Change or add an environment variable.");
 
 #define OS_PUTENV_METHODDEF    \
-    {"putenv", (PyCFunction)(void(*)(void))os_putenv, METH_FASTCALL, os_putenv__doc__},
+    {"putenv", _PyCFunction_CAST(os_putenv), METH_FASTCALL, os_putenv__doc__},
 
 static PyObject *
 os_putenv_impl(PyObject *module, PyObject *name, PyObject *value);
@@ -6336,7 +6411,7 @@ PyDoc_STRVAR(os_putenv__doc__,
 "Change or add an environment variable.");
 
 #define OS_PUTENV_METHODDEF    \
-    {"putenv", (PyCFunction)(void(*)(void))os_putenv, METH_FASTCALL, os_putenv__doc__},
+    {"putenv", _PyCFunction_CAST(os_putenv), METH_FASTCALL, os_putenv__doc__},
 
 static PyObject *
 os_putenv_impl(PyObject *module, PyObject *name, PyObject *value);
@@ -6517,7 +6592,7 @@ PyDoc_STRVAR(os_WIFCONTINUED__doc__,
 "job control stop.");
 
 #define OS_WIFCONTINUED_METHODDEF    \
-    {"WIFCONTINUED", (PyCFunction)(void(*)(void))os_WIFCONTINUED, METH_FASTCALL|METH_KEYWORDS, os_WIFCONTINUED__doc__},
+    {"WIFCONTINUED", _PyCFunction_CAST(os_WIFCONTINUED), METH_FASTCALL|METH_KEYWORDS, os_WIFCONTINUED__doc__},
 
 static int
 os_WIFCONTINUED_impl(PyObject *module, int status);
@@ -6561,7 +6636,7 @@ PyDoc_STRVAR(os_WIFSTOPPED__doc__,
 "Return True if the process returning status was stopped.");
 
 #define OS_WIFSTOPPED_METHODDEF    \
-    {"WIFSTOPPED", (PyCFunction)(void(*)(void))os_WIFSTOPPED, METH_FASTCALL|METH_KEYWORDS, os_WIFSTOPPED__doc__},
+    {"WIFSTOPPED", _PyCFunction_CAST(os_WIFSTOPPED), METH_FASTCALL|METH_KEYWORDS, os_WIFSTOPPED__doc__},
 
 static int
 os_WIFSTOPPED_impl(PyObject *module, int status);
@@ -6605,7 +6680,7 @@ PyDoc_STRVAR(os_WIFSIGNALED__doc__,
 "Return True if the process returning status was terminated by a signal.");
 
 #define OS_WIFSIGNALED_METHODDEF    \
-    {"WIFSIGNALED", (PyCFunction)(void(*)(void))os_WIFSIGNALED, METH_FASTCALL|METH_KEYWORDS, os_WIFSIGNALED__doc__},
+    {"WIFSIGNALED", _PyCFunction_CAST(os_WIFSIGNALED), METH_FASTCALL|METH_KEYWORDS, os_WIFSIGNALED__doc__},
 
 static int
 os_WIFSIGNALED_impl(PyObject *module, int status);
@@ -6649,7 +6724,7 @@ PyDoc_STRVAR(os_WIFEXITED__doc__,
 "Return True if the process returning status exited via the exit() system call.");
 
 #define OS_WIFEXITED_METHODDEF    \
-    {"WIFEXITED", (PyCFunction)(void(*)(void))os_WIFEXITED, METH_FASTCALL|METH_KEYWORDS, os_WIFEXITED__doc__},
+    {"WIFEXITED", _PyCFunction_CAST(os_WIFEXITED), METH_FASTCALL|METH_KEYWORDS, os_WIFEXITED__doc__},
 
 static int
 os_WIFEXITED_impl(PyObject *module, int status);
@@ -6693,7 +6768,7 @@ PyDoc_STRVAR(os_WEXITSTATUS__doc__,
 "Return the process return code from status.");
 
 #define OS_WEXITSTATUS_METHODDEF    \
-    {"WEXITSTATUS", (PyCFunction)(void(*)(void))os_WEXITSTATUS, METH_FASTCALL|METH_KEYWORDS, os_WEXITSTATUS__doc__},
+    {"WEXITSTATUS", _PyCFunction_CAST(os_WEXITSTATUS), METH_FASTCALL|METH_KEYWORDS, os_WEXITSTATUS__doc__},
 
 static int
 os_WEXITSTATUS_impl(PyObject *module, int status);
@@ -6737,7 +6812,7 @@ PyDoc_STRVAR(os_WTERMSIG__doc__,
 "Return the signal that terminated the process that provided the status value.");
 
 #define OS_WTERMSIG_METHODDEF    \
-    {"WTERMSIG", (PyCFunction)(void(*)(void))os_WTERMSIG, METH_FASTCALL|METH_KEYWORDS, os_WTERMSIG__doc__},
+    {"WTERMSIG", _PyCFunction_CAST(os_WTERMSIG), METH_FASTCALL|METH_KEYWORDS, os_WTERMSIG__doc__},
 
 static int
 os_WTERMSIG_impl(PyObject *module, int status);
@@ -6781,7 +6856,7 @@ PyDoc_STRVAR(os_WSTOPSIG__doc__,
 "Return the signal that stopped the process that provided the status value.");
 
 #define OS_WSTOPSIG_METHODDEF    \
-    {"WSTOPSIG", (PyCFunction)(void(*)(void))os_WSTOPSIG, METH_FASTCALL|METH_KEYWORDS, os_WSTOPSIG__doc__},
+    {"WSTOPSIG", _PyCFunction_CAST(os_WSTOPSIG), METH_FASTCALL|METH_KEYWORDS, os_WSTOPSIG__doc__},
 
 static int
 os_WSTOPSIG_impl(PyObject *module, int status);
@@ -6863,7 +6938,7 @@ PyDoc_STRVAR(os_statvfs__doc__,
 "  If this functionality is unavailable, using it raises an exception.");
 
 #define OS_STATVFS_METHODDEF    \
-    {"statvfs", (PyCFunction)(void(*)(void))os_statvfs, METH_FASTCALL|METH_KEYWORDS, os_statvfs__doc__},
+    {"statvfs", _PyCFunction_CAST(os_statvfs), METH_FASTCALL|METH_KEYWORDS, os_statvfs__doc__},
 
 static PyObject *
 os_statvfs_impl(PyObject *module, path_t *path);
@@ -6904,7 +6979,7 @@ PyDoc_STRVAR(os__getdiskusage__doc__,
 "Return disk usage statistics about the given path as a (total, free) tuple.");
 
 #define OS__GETDISKUSAGE_METHODDEF    \
-    {"_getdiskusage", (PyCFunction)(void(*)(void))os__getdiskusage, METH_FASTCALL|METH_KEYWORDS, os__getdiskusage__doc__},
+    {"_getdiskusage", _PyCFunction_CAST(os__getdiskusage), METH_FASTCALL|METH_KEYWORDS, os__getdiskusage__doc__},
 
 static PyObject *
 os__getdiskusage_impl(PyObject *module, path_t *path);
@@ -6947,7 +7022,7 @@ PyDoc_STRVAR(os_fpathconf__doc__,
 "If there is no limit, return -1.");
 
 #define OS_FPATHCONF_METHODDEF    \
-    {"fpathconf", (PyCFunction)(void(*)(void))os_fpathconf, METH_FASTCALL, os_fpathconf__doc__},
+    {"fpathconf", _PyCFunction_CAST(os_fpathconf), METH_FASTCALL, os_fpathconf__doc__},
 
 static long
 os_fpathconf_impl(PyObject *module, int fd, int name);
@@ -6994,7 +7069,7 @@ PyDoc_STRVAR(os_pathconf__doc__,
 "  If this functionality is unavailable, using it raises an exception.");
 
 #define OS_PATHCONF_METHODDEF    \
-    {"pathconf", (PyCFunction)(void(*)(void))os_pathconf, METH_FASTCALL|METH_KEYWORDS, os_pathconf__doc__},
+    {"pathconf", _PyCFunction_CAST(os_pathconf), METH_FASTCALL|METH_KEYWORDS, os_pathconf__doc__},
 
 static long
 os_pathconf_impl(PyObject *module, path_t *path, int name);
@@ -7158,7 +7233,7 @@ PyDoc_STRVAR(os_startfile__doc__,
 "the underlying Win32 ShellExecute function doesn\'t work if it is.");
 
 #define OS_STARTFILE_METHODDEF    \
-    {"startfile", (PyCFunction)(void(*)(void))os_startfile, METH_FASTCALL|METH_KEYWORDS, os_startfile__doc__},
+    {"startfile", _PyCFunction_CAST(os_startfile), METH_FASTCALL|METH_KEYWORDS, os_startfile__doc__},
 
 static PyObject *
 os_startfile_impl(PyObject *module, path_t *filepath,
@@ -7293,7 +7368,7 @@ PyDoc_STRVAR(os_device_encoding__doc__,
 "If the device is not a terminal, return None.");
 
 #define OS_DEVICE_ENCODING_METHODDEF    \
-    {"device_encoding", (PyCFunction)(void(*)(void))os_device_encoding, METH_FASTCALL|METH_KEYWORDS, os_device_encoding__doc__},
+    {"device_encoding", _PyCFunction_CAST(os_device_encoding), METH_FASTCALL|METH_KEYWORDS, os_device_encoding__doc__},
 
 static PyObject *
 os_device_encoding_impl(PyObject *module, int fd);
@@ -7330,7 +7405,7 @@ PyDoc_STRVAR(os_setresuid__doc__,
 "Set the current process\'s real, effective, and saved user ids.");
 
 #define OS_SETRESUID_METHODDEF    \
-    {"setresuid", (PyCFunction)(void(*)(void))os_setresuid, METH_FASTCALL, os_setresuid__doc__},
+    {"setresuid", _PyCFunction_CAST(os_setresuid), METH_FASTCALL, os_setresuid__doc__},
 
 static PyObject *
 os_setresuid_impl(PyObject *module, uid_t ruid, uid_t euid, uid_t suid);
@@ -7372,7 +7447,7 @@ PyDoc_STRVAR(os_setresgid__doc__,
 "Set the current process\'s real, effective, and saved group ids.");
 
 #define OS_SETRESGID_METHODDEF    \
-    {"setresgid", (PyCFunction)(void(*)(void))os_setresgid, METH_FASTCALL, os_setresgid__doc__},
+    {"setresgid", _PyCFunction_CAST(os_setresgid), METH_FASTCALL, os_setresgid__doc__},
 
 static PyObject *
 os_setresgid_impl(PyObject *module, gid_t rgid, gid_t egid, gid_t sgid);
@@ -7463,7 +7538,7 @@ PyDoc_STRVAR(os_getxattr__doc__,
 "  the link points to.");
 
 #define OS_GETXATTR_METHODDEF    \
-    {"getxattr", (PyCFunction)(void(*)(void))os_getxattr, METH_FASTCALL|METH_KEYWORDS, os_getxattr__doc__},
+    {"getxattr", _PyCFunction_CAST(os_getxattr), METH_FASTCALL|METH_KEYWORDS, os_getxattr__doc__},
 
 static PyObject *
 os_getxattr_impl(PyObject *module, path_t *path, path_t *attribute,
@@ -7527,7 +7602,7 @@ PyDoc_STRVAR(os_setxattr__doc__,
 "  the link points to.");
 
 #define OS_SETXATTR_METHODDEF    \
-    {"setxattr", (PyCFunction)(void(*)(void))os_setxattr, METH_FASTCALL|METH_KEYWORDS, os_setxattr__doc__},
+    {"setxattr", _PyCFunction_CAST(os_setxattr), METH_FASTCALL|METH_KEYWORDS, os_setxattr__doc__},
 
 static PyObject *
 os_setxattr_impl(PyObject *module, path_t *path, path_t *attribute,
@@ -7616,7 +7691,7 @@ PyDoc_STRVAR(os_removexattr__doc__,
 "  the link points to.");
 
 #define OS_REMOVEXATTR_METHODDEF    \
-    {"removexattr", (PyCFunction)(void(*)(void))os_removexattr, METH_FASTCALL|METH_KEYWORDS, os_removexattr__doc__},
+    {"removexattr", _PyCFunction_CAST(os_removexattr), METH_FASTCALL|METH_KEYWORDS, os_removexattr__doc__},
 
 static PyObject *
 os_removexattr_impl(PyObject *module, path_t *path, path_t *attribute,
@@ -7680,7 +7755,7 @@ PyDoc_STRVAR(os_listxattr__doc__,
 "  the link points to.");
 
 #define OS_LISTXATTR_METHODDEF    \
-    {"listxattr", (PyCFunction)(void(*)(void))os_listxattr, METH_FASTCALL|METH_KEYWORDS, os_listxattr__doc__},
+    {"listxattr", _PyCFunction_CAST(os_listxattr), METH_FASTCALL|METH_KEYWORDS, os_listxattr__doc__},
 
 static PyObject *
 os_listxattr_impl(PyObject *module, path_t *path, int follow_symlinks);
@@ -7775,7 +7850,7 @@ PyDoc_STRVAR(os_memfd_create__doc__,
 "\n");
 
 #define OS_MEMFD_CREATE_METHODDEF    \
-    {"memfd_create", (PyCFunction)(void(*)(void))os_memfd_create, METH_FASTCALL|METH_KEYWORDS, os_memfd_create__doc__},
+    {"memfd_create", _PyCFunction_CAST(os_memfd_create), METH_FASTCALL|METH_KEYWORDS, os_memfd_create__doc__},
 
 static PyObject *
 os_memfd_create_impl(PyObject *module, PyObject *name, unsigned int flags);
@@ -7826,7 +7901,7 @@ PyDoc_STRVAR(os_eventfd__doc__,
 "Creates and returns an event notification file descriptor.");
 
 #define OS_EVENTFD_METHODDEF    \
-    {"eventfd", (PyCFunction)(void(*)(void))os_eventfd, METH_FASTCALL|METH_KEYWORDS, os_eventfd__doc__},
+    {"eventfd", _PyCFunction_CAST(os_eventfd), METH_FASTCALL|METH_KEYWORDS, os_eventfd__doc__},
 
 static PyObject *
 os_eventfd_impl(PyObject *module, unsigned int initval, int flags);
@@ -7874,7 +7949,7 @@ PyDoc_STRVAR(os_eventfd_read__doc__,
 "Read eventfd value");
 
 #define OS_EVENTFD_READ_METHODDEF    \
-    {"eventfd_read", (PyCFunction)(void(*)(void))os_eventfd_read, METH_FASTCALL|METH_KEYWORDS, os_eventfd_read__doc__},
+    {"eventfd_read", _PyCFunction_CAST(os_eventfd_read), METH_FASTCALL|METH_KEYWORDS, os_eventfd_read__doc__},
 
 static PyObject *
 os_eventfd_read_impl(PyObject *module, int fd);
@@ -7912,7 +7987,7 @@ PyDoc_STRVAR(os_eventfd_write__doc__,
 "Write eventfd value.");
 
 #define OS_EVENTFD_WRITE_METHODDEF    \
-    {"eventfd_write", (PyCFunction)(void(*)(void))os_eventfd_write, METH_FASTCALL|METH_KEYWORDS, os_eventfd_write__doc__},
+    {"eventfd_write", _PyCFunction_CAST(os_eventfd_write), METH_FASTCALL|METH_KEYWORDS, os_eventfd_write__doc__},
 
 static PyObject *
 os_eventfd_write_impl(PyObject *module, int fd, unsigned long long value);
@@ -7966,7 +8041,7 @@ PyDoc_STRVAR(os_get_terminal_size__doc__,
 "normally be used, os.get_terminal_size is the low-level implementation.");
 
 #define OS_GET_TERMINAL_SIZE_METHODDEF    \
-    {"get_terminal_size", (PyCFunction)(void(*)(void))os_get_terminal_size, METH_FASTCALL, os_get_terminal_size__doc__},
+    {"get_terminal_size", _PyCFunction_CAST(os_get_terminal_size), METH_FASTCALL, os_get_terminal_size__doc__},
 
 static PyObject *
 os_get_terminal_size_impl(PyObject *module, int fd);
@@ -8058,7 +8133,7 @@ PyDoc_STRVAR(os_set_inheritable__doc__,
 "Set the inheritable flag of the specified file descriptor.");
 
 #define OS_SET_INHERITABLE_METHODDEF    \
-    {"set_inheritable", (PyCFunction)(void(*)(void))os_set_inheritable, METH_FASTCALL, os_set_inheritable__doc__},
+    {"set_inheritable", _PyCFunction_CAST(os_set_inheritable), METH_FASTCALL, os_set_inheritable__doc__},
 
 static PyObject *
 os_set_inheritable_impl(PyObject *module, int fd, int inheritable);
@@ -8132,7 +8207,7 @@ PyDoc_STRVAR(os_set_handle_inheritable__doc__,
 "Set the inheritable flag of the specified handle.");
 
 #define OS_SET_HANDLE_INHERITABLE_METHODDEF    \
-    {"set_handle_inheritable", (PyCFunction)(void(*)(void))os_set_handle_inheritable, METH_FASTCALL, os_set_handle_inheritable__doc__},
+    {"set_handle_inheritable", _PyCFunction_CAST(os_set_handle_inheritable), METH_FASTCALL, os_set_handle_inheritable__doc__},
 
 static PyObject *
 os_set_handle_inheritable_impl(PyObject *module, intptr_t handle,
@@ -8208,7 +8283,7 @@ PyDoc_STRVAR(os_set_blocking__doc__,
 "clear the O_NONBLOCK flag otherwise.");
 
 #define OS_SET_BLOCKING_METHODDEF    \
-    {"set_blocking", (PyCFunction)(void(*)(void))os_set_blocking, METH_FASTCALL, os_set_blocking__doc__},
+    {"set_blocking", _PyCFunction_CAST(os_set_blocking), METH_FASTCALL, os_set_blocking__doc__},
 
 static PyObject *
 os_set_blocking_impl(PyObject *module, int fd, int blocking);
@@ -8246,7 +8321,7 @@ PyDoc_STRVAR(os_DirEntry_is_symlink__doc__,
 "Return True if the entry is a symbolic link; cached per entry.");
 
 #define OS_DIRENTRY_IS_SYMLINK_METHODDEF    \
-    {"is_symlink", (PyCFunction)(void(*)(void))os_DirEntry_is_symlink, METH_METHOD|METH_FASTCALL|METH_KEYWORDS, os_DirEntry_is_symlink__doc__},
+    {"is_symlink", _PyCFunction_CAST(os_DirEntry_is_symlink), METH_METHOD|METH_FASTCALL|METH_KEYWORDS, os_DirEntry_is_symlink__doc__},
 
 static int
 os_DirEntry_is_symlink_impl(DirEntry *self, PyTypeObject *defining_class);
@@ -8278,7 +8353,7 @@ PyDoc_STRVAR(os_DirEntry_stat__doc__,
 "Return stat_result object for the entry; cached per entry.");
 
 #define OS_DIRENTRY_STAT_METHODDEF    \
-    {"stat", (PyCFunction)(void(*)(void))os_DirEntry_stat, METH_METHOD|METH_FASTCALL|METH_KEYWORDS, os_DirEntry_stat__doc__},
+    {"stat", _PyCFunction_CAST(os_DirEntry_stat), METH_METHOD|METH_FASTCALL|METH_KEYWORDS, os_DirEntry_stat__doc__},
 
 static PyObject *
 os_DirEntry_stat_impl(DirEntry *self, PyTypeObject *defining_class,
@@ -8319,7 +8394,7 @@ PyDoc_STRVAR(os_DirEntry_is_dir__doc__,
 "Return True if the entry is a directory; cached per entry.");
 
 #define OS_DIRENTRY_IS_DIR_METHODDEF    \
-    {"is_dir", (PyCFunction)(void(*)(void))os_DirEntry_is_dir, METH_METHOD|METH_FASTCALL|METH_KEYWORDS, os_DirEntry_is_dir__doc__},
+    {"is_dir", _PyCFunction_CAST(os_DirEntry_is_dir), METH_METHOD|METH_FASTCALL|METH_KEYWORDS, os_DirEntry_is_dir__doc__},
 
 static int
 os_DirEntry_is_dir_impl(DirEntry *self, PyTypeObject *defining_class,
@@ -8365,7 +8440,7 @@ PyDoc_STRVAR(os_DirEntry_is_file__doc__,
 "Return True if the entry is a file; cached per entry.");
 
 #define OS_DIRENTRY_IS_FILE_METHODDEF    \
-    {"is_file", (PyCFunction)(void(*)(void))os_DirEntry_is_file, METH_METHOD|METH_FASTCALL|METH_KEYWORDS, os_DirEntry_is_file__doc__},
+    {"is_file", _PyCFunction_CAST(os_DirEntry_is_file), METH_METHOD|METH_FASTCALL|METH_KEYWORDS, os_DirEntry_is_file__doc__},
 
 static int
 os_DirEntry_is_file_impl(DirEntry *self, PyTypeObject *defining_class,
@@ -8453,7 +8528,7 @@ PyDoc_STRVAR(os_scandir__doc__,
 "If path is None, uses the path=\'.\'.");
 
 #define OS_SCANDIR_METHODDEF    \
-    {"scandir", (PyCFunction)(void(*)(void))os_scandir, METH_FASTCALL|METH_KEYWORDS, os_scandir__doc__},
+    {"scandir", _PyCFunction_CAST(os_scandir), METH_FASTCALL|METH_KEYWORDS, os_scandir__doc__},
 
 static PyObject *
 os_scandir_impl(PyObject *module, path_t *path);
@@ -8499,7 +8574,7 @@ PyDoc_STRVAR(os_fspath__doc__,
 "types raise a TypeError.");
 
 #define OS_FSPATH_METHODDEF    \
-    {"fspath", (PyCFunction)(void(*)(void))os_fspath, METH_FASTCALL|METH_KEYWORDS, os_fspath__doc__},
+    {"fspath", _PyCFunction_CAST(os_fspath), METH_FASTCALL|METH_KEYWORDS, os_fspath__doc__},
 
 static PyObject *
 os_fspath_impl(PyObject *module, PyObject *path);
@@ -8533,7 +8608,7 @@ PyDoc_STRVAR(os_getrandom__doc__,
 "Obtain a series of random bytes.");
 
 #define OS_GETRANDOM_METHODDEF    \
-    {"getrandom", (PyCFunction)(void(*)(void))os_getrandom, METH_FASTCALL|METH_KEYWORDS, os_getrandom__doc__},
+    {"getrandom", _PyCFunction_CAST(os_getrandom), METH_FASTCALL|METH_KEYWORDS, os_getrandom__doc__},
 
 static PyObject *
 os_getrandom_impl(PyObject *module, Py_ssize_t size, int flags);
@@ -8597,7 +8672,7 @@ PyDoc_STRVAR(os__add_dll_directory__doc__,
 "to remove this directory from the search path.");
 
 #define OS__ADD_DLL_DIRECTORY_METHODDEF    \
-    {"_add_dll_directory", (PyCFunction)(void(*)(void))os__add_dll_directory, METH_FASTCALL|METH_KEYWORDS, os__add_dll_directory__doc__},
+    {"_add_dll_directory", _PyCFunction_CAST(os__add_dll_directory), METH_FASTCALL|METH_KEYWORDS, os__add_dll_directory__doc__},
 
 static PyObject *
 os__add_dll_directory_impl(PyObject *module, path_t *path);
@@ -8642,7 +8717,7 @@ PyDoc_STRVAR(os__remove_dll_directory__doc__,
 "yourself.");
 
 #define OS__REMOVE_DLL_DIRECTORY_METHODDEF    \
-    {"_remove_dll_directory", (PyCFunction)(void(*)(void))os__remove_dll_directory, METH_FASTCALL|METH_KEYWORDS, os__remove_dll_directory__doc__},
+    {"_remove_dll_directory", _PyCFunction_CAST(os__remove_dll_directory), METH_FASTCALL|METH_KEYWORDS, os__remove_dll_directory__doc__},
 
 static PyObject *
 os__remove_dll_directory_impl(PyObject *module, PyObject *cookie);
@@ -8690,7 +8765,7 @@ PyDoc_STRVAR(os_waitstatus_to_exitcode__doc__,
 "This function must not be called if WIFSTOPPED(status) is true.");
 
 #define OS_WAITSTATUS_TO_EXITCODE_METHODDEF    \
-    {"waitstatus_to_exitcode", (PyCFunction)(void(*)(void))os_waitstatus_to_exitcode, METH_FASTCALL|METH_KEYWORDS, os_waitstatus_to_exitcode__doc__},
+    {"waitstatus_to_exitcode", _PyCFunction_CAST(os_waitstatus_to_exitcode), METH_FASTCALL|METH_KEYWORDS, os_waitstatus_to_exitcode__doc__},
 
 static PyObject *
 os_waitstatus_to_exitcode_impl(PyObject *module, PyObject *status_obj);
@@ -8809,6 +8884,10 @@ exit:
     #define OS_SYSTEM_METHODDEF
 #endif /* !defined(OS_SYSTEM_METHODDEF) */
 
+#ifndef OS_UMASK_METHODDEF
+    #define OS_UMASK_METHODDEF
+#endif /* !defined(OS_UMASK_METHODDEF) */
+
 #ifndef OS_UNAME_METHODDEF
     #define OS_UNAME_METHODDEF
 #endif /* !defined(OS_UNAME_METHODDEF) */
@@ -8892,6 +8971,10 @@ exit:
 #ifndef OS_OPENPTY_METHODDEF
     #define OS_OPENPTY_METHODDEF
 #endif /* !defined(OS_OPENPTY_METHODDEF) */
+
+#ifndef OS_LOGIN_TTY_METHODDEF
+    #define OS_LOGIN_TTY_METHODDEF
+#endif /* !defined(OS_LOGIN_TTY_METHODDEF) */
 
 #ifndef OS_FORKPTY_METHODDEF
     #define OS_FORKPTY_METHODDEF
@@ -9044,6 +9127,10 @@ exit:
 #ifndef OS_TCSETPGRP_METHODDEF
     #define OS_TCSETPGRP_METHODDEF
 #endif /* !defined(OS_TCSETPGRP_METHODDEF) */
+
+#ifndef OS_DUP2_METHODDEF
+    #define OS_DUP2_METHODDEF
+#endif /* !defined(OS_DUP2_METHODDEF) */
 
 #ifndef OS_LOCKF_METHODDEF
     #define OS_LOCKF_METHODDEF
@@ -9292,4 +9379,4 @@ exit:
 #ifndef OS_WAITSTATUS_TO_EXITCODE_METHODDEF
     #define OS_WAITSTATUS_TO_EXITCODE_METHODDEF
 #endif /* !defined(OS_WAITSTATUS_TO_EXITCODE_METHODDEF) */
-/*[clinic end generated code: output=f8cdbd04ea0e3502 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=8dd784bf1e41b881 input=a9049054013a1b77]*/

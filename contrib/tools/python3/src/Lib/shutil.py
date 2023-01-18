@@ -40,6 +40,8 @@ elif _WINDOWS:
     import nt
 
 COPY_BUFSIZE = 1024 * 1024 if _WINDOWS else 64 * 1024
+# This should never be removed, see rationale in:
+# https://bugs.python.org/issue43743#msg393429
 _USE_CP_SENDFILE = hasattr(os, "sendfile") and sys.platform.startswith("linux")
 _HAS_FCOPYFILE = posix and hasattr(posix, "_fcopyfile")  # macOS
 
@@ -186,9 +188,9 @@ def _copyfileobj_readinto(fsrc, fdst, length=COPY_BUFSIZE):
 
 def copyfileobj(fsrc, fdst, length=0):
     """copy data from file-like object fsrc to file-like object fdst"""
-    # Localize variable access to minimize overhead.
     if not length:
         length = COPY_BUFSIZE
+    # Localize variable access to minimize overhead.
     fsrc_read = fsrc.read
     fdst_write = fdst.write
     while True:
@@ -685,8 +687,13 @@ _use_fd_functions = ({os.open, os.stat, os.unlink, os.rmdir} <=
                      os.scandir in os.supports_fd and
                      os.stat in os.supports_follow_symlinks)
 
-def rmtree(path, ignore_errors=False, onerror=None):
+def rmtree(path, ignore_errors=False, onerror=None, *, dir_fd=None):
     """Recursively delete a directory tree.
+
+    If dir_fd is not None, it should be a file descriptor open to a directory;
+    path will then be relative to that directory.
+    dir_fd may not be implemented on your platform.
+    If it is unavailable, using it will raise a NotImplementedError.
 
     If ignore_errors is set, errors are ignored; otherwise, if onerror
     is set, it is called to handle the error with arguments (func,
@@ -696,7 +703,7 @@ def rmtree(path, ignore_errors=False, onerror=None):
     is false and onerror is None, an exception is raised.
 
     """
-    sys.audit("shutil.rmtree", path)
+    sys.audit("shutil.rmtree", path, dir_fd)
     if ignore_errors:
         def onerror(*args):
             pass
@@ -710,12 +717,12 @@ def rmtree(path, ignore_errors=False, onerror=None):
         # Note: To guard against symlink races, we use the standard
         # lstat()/open()/fstat() trick.
         try:
-            orig_st = os.lstat(path)
+            orig_st = os.lstat(path, dir_fd=dir_fd)
         except Exception:
             onerror(os.lstat, path, sys.exc_info())
             return
         try:
-            fd = os.open(path, os.O_RDONLY)
+            fd = os.open(path, os.O_RDONLY, dir_fd=dir_fd)
             fd_closed = False
         except Exception:
             onerror(os.open, path, sys.exc_info())
@@ -726,7 +733,7 @@ def rmtree(path, ignore_errors=False, onerror=None):
                 try:
                     os.close(fd)
                     fd_closed = True
-                    os.rmdir(path)
+                    os.rmdir(path, dir_fd=dir_fd)
                 except OSError:
                     onerror(os.rmdir, path, sys.exc_info())
             else:
@@ -739,6 +746,8 @@ def rmtree(path, ignore_errors=False, onerror=None):
             if not fd_closed:
                 os.close(fd)
     else:
+        if dir_fd is not None:
+            raise NotImplementedError("dir_fd unavailable on this platform")
         try:
             if _rmtree_islink(path):
                 # symlinks to directories are forbidden, see bug #1669
@@ -1414,9 +1423,9 @@ def get_terminal_size(fallback=(80, 24)):
             # os.get_terminal_size() is unsupported
             size = os.terminal_size(fallback)
         if columns <= 0:
-            columns = size.columns
+            columns = size.columns or fallback[0]
         if lines <= 0:
-            lines = size.lines
+            lines = size.lines or fallback[1]
 
     return os.terminal_size((columns, lines))
 

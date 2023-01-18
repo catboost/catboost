@@ -12,15 +12,16 @@ pysqlite_cursor_init(PyObject *self, PyObject *args, PyObject *kwargs)
     int return_value = -1;
     pysqlite_Connection *connection;
 
-    if (Py_IS_TYPE(self, pysqlite_CursorType) &&
+    if ((Py_IS_TYPE(self, clinic_state()->CursorType) ||
+         Py_TYPE(self)->tp_new == clinic_state()->CursorType->tp_new) &&
         !_PyArg_NoKeywords("Cursor", kwargs)) {
         goto exit;
     }
     if (!_PyArg_CheckPositional("Cursor", PyTuple_GET_SIZE(args), 1, 1)) {
         goto exit;
     }
-    if (!PyObject_TypeCheck(PyTuple_GET_ITEM(args, 0), pysqlite_ConnectionType)) {
-        _PyArg_BadArgument("Cursor", "argument 1", (pysqlite_ConnectionType)->tp_name, PyTuple_GET_ITEM(args, 0));
+    if (!PyObject_TypeCheck(PyTuple_GET_ITEM(args, 0), clinic_state()->ConnectionType)) {
+        _PyArg_BadArgument("Cursor", "argument 1", (clinic_state()->ConnectionType)->tp_name, PyTuple_GET_ITEM(args, 0));
         goto exit;
     }
     connection = (pysqlite_Connection *)PyTuple_GET_ITEM(args, 0);
@@ -37,7 +38,7 @@ PyDoc_STRVAR(pysqlite_cursor_execute__doc__,
 "Executes an SQL statement.");
 
 #define PYSQLITE_CURSOR_EXECUTE_METHODDEF    \
-    {"execute", (PyCFunction)(void(*)(void))pysqlite_cursor_execute, METH_FASTCALL, pysqlite_cursor_execute__doc__},
+    {"execute", _PyCFunction_CAST(pysqlite_cursor_execute), METH_FASTCALL, pysqlite_cursor_execute__doc__},
 
 static PyObject *
 pysqlite_cursor_execute_impl(pysqlite_Cursor *self, PyObject *sql,
@@ -79,7 +80,7 @@ PyDoc_STRVAR(pysqlite_cursor_executemany__doc__,
 "Repeatedly executes an SQL statement.");
 
 #define PYSQLITE_CURSOR_EXECUTEMANY_METHODDEF    \
-    {"executemany", (PyCFunction)(void(*)(void))pysqlite_cursor_executemany, METH_FASTCALL, pysqlite_cursor_executemany__doc__},
+    {"executemany", _PyCFunction_CAST(pysqlite_cursor_executemany), METH_FASTCALL, pysqlite_cursor_executemany__doc__},
 
 static PyObject *
 pysqlite_cursor_executemany_impl(pysqlite_Cursor *self, PyObject *sql,
@@ -119,6 +120,35 @@ PyDoc_STRVAR(pysqlite_cursor_executescript__doc__,
 #define PYSQLITE_CURSOR_EXECUTESCRIPT_METHODDEF    \
     {"executescript", (PyCFunction)pysqlite_cursor_executescript, METH_O, pysqlite_cursor_executescript__doc__},
 
+static PyObject *
+pysqlite_cursor_executescript_impl(pysqlite_Cursor *self,
+                                   const char *sql_script);
+
+static PyObject *
+pysqlite_cursor_executescript(pysqlite_Cursor *self, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    const char *sql_script;
+
+    if (!PyUnicode_Check(arg)) {
+        _PyArg_BadArgument("executescript", "argument", "str", arg);
+        goto exit;
+    }
+    Py_ssize_t sql_script_length;
+    sql_script = PyUnicode_AsUTF8AndSize(arg, &sql_script_length);
+    if (sql_script == NULL) {
+        goto exit;
+    }
+    if (strlen(sql_script) != (size_t)sql_script_length) {
+        PyErr_SetString(PyExc_ValueError, "embedded null character");
+        goto exit;
+    }
+    return_value = pysqlite_cursor_executescript_impl(self, sql_script);
+
+exit:
+    return return_value;
+}
+
 PyDoc_STRVAR(pysqlite_cursor_fetchone__doc__,
 "fetchone($self, /)\n"
 "--\n"
@@ -147,7 +177,7 @@ PyDoc_STRVAR(pysqlite_cursor_fetchmany__doc__,
 "    The default value is set by the Cursor.arraysize attribute.");
 
 #define PYSQLITE_CURSOR_FETCHMANY_METHODDEF    \
-    {"fetchmany", (PyCFunction)(void(*)(void))pysqlite_cursor_fetchmany, METH_FASTCALL|METH_KEYWORDS, pysqlite_cursor_fetchmany__doc__},
+    {"fetchmany", _PyCFunction_CAST(pysqlite_cursor_fetchmany), METH_FASTCALL|METH_KEYWORDS, pysqlite_cursor_fetchmany__doc__},
 
 static PyObject *
 pysqlite_cursor_fetchmany_impl(pysqlite_Cursor *self, int maxrows);
@@ -214,7 +244,7 @@ PyDoc_STRVAR(pysqlite_cursor_setoutputsize__doc__,
 "Required by DB-API. Does nothing in sqlite3.");
 
 #define PYSQLITE_CURSOR_SETOUTPUTSIZE_METHODDEF    \
-    {"setoutputsize", (PyCFunction)(void(*)(void))pysqlite_cursor_setoutputsize, METH_FASTCALL, pysqlite_cursor_setoutputsize__doc__},
+    {"setoutputsize", _PyCFunction_CAST(pysqlite_cursor_setoutputsize), METH_FASTCALL, pysqlite_cursor_setoutputsize__doc__},
 
 static PyObject *
 pysqlite_cursor_setoutputsize_impl(pysqlite_Cursor *self, PyObject *size,
@@ -259,4 +289,4 @@ pysqlite_cursor_close(pysqlite_Cursor *self, PyObject *Py_UNUSED(ignored))
 {
     return pysqlite_cursor_close_impl(self);
 }
-/*[clinic end generated code: output=9879e3a5d4ee3847 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=2b9c6a3ca8a8caff input=a9049054013a1b77]*/

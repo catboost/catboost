@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(3.10.9)
+VERSION(3.11.1)
 
-ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.9.tar.gz)
+ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.11.1.tar.gz)
 
 LICENSE(Python-2.0)
 
@@ -36,7 +36,7 @@ CFLAGS(
 )
 
 SRCS(
-    cache.c
+    blob.c
     connection.c
     cursor.c
     microprotocols.c

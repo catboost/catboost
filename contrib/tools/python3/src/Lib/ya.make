@@ -6,9 +6,9 @@ PY3_LIBRARY()
 
 
 
-VERSION(3.10.9)
+VERSION(3.11.1)
 
-ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.9.tar.gz)
+ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.11.1.tar.gz)
 
 LICENSE(Python-2.0)
 
@@ -24,6 +24,7 @@ NO_PYTHON_INCLUDES()
 PY_SRCS(
     TOP_LEVEL
     __future__.py
+    __hello__.py
     _aix_support.py
     _bootsubprocess.py
     _collections_abc.py
@@ -69,8 +70,10 @@ PY_SRCS(
     asyncio/staggered.py
     asyncio/streams.py
     asyncio/subprocess.py
+    asyncio/taskgroups.py
     asyncio/tasks.py
     asyncio/threads.py
+    asyncio/timeouts.py
     asyncio/transports.py
     asyncio/trsock.py
     asyncio/unix_events.py
@@ -79,7 +82,6 @@ PY_SRCS(
     asyncore.py
     base64.py
     bdb.py
-    binhex.py
     bisect.py
     bz2.py
     cProfile.py
@@ -139,7 +141,6 @@ PY_SRCS(
     distutils/command/__init__.py
     distutils/command/bdist.py
     distutils/command/bdist_dumb.py
-    distutils/command/bdist_msi.py
     distutils/command/bdist_rpm.py
     distutils/command/build.py
     distutils/command/build_clib.py
@@ -334,7 +335,6 @@ PY_SRCS(
     encodings/zlib_codec.py
     ensurepip/__init__.py
     ensurepip/__main__.py
-    ensurepip/_bundled/__init__.py
     ensurepip/_uninstall.py
     enum.py
     filecmp.py
@@ -366,10 +366,8 @@ PY_SRCS(
     imp.py
     importlib/__init__.py
     importlib/_abc.py
-    importlib/_adapters.py
     importlib/_bootstrap.py
     importlib/_bootstrap_external.py
-    importlib/_common.py
     importlib/abc.py
     importlib/machinery.py
     importlib/metadata/__init__.py
@@ -380,7 +378,15 @@ PY_SRCS(
     importlib/metadata/_meta.py
     importlib/metadata/_text.py
     importlib/readers.py
-    importlib/resources.py
+    importlib/resources/__init__.py
+    importlib/resources/_adapters.py
+    importlib/resources/_common.py
+    importlib/resources/_itertools.py
+    importlib/resources/_legacy.py
+    importlib/resources/abc.py
+    importlib/resources/readers.py
+    importlib/resources/simple.py
+    importlib/simple.py
     importlib/util.py
     inspect.py
     io.py
@@ -459,7 +465,11 @@ PY_SRCS(
     queue.py
     quopri.py
     random.py
-    re.py
+    re/__init__.py
+    re/_casefix.py
+    re/_compiler.py
+    re/_constants.py
+    re/_parser.py
     reprlib.py
     rlcompleter.py
     runpy.py
@@ -502,6 +512,10 @@ PY_SRCS(
     timeit.py
     token.py
     tokenize.py
+    tomllib/__init__.py
+    tomllib/_parser.py
+    tomllib/_re.py
+    tomllib/_types.py
     trace.py
     traceback.py
     tracemalloc.py
@@ -540,6 +554,7 @@ PY_SRCS(
     wsgiref/handlers.py
     wsgiref/headers.py
     wsgiref/simple_server.py
+    wsgiref/types.py
     wsgiref/util.py
     wsgiref/validate.py
     xdrlib.py

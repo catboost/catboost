@@ -1,15 +1,12 @@
 #include "Python.h"
+#include "pycore_fileutils.h"     // DECODE_LOCALE_ERR
 #include "pycore_getopt.h"        // _PyOS_GetOpt()
 #include "pycore_initconfig.h"    // _PyArgv
 #include "pycore_pymem.h"         // _PyMem_GetAllocatorName()
 #include "pycore_runtime.h"       // _PyRuntime_Initialize()
+
 #include <locale.h>               // setlocale()
-
-
-#define DECODE_LOCALE_ERR(NAME, LEN) \
-    (((LEN) == -2) \
-     ? _PyStatus_ERR("cannot decode " NAME) \
-     : _PyStatus_NO_MEMORY())
+#include <stdlib.h>               // getenv()
 
 
 /* Forward declarations */
@@ -87,8 +84,7 @@ _PyArgv_AsWstrList(const _PyArgv *args, PyWideStringList *list)
             wchar_t *arg = Py_DecodeLocale(args->bytes_argv[i], &len);
             if (arg == NULL) {
                 _PyWideStringList_Clear(&wargv);
-                return DECODE_LOCALE_ERR("command line arguments",
-                                         (Py_ssize_t)len);
+                return DECODE_LOCALE_ERR("command line arguments", len);
             }
             wargv.items[i] = arg;
             wargv.length++;
@@ -298,17 +294,7 @@ _PyPreConfig_InitCompatConfig(PyPreConfig *config)
     config->coerce_c_locale_warn = 0;
 
     config->dev_mode = -1;
-#ifdef EXPERIMENTAL_ISOLATED_SUBINTERPRETERS
-    /* bpo-40512: pymalloc is not compatible with subinterpreters,
-       force usage of libc malloc() which is thread-safe. */
-#ifdef Py_DEBUG
-    config->allocator = PYMEM_ALLOCATOR_MALLOC_DEBUG;
-#else
-    config->allocator = PYMEM_ALLOCATOR_MALLOC;
-#endif
-#else
     config->allocator = PYMEM_ALLOCATOR_NOT_SET;
-#endif
 #ifdef MS_WINDOWS
     config->legacy_windows_fs_encoding = -1;
 #endif

@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(3.10.9)
+VERSION(3.11.1)
 
-ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.9.tar.gz)
+ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.11.1.tar.gz)
 
 LICENSE(Python-2.0)
 
@@ -99,14 +99,17 @@ SRCS(
     Objects/unicodeobject.c
     Objects/unionobject.c
     Objects/weakrefobject.c
+    Parser/action_helpers.c
     Parser/myreadline.c
     Parser/parser.c
     Parser/peg_api.c
     Parser/pegen.c
+    Parser/pegen_errors.c
     Parser/string_parser.c
     Parser/token.c
     Parser/tokenizer.c
     Python/Python-ast.c
+    Python/Python-tokenize.c
     Python/_warnings.c
     Python/asdl.c
     Python/ast.c
@@ -118,11 +121,13 @@ SRCS(
     Python/codecs.c
     Python/compile.c
     Python/context.c
+    Python/deepfreeze/deepfreeze.c
     Python/dtoa.c
     Python/dynamic_annotations.c
     Python/errors.c
     Python/fileutils.c
     Python/formatter_unicode.c
+    Python/frame.c
     Python/frozen.c
     Python/frozenmain.c
     Python/future.c
@@ -155,6 +160,7 @@ SRCS(
     Python/pystrtod.c
     Python/pythonrun.c
     Python/pytime.c
+    Python/specialize.c
     Python/structmember.c
     Python/suggestions.c
     Python/symtable.c
@@ -168,7 +174,6 @@ IF (OS_WINDOWS)
         PC/WinMain.c
         PC/dl_nt.c
         PC/frozen_dllmain.c
-        PC/getpathp.c
         PC/invalid_parameter_handler.c
         PC/msvcrtmodule.c
         PC/winreg.c

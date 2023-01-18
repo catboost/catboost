@@ -6,7 +6,8 @@
    Stuff shared by all thread_*.h files is collected here. */
 
 #include "Python.h"
-#include "pycore_pystate.h"   // _PyInterpreterState_GET()
+#include "pycore_pystate.h"       // _PyInterpreterState_GET()
+#include "pycore_structseq.h"     // _PyStructSequence_FiniType()
 
 #ifndef _POSIX_THREADS
 /* This means pthreads are not implemented in libc headers, hence the macro
@@ -44,11 +45,9 @@
 
 #ifdef Py_DEBUG
 static int thread_debug = 0;
-#define dprintf(args)   (void)((thread_debug & 1) && printf args)
-#define d2printf(args)  ((thread_debug & 8) && printf args)
+#  define dprintf(args)   (void)((thread_debug & 1) && printf args)
 #else
-#define dprintf(args)
-#define d2printf(args)
+#  define dprintf(args)
 #endif
 
 static int initialized;
@@ -94,8 +93,15 @@ _PyThread_debug_deprecation(void)
 #endif
 }
 
-#if defined(_POSIX_THREADS)
-#   define PYTHREAD_NAME "pthread"
+#if defined(HAVE_PTHREAD_STUBS)
+#   define PYTHREAD_NAME "pthread-stubs"
+#   include "thread_pthread_stubs.h"
+#elif defined(_POSIX_THREADS)
+#   if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+#     define PYTHREAD_NAME "pthread-stubs"
+#   else
+#     define PYTHREAD_NAME "pthread"
+#   endif
 #   include "thread_pthread.h"
 #elif defined(NT_THREADS)
 #   define PYTHREAD_NAME "nt"
@@ -109,7 +115,7 @@ _PyThread_debug_deprecation(void)
 size_t
 PyThread_get_stacksize(void)
 {
-    return _PyInterpreterState_GET()->pythread_stacksize;
+    return _PyInterpreterState_GET()->threads.stacksize;
 }
 
 /* Only platforms defining a THREAD_SET_STACKSIZE() macro
@@ -209,7 +215,9 @@ PyThread_GetInfo(void)
     }
     PyStructSequence_SET_ITEM(threadinfo, pos++, value);
 
-#ifdef _POSIX_THREADS
+#ifdef HAVE_PTHREAD_STUBS
+    value = Py_NewRef(Py_None);
+#elif defined(_POSIX_THREADS)
 #ifdef USE_SEMAPHORES
     value = PyUnicode_FromString("semaphore");
 #else
@@ -220,8 +228,7 @@ PyThread_GetInfo(void)
         return NULL;
     }
 #else
-    Py_INCREF(Py_None);
-    value = Py_None;
+    value = Py_NewRef(Py_None);
 #endif
     PyStructSequence_SET_ITEM(threadinfo, pos++, value);
 
@@ -242,4 +249,15 @@ PyThread_GetInfo(void)
     }
     PyStructSequence_SET_ITEM(threadinfo, pos++, value);
     return threadinfo;
+}
+
+
+void
+_PyThread_FiniType(PyInterpreterState *interp)
+{
+    if (!_Py_IsMainInterpreter(interp)) {
+        return;
+    }
+
+    _PyStructSequence_FiniType(&ThreadInfoType);
 }

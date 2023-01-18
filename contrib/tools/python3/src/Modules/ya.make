@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(3.10.9)
+VERSION(3.11.1)
 
-ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.9.tar.gz)
+ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.11.1.tar.gz)
 
 LICENSE(Python-2.0)
 
@@ -89,7 +89,6 @@ SRCS(
     _localemodule.c
     _lsprof.c
     _lzmamodule.c
-    _math.c
     _multiprocessing/multiprocessing.c
     _multiprocessing/posixshmem.c
     _multiprocessing/semaphore.c
@@ -98,14 +97,16 @@ SRCS(
     _pickle.c
     _queuemodule.c
     _randommodule.c
+    _sha3/sha3.c
     _sha3/sha3module.c
-    _sre.c
+    _sre/sre.c
     _ssl.c
     _stat.c
     _statisticsmodule.c
     _struct.c
     _threadmodule.c
     _tracemalloc.c
+    _typingmodule.c
     _weakref.c
     _xxsubinterpretersmodule.c
     _xxtestfuzz/_xxtestfuzz.c
@@ -128,6 +129,7 @@ SRCS(
     faulthandler.c
     gcmodule.c
     getbuildinfo.c
+    getpath.c
     itertoolsmodule.c
     main.c
     mathmodule.c
@@ -158,7 +160,6 @@ ELSE()
         _cryptmodule.c
         _posixsubprocess.c
         fcntlmodule.c
-        getpath.c
         grpmodule.c
         pwdmodule.c
         resource.c

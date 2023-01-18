@@ -63,4 +63,4 @@
 
 - source_filter: "^contrib/python/(coverage|gevent|greenlet)"
   includes:
-  - internal/pycore_frame.h
+  - internal/pycore_frame.h: contrib/libs/python/Include/internal/pycore_frame.h

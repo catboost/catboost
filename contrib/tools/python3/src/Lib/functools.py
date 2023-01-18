@@ -86,84 +86,84 @@ def wraps(wrapped,
 # infinite recursion that could occur when the operator dispatch logic
 # detects a NotImplemented result and then calls a reflected method.
 
-def _gt_from_lt(self, other, NotImplemented=NotImplemented):
+def _gt_from_lt(self, other):
     'Return a > b.  Computed by @total_ordering from (not a < b) and (a != b).'
     op_result = type(self).__lt__(self, other)
     if op_result is NotImplemented:
         return op_result
     return not op_result and self != other
 
-def _le_from_lt(self, other, NotImplemented=NotImplemented):
+def _le_from_lt(self, other):
     'Return a <= b.  Computed by @total_ordering from (a < b) or (a == b).'
     op_result = type(self).__lt__(self, other)
     if op_result is NotImplemented:
         return op_result
     return op_result or self == other
 
-def _ge_from_lt(self, other, NotImplemented=NotImplemented):
+def _ge_from_lt(self, other):
     'Return a >= b.  Computed by @total_ordering from (not a < b).'
     op_result = type(self).__lt__(self, other)
     if op_result is NotImplemented:
         return op_result
     return not op_result
 
-def _ge_from_le(self, other, NotImplemented=NotImplemented):
+def _ge_from_le(self, other):
     'Return a >= b.  Computed by @total_ordering from (not a <= b) or (a == b).'
     op_result = type(self).__le__(self, other)
     if op_result is NotImplemented:
         return op_result
     return not op_result or self == other
 
-def _lt_from_le(self, other, NotImplemented=NotImplemented):
+def _lt_from_le(self, other):
     'Return a < b.  Computed by @total_ordering from (a <= b) and (a != b).'
     op_result = type(self).__le__(self, other)
     if op_result is NotImplemented:
         return op_result
     return op_result and self != other
 
-def _gt_from_le(self, other, NotImplemented=NotImplemented):
+def _gt_from_le(self, other):
     'Return a > b.  Computed by @total_ordering from (not a <= b).'
     op_result = type(self).__le__(self, other)
     if op_result is NotImplemented:
         return op_result
     return not op_result
 
-def _lt_from_gt(self, other, NotImplemented=NotImplemented):
+def _lt_from_gt(self, other):
     'Return a < b.  Computed by @total_ordering from (not a > b) and (a != b).'
     op_result = type(self).__gt__(self, other)
     if op_result is NotImplemented:
         return op_result
     return not op_result and self != other
 
-def _ge_from_gt(self, other, NotImplemented=NotImplemented):
+def _ge_from_gt(self, other):
     'Return a >= b.  Computed by @total_ordering from (a > b) or (a == b).'
     op_result = type(self).__gt__(self, other)
     if op_result is NotImplemented:
         return op_result
     return op_result or self == other
 
-def _le_from_gt(self, other, NotImplemented=NotImplemented):
+def _le_from_gt(self, other):
     'Return a <= b.  Computed by @total_ordering from (not a > b).'
     op_result = type(self).__gt__(self, other)
     if op_result is NotImplemented:
         return op_result
     return not op_result
 
-def _le_from_ge(self, other, NotImplemented=NotImplemented):
+def _le_from_ge(self, other):
     'Return a <= b.  Computed by @total_ordering from (not a >= b) or (a == b).'
     op_result = type(self).__ge__(self, other)
     if op_result is NotImplemented:
         return op_result
     return not op_result or self == other
 
-def _gt_from_ge(self, other, NotImplemented=NotImplemented):
+def _gt_from_ge(self, other):
     'Return a > b.  Computed by @total_ordering from (a >= b) and (a != b).'
     op_result = type(self).__ge__(self, other)
     if op_result is NotImplemented:
         return op_result
     return op_result and self != other
 
-def _lt_from_ge(self, other, NotImplemented=NotImplemented):
+def _lt_from_ge(self, other):
     'Return a < b.  Computed by @total_ordering from (not a >= b).'
     op_result = type(self).__ge__(self, other)
     if op_result is NotImplemented:
@@ -838,8 +838,16 @@ def singledispatch(func):
             dispatch_cache[cls] = impl
         return impl
 
+    def _is_union_type(cls):
+        from typing import get_origin, Union
+        return get_origin(cls) in {Union, types.UnionType}
+
     def _is_valid_dispatch_type(cls):
-        return isinstance(cls, type) and not isinstance(cls, GenericAlias)
+        if isinstance(cls, type):
+            return True
+        from typing import get_args
+        return (_is_union_type(cls) and
+                all(isinstance(arg, type) for arg in get_args(cls)))
 
     def register(cls, func=None):
         """generic_func.register(cls, func) -> func
@@ -855,7 +863,7 @@ def singledispatch(func):
             if func is not None:
                 raise TypeError(
                     f"Invalid first argument to `register()`. "
-                    f"{cls!r} is not a class."
+                    f"{cls!r} is not a class or union type."
                 )
             ann = getattr(cls, '__annotations__', {})
             if not ann:
@@ -870,12 +878,24 @@ def singledispatch(func):
             from typing import get_type_hints
             argname, cls = next(iter(get_type_hints(func).items()))
             if not _is_valid_dispatch_type(cls):
-                raise TypeError(
-                    f"Invalid annotation for {argname!r}. "
-                    f"{cls!r} is not a class."
-                )
+                if _is_union_type(cls):
+                    raise TypeError(
+                        f"Invalid annotation for {argname!r}. "
+                        f"{cls!r} not all arguments are classes."
+                    )
+                else:
+                    raise TypeError(
+                        f"Invalid annotation for {argname!r}. "
+                        f"{cls!r} is not a class."
+                    )
 
-        registry[cls] = func
+        if _is_union_type(cls):
+            from typing import get_args
+
+            for arg in get_args(cls):
+                registry[arg] = func
+        else:
+            registry[cls] = func
         if cache_token is None and hasattr(cls, '__abstractmethods__'):
             cache_token = get_cache_token()
         dispatch_cache.clear()

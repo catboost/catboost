@@ -536,6 +536,10 @@ def NamedTemporaryFile(mode='w+b', buffering=-1, encoding=None,
     Returns an object with a file-like interface; the name of the file
     is accessible as its 'name' attribute.  The file will be automatically
     deleted when it is closed unless the 'delete' argument is set to False.
+
+    On POSIX, NamedTemporaryFiles cannot be automatically deleted if
+    the creating process is terminated abruptly with a SIGKILL signal.
+    Windows can delete the file even in this case.
     """
 
     prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
@@ -658,7 +662,7 @@ else:
         raw.name = fd
         return file
 
-class SpooledTemporaryFile:
+class SpooledTemporaryFile(_io.IOBase):
     """Temporary file wrapper, specialized to switch from BytesIO
     or StringIO to a real file when it exceeds a certain size or
     when a fileno is needed.
@@ -723,6 +727,16 @@ class SpooledTemporaryFile:
     def __iter__(self):
         return self._file.__iter__()
 
+    def __del__(self):
+        if not self.closed:
+            _warnings.warn(
+                "Unclosed file {!r}".format(self),
+                ResourceWarning,
+                stacklevel=2,
+                source=self
+            )
+            self.close()
+
     def close(self):
         self._file.close()
 
@@ -766,14 +780,29 @@ class SpooledTemporaryFile:
     def newlines(self):
         return self._file.newlines
 
+    def readable(self):
+        return self._file.readable()
+
     def read(self, *args):
         return self._file.read(*args)
+
+    def read1(self, *args):
+        return self._file.read1(*args)
+
+    def readinto(self, b):
+        return self._file.readinto(b)
+
+    def readinto1(self, b):
+        return self._file.readinto1(b)
 
     def readline(self, *args):
         return self._file.readline(*args)
 
     def readlines(self, *args):
         return self._file.readlines(*args)
+
+    def seekable(self):
+        return self._file.seekable()
 
     def seek(self, *args):
         return self._file.seek(*args)
@@ -783,11 +812,14 @@ class SpooledTemporaryFile:
 
     def truncate(self, size=None):
         if size is None:
-            self._file.truncate()
+            return self._file.truncate()
         else:
             if size > self._max_size:
                 self.rollover()
-            self._file.truncate(size)
+            return self._file.truncate(size)
+
+    def writable(self):
+        return self._file.writable()
 
     def write(self, s):
         file = self._file
@@ -800,6 +832,9 @@ class SpooledTemporaryFile:
         rv = file.writelines(iterable)
         self._check(file)
         return rv
+
+    def detach(self):
+        return self._file.detach()
 
 
 class TemporaryDirectory:
