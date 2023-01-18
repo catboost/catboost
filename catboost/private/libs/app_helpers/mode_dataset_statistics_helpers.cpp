@@ -19,7 +19,7 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);
     parser.AddLongOption("only-group-statistics")
-        .OptionalValue("false", "bool")
+        .OptionalValue("true", "bool")
         .Handler1T<TString>([&](const TString& param) {
             OnlyGroupStatistics = FromString<bool>(param);
         });
