@@ -3683,6 +3683,12 @@
         "3968797422": "https://storage.mds.yandex.net/get-devtools-opensource/373962/3968797422", 
         "3968797636": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3968797636", 
         "3968797878": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3968797878", 
+        "3974091502": "https://storage.mds.yandex.net/get-devtools-opensource/250854/3974091502", 
+        "3974091545": "https://storage.mds.yandex.net/get-devtools-opensource/233854/3974091545", 
+        "3974092461": "https://storage.mds.yandex.net/get-devtools-opensource/6888731/3974092461", 
+        "3974092992": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3974092992", 
+        "3974093412": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3974093412", 
+        "3974100391": "https://storage.mds.yandex.net/get-devtools-opensource/479623/3974100391", 
         "412716868": "https://storage.mds.yandex.net/get-devtools-opensource/233854/412716868", 
         "412720651": "https://storage.mds.yandex.net/get-devtools-opensource/233854/412720651", 
         "412725013": "https://storage.mds.yandex.net/get-devtools-opensource/233854/412725013", 
@@ -5050,6 +5056,24 @@
         }, 
         "1585069683": {
             "Linux-5.4.161-26.3-aarch64-with-Ubuntu-16.04-xenial": "3962084277"
+        }, 
+        "1588631368": {
+            "linux": "3974092461"
+        }, 
+        "1588631371": {
+            "win32-clang-cl": "3974100391"
+        }, 
+        "1588631372": {
+            "darwin": "3974091545"
+        }, 
+        "1588631373": {
+            "darwin-arm64": "3974092992"
+        }, 
+        "1588631375": {
+            "linux-ppc64le": "3974091502"
+        }, 
+        "1588631378": {
+            "linux-aarch64": "3974093412"
         }, 
         "220049371": {
             "Darwin-14.5.0-x86_64-i386-64bit": "499943029"

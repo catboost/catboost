@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    cython
     flatc
     protoc
     python
