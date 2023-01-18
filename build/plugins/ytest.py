@@ -633,7 +633,7 @@ def onadd_check(unit, *args):
         'FORK-TEST-FILES': '',
         'SIZE': 'SMALL',
         'TAG': '',
-        'REQUIREMENTS': '',
+        'REQUIREMENTS': " ".join(spec_args.get('REQUIREMENTS', [])),
         'USE_ARCADIA_PYTHON': use_arcadia_python or '',
         'OLD_PYTEST': 'no',
         'PYTHON-PATHS': '',
