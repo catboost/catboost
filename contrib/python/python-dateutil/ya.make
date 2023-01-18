@@ -42,7 +42,7 @@ PY_SRCS(
 )
 
 RESOURCE_FILES(
-    PREFIX contrib/python/dateutil/
+    PREFIX contrib/python/python-dateutil/
     .dist-info/METADATA
     .dist-info/top_level.txt
     dateutil/zoneinfo/dateutil-zoneinfo.tar.gz

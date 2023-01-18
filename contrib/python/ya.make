@@ -7,7 +7,6 @@ RECURSE(
     backcall
     colorama
     contextlib2
-    dateutil
     decorator
     exceptiongroup
     executing
@@ -42,6 +41,7 @@ RECURSE(
     Pygments
     pyparsing
     pytest
+    python-dateutil
     pytz
     scikit-learn
     scipy

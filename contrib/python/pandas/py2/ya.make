@@ -8,7 +8,7 @@ VERSION(0.24.2)
 
 PEERDIR(
     contrib/python/Jinja2
-    contrib/python/dateutil
+    contrib/python/python-dateutil
     contrib/python/numpy
     contrib/python/pytz
 )

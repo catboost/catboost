@@ -7,7 +7,7 @@ VERSION(1.5.2)
 LICENSE(BSD-3-Clause)
 
 PEERDIR(
-    contrib/python/dateutil
+    contrib/python/python-dateutil
     contrib/python/numpy
     contrib/python/pytz
 )

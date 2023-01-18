@@ -3,7 +3,7 @@ PY23_TEST()
 
 
 PEERDIR(
-    contrib/python/dateutil
+    contrib/python/python-dateutil
     contrib/python/freezegun
     contrib/python/hypothesis
 )
@@ -13,7 +13,7 @@ ENV(LANG=ru_RU.UTF-8)
 # because we cannot change TZ in arcadia CI
 ENV(DATEUTIL_MAY_NOT_CHANGE_TZ_VAR=1)
 
-SRCDIR(contrib/python/dateutil/dateutil/test)
+SRCDIR(contrib/python/python-dateutil/dateutil/test)
 
 TEST_SRCS(
     property/test_isoparse_prop.py
