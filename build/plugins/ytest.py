@@ -1176,4 +1176,3 @@ def on_add_linter_check(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
-        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
