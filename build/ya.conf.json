@@ -6698,6 +6698,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-gcc",
                 "cxx_compiler": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-g++",
+                "cxx_std": "c++17",
                 "ar": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-ar",
                 "objcopy": "$(GCC)/riscv32-esp-elf/bin/riscv32-esp-elf-objcopy",
                 "gcc_version": "8.4.0"
@@ -9128,7 +9129,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1573507106,
+                "sandbox_id": 1585557757,
                 "match": "lama"
             },
             "executable": {

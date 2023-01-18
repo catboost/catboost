@@ -29,10 +29,13 @@ TDerived* TAllocationHolder::Allocate(size_t size, TRefCountedTypeCookie cookie)
 {
     auto requestedSize = sizeof(TDerived) + size;
     auto* ptr = ::malloc(requestedSize);
+
+#ifndef _win_
     auto allocatedSize = ::malloc_usable_size(ptr);
     if (allocatedSize) {
         size += allocatedSize - requestedSize;
     }
+#endif
 
     auto* instance = static_cast<TDerived*>(ptr);
 

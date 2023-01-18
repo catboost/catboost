@@ -1,9 +1,13 @@
-#include <yt/yt/core/test_framework/framework.h>
+#include <util/string/cast.h>
+
+#include <library/cpp/testing/gtest/gtest.h>
 
 #include <library/cpp/yt/memory/chunked_memory_pool.h>
 
 namespace NYT {
 namespace {
+
+using ::ToString;
 
 ////////////////////////////////////////////////////////////////////////////////
 
