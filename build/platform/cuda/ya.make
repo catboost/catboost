@@ -63,12 +63,6 @@ IF (USE_ARCADIA_CUDA)
         IF (OS_WINDOWS AND ARCH_X86_64)
             IF (CUDA_VERSION == "11.4")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:3866867639) # CDUA Toolkit 11.4.2 for windows-x86_64
-            ELSEIF (CUDA_VERSION == "11.3")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2215101513) # CUDA Toolkit 11.3.1 for Windows x86-64
-            ELSEIF (CUDA_VERSION == "11.1")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1896564605) # CUDA Toolkit 11.1.1 for Windows x86-64
-            ELSEIF (CUDA_VERSION == "10.1")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:978734165) # CUDA Toolkit 10.1.168 for Windows x86-64
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
