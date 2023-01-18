@@ -562,6 +562,8 @@ if YA_IDE_VENV:
     sys.meta_path.append(BuiltinSubmoduleImporter)
     if executable not in sys.path:
         sys.path.append(executable)
+    if '' not in sys.path:
+        sys.path.insert(0, '')
     sys.path_hooks.append(executable_path_hook)
 else:
     sys.meta_path.insert(0, BuiltinSubmoduleImporter)
