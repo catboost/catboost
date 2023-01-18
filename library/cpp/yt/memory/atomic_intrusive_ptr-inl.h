@@ -36,7 +36,7 @@ TAtomicIntrusivePtr<T>::~TAtomicIntrusivePtr()
 template <class T>
 TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(TIntrusivePtr<T> other)
 {
-    ReleaseObject(Ptr_.exchange(AcquireObject(other.Release(), true)));
+    Store(std::move(other));
     return *this;
 }
 
@@ -100,6 +100,12 @@ TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Exchange(TIntrusivePtr<T> other)
     auto [localRefs, obj] = UnpackPointer<T>(Ptr_.exchange(AcquireObject(other.Release(), true)));
     DoRelease(obj, localRefs + 1);
     return TIntrusivePtr<T>(obj, false);
+}
+
+template <class T>
+void TAtomicIntrusivePtr<T>::Store(TIntrusivePtr<T> other)
+{
+    ReleaseObject(Ptr_.exchange(AcquireObject(other.Release(), true)));
 }
 
 template <class T>

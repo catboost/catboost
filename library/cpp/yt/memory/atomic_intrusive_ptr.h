@@ -31,6 +31,7 @@ public:
     TIntrusivePtr<T> Acquire() const;
 
     TIntrusivePtr<T> Exchange(TIntrusivePtr<T> other);
+    void Store(TIntrusivePtr<T> other);
 
     void Reset();
     bool CompareAndSwap(void*& comparePtr, T* target);
