@@ -50,28 +50,33 @@ bool TFloatFeatureStatistics::operator==(const TFloatFeatureStatistics& rhs) con
     );
 }
 
+void InsertFloatValue(const TString& name, double value, NJson::TJsonValue* result) {
+    if (!std::isinf(value)) {
+        result->InsertValue(name, value);
+    } else {
+        result->InsertValue(name, ToString(value));
+    }
+}
+
 NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
     NJson::TJsonValue result;
     CB_ENSURE_INTERNAL(!std::isnan(MaxValue), "nan value in MaxValue");
     CB_ENSURE_INTERNAL(!std::isnan(MinValue), "nan value in MinValue");
-    if (std::isinf(MinValue)) {
-        result.InsertValue("MinValue", ToString(MinValue));
-    } else {
+
+    if (ObjectCount > 0) {
+        CB_ENSURE(!std::isinf(MinValue));
+        CB_ENSURE(!std::isinf(MaxValue));
         result.InsertValue("MinValue", MinValue);
+        result.InsertValue("MaxValue",  MaxValue);
+        result.InsertValue("Sum", ToString(Sum));
+        result.InsertValue("SumSqr", ToString(SumSqr));
     }
-    if (std::isinf(MaxValue)) {
-        result.InsertValue("MaxValue", ToString(MaxValue));
-    } else {
-        result.InsertValue("MaxValue", MaxValue);
-    }
-    result.InsertValue("Sum", ToString(Sum));
-    result.InsertValue("SumSqr", ToString(SumSqr));
     result.InsertValue("ObjectCount", ObjectCount);
     if (CustomMin != std::numeric_limits<double>::lowest()) {
-        result.InsertValue("CustomMin", CustomMin);
+        InsertFloatValue("CustomMin", CustomMin, &result);
     }
     if (CustomMax != std::numeric_limits<double>::max()) {
-        result.InsertValue("CustomMax", CustomMax);
+        InsertFloatValue("CustomMax", CustomMax, &result);
     }
     result.InsertValue("OutOfDomainValuesCount", OutOfDomainValuesCount);
     return result;

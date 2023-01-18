@@ -89,6 +89,10 @@ bool TFloatFeatureHistogram::ProcessNotNummeric(float value) {
         }
         return true;
     }
+    if (value < Borders.MinValue || value > Borders.MaxValue) {
+        ++Borders.OutOfDomainValuesCount;
+        return true;
+    }
     return false;
 }
 
@@ -119,11 +123,14 @@ void TFloatFeatureHistogram::CalcHistogramWithBorders(
     }
 }
 
-void InsertFloatInfValue(float value, const TString& name, NJson::TJsonValue* result) {
-    if (std::isinf(value)) {
-        result->InsertValue(name, ToString(value));
-    } else {
+void InsertFloatValue(float value, const TString& name, NJson::TJsonValue* result) {
+    if (std::isnan(value)) {
+        return;
+    }
+    if (!std::isinf(value)) {
         result->InsertValue(name, value);
+    } else {
+        result->InsertValue(name, ToString(value));
     }
 }
 
@@ -134,18 +141,12 @@ NJson::TJsonValue TBorders::ToJson() const {
     switch (HistogramType) {
         case EHistogramType::Uniform:
             result.InsertValue("MaxBorderCount", MaxBorderCount);
-            InsertFloatInfValue(MinValue, "MinValue", &result);
-            InsertFloatInfValue(MaxValue, "MaxValue", &result);
             break;
         case EHistogramType::Exact:
             {
                 auto bins = GetBins();
                 result.InsertValue("Bins", VectorToJson(bins));
                 result.InsertValue("Hist", VectorToJson(GetExactHistogram()));
-                if (!bins.empty()) {
-                    InsertFloatInfValue(bins.front(), "MinValue", &result);
-                    InsertFloatInfValue(bins.back(), "MaxValue", &result);
-                }
             }
             break;
         case EHistogramType::Borders:
@@ -161,6 +162,7 @@ void TFloatFeatureHistogram::ConvertBitToUniformIfNeeded() {
     if (Borders.BitHistogram.size() < MAX_EXACT_HIST_SIZE) {
         return;
     }
+    CB_ENSURE(Borders.MinValue <= Borders.MaxValue);
     ConvertBitToUniform();
 };
 
@@ -184,12 +186,14 @@ TVector<ui64> TFloatFeatureHistogram::GetHistogram() const {
 
 NJson::TJsonValue TFloatFeatureHistogram::ToJson() const {
     NJson::TJsonValue result;
-
+    result.InsertValue("Borders", Borders.ToJson());
     result.InsertValue("Nans", Nans);
     result.InsertValue("MinusInf", MinusInf);
     result.InsertValue("PlusInf", PlusInf);
     result.InsertValue("HistogramSize", Borders.Size());
-    result.InsertValue("Borders", Borders.ToJson());
+    InsertFloatValue(Borders.MinValue, "MinValue", &result);
+    InsertFloatValue(Borders.MaxValue, "MaxValue", &result);
+
     auto histogram = GetHistogram();
     TVector<NJson::TJsonValue> histogramJson;
     for (const auto& item : histogram) {
