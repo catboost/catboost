@@ -79,15 +79,26 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\blob.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_input_stream.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_memory_allocator.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_memory_pool.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_memory_pool_output.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_output_stream.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\ref.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\ref_tracked.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\shared_range.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\blob.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_input_stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_memory_allocator-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_memory_allocator.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_memory_pool-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_memory_pool.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_memory_pool_output.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_output_stream.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\intrusive_ptr.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\new-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\new.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\public.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\range.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\ref-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\ref.h"/>
@@ -95,6 +106,8 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\ref_counted.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\ref_tracked-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\ref_tracked.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\serialize-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\serialize.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\shared_range.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
