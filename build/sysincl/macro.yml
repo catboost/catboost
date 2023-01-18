@@ -176,6 +176,11 @@
       - contrib/libs/gperftools/srcstacktrace_riscv-inl.inc
       - contrib/libs/gperftools/srcstacktrace_unimplemented-inl.inc
 
+- source_filter: "^contrib/restricted/boost/phoenix"
+  includes:
+    - BOOST_PHOENIX_UNORDERED_MAP_HEADER: $U/unordered_map
+    - BOOST_PHOENIX_UNORDERED_SET_HEADER: $U/unordered_set
+
 - source_filter: "^contrib/restricted/boost/atomic/include/boost/atomic"
   includes:
     - BOOST_ATOMIC_DETAIL_FP_BACKEND_HEADER(boost/atomic/detail/fp_ops_):
