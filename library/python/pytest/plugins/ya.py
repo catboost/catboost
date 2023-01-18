@@ -638,7 +638,7 @@ class TestItem(object):
         self._result = result
         self.nodeid = report.nodeid
         self._class_name, self._test_name = tools.split_node_id(self.nodeid, test_suffix)
-        self._error = None
+        self._error = ""
         self._status = None
         self._process_report(report)
         self._duration = hasattr(report, 'duration') and report.duration or 0
@@ -649,8 +649,6 @@ class TestItem(object):
             self.set_error(report)
             if hasattr(report, 'when') and report.when != "call":
                 self.set_error(report.when + " failed:\n" + self._error)
-        else:
-            self.set_error("")
 
         report_teststatus = _pytest.skipping.pytest_report_teststatus(report)
         if report_teststatus is not None:
@@ -667,7 +665,6 @@ class TestItem(object):
             self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
         elif report.passed:
             self._status = 'good'
-            self.set_error("")
         else:
             self._status = 'fail'
 
