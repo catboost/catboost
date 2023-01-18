@@ -2,6 +2,8 @@ from . import _catboost
 
 is_groupwise_metric = _catboost.is_groupwise_metric
 is_multiclass_metric = _catboost.is_multiclass_metric
+is_multitarget_objective = _catboost.is_multitarget_objective
+get_multi_quantile_approx_size = _catboost.get_multi_quantile_approx_size
 is_pairwise_metric = _catboost.is_pairwise_metric
 is_maximizable_metric = _catboost.is_maximizable_metric
 is_minimizable_metric = _catboost.is_minimizable_metric
