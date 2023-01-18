@@ -85,7 +85,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
@@ -98,7 +98,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
