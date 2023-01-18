@@ -33,11 +33,6 @@ NO_COMPILER_WARNINGS()
 
 NO_LINT()
 
-CFLAGS(
-    # For pandas.json and pandas.msgpack.
-    -D__LITTLE_ENDIAN__=1
-)
-
 INCLUDE(symbols.cmake)
 
 PY_REGISTER(pandas._libs.json)
