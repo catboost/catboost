@@ -8,7 +8,6 @@ RECURSE(
     colorama
     contextlib2
     decorator
-    exceptiongroup
     executing
     filelock
     funcsigs
@@ -52,7 +51,6 @@ RECURSE(
     testpath
     threadpoolctl
     toml
-    tomli
     tornado
     traitlets
     types-protobuf

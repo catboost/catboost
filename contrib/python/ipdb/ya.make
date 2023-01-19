@@ -19,12 +19,6 @@ IF (PYTHON2)
     )
 ENDIF()
 
-IF (PYTHON3)
-    PEERDIR(
-        contrib/python/tomli
-    )
-ENDIF()
-
 NO_LINT()
 
 NO_CHECK_IMPORTS(

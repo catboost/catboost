@@ -10,11 +10,9 @@ LICENSE(MIT)
 
 PEERDIR(
     contrib/python/attrs
-    contrib/python/exceptiongroup
     contrib/python/iniconfig
     contrib/python/packaging
     contrib/python/pluggy
-    contrib/python/tomli
 )
 
 NO_LINT()
