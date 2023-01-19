@@ -4985,6 +4985,13 @@
                 },
                 {
                     "host": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
                         "os": "WIN"
                     },
                     "default": true
@@ -7437,7 +7444,7 @@
         "scriptgen": {
             "formula": {
                 "sandbox_id": [
-                    1164520637
+                    1589012168
                 ],
                 "match": "SCRIPTGEN"
             }
@@ -9158,7 +9165,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1586099457,
+                "sandbox_id": 1589117256,
                 "match": "lama"
             },
             "executable": {
