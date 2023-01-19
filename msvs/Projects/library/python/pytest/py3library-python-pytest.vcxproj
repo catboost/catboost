@@ -483,9 +483,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\py3contrib-python-decorator.vcxproj">
       <Project>{45DD0FCB-695D-6F82-16DE-881C23E1603F}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.vcxproj">
-      <Project>{222DCE03-FC37-31E2-263D-AC44A696AEBF}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.vcxproj">
       <Project>{7A0B528B-88E3-623E-3118-1B9D82415CF5}</Project>
     </ProjectReference>
@@ -566,9 +563,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\stack-data\pycontrib-python-stack-data.vcxproj">
       <Project>{4B818AEF-935C-1061-9F3C-26D873AF57E9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tomli\pycontrib-python-tomli.vcxproj">
-      <Project>{BE272238-D287-002A-62FD-C916BC09F948}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py3\pypython-traitlets-py3.vcxproj">
       <Project>{AAEB5EF2-D4CB-869A-7795-5C71A91644E8}</Project>

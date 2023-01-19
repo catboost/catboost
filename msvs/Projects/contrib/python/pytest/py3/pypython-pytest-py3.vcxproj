@@ -2567,9 +2567,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3contrib-python-attrs.vcxproj">
       <Project>{87CA5CA6-1C23-2B8C-87B3-81C77768D493}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.vcxproj">
-      <Project>{222DCE03-FC37-31E2-263D-AC44A696AEBF}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\iniconfig\pycontrib-python-iniconfig.vcxproj">
       <Project>{E5D4459D-AE85-DB42-4536-28E4D10DAFE9}</Project>
     </ProjectReference>
@@ -2590,9 +2587,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py3contrib-python-pyparsing.vcxproj">
       <Project>{B24E0792-4271-FE10-2755-0DB1369D0EE3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tomli\pycontrib-python-tomli.vcxproj">
-      <Project>{BE272238-D287-002A-62FD-C916BC09F948}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>

@@ -317,7 +317,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.4pGShiGK4F/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/join_0aa830c9430a495df97eebb832.cpp" "--ya-start-command-file" "contrib/python/pytest/py3/7380b40febb51fa8a9f8006694.cpp" "contrib/python/pytest/py3/aef5532c9d18e9dceb950548b6.cpp" "contrib/python/pytest/py3/28a3a6d54aa087f4bbfbd3fce4.cpp" "contrib/python/pytest/py3/e96c3cba9caf9d2a7cc157923e.cpp" "contrib/python/pytest/py3/09272bf9b3f9b919de77ef185d.cpp" "contrib/python/pytest/py3/c3b07bdacec1dff52a0ecf00a9.cpp" "contrib/python/pytest/py3/6ab1616b894a278c000cdc2163.cpp" "contrib/python/pytest/py3/9cfd5a863241b82749bf6abcb9.cpp" "contrib/python/pytest/py3/a8f3a4789681589ca781e4e076.cpp" "contrib/python/pytest/py3/e2d5592951648767050faa36f1.cpp" "--ya-end-command-file"
+"/tmp/tmp.aJcCn2DADj/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/join_0aa830c9430a495df97eebb832.cpp" "--ya-start-command-file" "contrib/python/pytest/py3/7380b40febb51fa8a9f8006694.cpp" "contrib/python/pytest/py3/aef5532c9d18e9dceb950548b6.cpp" "contrib/python/pytest/py3/28a3a6d54aa087f4bbfbd3fce4.cpp" "contrib/python/pytest/py3/e96c3cba9caf9d2a7cc157923e.cpp" "contrib/python/pytest/py3/09272bf9b3f9b919de77ef185d.cpp" "contrib/python/pytest/py3/c3b07bdacec1dff52a0ecf00a9.cpp" "contrib/python/pytest/py3/6ab1616b894a278c000cdc2163.cpp" "contrib/python/pytest/py3/9cfd5a863241b82749bf6abcb9.cpp" "contrib/python/pytest/py3/a8f3a4789681589ca781e4e076.cpp" "contrib/python/pytest/py3/e2d5592951648767050faa36f1.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -328,7 +328,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.4pGShiGK4F/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/join_0aa830c9430a495df97eebb832.cpp" "--ya-start-command-file" "contrib/python/pytest/py3/7380b40febb51fa8a9f8006694.cpp" "contrib/python/pytest/py3/aef5532c9d18e9dceb950548b6.cpp" "contrib/python/pytest/py3/28a3a6d54aa087f4bbfbd3fce4.cpp" "contrib/python/pytest/py3/e96c3cba9caf9d2a7cc157923e.cpp" "contrib/python/pytest/py3/09272bf9b3f9b919de77ef185d.cpp" "contrib/python/pytest/py3/c3b07bdacec1dff52a0ecf00a9.cpp" "contrib/python/pytest/py3/6ab1616b894a278c000cdc2163.cpp" "contrib/python/pytest/py3/9cfd5a863241b82749bf6abcb9.cpp" "contrib/python/pytest/py3/a8f3a4789681589ca781e4e076.cpp" "contrib/python/pytest/py3/e2d5592951648767050faa36f1.cpp" "--ya-end-command-file"
+"/tmp/tmp.aJcCn2DADj/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py3/join_0aa830c9430a495df97eebb832.cpp" "--ya-start-command-file" "contrib/python/pytest/py3/7380b40febb51fa8a9f8006694.cpp" "contrib/python/pytest/py3/aef5532c9d18e9dceb950548b6.cpp" "contrib/python/pytest/py3/28a3a6d54aa087f4bbfbd3fce4.cpp" "contrib/python/pytest/py3/e96c3cba9caf9d2a7cc157923e.cpp" "contrib/python/pytest/py3/09272bf9b3f9b919de77ef185d.cpp" "contrib/python/pytest/py3/c3b07bdacec1dff52a0ecf00a9.cpp" "contrib/python/pytest/py3/6ab1616b894a278c000cdc2163.cpp" "contrib/python/pytest/py3/9cfd5a863241b82749bf6abcb9.cpp" "contrib/python/pytest/py3/a8f3a4789681589ca781e4e076.cpp" "contrib/python/pytest/py3/e2d5592951648767050faa36f1.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -614,9 +614,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3contrib-python-attrs.vcxproj">
       <Project>{87CA5CA6-1C23-2B8C-87B3-81C77768D493}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.vcxproj">
-      <Project>{222DCE03-FC37-31E2-263D-AC44A696AEBF}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\iniconfig\pycontrib-python-iniconfig.vcxproj">
       <Project>{E5D4459D-AE85-DB42-4536-28E4D10DAFE9}</Project>
     </ProjectReference>
@@ -637,9 +634,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py3contrib-python-pyparsing.vcxproj">
       <Project>{B24E0792-4271-FE10-2755-0DB1369D0EE3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tomli\pycontrib-python-tomli.vcxproj">
-      <Project>{BE272238-D287-002A-62FD-C916BC09F948}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
