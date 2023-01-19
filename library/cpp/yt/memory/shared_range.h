@@ -42,6 +42,12 @@ public:
     TSharedRange()
     { }
 
+    //! Constructs an empty TSharedRange from a nullptr expression.
+    TSharedRange(nullptr_t)
+        : TRange<T>(nullptr, 0UL)
+        , Holder_(nullptr)
+    { }
+
     //! Constructs a TSharedRange from TRange.
     TSharedRange(TRange<T> range, TSharedRangeHolderPtr holder)
         : TRange<T>(range)

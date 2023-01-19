@@ -1,13 +1,13 @@
 {
     "by_platform": {
         "darwin": {
-            "uri": "sbr:3964001042"
+            "uri": "sbr:3977904231"
         },
         "darwin-arm64": {
-            "uri": "sbr:3964000547"
+            "uri": "sbr:3977903883"
         },
         "linux": {
-            "uri": "sbr:3963999945"
+            "uri": "sbr:3977903436"
         }
     }
 }
