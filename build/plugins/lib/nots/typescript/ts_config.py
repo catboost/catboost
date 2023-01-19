@@ -9,6 +9,23 @@ from ..package_manager.base import utils
 DEFAULT_TS_CONFIG_FILE = "tsconfig.json"
 
 
+def merge_dicts(d1, d2):
+    """
+    Merges two dicts recursively assuming that both have similar structure.
+    If d1.x.y.z has different type than d2.x.y.z then d2 will override d1 and result value res.x.y.z == d2.x.y.z.
+    If corresponding values are lists then the result will have a sum of those lists.
+    """
+    if isinstance(d1, dict) and isinstance(d2, dict):
+        for k in d2:
+            d1[k] = merge_dicts(d1[k], d2[k]) if k in d1 else d2[k]
+    else:
+        if isinstance(d1, list) and isinstance(d2, list):
+            return d1 + d2
+        else:
+            return d2
+    return d1
+
+
 class TsConfig(object):
     @classmethod
     def load(cls, path):
@@ -109,8 +126,9 @@ class TsConfig(object):
             dep_path = dep_paths.get(dep_name)
             if dep_path is None:
                 raise Exception(
-                    "referenceing from {}, data: {}\n: Dependency '{}' not found in dep_paths: {}"
-                    .format(self.path, str(self.data), dep_name, dep_paths)
+                    "referenceing from {}, data: {}\n: Dependency '{}' not found in dep_paths: {}".format(
+                        self.path, str(self.data), dep_name, dep_paths
+                    )
                 )
             base_config_path = os.path.join(dep_path, file_path)
 
@@ -149,6 +167,19 @@ class TsConfig(object):
         :rtype: mixed
         """
         return self.get_or_create_compiler_options().get(name, default)
+
+    def add_to_compiler_option(self, name, add_value):
+        """
+        Merges the existing value with add_value for the option with label=name.
+        Merge is done recursively if the value is of a dict instance.
+        :param name: option key
+        :type name: str
+        :param value: option value to set
+        :type value: mixed
+        """
+        default_value = {} if isinstance(add_value, dict) else []
+        opts = self.get_or_create_compiler_options()
+        opts[name] = merge_dicts(opts.get(name, default_value), add_value)
 
     def inject_plugin(self, plugin):
         """
@@ -199,7 +230,7 @@ class TsConfig(object):
         if len(errors):
             raise TsValidationError(self.path, errors)
 
-    def transform_paths(self, build_path, sources_path, package_rel_path):
+    def transform_paths(self, build_path, sources_path, package_rel_path, nodejs_bin_path):
         """
         Updates config with correct abs paths.
         All source files/dirs will be mapped to `sources_path`, output files/dirs will be mapped to `build_path`.
@@ -225,13 +256,9 @@ class TsConfig(object):
         opts["outDir"] = build_path_rel(out_dir)
 
         if opts.get("typeRoots"):
-            opts["typeRoots"] = list(map(sources_path_rel, opts["typeRoots"])) + list(map(build_path_rel, opts["typeRoots"]))
-
-        if opts.get("paths") is None:
-            opts["paths"] = {}
-
-        # See: https://st.yandex-team.ru/FBP-47#62b4750775525b18f08205c7
-        opts["paths"]["*"] = ["*", "./@types/*"]
+            opts["typeRoots"] = list(map(sources_path_rel, opts["typeRoots"])) + list(
+                map(build_path_rel, opts["typeRoots"])
+            )
 
         opts["baseUrl"] = os.path.normpath(os.path.join(package_rel_path, "node_modules"))
 
@@ -247,6 +274,10 @@ class TsConfig(object):
             opts["sourceRoot"] = os.path.relpath(root_dir, out_dir)
 
         opts["skipLibCheck"] = True
+
+        node_types_path = os.path.join(os.path.dirname(nodejs_bin_path), "node_modules", "@types", "node")
+        # See: https://st.yandex-team.ru/FBP-47#62b4750775525b18f08205c7
+        self.add_to_compiler_option("paths", {"*": ["*", "./@types/*", node_types_path]})
 
     def write(self, path=None):
         """

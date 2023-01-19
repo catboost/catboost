@@ -279,7 +279,6 @@ def _set_nodejs_root(unit):
     yamake_node_version_var = "NODEJS_{}_RESOURCE_GLOBAL".format(str(node_version).replace(".", "_"))
 
     unit.set(["NODEJS_ROOT", "${}".format(yamake_node_version_var)])
-    unit.set(["NODEJS_BIN", "${}/node".format(yamake_node_version_var)])
     unit.set(["NODEJS_ROOT_VAR_NAME", yamake_node_version_var])
 
 

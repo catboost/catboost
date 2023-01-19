@@ -7,16 +7,22 @@ class TCudaException : public TWithBackTrace<yexception> {
 public:
     TCudaException(cudaError_t error)
     : Error_(error) {
-
+        cudaGetDevice(&DeviceId_);
     }
 
 
     cudaError_t Error() const {
         return Error_;
     }
+
+    int DeviceId() const {
+        return DeviceId_;
+    }
 private:
     cudaError_t Error_;
+    int DeviceId_ = -1;
 };
+
 
 class TCudaEnsureException : public TWithBackTrace<yexception> {
 public:
