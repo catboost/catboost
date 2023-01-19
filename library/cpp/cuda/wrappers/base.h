@@ -151,6 +151,7 @@ private:
 
 //return 0 if success and 1 otherwise
 void GetMemoryInfo(int device, size_t* available, size_t* total);
+int GetDeviceCount();
 
 class TProfile: private TNonCopyable {
 public:
