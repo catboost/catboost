@@ -292,6 +292,9 @@ public:
         TVector<double>* der,
         THessianInfo* der2
     ) const override {
+        // computes ngboost "natural gradient"
+        // should be regular gradient multiplied by Fisher information
+        // see https://arxiv.org/pdf/1910.03225v1.pdf
         const int dim = 2;
         Y_ASSERT(target.size() == 1);
         const double diff = (target[0] - approx[0]);
