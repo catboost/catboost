@@ -414,6 +414,8 @@ def onadd_ytest(unit, *args):
     keywords = {"DEPENDS": -1, "DATA": -1, "TIMEOUT": 1, "FORK_MODE": 1, "SPLIT_FACTOR": 1,
                 "FORK_SUBTESTS": 0, "FORK_TESTS": 0}
     flat_args, spec_args = _common.sort_by_keywords(keywords, args)
+    if unit.get('ADD_SRCDIR_TO_TEST_DATA') == "yes":
+        unit.ondata_files(get_norm_unit_path(unit))
 
     test_data = sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_norm_paths(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))
 
@@ -705,6 +707,8 @@ def onadd_pytest_script(unit, *args):
     unit.set(["PYTEST_BIN", "no"])
     custom_deps = get_values_list(unit, 'TEST_DEPENDS_VALUE')
     timeout = filter(None, [unit.get(["TEST_TIMEOUT"])])
+    if unit.get('ADD_SRCDIR_TO_TEST_DATA') == "yes":
+        unit.ondata_files(get_norm_unit_path(unit))
 
     if timeout:
         timeout = timeout[0]
@@ -748,6 +752,8 @@ def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
     if unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
         return
+    if unit.get('ADD_SRCDIR_TO_TEST_DATA') == "yes":
+        unit.ondata_files(get_norm_unit_path(unit))
     custom_deps = get_values_list(unit, 'TEST_DEPENDS_VALUE')
     timeout = filter(None, [unit.get(["TEST_TIMEOUT"])])
     if timeout:
@@ -814,6 +820,8 @@ def onjava_test(unit, *args):
 
     unit_path = unit.path()
     path = _common.strip_roots(unit_path)
+    if unit.get('ADD_SRCDIR_TO_TEST_DATA') == "yes":
+        unit.ondata_files(get_norm_unit_path(unit))
 
     test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
     test_data.append('arcadia/build/scripts/run_junit.py')
