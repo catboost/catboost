@@ -850,6 +850,11 @@ public:
     using TVirtualProbe::TVirtualProbe;
 };
 
+class TDerivedProbeSibling: public TVirtualProbe {
+public:
+    using TVirtualProbe::TVirtualProbe;
+};
+
 void TPointerTest::TestSharedPtrDowncast() {
     {
         NTesting::TProbeState probeState = {};
@@ -882,6 +887,45 @@ void TPointerTest::TestSharedPtrDowncast() {
             UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
 
             auto derived = std::move(base).As<TDerivedProbe>();
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
+            UNIT_ASSERT_VALUES_EQUAL(probeState.CopyConstructors, 0);
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 0);
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 1);
+    }
+    {
+        NTesting::TProbeState probeState = {};
+
+        {
+            TSimpleSharedPtr<TVirtualProbe> base = MakeSimpleShared<TDerivedProbe>(&probeState);
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
+
+            {
+                auto derivedSibling = base.As<TDerivedProbeSibling>();
+                UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
+
+                UNIT_ASSERT_VALUES_EQUAL(derivedSibling.Get(), nullptr);
+                UNIT_ASSERT_VALUES_UNEQUAL(base.ReferenceCounter(), derivedSibling.ReferenceCounter());
+
+                UNIT_ASSERT_VALUES_EQUAL(base.RefCount(), 1l);
+                UNIT_ASSERT_VALUES_EQUAL(derivedSibling.RefCount(), 0l);
+            }
+
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 0);
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 1);
+    }
+    {
+        NTesting::TProbeState probeState = {};
+
+        {
+            TSimpleSharedPtr<TVirtualProbe> base = MakeSimpleShared<TDerivedProbe>(&probeState);
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
+
+            auto derived = std::move(base).As<TDerivedProbeSibling>();
+            UNIT_ASSERT_VALUES_EQUAL(derived.Get(), nullptr);
             UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
             UNIT_ASSERT_VALUES_EQUAL(probeState.CopyConstructors, 0);
             UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 0);
