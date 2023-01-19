@@ -2,6 +2,7 @@
 
 #include "error.h"
 
+#include <cmath>
 #include <cstdlib>
 
 #if defined(_linux_) || defined(_cygwin_)
@@ -45,32 +46,44 @@ static int getloadavg(double* loadavg, int nelem) {
 This function olny works properly if you apply correct setting to your nanny/deploy project
 
 In nanny - Runtime -> Instance spec -> Advanced settings -> Cgroupfs settings: Mount mode = Read only
+
+In deploy - Stage - Edit stage - Box - Cgroupfs settings: Mount mode = Read only
 */
-static inline size_t CgroupCpus() {
+static inline double CgroupCpus() {
     try {
-        auto q = FromString<ssize_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_quota_us").ReadAll()));
+        double q = FromString<int32_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_quota_us").ReadAll()));
 
         if (q <= 0) {
             return 0;
         }
 
-        auto p = FromString<ssize_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_period_us").ReadAll()));
+        double p = FromString<int32_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_period_us").ReadAll()));
 
         if (p <= 0) {
             return 0;
         }
 
-        return Max<ssize_t>(1, (q + p / 2) / p);
+        return q / p;
     } catch (...) {
         return 0;
     }
 }
 #endif
 
+size_t NSystemInfo::NumberOfMillicores() {
+#if defined(_linux_)
+    return CgroupCpus() * 1000;
+#else
+    // fallback behaviour if cgroupfs is not available
+    // returns number of millicores which is a multiple of an integer number of cpus
+    return NSystemInfo::NumberOfCpus() * 1000;
+#endif
+}
+
 size_t NSystemInfo::NumberOfCpus() {
 #if defined(_linux_)
     if (auto res = CgroupCpus(); res) {
-        return res;
+        return Max<ssize_t>(1, std::llround(res));
     }
 #endif
 
@@ -172,6 +185,7 @@ size_t NSystemInfo::LoadAverage(double* la, size_t len) {
 }
 
 static size_t NCpus;
+static size_t NMillicores;
 
 size_t NSystemInfo::CachedNumberOfCpus() {
     if (!NCpus) {
@@ -179,6 +193,14 @@ size_t NSystemInfo::CachedNumberOfCpus() {
     }
 
     return NCpus;
+}
+
+size_t NSystemInfo::CachedNumberOfMillicores() {
+    if (!NMillicores) {
+        NMillicores = NumberOfMillicores();
+    }
+
+    return NMillicores;
 }
 
 size_t NSystemInfo::GetPageSize() noexcept {
