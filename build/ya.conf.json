@@ -326,13 +326,13 @@
             "description": "Run taxi linters utility"
         },
         "saas2": {
-            "description": "Run saas2 cli"
+            "description": "Run SaaS 2.0 CLI"
         },
         "rex": {
-            "description": "Run rex toolkit"
+            "description": "Run REX toolkit"
         },
         "rex-cli": {
-            "description": "Run rex cli"
+            "description": "Run REX CLI"
         },
         "go": {
             "description": "Run go tool (1.18.4)"
