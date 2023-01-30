@@ -3,6 +3,7 @@
 #include "export_helpers.h"
 
 #include <catboost/libs/model/ctr_helpers.h>
+#include <catboost/libs/model/enums.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 
 #include <library/cpp/resource/resource.h>
@@ -220,9 +221,10 @@ namespace NCB {
 
         Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
-        Out << indent << "leaf_values = [" << OutputLeafValues(model, indent) << indent << "]" << '\n';
+        Out << indent << "leaf_values = [" << OutputLeafValues(model, indent, EModelType::Python) << indent << "]" << '\n';
         Out << indent << "scale = " << model.GetScaleAndBias().Scale << '\n';
-        Out << indent << "bias = " << model.GetScaleAndBias().GetOneDimensionalBiasOrZero() << '\n';
+        Out << indent << "biases = [" << OutputArrayInitializer(model.GetScaleAndBias().GetAllBiases()) << "]" << '\n';
+        Out << indent << "dimension = " << model.ModelTrees->GetDimensionsCount() << '\n';
 
         if (!applyData->UsedModelCtrs.empty()) {
             WriteModelCTRs(Out, model, indent);
