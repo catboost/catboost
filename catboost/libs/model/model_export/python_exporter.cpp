@@ -144,7 +144,6 @@ namespace NCB {
 
 
     void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
-        CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1, "Export of MultiClassification model to Python is not supported.");
         auto applyData = model.ModelTrees->GetApplyData();
 
         if (!applyData->UsedModelCtrs.empty()) {

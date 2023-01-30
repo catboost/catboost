@@ -65,7 +65,7 @@ def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, n
             binary_feature_index += 1
 
     # Extract and sum values from trees
-    results = [0.0] * dimension
+    results = [0.0] * model.dimension
     tree_splits_index = 0
     current_tree_leaf_values_index = 0
     for tree_id in range(ntree_start, ntree_end):
@@ -78,8 +78,8 @@ def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, n
             index |= ((binary_features[feature_index] ^ xor_mask) >= border_val) << depth
         results = [result + delta for result, delta in zip(results, model.leaf_values[current_tree_leaf_values_index + index])]
         tree_splits_index += current_tree_depth
-        current_tree_leaf_values_index += (1 << current_tree_depth) * dimension
-    return [model.scale * res + bias for res, bias in zip(results, biases)]
+        current_tree_leaf_values_index += (1 << current_tree_depth) * model.dimension
+    return [model.scale * res + bias for res, bias in zip(results, model.biases)]
 
 
 def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_end=catboost_model.tree_count):
