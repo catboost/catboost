@@ -3,7 +3,6 @@ def hash_uint64(string):
 
 
 ### Applicator for the CatBoost model
-
 def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, ntree_end=catboost_model.tree_count):
     """
     Applies the model built by CatBoost.
@@ -83,4 +82,22 @@ def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, n
 
 
 def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_end=catboost_model.tree_count):
+    """
+    Applies the model built by CatBoost.
+
+    Parameters
+    ----------
+
+    float_features : list of float features
+
+    cat_features : list of categorical features
+        You need to pass float and categorical features separately in the same order they appeared in train dataset.
+        For example if you had features f1,f2,f3,f4, where f2 and f4 were considered categorical, you need to pass here float_features=f1,f3, cat_features=f2,f4
+
+
+    Returns
+    -------
+    predictions : single (first) formula value for the model and the features
+
+    """
     return apply_catboost_model_multi(float_features, cat_features, ntree_start, ntree_end)[0]

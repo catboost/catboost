@@ -218,7 +218,6 @@ namespace NCB {
         }
         Out << --indent << "]" << '\n';
 
-        Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
         Out << indent << "leaf_values = [" << OutputLeafValues(model, indent, EModelType::Python) << indent << "]" << '\n';
         Out << indent << "scale = " << model.GetScaleAndBias().Scale << '\n';
@@ -231,6 +230,8 @@ namespace NCB {
             Out << NResource::Find("catboost_model_export_python_ctr_calcer") << '\n';
         }
         indent--;
+        Out << "\n\n";
+
         Out << indent++ << "cat_features_hashes = {" << '\n';
         if (catFeaturesHashToString != nullptr) {
             TSet<int> ordered_keys;
@@ -242,7 +243,7 @@ namespace NCB {
             }
         }
         Out << --indent << "}" << '\n';
-        Out << '\n';
+        Out << "\n\n";
     };
 
     void TCatboostModelToPythonConverter::WriteApplicatorCatFeatures() {

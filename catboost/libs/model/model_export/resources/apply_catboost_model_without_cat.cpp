@@ -51,7 +51,7 @@ std::vector<double> ApplyCatboostModelMulti(
         const std::vector<float>& floatFeatures,
         const std::vector<std::string>&
 ) {
-    ApplyCatboostModelMulti(floatFeatures);
+    return ApplyCatboostModelMulti(floatFeatures);
 }
 
 double ApplyCatboostModel(

@@ -152,6 +152,7 @@ namespace NCB {
         } else {
             Out << NResource::Find("catboost_model_export_cpp_model_applicator_without_cat");
         }
+        Out << '\n';
     }
 
     void TCatboostModelToCppConverter::WriteModel(bool forCatFeatures, const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
@@ -165,6 +166,7 @@ namespace NCB {
                 : GetBinaryFeatureCount(model);
 
         Out << indent++ << "static const struct CatboostModel {" << '\n';
+        Out << indent << "CatboostModel() = default;" << '\n';
         Out << indent << "unsigned int FloatFeatureCount = " << model.GetNumFloatFeatures() << ";" << '\n';
         if (forCatFeatures) {
             Out << indent << "unsigned int CatFeatureCount = " << model.GetNumCatFeatures() << ";" << '\n';
@@ -183,16 +185,16 @@ namespace NCB {
             Out << --indent << "};" << '\n';
         }
 
-        Out << indent << "std::vector<unsigned int> TreeDepth = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSizes()) << "};" << '\n';
-        Out << indent << "std::vector<unsigned int> TreeSplits = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSplits()) << "};" << '\n';
+        Out << indent << "unsigned int TreeDepth[" << model.ModelTrees->GetModelTreeData()->GetTreeSizes().size() << "] = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSizes()) << "};" << '\n';
+        Out << indent << "unsigned int TreeSplits[" << model.ModelTrees->GetModelTreeData()->GetTreeSplits().size() << "] = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSplits()) << "};" << '\n';
 
         if (forCatFeatures) {
             const auto& bins = model.ModelTrees->GetRepackedBins();
-            Out << indent << "std::vector<unsigned char> TreeSplitIdxs = {" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].SplitIdx; }, bins.size()) << "};" << '\n';
-            Out << indent << "std::vector<unsigned short> TreeSplitFeatureIndex = {" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].FeatureIndex; }, bins.size()) << "};" << '\n';
-            Out << indent << "std::vector<unsigned char> TreeSplitXorMask = {" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].XorMask; }, bins.size()) << "};" << '\n';
+            Out << indent << "unsigned char TreeSplitIdxs[" << bins.size() << "] = {" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].SplitIdx; }, bins.size()) << "};" << '\n';
+            Out << indent << "unsigned short TreeSplitFeatureIndex[" << bins.size() << "] = {" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].FeatureIndex; }, bins.size()) << "};" << '\n';
+            Out << indent << "unsigned char TreeSplitXorMask[" << bins.size() << "] = {" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].XorMask; }, bins.size()) << "};" << '\n';
 
-            Out << indent << "std::vector<unsigned int> CatFeaturesIndex = {"
+            Out << indent << "unsigned int CatFeaturesIndex[" << model.ModelTrees->GetCatFeatures().size() << "] = {"
                 << OutputArrayInitializer([&model](size_t i) { return model.ModelTrees->GetCatFeatures()[i].Position.Index; }, model.ModelTrees->GetCatFeatures().size()) << "};" << '\n';
 
             Out << indent << "std::vector<unsigned int> OneHotCatFeatureIndex = {"
@@ -226,7 +228,7 @@ namespace NCB {
         Out << indent << "double LeafValues[" << model.ModelTrees->GetModelTreeData()->GetLeafValues().size() << "][" << model.ModelTrees->GetDimensionsCount() << "] = {" << OutputLeafValues(model, indent, EModelType::Cpp);
         Out << indent << "};" << '\n';
         Out << indent << "double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
-        Out << indent << "std::vector<double> Biases = {" << OutputArrayInitializer(model.GetScaleAndBias().GetAllBiases()) << "};" << '\n';
+        Out << indent << "double Biases[" << model.GetScaleAndBias().GetAllBiases().size() << "] = {" << OutputArrayInitializer(model.GetScaleAndBias().GetAllBiases()) << "};" << '\n';
         Out << indent << "unsigned int Dimension = " << model.ModelTrees->GetDimensionsCount() << ";" << '\n';
 
         if (forCatFeatures) {
@@ -259,7 +261,6 @@ namespace NCB {
         }
         Out << "#include <string>" << '\n';
         Out << "#include <vector>" << '\n';
-        Out << "#include <array>" << '\n';
         if (forCatFeatures) {
             Out << "#include <unordered_map>" << '\n';
         }
