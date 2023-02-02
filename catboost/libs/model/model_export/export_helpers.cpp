@@ -58,4 +58,19 @@ namespace NCatboostModelExportHelpers {
         outString << '\n';
         return outString;
     }
+    
+    bool IsNanModeMax(const TFullModel& model) {
+        bool nanModeMax = false;
+        bool nanModeMin = false;
+        for (const auto& feature : model.ModelTrees->GetFloatFeatures()) {
+            if (feature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsFalse){
+                nanModeMin = true;
+            }
+            else if(feature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue){
+                nanModeMax = true;
+            }
+        }
+        CB_ENSURE(nanModeMax ^ nanModeMin, "Exporting models with features that have different NaN modes is not supported.");
+        return nanModeMax;
+    }
 }

@@ -141,6 +141,20 @@ namespace NCB {
         out << --indent << ")" << '\n';
     };
 
+    void TCatboostModelToPythonConverter::WriteHeader(bool nanModeMax) {
+        if (nanModeMax) {
+            Out << "import math" << '\n' << '\n';
+        }
+    }
+    
+   void TCatboostModelToPythonConverter::WriteBinarizer(bool nanModeMax) {
+        if (nanModeMax) {
+            Out << NResource::Find("catboost_model_export_python_binarize_float_features_nan_mode_max") << '\n';
+        }
+        else{
+            Out << NResource::Find("catboost_model_export_python_binarize_float_features") << '\n';
+        }
+    }
 
     void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1, "Export of MultiClassification model to Python is not supported.");

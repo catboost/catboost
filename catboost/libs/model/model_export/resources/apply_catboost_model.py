@@ -35,12 +35,8 @@ def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_e
 
     # Binarise features
     binary_features = [0] * model.binary_feature_count
-    binary_feature_index = 0
-
-    for i in range(len(model.float_feature_borders)):
-        for border in model.float_feature_borders[i]:
-            binary_features[binary_feature_index] += 1 if (float_features[model.float_features_index[i]] > border) else 0
-        binary_feature_index += 1
+    binary_feature_index = binarize_float_features(model, binary_features, float_features)
+    
     transposed_hash = [0] * model.cat_feature_count
     for i in range(model.cat_feature_count):
         transposed_hash[i] = hash_uint64(cat_features[i])

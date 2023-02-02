@@ -1476,6 +1476,62 @@ def test_export_to_python_with_cat_features_from_pandas(task_type):
     return local_canonical_file(output_python_model_path)
 
 
+def test_export_to_python_nan_mode_max_no_cat_features_classification():
+    from sklearn.datasets import make_classification
+    from math import isnan
+    
+    np.random.seed(1)
+    n = 10000
+    p = 20
+    n_nan = int(0.1 * n)
+    
+    X, y = make_classification(random_state=1, n_samples=n, n_features=p, n_informative=p, n_redundant=0)
+    # make largest values in first feature nan
+    X[np.argpartition(X[:, 0], -n_nan)[-n_nan:], 0] = np.nan
+    pool = catboost.Pool(X, y)
+    
+    params = {'n_estimators': 10, 'loss_function': 'Logloss', 'nan_mode': 'Max'}
+    clf = catboost.CatBoostClassifier(**params)
+    clf.fit(pool)
+    clf.save_model('catboost_saved.py', format='python', pool=pool)
+    
+    # import python code just saved
+    import catboost_saved
+    
+    exported_model_preds = [catboost_saved.apply_catboost_model(x) for x in X]
+    orig_model_preds = clf.predict(X, prediction_type='RawFormulaVal')
+    assert np.allclose(exported_model_preds, orig_model_preds, atol=1e-15)
+
+
+def test_export_to_python_nan_mode_max_with_cat_features_classification():
+    from sklearn.datasets import make_classification
+    from math import isnan
+    
+    np.random.seed(1)
+    n = 10000
+    p = 20
+    n_nan = int(0.1 * n)
+    
+    X, y = make_classification(random_state=1, n_samples=n, n_features=p, n_informative=p, n_redundant=0)
+    # make largest values in first feature nan
+    X[np.argpartition(X[:, 0], -n_nan)[-n_nan:], 0] = np.nan
+    X = pd.DataFrame(X)
+    X['cat'] = y * np.random.binomial(1, 0.3, n)
+    pool = catboost.Pool(X, y, cat_features=['cat'])
+    
+    params = {'n_estimators': 10, 'loss_function': 'Logloss', 'nan_mode': 'Max'}
+    clf = catboost.CatBoostClassifier(**params)
+    clf.fit(pool)
+    clf.save_model('catboost_saved.py', format='python', pool=pool)
+    
+    # import python code just saved
+    import catboost_saved
+    
+    exported_model_preds = [catboost_saved.apply_catboost_model(x[:-1], [x['cat']]) for x in X]
+    orig_model_preds = clf.predict(X, prediction_type='RawFormulaVal')
+    assert np.allclose(exported_model_preds, orig_model_preds, atol=1e-15)
+    
+
 ONNX_TEST_PARAMETERS = [
     ('binclass', False),
     ('binclass', True),

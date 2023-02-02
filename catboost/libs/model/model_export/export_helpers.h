@@ -125,4 +125,6 @@ namespace NCatboostModelExportHelpers {
     TString OutputBorders(const TFullModel& model, bool addFloatingSuffix = false);
 
     TString OutputLeafValues(const TFullModel& model, TIndent indent);
+    
+    bool IsNanModeMax(const TFullModel& model);
 }
