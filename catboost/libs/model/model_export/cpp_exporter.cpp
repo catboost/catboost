@@ -152,7 +152,6 @@ namespace NCB {
         } else {
             Out << NResource::Find("catboost_model_export_cpp_model_applicator_without_cat");
         }
-        Out << '\n';
     }
 
     void TCatboostModelToCppConverter::WriteModel(bool forCatFeatures, const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {

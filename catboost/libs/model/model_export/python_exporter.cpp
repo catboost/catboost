@@ -247,7 +247,7 @@ namespace NCB {
     };
 
     void TCatboostModelToPythonConverter::WriteApplicatorCatFeatures() {
-        Out << NResource::Find("catboost_model_export_python_model_applicator") << '\n';
+        Out << NResource::Find("catboost_model_export_python_model_applicator");
     };
 
 }
