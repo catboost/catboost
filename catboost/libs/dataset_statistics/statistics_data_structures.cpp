@@ -11,8 +11,8 @@ using namespace NCB;
 TFloatFeatureStatistics::TFloatFeatureStatistics()
     : MinValue(std::numeric_limits<double>::max())
     , MaxValue(std::numeric_limits<double>::lowest())
-    , CustomMin(std::numeric_limits<double>::lowest())
-    , CustomMax(std::numeric_limits<double>::max())
+    , CustomMin(Nothing())
+    , CustomMax(Nothing())
     , OutOfDomainValuesCount(0)
     , Underflow(0)
     , Overflow(0)
@@ -22,18 +22,38 @@ TFloatFeatureStatistics::TFloatFeatureStatistics()
 {
 }
 
+double TFloatFeatureStatistics::GetMinBorder() const {
+    if (CustomMin.Defined()) {
+        return CustomMin.GetRef();
+    } else if (ObjectCount) {
+        return MinValue;
+    } else {
+        return std::numeric_limits<double>::lowest();
+    }
+}
+
+double TFloatFeatureStatistics::GetMaxBorder() const {
+    if (CustomMax.Defined()) {
+        return CustomMax.GetRef();
+    } else if (ObjectCount) {
+        return MaxValue;
+    } else {
+        return std::numeric_limits<double>::max();
+    }
+}
+
 void TFloatFeatureStatistics::Update(float feature) {
     with_lock(Mutex) {
         if (std::isinf(feature) || std::isnan(feature)) {
             OutOfDomainValuesCount++;
             return;
         }
-        if (feature < CustomMin) {
+        if (CustomMin.Defined() && feature < CustomMin.GetRef()) {
             OutOfDomainValuesCount++;
             Underflow++;
             return;
         }
-        if (feature > CustomMax) {
+        if (CustomMin.Defined() && feature > CustomMax.GetRef()) {
             OutOfDomainValuesCount++;
             Overflow++;
             return;
@@ -76,11 +96,11 @@ NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
         result.InsertValue("SumSqr", ToString(SumSqr));
     }
     result.InsertValue("ObjectCount", ObjectCount);
-    if (CustomMin != std::numeric_limits<double>::lowest()) {
-        InsertFloatValue("CustomMin", CustomMin, &result);
+    if (CustomMin.Defined()) {
+        InsertFloatValue("CustomMin", CustomMin.GetRef(), &result);
     }
-    if (CustomMax != std::numeric_limits<double>::max()) {
-        InsertFloatValue("CustomMax", CustomMax, &result);
+    if (CustomMax.Defined()) {
+        InsertFloatValue("CustomMax", CustomMax.GetRef(), &result);
     }
     if (OutOfDomainValuesCount > 0) {
         result.InsertValue("OutOfDomainValuesCount", OutOfDomainValuesCount);

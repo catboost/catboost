@@ -323,8 +323,8 @@ THistograms NCB::InitHistograms(const TVector<size_t>& borderCounts, const TFeat
         const TFloatFeatureStatistics& featureStatistics = featuresStatistics.FloatFeatureStatistics.at(idx);
         borders.emplace_back(TBorders(
             borderCounts.at(idx),
-            featureStatistics.ObjectCount ? featureStatistics.MinValue : featureStatistics.CustomMin,
-            featureStatistics.ObjectCount ? featureStatistics.MaxValue : featureStatistics.CustomMax
+            featureStatistics.GetMinBorder(),
+            featureStatistics.GetMaxBorder()
         ));
     }
 

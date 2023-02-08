@@ -50,7 +50,7 @@ struct TFloatFeatureStatistics : public IStatistics {
         : MinValue(a.MinValue), MaxValue(a.MaxValue)
         , CustomMin(a.CustomMin), CustomMax(a.CustomMax), OutOfDomainValuesCount(a.OutOfDomainValuesCount)
         , Underflow(a.Underflow), Overflow(a.Overflow)
-        ,  Sum(a.Sum), SumSqr(a.SumSqr), ObjectCount(a.ObjectCount)
+        , Sum(a.Sum), SumSqr(a.SumSqr), ObjectCount(a.ObjectCount)
         {}
 
     void Update(float feature);
@@ -70,14 +70,17 @@ struct TFloatFeatureStatistics : public IStatistics {
         CustomMax = customBorders.second;
     }
 
+    double GetMinBorder() const;
+    double GetMaxBorder() const;
+
     Y_SAVELOAD_DEFINE(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Underflow, Overflow, Sum, SumSqr, ObjectCount);
 
     SAVELOAD(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Underflow, Overflow, Sum, SumSqr, ObjectCount);
 
     double MinValue;
     double MaxValue;
-    double CustomMin;
-    double CustomMax;
+    TMaybe<double> CustomMin;
+    TMaybe<double> CustomMax;
     ui64 OutOfDomainValuesCount;
     ui64 Underflow;
     ui64 Overflow;
