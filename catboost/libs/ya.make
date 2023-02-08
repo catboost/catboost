@@ -2,10 +2,12 @@
 
 RECURSE(
     calc_metrics
+    calc_metrics/ut
     data
     data/ut
     data/benchmarks_ut
     dataset_statistics
+    dataset_statistics/ut
     eval_result
     features_selection
     fstr

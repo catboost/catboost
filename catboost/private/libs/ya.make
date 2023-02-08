@@ -4,6 +4,7 @@ RECURSE(
     algo
     algo/ut
     algo_helpers
+    algo_helpers/ut
     app_helpers
     ctr_description
     data_types
@@ -17,6 +18,7 @@ RECURSE(
     feature_estimator
     feature_estimator/ut
     functools
+    functools/ut
     hyperparameter_tuning
     index_range
     init
@@ -26,6 +28,7 @@ RECURSE(
     options/ut
     pairs
     quantization
+    quantization/ut
     quantization_schema
     quantization_schema/ut
     quantized_pool

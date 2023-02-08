@@ -28,7 +28,7 @@ Y_UNIT_TEST_SUITE(TStatisticsSerialization) {
     Y_UNIT_TEST(TestFeatureStatistics) {
         TFeatureStatistics item;
         item.FloatFeatureStatistics.resize(2);
-    
+
         DoSerializeDeserialize(item);
         float i = 10.5;
         while(i > -1) {
@@ -49,7 +49,7 @@ Y_UNIT_TEST_SUITE(TStatisticsSerialization) {
             TVector<TString>{}
         );
 
-        item.Init(metaInfo);
+        item.Init(metaInfo, TFeatureCustomBorders(), TFeatureCustomBorders());
 
         DoSerializeDeserialize(item);
         float i = 10.5;

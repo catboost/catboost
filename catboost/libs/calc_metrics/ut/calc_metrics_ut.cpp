@@ -109,6 +109,7 @@ TDataProviderPtr BuildApproxAsPoolAndGetMetric(NPar::TLocalExecutor* executor, T
                     EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
+        /*forceUnitAutoPairWeights*/false,
                     &classLabels
     );
 }
