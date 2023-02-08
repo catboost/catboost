@@ -249,6 +249,14 @@ namespace NCatboostCuda {
                     const double multiplier = (metricType == ELossFunction::MAE ? 2.0 : 1.0);
                     return MakeSimpleAdditiveStatistic(-result[0] * multiplier, totalWeight);
                 }
+                case ELossFunction::RMSEWithUncertainty: {
+                    CB_ENSURE(NumClasses == 2, "Expect two-dimensional predictions");
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    RMSEWithUncertaintyValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                                          &tmp, (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
+                }
                 case ELossFunction::MultiClass: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     MultiLogitValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
@@ -493,7 +501,7 @@ namespace NCatboostCuda {
         TVector<THolder<IGpuMetric>> result;
         const auto numClasses = approxDim == 1 ? 2 : approxDim;
         const bool isMulticlass = IsMultiClassOnlyMetric(targetObjective);
-        if (isMulticlass) {
+        if (isMulticlass || targetObjective == ELossFunction::RMSEWithUncertainty) {
             CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
         } else {
             CB_ENSURE(approxDim == 1, "Error: non-multiclass output dim should be equal to  1");
@@ -509,6 +517,7 @@ namespace NCatboostCuda {
             case ELossFunction::Logloss:
             case ELossFunction::CrossEntropy:
             case ELossFunction::RMSE:
+            case ELossFunction::RMSEWithUncertainty:
             case ELossFunction::Lq:
             case ELossFunction::Quantile:
             case ELossFunction::MAE:

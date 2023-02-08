@@ -1625,6 +1625,34 @@ def test_multi_leaf_estimation_method(leaf_estimation_method):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+def test_rmse_with_uncertainty():
+    train_path = data_file('higgs', 'train_small')
+    test_path = data_file('higgs', 'test_small')
+    cd_path = data_file('higgs', 'train.cd')
+
+    fit_params = (
+        '--loss-function', 'RMSEWithUncertainty',
+        '--learning-rate', '0.03',
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--border-count', '254',
+        '--use-best-model', 'false',
+    )
+
+    fit_params += NO_RANDOM_PARAMS
+
+    cpu_eval_path = yatest.common.test_output_path('cpu_eval.tsv')
+    gpu_eval_path = yatest.common.test_output_path('gpu_eval.tsv')
+
+    execute_catboost_fit('CPU', fit_params + ('--eval-file', cpu_eval_path))
+    fit_catboost_gpu(fit_params + ('--eval-file', gpu_eval_path))
+    assert compare_fit_evals_with_precision(cpu_eval_path, gpu_eval_path)
+
+
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_multiclass_baseline(loss_function):
     labels = [0, 1, 2, 3]

@@ -542,7 +542,7 @@ namespace NCatboostCuda {
             TVector<TVector<TFold>> PermutationFolds;
 
             THolder<TVec> BestTestCursor;
-            TMaybe<float> StartingPoint;
+            TMaybe<TVector<double>> StartingPoint;
 
             ui32 GetEstimationPermutation() const {
                 return DataSets.PermutationsCount() - 1;
@@ -554,14 +554,16 @@ namespace NCatboostCuda {
             state->DataSets = CreateDataSet();
             state->Targets = CreateTargets(state->DataSets);
 
-            if (CatBoostOptions.BoostingOptions->BoostFromAverage.Get()) {
-                CB_ENSURE(!DataProvider->TargetData->GetBaseline(),
-                    "You can't use boost_from_average with baseline now.");
-                CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
-                    "You can't use boost_from_average with baseline now.");
-                state->StartingPoint = NCB::CalcOneDimensionalOptimumConstApprox(
+            const bool isBoostFromAverage = CatBoostOptions.BoostingOptions->BoostFromAverage.Get();
+            const bool isRMSEWithUncertainty = CatBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::RMSEWithUncertainty;
+            if (isBoostFromAverage || isRMSEWithUncertainty) {
+                CB_ENSURE(
+                    !DataProvider->TargetData->GetBaseline()
+                    && (!TestDataProvider || !TestDataProvider->TargetData->GetBaseline()),
+                    "You can't use boost_from_average or RMSEWithUncertainty with baseline now.");
+                state->StartingPoint = NCB::CalcOptimumConstApprox(
                     CatBoostOptions.LossFunctionDescription,
-                    DataProvider->TargetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
+                    *DataProvider->TargetData->GetTarget(),
                     GetWeights(*DataProvider->TargetData));
             }
 
@@ -572,6 +574,8 @@ namespace NCatboostCuda {
 
             state->Cursor.FoldData.resize(learnPermutationCount);
 
+            const float start = state->StartingPoint ? (*state->StartingPoint)[0] : 0.0f;
+
             for (ui32 i = 0; i < learnPermutationCount; ++i) {
                 auto& folds = state->PermutationFolds[i];
                 const auto& permutation = state->DataSets.GetPermutation(i);
@@ -579,7 +583,7 @@ namespace NCatboostCuda {
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
                     baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
-                    baseline.resize(DataProvider->GetObjectCount(), state->StartingPoint.GetOrElse(0.0f));
+                    baseline.resize(DataProvider->GetObjectCount(), start);
                 }
 
                 folds = CreateFolds(state->Targets.GetTarget(i),
@@ -601,7 +605,7 @@ namespace NCatboostCuda {
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
                     baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
-                    baseline.resize(DataProvider->GetObjectCount(), state->StartingPoint.GetOrElse(0.0f));
+                    baseline.resize(DataProvider->GetObjectCount(), start);
                 }
 
                 state->Cursor.Estimation = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetDataSetForPermutation(estimationPermutation).GetTarget().GetTargets());
@@ -614,7 +618,7 @@ namespace NCatboostCuda {
                 if (TestDataProvider->MetaInfo.BaselineCount > 0) {
                     state->TestCursor.Write((*TestDataProvider->TargetData->GetBaseline())[0]);
                 } else {
-                    FillBuffer(state->TestCursor, state->StartingPoint.GetOrElse(0.0f));
+                    FillBuffer(state->TestCursor, start);
                 }
             }
 
@@ -654,7 +658,7 @@ namespace NCatboostCuda {
                 TestDataProvider ? &state->TestCursor : nullptr,
                 state->BestTestCursor.Get(),
                 resultModel.Get());
-            resultModel->SetBias(state->StartingPoint.GetOrElse(0.0f));
+            resultModel->SetBias(state->StartingPoint);
             return resultModel;
         }
 

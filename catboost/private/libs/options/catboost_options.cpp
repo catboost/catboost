@@ -791,7 +791,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
 
-    if (!IsMultiClassOnlyMetric(lossFunction) && TaskType == ETaskType::GPU && !boostingType.IsSet()) {
+    if (!IsMultiClassOnlyMetric(lossFunction) && lossFunction != ELossFunction::RMSEWithUncertainty && TaskType == ETaskType::GPU && !boostingType.IsSet()) {
         boostingType.SetDefault(EBoostingType::Ordered);
     }
 
@@ -952,7 +952,12 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
 
         if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
-            if (lossFunction == ELossFunction::MultiClass || lossFunction == ELossFunction::MultiClassOneVsAll) {
+            const bool useL2ScoreFunction = EqualToOneOf(
+                lossFunction,
+                ELossFunction::MultiClass,
+                ELossFunction::MultiClassOneVsAll,
+                ELossFunction::RMSEWithUncertainty);
+            if (useL2ScoreFunction) {
                 ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::L2);
             } else {
                 ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);

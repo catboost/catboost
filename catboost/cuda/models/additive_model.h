@@ -8,7 +8,7 @@ namespace NCatboostCuda {
     template <class TInner>
     class TAdditiveModel {
     public:
-        double Bias = 0.0;
+        TMaybe<TVector<double>> Bias;
         TVector<TInner> WeakModels;
 
         TAdditiveModel() {
@@ -31,7 +31,7 @@ namespace NCatboostCuda {
             }
         }
 
-        void SetBias(double bias) {
+        void SetBias(const TMaybe<TVector<double>>& bias) {
             Bias = bias;
         }
 

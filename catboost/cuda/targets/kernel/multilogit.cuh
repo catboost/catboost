@@ -24,6 +24,23 @@ namespace NKernel {
                              TCudaStream stream);
 
 
+    void RMSEWithUncertaintyValueAndDer(const float* target,
+                               const float* weights,
+                               ui32 size,
+                               const float* predictions, ui32 predictionsAlignSize,
+                               const ui32* loadPredictionsIndices,
+                               float* functionValue,
+                               float* der, ui32 derAlignSize,
+                               TCudaStream stream);
+
+    void RMSEWithUncertaintySecondDer(const float* target,
+                             const float* weights,
+                             ui32 size,
+                             const float* predictions, ui32 predictionsAlignSize,
+                             float* der2,
+                             int der2Row, ui32 der2AlignSize,
+                             TCudaStream stream);
+
     void MultiClassOneVsAllValueAndDer(const float* targetClasses, int numClasses,
                                        const float* targetWeights,
                                        ui32 size,

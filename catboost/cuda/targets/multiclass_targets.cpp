@@ -24,7 +24,7 @@ namespace NCatboostCuda {
                                                                               TStripeBuffer<ui32>&& sampledIndices,
                                                                               bool secondDerAsWeights,
                                                                               TOptimizationTarget* target) const {
-        CB_ENSURE(!secondDerAsWeights, "MultiClass losss doesn't support second derivatives in tree structure search currently");
+        CB_ENSURE(!secondDerAsWeights, "MultiClass loss doesn't support second derivatives in tree structure search currently");
         auto gatheredTarget = TVec::CopyMapping(sampledWeights);
         Gather(gatheredTarget, GetTarget().GetTargets(), sampledIndices);
         ui32 statCount = 1 + NumClasses;
@@ -45,6 +45,10 @@ namespace NCatboostCuda {
         } else if (Type == ELossFunction::MultiClassOneVsAll) {
             MultiClassOneVsAllValueAndDer(gatheredTarget.ConstCopyView(), weights.ConstCopyView(), point, &sampledIndices,
                                           NumClasses, (TVec*)nullptr, &ders);
+        } else if (Type == ELossFunction::RMSEWithUncertainty) {
+            CB_ENSURE(NumClasses == 2, "Expect two-dimensional predictions");
+            RMSEWithUncertaintyValueAndDer(gatheredTarget.ConstCopyView(), weights.ConstCopyView(), point, &sampledIndices,
+                                  (TVec*)nullptr, &ders);
         } else {
             CB_ENSURE(false, "Bug");
         }
@@ -63,6 +67,10 @@ namespace NCatboostCuda {
         } else if (Type == ELossFunction::MultiClassOneVsAll) {
             MultiClassOneVsAllValueAndDer(target, weights, point, (const TStripeBuffer<ui32>*)nullptr, NumClasses, value, der,
                                           stream);
+        } else if (Type == ELossFunction::RMSEWithUncertainty) {
+            CB_ENSURE(NumClasses == 2, "Expect two-dimensional predictions");
+            RMSEWithUncertaintyValueAndDer(target, weights, point, (const TStripeBuffer<ui32>*)nullptr, value, der,
+                                  stream);
         } else {
             CB_ENSURE(false, "Unsupported loss " << Type);
         }
@@ -82,6 +90,11 @@ namespace NCatboostCuda {
             case ELossFunction::MultiClassOneVsAll: {
                 CB_ENSURE(row == 0, "THIS IS A BUG: report to catboost team");
                 MultiClassOneVsAllSecondDer(target, weights, point, NumClasses, der, stream);
+                break;
+            }
+            case ELossFunction::RMSEWithUncertainty: {
+                CB_ENSURE(NumClasses == 2, "Expect two-dimensional predictions");
+                RMSEWithUncertaintySecondDerRow(target, weights, point, row, der, stream);
                 break;
             }
             default: {
