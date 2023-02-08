@@ -7,6 +7,7 @@ SRCS(
     grid.cpp
     helpers.cpp
     interpretation.cpp
+    leaf_path.cpp
     model_import.cpp
     monom.cpp
     oblivious_tree.cpp

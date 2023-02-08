@@ -16,6 +16,7 @@ SRCS(
     features.cpp
     model.cpp
     model_build_helper.cpp
+    model_estimated_features.cpp
     online_ctr.cpp
     scale_and_bias.cpp
     static_ctr_provider.cpp
