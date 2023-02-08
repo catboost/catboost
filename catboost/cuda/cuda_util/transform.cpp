@@ -926,7 +926,7 @@ namespace {
             NKernel::PowVector(X.Get(), X.Size(), Base, Y.Get(), stream);
         }
 
-        Y_SAVELOAD_DEFINE(X, Base);
+        Y_SAVELOAD_DEFINE(X, Y, Base);
     };
 }
 

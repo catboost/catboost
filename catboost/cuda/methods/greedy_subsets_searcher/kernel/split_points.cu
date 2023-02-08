@@ -103,6 +103,9 @@ namespace NKernel {
         numBlocks.x = 1 + statCount;
         numBlocks.y = leavesCount;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
         GatherInplaceImpl<Size, blockSize> <<<numBlocks, blockSize, 0, stream>>>(leaf, parts, map, stats, lineSize, indices);
     }
 
@@ -162,6 +165,9 @@ namespace NKernel {
         numBlocks.x = 1 + statCount;
         numBlocks.y = 1;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
         GatherInplaceSingleLeafImpl<Size, blockSize> <<<numBlocks, blockSize, 0, stream>>>(leaf, parts, map, stats, lineSize, indices);
     }
 
@@ -521,7 +527,9 @@ namespace NKernel {
             bool split[N];
             #pragma unroll
             for (int k = 0; k < N; ++k) {
-                split[k] = (oneHot ? (featureVal[k] == value) : featureVal[k] > value);
+                if (i + k * BlockSize < size) {
+                    split[k] = (oneHot ? (featureVal[k] == value) : featureVal[k] > value);
+                }
             }
 
             #pragma unroll
@@ -607,7 +615,9 @@ namespace NKernel {
         bool split[N];
         #pragma unroll
         for (int k = 0; k < N; ++k) {
-            split[k] = (oneHot ? (featureVal[k] == value) : featureVal[k] > value);
+            if (i + k * BlockSize < size) {
+                split[k] = (oneHot ? (featureVal[k] == value) : featureVal[k] > value);
+            }
         }
 
         #pragma unroll
