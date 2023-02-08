@@ -305,6 +305,9 @@ static void RadixSortImpl(
     ui32 offset,
     ui32 bits,
     ui64 stream) {
+    if (bits == 0) {
+        return;
+    }
     using TKernel = TRadixSortKernel<K, V>;
     CB_ENSURE((offset + bits) <= (sizeof(K) * 8), LabeledOutput(offset + bits, sizeof(K) + 8));
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, false, offset, offset + bits, tmpKeys, tmpValues);
@@ -400,6 +403,9 @@ static void RadixSortImpl(
     ui32 offset,
     ui32 bits,
     ui32 stream) {
+    if (offset == bits) {
+        return;
+    }
     using TKernel = TRadixSortKernel<K, V>;
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater, offset, bits);
 }
@@ -496,6 +502,9 @@ static void ReorderBinsImpl(
     ui32 offset,
     ui32 bits,
     ui64 stream) {
+    if (bits == 0) {
+        return;
+    }
     using TKernel = TRadixSortKernel<ui32, TIndex>;
     CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8), LabeledOutput(offset + bits, sizeof(ui32) * 8));
     LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits);
@@ -538,6 +547,9 @@ static void ReorderBinsImpl(
     TCudaBuffer<ui32, TMapping>& tmpBins,
     TCudaBuffer<ui32, TMapping>& tmpIndices,
     ui64 stream) {
+    if (bits == 0) {
+        return;
+    }
     using TKernel = TRadixSortKernel<ui32, ui32>;
     CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8), LabeledOutput(offset + bits, sizeof(ui32) * 8));
     LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits, tmpBins, tmpIndices);
