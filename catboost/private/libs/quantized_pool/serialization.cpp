@@ -26,6 +26,7 @@
 #include <util/generic/string.h>
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <util/generic/ylimits.h>
 #include <util/memory/blob.h>
 #include <util/stream/file.h>
@@ -787,8 +788,9 @@ size_t NCB::EstimateIdsLength(const TStringBuf path) {
     };
     size_t estimatedIdsLength = 0;
     auto parseChunk = [&] (TConstArrayRef<ui8> bytes, ui32 docOffset, ui32 docsInChunkCount) {
+        const auto* const chunk = flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(bytes.data());
         if (isFakeColumn && docOffset == 0) {
-            estimatedIdsLength += 1 + bytes.size() / (docsInChunkCount + 1);
+            estimatedIdsLength += 1 + chunk->Quants()->size() / (docsInChunkCount + 1);
         }
     };
     ParseQuantizedPool(
@@ -798,6 +800,57 @@ size_t NCB::EstimateIdsLength(const TStringBuf path) {
         parseChunk,
         blob);
     return estimatedIdsLength;
+}
+
+void NCB::EstimateGroupSize(
+    const TStringBuf path,
+    double* groupSize,
+    double* sqrGroupSize,
+    size_t* maxGroupSize
+) {
+    const auto file = TBlob::FromFile(TString(path));
+    const TConstArrayRef<ui8> blob(file.AsUnsignedCharPtr(), file.Size());
+
+    TPoolMetainfo poolMetainfo;
+    auto parseMetainfo = [&] (TConstArrayRef<ui8> bytes) {
+        const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(bytes.data(), bytes.size());
+        CB_ENSURE(poolMetainfoParsed);
+    };
+    auto onColumn = [&] (ui32 columnIndex) -> bool {
+        const auto hasType = poolMetainfo.GetColumnIndexToType().count(columnIndex);
+        return hasType && poolMetainfo.GetColumnIndexToType().at(columnIndex) == NCB::NIdl::CT_GROUP_ID;
+    };
+    ui64 groupCount = 0;
+    ui64 sumSqrGroupSize = 0;
+    size_t thisGroupSize = 1;
+    ui64 docCount = 0;
+    *maxGroupSize = 1;
+    auto onChunk = [&] (TConstArrayRef<ui8> bytes, ui32 docOffset, ui32 docsInChunkCount) {
+        if (docOffset > 0) {
+            return;
+        }
+        const auto* const chunk = flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(bytes.data());
+        CB_ENSURE(chunk->BitsPerDocument() == sizeof(ui64) * 8, "Group ids should be 64-bits");
+        const ui64* groupIds = reinterpret_cast<const ui64*>(chunk->Quants()->data());
+        for (auto idx : xrange((ui32)1, docsInChunkCount)) {
+            thisGroupSize += 1;
+            if (groupIds[idx - 1] != groupIds[idx]) {
+                groupCount += 1;
+                sumSqrGroupSize += Sqr(thisGroupSize);
+                *maxGroupSize = Max(*maxGroupSize, thisGroupSize);
+                thisGroupSize = 1;
+            }
+        }
+        docCount += docsInChunkCount;
+    };
+    ParseQuantizedPool(
+        parseMetainfo,
+        /*parseSchema*/ Nothing(),
+        onColumn,
+        onChunk,
+        blob);
+    *groupSize = groupCount ? static_cast<double>(docCount) / groupCount : 1;
+    *sqrGroupSize = groupCount ? static_cast<double>(sumSqrGroupSize) / groupCount : 1;
 }
 
 NCB::NIdl::TPoolMetainfo NCB::LoadPoolMetainfo(const TStringBuf path) {
