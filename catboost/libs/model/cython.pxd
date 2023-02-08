@@ -74,6 +74,11 @@ cdef extern from "catboost/libs/model/model.h":
         TFeaturePosition Position
         TString FeatureId
 
+    cdef cppclass TEmbeddingFeature:
+        TFeaturePosition Position
+        TString FeatureId
+        int Dimension
+
     cdef cppclass TNonSymmetricTreeStepNode:
         ui16 LeftSubtreeDiff
         ui16 RightSubtreeDiff
@@ -98,6 +103,7 @@ cdef extern from "catboost/libs/model/model.h":
         int GetDimensionCount() except +ProcessException
         TConstArrayRef[TCatFeature] GetCatFeatures() except +ProcessException
         TConstArrayRef[TTextFeature] GetTextFeatures() except +ProcessException
+        TConstArrayRef[TEmbeddingFeature] GetEmbeddingFeatures() except +ProcessException
         TConstArrayRef[TFloatFeature] GetFloatFeatures() except +ProcessException
         void DropUnusedFeatures() except +ProcessException
         TVector[ui32] GetTreeLeafCounts() except +ProcessException
