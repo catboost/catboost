@@ -707,7 +707,7 @@ NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
                 ++digest.NonFeatureColumnCount;
                 break;
             case NCB::NIdl::CT_CATEGORICAL:
-                // TODO(yazevnul): account them too when categorical features will be quantized
+                ++digest.CategoricFeatureCount;
                 break;
             case NCB::NIdl::CT_SPARSE:
                 // not implemented in CatBoost yet
