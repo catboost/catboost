@@ -23,7 +23,7 @@ TFloatFeatureStatistics::TFloatFeatureStatistics()
 }
 
 double TFloatFeatureStatistics::GetMinBorder() const {
-    if (CustomMin.Defined()) {
+    if (CustomMin.Defined() && !std::isinf(CustomMin.GetRef())) {
         return CustomMin.GetRef();
     } else if (ObjectCount) {
         return MinValue;
@@ -33,7 +33,7 @@ double TFloatFeatureStatistics::GetMinBorder() const {
 }
 
 double TFloatFeatureStatistics::GetMaxBorder() const {
-    if (CustomMax.Defined()) {
+    if (CustomMax.Defined() && !std::isinf(CustomMax.GetRef())) {
         return CustomMax.GetRef();
     } else if (ObjectCount) {
         return MaxValue;
