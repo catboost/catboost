@@ -249,4 +249,8 @@ namespace NKernel {
         }
     };
 
+    static __forceinline__ __host__ bool IsGridEmpty(const dim3& grid) {
+        return grid.x == 0 || grid.y == 0 || grid.z == 0;
+    }
+
 }
