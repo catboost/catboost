@@ -251,7 +251,7 @@ size_t Message::SpaceUsedLong() const {
   return GetReflection()->SpaceUsedLong(*this);
 }
 
-uint64_t Message::GetInvariantPerBuild(uint64_t salt) {
+arc_ui64 Message::GetInvariantPerBuild(arc_ui64 salt) {
   return salt;
 }
 
@@ -321,35 +321,35 @@ const Message* GeneratedMessageFactory::GetPrototype(const Descriptor* type) {
   {
     ReaderMutexLock lock(&mutex_);
     const Message* result = FindPtrOrNull(type_map_, type);
-    if (result != NULL) return result;
+    if (result != nullptr) return result;
   }
 
   // If the type is not in the generated pool, then we can't possibly handle
   // it.
-  if (type->file()->pool() != DescriptorPool::generated_pool()) return NULL;
+  if (type->file()->pool() != DescriptorPool::generated_pool()) return nullptr;
 
   // Apparently the file hasn't been registered yet.  Let's do that now.
   const internal::DescriptorTable* registration_data =
       FindPtrOrNull(file_map_, type->file()->name().c_str());
-  if (registration_data == NULL) {
+  if (registration_data == nullptr) {
     GOOGLE_LOG(DFATAL) << "File appears to be in generated pool but wasn't "
                    "registered: "
                 << type->file()->name();
-    return NULL;
+    return nullptr;
   }
 
   WriterMutexLock lock(&mutex_);
 
   // Check if another thread preempted us.
   const Message* result = FindPtrOrNull(type_map_, type);
-  if (result == NULL) {
+  if (result == nullptr) {
     // Nope.  OK, register everything.
     internal::RegisterFileLevelMetadata(registration_data);
     // Should be here now.
     result = FindPtrOrNull(type_map_, type);
   }
 
-  if (result == NULL) {
+  if (result == nullptr) {
     GOOGLE_LOG(DFATAL) << "Type appears to be in generated pool but wasn't "
                 << "registered: " << type->full_name();
   }
@@ -389,14 +389,14 @@ const internal::RepeatedFieldAccessor* Reflection::RepeatedFieldAccessor(
 #define HANDLE_PRIMITIVE_TYPE(TYPE, type) \
   case FieldDescriptor::CPPTYPE_##TYPE:   \
     return GetSingleton<internal::RepeatedFieldPrimitiveAccessor<type> >();
-    HANDLE_PRIMITIVE_TYPE(INT32, int32_t)
-    HANDLE_PRIMITIVE_TYPE(UINT32, uint32_t)
-    HANDLE_PRIMITIVE_TYPE(INT64, int64_t)
-    HANDLE_PRIMITIVE_TYPE(UINT64, uint64_t)
+    HANDLE_PRIMITIVE_TYPE(INT32, arc_i32)
+    HANDLE_PRIMITIVE_TYPE(UINT32, arc_ui32)
+    HANDLE_PRIMITIVE_TYPE(INT64, arc_i64)
+    HANDLE_PRIMITIVE_TYPE(UINT64, arc_ui64)
     HANDLE_PRIMITIVE_TYPE(FLOAT, float)
     HANDLE_PRIMITIVE_TYPE(DOUBLE, double)
     HANDLE_PRIMITIVE_TYPE(BOOL, bool)
-    HANDLE_PRIMITIVE_TYPE(ENUM, int32_t)
+    HANDLE_PRIMITIVE_TYPE(ENUM, arc_i32)
 #undef HANDLE_PRIMITIVE_TYPE
     case FieldDescriptor::CPPTYPE_STRING:
       switch (field->options().ctype()) {
@@ -413,7 +413,7 @@ const internal::RepeatedFieldAccessor* Reflection::RepeatedFieldAccessor(
       }
   }
   GOOGLE_LOG(FATAL) << "Should not reach here.";
-  return NULL;
+  return nullptr;
 }
 
 namespace internal {

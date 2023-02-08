@@ -1,8 +1,0 @@
-leak:_PyGILState_Init
-leak:_PyImport_AcquireLock
-leak:_PyImport_ReInitLock
-leak:Py_MakePendingCalls
-leak:PyEval_InitThreads
-leak:PyEval_ReInitThreads
-leak:PyString_FromStringAndSize
-leak:PyThread_ReInitTLS

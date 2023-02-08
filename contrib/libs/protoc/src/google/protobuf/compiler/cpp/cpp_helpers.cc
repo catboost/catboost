@@ -58,6 +58,7 @@
 #include <google/protobuf/stubs/substitute.h>
 #include <google/protobuf/stubs/hash.h>
 
+// Must be last.
 #include <google/protobuf/port_def.inc>
 
 namespace google {
@@ -174,11 +175,7 @@ static std::unordered_set<TProtoStringType>* MakeKeywordsMap() {
 static std::unordered_set<TProtoStringType>& kKeywords = *MakeKeywordsMap();
 
 TProtoStringType IntTypeName(const Options& options, const TProtoStringType& type) {
-  if (options.opensource_runtime) {
-    return "::PROTOBUF_NAMESPACE_ID::" + type;
-  } else {
-    return "::" + type;
-  }
+  return "::NProtoBuf::" + type;
 }
 
 void SetIntVar(const Options& options, const TProtoStringType& type,
@@ -460,6 +457,19 @@ TProtoStringType FieldName(const FieldDescriptor* field) {
   return result;
 }
 
+TProtoStringType OneofCaseConstantName(const FieldDescriptor* field) {
+  GOOGLE_DCHECK(field->containing_oneof());
+  TProtoStringType field_name = UnderscoresToCamelCase(field->name(), true);
+  return "k" + field_name;
+}
+
+TProtoStringType QualifiedOneofCaseConstantName(const FieldDescriptor* field) {
+  GOOGLE_DCHECK(field->containing_oneof());
+  const TProtoStringType qualification =
+      QualifiedClassName(field->containing_type());
+  return StrCat(qualification, "::", OneofCaseConstantName(field));
+}
+
 TProtoStringType EnumValueName(const EnumValueDescriptor* enum_value) {
   TProtoStringType result = enum_value->name();
   if (kKeywords.count(result) > 0) {
@@ -526,13 +536,13 @@ TProtoStringType StripProto(const TProtoStringType& filename) {
 const char* PrimitiveTypeName(FieldDescriptor::CppType type) {
   switch (type) {
     case FieldDescriptor::CPPTYPE_INT32:
-      return "::google::protobuf::int32";
+      return "arc_i32";
     case FieldDescriptor::CPPTYPE_INT64:
-      return "::google::protobuf::int64";
+      return "arc_i64";
     case FieldDescriptor::CPPTYPE_UINT32:
-      return "::google::protobuf::uint32";
+      return "arc_ui32";
     case FieldDescriptor::CPPTYPE_UINT64:
-      return "::google::protobuf::uint64";
+      return "arc_ui64";
     case FieldDescriptor::CPPTYPE_DOUBLE:
       return "double";
     case FieldDescriptor::CPPTYPE_FLOAT:
@@ -635,7 +645,7 @@ const char* DeclaredTypeMethodName(FieldDescriptor::Type type) {
 }
 
 TProtoStringType Int32ToString(int number) {
-  if (number == std::numeric_limits<int32_t>::min()) {
+  if (number == std::numeric_limits<arc_i32>::min()) {
     // This needs to be special-cased, see explanation here:
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52661
     return StrCat(number + 1, " - 1");
@@ -644,17 +654,17 @@ TProtoStringType Int32ToString(int number) {
   }
 }
 
-static TProtoStringType Int64ToString(int64_t number) {
-  if (number == std::numeric_limits<int64_t>::min()) {
+static TProtoStringType Int64ToString(arc_i64 number) {
+  if (number == std::numeric_limits<arc_i64>::min()) {
     // This needs to be special-cased, see explanation here:
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52661
-    return StrCat("int64_t{", number + 1, "} - 1");
+    return StrCat("arc_i64{", number + 1, "} - 1");
   }
-  return StrCat("int64_t{", number, "}");
+  return StrCat("arc_i64{", number, "}");
 }
 
-static TProtoStringType UInt64ToString(uint64_t number) {
-  return StrCat("uint64_t{", number, "u}");
+static TProtoStringType UInt64ToString(arc_ui64 number) {
+  return StrCat("arc_ui64{", number, "u}");
 }
 
 TProtoStringType DefaultValue(const FieldDescriptor* field) {
@@ -781,8 +791,10 @@ TProtoStringType SafeFunctionName(const Descriptor* descriptor,
   return function_name;
 }
 
-bool IsStringInlined(const FieldDescriptor* /* descriptor */,
-                     const Options& /* options */) {
+bool IsStringInlined(const FieldDescriptor* descriptor,
+                     const Options& options) {
+  (void)descriptor;
+  (void)options;
   return false;
 }
 
@@ -943,15 +955,19 @@ bool HasEnumDefinitions(const FileDescriptor* file) {
   return false;
 }
 
-bool ShouldVerify(const Descriptor* /* descriptor */,
-                  const Options& /* options */,
-                  MessageSCCAnalyzer* /* scc_analyzer */) {
+bool ShouldVerify(const Descriptor* descriptor, const Options& options,
+                  MessageSCCAnalyzer* scc_analyzer) {
+  (void)descriptor;
+  (void)options;
+  (void)scc_analyzer;
   return false;
 }
 
-bool ShouldVerify(const FileDescriptor* /* file */,
-                  const Options& /* options */,
-                  MessageSCCAnalyzer* /* scc_analyzer */) {
+bool ShouldVerify(const FileDescriptor* file, const Options& options,
+                  MessageSCCAnalyzer* scc_analyzer) {
+  (void)file;
+  (void)options;
+  (void)scc_analyzer;
   return false;
 }
 
@@ -1156,8 +1172,8 @@ MessageAnalysis MessageSCCAnalyzer::GetSCCAnalysis(const SCC* scc) {
     if (descriptor->extension_range_count() > 0) {
       result.contains_extension = true;
     }
-    for (int i = 0; i < descriptor->field_count(); i++) {
-      const FieldDescriptor* field = descriptor->field(i);
+    for (int j = 0; j < descriptor->field_count(); j++) {
+      const FieldDescriptor* field = descriptor->field(j);
       if (field->is_required()) {
         result.contains_required = true;
       }
@@ -1474,7 +1490,8 @@ FileOptions_OptimizeMode GetOptimizeFor(const FileDescriptor* file,
   return FileOptions::SPEED;
 }
 
-bool EnableMessageOwnedArena(const Descriptor* /* desc */) {
+bool EnableMessageOwnedArena(const Descriptor* desc) {
+  (void)desc;
   return false;
 }
 

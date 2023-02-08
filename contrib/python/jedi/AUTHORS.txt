@@ -1,4 +1,4 @@
-﻿Main Authors
+Main Authors
 ============
 
 David Halter (@davidhalter) <davidhalter88@gmail.com>

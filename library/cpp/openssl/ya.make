@@ -1,5 +1,0 @@
-RECURSE(
-    holders
-    method
-    init
-)

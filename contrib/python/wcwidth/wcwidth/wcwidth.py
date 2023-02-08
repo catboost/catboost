@@ -73,9 +73,11 @@ from .table_zero import ZERO_WIDTH
 from .unicode_versions import list_versions
 
 try:
+    # std imports
     from functools import lru_cache
 except ImportError:
     # lru_cache was added in Python 3.2
+    # 3rd party
     from backports.functools_lru_cache import lru_cache
 
 # global cache
@@ -216,6 +218,7 @@ def wcwidth(wc, unicode_version='auto'):
     if _bisearch(ucs, ZERO_WIDTH[_unicode_version]):
         return 0
 
+    # "Wide AastAsian" (and emojis)
     return 1 + _bisearch(ucs, WIDE_EASTASIAN[_unicode_version])
 
 

@@ -146,21 +146,21 @@ class PROTOBUF_EXPORT WireFormat {
   // Helpers for dealing with unknown fields
 
   // Skips a field value of the given WireType.  The input should start
-  // positioned immediately after the tag.  If unknown_fields is non-NULL,
+  // positioned immediately after the tag.  If unknown_fields is non-nullptr,
   // the contents of the field will be added to it.
-  static bool SkipField(io::CodedInputStream* input, uint32_t tag,
+  static bool SkipField(io::CodedInputStream* input, arc_ui32 tag,
                         UnknownFieldSet* unknown_fields);
 
   // Reads and ignores a message from the input.  If unknown_fields is
-  // non-NULL, the contents will be added to it.
+  // non-nullptr, the contents will be added to it.
   static bool SkipMessage(io::CodedInputStream* input,
                           UnknownFieldSet* unknown_fields);
 
-  // Read a packed enum field. If the is_valid function is not NULL, values
+  // Read a packed enum field. If the is_valid function is not nullptr, values
   // for which is_valid(value) returns false are appended to
   // unknown_fields_stream.
   static bool ReadPackedEnumPreserveUnknowns(io::CodedInputStream* input,
-                                             uint32_t field_number,
+                                             arc_ui32 field_number,
                                              bool (*is_valid)(int),
                                              UnknownFieldSet* unknown_fields,
                                              RepeatedField<int>* values);
@@ -219,30 +219,30 @@ class PROTOBUF_EXPORT WireFormat {
   //
   // This is different from MakeTag(field->number(), field->type()) in the
   // case of packed repeated fields.
-  static uint32_t MakeTag(const FieldDescriptor* field);
+  static arc_ui32 MakeTag(const FieldDescriptor* field);
 
   // Parse a single field.  The input should start out positioned immediately
   // after the tag.
   static bool ParseAndMergeField(
-      uint32_t tag,
-      const FieldDescriptor* field,  // May be NULL for unknown
+      arc_ui32 tag,
+      const FieldDescriptor* field,  // May be nullptr for unknown
       Message* message, io::CodedInputStream* input);
 
   // Serialize a single field.
   static void SerializeFieldWithCachedSizes(
-      const FieldDescriptor* field,  // Cannot be NULL
+      const FieldDescriptor* field,  // Cannot be nullptr
       const Message& message, io::CodedOutputStream* output) {
     output->SetCur(InternalSerializeField(field, message, output->Cur(),
                                           output->EpsCopy()));
   }
   static uint8_t* InternalSerializeField(
-      const FieldDescriptor* field,  // Cannot be NULL
+      const FieldDescriptor* field,  // Cannot be nullptr
       const Message& message, uint8_t* target, io::EpsCopyOutputStream* stream);
 
   // Compute size of a single field.  If the field is a message type, this
   // will call ByteSize() for the embedded message, insuring that it caches
   // its size.
-  static size_t FieldByteSize(const FieldDescriptor* field,  // Cannot be NULL
+  static size_t FieldByteSize(const FieldDescriptor* field,  // Can't be nullptr
                               const Message& message);
 
   // Parse/serialize a MessageSet::Item group.  Used with messages that use
@@ -266,7 +266,7 @@ class PROTOBUF_EXPORT WireFormat {
   // length, but for other length-delimited types, the size of the length is
   // included.
   static size_t FieldDataOnlyByteSize(
-      const FieldDescriptor* field,  // Cannot be NULL
+      const FieldDescriptor* field,  // Cannot be nullptr
       const Message& message);
 
   enum Operation {
@@ -287,18 +287,18 @@ class PROTOBUF_EXPORT WireFormat {
   struct MessageSetParser;
   // Skip a MessageSet field.
   static bool SkipMessageSetField(io::CodedInputStream* input,
-                                  uint32_t field_number,
+                                  arc_ui32 field_number,
                                   UnknownFieldSet* unknown_fields);
 
   // Parse a MessageSet field.
-  static bool ParseAndMergeMessageSetField(uint32_t field_number,
+  static bool ParseAndMergeMessageSetField(arc_ui32 field_number,
                                            const FieldDescriptor* field,
                                            Message* message,
                                            io::CodedInputStream* input);
   // Parses the value from the wire that belongs to tag.
   static const char* _InternalParseAndMergeField(Message* msg, const char* ptr,
                                                  internal::ParseContext* ctx,
-                                                 uint64_t tag,
+                                                 arc_ui64 tag,
                                                  const Reflection* reflection,
                                                  const FieldDescriptor* field);
 
@@ -313,7 +313,7 @@ class PROTOBUF_EXPORT UnknownFieldSetFieldSkipper : public FieldSkipper {
   ~UnknownFieldSetFieldSkipper() override {}
 
   // implements FieldSkipper -----------------------------------------
-  bool SkipField(io::CodedInputStream* input, uint32_t tag) override;
+  bool SkipField(io::CodedInputStream* input, arc_ui32 tag) override;
   bool SkipMessage(io::CodedInputStream* input) override;
   void SkipUnknownEnum(int field_number, int value) override;
 
@@ -340,7 +340,7 @@ inline WireFormatLite::WireType WireFormat::WireTypeForFieldType(
       static_cast<WireFormatLite::FieldType>(implicit_cast<int>(type)));
 }
 
-inline uint32_t WireFormat::MakeTag(const FieldDescriptor* field) {
+inline arc_ui32 WireFormat::MakeTag(const FieldDescriptor* field) {
   return WireFormatLite::MakeTag(field->number(), WireTypeForField(field));
 }
 
@@ -357,7 +357,7 @@ inline void WireFormat::VerifyUTF8String(const char* data, int size,
                                          WireFormat::Operation op) {
 #ifdef GOOGLE_PROTOBUF_UTF8_VALIDATION_ENABLED
   WireFormatLite::VerifyUtf8String(
-      data, size, static_cast<WireFormatLite::Operation>(op), NULL);
+      data, size, static_cast<WireFormatLite::Operation>(op), nullptr);
 #else
   // Avoid the compiler warning about unused variables.
   (void)data;

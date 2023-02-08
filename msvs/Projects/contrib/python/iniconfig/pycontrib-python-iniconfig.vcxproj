@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -78,60 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_1b03e097fa6efa7bdf22cac38c.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1b03e097fa6efa7bdf22cac38c.obj" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1b03e097fa6efa7bdf22cac38c.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1b03e097fa6efa7bdf22cac38c.obj" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1b03e097fa6efa7bdf22cac38c.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/iniconfig/_1b03e097fa6efa7bdf22cac38c.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_1b03e097fa6efa7bdf22cac38c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_1b03e097fa6efa7bdf22cac38c.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_3184ed449adcd66913e1a3fb5d.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_3184ed449adcd66913e1a3fb5d.obj" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_3184ed449adcd66913e1a3fb5d.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_3184ed449adcd66913e1a3fb5d.obj" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_3184ed449adcd66913e1a3fb5d.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/iniconfig/_3184ed449adcd66913e1a3fb5d.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_3184ed449adcd66913e1a3fb5d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_3184ed449adcd66913e1a3fb5d.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_4b58203c56025d84522ca5deea.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
@@ -159,11 +105,65 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_4b58203c56025d84522ca5deea.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_4b58203c56025d84522ca5deea.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_6c3afc6c00c223ce41c13d80bc.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_6c3afc6c00c223ce41c13d80bc.obj" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_6c3afc6c00c223ce41c13d80bc.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_6c3afc6c00c223ce41c13d80bc.obj" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_6c3afc6c00c223ce41c13d80bc.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/iniconfig/_6c3afc6c00c223ce41c13d80bc.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_6c3afc6c00c223ce41c13d80bc.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_6c3afc6c00c223ce41c13d80bc.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_a639033c82729e88d9c38d2a24.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_a639033c82729e88d9c38d2a24.obj" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_a639033c82729e88d9c38d2a24.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_a639033c82729e88d9c38d2a24.obj" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_a639033c82729e88d9c38d2a24.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/iniconfig/_a639033c82729e88d9c38d2a24.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_a639033c82729e88d9c38d2a24.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_a639033c82729e88d9c38d2a24.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1b03e097fa6efa7bdf22cac38c.yasm" "-" "." "_ffcfb7d0fd9d0e1f588a92d047.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_6c3afc6c00c223ce41c13d80bc.yasm" "-" "." "_3a64a57ecc8a6967175692246a.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -174,7 +174,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1b03e097fa6efa7bdf22cac38c.yasm" "-" "." "_ffcfb7d0fd9d0e1f588a92d047.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_6c3afc6c00c223ce41c13d80bc.yasm" "-" "." "_3a64a57ecc8a6967175692246a.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,15 +182,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/iniconfig/_1b03e097fa6efa7bdf22cac38c.yasm	</Message>
+      <Message>$B/contrib/python/iniconfig/_6c3afc6c00c223ce41c13d80bc.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_1b03e097fa6efa7bdf22cac38c.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_6c3afc6c00c223ce41c13d80bc.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\iniconfig\.dist-info\METADATA">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\iniconfig\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_4b58203c56025d84522ca5deea.yasm" "-" "contrib/python/iniconfig/.dist-info/METADATA" "_e4d3d890b50e2286466b693970.rodata" "$(SolutionDir)../contrib/python/iniconfig/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_2888c6eba3a60d36d4f7ec6a67.rodata" "-" "contrib/python/iniconfig/.dist-info/top_level.txt" "_f4ecc9cb07f10d88cbe94807a3.rodata" "$(SolutionDir)../contrib/python/iniconfig/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_43c9e685ba51bfe7238e89bdb3.rodata" "-" "contrib/python/iniconfig/iniconfig/py.typed" "_515a5b53c592bd535fe74360dd.rodata" "$(SolutionDir)../contrib/python/iniconfig/iniconfig/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1db33f03fc6f977c700b7a1557.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_4b58203c56025d84522ca5deea.yasm" "-" "contrib/python/iniconfig/.dist-info/METADATA" "_e4d3d890b50e2286466b693970.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_2888c6eba3a60d36d4f7ec6a67.rodata" "-" "contrib/python/iniconfig/.dist-info/top_level.txt" "_f4ecc9cb07f10d88cbe94807a3.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_43c9e685ba51bfe7238e89bdb3.rodata" "-" "contrib/python/iniconfig/iniconfig/py.typed" "_515a5b53c592bd535fe74360dd.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1db33f03fc6f977c700b7a1557.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_4b58203c56025d84522ca5deea.yasm" "-" "contrib/python/iniconfig/.dist-info/METADATA" "_e4d3d890b50e2286466b693970.rodata" "$(SolutionDir)../contrib/python/iniconfig/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_2888c6eba3a60d36d4f7ec6a67.rodata" "-" "contrib/python/iniconfig/.dist-info/top_level.txt" "_f4ecc9cb07f10d88cbe94807a3.rodata" "$(SolutionDir)../contrib/python/iniconfig/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_43c9e685ba51bfe7238e89bdb3.rodata" "-" "contrib/python/iniconfig/iniconfig/py.typed" "_515a5b53c592bd535fe74360dd.rodata" "$(SolutionDir)../contrib/python/iniconfig/iniconfig/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1db33f03fc6f977c700b7a1557.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_4b58203c56025d84522ca5deea.yasm" "-" "contrib/python/iniconfig/.dist-info/METADATA" "_e4d3d890b50e2286466b693970.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_2888c6eba3a60d36d4f7ec6a67.rodata" "-" "contrib/python/iniconfig/.dist-info/top_level.txt" "_f4ecc9cb07f10d88cbe94807a3.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_43c9e685ba51bfe7238e89bdb3.rodata" "-" "contrib/python/iniconfig/iniconfig/py.typed" "_515a5b53c592bd535fe74360dd.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1db33f03fc6f977c700b7a1557.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/iniconfig/_4b58203c56025d84522ca5deea.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\iniconfig\.dist-info\METADATA;$(SolutionDir)..\contrib\python\iniconfig\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\iniconfig\iniconfig\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\iniconfig\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\iniconfig\.dist-info\top_level.txt;'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_4b58203c56025d84522ca5deea.yasm;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_2888c6eba3a60d36d4f7ec6a67.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_43c9e685ba51bfe7238e89bdb3.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_1db33f03fc6f977c700b7a1557.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\iniconfig\iniconfig\__init__.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_3184ed449adcd66913e1a3fb5d.yasm" "-" "contrib/python/iniconfig/iniconfig/__init__.py" "_8a6d34b83e162be4e06c5d6d60.rodata" "$(SolutionDir)../contrib/python/iniconfig/iniconfig/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_e97b545d2f76423c42dd5e9a2d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3" "_a7c6f939a321ac445962486a20.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_975dc9c3e82ef7dfef266a1a20.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_a639033c82729e88d9c38d2a24.yasm" "-" "contrib/python/iniconfig/iniconfig/__init__.py" "_8a6d34b83e162be4e06c5d6d60.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_e97b545d2f76423c42dd5e9a2d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3" "_a7c6f939a321ac445962486a20.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_975dc9c3e82ef7dfef266a1a20.rodata" "-" "contrib/python/iniconfig/iniconfig/_parse.py" "_8e8906201b1f8e955a8f730ccc.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/_parse.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_9a4d43830c3a9477ca83fed33f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_parse.py.czl4.yapyc3" "_98628fb1ff8fa4cb87e6269e37.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_parse.py.czl4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_ed3254d9dd1aa5bab7e340dcc3.rodata" "-" "contrib/python/iniconfig/iniconfig/_version.py" "_663e6eb8024f08ff274331a8cf.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_90c6561cb8b3949d8a0b1bc988.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_version.py.x7w2.yapyc3" "_e3f8db91fe2868c5204dafe947.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_version.py.x7w2.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1f93cd94a798afd91d47f632f1.rodata" "-" "contrib/python/iniconfig/iniconfig/exceptions.py" "_1f5bc570f8028bab3aca708e9b.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_48f66cd1d5f343deb743365921.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/exceptions.py.7hds.yapyc3" "_92d5df94f489f5061d30c6144c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/exceptions.py.7hds.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_13269f92f585d47039262327e3.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/__init__.py-" "$(SolutionDir)../contrib/python/iniconfig/iniconfig/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/__init__.py-" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_3184ed449adcd66913e1a3fb5d.yasm" "-" "contrib/python/iniconfig/iniconfig/__init__.py" "_8a6d34b83e162be4e06c5d6d60.rodata" "$(SolutionDir)../contrib/python/iniconfig/iniconfig/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_e97b545d2f76423c42dd5e9a2d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3" "_a7c6f939a321ac445962486a20.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_975dc9c3e82ef7dfef266a1a20.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_a639033c82729e88d9c38d2a24.yasm" "-" "contrib/python/iniconfig/iniconfig/__init__.py" "_8a6d34b83e162be4e06c5d6d60.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_e97b545d2f76423c42dd5e9a2d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3" "_a7c6f939a321ac445962486a20.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_975dc9c3e82ef7dfef266a1a20.rodata" "-" "contrib/python/iniconfig/iniconfig/_parse.py" "_8e8906201b1f8e955a8f730ccc.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/_parse.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_9a4d43830c3a9477ca83fed33f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_parse.py.czl4.yapyc3" "_98628fb1ff8fa4cb87e6269e37.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_parse.py.czl4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_ed3254d9dd1aa5bab7e340dcc3.rodata" "-" "contrib/python/iniconfig/iniconfig/_version.py" "_663e6eb8024f08ff274331a8cf.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_90c6561cb8b3949d8a0b1bc988.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_version.py.x7w2.yapyc3" "_e3f8db91fe2868c5204dafe947.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_version.py.x7w2.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_1f93cd94a798afd91d47f632f1.rodata" "-" "contrib/python/iniconfig/iniconfig/exceptions.py" "_1f5bc570f8028bab3aca708e9b.rodata" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_48f66cd1d5f343deb743365921.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/exceptions.py.7hds.yapyc3" "_92d5df94f489f5061d30c6144c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/exceptions.py.7hds.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/_13269f92f585d47039262327e3.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/__init__.py-" "$(SolutionDir)../contrib/python/iniconfig/iniconfig/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/__init__.py-" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -248,17 +248,107 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/iniconfig/_3184ed449adcd66913e1a3fb5d.yasm	$B/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\iniconfig\iniconfig\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\__init__.py.qu5n.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_3184ed449adcd66913e1a3fb5d.yasm;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_e97b545d2f76423c42dd5e9a2d.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_975dc9c3e82ef7dfef266a1a20.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\__init__.py.qu5n.yapyc3;</Outputs>
+      <Message>$B/contrib/python/iniconfig/_a639033c82729e88d9c38d2a24.yasm	$B/contrib/python/iniconfig/iniconfig/__init__.py.qu5n.yapyc3	</Message>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\__init__.py.qu5n.yapyc3;'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\_parse.py;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\_parse.py.czl4.yapyc3;'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\_version.py;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\_version.py.x7w2.yapyc3;'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\exceptions.py.7hds.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_a639033c82729e88d9c38d2a24.yasm;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_e97b545d2f76423c42dd5e9a2d.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_975dc9c3e82ef7dfef266a1a20.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_9a4d43830c3a9477ca83fed33f.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_ed3254d9dd1aa5bab7e340dcc3.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_90c6561cb8b3949d8a0b1bc988.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_1f93cd94a798afd91d47f632f1.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_48f66cd1d5f343deb743365921.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\_13269f92f585d47039262327e3.rodata;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\__init__.py.qu5n.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\_parse.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/_parse.py-" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/_parse.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_parse.py.czl4.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/_parse.py-" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/_parse.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_parse.py.czl4.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/iniconfig/iniconfig/_parse.py.czl4.yapyc3	</Message>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\_parse.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\_parse.py.czl4.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\_version.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/_version.py-" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_version.py.x7w2.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/_version.py-" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/_version.py.x7w2.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/iniconfig/iniconfig/_version.py.x7w2.yapyc3	</Message>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\_version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\_version.py.x7w2.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\exceptions.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/exceptions.py-" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/exceptions.py.7hds.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/iniconfig/iniconfig/exceptions.py-" "$(SolutionDir).." "/contrib/python/iniconfig/iniconfig/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/iniconfig/exceptions.py.7hds.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/iniconfig/iniconfig/exceptions.py.7hds.yapyc3	</Message>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\iniconfig\iniconfig\exceptions.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\iniconfig\exceptions.py.7hds.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

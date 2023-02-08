@@ -1,174 +1,224 @@
 """ brain-dead simple parser for ini-style files.
 (C) Ronny Pfannschmidt, Holger Krekel -- MIT licensed
 """
+from __future__ import annotations
+from typing import (
+    Callable,
+    Iterator,
+    Mapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    TYPE_CHECKING,
+    NoReturn,
+    NamedTuple,
+    overload,
+    cast,
+)
+
 import os
-__all__ = ['IniConfig', 'ParseError']
 
-COMMENTCHARS = "#;"
+if TYPE_CHECKING:
+    from typing_extensions import Final
 
+__all__ = ["IniConfig", "ParseError", "COMMENTCHARS", "iscommentline"]
 
-class ParseError(Exception):
-    def __init__(self, path, lineno, msg):
-        Exception.__init__(self, path, lineno, msg)
-        self.path = path
-        self.lineno = lineno
-        self.msg = msg
+from .exceptions import ParseError
+from . import _parse
+from ._parse import COMMENTCHARS, iscommentline
 
-    def __str__(self):
-        return "%s:%s: %s" % (self.path, self.lineno+1, self.msg)
+_D = TypeVar("_D")
+_T = TypeVar("_T")
 
 
-class SectionWrapper(object):
-    def __init__(self, config, name):
+class SectionWrapper:
+    config: Final[IniConfig]
+    name: Final[str]
+
+    def __init__(self, config: IniConfig, name: str) -> None:
         self.config = config
         self.name = name
 
-    def lineof(self, name):
+    def lineof(self, name: str) -> int | None:
         return self.config.lineof(self.name, name)
 
-    def get(self, key, default=None, convert=str):
-        return self.config.get(self.name, key,
-                               convert=convert, default=default)
+    @overload
+    def get(self, key: str) -> str | None:
+        ...
 
-    def __getitem__(self, key):
+    @overload
+    def get(
+        self,
+        key: str,
+        convert: Callable[[str], _T],
+    ) -> _T | None:
+        ...
+
+    @overload
+    def get(
+        self,
+        key: str,
+        default: None,
+        convert: Callable[[str], _T],
+    ) -> _T | None:
+        ...
+
+    @overload
+    def get(self, key: str, default: _D, convert: None = None) -> str | _D:
+        ...
+
+    @overload
+    def get(
+        self,
+        key: str,
+        default: _D,
+        convert: Callable[[str], _T],
+    ) -> _T | _D:
+        ...
+
+    # TODO: investigate possible mypy bug wrt matching the passed over data
+    def get(  # type: ignore [misc]
+        self,
+        key: str,
+        default: _D | None = None,
+        convert: Callable[[str], _T] | None = None,
+    ) -> _D | _T | str | None:
+        return self.config.get(self.name, key, convert=convert, default=default)
+
+    def __getitem__(self, key: str) -> str:
         return self.config.sections[self.name][key]
 
-    def __iter__(self):
-        section = self.config.sections.get(self.name, [])
+    def __iter__(self) -> Iterator[str]:
+        section: Mapping[str, str] = self.config.sections.get(self.name, {})
 
-        def lineof(key):
-            return self.config.lineof(self.name, key)
-        for name in sorted(section, key=lineof):
-            yield name
+        def lineof(key: str) -> int:
+            return self.config.lineof(self.name, key)  # type: ignore[return-value]
 
-    def items(self):
+        yield from sorted(section, key=lineof)
+
+    def items(self) -> Iterator[tuple[str, str]]:
         for name in self:
             yield name, self[name]
 
 
-class IniConfig(object):
-    def __init__(self, path, data=None):
-        self.path = str(path)  # convenience
+class IniConfig:
+    path: Final[str]
+    sections: Final[Mapping[str, Mapping[str, str]]]
+
+    def __init__(
+        self,
+        path: str | os.PathLike[str],
+        data: str | None = None,
+        encoding: str = "utf-8",
+    ) -> None:
+        self.path = os.fspath(path)
         if data is None:
             if os.path.basename(self.path).startswith('pkg:'):
-                import io, pkgutil
+                import pkgutil
 
                 basename = os.path.basename(self.path)
                 _, package, resource = basename.split(':')
                 content = pkgutil.get_data(package, resource)
-                f = io.StringIO(content.decode('utf-8'))
+                data = content.decode('utf-8')
             else:
-                f = open(self.path)
-            try:
-                tokens = self._parse(iter(f))
-            finally:
-                f.close()
-        else:
-            tokens = self._parse(data.splitlines(True))
+                with open(self.path, encoding=encoding) as fp:
+                    data = fp.read()
+
+        tokens = _parse.parse_lines(self.path, data.splitlines(True))
 
         self._sources = {}
-        self.sections = {}
+        sections_data: dict[str, dict[str, str]]
+        self.sections = sections_data = {}
 
         for lineno, section, name, value in tokens:
             if section is None:
-                self._raise(lineno, 'no section header defined')
+                raise ParseError(self.path, lineno, "no section header defined")
             self._sources[section, name] = lineno
             if name is None:
                 if section in self.sections:
-                    self._raise(lineno, 'duplicate section %r' % (section, ))
-                self.sections[section] = {}
+                    raise ParseError(
+                        self.path, lineno, f"duplicate section {section!r}"
+                    )
+                sections_data[section] = {}
             else:
                 if name in self.sections[section]:
-                    self._raise(lineno, 'duplicate name %r' % (name, ))
-                self.sections[section][name] = value
+                    raise ParseError(self.path, lineno, f"duplicate name {name!r}")
+                assert value is not None
+                sections_data[section][name] = value
 
-    def _raise(self, lineno, msg):
-        raise ParseError(self.path, lineno, msg)
-
-    def _parse(self, line_iter):
-        result = []
-        section = None
-        for lineno, line in enumerate(line_iter):
-            name, data = self._parseline(line, lineno)
-            # new value
-            if name is not None and data is not None:
-                result.append((lineno, section, name, data))
-            # new section
-            elif name is not None and data is None:
-                if not name:
-                    self._raise(lineno, 'empty section name')
-                section = name
-                result.append((lineno, section, None, None))
-            # continuation
-            elif name is None and data is not None:
-                if not result:
-                    self._raise(lineno, 'unexpected value continuation')
-                last = result.pop()
-                last_name, last_data = last[-2:]
-                if last_name is None:
-                    self._raise(lineno, 'unexpected value continuation')
-
-                if last_data:
-                    data = '%s\n%s' % (last_data, data)
-                result.append(last[:-1] + (data,))
-        return result
-
-    def _parseline(self, line, lineno):
-        # blank lines
-        if iscommentline(line):
-            line = ""
-        else:
-            line = line.rstrip()
-        if not line:
-            return None, None
-        # section
-        if line[0] == '[':
-            realline = line
-            for c in COMMENTCHARS:
-                line = line.split(c)[0].rstrip()
-            if line[-1] == "]":
-                return line[1:-1], None
-            return None, realline.strip()
-        # value
-        elif not line[0].isspace():
-            try:
-                name, value = line.split('=', 1)
-                if ":" in name:
-                    raise ValueError()
-            except ValueError:
-                try:
-                    name, value = line.split(":", 1)
-                except ValueError:
-                    self._raise(lineno, 'unexpected line: %r' % line)
-            return name.strip(), value.strip()
-        # continuation
-        else:
-            return None, line.strip()
-
-    def lineof(self, section, name=None):
+    def lineof(self, section: str, name: str | None = None) -> int | None:
         lineno = self._sources.get((section, name))
-        if lineno is not None:
-            return lineno + 1
+        return None if lineno is None else lineno + 1
 
-    def get(self, section, name, default=None, convert=str):
+    @overload
+    def get(
+        self,
+        section: str,
+        name: str,
+    ) -> str | None:
+        ...
+
+    @overload
+    def get(
+        self,
+        section: str,
+        name: str,
+        convert: Callable[[str], _T],
+    ) -> _T | None:
+        ...
+
+    @overload
+    def get(
+        self,
+        section: str,
+        name: str,
+        default: None,
+        convert: Callable[[str], _T],
+    ) -> _T | None:
+        ...
+
+    @overload
+    def get(
+        self, section: str, name: str, default: _D, convert: None = None
+    ) -> str | _D:
+        ...
+
+    @overload
+    def get(
+        self,
+        section: str,
+        name: str,
+        default: _D,
+        convert: Callable[[str], _T],
+    ) -> _T | _D:
+        ...
+
+    def get(  # type: ignore
+        self,
+        section: str,
+        name: str,
+        default: _D | None = None,
+        convert: Callable[[str], _T] | None = None,
+    ) -> _D | _T | str | None:
         try:
-            return convert(self.sections[section][name])
+            value: str = self.sections[section][name]
         except KeyError:
             return default
+        else:
+            if convert is not None:
+                return convert(value)
+            else:
+                return value
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> SectionWrapper:
         if name not in self.sections:
             raise KeyError(name)
         return SectionWrapper(self, name)
 
-    def __iter__(self):
-        for name in sorted(self.sections, key=self.lineof):
+    def __iter__(self) -> Iterator[SectionWrapper]:
+        for name in sorted(self.sections, key=self.lineof):  # type: ignore
             yield SectionWrapper(self, name)
 
-    def __contains__(self, arg):
+    def __contains__(self, arg: str) -> bool:
         return arg in self.sections
-
-
-def iscommentline(line):
-    c = line.lstrip()[:1]
-    return c in COMMENTCHARS

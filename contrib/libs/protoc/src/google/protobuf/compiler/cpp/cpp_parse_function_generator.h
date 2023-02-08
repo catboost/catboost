@@ -65,7 +65,7 @@ struct TailCallTableInfo {
   // Table size.
   int table_size_log2;
   // Mask for has-bits of required fields.
-  uint32_t has_hasbits_required_mask;
+  arc_ui32 has_hasbits_required_mask;
   // True if a generated fallback function is required instead of generic.
   bool use_generated_fallback;
 };
@@ -118,6 +118,7 @@ class ParseFunctionGenerator {
 
   // Generates the tail-call table definition.
   void GenerateTailCallTable(Formatter& format);
+  void GenerateFastFieldEntries(Formatter& format, const TProtoStringType& fallback);
 
   // Generates parsing code for an `ArenaString` field.
   void GenerateArenaString(Formatter& format, const FieldDescriptor* field);
@@ -187,7 +188,6 @@ enum class TypeFormat {
 // parse_function_inc_generator_main.
 TProtoStringType GetTailCallFieldHandlerName(ParseCardinality card,
                                         TypeFormat type_format,
-                                        int table_size_log2,
                                         int tag_length_bytes,
                                         const Options& options);
 

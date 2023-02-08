@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -132,31 +132,31 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\_e73c4c1526ad5a05543e12a11e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\_e73c4c1526ad5a05543e12a11e.py2.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+    <CustomBuild Include="'$(SolutionDir)..'\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/__init__.py-" "$(SolutionDir)../library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/__init__.py-" "$(SolutionDir).." "/library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/config.py-" "$(SolutionDir)../library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/config.py-" "$(SolutionDir).." "/library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir)../library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir).." "/library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir).." "/library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/rewrite.py-" "$(SolutionDir)../library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/rewrite.py-" "$(SolutionDir).." "/library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir).." "/library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -167,27 +167,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/__init__.py-" "$(SolutionDir)../library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/__init__.py-" "$(SolutionDir).." "/library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/config.py-" "$(SolutionDir)../library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/config.py-" "$(SolutionDir).." "/library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir)../library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir).." "/library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir).." "/library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/rewrite.py-" "$(SolutionDir)../library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/rewrite.py-" "$(SolutionDir).." "/library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir).." "/library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -196,14 +196,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/pytest/__init__.py.yapyc	$B/library/python/pytest/config.py.yapyc	$B/library/python/pytest/context.py.yapyc	$B/library/python/pytest/main.py.yapyc	$B/library/python/pytest/rewrite.py.yapyc	$B/library/python/pytest/yatest_tools.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\pytest\__init__.py;$(SolutionDir)..\library\python\pytest\config.py;$(SolutionDir)..\library\python\pytest\context.py;$(SolutionDir)..\library\python\pytest\main.py;$(SolutionDir)..\library\python\pytest\rewrite.py;$(SolutionDir)..\library\python\pytest\yatest_tools.py;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\build\scripts\py_compile.py;'$(SolutionDir)..'\library\python\pytest\__init__.py;'$(SolutionDir)..'\library\python\pytest\config.py;'$(SolutionDir)..'\library\python\pytest\context.py;'$(SolutionDir)..'\library\python\pytest\main.py;'$(SolutionDir)..'\library\python\pytest\rewrite.py;'$(SolutionDir)..'\library\python\pytest\yatest_tools.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\__init__.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\config.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\context.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\main.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\rewrite.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\yatest_tools.py.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\library\python\pytest\__init__.py">
+    <CustomBuild Include="'$(SolutionDir)..'\library\python\pytest\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_68fb6b6f642bd8462619c70da7.yasm" "$(SolutionDir)../library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_05973bb626e0d4e5fb14156e26.rodata" "-" "library/python/pytest/__init__.py" "_53225955ed5024f7e47d2ea7fd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_72ba9d4ce2a492b4521c1fbde6.rodata" "$(SolutionDir)../library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2480ebb500fb651a38abeb4f2.rodata" "-" "library/python/pytest/config.py" "_7816eaa6fa5c03460594bbcb3b.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_3185b1a73f331b49fe4d28fe8a.rodata" "$(SolutionDir)../library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_7bd8374be834c0e4f83b929da5.rodata" "-" "library/python/pytest/context.py" "_6b7f4f87a69d9af6e5c222bf83.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_1f14f10adc03798a9f1dbae14c.rodata" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_732bcd53ef841a03b0c511ab10.rodata" "-" "library/python/pytest/main.py" "_0603f4ce736dab2f84dc4f1d1f.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2ebbd393c2b2506f63809ef15.rodata" "$(SolutionDir)../library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_6472a1e8998f0dc8fa37060b99.rodata" "-" "library/python/pytest/rewrite.py" "_8cb46f4aebbdb3a03f023c4cdb.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_6964ae8d068d4e9e4e85986c2e.rodata" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_9156e12bd3e475c88b85368306.rodata" "-" "library/python/pytest/yatest_tools.py" "_2b778d7c1f59fd979e45758b8e.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_0792a32b898f8e1c318da46ebd.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_68fb6b6f642bd8462619c70da7.yasm" "$(SolutionDir).." "/library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_05973bb626e0d4e5fb14156e26.rodata" "-" "library/python/pytest/__init__.py" "_53225955ed5024f7e47d2ea7fd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_72ba9d4ce2a492b4521c1fbde6.rodata" "$(SolutionDir).." "/library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2480ebb500fb651a38abeb4f2.rodata" "-" "library/python/pytest/config.py" "_7816eaa6fa5c03460594bbcb3b.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_3185b1a73f331b49fe4d28fe8a.rodata" "$(SolutionDir).." "/library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_7bd8374be834c0e4f83b929da5.rodata" "-" "library/python/pytest/context.py" "_6b7f4f87a69d9af6e5c222bf83.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_1f14f10adc03798a9f1dbae14c.rodata" "$(SolutionDir).." "/library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_732bcd53ef841a03b0c511ab10.rodata" "-" "library/python/pytest/main.py" "_0603f4ce736dab2f84dc4f1d1f.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2ebbd393c2b2506f63809ef15.rodata" "$(SolutionDir).." "/library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_6472a1e8998f0dc8fa37060b99.rodata" "-" "library/python/pytest/rewrite.py" "_8cb46f4aebbdb3a03f023c4cdb.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_6964ae8d068d4e9e4e85986c2e.rodata" "$(SolutionDir).." "/library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_9156e12bd3e475c88b85368306.rodata" "-" "library/python/pytest/yatest_tools.py" "_2b778d7c1f59fd979e45758b8e.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_0792a32b898f8e1c318da46ebd.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -214,7 +214,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_68fb6b6f642bd8462619c70da7.yasm" "$(SolutionDir)../library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_05973bb626e0d4e5fb14156e26.rodata" "-" "library/python/pytest/__init__.py" "_53225955ed5024f7e47d2ea7fd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_72ba9d4ce2a492b4521c1fbde6.rodata" "$(SolutionDir)../library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2480ebb500fb651a38abeb4f2.rodata" "-" "library/python/pytest/config.py" "_7816eaa6fa5c03460594bbcb3b.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_3185b1a73f331b49fe4d28fe8a.rodata" "$(SolutionDir)../library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_7bd8374be834c0e4f83b929da5.rodata" "-" "library/python/pytest/context.py" "_6b7f4f87a69d9af6e5c222bf83.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_1f14f10adc03798a9f1dbae14c.rodata" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_732bcd53ef841a03b0c511ab10.rodata" "-" "library/python/pytest/main.py" "_0603f4ce736dab2f84dc4f1d1f.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2ebbd393c2b2506f63809ef15.rodata" "$(SolutionDir)../library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_6472a1e8998f0dc8fa37060b99.rodata" "-" "library/python/pytest/rewrite.py" "_8cb46f4aebbdb3a03f023c4cdb.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_6964ae8d068d4e9e4e85986c2e.rodata" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_9156e12bd3e475c88b85368306.rodata" "-" "library/python/pytest/yatest_tools.py" "_2b778d7c1f59fd979e45758b8e.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_0792a32b898f8e1c318da46ebd.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_68fb6b6f642bd8462619c70da7.yasm" "$(SolutionDir).." "/library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_05973bb626e0d4e5fb14156e26.rodata" "-" "library/python/pytest/__init__.py" "_53225955ed5024f7e47d2ea7fd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_72ba9d4ce2a492b4521c1fbde6.rodata" "$(SolutionDir).." "/library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2480ebb500fb651a38abeb4f2.rodata" "-" "library/python/pytest/config.py" "_7816eaa6fa5c03460594bbcb3b.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_3185b1a73f331b49fe4d28fe8a.rodata" "$(SolutionDir).." "/library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_7bd8374be834c0e4f83b929da5.rodata" "-" "library/python/pytest/context.py" "_6b7f4f87a69d9af6e5c222bf83.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_1f14f10adc03798a9f1dbae14c.rodata" "$(SolutionDir).." "/library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_732bcd53ef841a03b0c511ab10.rodata" "-" "library/python/pytest/main.py" "_0603f4ce736dab2f84dc4f1d1f.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_b2ebbd393c2b2506f63809ef15.rodata" "$(SolutionDir).." "/library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_6472a1e8998f0dc8fa37060b99.rodata" "-" "library/python/pytest/rewrite.py" "_8cb46f4aebbdb3a03f023c4cdb.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_6964ae8d068d4e9e4e85986c2e.rodata" "$(SolutionDir).." "/library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/_9156e12bd3e475c88b85368306.rodata" "-" "library/python/pytest/yatest_tools.py" "_2b778d7c1f59fd979e45758b8e.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/_0792a32b898f8e1c318da46ebd.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -223,14 +223,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/pytest/_68fb6b6f642bd8462619c70da7.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\pytest\__init__.py;$(SolutionDir)$(Configuration)\library\python\pytest\__init__.py.yapyc;$(SolutionDir)..\library\python\pytest\config.py;$(SolutionDir)$(Configuration)\library\python\pytest\config.py.yapyc;$(SolutionDir)..\library\python\pytest\context.py;$(SolutionDir)$(Configuration)\library\python\pytest\context.py.yapyc;$(SolutionDir)..\library\python\pytest\main.py;$(SolutionDir)$(Configuration)\library\python\pytest\main.py.yapyc;$(SolutionDir)..\library\python\pytest\rewrite.py;$(SolutionDir)$(Configuration)\library\python\pytest\rewrite.py.yapyc;$(SolutionDir)..\library\python\pytest\yatest_tools.py;$(SolutionDir)$(Configuration)\library\python\pytest\yatest_tools.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\library\python\pytest\__init__.py;$(SolutionDir)$(Configuration)\library\python\pytest\__init__.py.yapyc;'$(SolutionDir)..'\library\python\pytest\config.py;$(SolutionDir)$(Configuration)\library\python\pytest\config.py.yapyc;'$(SolutionDir)..'\library\python\pytest\context.py;$(SolutionDir)$(Configuration)\library\python\pytest\context.py.yapyc;'$(SolutionDir)..'\library\python\pytest\main.py;$(SolutionDir)$(Configuration)\library\python\pytest\main.py.yapyc;'$(SolutionDir)..'\library\python\pytest\rewrite.py;$(SolutionDir)$(Configuration)\library\python\pytest\rewrite.py.yapyc;'$(SolutionDir)..'\library\python\pytest\yatest_tools.py;$(SolutionDir)$(Configuration)\library\python\pytest\yatest_tools.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\_68fb6b6f642bd8462619c70da7.yasm;$(SolutionDir)$(Configuration)\library\python\pytest\_05973bb626e0d4e5fb14156e26.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_72ba9d4ce2a492b4521c1fbde6.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_b2480ebb500fb651a38abeb4f2.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_3185b1a73f331b49fe4d28fe8a.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_7bd8374be834c0e4f83b929da5.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_1f14f10adc03798a9f1dbae14c.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_732bcd53ef841a03b0c511ab10.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_b2ebbd393c2b2506f63809ef15.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_6472a1e8998f0dc8fa37060b99.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_6964ae8d068d4e9e4e85986c2e.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_9156e12bd3e475c88b85368306.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\_0792a32b898f8e1c318da46ebd.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\library\python\pytest\pytest.yatest.ini">
+    <CustomBuild Include="'$(SolutionDir)..'\library\python\pytest\pytest.yatest.ini">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm" "-" "library/python/pytest/pytest.yatest.ini" "_d8141884d486acbb6f835b4940.rodata" "$(SolutionDir)../library/python/pytest/pytest.yatest.ini" "$(SolutionDir)$(Configuration)/library/python/pytest/_0ba07b4850cb1c73d24dd1ae2f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm" "-" "library/python/pytest/pytest.yatest.ini" "_d8141884d486acbb6f835b4940.rodata" "$(SolutionDir).." "/library/python/pytest/pytest.yatest.ini" "$(SolutionDir)$(Configuration)/library/python/pytest/_0ba07b4850cb1c73d24dd1ae2f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -241,7 +241,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm" "-" "library/python/pytest/pytest.yatest.ini" "_d8141884d486acbb6f835b4940.rodata" "$(SolutionDir)../library/python/pytest/pytest.yatest.ini" "$(SolutionDir)$(Configuration)/library/python/pytest/_0ba07b4850cb1c73d24dd1ae2f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm" "-" "library/python/pytest/pytest.yatest.ini" "_d8141884d486acbb6f835b4940.rodata" "$(SolutionDir).." "/library/python/pytest/pytest.yatest.ini" "$(SolutionDir)$(Configuration)/library/python/pytest/_0ba07b4850cb1c73d24dd1ae2f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -250,16 +250,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/pytest/_e73c4c1526ad5a05543e12a11e.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\pytest\pytest.yatest.ini;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\library\python\pytest\pytest.yatest.ini;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\_e73c4c1526ad5a05543e12a11e.yasm;$(SolutionDir)$(Configuration)\library\python\pytest\_0ba07b4850cb1c73d24dd1ae2f.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
@@ -341,6 +338,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
       <Project>{B19D597D-A363-F744-6165-C68C1835DD61}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\certifi\pycontrib-python-certifi.vcxproj">
+      <Project>{12C744E2-C8A9-CC7B-A1A0-8F30DF56A253}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\chardet\py2\pypython-chardet-py2.vcxproj">
+      <Project>{DCD231EC-0075-1AC1-8936-38C33C2ACBB4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\chardet\pycontrib-python-chardet.vcxproj">
+      <Project>{5BF8DAE1-4C5A-C52D-D306-37D105102A65}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\pycontrib-python-colorama.vcxproj">
       <Project>{A57B9434-ED18-2180-9A04-9087641653EF}</Project>
     </ProjectReference>
@@ -355,6 +361,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
       <Project>{7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\py2\pypython-idna-py2.vcxproj">
+      <Project>{36CCDA2B-3166-D8AE-F6EA-B1B5EE402751}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\pycontrib-python-idna.vcxproj">
+      <Project>{0852355A-D957-F948-737B-15E3AD9076E3}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.vcxproj">
       <Project>{7CA8D33B-5425-5BF9-E98C-202C0225D987}</Project>
@@ -422,6 +434,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\python-dateutil\pycontrib-python-python-dateutil.vcxproj">
       <Project>{4F4B5893-556E-B7D6-C8F2-7C5A21996B71}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\py2\pypython-requests-py2.vcxproj">
+      <Project>{C83620EB-F3E9-AF38-7727-448B7D3C28B1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\pycontrib-python-requests.vcxproj">
+      <Project>{8C518459-84D3-7629-2578-BEB2B1E8CFA4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
       <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
     </ProjectReference>
@@ -442,6 +460,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\pycontrib-python-traitlets.vcxproj">
       <Project>{1DBCB73E-225F-19E4-30C7-41861F222A71}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\urllib3\pycontrib-python-urllib3.vcxproj">
+      <Project>{BFD4AD0C-BB74-6A0B-0BA8-F33B37ECD343}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\pycontrib-python-wcwidth.vcxproj">
       <Project>{F338AB33-66DB-B461-4311-08AAD87EAE63}</Project>
@@ -469,6 +490,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\certifi\pylibrary-python-certifi.vcxproj">
+      <Project>{B7F4C21A-7585-7CA7-8BEB-9F3183BC70C2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\pylibrary-python-cores.vcxproj">
       <Project>{F7BF95C4-FA90-1985-8730-2F198D6D9964}</Project>

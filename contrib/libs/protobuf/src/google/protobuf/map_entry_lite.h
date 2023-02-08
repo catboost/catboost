@@ -125,7 +125,7 @@ struct MapEntryFuncs {
     size_t inner_length =
         2 + KeyTypeHandler::ByteSize(key) + ValueTypeHandler::ByteSize(value);
     return inner_length + io::CodedOutputStream::VarintSize32(
-                              static_cast<uint32_t>(inner_length));
+                              static_cast<arc_ui32>(inner_length));
   }
 
   static int GetCachedSize(const Key& key, const Value& value) {
@@ -194,7 +194,7 @@ class MapEntryImpl : public Base {
         _has_bits_{} {}
 
   ~MapEntryImpl() {
-    if (Base::GetArenaForAllocation() != NULL) return;
+    if (Base::GetArenaForAllocation() != nullptr) return;
     KeyTypeHandler::DeleteNoArena(key_);
     ValueTypeHandler::DeleteNoArena(value_);
   }
@@ -229,7 +229,7 @@ class MapEntryImpl : public Base {
 
   const char* _InternalParse(const char* ptr, ParseContext* ctx) final {
     while (!ctx->Done(&ptr)) {
-      uint32_t tag;
+      arc_ui32 tag;
       ptr = ReadTag(ptr, &tag);
       GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
       if (tag == kKeyTag) {
@@ -284,11 +284,6 @@ class MapEntryImpl : public Base {
 
   bool IsInitialized() const override {
     return ValueTypeHandler::IsInitialized(value_);
-  }
-
-  Base* New() const override {
-    Derived* entry = new Derived;
-    return entry;
   }
 
   Base* New(Arena* arena) const override {
@@ -423,7 +418,7 @@ class MapEntryImpl : public Base {
     template <typename UnknownType>
     const char* ParseWithEnumValidation(const char* ptr, ParseContext* ctx,
                                         bool (*is_valid)(int),
-                                        uint32_t field_num,
+                                        arc_ui32 field_num,
                                         InternalMetadata* metadata) {
       auto entry = NewEntry();
       ptr = entry->_InternalParse(ptr, ctx);
@@ -501,7 +496,7 @@ class MapEntryImpl : public Base {
  public:  // Needed for constructing tables
   KeyOnMemory key_;
   ValueOnMemory value_;
-  uint32_t _has_bits_[1];
+  arc_ui32 _has_bits_[1];
 
  private:
   friend class ::PROTOBUF_NAMESPACE_ID::Arena;
@@ -528,7 +523,9 @@ class MapEntryLite : public MapEntryImpl<T, MessageLite, Key, Value,
       SuperType;
   constexpr MapEntryLite() {}
   explicit MapEntryLite(Arena* arena) : SuperType(arena) {}
-  ~MapEntryLite() { MessageLite::_internal_metadata_.template Delete<TProtoStringType>(); }
+  ~MapEntryLite() {
+    MessageLite::_internal_metadata_.template Delete<TProtoStringType>();
+  }
   void MergeFrom(const MapEntryLite& other) { MergeFromInternal(other); }
 
  private:
@@ -642,8 +639,8 @@ struct MapEntryHelper<
   // The proto compiler generates the offsets in this struct as if this was
   // a regular message. This way the table driven code barely notices it's
   // dealing with a map field.
-  uint32_t _has_bits_;     // NOLINT
-  uint32_t _cached_size_;  // NOLINT
+  arc_ui32 _has_bits_;     // NOLINT
+  arc_ui32 _cached_size_;  // NOLINT
   KeyOnMemory key_;      // NOLINT
   ValueOnMemory value_;  // NOLINT
 };

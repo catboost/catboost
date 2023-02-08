@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -78,32 +78,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\avlbasic.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\avlcommon.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\avlmap.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\avlset.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\avltree.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\bstcommon.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\bstmap.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\bstset.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\bubblesort.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\compare.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\dlcommon.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\dlist.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\mergesort.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\sbstmap.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\sbstset.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\sbsttable.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\svector.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\table.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\ragel5\aapl\vector.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\avlbasic.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\avlcommon.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\avlmap.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\avlset.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\avltree.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\bstcommon.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\bstmap.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\bstset.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\bubblesort.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\compare.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\dlcommon.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\dlist.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\mergesort.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\sbstmap.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\sbstset.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\sbsttable.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\svector.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\table.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\ragel5\aapl\vector.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>

@@ -85,13 +85,13 @@ void EnumFieldGenerator::GenerateCFunctionDeclarations(
       " * Fetches the raw value of a @c $owning_message_class$'s @c $name$ property, even\n"
       " * if the value was not defined by the enum at the time the code was generated.\n"
       " **/\n"
-      "int32_t $owning_message_class$_$capitalized_name$_RawValue($owning_message_class$ *message);\n"
+      "arc_i32 $owning_message_class$_$capitalized_name$_RawValue($owning_message_class$ *message);\n"
       "/**\n"
       " * Sets the raw value of an @c $owning_message_class$'s @c $name$ property, allowing\n"
       " * it to be set to a value that was not defined by the enum at the time the code\n"
       " * was generated.\n"
       " **/\n"
-      "void Set$owning_message_class$_$capitalized_name$_RawValue($owning_message_class$ *message, int32_t value);\n"
+      "void Set$owning_message_class$_$capitalized_name$_RawValue($owning_message_class$ *message, arc_i32 value);\n"
       "\n");
 }
 
@@ -101,13 +101,13 @@ void EnumFieldGenerator::GenerateCFunctionImplementations(
 
   printer->Print(
       variables_,
-      "int32_t $owning_message_class$_$capitalized_name$_RawValue($owning_message_class$ *message) {\n"
+      "arc_i32 $owning_message_class$_$capitalized_name$_RawValue($owning_message_class$ *message) {\n"
       "  GPBDescriptor *descriptor = [$owning_message_class$ descriptor];\n"
       "  GPBFieldDescriptor *field = [descriptor fieldWithNumber:$field_number_name$];\n"
       "  return GPBGetMessageRawEnumField(message, field);\n"
       "}\n"
       "\n"
-      "void Set$owning_message_class$_$capitalized_name$_RawValue($owning_message_class$ *message, int32_t value) {\n"
+      "void Set$owning_message_class$_$capitalized_name$_RawValue($owning_message_class$ *message, arc_i32 value) {\n"
       "  GPBDescriptor *descriptor = [$owning_message_class$ descriptor];\n"
       "  GPBFieldDescriptor *field = [descriptor fieldWithNumber:$field_number_name$];\n"
       "  GPBSetMessageRawEnumField(message, field, value);\n"

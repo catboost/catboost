@@ -125,6 +125,7 @@ inline StringPiece as_string_view(const void* data, int size) {
 inline bool CheckFieldPresence(const internal::ParseContext& ctx,
                                const MessageLite& msg,
                                MessageLite::ParseFlags parse_flags) {
+  (void)ctx;  // Parameter is used by Google-internal code.
   if (PROTOBUF_PREDICT_FALSE((parse_flags & MessageLite::kMergePartial) != 0)) {
     return true;
   }
@@ -198,14 +199,6 @@ template bool MergeFromImpl<true>(BoundedZCIS input, MessageLite* msg,
                                   MessageLite::ParseFlags parse_flags);
 
 }  // namespace internal
-
-MessageLite* MessageLite::New(Arena* arena) const {
-  MessageLite* message = New();
-  if (arena != NULL) {
-    arena->Own(message);
-  }
-  return message;
-}
 
 class ZeroCopyCodedInputStream : public io::ZeroCopyInputStream {
  public:
@@ -393,7 +386,7 @@ bool MessageLite::SerializePartialToCodedStream(
   }
   int final_byte_count = output->ByteCount();
 
-  if (final_byte_count - original_byte_count != static_cast<int64_t>(size)) {
+  if (final_byte_count - original_byte_count != static_cast<arc_i64>(size)) {
     ByteSizeConsistencyError(size, ByteSizeLong(),
                              final_byte_count - original_byte_count, *this);
   }
@@ -492,7 +485,7 @@ bool MessageLite::SerializePartialToArray(void* data, int size) const {
                << " exceeded maximum protobuf size of 2GB: " << byte_size;
     return false;
   }
-  if (size < static_cast<int64_t>(byte_size)) return false;
+  if (size < static_cast<arc_i64>(byte_size)) return false;
   uint8_t* start = reinterpret_cast<uint8_t*>(data);
   SerializeToArrayImpl(*this, start, byte_size);
   return true;

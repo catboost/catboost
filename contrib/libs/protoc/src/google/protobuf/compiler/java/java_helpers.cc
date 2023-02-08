@@ -576,11 +576,11 @@ TProtoStringType DefaultValue(const FieldDescriptor* field, bool immutable,
       return StrCat(field->default_value_int32());
     case FieldDescriptor::CPPTYPE_UINT32:
       // Need to print as a signed int since Java has no unsigned.
-      return StrCat(static_cast<int32_t>(field->default_value_uint32()));
+      return StrCat(static_cast<arc_i32>(field->default_value_uint32()));
     case FieldDescriptor::CPPTYPE_INT64:
       return StrCat(field->default_value_int64()) + "L";
     case FieldDescriptor::CPPTYPE_UINT64:
-      return StrCat(static_cast<int64_t>(field->default_value_uint64())) +
+      return StrCat(static_cast<arc_i64>(field->default_value_uint64())) +
              "L";
     case FieldDescriptor::CPPTYPE_DOUBLE: {
       double value = field->default_value_double();
@@ -972,7 +972,7 @@ bool HasRepeatedFields(const Descriptor* descriptor) {
 //
 // Note that we only use code points in [0x0000, 0xD7FF] and [0xE000, 0xFFFF].
 // There will be no surrogate pairs in the encoded character sequence.
-void WriteUInt32ToUtf16CharSequence(uint32_t number,
+void WriteUInt32ToUtf16CharSequence(arc_ui32 number,
                                     std::vector<uint16_t>* output) {
   // For values in [0x0000, 0xD7FF], only use one char to encode it.
   if (number < 0xD800) {

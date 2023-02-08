@@ -292,6 +292,12 @@ def pytest_configure(config):
     if hasattr(signal, "SIGUSR2"):
         signal.signal(signal.SIGUSR2, _graceful_shutdown)
 
+    # register custom markers
+    config.addinivalue_line(
+        "markers", "xfaildiff: Allows to mark test which is expected to have a diff with canonical data"
+    )
+
+
 session_should_exit = False
 
 
@@ -542,8 +548,8 @@ def pytest_pyfunc_call(pyfuncitem):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    def logreport(report, result, call):
-        test_item = TestItem(report, result, pytest_config.option.test_suffix)
+    def logreport(report, result, call, markers):
+        test_item = TestItem(report, result, pytest_config.option.test_suffix, markers=markers)
         if not pytest_config.suite_metrics and context.Ctx.get("YA_PYTEST_START_TIMESTAMP"):
             pytest_config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
             pytest_config.ya_trace_reporter.dump_suite_metrics()
@@ -580,7 +586,7 @@ def pytest_runtest_makereport(item, call):
             ti = TestItem(rep, result, pytest_config.option.test_suffix)
             tr = pytest_config.pluginmanager.getplugin('terminalreporter')
             tr.write_line("{} - Validating canonical data is not supported when running standalone binary".format(ti), yellow=True, bold=True)
-    logreport(rep, result, call)
+    logreport(rep, result, call, item.own_markers)
 
 
 def pytest_make_parametrize_id(config, val, argname):
@@ -617,32 +623,24 @@ def colorize(longrepr):
             return io.getvalue().strip()
         return yatest_lib.tools.to_utf8(longrepr)
 
+    # Use arcadia style colorization
     text = yatest_lib.tools.to_utf8(longrepr)
-    pos = text.find("E   ")
-    if pos == -1:
-        return text
-
-    bt, error = text[:pos], text[pos:]
-    filters = [
-        # File path, line number and function name
-        (re.compile(r"^(.*?):(\d+): in (\S+)", flags=re.MULTILINE), r"[[unimp]]\1[[rst]]:[[alt2]]\2[[rst]]: in [[alt1]]\3[[rst]]"),
-    ]
-    for regex, substitution in filters:
-        bt = regex.sub(substitution, bt)
-    return "{}[[bad]]{}".format(bt, error)
+    return tools.colorize_pytest_error(text)
 
 
 class TestItem(object):
 
-    def __init__(self, report, result, test_suffix):
+    def __init__(self, report, result, test_suffix, markers=None):
         self._result = result
         self.nodeid = report.nodeid
         self._class_name, self._test_name = tools.split_node_id(self.nodeid, test_suffix)
         self._error = ""
         self._status = None
-        self._process_report(report)
         self._duration = hasattr(report, 'duration') and report.duration or 0
         self._keywords = getattr(report, "keywords", {})
+        self._xfaildiff = any(m.name == 'xfaildiff' for m in (markers or []))
+
+        self._process_report(report)
 
     def _process_report(self, report):
         if report.longrepr:
@@ -656,7 +654,7 @@ class TestItem(object):
 
         if report_teststatus == 'xfailed':
             self._status = 'xfail'
-            self.set_error(report.wasxfail, 'imp')
+            self.set_error(report.wasxfail or 'test was marked as xfail', 'imp')
         elif report_teststatus == 'xpassed':
             self._status = 'xpass'
             self.set_error("Test unexpectedly passed")
@@ -664,7 +662,10 @@ class TestItem(object):
             self._status = 'skipped'
             self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
         elif report.passed:
-            self._status = 'good'
+            if self._xfaildiff:
+                self._status = 'xfaildiff'
+            else:
+                self._status = 'good'
         else:
             self._status = 'fail'
 
@@ -688,6 +689,7 @@ class TestItem(object):
         return self._error
 
     def set_error(self, entry, marker='bad'):
+        assert entry != ""
         if isinstance(entry, _pytest.reports.BaseReport):
             self._error = get_formatted_error(entry)
         else:

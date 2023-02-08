@@ -1,10 +1,46 @@
-2022-09-13 version 18.3 (C++/Java/Python/PHP/Objective-C/C#/Ruby)
+2021-10-15 version 3.19.0 (C++/Java/Python/PHP/Objective-C/C#/Ruby/JavaScript)
 
-
-2022-01-05 version 3.18.2 (C++/Java/Python/PHP/Objective-C/C#/Ruby/JavaScript)
+  C++
+  * Make proto2::Message::DiscardUnknownFields() non-virtual
+  * Separate RepeatedPtrField into its own header file
+  * For default floating point values of 0, consider all bits significant
+  * cmake: support `MSVC_RUNTIME_LIBRARY` property (#8851)
+  * Fix shadowing warnings (#8926)
+  * Fix for issue #8484, constant initialization doesn't compile in msvc clang-cl environment (#8993)
+  * Fix build on AIX and SunOS (#8373) (#9065)
+  * Add Android stlport and default toolchains to BUILD. (#8290)
 
   Java
-  * Improve performance characteristics of UnknownFieldSet parsing (#9371) 
+  * For default floating point values of 0, consider all bits significant
+  * Annotate `//java/com/google/protobuf/util/...` with nullness annotations
+  * Use ArrayList copy constructor (#7853)
+
+  Kotlin
+  * Switch Kotlin proto DSLs to be implemented with inline value classes
+
+  Python
+  * Proto2 DecodeError now includes message name in error message
+  * Make MessageToDict convert map keys to strings (#8122)
+  * Add python-requires in setup.py (#8989)
+  * Add python 3.10 (#9034)
+
+  JavaScript
+  * Skip exports if not available by CommonJS (#8856)
+  * JS: Comply with CSP no-unsafe-eval. (#8864)
+
+  PHP
+  * Added "object" as a reserved name for PHP (#8962)
+
+  Ruby
+  * Override Map.clone to use Map's dup method (#7938)
+  * Ruby: build extensions for arm64-darwin (#8232)
+  * Add class method Timestamp.from_time to ruby well known types (#8562)
+  * Adopt pure ruby DSL implementation for JRuby (#9047)
+  * Add size to Map class (#8068)
+
+  C#
+  * Correctly set ExtensionRegistry when parsing with MessageParser, but using an already existing CodedInputStream (#7246)
+  * [C#] Make FieldDescriptor propertyName public (#7642)
 
 2021-10-04 version 3.18.1 (C++/Java/Python/PHP/Objective-C/C#/Ruby/JavaScript)
 
@@ -17,6 +53,46 @@
 
 2021-09-13 version 3.18.0 (C++/Java/Python/PHP/Objective-C/C#/Ruby/JavaScript)
 
+  Python
+  * Removed Python 2.x support.
+  * Pure python descriptor_pool.AddSerializedFile() will always build the
+    file and return FileDescriptor which is same with python c++ extension
+  * type errors thrown by MergeFrom now report fully qualified class names
+  * Protobuf python generated code are simplified. Some platforms that uses
+    "is"("is not") to compare the enum or descriptor's label/type may fail,
+    should use "=="("!=") instead.
+
+  C++
+  * Generated code now uses the c++11 standard integer types int{32,64}_t and
+    uint{32,64}_t
+  * Reduce memory usage of the DescriptorPool type.
+  * Moved the zero-argument New() method on messages to the base class (internal
+    optimization).
+  * Unused return values marked with `PROTOBUF_MUST_USE_RESULT` are now
+    correctly attributed.
+  * Demotes PrintPath log for maps in MessageDifferencer down from WARNING to
+    INFO.
+  * Make sure FullMessageName() is always private.
+  * Fix race condition in EnumDescriptor.
+  * Remove MessageLite::GetMaybeArenaPointer.
+
+  Java
+  * Add @deprecated javadoc for set/get/has methods
+  * correctly decode \? escape sequence in text protos
+  * Avoid depending on Objects.requireNonNull() until we can verify that no
+    users are depending on older Android versions.
+  * disallow null string map values in put and putAll
+  * Add `@CheckReturnValue` to `ByteString` API.
+  * Make the `hasPresence` method public in `FieldDescriptor`.
+  * Report more detailed messages in Duration and Timestamp proto parsing
+    errors.
+  * New Timestamps.fromDate utility method that converts a java.util.Date to a
+    Timestamp proto object.
+
+  Kotlin
+  * Generated Kotlin code is Explicit API mode compatible
+
+2021-09-13 version 3.18.0 (C++/Java/Python/PHP/Objective-C/C#/Ruby/JavaScript)
   C++
   * Fix warnings raised by clang 11 (#8664)
   * Make StringPiece constructible from std::string_view (#8707)
@@ -48,6 +124,7 @@
   * Fix repeated enum extension size in field listener
   * Enable Any Text Expansion for Descriptors::DebugString()
   * Switch from int{8,16,32,64} to int{8,16,32,64}_t
+  * Reduce memory usage of the DescriptorPool type.
 
   Java
   * Fix errorprone conflict (#8723)
@@ -80,7 +157,14 @@
   * field_presence.md: fix Go example (#8788)
 
 
+  Kotlin
+  * Suppress NOTHING_TO_INLINE in Kotlin generated inline functions.
+
 2021-06-04 version 3.17.3 (C++/Java/Python/PHP/Objective-C/C#/Ruby/JavaScript)
+  Python
+  * Note: This is the last release to support Python 2.7. Future releases will
+    require Python >= 3.5.
+
   C++
   * Introduce FieldAccessListener.
   * Stop emitting boilerplate {Copy/Merge}From in each ProtoBuf class

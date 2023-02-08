@@ -91,9 +91,9 @@ def updatecache(filename, module_globals=None):
     if not os.path.isabs(filename):
         # Do not read builtin code from the filesystem.
         import __res
-        key = __res.importer.file_source(filename)
-        if key:
-            data = __res.find(key)
+
+        key = __res.py_src_key(filename)
+        if data := __res.resfs_read(key):
             assert data is not None, filename
             data = data.decode('UTF-8')
             lines = [line + '\n' for line in data.splitlines()]

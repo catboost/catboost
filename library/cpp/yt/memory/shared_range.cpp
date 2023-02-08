@@ -10,6 +10,11 @@ TSharedRangeHolderPtr TSharedRangeHolder::Clone(const TSharedRangeHolderCloneOpt
     return this;
 }
 
+std::optional<size_t> TSharedRangeHolder::GetTotalByteSize() const
+{
+    return std::nullopt;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 TSharedRangeHolderPtr MakeCompositeSharedRangeHolder(std::vector<TSharedRangeHolderPtr> holders)
@@ -17,27 +22,42 @@ TSharedRangeHolderPtr MakeCompositeSharedRangeHolder(std::vector<TSharedRangeHol
     struct THolder
         : public TSharedRangeHolder
     {
-        std::vector<TSharedRangeHolderPtr> Holders;
+        std::vector<TSharedRangeHolderPtr> Subholders;
 
         TSharedRangeHolderPtr Clone(const TSharedRangeHolderCloneOptions& options) override
         {
             auto newHolder = New<THolder>();
-            newHolder->Holders.reserve(Holders.size());
-            for (const auto& holder : Holders) {
-                if (!holder) {
+            newHolder->Subholders.reserve(Subholders.size());
+            for (const auto& subholder : Subholders) {
+                if (!subholder) {
                     continue;
                 }
-                if (auto cloned = holder->Clone(options)) {
-                    newHolder->Holders.push_back(cloned);
+                if (auto clonedSubholder = subholder->Clone(options)) {
+                    newHolder->Subholders.push_back(clonedSubholder);
                 }
             }
-
             return newHolder;
+        }
+
+        std::optional<size_t> GetTotalByteSize() const override
+        {
+            size_t result = 0;
+            for (const auto& subholder : Subholders) {
+                if (!subholder) {
+                    continue;
+                }
+                auto subsize = subholder->GetTotalByteSize();
+                if (!subsize) {
+                    return std::nullopt;
+                }
+                result += *subsize;
+            }
+            return result;
         }
     };
 
     auto holder = New<THolder>();
-    holder->Holders = std::move(holders);
+    holder->Subholders = std::move(holders);
     return holder;
 }
 

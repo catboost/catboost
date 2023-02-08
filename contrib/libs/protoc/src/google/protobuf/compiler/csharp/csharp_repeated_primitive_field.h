@@ -72,4 +72,3 @@ class RepeatedPrimitiveFieldGenerator : public FieldGeneratorBase {
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_REPEATED_PRIMITIVE_FIELD_H__
-

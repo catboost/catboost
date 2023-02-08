@@ -57,18 +57,18 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/core/src/common;$(SolutionDir)../contrib/python/numpy/include/numpy/core/src/npymath;$(SolutionDir)../contrib/python/numpy/include/numpy/distutils/include;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/python/Include;'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/python/numpy/include/numpy/core/include;'$(SolutionDir)..'/contrib/python/numpy/include/numpy/core/include/numpy;'$(SolutionDir)..'/contrib/python/numpy/include/numpy/core/src/common;'$(SolutionDir)..'/contrib/python/numpy/include/numpy/core/src/npymath;'$(SolutionDir)..'/contrib/python/numpy/include/numpy/distutils/include;'$(SolutionDir)..'/contrib/libs/tbb/include;'$(SolutionDir)..'/contrib/libs/openssl/include;'$(SolutionDir)..'/contrib/restricted/libffi/include;'$(SolutionDir)..'/contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;$(SolutionDir)$(Configuration)\MSVS\C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8\507932c176c51682bda6445e3b.obj;$(SolutionDir)$(Configuration)\MSVS\99480F9B-8814-368A-8A11-C9595B291CEC\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\composite_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\null_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\rotating_file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\stream_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\sync_page_cache_file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\system_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\uninitialized_creator.obj;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL      crypt32.lib ws2_32.lib /DEF:$(SolutionDir)../library/python/hnsw/hnsw/hnsw.exports</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     crypt32.lib ws2_32.lib /DEF:$(SolutionDir)../library/python/hnsw/hnsw/hnsw.exports</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL      crypt32.lib ws2_32.lib /DEF:'$(SolutionDir)..'/library/python/hnsw/hnsw/hnsw.exports</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     crypt32.lib ws2_32.lib /DEF:'$(SolutionDir)..'/library/python/hnsw/hnsw/hnsw.exports</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -79,12 +79,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\hnsw\hnsw\_hnsw.pyx.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\python\hnsw\hnsw\helpers.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
+    <ClCompile Include="'$(SolutionDir)..'\library\python\hnsw\hnsw\helpers.cpp"/>
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\tools\cython\cython.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\hnsw\hnsw
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_hnsw" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy" "$(SolutionDir)../library/python/hnsw/hnsw/_hnsw.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/hnsw/hnsw/_hnsw.pyx.cpp"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_hnsw" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "-I'$(SolutionDir)..'/contrib/python/numpy/include/numpy/core/include" "-I'$(SolutionDir)..'/contrib/python/numpy/include/numpy/core/include/numpy" "$(SolutionDir).." "/library/python/hnsw/hnsw/_hnsw.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/hnsw/hnsw/_hnsw.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\hnsw\hnsw
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_hnsw" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy" "$(SolutionDir)../library/python/hnsw/hnsw/_hnsw.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/hnsw/hnsw/_hnsw.pyx.cpp"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_hnsw" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "-I'$(SolutionDir)..'/contrib/python/numpy/include/numpy/core/include" "-I'$(SolutionDir)..'/contrib/python/numpy/include/numpy/core/include/numpy" "$(SolutionDir).." "/library/python/hnsw/hnsw/_hnsw.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/hnsw/hnsw/_hnsw.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,17 +104,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/hnsw/hnsw/_hnsw.pyx.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\tools\cython\cython.py;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Buffer.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Builtins.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\CMath.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Capsule.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\CommonTypes.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Complex.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Coroutine.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\CythonFunction.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Embed.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Exceptions.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\ExtensionTypes.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\FunctionArguments.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\ImportExport.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\MemoryView_C.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\ModuleSetupCode.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\ObjectHandling.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Optimize.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Overflow.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Printing.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\Profile.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\StringTools.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\TestUtilityLoader.c;$(SolutionDir)..\contrib\tools\cython\Cython\Utility\TypeConversion.c;$(SolutionDir)..\library\python\hnsw\hnsw\_hnsw.pyx;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\tools\cython\cython.py;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Buffer.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Builtins.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\CMath.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Capsule.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\CommonTypes.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Complex.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Coroutine.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\CythonFunction.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Embed.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Exceptions.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\ExtensionTypes.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\FunctionArguments.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\ImportExport.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\MemoryView_C.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\ModuleSetupCode.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\ObjectHandling.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Optimize.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Overflow.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Printing.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\Profile.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\StringTools.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\TestUtilityLoader.c;'$(SolutionDir)..'\contrib\tools\cython\Cython\Utility\TypeConversion.c;'$(SolutionDir)..'\library\python\hnsw\hnsw\_hnsw.pyx;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\hnsw\hnsw\_hnsw.pyx.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\python\hnsw\hnsw\helpers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\library\python\hnsw\hnsw\helpers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
       <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
     </ProjectReference>
@@ -244,6 +241,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\pycontrib-python-backcall.global.vcxproj">
       <Project>{C05157A0-7771-F262-8E14-B98F127FF6B6}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\chardet\py2\pypython-chardet-py2.global.vcxproj">
+      <Project>{FA0B0012-A9D8-E594-9177-04DFC5D0E499}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\charset-normalizer\pycontrib-python-charset-normalizer.global.vcxproj">
+      <Project>{625D45A5-7FE2-D98E-B3C8-593A0530E22C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.global.vcxproj">
       <Project>{0E0E70FC-148C-4937-1103-230DC41150C2}</Project>
     </ProjectReference>
@@ -273,6 +276,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\py3\pypython-graphviz-py3.global.vcxproj">
       <Project>{01A0DEDB-58DF-B045-B715-7DD21F1CBD3C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\py2\pypython-idna-py2.global.vcxproj">
+      <Project>{5826B83C-FE07-B936-D817-EBC7C02BC780}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\py3\pypython-idna-py3.global.vcxproj">
+      <Project>{C8D5EBDC-14C5-E154-A53E-A6FADEC29811}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.global.vcxproj">
       <Project>{77241000-E28E-793C-88B4-56C641DEE900}</Project>
@@ -412,6 +421,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.global.vcxproj">
       <Project>{4E3822AF-7C35-47DE-C3FA-71E83FE8D544}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\py2\pypython-requests-py2.global.vcxproj">
+      <Project>{1E9951C7-50CA-7312-8615-0E9316F02D1F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\py3\pypython-requests-py3.global.vcxproj">
+      <Project>{F10F7783-01B5-C075-3D2D-0F15B5E74776}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scikit-learn\py3\pypython-scikit-learn-py3.global.vcxproj">
       <Project>{669C2627-23FB-2A20-C7CA-1F8E8FE99062}</Project>
     </ProjectReference>
@@ -462,6 +477,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\types-protobuf\pycontrib-python-types-protobuf.global.vcxproj">
       <Project>{EA6763B1-F55C-7DAE-A23C-44726828545D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\urllib3\py3contrib-python-urllib3.global.vcxproj">
+      <Project>{45C610B9-49B3-CB6C-684E-72065E7BE108}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\urllib3\pycontrib-python-urllib3.global.vcxproj">
+      <Project>{233F02C6-22C8-9E91-FA70-20873AA258D6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\py3contrib-python-wcwidth.global.vcxproj">
       <Project>{D9E60A5B-06FF-5A6D-A001-7A0ACCD3118C}</Project>
@@ -558,6 +579,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
       <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\certifi\py3library-python-certifi.global.vcxproj">
+      <Project>{B562A0F5-9ACD-90A7-7E65-3F8A082FF982}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\certifi\pylibrary-python-certifi.global.vcxproj">
+      <Project>{74C1B032-BF34-598E-9C7B-74A06DA3518E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\py3library-python-cores.global.vcxproj">
       <Project>{51093023-B70B-7F20-53A9-6AA58A8CECDB}</Project>

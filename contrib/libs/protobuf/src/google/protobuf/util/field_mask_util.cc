@@ -62,7 +62,7 @@ bool FieldMaskUtil::SnakeCaseToCamelCase(StringPiece input,
                                          TProtoStringType* output) {
   output->clear();
   bool after_underscore = false;
-  for (const char& input_char : input) {
+  for (char input_char : input) {
     if (input_char >= 'A' && input_char <= 'Z') {
       // The field name must not contain uppercase letters.
       return false;
@@ -385,8 +385,8 @@ void FieldMaskTree::RemovePath(const TProtoStringType& path,
       if (new_branch_node == nullptr) {
         new_branch_node = node;
       }
-      for (int i = 0; i < current_descriptor->field_count(); ++i) {
-        node->children[current_descriptor->field(i)->name()] = new Node();
+      for (int j = 0; j < current_descriptor->field_count(); ++j) {
+        node->children[current_descriptor->field(j)->name()] = new Node();
       }
     }
     if (ContainsKey(node->children, parts[i])) {
@@ -552,7 +552,7 @@ void FieldMaskTree::MergeMessage(const Node* node, const Message& source,
 
 void FieldMaskTree::AddRequiredFieldPath(Node* node,
                                          const Descriptor* descriptor) {
-  const int32_t field_count = descriptor->field_count();
+  const arc_i32 field_count = descriptor->field_count();
   for (int index = 0; index < field_count; ++index) {
     const FieldDescriptor* field = descriptor->field(index);
     if (field->is_required()) {
@@ -589,7 +589,7 @@ bool FieldMaskTree::TrimMessage(const Node* node, Message* message) {
   GOOGLE_DCHECK(!node->children.empty());
   const Reflection* reflection = message->GetReflection();
   const Descriptor* descriptor = message->GetDescriptor();
-  const int32_t field_count = descriptor->field_count();
+  const arc_i32 field_count = descriptor->field_count();
   bool modified = false;
   for (int index = 0; index < field_count; ++index) {
     const FieldDescriptor* field = descriptor->field(index);

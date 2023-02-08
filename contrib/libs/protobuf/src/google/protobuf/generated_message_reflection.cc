@@ -50,10 +50,13 @@
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/unknown_field_set.h>
 #include <google/protobuf/wire_format.h>
+#include <google/protobuf/stubs/casts.h>
 #include <google/protobuf/stubs/strutil.h>
 
 
+// clang-format off
 #include <google/protobuf/port_def.inc>
+// clang-format on
 
 #define GOOGLE_PROTOBUF_HAS_ONEOF
 
@@ -248,6 +251,12 @@ UnknownFieldSet* Reflection::MutableUnknownFields(Message* message) const {
       ->mutable_unknown_fields<UnknownFieldSet>();
 }
 
+bool Reflection::IsLazyExtension(const Message& message,
+                                 const FieldDescriptor* field) const {
+  return field->is_extension() &&
+         GetExtensionSet(message).HasLazy(field->number());
+}
+
 bool Reflection::IsLazilyVerifiedLazyField(const FieldDescriptor* field) const {
   return field->options().lazy();
 }
@@ -283,10 +292,10 @@ size_t Reflection::SpaceUsedLong(const Message& message) const {
                       .SpaceUsedExcludingSelfLong();                \
     break
 
-        HANDLE_TYPE(INT32, int32_t);
-        HANDLE_TYPE(INT64, int64);
-        HANDLE_TYPE(UINT32, uint32_t);
-        HANDLE_TYPE(UINT64, uint64);
+        HANDLE_TYPE(INT32, arc_i32);
+        HANDLE_TYPE(INT64, arc_i64);
+        HANDLE_TYPE(UINT32, arc_ui32);
+        HANDLE_TYPE(UINT64, arc_ui64);
         HANDLE_TYPE(DOUBLE, double);
         HANDLE_TYPE(FLOAT, float);
         HANDLE_TYPE(BOOL, bool);
@@ -676,10 +685,10 @@ void Reflection::SwapField(Message* message1, Message* message2,
         ->Swap(MutableRaw<RepeatedField<TYPE> >(message2, field)); \
     break;
 
-      SWAP_ARRAYS(INT32, int32_t);
-      SWAP_ARRAYS(INT64, int64);
-      SWAP_ARRAYS(UINT32, uint32_t);
-      SWAP_ARRAYS(UINT64, uint64);
+      SWAP_ARRAYS(INT32, arc_i32);
+      SWAP_ARRAYS(INT64, arc_i64);
+      SWAP_ARRAYS(UINT32, arc_ui32);
+      SWAP_ARRAYS(UINT64, arc_ui64);
       SWAP_ARRAYS(FLOAT, float);
       SWAP_ARRAYS(DOUBLE, double);
       SWAP_ARRAYS(BOOL, bool);
@@ -706,10 +715,10 @@ void Reflection::SwapField(Message* message1, Message* message2,
               *MutableRaw<TYPE>(message2, field)); \
     break;
 
-      SWAP_VALUES(INT32, int32_t);
-      SWAP_VALUES(INT64, int64);
-      SWAP_VALUES(UINT32, uint32_t);
-      SWAP_VALUES(UINT64, uint64);
+      SWAP_VALUES(INT32, arc_i32);
+      SWAP_VALUES(INT64, arc_i64);
+      SWAP_VALUES(UINT32, arc_ui32);
+      SWAP_VALUES(UINT64, arc_ui64);
       SWAP_VALUES(FLOAT, float);
       SWAP_VALUES(DOUBLE, double);
       SWAP_VALUES(BOOL, bool);
@@ -753,10 +762,10 @@ void Reflection::UnsafeShallowSwapField(Message* message1, Message* message2,
         ->InternalSwap(MutableRaw<RepeatedField<TYPE>>(message2, field)); \
     break;
 
-    SHALLOW_SWAP_ARRAYS(INT32, int32_t);
-    SHALLOW_SWAP_ARRAYS(INT64, int64);
-    SHALLOW_SWAP_ARRAYS(UINT32, uint32_t);
-    SHALLOW_SWAP_ARRAYS(UINT64, uint64);
+    SHALLOW_SWAP_ARRAYS(INT32, arc_i32);
+    SHALLOW_SWAP_ARRAYS(INT64, arc_i64);
+    SHALLOW_SWAP_ARRAYS(UINT32, arc_ui32);
+    SHALLOW_SWAP_ARRAYS(UINT64, arc_ui64);
     SHALLOW_SWAP_ARRAYS(FLOAT, float);
     SHALLOW_SWAP_ARRAYS(DOUBLE, double);
     SHALLOW_SWAP_ARRAYS(BOOL, bool);
@@ -790,10 +799,10 @@ void Reflection::SwapOneofField(Message* lhs, Message* rhs,
   type Get##name() const { return oneof_val.type_##var; } \
   void Set##name(type v) { oneof_val.type_##var = v; }
 
-    LOCAL_VAR_ACCESSOR(int32_t, int32, Int32);
-    LOCAL_VAR_ACCESSOR(int64, int64, Int64);
-    LOCAL_VAR_ACCESSOR(uint32_t, uint32, Uint32);
-    LOCAL_VAR_ACCESSOR(uint64, uint64, Uint64);
+    LOCAL_VAR_ACCESSOR(arc_i32, int32, Int32);
+    LOCAL_VAR_ACCESSOR(arc_i64, int64, Int64);
+    LOCAL_VAR_ACCESSOR(arc_ui32, uint32, Uint32);
+    LOCAL_VAR_ACCESSOR(arc_ui64, uint64, Uint64);
     LOCAL_VAR_ACCESSOR(float, float, Float);
     LOCAL_VAR_ACCESSOR(double, double, Double);
     LOCAL_VAR_ACCESSOR(bool, bool, Bool);
@@ -807,10 +816,10 @@ void Reflection::SwapOneofField(Message* lhs, Message* rhs,
     void ClearOneofCase() {}
 
     union {
-      int32_t type_int32;
-      int64 type_int64;
-      uint32_t type_uint32;
-      uint64 type_uint64;
+      arc_i32 type_int32;
+      arc_i64 type_int64;
+      arc_ui32 type_uint32;
+      arc_ui64 type_uint64;
       float type_float;
       double type_double;
       bool type_bool;
@@ -831,10 +840,10 @@ void Reflection::SwapOneofField(Message* lhs, Message* rhs,
   }                                                     \
   void Set##name(type v) { reflection->SetField<type>(message, field, v); }
 
-    MESSAGE_FIELD_ACCESSOR(int32_t, int32, Int32);
-    MESSAGE_FIELD_ACCESSOR(int64, int64, Int64);
-    MESSAGE_FIELD_ACCESSOR(uint32_t, uint32, Uint32);
-    MESSAGE_FIELD_ACCESSOR(uint64, uint64, Uint64);
+    MESSAGE_FIELD_ACCESSOR(arc_i32, int32, Int32);
+    MESSAGE_FIELD_ACCESSOR(arc_i64, int64, Int64);
+    MESSAGE_FIELD_ACCESSOR(arc_ui32, uint32, Uint32);
+    MESSAGE_FIELD_ACCESSOR(arc_ui64, uint64, Uint64);
     MESSAGE_FIELD_ACCESSOR(float, float, Float);
     MESSAGE_FIELD_ACCESSOR(double, double, Double);
     MESSAGE_FIELD_ACCESSOR(bool, bool, Bool);
@@ -987,6 +996,8 @@ void Reflection::SwapFieldsImpl(
   GOOGLE_DCHECK(!unsafe_shallow_swap || message1->GetArenaForAllocation() ==
                                      message2->GetArenaForAllocation());
 
+  const Message* prototype =
+      message_factory_->GetPrototype(message1->GetDescriptor());
   for (const auto* field : fields) {
     CheckInvalidAccess(schema_, field);
     if (field->is_extension()) {
@@ -995,7 +1006,7 @@ void Reflection::SwapFieldsImpl(
             MutableExtensionSet(message2), field->number());
       } else {
         MutableExtensionSet(message1)->SwapExtension(
-            MutableExtensionSet(message2), field->number());
+            prototype, MutableExtensionSet(message2), field->number());
       }
     } else {
       if (schema_.InRealOneof(field)) {
@@ -1123,10 +1134,10 @@ int Reflection::FieldSize(const Message& message,
   case FieldDescriptor::CPPTYPE_##UPPERCASE: \
     return GetRaw<RepeatedField<LOWERCASE> >(message, field).size()
 
-      HANDLE_TYPE(INT32, int32_t);
-      HANDLE_TYPE(INT64, int64);
-      HANDLE_TYPE(UINT32, uint32_t);
-      HANDLE_TYPE(UINT64, uint64);
+      HANDLE_TYPE(INT32, arc_i32);
+      HANDLE_TYPE(INT64, arc_i64);
+      HANDLE_TYPE(UINT32, arc_ui32);
+      HANDLE_TYPE(UINT64, arc_ui64);
       HANDLE_TYPE(DOUBLE, double);
       HANDLE_TYPE(FLOAT, float);
       HANDLE_TYPE(BOOL, bool);
@@ -1177,10 +1188,10 @@ void Reflection::ClearField(Message* message,
     *MutableRaw<TYPE>(message, field) = field->default_value_##TYPE(); \
     break;
 
-        CLEAR_TYPE(INT32, int32_t);
-        CLEAR_TYPE(INT64, int64);
-        CLEAR_TYPE(UINT32, uint32_t);
-        CLEAR_TYPE(UINT64, uint64);
+        CLEAR_TYPE(INT32, arc_i32);
+        CLEAR_TYPE(INT64, arc_i64);
+        CLEAR_TYPE(UINT32, arc_ui32);
+        CLEAR_TYPE(UINT64, arc_ui64);
         CLEAR_TYPE(FLOAT, float);
         CLEAR_TYPE(DOUBLE, double);
         CLEAR_TYPE(BOOL, bool);
@@ -1213,7 +1224,7 @@ void Reflection::ClearField(Message* message,
         }
 
         case FieldDescriptor::CPPTYPE_MESSAGE:
-          if (schema_.HasBitIndex(field) == static_cast<uint32_t>(-1)) {
+          if (schema_.HasBitIndex(field) == static_cast<arc_ui32>(-1)) {
             // Proto3 does not have has-bits and we need to set a message field
             // to nullptr in order to indicate its un-presence.
             if (message->GetArenaForAllocation() == nullptr) {
@@ -1233,10 +1244,10 @@ void Reflection::ClearField(Message* message,
     MutableRaw<RepeatedField<LOWERCASE> >(message, field)->Clear(); \
     break
 
-      HANDLE_TYPE(INT32, int32_t);
-      HANDLE_TYPE(INT64, int64);
-      HANDLE_TYPE(UINT32, uint32_t);
-      HANDLE_TYPE(UINT64, uint64);
+      HANDLE_TYPE(INT32, arc_i32);
+      HANDLE_TYPE(INT64, arc_i64);
+      HANDLE_TYPE(UINT32, arc_ui32);
+      HANDLE_TYPE(UINT64, arc_ui64);
       HANDLE_TYPE(DOUBLE, double);
       HANDLE_TYPE(FLOAT, float);
       HANDLE_TYPE(BOOL, bool);
@@ -1283,10 +1294,10 @@ void Reflection::RemoveLast(Message* message,
     MutableRaw<RepeatedField<LOWERCASE> >(message, field)->RemoveLast(); \
     break
 
-      HANDLE_TYPE(INT32, int32_t);
-      HANDLE_TYPE(INT64, int64);
-      HANDLE_TYPE(UINT32, uint32_t);
-      HANDLE_TYPE(UINT64, uint64);
+      HANDLE_TYPE(INT32, arc_i32);
+      HANDLE_TYPE(INT64, arc_i64);
+      HANDLE_TYPE(UINT32, arc_ui32);
+      HANDLE_TYPE(UINT64, arc_ui64);
       HANDLE_TYPE(DOUBLE, double);
       HANDLE_TYPE(FLOAT, float);
       HANDLE_TYPE(BOOL, bool);
@@ -1379,10 +1390,10 @@ void Reflection::SwapElements(Message* message, const FieldDescriptor* field,
         ->SwapElements(index1, index2);                   \
     break
 
-      HANDLE_TYPE(INT32, int32_t);
-      HANDLE_TYPE(INT64, int64);
-      HANDLE_TYPE(UINT32, uint32_t);
-      HANDLE_TYPE(UINT64, uint64);
+      HANDLE_TYPE(INT32, arc_i32);
+      HANDLE_TYPE(INT64, arc_i64);
+      HANDLE_TYPE(UINT32, arc_ui32);
+      HANDLE_TYPE(UINT64, arc_ui64);
       HANDLE_TYPE(DOUBLE, double);
       HANDLE_TYPE(FLOAT, float);
       HANDLE_TYPE(BOOL, bool);
@@ -1413,10 +1424,10 @@ struct FieldNumberSorter {
   }
 };
 
-bool IsIndexInHasBitSet(const uint32_t* has_bit_set, uint32_t has_bit_index) {
+bool IsIndexInHasBitSet(const arc_ui32* has_bit_set, arc_ui32 has_bit_index) {
   GOOGLE_DCHECK_NE(has_bit_index, ~0u);
   return ((has_bit_set[has_bit_index / 32] >> (has_bit_index % 32)) &
-          static_cast<uint32_t>(1)) != 0;
+          static_cast<arc_ui32>(1)) != 0;
 }
 
 bool CreateUnknownEnumValues(const FileDescriptor* file) {
@@ -1445,9 +1456,9 @@ void Reflection::ListFieldsMayFailOnStripped(
   // encapsulation because this function takes a noticeable about of CPU
   // fleetwide and properly allowing this optimization through public interfaces
   // seems more trouble than it is worth.
-  const uint32_t* const has_bits =
+  const arc_ui32* const has_bits =
       schema_.HasHasbits() ? GetHasBits(message) : nullptr;
-  const uint32_t* const has_bits_indices = schema_.has_bit_indices_;
+  const arc_ui32* const has_bits_indices = schema_.has_bit_indices_;
   output->reserve(descriptor_->field_count());
   const int last_non_weak_field_index = last_non_weak_field_index_;
   for (int i = 0; i <= last_non_weak_field_index; i++) {
@@ -1462,15 +1473,15 @@ void Reflection::ListFieldsMayFailOnStripped(
     } else {
       const OneofDescriptor* containing_oneof = field->containing_oneof();
       if (schema_.InRealOneof(field)) {
-        const uint32_t* const oneof_case_array =
-            GetConstPointerAtOffset<uint32_t>(&message,
+        const arc_ui32* const oneof_case_array =
+            GetConstPointerAtOffset<arc_ui32>(&message,
                                               schema_.oneof_case_offset_);
         // Equivalent to: HasOneofField(message, field)
-        if (static_cast<int64>(oneof_case_array[containing_oneof->index()]) ==
+        if (static_cast<arc_i64>(oneof_case_array[containing_oneof->index()]) ==
             field->number()) {
           output->push_back(field);
         }
-      } else if (has_bits && has_bits_indices[i] != static_cast<uint32_t>(-1)) {
+      } else if (has_bits && has_bits_indices[i] != static_cast<arc_ui32>(-1)) {
         CheckInvalidAccess(schema_, field);
         // Equivalent to: HasBit(message, field)
         if (IsIndexInHasBitSet(has_bits, has_bits_indices[i])) {
@@ -1563,10 +1574,10 @@ void Reflection::ListFieldsOmitStripped(
     }                                                                          \
   }
 
-DEFINE_PRIMITIVE_ACCESSORS(Int32, int32_t, int32_t, INT32)
-DEFINE_PRIMITIVE_ACCESSORS(Int64, int64, int64, INT64)
-DEFINE_PRIMITIVE_ACCESSORS(UInt32, uint32_t, uint32_t, UINT32)
-DEFINE_PRIMITIVE_ACCESSORS(UInt64, uint64, uint64, UINT64)
+DEFINE_PRIMITIVE_ACCESSORS(Int32, arc_i32, arc_i32, INT32)
+DEFINE_PRIMITIVE_ACCESSORS(Int64, arc_i64, arc_i64, INT64)
+DEFINE_PRIMITIVE_ACCESSORS(UInt32, arc_ui32, arc_ui32, UINT32)
+DEFINE_PRIMITIVE_ACCESSORS(UInt64, arc_ui64, arc_ui64, UINT64)
 DEFINE_PRIMITIVE_ACCESSORS(Float, float, float, FLOAT)
 DEFINE_PRIMITIVE_ACCESSORS(Double, double, double, DOUBLE)
 DEFINE_PRIMITIVE_ACCESSORS(Bool, bool, bool, BOOL)
@@ -1604,6 +1615,7 @@ TProtoStringType Reflection::GetString(const Message& message,
 const TProtoStringType& Reflection::GetStringReference(const Message& message,
                                                   const FieldDescriptor* field,
                                                   TProtoStringType* scratch) const {
+  (void)scratch;  // Parameter is used by Google-internal code.
   USAGE_CHECK_ALL(GetStringReference, SINGULAR, STRING);
   if (field->is_extension()) {
     return GetExtensionSet(message).GetString(field->number(),
@@ -1641,10 +1653,10 @@ void Reflection::SetString(Message* message, const FieldDescriptor* field,
       default:  // TODO(kenton):  Support other string reps.
       case FieldOptions::STRING: {
         if (IsInlined(field)) {
-          const uint32_t index = schema_.InlinedStringIndex(field);
-          uint32_t* states =
+          const arc_ui32 index = schema_.InlinedStringIndex(field);
+          arc_ui32* states =
               &MutableInlinedStringDonatedArray(message)[index / 32];
-          uint32_t mask = ~(static_cast<uint32_t>(1) << (index % 32));
+          arc_ui32 mask = ~(static_cast<arc_ui32>(1) << (index % 32));
           MutableField<InlinedStringField>(message, field)
               ->Set(nullptr, value, message->GetArenaForAllocation(),
                     IsInlinedStringDonated(*message, field), states, mask);
@@ -1692,6 +1704,7 @@ TProtoStringType Reflection::GetRepeatedString(const Message& message,
 const TProtoStringType& Reflection::GetRepeatedStringReference(
     const Message& message, const FieldDescriptor* field, int index,
     TProtoStringType* scratch) const {
+  (void)scratch;  // Parameter is used by Google-internal code.
   USAGE_CHECK_ALL(GetRepeatedStringReference, REPEATED, STRING);
   if (field->is_extension()) {
     return GetExtensionSet(message).GetRepeatedString(field->number(), index);
@@ -1754,7 +1767,7 @@ int Reflection::GetEnumValue(const Message& message,
                              const FieldDescriptor* field) const {
   USAGE_CHECK_ALL(GetEnumValue, SINGULAR, ENUM);
 
-  int32_t value;
+  arc_i32 value;
   if (field->is_extension()) {
     value = GetExtensionSet(message).GetEnum(
         field->number(), field->default_value_enum()->number());
@@ -2231,6 +2244,7 @@ void* Reflection::MutableRawRepeatedField(Message* message,
                                           FieldDescriptor::CppType cpptype,
                                           int ctype,
                                           const Descriptor* desc) const {
+  (void)ctype;  // Parameter is used by Google-internal code.
   USAGE_CHECK_REPEATED("MutableRawRepeatedField");
   CheckInvalidAccess(schema_, field);
 
@@ -2290,7 +2304,7 @@ const FieldDescriptor* Reflection::GetOneofFieldDescriptor(
     const FieldDescriptor* field = oneof_descriptor->field(0);
     return HasField(message, field) ? field : nullptr;
   }
-  uint32_t field_number = GetOneofCase(message, oneof_descriptor);
+  arc_ui32 field_number = GetOneofCase(message, oneof_descriptor);
   if (field_number == 0) {
     return nullptr;
   }
@@ -2398,20 +2412,20 @@ Type* Reflection::MutableRaw(Message* message,
   return GetPointerAtOffset<Type>(message, schema_.GetFieldOffset(field));
 }
 
-const uint32_t* Reflection::GetHasBits(const Message& message) const {
+const arc_ui32* Reflection::GetHasBits(const Message& message) const {
   GOOGLE_DCHECK(schema_.HasHasbits());
-  return &GetConstRefAtOffset<uint32_t>(message, schema_.HasBitsOffset());
+  return &GetConstRefAtOffset<arc_ui32>(message, schema_.HasBitsOffset());
 }
 
-uint32_t* Reflection::MutableHasBits(Message* message) const {
+arc_ui32* Reflection::MutableHasBits(Message* message) const {
   GOOGLE_DCHECK(schema_.HasHasbits());
-  return GetPointerAtOffset<uint32_t>(message, schema_.HasBitsOffset());
+  return GetPointerAtOffset<arc_ui32>(message, schema_.HasBitsOffset());
 }
 
-uint32_t* Reflection::MutableOneofCase(
+arc_ui32* Reflection::MutableOneofCase(
     Message* message, const OneofDescriptor* oneof_descriptor) const {
   GOOGLE_DCHECK(!oneof_descriptor->is_synthetic());
-  return GetPointerAtOffset<uint32_t>(
+  return GetPointerAtOffset<arc_ui32>(
       message, schema_.GetOneofCaseOffset(oneof_descriptor));
 }
 
@@ -2436,16 +2450,16 @@ InternalMetadata* Reflection::MutableInternalMetadata(Message* message) const {
                                               schema_.GetMetadataOffset());
 }
 
-const uint32_t* Reflection::GetInlinedStringDonatedArray(
+const arc_ui32* Reflection::GetInlinedStringDonatedArray(
     const Message& message) const {
   GOOGLE_DCHECK(schema_.HasInlinedString());
-  return &GetConstRefAtOffset<uint32_t>(message,
+  return &GetConstRefAtOffset<arc_ui32>(message,
                                         schema_.InlinedStringDonatedOffset());
 }
 
-uint32_t* Reflection::MutableInlinedStringDonatedArray(Message* message) const {
+arc_ui32* Reflection::MutableInlinedStringDonatedArray(Message* message) const {
   GOOGLE_DCHECK(schema_.HasHasbits());
-  return GetPointerAtOffset<uint32_t>(message,
+  return GetPointerAtOffset<arc_ui32>(message,
                                       schema_.InlinedStringDonatedOffset());
 }
 
@@ -2460,7 +2474,7 @@ bool Reflection::IsInlinedStringDonated(const Message& message,
 bool Reflection::HasBit(const Message& message,
                         const FieldDescriptor* field) const {
   GOOGLE_DCHECK(!field->options().weak());
-  if (schema_.HasBitIndex(field) != static_cast<uint32_t>(-1)) {
+  if (schema_.HasBitIndex(field) != static_cast<arc_ui32>(-1)) {
     return IsIndexInHasBitSet(GetHasBits(message), schema_.HasBitIndex(field));
   }
 
@@ -2500,17 +2514,21 @@ bool Reflection::HasBit(const Message& message,
       case FieldDescriptor::CPPTYPE_BOOL:
         return GetRaw<bool>(message, field) != false;
       case FieldDescriptor::CPPTYPE_INT32:
-        return GetRaw<int32_t>(message, field) != 0;
+        return GetRaw<arc_i32>(message, field) != 0;
       case FieldDescriptor::CPPTYPE_INT64:
-        return GetRaw<int64>(message, field) != 0;
+        return GetRaw<arc_i64>(message, field) != 0;
       case FieldDescriptor::CPPTYPE_UINT32:
-        return GetRaw<uint32_t>(message, field) != 0;
+        return GetRaw<arc_ui32>(message, field) != 0;
       case FieldDescriptor::CPPTYPE_UINT64:
-        return GetRaw<uint64>(message, field) != 0;
+        return GetRaw<arc_ui64>(message, field) != 0;
       case FieldDescriptor::CPPTYPE_FLOAT:
-        return GetRaw<float>(message, field) != 0.0;
+        static_assert(sizeof(arc_ui32) == sizeof(float),
+                      "Code assumes arc_ui32 and float are the same size.");
+        return GetRaw<arc_ui32>(message, field) != 0;
       case FieldDescriptor::CPPTYPE_DOUBLE:
-        return GetRaw<double>(message, field) != 0.0;
+        static_assert(sizeof(arc_ui64) == sizeof(double),
+                      "Code assumes arc_ui64 and double are the same size.");
+        return GetRaw<arc_ui64>(message, field) != 0;
       case FieldDescriptor::CPPTYPE_ENUM:
         return GetRaw<int>(message, field) != 0;
       case FieldDescriptor::CPPTYPE_MESSAGE:
@@ -2524,19 +2542,19 @@ bool Reflection::HasBit(const Message& message,
 
 void Reflection::SetBit(Message* message, const FieldDescriptor* field) const {
   GOOGLE_DCHECK(!field->options().weak());
-  const uint32_t index = schema_.HasBitIndex(field);
-  if (index == static_cast<uint32_t>(-1)) return;
+  const arc_ui32 index = schema_.HasBitIndex(field);
+  if (index == static_cast<arc_ui32>(-1)) return;
   MutableHasBits(message)[index / 32] |=
-      (static_cast<uint32_t>(1) << (index % 32));
+      (static_cast<arc_ui32>(1) << (index % 32));
 }
 
 void Reflection::ClearBit(Message* message,
                           const FieldDescriptor* field) const {
   GOOGLE_DCHECK(!field->options().weak());
-  const uint32_t index = schema_.HasBitIndex(field);
-  if (index == static_cast<uint32_t>(-1)) return;
+  const arc_ui32 index = schema_.HasBitIndex(field);
+  if (index == static_cast<arc_ui32>(-1)) return;
   MutableHasBits(message)[index / 32] &=
-      ~(static_cast<uint32_t>(1) << (index % 32));
+      ~(static_cast<arc_ui32>(1) << (index % 32));
 }
 
 void Reflection::SwapBit(Message* message1, Message* message2,
@@ -2587,7 +2605,7 @@ void Reflection::ClearOneof(Message* message,
   // TODO(jieluo): Consider to cache the unused object instead of deleting
   // it. It will be much faster if an application switches a lot from
   // a few oneof fields.  Time/space tradeoff
-  uint32_t oneof_case = GetOneofCase(*message, oneof_descriptor);
+  arc_ui32 oneof_case = GetOneofCase(*message, oneof_descriptor);
   if (oneof_case > 0) {
     const FieldDescriptor* field = descriptor_->FindFieldByNumber(oneof_case);
     if (message->GetArenaForAllocation() == nullptr) {
@@ -2620,25 +2638,25 @@ void Reflection::ClearOneof(Message* message,
   }
 }
 
-#define HANDLE_TYPE(TYPE, CPPTYPE, CTYPE)                                \
-  template <>                                                            \
-  const RepeatedField<TYPE>& Reflection::GetRepeatedFieldInternal<TYPE>( \
-      const Message& message, const FieldDescriptor* field) const {      \
-    return *static_cast<RepeatedField<TYPE>*>(MutableRawRepeatedField(   \
-        const_cast<Message*>(&message), field, CPPTYPE, CTYPE, NULL));   \
-  }                                                                      \
-                                                                         \
-  template <>                                                            \
-  RepeatedField<TYPE>* Reflection::MutableRepeatedFieldInternal<TYPE>(   \
-      Message * message, const FieldDescriptor* field) const {           \
-    return static_cast<RepeatedField<TYPE>*>(                            \
-        MutableRawRepeatedField(message, field, CPPTYPE, CTYPE, NULL));  \
+#define HANDLE_TYPE(TYPE, CPPTYPE, CTYPE)                                  \
+  template <>                                                              \
+  const RepeatedField<TYPE>& Reflection::GetRepeatedFieldInternal<TYPE>(   \
+      const Message& message, const FieldDescriptor* field) const {        \
+    return *static_cast<RepeatedField<TYPE>*>(MutableRawRepeatedField(     \
+        const_cast<Message*>(&message), field, CPPTYPE, CTYPE, nullptr));  \
+  }                                                                        \
+                                                                           \
+  template <>                                                              \
+  RepeatedField<TYPE>* Reflection::MutableRepeatedFieldInternal<TYPE>(     \
+      Message * message, const FieldDescriptor* field) const {             \
+    return static_cast<RepeatedField<TYPE>*>(                              \
+        MutableRawRepeatedField(message, field, CPPTYPE, CTYPE, nullptr)); \
   }
 
-HANDLE_TYPE(int32_t, FieldDescriptor::CPPTYPE_INT32, -1);
-HANDLE_TYPE(int64, FieldDescriptor::CPPTYPE_INT64, -1);
-HANDLE_TYPE(uint32_t, FieldDescriptor::CPPTYPE_UINT32, -1);
-HANDLE_TYPE(uint64, FieldDescriptor::CPPTYPE_UINT64, -1);
+HANDLE_TYPE(arc_i32, FieldDescriptor::CPPTYPE_INT32, -1);
+HANDLE_TYPE(arc_i64, FieldDescriptor::CPPTYPE_INT64, -1);
+HANDLE_TYPE(arc_ui32, FieldDescriptor::CPPTYPE_UINT32, -1);
+HANDLE_TYPE(arc_ui64, FieldDescriptor::CPPTYPE_UINT64, -1);
 HANDLE_TYPE(float, FieldDescriptor::CPPTYPE_FLOAT, -1);
 HANDLE_TYPE(double, FieldDescriptor::CPPTYPE_DOUBLE, -1);
 HANDLE_TYPE(bool, FieldDescriptor::CPPTYPE_BOOL, -1);
@@ -2649,9 +2667,10 @@ HANDLE_TYPE(bool, FieldDescriptor::CPPTYPE_BOOL, -1);
 void* Reflection::MutableRawRepeatedString(Message* message,
                                            const FieldDescriptor* field,
                                            bool is_string) const {
+  (void)is_string;  // Parameter is used by Google-internal code.
   return MutableRawRepeatedField(message, field,
                                  FieldDescriptor::CPPTYPE_STRING,
-                                 FieldOptions::STRING, NULL);
+                                 FieldOptions::STRING, nullptr);
 }
 
 // Template implementations of basic accessors.  Inline because each
@@ -2740,7 +2759,7 @@ void* Reflection::RepeatedFieldData(Message* message,
          cpp_type == FieldDescriptor::CPPTYPE_INT32))
       << "The type parameter T in RepeatedFieldRef<T> API doesn't match "
       << "the actual field type (for enums T should be the generated enum "
-      << "type or int32_t).";
+      << "type or arc_i32).";
   if (message_type != nullptr) {
     GOOGLE_CHECK_EQ(message_type, field->message_type());
   }
@@ -2770,7 +2789,7 @@ namespace {
 
 // Helper function to transform migration schema into reflection schema.
 ReflectionSchema MigrationToReflectionSchema(
-    const Message* const* default_instance, const uint32_t* offsets,
+    const Message* const* default_instance, const arc_ui32* offsets,
     MigrationSchema migration_schema) {
   ReflectionSchema result;
   result.default_instance_ = *default_instance;
@@ -2800,7 +2819,7 @@ class AssignDescriptorsHelper {
                           const EnumDescriptor** file_level_enum_descriptors,
                           const MigrationSchema* schemas,
                           const Message* const* default_instance_data,
-                          const uint32_t* offsets)
+                          const arc_ui32* offsets)
       : factory_(factory),
         file_level_metadata_(file_level_metadata),
         file_level_enum_descriptors_(file_level_enum_descriptors),
@@ -2841,7 +2860,7 @@ class AssignDescriptorsHelper {
   const EnumDescriptor** file_level_enum_descriptors_;
   const MigrationSchema* schemas_;
   const Message* const* default_instance_data_;
-  const uint32_t* offsets_;
+  const arc_ui32* offsets_;
 };
 
 namespace {
@@ -3002,8 +3021,8 @@ void RegisterFileLevelMetadata(const DescriptorTable* table) {
   RegisterAllTypesInternal(table->file_level_metadata, table->num_messages);
 }
 
-void UnknownFieldSetSerializer(const uint8_t* base, uint32_t offset,
-                               uint32_t tag, uint32_t has_offset,
+void UnknownFieldSetSerializer(const uint8_t* base, arc_ui32 offset,
+                               arc_ui32 /*tag*/, arc_ui32 /*has_offset*/,
                                io::CodedOutputStream* output) {
   const void* ptr = base + offset;
   const InternalMetadata* metadata = static_cast<const InternalMetadata*>(ptr);

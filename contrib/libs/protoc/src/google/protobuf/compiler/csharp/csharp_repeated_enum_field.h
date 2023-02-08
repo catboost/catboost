@@ -76,4 +76,3 @@ class RepeatedEnumFieldGenerator : public FieldGeneratorBase {
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_REPEATED_ENUM_FIELD_H__
-

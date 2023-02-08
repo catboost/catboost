@@ -9,10 +9,10 @@
 #include "pipequeue.h"
 #include "utils.h"
 
-#include <contrib/libs/openssl/include/openssl/ssl.h>
-#include <contrib/libs/openssl/include/openssl/err.h>
-#include <contrib/libs/openssl/include/openssl/bio.h>
-#include <contrib/libs/openssl/include/openssl/x509v3.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
+#include <openssl/x509v3.h>
 
 #include <library/cpp/openssl/init/init.h>
 #include <library/cpp/openssl/method/io.h>

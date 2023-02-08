@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/lzma/liblzma/api;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/python/Include;'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/libs/python/Include;'$(SolutionDir)..'/contrib/libs/lzma/liblzma/api;'$(SolutionDir)..'/contrib/libs/openssl/include;'$(SolutionDir)..'/contrib/restricted/libffi/include;'$(SolutionDir)..'/contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,22 +78,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\1b03e097fa6efa7bdf22cac38c.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\3184ed449adcd66913e1a3fb5d.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\4b58203c56025d84522ca5deea.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\6c3afc6c00c223ce41c13d80bc.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\iniconfig\a639033c82729e88d9c38d2a24.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/1b03e097fa6efa7bdf22cac38c.cpp" "_ffcfb7d0fd9d0e1f588a92d047=py/namespace/ae98791e96abbaf94a0eb045e8b9047c/contrib/python/iniconfig"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/3184ed449adcd66913e1a3fb5d.cpp" "_8a6d34b83e162be4e06c5d6d60=resfs/src/resfs/file/py/iniconfig/__init__.py" "_e97b545d2f76423c42dd5e9a2d=resfs/file/py/iniconfig/__init__.py" "_a7c6f939a321ac445962486a20=resfs/src/resfs/file/py/iniconfig/__init__.py.yapyc3" "_975dc9c3e82ef7dfef266a1a20=resfs/file/py/iniconfig/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/4b58203c56025d84522ca5deea.cpp" "_e4d3d890b50e2286466b693970=resfs/src/resfs/file/contrib/python/iniconfig/.dist-info/METADATA" "_2888c6eba3a60d36d4f7ec6a67=resfs/file/contrib/python/iniconfig/.dist-info/METADATA" "_f4ecc9cb07f10d88cbe94807a3=resfs/src/resfs/file/contrib/python/iniconfig/.dist-info/top_level.txt" "_43c9e685ba51bfe7238e89bdb3=resfs/file/contrib/python/iniconfig/.dist-info/top_level.txt" "_515a5b53c592bd535fe74360dd=resfs/src/resfs/file/contrib/python/iniconfig/iniconfig/py.typed" "_1db33f03fc6f977c700b7a1557=resfs/file/contrib/python/iniconfig/iniconfig/py.typed"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/6c3afc6c00c223ce41c13d80bc.cpp" "_3a64a57ecc8a6967175692246a=py/namespace/5e4f76623797b91ad5b27a5994c174c5/contrib/python/iniconfig"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/a639033c82729e88d9c38d2a24.cpp" "_8a6d34b83e162be4e06c5d6d60=resfs/src/resfs/file/py/iniconfig/__init__.py" "_e97b545d2f76423c42dd5e9a2d=resfs/file/py/iniconfig/__init__.py" "_a7c6f939a321ac445962486a20=resfs/src/resfs/file/py/iniconfig/__init__.py.yapyc3" "_975dc9c3e82ef7dfef266a1a20=resfs/file/py/iniconfig/__init__.py.yapyc3" "_8e8906201b1f8e955a8f730ccc=resfs/src/resfs/file/py/iniconfig/_parse.py" "_9a4d43830c3a9477ca83fed33f=resfs/file/py/iniconfig/_parse.py" "_98628fb1ff8fa4cb87e6269e37=resfs/src/resfs/file/py/iniconfig/_parse.py.yapyc3" "_ed3254d9dd1aa5bab7e340dcc3=resfs/file/py/iniconfig/_parse.py.yapyc3" "_663e6eb8024f08ff274331a8cf=resfs/src/resfs/file/py/iniconfig/_version.py" "_90c6561cb8b3949d8a0b1bc988=resfs/file/py/iniconfig/_version.py" "_e3f8db91fe2868c5204dafe947=resfs/src/resfs/file/py/iniconfig/_version.py.yapyc3" "_1f93cd94a798afd91d47f632f1=resfs/file/py/iniconfig/_version.py.yapyc3" "_1f5bc570f8028bab3aca708e9b=resfs/src/resfs/file/py/iniconfig/exceptions.py" "_48f66cd1d5f343deb743365921=resfs/file/py/iniconfig/exceptions.py" "_92d5df94f489f5061d30c6144c=resfs/src/resfs/file/py/iniconfig/exceptions.py.yapyc3" "_13269f92f585d47039262327e3=resfs/file/py/iniconfig/exceptions.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,15 +104,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/1b03e097fa6efa7bdf22cac38c.cpp" "_ffcfb7d0fd9d0e1f588a92d047=py/namespace/ae98791e96abbaf94a0eb045e8b9047c/contrib/python/iniconfig"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/3184ed449adcd66913e1a3fb5d.cpp" "_8a6d34b83e162be4e06c5d6d60=resfs/src/resfs/file/py/iniconfig/__init__.py" "_e97b545d2f76423c42dd5e9a2d=resfs/file/py/iniconfig/__init__.py" "_a7c6f939a321ac445962486a20=resfs/src/resfs/file/py/iniconfig/__init__.py.yapyc3" "_975dc9c3e82ef7dfef266a1a20=resfs/file/py/iniconfig/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
-if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/4b58203c56025d84522ca5deea.cpp" "_e4d3d890b50e2286466b693970=resfs/src/resfs/file/contrib/python/iniconfig/.dist-info/METADATA" "_2888c6eba3a60d36d4f7ec6a67=resfs/file/contrib/python/iniconfig/.dist-info/METADATA" "_f4ecc9cb07f10d88cbe94807a3=resfs/src/resfs/file/contrib/python/iniconfig/.dist-info/top_level.txt" "_43c9e685ba51bfe7238e89bdb3=resfs/file/contrib/python/iniconfig/.dist-info/top_level.txt" "_515a5b53c592bd535fe74360dd=resfs/src/resfs/file/contrib/python/iniconfig/iniconfig/py.typed" "_1db33f03fc6f977c700b7a1557=resfs/file/contrib/python/iniconfig/iniconfig/py.typed"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/6c3afc6c00c223ce41c13d80bc.cpp" "_3a64a57ecc8a6967175692246a=py/namespace/5e4f76623797b91ad5b27a5994c174c5/contrib/python/iniconfig"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\iniconfig
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/iniconfig/a639033c82729e88d9c38d2a24.cpp" "_8a6d34b83e162be4e06c5d6d60=resfs/src/resfs/file/py/iniconfig/__init__.py" "_e97b545d2f76423c42dd5e9a2d=resfs/file/py/iniconfig/__init__.py" "_a7c6f939a321ac445962486a20=resfs/src/resfs/file/py/iniconfig/__init__.py.yapyc3" "_975dc9c3e82ef7dfef266a1a20=resfs/file/py/iniconfig/__init__.py.yapyc3" "_8e8906201b1f8e955a8f730ccc=resfs/src/resfs/file/py/iniconfig/_parse.py" "_9a4d43830c3a9477ca83fed33f=resfs/file/py/iniconfig/_parse.py" "_98628fb1ff8fa4cb87e6269e37=resfs/src/resfs/file/py/iniconfig/_parse.py.yapyc3" "_ed3254d9dd1aa5bab7e340dcc3=resfs/file/py/iniconfig/_parse.py.yapyc3" "_663e6eb8024f08ff274331a8cf=resfs/src/resfs/file/py/iniconfig/_version.py" "_90c6561cb8b3949d8a0b1bc988=resfs/file/py/iniconfig/_version.py" "_e3f8db91fe2868c5204dafe947=resfs/src/resfs/file/py/iniconfig/_version.py.yapyc3" "_1f93cd94a798afd91d47f632f1=resfs/file/py/iniconfig/_version.py.yapyc3" "_1f5bc570f8028bab3aca708e9b=resfs/src/resfs/file/py/iniconfig/exceptions.py" "_48f66cd1d5f343deb743365921=resfs/file/py/iniconfig/exceptions.py" "_92d5df94f489f5061d30c6144c=resfs/src/resfs/file/py/iniconfig/exceptions.py.yapyc3" "_13269f92f585d47039262327e3=resfs/file/py/iniconfig/exceptions.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,17 +120,14 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/iniconfig/1b03e097fa6efa7bdf22cac38c.cpp	$B/contrib/python/iniconfig/3184ed449adcd66913e1a3fb5d.cpp	$B/contrib/python/iniconfig/4b58203c56025d84522ca5deea.cpp	</Message>
+      <Message>$B/contrib/python/iniconfig/4b58203c56025d84522ca5deea.cpp	$B/contrib/python/iniconfig/6c3afc6c00c223ce41c13d80bc.cpp	$B/contrib/python/iniconfig/a639033c82729e88d9c38d2a24.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\1b03e097fa6efa7bdf22cac38c.cpp;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\3184ed449adcd66913e1a3fb5d.cpp;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\4b58203c56025d84522ca5deea.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\iniconfig\4b58203c56025d84522ca5deea.cpp;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\6c3afc6c00c223ce41c13d80bc.cpp;$(SolutionDir)$(Configuration)\contrib\python\iniconfig\a639033c82729e88d9c38d2a24.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

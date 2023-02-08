@@ -58,7 +58,7 @@ class PythonTrait(object):
                 '-B', self.out_root,
                 '-G', '"Unix Makefiles"',
                 '-DCMAKE_BUILD_TYPE=Release',
-                '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(self.arc_root, 'catboost', 'clang.toolchain'),
+                '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(self.arc_root, 'catboost', 'build', 'toolchains', 'clang.toolchain'),
                 '-DCMAKE_POSITION_INDEPENDENT_CODE=On'
             ] + self.tail_args + [
                 '&&'

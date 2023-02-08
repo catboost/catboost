@@ -1,8 +1,0 @@
-{
-    "name": "pnpm",
-    "version": "6.34.0",
-    "description": "pnpm module",
-    "dependencies": {
-        "pnpm": "6.34.0"
-    }
-}

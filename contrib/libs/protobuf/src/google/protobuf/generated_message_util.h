@@ -132,28 +132,28 @@ bool AllAreInitializedWeak(const RepeatedPtrField<T>& t) {
   return true;
 }
 
-inline bool IsPresent(const void* base, uint32_t hasbit) {
-  const uint32_t* has_bits_array = static_cast<const uint32_t*>(base);
+inline bool IsPresent(const void* base, arc_ui32 hasbit) {
+  const arc_ui32* has_bits_array = static_cast<const arc_ui32*>(base);
   return (has_bits_array[hasbit / 32] & (1u << (hasbit & 31))) != 0;
 }
 
-inline bool IsOneofPresent(const void* base, uint32_t offset, uint32_t tag) {
-  const uint32_t* oneof = reinterpret_cast<const uint32_t*>(
+inline bool IsOneofPresent(const void* base, arc_ui32 offset, arc_ui32 tag) {
+  const arc_ui32* oneof = reinterpret_cast<const arc_ui32*>(
       static_cast<const uint8_t*>(base) + offset);
   return *oneof == tag >> 3;
 }
 
-typedef void (*SpecialSerializer)(const uint8_t* base, uint32_t offset,
-                                  uint32_t tag, uint32_t has_offset,
+typedef void (*SpecialSerializer)(const uint8_t* base, arc_ui32 offset,
+                                  arc_ui32 tag, arc_ui32 has_offset,
                                   io::CodedOutputStream* output);
 
 PROTOBUF_EXPORT void ExtensionSerializer(const MessageLite* extendee,
-                                         const uint8_t* ptr, uint32_t offset,
-                                         uint32_t tag, uint32_t has_offset,
+                                         const uint8_t* ptr, arc_ui32 offset,
+                                         arc_ui32 tag, arc_ui32 has_offset,
                                          io::CodedOutputStream* output);
 PROTOBUF_EXPORT void UnknownFieldSerializerLite(const uint8_t* base,
-                                                uint32_t offset, uint32_t tag,
-                                                uint32_t has_offset,
+                                                arc_ui32 offset, arc_ui32 tag,
+                                                arc_ui32 has_offset,
                                                 io::CodedOutputStream* output);
 
 PROTOBUF_EXPORT MessageLite* DuplicateIfNonNullInternal(MessageLite* message);

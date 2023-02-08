@@ -751,8 +751,7 @@ PyObject *__Pyx_Coroutine_SendEx(__pyx_CoroutineObject *self, PyObject *value, i
 #endif
 
     self->is_running = 1;
-    PyObject* s = (PyObject *)(self);
-    retval = self->body(s, tstate, value);
+    retval = self->body((PyObject *) self, tstate, value);
     self->is_running = 0;
 
 #if CYTHON_USE_EXC_INFO_STACK

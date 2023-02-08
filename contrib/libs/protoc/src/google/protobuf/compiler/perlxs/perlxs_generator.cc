@@ -165,7 +165,7 @@ PerlXSGenerator::GenerateMessageXS(const Descriptor* descriptor,
 		"\n"
 		"  int64_t ByteCount() const\n"
 		"  {\n"
-		"    return (int64_t)SvCUR(sv_);\n"
+		"    return (arc_i64)SvCUR(sv_);\n"
 		"  }\n"
 		"\n"
 		"private:\n"
@@ -1896,14 +1896,14 @@ PerlXSGenerator::FieldFromHashrefHelper(io::Printer& printer,
     break;
   case FieldDescriptor::CPPTYPE_INT64:
     printer.Print(vars,
-		  "int64_t iv$pdepth$ = "
+		  "arc_i64 iv$pdepth$ = "
 		  "strtoll(SvPV_nolen($var$), NULL, 0);\n"
 		  "\n"
 		  "$msg$->$do$_$cppname$(iv$pdepth$);\n");
     break;
   case FieldDescriptor::CPPTYPE_UINT64:
     printer.Print(vars,
-		  "uint64_t uv$pdepth$ = "
+		  "arc_ui64 uv$pdepth$ = "
 		  "strtoull(SvPV_nolen($var$), NULL, 0);\n"
 		  "\n"
 		  "$msg$->$do$_$cppname$(uv$pdepth$);\n");

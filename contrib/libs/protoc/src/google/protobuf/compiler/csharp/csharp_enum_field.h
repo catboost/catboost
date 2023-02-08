@@ -80,4 +80,3 @@ class EnumOneofFieldGenerator : public PrimitiveOneofFieldGenerator {
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_ENUM_FIELD_H__
-

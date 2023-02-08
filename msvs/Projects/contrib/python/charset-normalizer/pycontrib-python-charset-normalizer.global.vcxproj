@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{625D45A5-7FE2-D98E-B3C8-593A0530E22C}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>pycontrib-python-charset-normalizer.global</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>pycontrib-python-charset-normalizer.global</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\625D45A5-7FE2-D98E-B3C8-593A0530E22C\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/python/Include;'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/libs/python/Include;'$(SolutionDir)..'/contrib/libs/lzma/liblzma/api;'$(SolutionDir)..'/contrib/libs/openssl/include;'$(SolutionDir)..'/contrib/restricted/libffi/include;'$(SolutionDir)..'/contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\9044ad0b518593093ac19b1bc9.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\c663d508efec986d9f87f14a69.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\join_02825ef74a1c307cd05aec4106.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\constant.py.fmi6.yapyc3">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/constant.py.fmi6.yapyc3" "_8cb1c660eb9e36eaf117ffdd42.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/constant.py.fmi6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_1863cd07af398ac2c5246192be.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/legacy.py" "_72a5b3cf2a492baa764ce42f38.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/legacy.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_eb4ac52ee59217821c3cf008d1.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/legacy.py.im2z.yapyc3" "_52441d26ed8a46f92c0e8bf0cb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/legacy.py.im2z.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_e1436c79f395b8375fc9391cfc.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/md.py" "_87b0e979fe7beeed7aaf2edd49.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/md.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ca9e480458fba196a9e382d01d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/md.py.wzfe.yapyc3" "_818fcd4a138d5d524a1bfecab2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/md.py.wzfe.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_b609f02accb562b07e72eab5a5.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/models.py" "_84e3027882b3a66ca6d482e856.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/models.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_a7e93bb99b34815dab8961eccb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/models.py.deej.yapyc3" "_97dd932ee7d7939afb632e456d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/models.py.deej.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_fc67c493270f86956ddf2d4072.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/utils.py" "_9948c033c06967ae066fb1fea7.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_011b4115f715c55a8972609721.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/utils.py.zupf.yapyc3" "_f0650879c6d6e006bed3fc1c13.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/utils.py.zupf.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_b9e0d02a8caf8b36ac99b2ba1a.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/version.py" "_da17cfd80d69079010e4e3617e.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/version.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ea284bced21d2924c4223e421f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/version.py.2jjw.yapyc3" "_57b487a6b9c5f0dd674f71fff1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/version.py.2jjw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_5473bb9fb54ef4b341fee44bce.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/constant.py.fmi6.yapyc3" "_8cb1c660eb9e36eaf117ffdd42.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/constant.py.fmi6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_1863cd07af398ac2c5246192be.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/legacy.py" "_72a5b3cf2a492baa764ce42f38.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/legacy.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_eb4ac52ee59217821c3cf008d1.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/legacy.py.im2z.yapyc3" "_52441d26ed8a46f92c0e8bf0cb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/legacy.py.im2z.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_e1436c79f395b8375fc9391cfc.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/md.py" "_87b0e979fe7beeed7aaf2edd49.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/md.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ca9e480458fba196a9e382d01d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/md.py.wzfe.yapyc3" "_818fcd4a138d5d524a1bfecab2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/md.py.wzfe.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_b609f02accb562b07e72eab5a5.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/models.py" "_84e3027882b3a66ca6d482e856.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/models.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_a7e93bb99b34815dab8961eccb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/models.py.deej.yapyc3" "_97dd932ee7d7939afb632e456d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/models.py.deej.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_fc67c493270f86956ddf2d4072.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/utils.py" "_9948c033c06967ae066fb1fea7.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_011b4115f715c55a8972609721.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/utils.py.zupf.yapyc3" "_f0650879c6d6e006bed3fc1c13.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/utils.py.zupf.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_b9e0d02a8caf8b36ac99b2ba1a.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/version.py" "_da17cfd80d69079010e4e3617e.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/version.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ea284bced21d2924c4223e421f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/version.py.2jjw.yapyc3" "_57b487a6b9c5f0dd674f71fff1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/version.py.2jjw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_5473bb9fb54ef4b341fee44bce.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\constant.py.fmi6.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\legacy.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\legacy.py.im2z.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\md.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\md.py.wzfe.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\models.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\models.py.deej.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\utils.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\utils.py.zupf.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\version.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\version.py.2jjw.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_ce0c2aeb245f10d99c4cc1144e.yasm;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_1863cd07af398ac2c5246192be.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_eb4ac52ee59217821c3cf008d1.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_e1436c79f395b8375fc9391cfc.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_ca9e480458fba196a9e382d01d.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_b609f02accb562b07e72eab5a5.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_a7e93bb99b34815dab8961eccb.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_fc67c493270f86956ddf2d4072.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_011b4115f715c55a8972609721.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_b9e0d02a8caf8b36ac99b2ba1a.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_ea284bced21d2924c4223e421f.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_5473bb9fb54ef4b341fee44bce.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\join_75a07afaecd536463ad82445b2.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.obj" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.obj" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\join_75a07afaecd536463ad82445b2.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\join_75a07afaecd536463ad82445b2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/07eb946dc0c625b237b3d98d2b.cpp" "_de69b652ce9462069708f2ca4a=resfs/src/resfs/file/py/charset_normalizer/__init__.py" "_9bebf9870cb30697d34c22acf0=resfs/file/py/charset_normalizer/__init__.py" "_a3bf4a88932580b764e1b031c1=resfs/src/resfs/file/py/charset_normalizer/__init__.py.yapyc3" "_bfc7794df7cdcbf824e6aebf2d=resfs/file/py/charset_normalizer/__init__.py.yapyc3" "_55cfc86760d4248cdaa1a4485d=resfs/src/resfs/file/py/charset_normalizer/api.py" "_e066ca380ad8b64383a1efe208=resfs/file/py/charset_normalizer/api.py" "_18994eb8dbec4a64bbd76a1efe=resfs/src/resfs/file/py/charset_normalizer/api.py.yapyc3" "_c2a6c2df2e6ede69f5c7b11666=resfs/file/py/charset_normalizer/api.py.yapyc3" "_7663d29c23006b32ba897d8dce=resfs/src/resfs/file/py/charset_normalizer/assets/__init__.py" "_b97d3d9ccb845c2e986e6aff02=resfs/file/py/charset_normalizer/assets/__init__.py" "_4fac14bfb259b8fda2bba0e156=resfs/src/resfs/file/py/charset_normalizer/assets/__init__.py.yapyc3" "_0486e303d6747373cb7837572b=resfs/file/py/charset_normalizer/assets/__init__.py.yapyc3" "_3db040dbfcadcd531eaae02c41=resfs/src/resfs/file/py/charset_normalizer/cd.py" "_ae920cb40a43e8435e8dd3a7e9=resfs/file/py/charset_normalizer/cd.py" "_8cf0c5a3ad04e9556072017aed=resfs/src/resfs/file/py/charset_normalizer/cd.py.yapyc3" "_1c596183dca7f8a373b8114e17=resfs/file/py/charset_normalizer/cd.py.yapyc3" "_1cff6b260521a91d2644b1b604=resfs/src/resfs/file/py/charset_normalizer/cli/__init__.py" "_e25927d67a8a02fd48faf02275=resfs/file/py/charset_normalizer/cli/__init__.py" "_5169adfa3cd67769f4354732ee=resfs/src/resfs/file/py/charset_normalizer/cli/__init__.py.yapyc3" "_44a21b6ed6a2cb92e5365a4968=resfs/file/py/charset_normalizer/cli/__init__.py.yapyc3" "_842f944d2f6a02ccaecddd9575=resfs/src/resfs/file/py/charset_normalizer/cli/normalizer.py" "_f67abe89f1b3e07fc7267f4d5d=resfs/file/py/charset_normalizer/cli/normalizer.py" "_f87d593a67eac9c7cf08556839=resfs/src/resfs/file/py/charset_normalizer/cli/normalizer.py.yapyc3" "_02d2ac62ec834a1a69f465200e=resfs/file/py/charset_normalizer/cli/normalizer.py.yapyc3" "_d7e6f03cd2900e24802f6d2fe4=resfs/src/resfs/file/py/charset_normalizer/constant.py" "_4e63cbf3a310392863dfb7c99c=resfs/file/py/charset_normalizer/constant.py"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/9044ad0b518593093ac19b1bc9.cpp" "_68727a4722af8d43cd4ff80d3e=resfs/src/resfs/file/contrib/python/charset-normalizer/.dist-info/METADATA" "_1a8a90ab03e493b519b4b6c171=resfs/file/contrib/python/charset-normalizer/.dist-info/METADATA" "_a255f5446101fef6097b9f5c30=resfs/src/resfs/file/contrib/python/charset-normalizer/.dist-info/entry_points.txt" "_eb2acd765204d12b604d4fae17=resfs/file/contrib/python/charset-normalizer/.dist-info/entry_points.txt" "_7158db8270e8aa62e9b1a48b73=resfs/src/resfs/file/contrib/python/charset-normalizer/.dist-info/top_level.txt" "_5ce8c75af07ff555dce6b969de=resfs/file/contrib/python/charset-normalizer/.dist-info/top_level.txt" "_3b191141715146aa20cb2cb7fa=resfs/src/resfs/file/contrib/python/charset-normalizer/charset_normalizer/py.typed" "_e9e136ecf9963882a29a14ded2=resfs/file/contrib/python/charset-normalizer/charset_normalizer/py.typed"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/c663d508efec986d9f87f14a69.cpp" "_58081814efccedb1abcb95a37a=py/namespace/2bea429bc6c478a1bfb02803fd324665/contrib/python/charset-normalizer"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/ce0c2aeb245f10d99c4cc1144e.cpp" "_8cb1c660eb9e36eaf117ffdd42=resfs/src/resfs/file/py/charset_normalizer/constant.py.yapyc3" "_1863cd07af398ac2c5246192be=resfs/file/py/charset_normalizer/constant.py.yapyc3" "_72a5b3cf2a492baa764ce42f38=resfs/src/resfs/file/py/charset_normalizer/legacy.py" "_eb4ac52ee59217821c3cf008d1=resfs/file/py/charset_normalizer/legacy.py" "_52441d26ed8a46f92c0e8bf0cb=resfs/src/resfs/file/py/charset_normalizer/legacy.py.yapyc3" "_e1436c79f395b8375fc9391cfc=resfs/file/py/charset_normalizer/legacy.py.yapyc3" "_87b0e979fe7beeed7aaf2edd49=resfs/src/resfs/file/py/charset_normalizer/md.py" "_ca9e480458fba196a9e382d01d=resfs/file/py/charset_normalizer/md.py" "_818fcd4a138d5d524a1bfecab2=resfs/src/resfs/file/py/charset_normalizer/md.py.yapyc3" "_b609f02accb562b07e72eab5a5=resfs/file/py/charset_normalizer/md.py.yapyc3" "_84e3027882b3a66ca6d482e856=resfs/src/resfs/file/py/charset_normalizer/models.py" "_a7e93bb99b34815dab8961eccb=resfs/file/py/charset_normalizer/models.py" "_97dd932ee7d7939afb632e456d=resfs/src/resfs/file/py/charset_normalizer/models.py.yapyc3" "_fc67c493270f86956ddf2d4072=resfs/file/py/charset_normalizer/models.py.yapyc3" "_9948c033c06967ae066fb1fea7=resfs/src/resfs/file/py/charset_normalizer/utils.py" "_011b4115f715c55a8972609721=resfs/file/py/charset_normalizer/utils.py" "_f0650879c6d6e006bed3fc1c13=resfs/src/resfs/file/py/charset_normalizer/utils.py.yapyc3" "_b9e0d02a8caf8b36ac99b2ba1a=resfs/file/py/charset_normalizer/utils.py.yapyc3" "_da17cfd80d69079010e4e3617e=resfs/src/resfs/file/py/charset_normalizer/version.py" "_ea284bced21d2924c4223e421f=resfs/file/py/charset_normalizer/version.py" "_57b487a6b9c5f0dd674f71fff1=resfs/src/resfs/file/py/charset_normalizer/version.py.yapyc3" "_5473bb9fb54ef4b341fee44bce=resfs/file/py/charset_normalizer/version.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/07eb946dc0c625b237b3d98d2b.cpp" "_de69b652ce9462069708f2ca4a=resfs/src/resfs/file/py/charset_normalizer/__init__.py" "_9bebf9870cb30697d34c22acf0=resfs/file/py/charset_normalizer/__init__.py" "_a3bf4a88932580b764e1b031c1=resfs/src/resfs/file/py/charset_normalizer/__init__.py.yapyc3" "_bfc7794df7cdcbf824e6aebf2d=resfs/file/py/charset_normalizer/__init__.py.yapyc3" "_55cfc86760d4248cdaa1a4485d=resfs/src/resfs/file/py/charset_normalizer/api.py" "_e066ca380ad8b64383a1efe208=resfs/file/py/charset_normalizer/api.py" "_18994eb8dbec4a64bbd76a1efe=resfs/src/resfs/file/py/charset_normalizer/api.py.yapyc3" "_c2a6c2df2e6ede69f5c7b11666=resfs/file/py/charset_normalizer/api.py.yapyc3" "_7663d29c23006b32ba897d8dce=resfs/src/resfs/file/py/charset_normalizer/assets/__init__.py" "_b97d3d9ccb845c2e986e6aff02=resfs/file/py/charset_normalizer/assets/__init__.py" "_4fac14bfb259b8fda2bba0e156=resfs/src/resfs/file/py/charset_normalizer/assets/__init__.py.yapyc3" "_0486e303d6747373cb7837572b=resfs/file/py/charset_normalizer/assets/__init__.py.yapyc3" "_3db040dbfcadcd531eaae02c41=resfs/src/resfs/file/py/charset_normalizer/cd.py" "_ae920cb40a43e8435e8dd3a7e9=resfs/file/py/charset_normalizer/cd.py" "_8cf0c5a3ad04e9556072017aed=resfs/src/resfs/file/py/charset_normalizer/cd.py.yapyc3" "_1c596183dca7f8a373b8114e17=resfs/file/py/charset_normalizer/cd.py.yapyc3" "_1cff6b260521a91d2644b1b604=resfs/src/resfs/file/py/charset_normalizer/cli/__init__.py" "_e25927d67a8a02fd48faf02275=resfs/file/py/charset_normalizer/cli/__init__.py" "_5169adfa3cd67769f4354732ee=resfs/src/resfs/file/py/charset_normalizer/cli/__init__.py.yapyc3" "_44a21b6ed6a2cb92e5365a4968=resfs/file/py/charset_normalizer/cli/__init__.py.yapyc3" "_842f944d2f6a02ccaecddd9575=resfs/src/resfs/file/py/charset_normalizer/cli/normalizer.py" "_f67abe89f1b3e07fc7267f4d5d=resfs/file/py/charset_normalizer/cli/normalizer.py" "_f87d593a67eac9c7cf08556839=resfs/src/resfs/file/py/charset_normalizer/cli/normalizer.py.yapyc3" "_02d2ac62ec834a1a69f465200e=resfs/file/py/charset_normalizer/cli/normalizer.py.yapyc3" "_d7e6f03cd2900e24802f6d2fe4=resfs/src/resfs/file/py/charset_normalizer/constant.py" "_4e63cbf3a310392863dfb7c99c=resfs/file/py/charset_normalizer/constant.py"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/9044ad0b518593093ac19b1bc9.cpp" "_68727a4722af8d43cd4ff80d3e=resfs/src/resfs/file/contrib/python/charset-normalizer/.dist-info/METADATA" "_1a8a90ab03e493b519b4b6c171=resfs/file/contrib/python/charset-normalizer/.dist-info/METADATA" "_a255f5446101fef6097b9f5c30=resfs/src/resfs/file/contrib/python/charset-normalizer/.dist-info/entry_points.txt" "_eb2acd765204d12b604d4fae17=resfs/file/contrib/python/charset-normalizer/.dist-info/entry_points.txt" "_7158db8270e8aa62e9b1a48b73=resfs/src/resfs/file/contrib/python/charset-normalizer/.dist-info/top_level.txt" "_5ce8c75af07ff555dce6b969de=resfs/file/contrib/python/charset-normalizer/.dist-info/top_level.txt" "_3b191141715146aa20cb2cb7fa=resfs/src/resfs/file/contrib/python/charset-normalizer/charset_normalizer/py.typed" "_e9e136ecf9963882a29a14ded2=resfs/file/contrib/python/charset-normalizer/charset_normalizer/py.typed"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/c663d508efec986d9f87f14a69.cpp" "_58081814efccedb1abcb95a37a=py/namespace/2bea429bc6c478a1bfb02803fd324665/contrib/python/charset-normalizer"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/ce0c2aeb245f10d99c4cc1144e.cpp" "_8cb1c660eb9e36eaf117ffdd42=resfs/src/resfs/file/py/charset_normalizer/constant.py.yapyc3" "_1863cd07af398ac2c5246192be=resfs/file/py/charset_normalizer/constant.py.yapyc3" "_72a5b3cf2a492baa764ce42f38=resfs/src/resfs/file/py/charset_normalizer/legacy.py" "_eb4ac52ee59217821c3cf008d1=resfs/file/py/charset_normalizer/legacy.py" "_52441d26ed8a46f92c0e8bf0cb=resfs/src/resfs/file/py/charset_normalizer/legacy.py.yapyc3" "_e1436c79f395b8375fc9391cfc=resfs/file/py/charset_normalizer/legacy.py.yapyc3" "_87b0e979fe7beeed7aaf2edd49=resfs/src/resfs/file/py/charset_normalizer/md.py" "_ca9e480458fba196a9e382d01d=resfs/file/py/charset_normalizer/md.py" "_818fcd4a138d5d524a1bfecab2=resfs/src/resfs/file/py/charset_normalizer/md.py.yapyc3" "_b609f02accb562b07e72eab5a5=resfs/file/py/charset_normalizer/md.py.yapyc3" "_84e3027882b3a66ca6d482e856=resfs/src/resfs/file/py/charset_normalizer/models.py" "_a7e93bb99b34815dab8961eccb=resfs/file/py/charset_normalizer/models.py" "_97dd932ee7d7939afb632e456d=resfs/src/resfs/file/py/charset_normalizer/models.py.yapyc3" "_fc67c493270f86956ddf2d4072=resfs/file/py/charset_normalizer/models.py.yapyc3" "_9948c033c06967ae066fb1fea7=resfs/src/resfs/file/py/charset_normalizer/utils.py" "_011b4115f715c55a8972609721=resfs/file/py/charset_normalizer/utils.py" "_f0650879c6d6e006bed3fc1c13=resfs/src/resfs/file/py/charset_normalizer/utils.py.yapyc3" "_b9e0d02a8caf8b36ac99b2ba1a=resfs/file/py/charset_normalizer/utils.py.yapyc3" "_da17cfd80d69079010e4e3617e=resfs/src/resfs/file/py/charset_normalizer/version.py" "_ea284bced21d2924c4223e421f=resfs/file/py/charset_normalizer/version.py" "_57b487a6b9c5f0dd674f71fff1=resfs/src/resfs/file/py/charset_normalizer/version.py.yapyc3" "_5473bb9fb54ef4b341fee44bce=resfs/file/py/charset_normalizer/version.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/charset-normalizer/07eb946dc0c625b237b3d98d2b.cpp	$B/contrib/python/charset-normalizer/9044ad0b518593093ac19b1bc9.cpp	$B/contrib/python/charset-normalizer/c663d508efec986d9f87f14a69.cpp	$B/contrib/python/charset-normalizer/ce0c2aeb245f10d99c4cc1144e.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\07eb946dc0c625b237b3d98d2b.cpp;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\9044ad0b518593093ac19b1bc9.cpp;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\c663d508efec986d9f87f14a69.cpp;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\ce0c2aeb245f10d99c4cc1144e.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="'$(SolutionDir)..'\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm" "--ya-end-command-file"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm" "--ya-end-command-file"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm	</Message>
+      <AdditionalInputs>'$(SolutionDir)..'\build\scripts\fs_tools.py;'$(SolutionDir)..'\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_07eb946dc0c625b237b3d98d2b.yasm;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_ce0c2aeb245f10d99c4cc1144e.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\join_75a07afaecd536463ad82445b2.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="'$(SolutionDir)..'\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+python3.exe "$(SolutionDir).." "/build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_02825ef74a1c307cd05aec4106.cpp" "--ya-start-command-file" "contrib/python/charset-normalizer/07eb946dc0c625b237b3d98d2b.cpp" "contrib/python/charset-normalizer/ce0c2aeb245f10d99c4cc1144e.cpp" "--ya-end-command-file"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+python3.exe "$(SolutionDir).." "/build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_02825ef74a1c307cd05aec4106.cpp" "--ya-start-command-file" "contrib/python/charset-normalizer/07eb946dc0c625b237b3d98d2b.cpp" "contrib/python/charset-normalizer/ce0c2aeb245f10d99c4cc1144e.cpp" "--ya-end-command-file"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/charset-normalizer/join_02825ef74a1c307cd05aec4106.cpp	</Message>
+      <AdditionalInputs>'$(SolutionDir)..'\build\scripts\gen_join_srcs.py;'$(SolutionDir)..'\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\07eb946dc0c625b237b3d98d2b.cpp;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\ce0c2aeb245f10d99c4cc1144e.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\join_02825ef74a1c307cd05aec4106.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm" "-" "contrib/python/charset-normalizer/charset_normalizer/__init__.py" "_de69b652ce9462069708f2ca4a.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_9bebf9870cb30697d34c22acf0.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/__init__.py.nbzn.yapyc3" "_a3bf4a88932580b764e1b031c1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/__init__.py.nbzn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_bfc7794df7cdcbf824e6aebf2d.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/api.py" "_55cfc86760d4248cdaa1a4485d.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/api.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_e066ca380ad8b64383a1efe208.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/api.py.rfuv.yapyc3" "_18994eb8dbec4a64bbd76a1efe.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/api.py.rfuv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_c2a6c2df2e6ede69f5c7b11666.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/assets/__init__.py" "_7663d29c23006b32ba897d8dce.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/assets/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_b97d3d9ccb845c2e986e6aff02.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/assets/__init__.py.f57m.yapyc3" "_4fac14bfb259b8fda2bba0e156.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/assets/__init__.py.f57m.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_0486e303d6747373cb7837572b.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/cd.py" "_3db040dbfcadcd531eaae02c41.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/cd.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ae920cb40a43e8435e8dd3a7e9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cd.py.pipb.yapyc3" "_8cf0c5a3ad04e9556072017aed.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cd.py.pipb.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_1c596183dca7f8a373b8114e17.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/cli/__init__.py" "_1cff6b260521a91d2644b1b604.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/cli/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_e25927d67a8a02fd48faf02275.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cli/__init__.py.bn6i.yapyc3" "_5169adfa3cd67769f4354732ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cli/__init__.py.bn6i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_44a21b6ed6a2cb92e5365a4968.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/cli/normalizer.py" "_842f944d2f6a02ccaecddd9575.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/cli/normalizer.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_f67abe89f1b3e07fc7267f4d5d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cli/normalizer.py.atf7.yapyc3" "_f87d593a67eac9c7cf08556839.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cli/normalizer.py.atf7.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_02d2ac62ec834a1a69f465200e.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/constant.py" "_d7e6f03cd2900e24802f6d2fe4.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/constant.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_4e63cbf3a310392863dfb7c99c.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm" "-" "contrib/python/charset-normalizer/charset_normalizer/__init__.py" "_de69b652ce9462069708f2ca4a.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_9bebf9870cb30697d34c22acf0.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/__init__.py.nbzn.yapyc3" "_a3bf4a88932580b764e1b031c1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/__init__.py.nbzn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_bfc7794df7cdcbf824e6aebf2d.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/api.py" "_55cfc86760d4248cdaa1a4485d.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/api.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_e066ca380ad8b64383a1efe208.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/api.py.rfuv.yapyc3" "_18994eb8dbec4a64bbd76a1efe.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/api.py.rfuv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_c2a6c2df2e6ede69f5c7b11666.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/assets/__init__.py" "_7663d29c23006b32ba897d8dce.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/assets/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_b97d3d9ccb845c2e986e6aff02.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/assets/__init__.py.f57m.yapyc3" "_4fac14bfb259b8fda2bba0e156.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/assets/__init__.py.f57m.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_0486e303d6747373cb7837572b.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/cd.py" "_3db040dbfcadcd531eaae02c41.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/cd.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ae920cb40a43e8435e8dd3a7e9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cd.py.pipb.yapyc3" "_8cf0c5a3ad04e9556072017aed.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cd.py.pipb.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_1c596183dca7f8a373b8114e17.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/cli/__init__.py" "_1cff6b260521a91d2644b1b604.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/cli/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_e25927d67a8a02fd48faf02275.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cli/__init__.py.bn6i.yapyc3" "_5169adfa3cd67769f4354732ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cli/__init__.py.bn6i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_44a21b6ed6a2cb92e5365a4968.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/cli/normalizer.py" "_842f944d2f6a02ccaecddd9575.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/cli/normalizer.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_f67abe89f1b3e07fc7267f4d5d.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cli/normalizer.py.atf7.yapyc3" "_f87d593a67eac9c7cf08556839.rodata" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/charset_normalizer/cli/normalizer.py.atf7.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_02d2ac62ec834a1a69f465200e.rodata" "-" "contrib/python/charset-normalizer/charset_normalizer/constant.py" "_d7e6f03cd2900e24802f6d2fe4.rodata" "$(SolutionDir).." "/contrib/python/charset-normalizer/charset_normalizer/constant.py" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_4e63cbf3a310392863dfb7c99c.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm	</Message>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\__init__.py.nbzn.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\api.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\api.py.rfuv.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\assets\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\assets\__init__.py.f57m.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\cd.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\cd.py.pipb.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\cli\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\cli\__init__.py.bn6i.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\cli\normalizer.py;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\charset_normalizer\cli\normalizer.py.atf7.yapyc3;'$(SolutionDir)..'\contrib\python\charset-normalizer\charset_normalizer\constant.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_07eb946dc0c625b237b3d98d2b.yasm;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_9bebf9870cb30697d34c22acf0.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_bfc7794df7cdcbf824e6aebf2d.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_e066ca380ad8b64383a1efe208.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_c2a6c2df2e6ede69f5c7b11666.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_b97d3d9ccb845c2e986e6aff02.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_0486e303d6747373cb7837572b.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_ae920cb40a43e8435e8dd3a7e9.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_1c596183dca7f8a373b8114e17.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_e25927d67a8a02fd48faf02275.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_44a21b6ed6a2cb92e5365a4968.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_f67abe89f1b3e07fc7267f4d5d.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_02d2ac62ec834a1a69f465200e.rodata;$(SolutionDir)$(Configuration)\contrib\python\charset-normalizer\_4e63cbf3a310392863dfb7c99c.rodata;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
+      <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
+      <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzma\contrib-libs-lzma.vcxproj">
+      <Project>{67104716-36C7-D4F8-BC46-5B33214C649D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
+      <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\py3libs-python-Include.vcxproj">
+      <Project>{979D0A38-9505-F3B3-16F9-58B713DAE389}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\py3contrib-libs-python.vcxproj">
+      <Project>{5B790388-FDEE-2F70-2F9B-EDB49D07DACF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
+      <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
+      <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
+      <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\py\pypython3-lib-py.vcxproj">
+      <Project>{29D11B36-E190-930C-F04D-08E664A940A9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\tools-python3-lib.vcxproj">
+      <Project>{CD9FC9E1-E55E-F0DF-E06C-5DF7C166141B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
+      <Project>{480F44FB-05D5-35A4-D564-704F9C2920B7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
+      <Project>{1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\python3-src-Modules.vcxproj">
+      <Project>{D9DA0254-41B3-1659-443E-58F351ADA4FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\tools-python3-src.vcxproj">
+      <Project>{3853084F-52D5-B05E-2706-65BD06611610}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
+      <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\core\cpp-blockcodecs-core.vcxproj">
+      <Project>{61E795C2-BF87-52A4-C82D-38B38AA63595}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
+      <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
+      <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\py3python-symbols-module.vcxproj">
+      <Project>{D01E799B-0965-1C31-0C5E-2F984B04A0B2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\python\python-symbols-python.vcxproj">
+      <Project>{652F51EE-85DE-3688-41FA-4C2CDAC4C75A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

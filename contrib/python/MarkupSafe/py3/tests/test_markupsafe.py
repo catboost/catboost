@@ -75,6 +75,8 @@ def test_escaping(escape):
             "<em>Foo &amp; Bar"
             "<!-- inner comment about <em> -->"
             "</em>"
+            "<!-- comment\nwith\nnewlines\n-->"
+            "<meta content='tag\nwith\nnewlines'>"
         ).striptags()
         == "Foo & Bar"
     )

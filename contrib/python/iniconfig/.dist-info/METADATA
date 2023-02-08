@@ -1,27 +1,28 @@
 Metadata-Version: 2.1
 Name: iniconfig
-Version: 1.1.1
-Summary: iniconfig: brain-dead simple config-ini parsing
-Home-page: http://github.com/RonnyPfannschmidt/iniconfig
-Author: Ronny Pfannschmidt, Holger Krekel
-Author-email: opensource@ronnypfannschmidt.de, holger.krekel@gmail.com
-License: MIT License
-Platform: unix
-Platform: linux
-Platform: osx
-Platform: cygwin
-Platform: win32
+Version: 2.0.0
+Summary: brain-dead simple config-ini parsing
+Project-URL: Homepage, https://github.com/pytest-dev/iniconfig
+Author-email: Ronny Pfannschmidt <opensource@ronnypfannschmidt.de>, Holger Krekel <holger.krekel@gmail.com>
+License-Expression: MIT
+License-File: LICENSE
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
-Classifier: Operating System :: POSIX
-Classifier: Operating System :: Microsoft :: Windows
 Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Utilities
-Classifier: Programming Language :: Python
-Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.7
+Description-Content-Type: text/x-rst
 
 iniconfig: brain-dead simple parsing of ini files
 =======================================================
@@ -29,7 +30,6 @@ iniconfig: brain-dead simple parsing of ini files
 iniconfig is a small and simple INI-file parser module
 having a unique set of features:
 
-* tested against Python2.4 across to Python3.2, Jython, PyPy
 * maintains order of sections and entries
 * supports multi-line values with or without line-continuations
 * supports "#" comments everywhere
@@ -39,12 +39,14 @@ having a unique set of features:
 
 If you encounter issues or have feature wishes please report them to:
 
-    http://github.com/RonnyPfannschmidt/iniconfig/issues
+    https://github.com/RonnyPfannschmidt/iniconfig/issues
 
 Basic Example
 ===================================
 
-If you have an ini file like this::
+If you have an ini file like this:
+
+.. code-block:: ini
 
     # content of example.ini
     [section1] # comment
@@ -56,7 +58,9 @@ If you have an ini file like this::
         line1
         line2
 
-then you can do::
+then you can do:
+
+.. code-block:: pycon
 
     >>> import iniconfig
     >>> ini = iniconfig.IniConfig("example.ini")
@@ -74,5 +78,3 @@ then you can do::
     True
     >>> 'inexistendsection' in ini
     False
-
-

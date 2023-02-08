@@ -126,17 +126,17 @@ class PROTOBUF_EXPORT TextFormat {
     FastFieldValuePrinter();
     virtual ~FastFieldValuePrinter();
     virtual void PrintBool(bool val, BaseTextGenerator* generator) const;
-    virtual void PrintInt32(int32_t val, BaseTextGenerator* generator) const;
-    virtual void PrintUInt32(uint32_t val, BaseTextGenerator* generator) const;
-    virtual void PrintInt64(int64 val, BaseTextGenerator* generator) const;
-    virtual void PrintUInt64(uint64 val, BaseTextGenerator* generator) const;
+    virtual void PrintInt32(arc_i32 val, BaseTextGenerator* generator) const;
+    virtual void PrintUInt32(arc_ui32 val, BaseTextGenerator* generator) const;
+    virtual void PrintInt64(arc_i64 val, BaseTextGenerator* generator) const;
+    virtual void PrintUInt64(arc_ui64 val, BaseTextGenerator* generator) const;
     virtual void PrintFloat(float val, BaseTextGenerator* generator) const;
     virtual void PrintDouble(double val, BaseTextGenerator* generator) const;
     virtual void PrintString(const TProtoStringType& val,
                              BaseTextGenerator* generator) const;
     virtual void PrintBytes(const TProtoStringType& val,
                             BaseTextGenerator* generator) const;
-    virtual void PrintEnum(int32_t val, const TProtoStringType& name,
+    virtual void PrintEnum(arc_i32 val, const TProtoStringType& name,
                            BaseTextGenerator* generator) const;
     virtual void PrintFieldName(const Message& message, int field_index,
                                 int field_count, const Reflection* reflection,
@@ -171,15 +171,15 @@ class PROTOBUF_EXPORT TextFormat {
     FieldValuePrinter();
     virtual ~FieldValuePrinter();
     virtual TProtoStringType PrintBool(bool val) const;
-    virtual TProtoStringType PrintInt32(int32_t val) const;
-    virtual TProtoStringType PrintUInt32(uint32_t val) const;
-    virtual TProtoStringType PrintInt64(int64 val) const;
-    virtual TProtoStringType PrintUInt64(uint64 val) const;
+    virtual TProtoStringType PrintInt32(arc_i32 val) const;
+    virtual TProtoStringType PrintUInt32(arc_ui32 val) const;
+    virtual TProtoStringType PrintInt64(arc_i64 val) const;
+    virtual TProtoStringType PrintUInt64(arc_ui64 val) const;
     virtual TProtoStringType PrintFloat(float val) const;
     virtual TProtoStringType PrintDouble(double val) const;
     virtual TProtoStringType PrintString(const TProtoStringType& val) const;
     virtual TProtoStringType PrintBytes(const TProtoStringType& val) const;
-    virtual TProtoStringType PrintEnum(int32_t val, const TProtoStringType& name) const;
+    virtual TProtoStringType PrintEnum(arc_i32 val, const TProtoStringType& name) const;
     virtual TProtoStringType PrintFieldName(const Message& message,
                                        const Reflection* reflection,
                                        const FieldDescriptor* field) const;
@@ -213,7 +213,7 @@ class PROTOBUF_EXPORT TextFormat {
     virtual ~Finder();
 
     // Try to find an extension of *message by fully-qualified field
-    // name.  Returns NULL if no extension is known for this name or number.
+    // name.  Returns nullptr if no extension is known for this name or number.
     // The base implementation uses the extensions already known by the message.
     virtual const FieldDescriptor* FindExtension(Message* message,
                                                  const TProtoStringType& name) const;
@@ -224,7 +224,7 @@ class PROTOBUF_EXPORT TextFormat {
         const Descriptor* descriptor, int number) const;
 
     // Find the message type for an Any proto.
-    // Returns NULL if no message is known for this name.
+    // Returns nullptr if no message is known for this name.
     // The base implementation only accepts prefixes of type.googleprod.com/ or
     // type.googleapis.com/, and searches the DescriptorPool of the parent
     // message.
@@ -341,7 +341,7 @@ class PROTOBUF_EXPORT TextFormat {
     // property of TextFormat::Printer.  That is, from the printed message, we
     // cannot fully recover the original string field any more.
     void SetTruncateStringFieldLongerThan(
-        const int64_t truncate_string_field_longer_than) {
+        const arc_i64 truncate_string_field_longer_than) {
       truncate_string_field_longer_than_ = truncate_string_field_longer_than;
     }
 
@@ -365,6 +365,13 @@ class PROTOBUF_EXPORT TextFormat {
                                 const MessagePrinter* printer);
 
    private:
+    friend TProtoStringType Message::DebugString() const;
+    friend TProtoStringType Message::ShortDebugString() const;
+    friend TProtoStringType Message::Utf8DebugString() const;
+
+    // Sets whether *DebugString should insert a silent marker.
+    void SetInsertSilentMarker(bool v) { insert_silent_marker_ = v; }
+
     // Forward declaration of an internal class used to print the text
     // output to the OutputStream (see text_format.cc for implementation).
     class TextGenerator;
@@ -431,7 +438,7 @@ class PROTOBUF_EXPORT TextFormat {
     bool hide_unknown_fields_;
     bool print_message_fields_in_index_order_;
     bool expand_any_;
-    int64_t truncate_string_field_longer_than_;
+    arc_i64 truncate_string_field_longer_than_;
 
     std::unique_ptr<const FastFieldValuePrinter> default_field_value_printer_;
     typedef std::map<const FieldDescriptor*,
@@ -564,18 +571,19 @@ class PROTOBUF_EXPORT TextFormat {
     // Like TextFormat::MergeFromString().
     bool MergeFromString(ConstStringParam input, Message* output);
 
-    // Set where to report parse errors.  If NULL (the default), errors will
+    // Set where to report parse errors.  If nullptr (the default), errors will
     // be printed to stderr.
     void RecordErrorsTo(io::ErrorCollector* error_collector) {
       error_collector_ = error_collector;
     }
 
-    // Set how parser finds extensions.  If NULL (the default), the
+    // Set how parser finds extensions.  If nullptr (the default), the
     // parser will use the standard Reflection object associated with
     // the message being parsed.
     void SetFinder(const Finder* finder) { finder_ = finder; }
 
-    // Sets where location information about the parse will be written. If NULL
+    // Sets where location information about the parse will be written. If
+    // nullptr
     // (the default), then no location will be written.
     void WriteLocationsTo(ParseInfoTree* tree) { parse_info_tree_ = tree; }
 

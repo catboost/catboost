@@ -47,8 +47,8 @@ namespace internal {
 
 TProtoStringType* InlinedStringField::Mutable(const LazyString& /*default_value*/,
                                          Arena* arena, bool donated,
-                                         uint32_t* donating_states,
-                                         uint32_t mask) {
+                                         arc_ui32* donating_states,
+                                         arc_ui32 mask) {
   if (arena == nullptr || !donated) {
     return UnsafeMutablePointer();
   }
@@ -57,8 +57,8 @@ TProtoStringType* InlinedStringField::Mutable(const LazyString& /*default_value*
 
 TProtoStringType* InlinedStringField::Mutable(ArenaStringPtr::EmptyDefault,
                                          Arena* arena, bool donated,
-                                         uint32_t* donating_states,
-                                         uint32_t mask) {
+                                         arc_ui32* donating_states,
+                                         arc_ui32 mask) {
   if (arena == nullptr || !donated) {
     return UnsafeMutablePointer();
   }
@@ -67,21 +67,21 @@ TProtoStringType* InlinedStringField::Mutable(ArenaStringPtr::EmptyDefault,
 
 TProtoStringType* InlinedStringField::MutableSlow(::google::protobuf::Arena* arena,
                                              bool donated,
-                                             uint32_t* donating_states,
-                                             uint32_t mask) {
+                                             arc_ui32* donating_states,
+                                             arc_ui32 mask) {
   return UnsafeMutablePointer();
 }
 
 void InlinedStringField::SetAllocated(const TProtoStringType* default_value,
                                       TProtoStringType* value, Arena* arena,
-                                      bool donated, uint32_t* donating_states,
-                                      uint32_t mask) {
+                                      bool donated, arc_ui32* donating_states,
+                                      arc_ui32 mask) {
   SetAllocatedNoArena(default_value, value);
 }
 
 void InlinedStringField::Set(const TProtoStringType* default_value,
                              TProtoStringType&& value, Arena* arena, bool donated,
-                             uint32_t* donating_states, uint32_t mask) {
+                             arc_ui32* donating_states, arc_ui32 mask) {
   SetNoArena(default_value, std::move(value));
 }
 

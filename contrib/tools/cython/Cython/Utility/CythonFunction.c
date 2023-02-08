@@ -516,9 +516,8 @@ static void __Pyx__CyFunction_dealloc(__pyx_CyFunctionObject *m)
     PyObject_GC_Del(m);
 }
 
-static void __Pyx_CyFunction_dealloc(PyObject *obj)
+static void __Pyx_CyFunction_dealloc(__pyx_CyFunctionObject *m)
 {
-    __pyx_CyFunctionObject *m = (__pyx_CyFunctionObject *) obj;
     PyObject_GC_UnTrack(m);
     __Pyx__CyFunction_dealloc(m);
 }

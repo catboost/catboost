@@ -153,17 +153,17 @@
 #ifdef PROTOBUF_VERSION
 #error PROTOBUF_VERSION was previously defined
 #endif
-#define PROTOBUF_VERSION 3018003
+#define PROTOBUF_VERSION 3019000
 
 #ifdef PROTOBUF_MIN_HEADER_VERSION_FOR_PROTOC
 #error PROTOBUF_MIN_HEADER_VERSION_FOR_PROTOC was previously defined
 #endif
-#define PROTOBUF_MIN_HEADER_VERSION_FOR_PROTOC 3018000
+#define PROTOBUF_MIN_HEADER_VERSION_FOR_PROTOC 3019000
 
 #ifdef PROTOBUF_MIN_PROTOC_VERSION
 #error PROTOBUF_MIN_PROTOC_VERSION was previously defined
 #endif
-#define PROTOBUF_MIN_PROTOC_VERSION 3018000
+#define PROTOBUF_MIN_PROTOC_VERSION 3019000
 
 #ifdef PROTOBUF_VERSION_SUFFIX
 #error PROTOBUF_VERSION_SUFFIX was previously defined
@@ -293,7 +293,12 @@
 #ifdef PROTOBUF_SECTION_VARIABLE
 #error PROTOBUF_SECTION_VARIABLE was previously defined
 #endif
-#define PROTOBUF_SECTION_VARIABLE(x)
+#if (__has_attribute(section) || defined(__GNUC__)) && defined(__ELF__)
+// Place a variable in the given ELF section.
+# define PROTOBUF_SECTION_VARIABLE(x) __attribute__((section(#x)))
+#else
+# define PROTOBUF_SECTION_VARIABLE(x)
+#endif
 
 #if defined(PROTOBUF_DEPRECATED)
 #error PROTOBUF_DEPRECATED was previously defined
@@ -338,7 +343,7 @@
 
 // The minimum library version which works with the current version of the
 // headers.
-#define GOOGLE_PROTOBUF_MIN_LIBRARY_VERSION 3018000
+#define GOOGLE_PROTOBUF_MIN_LIBRARY_VERSION 3019000
 
 #ifdef PROTOBUF_RTTI
 #error PROTOBUF_RTTI was previously defined
@@ -382,7 +387,7 @@
 // choose 16 rather than some other number just in case the compiler would
 // be confused by an unaligned pointer.
 #define PROTOBUF_FIELD_OFFSET(TYPE, FIELD)                                \
-  static_cast< ::google::protobuf::uint32>(reinterpret_cast<const char*>(                   \
+  static_cast< ::arc_ui32>(reinterpret_cast<const char*>(                   \
                              &reinterpret_cast<const TYPE*>(16)->FIELD) - \
                          reinterpret_cast<const char*>(16))
 #endif
@@ -438,14 +443,16 @@
 # define PROTOBUF_PREDICT_FALSE(x) (x)
 #endif
 
-#ifdef PROTOBUF_MUST_USE_RESULT
-#error PROTOBUF_MUST_USE_RESULT was previously defined
+#ifdef PROTOBUF_NODISCARD
+#error PROTOBUF_NODISCARD was previously defined
 #endif
-#if !defined(MSVC_COMPILER) && __has_cpp_attribute(warn_unused_result)
-# define PROTOBUF_MUST_USE_RESULT __attribute__((warn_unused_result))
-# else
-# define PROTOBUF_MUST_USE_RESULT
-# endif
+#if __has_cpp_attribute(nodiscard)
+#define PROTOBUF_NODISCARD [[nodiscard]]
+#elif __has_attribute(warn_unused_result) || PROTOBUF_GNUC_MIN(4, 8)
+#define PROTOBUF_NODISCARD __attribute__((warn_unused_result))
+#else
+#define PROTOBUF_NODISCARD
+#endif
 
 #ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
 #error PROTOBUF_FORCE_COPY_IN_RELEASE was previously defined
@@ -457,6 +464,12 @@
 
 #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
 #error PROTOBUF_FORCE_COPY_IN_MOVE was previously defined
+#endif
+
+// Force copy the default string to a string field so that non-optimized builds
+// have harder-to-rely-on address stability.
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+#error PROTOBUF_FORCE_COPY_DEFAULT_STRING was previously defined
 #endif
 
 #ifdef PROTOBUF_FALLTHROUGH_INTENDED
@@ -553,7 +566,8 @@
 // https://github.com/protocolbuffers/protobuf/issues/8310
 // Does not work yet with Visual Studio 2019 Update 16.10
 #define PROTOBUF_CONSTINIT constinit
-#elif __has_cpp_attribute(clang::require_constant_initialization)
+#elif !defined(_MSC_VER) && \
+    __has_cpp_attribute(clang::require_constant_initialization)
 #define PROTOBUF_CONSTINIT [[clang::require_constant_initialization]]
 #else
 #define PROTOBUF_CONSTINIT
@@ -581,7 +595,7 @@
 #ifdef PROTOBUF_ATTRIBUTE_INIT_PRIORITY
 #error PROTOBUF_ATTRIBUTE_INIT_PRIORITY was previously defined
 #endif
-#if PROTOBUF_GNUC_MIN(3, 0) && (!defined(__APPLE__) || defined(__clang__))
+#if PROTOBUF_GNUC_MIN(3, 0) && (!defined(__APPLE__) || defined(__clang__)) && !((defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__)))
 #define PROTOBUF_ATTRIBUTE_INIT_PRIORITY __attribute__((init_priority((102))))
 #else
 #define PROTOBUF_ATTRIBUTE_INIT_PRIORITY
@@ -631,8 +645,17 @@
 #    define PROTOBUF_MSAN 1
 #  endif
 #elif PROTOBUF_GNUC_MIN(3, 0)
-#  define PROTOBUF_ASAN __SANITIZE_ADDRESS__
-#  define PROTOBUF_TSAN __SANITIZE_THREAD__
+// Double-guard is needed for -Wundef:
+#  ifdef __SANITIZE_ADDRESS__
+#  if    __SANITIZE_ADDRESS__
+#    define PROTOBUF_ASAN 1
+#  endif
+#  endif
+#  ifdef __SANITIZE_THREAD__
+#  if    __SANITIZE_THREAD__
+#    define PROTOBUF_TSAN 1
+#  endif
+#  endif
 #endif
 
 // Tail call table-driven parsing can be enabled by defining
@@ -661,8 +684,8 @@
 #define PROTOBUF_TC_PARAM_DECL                                 \
   ::google::protobuf::MessageLite *msg, const char *ptr,                 \
       ::google::protobuf::internal::ParseContext *ctx,                   \
-      const ::google::protobuf::internal::TailCallParseTableBase *table, \
-      uint64_t hasbits, ::google::protobuf::internal::TcFieldData data
+      const ::google::protobuf::internal::TcParseTableBase *table,       \
+      arc_ui64 hasbits, ::google::protobuf::internal::TcFieldData data
 
 #ifdef PROTOBUF_UNUSED
 #error PROTOBUF_UNUSED was previously defined
@@ -759,6 +782,10 @@
 #pragma warning(disable : 4073)
 // To silence the fact that we will pop this push from another file
 #pragma warning(disable : 5031)
+// Conditional expression is constant
+#pragma warning(disable: 4127)
+// decimal digit terminates octal escape sequence
+#pragma warning(disable: 4125)
 #endif
 
 // We don't want code outside port_def doing complex testing, so

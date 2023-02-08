@@ -57,18 +57,18 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CUDA -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CUDA -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CUDA -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CUDA -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/nvidia/cub;$(SolutionDir)../contrib/libs/nvidia/thrust;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/libs/tbb/include;'$(SolutionDir)..'/contrib/libs/libf2c;'$(SolutionDir)..'/contrib/libs/protobuf/src;'$(SolutionDir)..'/contrib/libs/nvidia/cub;'$(SolutionDir)..'/contrib/libs/nvidia/thrust;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     "/LIBPATH:$(CUDA_PATH)/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    "/LIBPATH:$(CUDA_PATH)/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     "/LIBPATH:/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    "/LIBPATH:/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -78,101 +78,98 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\apply.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_querywise.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_delta_calcer_multi.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_dimension.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_updater_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\bin_tracker.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\build_subset_in_leaf.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\calc_score_cache.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\confusion_matrix.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\ctr_helper.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\data.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\estimated_features.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\feature_penalties_calcer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\features_data_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\fold.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\full_model_saver.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\greedy_tensor_search.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\index_calcer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\index_hash_calcer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\leafwise_scoring.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\learn_context.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\model_quantization_adapter.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\monotonic_constraint_utils.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\mvs.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\nonsymmetric_index_calcer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\online_ctr.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\pairwise_scoring.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\plot.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\preprocess.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\projection.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\rand_score.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\roc_curve.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\score_calcers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\scoring.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\split.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\target_classifier.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\tensor_search_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\train.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\tree_print.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\yetirank_helpers.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\apply.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_querywise.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_delta_calcer_multi.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_dimension.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_updater_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\bin_tracker.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\build_subset_in_leaf.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\calc_score_cache.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\confusion_matrix.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\ctr_helper.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\data.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\estimated_features.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\feature_penalties_calcer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\features_data_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\fold.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\full_model_saver.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\greedy_tensor_search.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\index_calcer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\index_hash_calcer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\leafwise_scoring.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\learn_context.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\model_quantization_adapter.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\monotonic_constraint_utils.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\mvs.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\nonsymmetric_index_calcer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\online_ctr.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\pairwise_scoring.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\plot.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\preprocess.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\projection.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\rand_score.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\roc_curve.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\score_calcers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\scoring.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\split.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\target_classifier.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\tensor_search_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\train.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\tree_print.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\yetirank_helpers.h"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\apply.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_calcer.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_calcer_helpers.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_calcer_querywise.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_delta_calcer_multi.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_dimension.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_updater_helpers.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\bin_tracker.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\build_subset_in_leaf.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\calc_score_cache.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\confusion_matrix.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\ctr_helper.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\data.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\estimated_features.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\feature_penalties_calcer.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\features_data_helpers.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\fold.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\full_model_saver.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\greedy_tensor_search.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\helpers.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\index_calcer.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\index_hash_calcer.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\leafwise_scoring.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\learn_context.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\model_quantization_adapter.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\monotonic_constraint_utils.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\mvs.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\nonsymmetric_index_calcer.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\online_ctr.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\pairwise_scoring.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\plot.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\preprocess.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\projection.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\rand_score.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\roc_curve.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\score_calcers.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\scoring.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\split.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\target_classifier.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\tensor_search_helpers.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\train.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\tree_print.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\algo\yetirank_helpers.cpp"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\apply.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_calcer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_calcer_helpers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_calcer_querywise.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_delta_calcer_multi.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_dimension.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\approx_updater_helpers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\bin_tracker.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\build_subset_in_leaf.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\calc_score_cache.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\confusion_matrix.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\ctr_helper.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\data.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\estimated_features.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\feature_penalties_calcer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\features_data_helpers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\fold.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\full_model_saver.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\greedy_tensor_search.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\helpers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\index_calcer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\index_hash_calcer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\leafwise_scoring.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\learn_context.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\model_quantization_adapter.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\monotonic_constraint_utils.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\mvs.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\nonsymmetric_index_calcer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\online_ctr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\pairwise_scoring.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\plot.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\preprocess.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\projection.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\rand_score.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\roc_curve.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\score_calcers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\scoring.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\split.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\target_classifier.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\tensor_search_helpers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\train.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\tree_print.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\algo\yetirank_helpers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.pkg.fake.vcxproj">
       <Project>{607AFEC4-8A23-056F-2190-DCF65FF8934B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
       <Project>{215B0CED-E132-32D3-B5B5-71B6CD17231C}</Project>

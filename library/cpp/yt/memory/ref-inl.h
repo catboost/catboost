@@ -371,6 +371,25 @@ public:
         return Begin() + Size_;
     }
 
+
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        size_t result = 0;
+        for (size_t index = 0; index < Size(); ++index) {
+            const auto& part = (*this)[index];
+            if (!part) {
+                continue;
+            }
+            auto partSize = part.GetHolder()->GetTotalByteSize();
+            if (!partSize) {
+                return std::nullopt;
+            }
+            result += *partSize;
+        }
+        return result;
+    }
+
 private:
     friend class TSharedRefArrayBuilder;
 

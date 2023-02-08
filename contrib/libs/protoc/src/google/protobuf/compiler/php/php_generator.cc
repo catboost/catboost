@@ -1121,9 +1121,9 @@ void GenerateAddFilesToPool(const FileDescriptor* file, const Options& options,
       file, &nodes_without_dependency, &deps, &dependency_count);
 
   while (!nodes_without_dependency.empty()) {
-    auto file = *nodes_without_dependency.begin();
-    nodes_without_dependency.erase(file);
-    for (auto dependent : deps[file]) {
+    auto file_node = *nodes_without_dependency.begin();
+    nodes_without_dependency.erase(file_node);
+    for (auto dependent : deps[file_node]) {
       if (dependency_count[dependent] == 1) {
         dependency_count.erase(dependent);
         nodes_without_dependency.insert(dependent);
@@ -1132,11 +1132,11 @@ void GenerateAddFilesToPool(const FileDescriptor* file, const Options& options,
       }
     }
 
-    bool needs_aggregate = NeedsUnwrapping(file, options);
+    bool needs_aggregate = NeedsUnwrapping(file_node, options);
 
     if (needs_aggregate) {
       auto file_proto = sorted_file_set.add_file();
-      file->CopyTo(file_proto);
+      file_node->CopyTo(file_proto);
 
       // Filter out descriptor.proto as it cannot be depended on for now.
       RepeatedPtrField<TProtoStringType>* dependency =
@@ -1158,7 +1158,7 @@ void GenerateAddFilesToPool(const FileDescriptor* file, const Options& options,
         it->clear_extension();
       }
     } else {
-      TProtoStringType dependency_filename = GeneratedMetadataFileName(file, false);
+      TProtoStringType dependency_filename = GeneratedMetadataFileName(file_node, false);
       printer->Print(
           "\\^name^::initOnce();\n",
           "name", FilenameToClassname(dependency_filename));
@@ -1896,7 +1896,7 @@ void GenerateCEnum(const EnumDescriptor* desc, io::Printer* printer) {
       "  const upb_enumdef *e = upb_symtab_lookupenum(symtab, \"$name$\");\n"
       "  char *name = NULL;\n"
       "  size_t name_len;\n"
-      "  int32_t num;\n"
+      "  arc_i32 num;\n"
       "  if (zend_parse_parameters(ZEND_NUM_ARGS(), \"s\", &name,\n"
       "                            &name_len) == FAILURE) {\n"
       "    return;\n"

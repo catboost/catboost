@@ -26,6 +26,35 @@ bool Equals(const TLeft& lhs, const TRight& rhs)
         lhs.GetType() == rhs.GetType();
 }
 
+class TYsonStringHolder
+    : public TSharedRangeHolder
+    , public TWithExtraSpace<TYsonStringHolder>
+{
+public:
+    explicit TYsonStringHolder(size_t size)
+        : Size_(size)
+    { }
+
+    char* GetData()
+    {
+        return static_cast<char*>(GetExtraSpacePtr());
+    }
+
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        return Size_ + sizeof(TYsonStringHolder);
+    }
+
+    static TIntrusivePtr<TYsonStringHolder> Allocate(size_t size)
+    {
+        return NewWithExtraSpace<TYsonStringHolder>(size, size);
+    }
+
+private:
+    const size_t Size_;
+};
+
 } // namespace NDetail
 
 inline bool operator == (const TYsonString& lhs, const TYsonString& rhs)

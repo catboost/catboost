@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -186,11 +186,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_5faea7c42810c1659587959777.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\testpath\py3\.dist-info\METADATA">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\testpath\py3\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_a081944f70ff3d6cf37dc896a5.yasm" "-" "contrib/python/testpath/py3/.dist-info/METADATA" "_fe4e69c956537eb4c5c1c29d8b.rodata" "$(SolutionDir)../contrib/python/testpath/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_fb589691c2dd2fcce467b2afca.rodata" "-" "contrib/python/testpath/py3/.dist-info/top_level.txt" "_dd5496e817e9b9b79ad9912c00.rodata" "$(SolutionDir)../contrib/python/testpath/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_fb09e036bf07ed6b3cd71ec657.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_a081944f70ff3d6cf37dc896a5.yasm" "-" "contrib/python/testpath/py3/.dist-info/METADATA" "_fe4e69c956537eb4c5c1c29d8b.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_fb589691c2dd2fcce467b2afca.rodata" "-" "contrib/python/testpath/py3/.dist-info/top_level.txt" "_dd5496e817e9b9b79ad9912c00.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_fb09e036bf07ed6b3cd71ec657.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_a081944f70ff3d6cf37dc896a5.yasm" "-" "contrib/python/testpath/py3/.dist-info/METADATA" "_fe4e69c956537eb4c5c1c29d8b.rodata" "$(SolutionDir)../contrib/python/testpath/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_fb589691c2dd2fcce467b2afca.rodata" "-" "contrib/python/testpath/py3/.dist-info/top_level.txt" "_dd5496e817e9b9b79ad9912c00.rodata" "$(SolutionDir)../contrib/python/testpath/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_fb09e036bf07ed6b3cd71ec657.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_a081944f70ff3d6cf37dc896a5.yasm" "-" "contrib/python/testpath/py3/.dist-info/METADATA" "_fe4e69c956537eb4c5c1c29d8b.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_fb589691c2dd2fcce467b2afca.rodata" "-" "contrib/python/testpath/py3/.dist-info/top_level.txt" "_dd5496e817e9b9b79ad9912c00.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_fb09e036bf07ed6b3cd71ec657.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/testpath/py3/_a081944f70ff3d6cf37dc896a5.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\testpath\py3\.dist-info\METADATA;$(SolutionDir)..\contrib\python\testpath\py3\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\testpath\py3\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\testpath\py3\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_a081944f70ff3d6cf37dc896a5.yasm;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_fb589691c2dd2fcce467b2afca.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_fb09e036bf07ed6b3cd71ec657.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\testpath\py3\testpath\__init__.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_7b770773e2cb9522810dcf545f.yasm" "-" "contrib/python/testpath/py3/testpath/__init__.py" "_7528394ba8167fbcd3d74aa34c.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_4cca87d0fbc51b2b85556e05ff.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3" "_fdb2c889f22f31c485804cb5cf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_e37c95bad83ff15b87562a980b.rodata" "-" "contrib/python/testpath/py3/testpath/asserts.py" "_1a711a4b237da3626fc103cf25.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_08b114a85a94cd0d1e60d8266f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3" "_42f35e365ffa07ba2b57187b0c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_b3970649c83a71af7ae762043a.rodata" "-" "contrib/python/testpath/py3/testpath/commands.py" "_95bf5db4f66f60f71249e0ab20.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_bcbf12a5fb3deefda0f1c94a5f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3" "_77c56e6d10c2b1a6a2c5750e46.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_9c6f0749e0927c383e5d6170ad.rodata" "-" "contrib/python/testpath/py3/testpath/env.py" "_90d32464571ad6d9e161f7e4f6.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_bfc3dd404118382fac851c3f6c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3" "_5cc969da45f37718d3a5acc892.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_3b71f3ff7e6552ce95e4a65248.rodata" "-" "contrib/python/testpath/py3/testpath/tempdir.py" "_836856afc486c7a74684ea7fab.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_c57b5f0853312a50eca4b9d2f5.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3" "_587b265d3cefcf75e2b3faa895.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_83f088e69a754359886e77fa20.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_7b770773e2cb9522810dcf545f.yasm" "-" "contrib/python/testpath/py3/testpath/__init__.py" "_7528394ba8167fbcd3d74aa34c.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_4cca87d0fbc51b2b85556e05ff.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3" "_fdb2c889f22f31c485804cb5cf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_e37c95bad83ff15b87562a980b.rodata" "-" "contrib/python/testpath/py3/testpath/asserts.py" "_1a711a4b237da3626fc103cf25.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_08b114a85a94cd0d1e60d8266f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3" "_42f35e365ffa07ba2b57187b0c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_b3970649c83a71af7ae762043a.rodata" "-" "contrib/python/testpath/py3/testpath/commands.py" "_95bf5db4f66f60f71249e0ab20.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_bcbf12a5fb3deefda0f1c94a5f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3" "_77c56e6d10c2b1a6a2c5750e46.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_9c6f0749e0927c383e5d6170ad.rodata" "-" "contrib/python/testpath/py3/testpath/env.py" "_90d32464571ad6d9e161f7e4f6.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_bfc3dd404118382fac851c3f6c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3" "_5cc969da45f37718d3a5acc892.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_3b71f3ff7e6552ce95e4a65248.rodata" "-" "contrib/python/testpath/py3/testpath/tempdir.py" "_836856afc486c7a74684ea7fab.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_c57b5f0853312a50eca4b9d2f5.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3" "_587b265d3cefcf75e2b3faa895.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_83f088e69a754359886e77fa20.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/__init__.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/__init__.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_7b770773e2cb9522810dcf545f.yasm" "-" "contrib/python/testpath/py3/testpath/__init__.py" "_7528394ba8167fbcd3d74aa34c.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_4cca87d0fbc51b2b85556e05ff.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3" "_fdb2c889f22f31c485804cb5cf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_e37c95bad83ff15b87562a980b.rodata" "-" "contrib/python/testpath/py3/testpath/asserts.py" "_1a711a4b237da3626fc103cf25.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_08b114a85a94cd0d1e60d8266f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3" "_42f35e365ffa07ba2b57187b0c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_b3970649c83a71af7ae762043a.rodata" "-" "contrib/python/testpath/py3/testpath/commands.py" "_95bf5db4f66f60f71249e0ab20.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_bcbf12a5fb3deefda0f1c94a5f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3" "_77c56e6d10c2b1a6a2c5750e46.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_9c6f0749e0927c383e5d6170ad.rodata" "-" "contrib/python/testpath/py3/testpath/env.py" "_90d32464571ad6d9e161f7e4f6.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_bfc3dd404118382fac851c3f6c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3" "_5cc969da45f37718d3a5acc892.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_3b71f3ff7e6552ce95e4a65248.rodata" "-" "contrib/python/testpath/py3/testpath/tempdir.py" "_836856afc486c7a74684ea7fab.rodata" "$(SolutionDir)../contrib/python/testpath/py3/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_c57b5f0853312a50eca4b9d2f5.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3" "_587b265d3cefcf75e2b3faa895.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_83f088e69a754359886e77fa20.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_7b770773e2cb9522810dcf545f.yasm" "-" "contrib/python/testpath/py3/testpath/__init__.py" "_7528394ba8167fbcd3d74aa34c.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_4cca87d0fbc51b2b85556e05ff.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3" "_fdb2c889f22f31c485804cb5cf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_e37c95bad83ff15b87562a980b.rodata" "-" "contrib/python/testpath/py3/testpath/asserts.py" "_1a711a4b237da3626fc103cf25.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_08b114a85a94cd0d1e60d8266f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3" "_42f35e365ffa07ba2b57187b0c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_b3970649c83a71af7ae762043a.rodata" "-" "contrib/python/testpath/py3/testpath/commands.py" "_95bf5db4f66f60f71249e0ab20.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_bcbf12a5fb3deefda0f1c94a5f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3" "_77c56e6d10c2b1a6a2c5750e46.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_9c6f0749e0927c383e5d6170ad.rodata" "-" "contrib/python/testpath/py3/testpath/env.py" "_90d32464571ad6d9e161f7e4f6.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_bfc3dd404118382fac851c3f6c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3" "_5cc969da45f37718d3a5acc892.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_3b71f3ff7e6552ce95e4a65248.rodata" "-" "contrib/python/testpath/py3/testpath/tempdir.py" "_836856afc486c7a74684ea7fab.rodata" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_c57b5f0853312a50eca4b9d2f5.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3" "_587b265d3cefcf75e2b3faa895.rodata" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/_83f088e69a754359886e77fa20.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/__init__.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/__init__.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,16 +249,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/testpath/py3/_7b770773e2cb9522810dcf545f.yasm	$B/contrib/python/testpath/py3/testpath/__init__.py.h23w.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\testpath\py3\testpath\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\__init__.py.h23w.yapyc3;$(SolutionDir)..\contrib\python\testpath\py3\testpath\asserts.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\asserts.py.xcwt.yapyc3;$(SolutionDir)..\contrib\python\testpath\py3\testpath\commands.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\commands.py.tqid.yapyc3;$(SolutionDir)..\contrib\python\testpath\py3\testpath\env.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\env.py.4xmd.yapyc3;$(SolutionDir)..\contrib\python\testpath\py3\testpath\tempdir.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\tempdir.py.7t57.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\__init__.py.h23w.yapyc3;'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\asserts.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\asserts.py.xcwt.yapyc3;'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\commands.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\commands.py.tqid.yapyc3;'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\env.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\env.py.4xmd.yapyc3;'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\tempdir.py;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\tempdir.py.7t57.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_7b770773e2cb9522810dcf545f.yasm;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_4cca87d0fbc51b2b85556e05ff.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_e37c95bad83ff15b87562a980b.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_08b114a85a94cd0d1e60d8266f.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_b3970649c83a71af7ae762043a.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_bcbf12a5fb3deefda0f1c94a5f.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_9c6f0749e0927c383e5d6170ad.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_bfc3dd404118382fac851c3f6c.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_3b71f3ff7e6552ce95e4a65248.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_c57b5f0853312a50eca4b9d2f5.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\_83f088e69a754359886e77fa20.rodata;$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\__init__.py.h23w.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\testpath\py3\testpath\asserts.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\asserts.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/asserts.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/asserts.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/asserts.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/asserts.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,16 +280,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/testpath/py3/testpath/asserts.py.xcwt.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\testpath\py3\testpath\asserts.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\asserts.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\asserts.py.xcwt.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\testpath\py3\testpath\commands.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\commands.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/commands.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/commands.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -302,7 +302,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/commands.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/commands.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -311,16 +311,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/testpath/py3/testpath/commands.py.tqid.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\testpath\py3\testpath\commands.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\commands.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\commands.py.tqid.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\testpath\py3\testpath\env.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\env.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/env.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/env.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -333,7 +333,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/env.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/env.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -342,16 +342,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/testpath/py3/testpath/env.py.4xmd.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\testpath\py3\testpath\env.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\env.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\env.py.4xmd.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\testpath\py3\testpath\tempdir.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\tempdir.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/tempdir.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/tempdir.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -364,7 +364,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/tempdir.py-" "$(SolutionDir)../contrib/python/testpath/py3/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/testpath/py3/testpath/tempdir.py-" "$(SolutionDir).." "/contrib/python/testpath/py3/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -373,16 +373,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/testpath/py3/testpath/tempdir.py.7t57.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\testpath\py3\testpath\tempdir.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\testpath\py3\testpath\tempdir.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\testpath\py3\testpath\tempdir.py.7t57.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

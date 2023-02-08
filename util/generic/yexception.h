@@ -142,7 +142,7 @@ struct TBadCastException: public virtual TBadArgumentException {
 
 namespace NPrivate {
     /// Encapsulates data for one of the most common case in which
-    /// exception message contists of single constant string
+    /// exception message consists of single constant string
     struct TSimpleExceptionMessage {
         TSourceLocation Location;
         TStringBuf Message;
@@ -157,11 +157,11 @@ void fputs(const std::exception& e, FILE* f = stderr);
 TString CurrentExceptionMessage();
 
 /**
- * Formats current exception for logging purposes. Includes formatted backtrace if it is stored 
+ * Formats current exception for logging purposes. Includes formatted backtrace if it is stored
  * alongside the exception.
  * The output format is a subject to change, do not depend or canonize it.
  * The speed of this method is not guaranteed either. Do not call it in hot paths of your code.
- * 
+ *
  * The lack of current exception prior to the invocation indicates logical bug in the client code.
  * Y_VERIFY asserts the existence of exception, otherwise panic and abort.
  */
@@ -169,7 +169,7 @@ TString FormatCurrentException();
 void FormatCurrentExceptionTo(IOutputStream& out);
 
 /*
- * A neat method that detects wrether stack unwinding is in progress.
+ * A neat method that detects whether stack unwinding is in progress.
  * As its std counterpart (that is std::uncaught_exception())
  * was removed from the standard, this method uses std::uncaught_exceptions() internally.
  *
@@ -215,7 +215,7 @@ TString FormatExc(const std::exception& exception);
 /**
  * @def Y_ENSURE
  *
- * This macro is inteded to use as a shortcut for `if () { throw }`.
+ * This macro is intended to be used as a shortcut for `if () { throw }`.
  *
  * @code
  * void DoSomethingLovely(const int x, const int y) {
@@ -230,7 +230,7 @@ TString FormatExc(const std::exception& exception);
 /**
  * @def Y_ENSURE_BT
  *
- * This macro is inteded to use as a shortcut for `if () { throw TWithBackTrace<yexception>() << "message"; }`.
+ * This macro is intended to be used as a shortcut for `if () { throw TWithBackTrace<yexception>() << "message"; }`.
  *
  * @code
  * void DoSomethingLovely(const int x, const int y) {

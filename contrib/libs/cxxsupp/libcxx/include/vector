@@ -3281,7 +3281,32 @@ struct _LIBCPP_TEMPLATE_VIS hash<vector<bool, _Allocator> >
     size_t operator()(const vector<bool, _Allocator>& __vec) const _NOEXCEPT
         {return __vec.__hash_code();}
 };
-#endif // _YNDX_LIBCXX_DISABLE_VECTOR_BOOL_COMPRESSION
+#else // _YNDX_LIBCXX_ENABLE_VECTOR_BOOL_COMPRESSION
+// Hash function implementation for uncompressed std::vector<bool> which returns the same result.
+template <class _Allocator>
+struct _LIBCPP_TEMPLATE_VIS hash<vector<bool, _Allocator> >
+    : public unary_function<vector<bool, _Allocator>, size_t>
+{
+    _LIBCPP_INLINE_VISIBILITY
+    size_t operator()(const vector<bool, _Allocator>& __vec) const _NOEXCEPT
+    {
+        size_t __h = 0;
+        size_t __idx = 0;
+        size_t __n = __vec.size();
+        constexpr size_t __bits_per_word = sizeof(typename allocator_traits<_Allocator>::size_type) * CHAR_BIT;
+        static_assert(sizeof(typename allocator_traits<_Allocator>::size_type) <= sizeof(size_t));
+        for (;__idx + __bits_per_word <= __n;) {
+            for (size_t __bit = 0; __bit < __bits_per_word; __bit++, __idx++) {
+                __h ^= static_cast<size_t>(__vec[__idx]) << __bit;
+            }
+        }
+        for (size_t __bit = 0; __idx < __n; __bit++, __idx++) {
+            __h ^= static_cast<size_t>(__vec[__idx]) << __bit;
+        }
+        return __h;
+    }
+};
+#endif // _YNDX_LIBCXX_ENABLE_VECTOR_BOOL_COMPRESSION
 
 template <class _Tp, class _Allocator>
 inline _LIBCPP_INLINE_VISIBILITY

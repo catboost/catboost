@@ -183,7 +183,7 @@ class MessageGenerator {
   int HasByteIndex(const FieldDescriptor* a) const;
   int HasWordIndex(const FieldDescriptor* a) const;
   bool SameHasByte(const FieldDescriptor* a, const FieldDescriptor* b) const;
-  std::vector<uint32_t> RequiredFieldsBitMask() const;
+  std::vector<arc_ui32> RequiredFieldsBitMask() const;
 
   const Descriptor* descriptor_;
   int index_in_file_messages_;

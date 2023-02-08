@@ -96,7 +96,7 @@ class PROTOBUF_EXPORT GzipInputStream : public ZeroCopyInputStream {
   void* output_buffer_;
   void* output_position_;
   size_t output_buffer_length_;
-  int64_t byte_count_;
+  arc_i64 byte_count_;
 
   int Inflate(int flush);
   void DoNextOutput(const void** data, int* size);

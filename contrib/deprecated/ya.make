@@ -1,5 +1,0 @@
-
-
-RECURSE(
-    python
-)

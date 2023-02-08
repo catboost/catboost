@@ -1,5 +1,6 @@
 #pragma once
 
+#include "platform.h"
 #include "spin_wait.h"
 
 #include <atomic>

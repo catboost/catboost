@@ -63,7 +63,6 @@ class PROTOBUF_EXPORT ImplicitWeakMessage : public MessageLite {
 
   TProtoStringType GetTypeName() const override { return ""; }
 
-  MessageLite* New() const override { return new ImplicitWeakMessage; }
   MessageLite* New(Arena* arena) const override {
     return Arena::CreateMessage<ImplicitWeakMessage>(arena);
   }
@@ -103,19 +102,16 @@ class ImplicitWeakTypeHandler {
   static constexpr bool Moveable = false;
 
   static inline MessageLite* NewFromPrototype(const MessageLite* prototype,
-                                              Arena* arena = NULL) {
+                                              Arena* arena = nullptr) {
     return prototype->New(arena);
   }
 
   static inline void Delete(MessageLite* value, Arena* arena) {
-    if (arena == NULL) {
+    if (arena == nullptr) {
       delete value;
     }
   }
   static inline Arena* GetArena(MessageLite* value) {
-    return value->GetArena();
-  }
-  static inline void* GetMaybeArenaPointer(MessageLite* value) {
     return value->GetArena();
   }
   static inline void Clear(MessageLite* value) { value->Clear(); }

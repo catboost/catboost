@@ -12,7 +12,7 @@ export NVM_DIR="$HOME/.nvm"
 set -x
 set -e
 
-CMAKE_COMMON_ARGS="./catboost/ -G \"Ninja\" -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PWD/catboost/clang.toolchain $CMAKE_EXTRA_ARGS"
+CMAKE_COMMON_ARGS="./catboost/ -G \"Ninja\" -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$PWD/catboost/build/toolchains/clang.toolchain $CMAKE_EXTRA_ARGS"
 
 src_root_dir=$PWD
 

@@ -219,7 +219,7 @@ namespace NYson {
                         ch = TBase::template SkipSpaceAndGetChar<AllowFinish>();
                     } else if (ch != endSymbol) {
                         ythrow TYsonException() << "Expected '" << KeyedItemSeparatorSymbol
-                                                << "' or '" << endSymbol << "' but '" << ch << "' found";
+                                                << "' or '\\0' ' but '" << ch << "' found";
                     }
                 }
             }
@@ -247,7 +247,7 @@ namespace NYson {
                     return true;
                 } else if (ch != endSymbol) {
                     ythrow TYsonException() << "Expected '" << ListItemSeparatorSymbol
-                                            << "' or '" << endSymbol << "' but '" << ch << "' found";
+                                            << "' or '\\0' but '" << ch << "' found";
                 }
                 return false;
             }

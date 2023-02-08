@@ -107,7 +107,7 @@ class WeakFieldMap;  // weak_field_map.h
 //                  message, or -1 if the message type has no extension
 //                  ranges.
 //   oneof_case_offset:  Offset in the message of an array of uint32s of
-//                  size descriptor->oneof_decl_count().  Each uint32_t
+//                  size descriptor->oneof_decl_count().  Each arc_ui32
 //                  indicates what field is set for each oneof.
 //   object_size:   The size of a message object of this type, as measured
 //                  by sizeof().
@@ -119,7 +119,7 @@ class WeakFieldMap;  // weak_field_map.h
 struct ReflectionSchema {
  public:
   // Size of a google::protobuf::Message object of this type.
-  uint32_t GetObjectSize() const { return static_cast<uint32_t>(object_size_); }
+  arc_ui32 GetObjectSize() const { return static_cast<arc_ui32>(object_size_); }
 
   bool InRealOneof(const FieldDescriptor* field) const {
     return field->containing_oneof() &&
@@ -128,13 +128,13 @@ struct ReflectionSchema {
 
   // Offset of a non-oneof field.  Getting a field offset is slightly more
   // efficient when we know statically that it is not a oneof field.
-  uint32_t GetFieldOffsetNonOneof(const FieldDescriptor* field) const {
+  arc_ui32 GetFieldOffsetNonOneof(const FieldDescriptor* field) const {
     GOOGLE_DCHECK(!InRealOneof(field));
     return OffsetValue(offsets_[field->index()], field->type());
   }
 
   // Offset of any field.
-  uint32_t GetFieldOffset(const FieldDescriptor* field) const {
+  arc_ui32 GetFieldOffset(const FieldDescriptor* field) const {
     if (InRealOneof(field)) {
       size_t offset =
           static_cast<size_t>(field->containing_type()->field_count() +
@@ -149,58 +149,58 @@ struct ReflectionSchema {
     return Inlined(offsets_[field->index()], field->type());
   }
 
-  uint32_t GetOneofCaseOffset(const OneofDescriptor* oneof_descriptor) const {
-    return static_cast<uint32_t>(oneof_case_offset_) +
-           static_cast<uint32_t>(
+  arc_ui32 GetOneofCaseOffset(const OneofDescriptor* oneof_descriptor) const {
+    return static_cast<arc_ui32>(oneof_case_offset_) +
+           static_cast<arc_ui32>(
                static_cast<size_t>(oneof_descriptor->index()) *
-               sizeof(uint32_t));
+               sizeof(arc_ui32));
   }
 
   bool HasHasbits() const { return has_bits_offset_ != -1; }
 
   // Bit index within the bit array of hasbits.  Bit order is low-to-high.
-  uint32_t HasBitIndex(const FieldDescriptor* field) const {
-    if (has_bits_offset_ == -1) return static_cast<uint32_t>(-1);
+  arc_ui32 HasBitIndex(const FieldDescriptor* field) const {
+    if (has_bits_offset_ == -1) return static_cast<arc_ui32>(-1);
     GOOGLE_DCHECK(HasHasbits());
     return has_bit_indices_[field->index()];
   }
 
   // Byte offset of the hasbits array.
-  uint32_t HasBitsOffset() const {
+  arc_ui32 HasBitsOffset() const {
     GOOGLE_DCHECK(HasHasbits());
-    return static_cast<uint32_t>(has_bits_offset_);
+    return static_cast<arc_ui32>(has_bits_offset_);
   }
 
   bool HasInlinedString() const { return inlined_string_donated_offset_ != -1; }
 
   // Bit index within the bit array of _inlined_string_donated_.  Bit order is
   // low-to-high.
-  uint32_t InlinedStringIndex(const FieldDescriptor* field) const {
+  arc_ui32 InlinedStringIndex(const FieldDescriptor* field) const {
     GOOGLE_DCHECK(HasInlinedString());
     return inlined_string_indices_[field->index()];
   }
 
   // Byte offset of the _inlined_string_donated_ array.
-  uint32_t InlinedStringDonatedOffset() const {
+  arc_ui32 InlinedStringDonatedOffset() const {
     GOOGLE_DCHECK(HasInlinedString());
-    return static_cast<uint32_t>(inlined_string_donated_offset_);
+    return static_cast<arc_ui32>(inlined_string_donated_offset_);
   }
 
   // The offset of the InternalMetadataWithArena member.
   // For Lite this will actually be an InternalMetadataWithArenaLite.
   // The schema doesn't contain enough information to distinguish between
   // these two cases.
-  uint32_t GetMetadataOffset() const {
-    return static_cast<uint32_t>(metadata_offset_);
+  arc_ui32 GetMetadataOffset() const {
+    return static_cast<arc_ui32>(metadata_offset_);
   }
 
   // Whether this message has an ExtensionSet.
   bool HasExtensionSet() const { return extensions_offset_ != -1; }
 
   // The offset of the ExtensionSet in this message.
-  uint32_t GetExtensionSetOffset() const {
+  arc_ui32 GetExtensionSetOffset() const {
     GOOGLE_DCHECK(HasExtensionSet());
-    return static_cast<uint32_t>(extensions_offset_);
+    return static_cast<arc_ui32>(extensions_offset_);
   }
 
   // The off set of WeakFieldMap when the message contains weak fields.
@@ -252,20 +252,20 @@ struct ReflectionSchema {
   //   ReflectionSchema schema = {a, b, c, d, e, ...};
   // private:
   const Message* default_instance_;
-  const uint32_t* offsets_;
-  const uint32_t* has_bit_indices_;
+  const arc_ui32* offsets_;
+  const arc_ui32* has_bit_indices_;
   int has_bits_offset_;
   int metadata_offset_;
   int extensions_offset_;
   int oneof_case_offset_;
   int object_size_;
   int weak_field_map_offset_;
-  const uint32_t* inlined_string_indices_;
+  const arc_ui32* inlined_string_indices_;
   int inlined_string_donated_offset_;
 
   // We tag offset values to provide additional data about fields (such as
   // "unused" or "lazy" or "inlined").
-  static uint32_t OffsetValue(uint32_t v, FieldDescriptor::Type type) {
+  static arc_ui32 OffsetValue(arc_ui32 v, FieldDescriptor::Type type) {
     if (type == FieldDescriptor::TYPE_MESSAGE ||
         type == FieldDescriptor::TYPE_STRING ||
         type == FieldDescriptor::TYPE_BYTES) {
@@ -274,7 +274,7 @@ struct ReflectionSchema {
     return v & 0x7FFFFFFFu;
   }
 
-  static bool Inlined(uint32_t v, FieldDescriptor::Type type) {
+  static bool Inlined(arc_ui32 v, FieldDescriptor::Type type) {
     if (type == FieldDescriptor::TYPE_STRING ||
         type == FieldDescriptor::TYPE_BYTES) {
       return (v & 1u) != 0u;
@@ -292,9 +292,9 @@ struct ReflectionSchema {
 // EXPERIMENTAL: these are changing rapidly, and may completely disappear
 // or merge with ReflectionSchema.
 struct MigrationSchema {
-  int32_t offsets_index;
-  int32_t has_bit_indices_index;
-  int32_t inlined_string_indices_index;
+  arc_i32 offsets_index;
+  arc_i32 has_bit_indices_index;
+  arc_i32 inlined_string_indices_index;
   int object_size;
 };
 
@@ -313,7 +313,7 @@ struct PROTOBUF_EXPORT DescriptorTable {
   int num_messages;
   const MigrationSchema* schemas;
   const Message* const* default_instances;
-  const uint32_t* offsets;
+  const arc_ui32* offsets;
   // update the following descriptor arrays.
   Metadata* file_level_metadata;
   const EnumDescriptor** file_level_enum_descriptors;
@@ -345,8 +345,8 @@ Metadata PROTOBUF_EXPORT AssignDescriptors(const DescriptorTable* (*table)(),
 
 // These cannot be in lite so we put them in the reflection.
 PROTOBUF_EXPORT void UnknownFieldSetSerializer(const uint8_t* base,
-                                               uint32_t offset, uint32_t tag,
-                                               uint32_t has_offset,
+                                               arc_ui32 offset, arc_ui32 tag,
+                                               arc_ui32 has_offset,
                                                io::CodedOutputStream* output);
 
 struct PROTOBUF_EXPORT AddDescriptorsRunner {

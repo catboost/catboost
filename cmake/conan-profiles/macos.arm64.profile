@@ -1,0 +1,11 @@
+include(default)
+[settings]
+arch=armv8
+build_type=Release
+compiler=clang
+compiler.libcxx=libc++
+compiler.version=14
+compiler.cppstd=20
+os=Macos
+[options]
+[env]

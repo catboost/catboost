@@ -121,7 +121,7 @@ class PROTOBUF_EXPORT InlinedStringField {
   ~InlinedStringField() { Destruct(); }
 
   // Lvalue Set. To save space, we pack the donating states of multiple
-  // InlinedStringFields into an uint32_t `donating_states`. The `mask`
+  // InlinedStringFields into an arc_ui32 `donating_states`. The `mask`
   // indicates the position of the bit for this InlinedStringField. `donated` is
   // whether this field is donated.
   //
@@ -131,8 +131,8 @@ class PROTOBUF_EXPORT InlinedStringField {
   //
   // This method never changes the `donating_states`.
   void Set(const TProtoStringType* default_value, ConstStringParam value,
-           Arena* arena, bool donated, uint32_t* /*donating_states*/,
-           uint32_t /*mask*/) {
+           Arena* arena, bool donated, arc_ui32* /*donating_states*/,
+           arc_ui32 /*mask*/) {
     (void)arena;
     (void)donated;
     SetNoArena(default_value, value);
@@ -141,17 +141,17 @@ class PROTOBUF_EXPORT InlinedStringField {
   // Rvalue Set. If this field is donated, this method will undonate this field
   // by mutating the `donating_states` according to `mask`.
   void Set(const TProtoStringType* default_value, TProtoStringType&& value, Arena* arena,
-           bool donated, uint32_t* donating_states, uint32_t mask);
+           bool donated, arc_ui32* donating_states, arc_ui32 mask);
 
   template <typename FirstParam>
   void Set(FirstParam p1, const char* str, ::google::protobuf::Arena* arena, bool donated,
-           uint32_t* donating_states, uint32_t mask) {
+           arc_ui32* donating_states, arc_ui32 mask) {
     Set(p1, ConstStringParam(str), arena, donated, donating_states, mask);
   }
 
   template <typename FirstParam>
   void Set(FirstParam p1, const char* str, size_t size, ::google::protobuf::Arena* arena,
-           bool donated, uint32_t* donating_states, uint32_t mask) {
+           bool donated, arc_ui32* donating_states, arc_ui32 mask) {
     ConstStringParam sp{str, size};  // for string_view and `const string &`
     Set(p1, sp, arena, donated, donating_states, mask);
   }
@@ -159,22 +159,22 @@ class PROTOBUF_EXPORT InlinedStringField {
   template <typename FirstParam, typename RefWrappedType>
   void Set(FirstParam p1,
            std::reference_wrapper<RefWrappedType> const_string_ref,
-           ::google::protobuf::Arena* arena, bool donated, uint32_t* donating_states,
-           uint32_t mask) {
+           ::google::protobuf::Arena* arena, bool donated, arc_ui32* donating_states,
+           arc_ui32 mask) {
     Set(p1, const_string_ref.get(), arena, donated, donating_states, mask);
   }
 
   template <typename FirstParam, typename SecondParam>
   void SetBytes(FirstParam p1, SecondParam&& p2, ::google::protobuf::Arena* arena,
-                bool donated, uint32_t* donating_states, uint32_t mask) {
+                bool donated, arc_ui32* donating_states, arc_ui32 mask) {
     Set(p1, static_cast<SecondParam&&>(p2), arena, donated, donating_states,
         mask);
   }
 
   template <typename FirstParam>
   void SetBytes(FirstParam p1, const void* str, size_t size,
-                ::google::protobuf::Arena* arena, bool donated, uint32_t* donating_states,
-                uint32_t mask) {
+                ::google::protobuf::Arena* arena, bool donated, arc_ui32* donating_states,
+                arc_ui32 mask) {
     // Must work whether ConstStringParam is string_view or `const string &`
     ConstStringParam sp{static_cast<const char*>(str), size};
     Set(p1, sp, arena, donated, donating_states, mask);
@@ -194,17 +194,17 @@ class PROTOBUF_EXPORT InlinedStringField {
   // `donating_states` according to `mask`, and copies the content of the
   // original string to the returning string.
   TProtoStringType* Mutable(const LazyString& default_value, Arena* arena,
-                       bool donated, uint32_t* donating_states, uint32_t mask);
+                       bool donated, arc_ui32* donating_states, arc_ui32 mask);
   TProtoStringType* Mutable(ArenaStringPtr::EmptyDefault, Arena* arena, bool donated,
-                       uint32_t* donating_states, uint32_t mask);
+                       arc_ui32* donating_states, arc_ui32 mask);
 
   // Release returns a TProtoStringType* instance that is heap-allocated and is not
-  // Own()'d by any arena. If the field is not set, this returns NULL. The
-  // caller retains ownership. Clears this field back to NULL state. Used to
+  // Own()'d by any arena. If the field is not set, this returns nullptr. The
+  // caller retains ownership. Clears this field back to nullptr state. Used to
   // implement release_<field>() methods on generated classes.
-  PROTOBUF_MUST_USE_RESULT TProtoStringType* Release(
-      const TProtoStringType* default_value, Arena* arena, bool donated);
-  PROTOBUF_MUST_USE_RESULT TProtoStringType* ReleaseNonDefault(
+  PROTOBUF_NODISCARD TProtoStringType* Release(const TProtoStringType* default_value,
+                                          Arena* arena, bool donated);
+  PROTOBUF_NODISCARD TProtoStringType* ReleaseNonDefault(
       const TProtoStringType* default_value, Arena* arena);
   TProtoStringType* ReleaseNonDefaultNoArena(const TProtoStringType* default_value);
 
@@ -215,8 +215,8 @@ class PROTOBUF_EXPORT InlinedStringField {
   // If this field is donated, this method undonates this field by mutating the
   // `donating_states` according to `mask`.
   void SetAllocated(const TProtoStringType* default_value, TProtoStringType* value,
-                    Arena* arena, bool donated, uint32_t* donating_states,
-                    uint32_t mask);
+                    Arena* arena, bool donated, arc_ui32* donating_states,
+                    arc_ui32 mask);
 
   void SetAllocatedNoArena(const TProtoStringType* default_value,
                            TProtoStringType* value);
@@ -227,9 +227,9 @@ class PROTOBUF_EXPORT InlinedStringField {
   PROTOBUF_NDEBUG_INLINE void Swap(InlinedStringField* from,
                                    const TProtoStringType* default_value,
                                    Arena* arena, bool donated,
-                                   bool from_donated, uint32_t* donating_states,
-                                   uint32_t* from_donating_states,
-                                   uint32_t mask);
+                                   bool from_donated, arc_ui32* donating_states,
+                                   arc_ui32* from_donating_states,
+                                   arc_ui32 mask);
 
   // Frees storage (if not on an arena).
   PROTOBUF_NDEBUG_INLINE void Destroy(const TProtoStringType* default_value,
@@ -248,9 +248,9 @@ class PROTOBUF_EXPORT InlinedStringField {
     get_mutable()->clear();
   }
 
-  // Clears content, but keeps allocated TProtoStringType if arena != NULL, to avoid
-  // the overhead of heap operations. After this returns, the content (as seen
-  // by the user) will always be equal to |default_value|.
+  // Clears content, but keeps allocated TProtoStringType if arena != nullptr, to
+  // avoid the overhead of heap operations. After this returns, the content (as
+  // seen by the user) will always be equal to |default_value|.
   void ClearToDefault(const LazyString& default_value, Arena* arena,
                       bool donated);
 
@@ -275,7 +275,7 @@ class PROTOBUF_EXPORT InlinedStringField {
   alignas(TProtoStringType) char value_[sizeof(TProtoStringType)];
 
   TProtoStringType* MutableSlow(::google::protobuf::Arena* arena, bool donated,
-                           uint32_t* donating_states, uint32_t mask);
+                           arc_ui32* donating_states, arc_ui32 mask);
 
 
   // When constructed in an Arena, we want our destructor to be skipped.
@@ -345,8 +345,8 @@ inline void InlinedStringField::SetNoArena(const TProtoStringType* /*default_val
 
 inline void InlinedStringField::Swap(
     InlinedStringField* from, const TProtoStringType* /*default_value*/,
-    Arena* arena, bool donated, bool from_donated, uint32_t* donating_states,
-    uint32_t* from_donating_states, uint32_t mask) {
+    Arena* arena, bool donated, bool from_donated, arc_ui32* donating_states,
+    arc_ui32* from_donating_states, arc_ui32 mask) {
 #if GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE
   // If one is donated and the other is not, undonate the donated one.
   if (donated && !from_donated) {

@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -132,11 +132,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+    <CustomBuild Include="'$(SolutionDir)..'\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/py2/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pyparsing/py2/pyparsing.py-" "$(SolutionDir).." "/contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -147,7 +147,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/py2/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pyparsing/py2/pyparsing.py-" "$(SolutionDir).." "/contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -156,14 +156,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/py2/pyparsing.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\pyparsing\py2\pyparsing.py;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\build\scripts\py_compile.py;'$(SolutionDir)..'\contrib\python\pyparsing\py2\pyparsing.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\pyparsing.py.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pyparsing\py2\.dist-info\METADATA">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pyparsing\py2\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm" "-" "contrib/python/pyparsing/py2/.dist-info/METADATA" "_c3057ac1a9ebda4c9df36adf25.rodata" "$(SolutionDir)../contrib/python/pyparsing/py2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_09ec86be57da841914f34eb5cf.rodata" "-" "contrib/python/pyparsing/py2/.dist-info/top_level.txt" "_b858f84bf52e64a55ab49684e3.rodata" "$(SolutionDir)../contrib/python/pyparsing/py2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_3f2252de725aae2cd2660725f1.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm" "-" "contrib/python/pyparsing/py2/.dist-info/METADATA" "_c3057ac1a9ebda4c9df36adf25.rodata" "$(SolutionDir).." "/contrib/python/pyparsing/py2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_09ec86be57da841914f34eb5cf.rodata" "-" "contrib/python/pyparsing/py2/.dist-info/top_level.txt" "_b858f84bf52e64a55ab49684e3.rodata" "$(SolutionDir).." "/contrib/python/pyparsing/py2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_3f2252de725aae2cd2660725f1.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -174,7 +174,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm" "-" "contrib/python/pyparsing/py2/.dist-info/METADATA" "_c3057ac1a9ebda4c9df36adf25.rodata" "$(SolutionDir)../contrib/python/pyparsing/py2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_09ec86be57da841914f34eb5cf.rodata" "-" "contrib/python/pyparsing/py2/.dist-info/top_level.txt" "_b858f84bf52e64a55ab49684e3.rodata" "$(SolutionDir)../contrib/python/pyparsing/py2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_3f2252de725aae2cd2660725f1.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm" "-" "contrib/python/pyparsing/py2/.dist-info/METADATA" "_c3057ac1a9ebda4c9df36adf25.rodata" "$(SolutionDir).." "/contrib/python/pyparsing/py2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_09ec86be57da841914f34eb5cf.rodata" "-" "contrib/python/pyparsing/py2/.dist-info/top_level.txt" "_b858f84bf52e64a55ab49684e3.rodata" "$(SolutionDir).." "/contrib/python/pyparsing/py2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_3f2252de725aae2cd2660725f1.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,14 +183,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/py2/_2c3e9ea3df0f9dd5f60806c2e6.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\py2\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pyparsing\py2\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pyparsing\py2\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\pyparsing\py2\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_2c3e9ea3df0f9dd5f60806c2e6.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_09ec86be57da841914f34eb5cf.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_3f2252de725aae2cd2660725f1.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pyparsing\py2\pyparsing.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pyparsing\py2\pyparsing.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm" "$(SolutionDir)../contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_1406142c34a290a3af09b91c18.rodata" "-" "contrib/python/pyparsing/py2/pyparsing.py" "_5278b20ed75d0be9720cf039ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_252a531c12b2ee73fd359d861e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm" "$(SolutionDir).." "/contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_1406142c34a290a3af09b91c18.rodata" "-" "contrib/python/pyparsing/py2/pyparsing.py" "_5278b20ed75d0be9720cf039ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_252a531c12b2ee73fd359d861e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm" "$(SolutionDir)../contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_1406142c34a290a3af09b91c18.rodata" "-" "contrib/python/pyparsing/py2/pyparsing.py" "_5278b20ed75d0be9720cf039ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_252a531c12b2ee73fd359d861e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm" "$(SolutionDir).." "/contrib/python/pyparsing/py2/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_1406142c34a290a3af09b91c18.rodata" "-" "contrib/python/pyparsing/py2/pyparsing.py" "_5278b20ed75d0be9720cf039ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py2/_252a531c12b2ee73fd359d861e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,16 +210,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/py2/_aab39f37b99676c4efe01cc692.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\py2\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\pyparsing.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pyparsing\py2\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\pyparsing.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_aab39f37b99676c4efe01cc692.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_1406142c34a290a3af09b91c18.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py2\_252a531c12b2ee73fd359d861e.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

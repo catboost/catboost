@@ -1,0 +1,8 @@
+{
+    "test_tools.test_colorize_pytest_error[nested_by]": {
+        "uri": "file://test_tools.test_colorize_pytest_error_nested_by_/extracted"
+    },
+    "test_tools.test_colorize_pytest_error[simple_bt]": {
+        "uri": "file://test_tools.test_colorize_pytest_error_simple_bt_/extracted"
+    }
+}

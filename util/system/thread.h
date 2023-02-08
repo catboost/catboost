@@ -11,6 +11,7 @@
 #include "progname.h"
 
 bool SetHighestThreadPriority();
+bool SetLowestThreadPriority();
 
 class TThread {
     template <typename Callable>

@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DONNX_ML=1 -DONNX_NAMESPACE=onnx -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DONNX_ML=1 -DONNX_NAMESPACE=onnx -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DONNX_ML=1 -DONNX_NAMESPACE=onnx -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DONNX_ML=1 -DONNX_NAMESPACE=onnx -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/onnx;$(SolutionDir)$(Configuration)/contrib/libs/onnx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/libs/tbb/include;'$(SolutionDir)..'/contrib/libs/libf2c;'$(SolutionDir)..'/contrib/libs/protobuf/src;'$(SolutionDir)..'/contrib/libs/onnx;$(SolutionDir)$(Configuration)/contrib/libs/onnx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\model_import.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\4EA54851-CD2B-B921-B7AC-E028819A1089\knn.obj;$(SolutionDir)$(Configuration)\MSVS\4EA54851-CD2B-B921-B7AC-E028819A1089\lda.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bm25.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bow.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\naive_bayesian.obj;$(SolutionDir)$(Configuration)\MSVS\18399176-5408-8102-7C5F-8DA029B8F78E\generated_message_util.obj;$(SolutionDir)$(Configuration)\MSVS\99480F9B-8814-368A-8A11-C9595B291CEC\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\composite_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\null_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\rotating_file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\stream_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\sync_page_cache_file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\system_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\uninitialized_creator.obj;$(SolutionDir)$(Configuration)\MSVS\800E8F90-0E45-1435-7ACC-B0DA06C3FAC7\lemmer_impl.obj;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,19 +78,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\tools\model_comparator\decl.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\tools\model_comparator\main.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\tools\model_comparator\onnx.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\tools\model_comparator\pmml.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\tools\model_comparator\decl.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\tools\model_comparator\pmml.h"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\tools\model_comparator\decl.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\tools\model_comparator\main.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\tools\model_comparator\onnx.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\tools\model_comparator\pmml.cpp"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\tools\model_comparator\decl.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\tools\model_comparator\pmml.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
       <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
     </ProjectReference>
@@ -319,6 +316,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\pycontrib-python-backcall.global.vcxproj">
       <Project>{C05157A0-7771-F262-8E14-B98F127FF6B6}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\chardet\py2\pypython-chardet-py2.global.vcxproj">
+      <Project>{FA0B0012-A9D8-E594-9177-04DFC5D0E499}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\charset-normalizer\pycontrib-python-charset-normalizer.global.vcxproj">
+      <Project>{625D45A5-7FE2-D98E-B3C8-593A0530E22C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.global.vcxproj">
       <Project>{0E0E70FC-148C-4937-1103-230DC41150C2}</Project>
     </ProjectReference>
@@ -348,6 +351,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\py3\pypython-graphviz-py3.global.vcxproj">
       <Project>{01A0DEDB-58DF-B045-B715-7DD21F1CBD3C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\py2\pypython-idna-py2.global.vcxproj">
+      <Project>{5826B83C-FE07-B936-D817-EBC7C02BC780}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\py3\pypython-idna-py3.global.vcxproj">
+      <Project>{C8D5EBDC-14C5-E154-A53E-A6FADEC29811}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\importlib-metadata\py2\pypython-importlib-metadata-py2.global.vcxproj">
       <Project>{77241000-E28E-793C-88B4-56C641DEE900}</Project>
@@ -484,6 +493,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.global.vcxproj">
       <Project>{4E3822AF-7C35-47DE-C3FA-71E83FE8D544}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\py2\pypython-requests-py2.global.vcxproj">
+      <Project>{1E9951C7-50CA-7312-8615-0E9316F02D1F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\py3\pypython-requests-py3.global.vcxproj">
+      <Project>{F10F7783-01B5-C075-3D2D-0F15B5E74776}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scikit-learn\py3\pypython-scikit-learn-py3.global.vcxproj">
       <Project>{669C2627-23FB-2A20-C7CA-1F8E8FE99062}</Project>
     </ProjectReference>
@@ -534,6 +549,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\types-protobuf\pycontrib-python-types-protobuf.global.vcxproj">
       <Project>{EA6763B1-F55C-7DAE-A23C-44726828545D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\urllib3\py3contrib-python-urllib3.global.vcxproj">
+      <Project>{45C610B9-49B3-CB6C-684E-72065E7BE108}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\urllib3\pycontrib-python-urllib3.global.vcxproj">
+      <Project>{233F02C6-22C8-9E91-FA70-20873AA258D6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\py3contrib-python-wcwidth.global.vcxproj">
       <Project>{D9E60A5B-06FF-5A6D-A001-7A0ACCD3118C}</Project>
@@ -702,6 +723,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\certifi\py3library-python-certifi.global.vcxproj">
+      <Project>{B562A0F5-9ACD-90A7-7E65-3F8A082FF982}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\certifi\pylibrary-python-certifi.global.vcxproj">
+      <Project>{74C1B032-BF34-598E-9C7B-74A06DA3518E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\py3library-python-cores.global.vcxproj">
       <Project>{51093023-B70B-7F20-53A9-6AA58A8CECDB}</Project>

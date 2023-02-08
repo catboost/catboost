@@ -83,7 +83,7 @@ static constexpr int kNoHasbit = -1;
 // masks is allowed to be shorter than _has_bits_, but at least one element of
 // masks must be non-zero.
 TProtoStringType ConditionalToCheckBitmasks(
-    const std::vector<uint32_t>& masks, bool return_success = true,
+    const std::vector<arc_ui32>& masks, bool return_success = true,
     StringPiece has_bits_var = "_has_bits_") {
   std::vector<TProtoStringType> parts;
   for (int i = 0; i < masks.size(); i++) {
@@ -230,12 +230,22 @@ bool EmitFieldNonDefaultCondition(io::Printer* printer,
     } else if (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) {
       // Message fields still have has_$name$() methods.
       format("if ($prefix$_internal_has_$name$()) {\n");
-    } else if (field->cpp_type() == FieldDescriptor::CPPTYPE_DOUBLE ||
-               field->cpp_type() == FieldDescriptor::CPPTYPE_FLOAT) {
-      // Handle float comparison to prevent -Wfloat-equal warnings
+    } else if (field->cpp_type() == FieldDescriptor::CPPTYPE_FLOAT) {
       format(
-          "if (!($prefix$_internal_$name$() <= 0 && $prefix$_internal_$name$() "
-          ">= 0)) {\n");
+          "static_assert(sizeof(arc_ui32) == sizeof(float), \"Code assumes "
+          "arc_ui32 and float are the same size.\");\n"
+          "float tmp_$name$ = $prefix$_internal_$name$();\n"
+          "arc_ui32 raw_$name$;\n"
+          "memcpy(&raw_$name$, &tmp_$name$, sizeof(tmp_$name$));\n"
+          "if (raw_$name$ != 0) {\n");
+    } else if (field->cpp_type() == FieldDescriptor::CPPTYPE_DOUBLE) {
+      format(
+          "static_assert(sizeof(arc_ui64) == sizeof(double), \"Code assumes "
+          "arc_ui64 and double are the same size.\");\n"
+          "double tmp_$name$ = $prefix$_internal_$name$();\n"
+          "arc_ui64 raw_$name$;\n"
+          "memcpy(&raw_$name$, &tmp_$name$, sizeof(tmp_$name$));\n"
+          "if (raw_$name$ != 0) {\n");
     } else {
       format("if ($prefix$_internal_$name$() != 0) {\n");
     }
@@ -422,23 +432,23 @@ std::vector<std::vector<const FieldDescriptor*>> CollectFields(
 // Returns a bit mask based on has_bit index of "fields" that are typically on
 // the same chunk. It is used in a group presence check where _has_bits_ is
 // masked to tell if any thing in "fields" is present.
-uint32_t GenChunkMask(const std::vector<const FieldDescriptor*>& fields,
+arc_ui32 GenChunkMask(const std::vector<const FieldDescriptor*>& fields,
                       const std::vector<int>& has_bit_indices) {
   GOOGLE_CHECK(!fields.empty());
   int first_index_offset = has_bit_indices[fields.front()->index()] / 32;
-  uint32_t chunk_mask = 0;
+  arc_ui32 chunk_mask = 0;
   for (auto field : fields) {
     // "index" defines where in the _has_bits_ the field appears.
     int index = has_bit_indices[field->index()];
     GOOGLE_CHECK_EQ(first_index_offset, index / 32);
-    chunk_mask |= static_cast<uint32_t>(1) << (index % 32);
+    chunk_mask |= static_cast<arc_ui32>(1) << (index % 32);
   }
   GOOGLE_CHECK_NE(0, chunk_mask);
   return chunk_mask;
 }
 
 // Return the number of bits set in n, a non-negative integer.
-static int popcnt(uint32_t n) {
+static int popcnt(arc_ui32 n) {
   int result = 0;
   while (n != 0) {
     result += (n & 1);
@@ -524,7 +534,7 @@ void ColdChunkSkipper::OnStartChunk(int chunk, int cached_has_word_index,
   format("if (PROTOBUF_PREDICT_FALSE(");
   int first_word = HasbitWord(chunk, 0);
   while (chunk < limit_chunk_) {
-    uint32_t mask = 0;
+    arc_ui32 mask = 0;
     int this_word = HasbitWord(chunk, 0);
     // Generate mask for chunks on the same word.
     for (; chunk < limit_chunk_ && HasbitWord(chunk, 0) == this_word; chunk++) {
@@ -974,7 +984,7 @@ $annotate_extension_set$
 template <typename _proto_TypeTraits,
           ::PROTOBUF_NAMESPACE_ID::internal::FieldType _field_type,
           bool _is_packed>
-inline PROTOBUF_MUST_USE_RESULT
+PROTOBUF_NODISCARD inline
     typename _proto_TypeTraits::Singular::MutableType
     ReleaseExtension(
         const ::PROTOBUF_NAMESPACE_ID::internal::ExtensionIdentifier<
@@ -1437,7 +1447,8 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
   if (EnableMessageOwnedArena(descriptor_)) {
     format(
         "inline $classname$() : $classname$("
-        "new ::$proto_ns$::Arena(), true) {}\n");
+        "::$proto_ns$::Arena::InternalHelper<$classname$>::\n"
+        "    CreateMessageOwnedArena(), true) {}\n");
   } else {
     format("inline $classname$() : $classname$(nullptr) {}\n");
   }
@@ -1530,10 +1541,8 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
     format("enum $1$Case {\n", UnderscoresToCamelCase(oneof->name(), true));
     format.Indent();
     for (auto field : FieldRange(oneof)) {
-      TProtoStringType oneof_enum_case_field_name =
-          UnderscoresToCamelCase(field->name(), true);
-      format("k$1$ = $2$,\n", oneof_enum_case_field_name,  // 1
-             field->number());                             // 2
+      format("$1$ = $2$,\n", OneofCaseConstantName(field),  // 1
+             field->number());                              // 2
     }
     format("$1$_NOT_SET = 0,\n", ToUpper(oneof->name()));
     format.Outdent();
@@ -1565,7 +1574,8 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
           "bool PackFrom(const ::$proto_ns$::Message& message,\n"
           "              ::PROTOBUF_NAMESPACE_ID::ConstStringParam "
           "type_url_prefix) {\n"
-          "  return _any_metadata_.PackFrom(GetArena(), message, type_url_prefix);\n"
+          "  return _any_metadata_.PackFrom(GetArena(), message, "
+          "type_url_prefix);\n"
           "}\n"
           "bool UnpackTo(::$proto_ns$::Message* message) const {\n"
           "  return _any_metadata_.UnpackTo(message);\n"
@@ -1586,7 +1596,8 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
           "bool PackFrom(const T& message,\n"
           "              ::PROTOBUF_NAMESPACE_ID::ConstStringParam "
           "type_url_prefix) {\n"
-          "  return _any_metadata_.PackFrom<T>(GetArena(), message, type_url_prefix);"
+          "  return _any_metadata_.PackFrom<T>(GetArena(), message, "
+          "type_url_prefix);"
           "}\n"
           "template <typename T, class = typename std::enable_if<"
           "!std::is_convertible<T, const ::$proto_ns$::Message&>"
@@ -1598,13 +1609,14 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
       format(
           "template <typename T>\n"
           "bool PackFrom(const T& message) {\n"
-          "  return _any_metadata_.PackFrom(message);\n"
+          "  return _any_metadata_.PackFrom(GetArena(), message);\n"
           "}\n"
           "template <typename T>\n"
           "bool PackFrom(const T& message,\n"
           "              ::PROTOBUF_NAMESPACE_ID::ConstStringParam "
           "type_url_prefix) {\n"
-          "  return _any_metadata_.PackFrom(message, type_url_prefix);\n"
+          "  return _any_metadata_.PackFrom(GetArena(), message, "
+          "type_url_prefix);\n"
           "}\n"
           "template <typename T>\n"
           "bool UnpackTo(T* message) const {\n"
@@ -1626,12 +1638,12 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
       "}\n"
       "inline void Swap($classname$* other) {\n"
       "  if (other == this) return;\n"
-#ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+      "#ifdef PROTOBUF_FORCE_COPY_IN_SWAP\n"
       "  if (GetOwningArena() != nullptr &&\n"
-      "      GetOwningArena() == other->GetOwningArena()) {\n"
-#else   // PROTOBUF_FORCE_COPY_IN_SWAP
+      "      GetOwningArena() == other->GetOwningArena()) {\n "
+      "#else  // PROTOBUF_FORCE_COPY_IN_SWAP\n"
       "  if (GetOwningArena() == other->GetOwningArena()) {\n"
-#endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      "#endif  // !PROTOBUF_FORCE_COPY_IN_SWAP\n"
       "    InternalSwap(other);\n"
       "  } else {\n"
       "    ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);\n"
@@ -1647,11 +1659,7 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
       "\n"
       "// implements Message ----------------------------------------------\n"
       "\n"
-      "inline $classname$* New() const final {\n"
-      "  return new $classname$();\n"
-      "}\n"
-      "\n"
-      "$classname$* New(::$proto_ns$::Arena* arena) const final {\n"
+      "$classname$* New(::$proto_ns$::Arena* arena = nullptr) const final {\n"
       "  return CreateMaybeMessage<$classname$>(arena);\n"
       "}\n");
 
@@ -1714,12 +1722,6 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
           "$uint8$* _InternalSerialize(\n"
           "    $uint8$* target, ::$proto_ns$::io::EpsCopyOutputStream* stream) "
           "const final;\n");
-
-      // DiscardUnknownFields() is implemented in message.cc using reflections.
-      // We need to implement this function in generated code for messages.
-      if (!UseUnknownFieldSet(descriptor_->file(), options_)) {
-        format("void DiscardUnknownFields()$ full_final$;\n");
-      }
     }
   }
 
@@ -1740,6 +1742,7 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
 
   format(
       // Friend AnyMetadata so that it can call this FullMessageName() method.
+      "\nprivate:\n"
       "friend class ::$proto_ns$::internal::AnyMetadata;\n"
       "static $1$ FullMessageName() {\n"
       "  return \"$full_name$\";\n"
@@ -2088,7 +2091,7 @@ namespace {
 
 // We need to calculate for each field what function the table driven code
 // should use to serialize it. This returns the index in a lookup table.
-uint32_t CalcFieldNum(const FieldGenerator& generator,
+arc_ui32 CalcFieldNum(const FieldGenerator& generator,
                       const FieldDescriptor* field, const Options& options) {
   bool is_a_map = IsMapEntryMessage(field->containing_type());
   int type = field->type();
@@ -2143,7 +2146,7 @@ int MessageGenerator::GenerateFieldMetadata(io::Printer* printer) {
       const FieldDescriptor* field = sorted[i];
       const FieldGenerator& generator = field_generators_.get(field);
 
-      uint32_t tag = internal::WireFormatLite::MakeTag(
+      arc_ui32 tag = internal::WireFormatLite::MakeTag(
           field->number(), WireFormat::WireTypeForFieldType(field->type()));
 
       std::map<TProtoStringType, TProtoStringType> vars;
@@ -2200,7 +2203,7 @@ int MessageGenerator::GenerateFieldMetadata(io::Printer* printer) {
     if (i == sorted.size()) break;
     const FieldDescriptor* field = sorted[i];
 
-    uint32_t tag = internal::WireFormatLite::MakeTag(
+    arc_ui32 tag = internal::WireFormatLite::MakeTag(
         field->number(), WireFormat::WireTypeForFieldType(field->type()));
     if (field->is_packed()) {
       tag = internal::WireFormatLite::MakeTag(
@@ -2263,7 +2266,7 @@ int MessageGenerator::GenerateFieldMetadata(io::Printer* printer) {
           tag);
     } else if (field->real_containing_oneof()) {
       format.Set("oneofoffset",
-                 sizeof(uint32_t) * field->containing_oneof()->index());
+                 sizeof(arc_ui32) * field->containing_oneof()->index());
       format(
           "{PROTOBUF_FIELD_OFFSET($classtype$, $field_name$_), $1$,"
           " PROTOBUF_FIELD_OFFSET($classtype$, _oneof_case_) + "
@@ -2374,7 +2377,7 @@ void MessageGenerator::GenerateClassMethods(io::Printer* printer) {
     }
   }
   if (num_required_fields_ > 0) {
-    const std::vector<uint32_t> masks_for_has_bits = RequiredFieldsBitMask();
+    const std::vector<arc_ui32> masks_for_has_bits = RequiredFieldsBitMask();
     format(
         "static bool MissingRequiredFields(const HasBits& has_bits) "
         "{\n"
@@ -2744,19 +2747,22 @@ std::pair<size_t, size_t> MessageGenerator::GenerateOffsets(
 
     // Some information about a field is in the pdproto profile. The profile is
     // only available at compile time. So we embed such information in the
-    // offset of the field, so that the information is available when reflective
-    // accessing the field at run time.
+    // offset of the field, so that the information is available when
+    // reflectively accessing the field at run time.
     //
     // Embed whether the field is used to the MSB of the offset.
     if (!IsFieldUsed(field, options_)) {
-      format(" | 0x80000000u, // unused\n");
-    } else if (IsEagerlyVerifiedLazy(field, options_, scc_analyzer_)) {
-      format(" | 0x1u, // eagerly verified lazy\n");
-    } else if (IsStringInlined(field, options_)) {
-      format(" | 0x1u, // inlined\n");
-    } else {
-      format(",\n");
+      format(" | 0x80000000u  // unused\n");
     }
+
+    // Embed whether the field is eagerly verified lazy or inlined string to the
+    // LSB of the offset.
+    if (IsEagerlyVerifiedLazy(field, options_, scc_analyzer_)) {
+      format(" | 0x1u  // eagerly verified lazy\n");
+    } else if (IsStringInlined(field, options_)) {
+      format(" | 0x1u  // inlined\n");
+    }
+    format(",\n");
   }
 
   int count = 0;
@@ -2796,7 +2802,7 @@ void MessageGenerator::GenerateSharedConstructorCode(io::Printer* printer) {
   if (HasSimpleBaseClass(descriptor_, options_)) return;
   Formatter format(printer, variables_);
 
-  format("void $classname$::SharedCtor() {\n");
+  format("inline void $classname$::SharedCtor() {\n");
 
   std::vector<bool> processed(optimized_order_.size(), false);
   GenerateConstructorBody(printer, processed, false);
@@ -3119,7 +3125,9 @@ void MessageGenerator::GenerateStructors(io::Printer* printer) {
         "metadata_);\n");
 
     if (descriptor_->extension_range_count() > 0) {
-      format("_extensions_.MergeFrom(from._extensions_);\n");
+      format(
+          "_extensions_.MergeFrom(internal_default_instance(), "
+          "from._extensions_);\n");
     }
 
     GenerateConstructorBody(printer, processed, true);
@@ -3285,7 +3293,7 @@ void MessageGenerator::GenerateClear(io::Printer* printer) {
 
     if (have_outer_if) {
       // Emit an if() that will let us skip the whole chunk if none are set.
-      uint32_t chunk_mask = GenChunkMask(chunk, has_bit_indices_);
+      arc_ui32 chunk_mask = GenChunkMask(chunk, has_bit_indices_);
       TProtoStringType chunk_mask_str =
           StrCat(strings::Hex(chunk_mask, strings::ZERO_PAD_8));
 
@@ -3599,7 +3607,7 @@ void MessageGenerator::GenerateClassSpecificMergeFrom(io::Printer* printer) {
 
     if (have_outer_if) {
       // Emit an if() that will let us skip the whole chunk if none are set.
-      uint32_t chunk_mask = GenChunkMask(chunk, has_bit_indices_);
+      arc_ui32 chunk_mask = GenChunkMask(chunk, has_bit_indices_);
       TProtoStringType chunk_mask_str =
           StrCat(strings::Hex(chunk_mask, strings::ZERO_PAD_8));
 
@@ -3714,7 +3722,9 @@ void MessageGenerator::GenerateClassSpecificMergeFrom(io::Printer* printer) {
   // Merging of extensions and unknown fields is done last, to maximize
   // the opportunity for tail calls.
   if (descriptor_->extension_range_count() > 0) {
-    format("_extensions_.MergeFrom(from._extensions_);\n");
+    format(
+        "_extensions_.MergeFrom(internal_default_instance(), "
+        "from._extensions_);\n");
   }
 
   format(
@@ -4220,9 +4230,9 @@ void MessageGenerator::GenerateSerializeWithCachedSizesBodyShuffled(
   format("}\n");
 }
 
-std::vector<uint32_t> MessageGenerator::RequiredFieldsBitMask() const {
+std::vector<arc_ui32> MessageGenerator::RequiredFieldsBitMask() const {
   const int array_size = HasBitsSize();
-  std::vector<uint32_t> masks(array_size, 0);
+  std::vector<arc_ui32> masks(array_size, 0);
 
   for (auto field : FieldRange(descriptor_)) {
     if (!field->is_required()) {
@@ -4230,7 +4240,7 @@ std::vector<uint32_t> MessageGenerator::RequiredFieldsBitMask() const {
     }
 
     const int has_bit_index = has_bit_indices_[field->index()];
-    masks[has_bit_index / 32] |= static_cast<uint32_t>(1)
+    masks[has_bit_index / 32] |= static_cast<arc_ui32>(1)
                                  << (has_bit_index % 32);
   }
   return masks;
@@ -4315,7 +4325,7 @@ void MessageGenerator::GenerateByteSize(io::Printer* printer) {
   // present then the fast path executes; otherwise the slow path executes.
   if (num_required_fields_ > 1) {
     // The fast path works if all required fields are present.
-    const std::vector<uint32_t> masks_for_has_bits = RequiredFieldsBitMask();
+    const std::vector<arc_ui32> masks_for_has_bits = RequiredFieldsBitMask();
     format("if ($1$) {  // All required fields are present.\n",
            ConditionalToCheckBitmasks(masks_for_has_bits));
     format.Indent();
@@ -4371,7 +4381,7 @@ void MessageGenerator::GenerateByteSize(io::Printer* printer) {
 
     if (have_outer_if) {
       // Emit an if() that will let us skip the whole chunk if none are set.
-      uint32_t chunk_mask = GenChunkMask(chunk, has_bit_indices_);
+      arc_ui32 chunk_mask = GenChunkMask(chunk, has_bit_indices_);
       TProtoStringType chunk_mask_str =
           StrCat(strings::Hex(chunk_mask, strings::ZERO_PAD_8));
 
@@ -4516,42 +4526,7 @@ void MessageGenerator::GenerateIsInitialized(io::Printer* printer) {
 
   // Now check that all non-oneof embedded messages are initialized.
   for (auto field : optimized_order_) {
-    // TODO(ckennelly): Push this down into a generator?
-    if (field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE &&
-        !ShouldIgnoreRequiredFieldCheck(field, options_) &&
-        scc_analyzer_->HasRequiredFields(field->message_type())) {
-      if (field->is_repeated()) {
-        if (IsImplicitWeakField(field, options_, scc_analyzer_)) {
-          format(
-              "if "
-              "(!::$proto_ns$::internal::AllAreInitializedWeak($1$_.weak)"
-              ")"
-              " return false;\n",
-              FieldName(field));
-        } else {
-          format(
-              "if (!::$proto_ns$::internal::AllAreInitialized($1$_))"
-              " return false;\n",
-              FieldName(field));
-        }
-      } else if (field->options().weak()) {
-        continue;
-      } else if (IsEagerlyVerifiedLazy(field, options_, scc_analyzer_)) {
-        GOOGLE_CHECK(!field->real_containing_oneof());
-        format(
-            "if (_internal_has_$1$()) {\n"
-            "  if (!$1$().IsInitialized()) return false;\n"
-            "}\n",
-            FieldName(field));
-      } else {
-        GOOGLE_CHECK(!field->real_containing_oneof());
-        format(
-            "if (_internal_has_$1$()) {\n"
-            "  if (!$1$_->IsInitialized()) return false;\n"
-            "}\n",
-            FieldName(field));
-      }
-    }
+    field_generators_.get(field).GenerateIsInitialized(printer);
   }
   if (num_weak_fields_) {
     // For Weak fields.
@@ -4579,23 +4554,9 @@ void MessageGenerator::GenerateIsInitialized(io::Printer* printer) {
     for (auto field : FieldRange(oneof)) {
       format("case k$1$: {\n", UnderscoresToCamelCase(field->name(), true));
       format.Indent();
-
-      if (!IsFieldStripped(field, options_) &&
-          field->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE &&
-          !ShouldIgnoreRequiredFieldCheck(field, options_) &&
-          scc_analyzer_->HasRequiredFields(field->message_type())) {
-        GOOGLE_CHECK(!(field->options().weak() || !field->real_containing_oneof()));
-        if (field->options().weak()) {
-          // Just skip.
-        } else {
-          format(
-              "if (has_$1$()) {\n"
-              "  if (!this->$1$().IsInitialized()) return false;\n"
-              "}\n",
-              FieldName(field));
-        }
+      if (!IsFieldStripped(field, options_)) {
+        field_generators_.get(field).GenerateIsInitialized(printer);
       }
-
       format("break;\n");
       format.Outdent();
       format("}\n");

@@ -9,6 +9,7 @@ namespace NYT {
 class TChunkedMemoryPool;
 
 DECLARE_REFCOUNTED_STRUCT(IMemoryChunkProvider)
+DECLARE_REFCOUNTED_STRUCT(TSharedRangeHolder)
 
 ////////////////////////////////////////////////////////////////////////////////
 

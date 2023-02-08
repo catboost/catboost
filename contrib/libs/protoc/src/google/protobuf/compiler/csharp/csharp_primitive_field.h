@@ -94,4 +94,3 @@ class PrimitiveOneofFieldGenerator : public PrimitiveFieldGenerator {
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_PRIMITIVE_FIELD_H__
-

@@ -366,7 +366,9 @@ def _unify_path(path):
         assert path.endswith(py_ext), path
         parts = path[:-len(py_ext)].split(SEP)
 
-        for p in reversed(parts):
+        # Use SEP as trailing terminator to make an extra step
+        # and find a proper match when parts is a full matching path
+        for p in reversed([SEP] + parts):
             if p in node:
                 node = node[p]
                 res.append(p)
@@ -383,3 +385,37 @@ def _unify_path(path):
         raise MissingTestModule("Can't find proper module for '{}' path among: {}".format(path, suff_tree))
     else:
         return path
+
+
+def colorize_pytest_error(text):
+    error_prefix = "E   "
+    blocks = [text]
+
+    while True:
+        text = blocks.pop()
+
+        err_start = text.find(error_prefix, 1)
+        if err_start == -1:
+            return ''.join(blocks + [text])
+
+        for pos in range(err_start + 1, len(text) - 1):
+            if text[pos] == '\n':
+                if not text[pos + 1:].startswith(error_prefix):
+                    err_end = pos + 1
+                    break
+        else:
+            err_end = len(text)
+
+        bt, error, tail = text[:err_start], text[err_start:err_end], text[err_end:]
+
+        filters = [
+            # File path, line number and function name
+            (re.compile(r"^(.*?):(\d+): in (\S+)", flags=re.MULTILINE),
+             r"[[unimp]]\1[[rst]]:[[alt2]]\2[[rst]]: in [[alt1]]\3[[rst]]"),
+        ]
+        for regex, substitution in filters:
+            bt = regex.sub(substitution, bt)
+
+        blocks.append(bt)
+        blocks.append('[[bad]]' + error)
+        blocks.append(tail)

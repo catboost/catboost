@@ -1,9 +1,0 @@
-{
-    "name": "jest",
-    "version": "27.1.0",
-    "description": "jest bundle",
-    "dependencies": {
-        "jest": "27.1.0",
-        "@types/jest": "27.0.1"
-    }
-}

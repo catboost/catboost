@@ -71,23 +71,13 @@ TYsonString::TYsonString()
 TYsonString::TYsonString(const TYsonStringBuf& ysonStringBuf)
 {
     if (ysonStringBuf) {
-        struct TCapturedYsonStringPayload
-            : public TSharedRangeHolder
-            , public TWithExtraSpace<TCapturedYsonStringPayload>
-        {
-            char* GetData()
-            {
-                return static_cast<char*>(GetExtraSpacePtr());
-            }
-        };
-
         auto data = ysonStringBuf.AsStringBuf();
-        auto payload = NewWithExtraSpace<TCapturedYsonStringPayload>(data.length());
-        ::memcpy(payload->GetData(), data.data(), data.length());
-        Payload_ = payload;
-        Begin_ = payload->GetData();
+        auto holder = NDetail::TYsonStringHolder::Allocate(data.length());
+        ::memcpy(holder->GetData(), data.data(), data.length());
+        Begin_ = holder->GetData();
         Size_ = data.Size();
         Type_ = ysonStringBuf.GetType();
+        Payload_ = std::move(holder);
     } else {
         Begin_ = nullptr;
         Size_ = 0;

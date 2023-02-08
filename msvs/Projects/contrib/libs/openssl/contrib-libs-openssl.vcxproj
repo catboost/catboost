@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DAESNI_ASM -DOPENSSL_BN_ASM_MONT -DOPENSSL_CPUID_OBJ -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DECP_NISTZ256_ASM -DPOLY1305_ASM -DKECCAK1600_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DPADLOCK_ASM -DRC4_ASM -DX25519_ASM -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\"" -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\"" -DOPENSSL_SYS_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_WINSOCK_DEPRECATED_NO_WARNINGS /GF -DVPAES_ASM  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DAESNI_ASM -DOPENSSL_BN_ASM_MONT -DOPENSSL_CPUID_OBJ -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DECP_NISTZ256_ASM -DPOLY1305_ASM -DKECCAK1600_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DPADLOCK_ASM -DRC4_ASM -DX25519_ASM -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\"" -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\"" -DOPENSSL_SYS_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_WINSOCK_DEPRECATED_NO_WARNINGS /GF -DVPAES_ASM  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DAESNI_ASM -DOPENSSL_BN_ASM_MONT -DOPENSSL_CPUID_OBJ -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DECP_NISTZ256_ASM -DPOLY1305_ASM -DKECCAK1600_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DPADLOCK_ASM -DRC4_ASM -DX25519_ASM -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\"" -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\"" -DOPENSSL_SYS_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_WINSOCK_DEPRECATED_NO_WARNINGS /GF -DVPAES_ASM  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DAESNI_ASM -DOPENSSL_BN_ASM_MONT -DOPENSSL_CPUID_OBJ -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DECP_NISTZ256_ASM -DPOLY1305_ASM -DKECCAK1600_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DPADLOCK_ASM -DRC4_ASM -DX25519_ASM -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\"" -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\"" -DOPENSSL_SYS_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_WINSOCK_DEPRECATED_NO_WARNINGS /GF -DVPAES_ASM  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/openssl;$(SolutionDir)../contrib/libs/zlib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/openssl/include;'$(SolutionDir)..'/contrib/libs/openssl;'$(SolutionDir)..'/contrib/libs/zlib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,151 +78,151 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\engines\e_capi.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\engines\e_capi.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\engines\e_padlock.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\engines\e_padlock.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\bio_ssl.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\bio_ssl.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\d1_lib.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\d1_lib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\d1_msg.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\d1_msg.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\d1_srtp.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\d1_srtp.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\methods.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\methods.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\packet.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\packet.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\pqueue.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\pqueue.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\record\dtls1_bitmap.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\record\dtls1_bitmap.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\record\rec_layer_d1.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\record\rec_layer_d1.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\record\rec_layer_s3.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\record\rec_layer_s3.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\record\ssl3_buffer.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\record\ssl3_buffer.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\record\ssl3_record.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\record\ssl3_record.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\record\ssl3_record_tls13.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\record\ssl3_record_tls13.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\s3_cbc.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\s3_cbc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\s3_enc.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\s3_enc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\s3_lib.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\s3_lib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\s3_msg.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\s3_msg.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_asn1.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_asn1.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_cert.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_cert.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_ciph.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_ciph.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_conf.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_conf.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_err.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_err.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_init.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_init.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_lib.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_lib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_mcnf.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_mcnf.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_rsa.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_rsa.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_sess.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_sess.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_stat.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_stat.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_txt.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_txt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_utst.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_utst.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\extensions.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\extensions.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\extensions_clnt.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\extensions_clnt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\extensions_cust.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\extensions_cust.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\extensions_srvr.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\extensions_srvr.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\statem.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\statem.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\statem_clnt.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\statem_clnt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\statem_dtls.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\statem_dtls.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\statem_lib.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\statem_lib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\statem_srvr.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\statem_srvr.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\t1_enc.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\t1_enc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\t1_lib.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\t1_lib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\t1_trce.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\t1_trce.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\tls13_enc.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\tls13_enc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\ssl\tls_srp.c">
+    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\tls_srp.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.masm">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.masm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,7 +235,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -244,202 +244,199 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.masm;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\build\scripts\fix_msvc_output.py;'$(SolutionDir)..'\build\scripts\process_command_files.py;'$(SolutionDir)..'\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.masm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\_\asm\windows\engines\e_padlock-x86_64.masm.obj;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\e_os.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\engines\e_capi_err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\aria.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\asn1.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\async.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-android-arm.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-android-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-android-i686.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-android-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-linux-aarch64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-linux-arm.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-linux.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-win-i686.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-win-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_dh.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_srp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\chacha.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\cryptlib.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\ctype.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-android.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-ios-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-linux-aarch64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-linux.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-osx-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-win.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\ec.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\engine.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\evp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\lhash.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\md32_common.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\objects.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\poly1305.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\rand.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\sha.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\siphash.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\sm2.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\sm2err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\sm3.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\sm4.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\store.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\x509.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\bio.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\comp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\conf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\constant_time.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\cryptlib.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\dane.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\dso.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\dsoerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\nelem.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\numbers.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\o_dir.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\o_str.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\refcount.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\sockets.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\sslconf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\thread_once.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\internal\tsan_assist.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\aes.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\asn1.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\asn1err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\asn1t.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\async.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\asyncerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\bio.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\bioerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\blowfish.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\bn.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\bnerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\buffer.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\buffererr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\camellia.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\cast.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\cmac.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\cms.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\cmserr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\comp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\comperr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\conf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\conf_api.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\conferr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\crypto.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\cryptoerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ct.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\cterr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\des.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\dh.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\dherr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\dsa.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\dsaerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\dtls1.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\e_os2.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ebcdic.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ec.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ecerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\engine.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\engineerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\evp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\evperr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\hmac.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\idea.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\kdf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\kdferr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\lhash.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\md2.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\md4.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\md5.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\mdc2.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\modes.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\obj_mac.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\objects.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\objectserr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ocsp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ocsperr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-android-arm.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-android-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-android-i686.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-android-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-ios-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-ios-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux-aarch64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux-arm.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-osx-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-osx.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-win-i686.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-win-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslv.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ossl_typ.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\pem.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\pemerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\pkcs12.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\pkcs12err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\pkcs7.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\pkcs7err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\rand.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\rand_drbg.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\randerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\rc2.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\rc4.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\rc5.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ripemd.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\rsa.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\rsaerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\safestack.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\seed.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\sha.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\srp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\srtp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ssl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ssl2.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ssl3.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\sslerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\stack.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\store.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\storeerr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\symhacks.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\tls1.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ts.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\tserr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\txt_db.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ui.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\uierr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\whrlpool.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\x509.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\x509_vfy.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\x509err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\x509v3.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\x509v3err.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\sanitizers.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\ssl\packet_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\ssl\record\record.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\ssl\record\record_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_cert_table.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\ssl\ssl_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\statem.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\ssl\statem\statem_local.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\e_os.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\engines\e_capi_err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\aria.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\asn1.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\async.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-android-arm.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-android-arm64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-android-i686.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-android-x86_64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-ios-arm64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-ios-x86_64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-linux-aarch64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-linux-arm.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-linux.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-win-i686.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf-win-x86_64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_conf.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_dh.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\bn_srp.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\chacha.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\cryptlib.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\ctype.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\dso_conf-android.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\dso_conf-ios-arm64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\dso_conf-linux-aarch64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\dso_conf-linux.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\dso_conf-osx-arm64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\dso_conf-win.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\dso_conf.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\ec.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\engine.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\evp.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\lhash.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\md32_common.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\objects.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\poly1305.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\rand.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\sha.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\siphash.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\sm2.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\sm2err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\sm3.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\sm4.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\store.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\crypto\x509.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\bio.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\comp.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\conf.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\constant_time.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\cryptlib.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\dane.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\dso.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\dsoerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\nelem.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\numbers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\o_dir.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\o_str.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\refcount.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\sockets.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\sslconf.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\thread_once.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\internal\tsan_assist.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\aes.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\asn1.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\asn1err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\asn1t.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\async.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\asyncerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\bio.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\bioerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\blowfish.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\bn.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\bnerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\buffer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\buffererr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\camellia.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\cast.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\cmac.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\cms.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\cmserr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\comp.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\comperr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\conf.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\conf_api.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\conferr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\crypto.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\cryptoerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ct.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\cterr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\des.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\dh.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\dherr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\dsa.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\dsaerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\dtls1.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\e_os2.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ebcdic.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ec.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ecerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\engine.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\engineerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\evp.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\evperr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\hmac.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\idea.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\kdf.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\kdferr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\lhash.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\md2.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\md4.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\md5.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\mdc2.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\modes.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\obj_mac.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\objects.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\objectserr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ocsp.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ocsperr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-android-arm.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-android-arm64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-android-i686.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-android-x86_64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-ios-arm64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-ios-x86_64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-linux-aarch64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-linux-arm.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-linux.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-osx-arm64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-osx.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-win-i686.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf-win-x86_64.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslconf.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\opensslv.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ossl_typ.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\pem.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\pemerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\pkcs12.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\pkcs12err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\pkcs7.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\pkcs7err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\rand.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\rand_drbg.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\randerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\rc2.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\rc4.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\rc5.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ripemd.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\rsa.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\rsaerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\safestack.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\seed.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\sha.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\srp.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\srtp.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ssl.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ssl2.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ssl3.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\sslerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\stack.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\store.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\storeerr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\symhacks.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\tls1.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ts.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\tserr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\txt_db.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\ui.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\uierr.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\whrlpool.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\x509.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\x509_vfy.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\x509err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\x509v3.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\include\openssl\x509v3err.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\sanitizers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\packet_local.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\record\record.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\record\record_local.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_cert_table.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\ssl_local.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\statem.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\openssl\ssl\statem\statem_local.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
     </ProjectReference>

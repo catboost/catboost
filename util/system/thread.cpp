@@ -43,6 +43,21 @@ bool SetHighestThreadPriority() {
 #endif
 }
 
+bool SetLowestThreadPriority() {
+#ifdef _win_
+    return SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
+#else
+    struct sched_param sch;
+    memset(&sch, 0, sizeof(sch));
+    sch.sched_priority = 0;
+    #ifdef _darwin_
+    return pthread_setschedparam(pthread_self(), SCHED_RR, &sch) == 0;
+    #else
+    return pthread_setschedparam(pthread_self(), SCHED_IDLE, &sch) == 0;
+    #endif
+#endif
+}
+
 namespace {
     using TParams = TThread::TParams;
     using TId = TThread::TId;

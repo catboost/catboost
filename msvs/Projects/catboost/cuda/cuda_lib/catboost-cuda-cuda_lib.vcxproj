@@ -57,18 +57,18 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/snappy/include;$(SolutionDir)../contrib/libs/nvidia/cub;$(SolutionDir)../contrib/libs/nvidia/thrust;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/libs/tbb/include;'$(SolutionDir)..'/contrib/libs/brotli/include;'$(SolutionDir)..'/contrib/libs/snappy/include;'$(SolutionDir)..'/contrib/libs/nvidia/cub;'$(SolutionDir)..'/contrib/libs/nvidia/thrust;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     "/LIBPATH:$(CUDA_PATH)/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    "/LIBPATH:$(CUDA_PATH)/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     "/LIBPATH:/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    "/LIBPATH:/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -78,55 +78,71 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_resharding.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\reduce_scatter.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\local_promise_future.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\mpi_promise_future.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\promise_factory.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\memory_pool\stack_like_memory_pool.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\mpi\mpi_manager.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\serialization\task_factory.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\cpu_func.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\enable_peers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\host_tasks.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\kernel_task.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\memory_allocation.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\memory_copy_tasks.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\memory_state_func.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\request_stream_task.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\stream_section_task.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_queue\mpi_task_queue.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_queue\single_host_task_queue.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cache.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_base.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_events_provider.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_kernel_buffer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_manager.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_profiler.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\device_id.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\device_provider.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\devices_list.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\devices_provider.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\fwd.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\gpu_single_worker.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\hwloc_wrapper.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\inter_device_stream_section.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\mapping.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\memory_copy_performance.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\single_device.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\stream_section_tasks_launcher.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\task.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\worker_state.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\compile_cuda.py">
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_resharding.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer_helpers\reduce_scatter.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\future\local_promise_future.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\future\mpi_promise_future.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\future\promise_factory.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\memory_pool\stack_like_memory_pool.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\mpi\mpi_manager.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\serialization\task_factory.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\cpu_func.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\enable_peers.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\host_tasks.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\kernel_task.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\memory_allocation.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\memory_copy_tasks.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\memory_state_func.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\request_stream_task.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\stream_section_task.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_queue\mpi_task_queue.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_queue\single_host_task_queue.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cache.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_base.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_events_provider.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_kernel_buffer.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_manager.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_profiler.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\device_id.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\device_provider.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\devices_list.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\devices_provider.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\fwd.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\gpu_single_worker.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\hwloc_wrapper.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\inter_device_stream_section.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\mapping.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\memory_copy_performance.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\single_device.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\stream_section_tasks_launcher.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\task.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\worker_state.cpp"/>
+    <CustomBuild Include="'$(SolutionDir)..'\build\scripts\compile_cuda.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/compile_cuda.py" "$(SolutionDir)$(Configuration)/tools/mtime0/mtime0.dll" "$(CUDA_PATH)\bin\nvcc.exe" "--expt-relaxed-constexpr" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=compute_60" "-gencode" "arch=compute_61,code=compute_61" "-gencode" "arch=compute_61,code=sm_61" "-gencode" "arch=compute_70,code=sm_70" "-gencode" "arch=compute_70,code=compute_70" "--ptxas-options=-v" "-gencode=arch=compute_80,code=sm_80" "-c" "$(SolutionDir)../catboost/cuda/cuda_lib/kernel/kernel.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_lib/_/kernel/kernel.cu.obj" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion" "-I$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I$(SolutionDir)../contrib/libs/tbb/include" "-I$(SolutionDir)../contrib/libs/brotli/include" "-I$(SolutionDir)../contrib/libs/snappy/include" "-I$(SolutionDir)../contrib/libs/nvidia/cub" "-I$(SolutionDir)../contrib/libs/nvidia/thrust" "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ob0" "/Od" /D_DEBUG "/MTd" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes "/std:c++14"
+set "Y_SDK_Root=$WINDOWS_KITS_RESOURCE_GLOBAL"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_SDK_Version=$(WindowsTargetPlatformVersion)"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_VC_Root=$(CUDA_HOST_TOOLCHAIN-sbr:2153212401)/VC/Tools/MSVC/14.28.29910"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_VC_Version=14.28.29910"
+if %errorlevel% neq 0 goto :cmEnd
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/compile_cuda.py" "$(SolutionDir)$(Configuration)/tools/mtime0/mtime0.dll" "\bin\nvcc.exe" "--compiler-bindir=$(CUDA_HOST_TOOLCHAIN-sbr:2153212401)/VC/Tools/MSVC/14.28.29910/bin/HostX64/x64/cl.exe" "--expt-relaxed-constexpr" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=compute_60" "-gencode" "arch=compute_61,code=compute_61" "-gencode" "arch=compute_61,code=sm_61" "-gencode" "arch=compute_70,code=sm_70" "-gencode" "arch=compute_70,code=compute_70" "--ptxas-options=-v" "-gencode=arch=compute_80,code=sm_80" "-c" "$(SolutionDir).." "/catboost/cuda/cuda_lib/kernel/kernel.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_lib/_/kernel/kernel.cu.obj" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include" "-I'$(SolutionDir)..'/contrib/libs/zlib/include" "-I'$(SolutionDir)..'/contrib/libs/double-conversion" "-I'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows" "-I'$(SolutionDir)..'/contrib/libs/tbb/include" "-I'$(SolutionDir)..'/contrib/libs/brotli/include" "-I'$(SolutionDir)..'/contrib/libs/snappy/include" "-I'$(SolutionDir)..'/contrib/libs/nvidia/cub" "-I'$(SolutionDir)..'/contrib/libs/nvidia/thrust" "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ob0" "/Od" /D_DEBUG "/MTd" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes "/std:c++14"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/compile_cuda.py" "$(SolutionDir)$(Configuration)/tools/mtime0/mtime0.dll" "$(CUDA_PATH)\bin\nvcc.exe" "--expt-relaxed-constexpr" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=compute_60" "-gencode" "arch=compute_61,code=compute_61" "-gencode" "arch=compute_61,code=sm_61" "-gencode" "arch=compute_70,code=sm_70" "-gencode" "arch=compute_70,code=compute_70" "--ptxas-options=-v" "-gencode=arch=compute_80,code=sm_80" "-c" "$(SolutionDir)../catboost/cuda/cuda_lib/kernel/reduce.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_lib/_/kernel/reduce.cu.obj" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion" "-I$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I$(SolutionDir)../contrib/libs/tbb/include" "-I$(SolutionDir)../contrib/libs/brotli/include" "-I$(SolutionDir)../contrib/libs/snappy/include" "-I$(SolutionDir)../contrib/libs/nvidia/cub" "-I$(SolutionDir)../contrib/libs/nvidia/thrust" "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ob0" "/Od" /D_DEBUG "/MTd" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes "/std:c++14"
+set "Y_SDK_Root=$WINDOWS_KITS_RESOURCE_GLOBAL"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_SDK_Version=$(WindowsTargetPlatformVersion)"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_VC_Root=$(CUDA_HOST_TOOLCHAIN-sbr:2153212401)/VC/Tools/MSVC/14.28.29910"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_VC_Version=14.28.29910"
+if %errorlevel% neq 0 goto :cmEnd
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/compile_cuda.py" "$(SolutionDir)$(Configuration)/tools/mtime0/mtime0.dll" "\bin\nvcc.exe" "--compiler-bindir=$(CUDA_HOST_TOOLCHAIN-sbr:2153212401)/VC/Tools/MSVC/14.28.29910/bin/HostX64/x64/cl.exe" "--expt-relaxed-constexpr" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=compute_60" "-gencode" "arch=compute_61,code=compute_61" "-gencode" "arch=compute_61,code=sm_61" "-gencode" "arch=compute_70,code=sm_70" "-gencode" "arch=compute_70,code=compute_70" "--ptxas-options=-v" "-gencode=arch=compute_80,code=sm_80" "-c" "$(SolutionDir).." "/catboost/cuda/cuda_lib/kernel/reduce.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_lib/_/kernel/reduce.cu.obj" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include" "-I'$(SolutionDir)..'/contrib/libs/zlib/include" "-I'$(SolutionDir)..'/contrib/libs/double-conversion" "-I'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows" "-I'$(SolutionDir)..'/contrib/libs/tbb/include" "-I'$(SolutionDir)..'/contrib/libs/brotli/include" "-I'$(SolutionDir)..'/contrib/libs/snappy/include" "-I'$(SolutionDir)..'/contrib/libs/nvidia/cub" "-I'$(SolutionDir)..'/contrib/libs/nvidia/thrust" "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ob0" "/Od" /D_DEBUG "/MTd" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes "/std:c++14"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -137,11 +153,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/compile_cuda.py" "$(SolutionDir)$(Configuration)/tools/mtime0/mtime0.dll" "$(CUDA_PATH)\bin\nvcc.exe" "--expt-relaxed-constexpr" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=compute_60" "-gencode" "arch=compute_61,code=compute_61" "-gencode" "arch=compute_61,code=sm_61" "-gencode" "arch=compute_70,code=sm_70" "-gencode" "arch=compute_70,code=compute_70" "--ptxas-options=-v" "-gencode=arch=compute_80,code=sm_80" "-c" "$(SolutionDir)../catboost/cuda/cuda_lib/kernel/kernel.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_lib/_/kernel/kernel.cu.obj" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion" "-I$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I$(SolutionDir)../contrib/libs/tbb/include" "-I$(SolutionDir)../contrib/libs/brotli/include" "-I$(SolutionDir)../contrib/libs/snappy/include" "-I$(SolutionDir)../contrib/libs/nvidia/cub" "-I$(SolutionDir)../contrib/libs/nvidia/thrust" "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ox" "/Ob2" "/Oi" /DNDEBUG "/MT" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes "/std:c++14"
+set "Y_SDK_Root=$WINDOWS_KITS_RESOURCE_GLOBAL"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_SDK_Version=$(WindowsTargetPlatformVersion)"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_VC_Root=$(CUDA_HOST_TOOLCHAIN-sbr:2153212401)/VC/Tools/MSVC/14.28.29910"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_VC_Version=14.28.29910"
+if %errorlevel% neq 0 goto :cmEnd
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/compile_cuda.py" "$(SolutionDir)$(Configuration)/tools/mtime0/mtime0.dll" "\bin\nvcc.exe" "--compiler-bindir=$(CUDA_HOST_TOOLCHAIN-sbr:2153212401)/VC/Tools/MSVC/14.28.29910/bin/HostX64/x64/cl.exe" "--expt-relaxed-constexpr" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=compute_60" "-gencode" "arch=compute_61,code=compute_61" "-gencode" "arch=compute_61,code=sm_61" "-gencode" "arch=compute_70,code=sm_70" "-gencode" "arch=compute_70,code=compute_70" "--ptxas-options=-v" "-gencode=arch=compute_80,code=sm_80" "-c" "$(SolutionDir).." "/catboost/cuda/cuda_lib/kernel/kernel.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_lib/_/kernel/kernel.cu.obj" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include" "-I'$(SolutionDir)..'/contrib/libs/zlib/include" "-I'$(SolutionDir)..'/contrib/libs/double-conversion" "-I'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows" "-I'$(SolutionDir)..'/contrib/libs/tbb/include" "-I'$(SolutionDir)..'/contrib/libs/brotli/include" "-I'$(SolutionDir)..'/contrib/libs/snappy/include" "-I'$(SolutionDir)..'/contrib/libs/nvidia/cub" "-I'$(SolutionDir)..'/contrib/libs/nvidia/thrust" "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ox" "/Ob2" "/Oi" /DNDEBUG "/MT" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes "/std:c++14"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/compile_cuda.py" "$(SolutionDir)$(Configuration)/tools/mtime0/mtime0.dll" "$(CUDA_PATH)\bin\nvcc.exe" "--expt-relaxed-constexpr" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=compute_60" "-gencode" "arch=compute_61,code=compute_61" "-gencode" "arch=compute_61,code=sm_61" "-gencode" "arch=compute_70,code=sm_70" "-gencode" "arch=compute_70,code=compute_70" "--ptxas-options=-v" "-gencode=arch=compute_80,code=sm_80" "-c" "$(SolutionDir)../catboost/cuda/cuda_lib/kernel/reduce.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_lib/_/kernel/reduce.cu.obj" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion" "-I$(SolutionDir)../contrib/libs/libc_compat/include/windows" "-I$(SolutionDir)../contrib/libs/tbb/include" "-I$(SolutionDir)../contrib/libs/brotli/include" "-I$(SolutionDir)../contrib/libs/snappy/include" "-I$(SolutionDir)../contrib/libs/nvidia/cub" "-I$(SolutionDir)../contrib/libs/nvidia/thrust" "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ox" "/Ob2" "/Oi" /DNDEBUG "/MT" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes "/std:c++14"
+set "Y_SDK_Root=$WINDOWS_KITS_RESOURCE_GLOBAL"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_SDK_Version=$(WindowsTargetPlatformVersion)"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_VC_Root=$(CUDA_HOST_TOOLCHAIN-sbr:2153212401)/VC/Tools/MSVC/14.28.29910"
+if %errorlevel% neq 0 goto :cmEnd
+set "Y_VC_Version=14.28.29910"
+if %errorlevel% neq 0 goto :cmEnd
+"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/compile_cuda.py" "$(SolutionDir)$(Configuration)/tools/mtime0/mtime0.dll" "\bin\nvcc.exe" "--compiler-bindir=$(CUDA_HOST_TOOLCHAIN-sbr:2153212401)/VC/Tools/MSVC/14.28.29910/bin/HostX64/x64/cl.exe" "--expt-relaxed-constexpr" "-gencode" "arch=compute_35,code=sm_35" "-gencode" "arch=compute_50,code=compute_50" "-gencode" "arch=compute_52,code=sm_52" "-gencode" "arch=compute_60,code=compute_60" "-gencode" "arch=compute_61,code=compute_61" "-gencode" "arch=compute_61,code=sm_61" "-gencode" "arch=compute_70,code=sm_70" "-gencode" "arch=compute_70,code=compute_70" "--ptxas-options=-v" "-gencode=arch=compute_80,code=sm_80" "-c" "$(SolutionDir).." "/catboost/cuda/cuda_lib/kernel/reduce.cu" "-o" "$(SolutionDir)$(Configuration)/catboost/cuda/cuda_lib/_/kernel/reduce.cu.obj" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include" "-I'$(SolutionDir)..'/contrib/libs/zlib/include" "-I'$(SolutionDir)..'/contrib/libs/double-conversion" "-I'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows" "-I'$(SolutionDir)..'/contrib/libs/tbb/include" "-I'$(SolutionDir)..'/contrib/libs/brotli/include" "-I'$(SolutionDir)..'/contrib/libs/snappy/include" "-I'$(SolutionDir)..'/contrib/libs/nvidia/cub" "-I'$(SolutionDir)..'/contrib/libs/nvidia/thrust" "--cflags" "/nologo" "/Zm500" "/GR" "/bigobj" "/FC" "/EHs" "/errorReport:prompt" "/Zc:inline" "/utf-8" "/permissive-" "/FD" "/MP" "/Ox" "/Ob2" "/Oi" /DNDEBUG "/MT" "/Zi" "/FS" "/we4013" "/w14018" "/w14265" "/w14296" "/w14431" "/wd4005" "/wd4117" "/wd4127" "/wd4200" "/wd4201" "/wd4351" "/wd4355" "/wd4503" "/wd4510" "/wd4511" "/wd4512" "/wd4554" "/wd4610" "/wd4706" "/wd4800" "/wd4996" "/wd4714" "/wd4197" "/wd4245" "/wd4324" "/wd5033" /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1 "/std:c++latest" "/Zc:__cplusplus" /D_CRT_USE_BUILTIN_OFFSETOF -DCATBOOST_OPENSOURCE=yes "/std:c++14"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -150,74 +182,71 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/cuda_lib/_/kernel/kernel.cu.obj	$B/catboost/cuda/cuda_lib/_/kernel/reduce.cu.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\cuda_lib\kernel\kernel.cu;$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;$(SolutionDir)..\catboost\cuda\cuda_lib\kernel\reduce.cu;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\build\scripts\compile_cuda.py;'$(SolutionDir)..'\catboost\cuda\cuda_lib\kernel\kernel.cu;'$(SolutionDir)..'\build\platform\cuda\cuda_runtime_include.h;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;'$(SolutionDir)..'\catboost\cuda\cuda_lib\kernel\reduce.cu;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib\_\kernel\kernel.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib\_\kernel\reduce.cu.obj;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cache.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\column_aligment_helper.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cpu_reducers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_base.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\all_reduce.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_reader.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_resharding.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_writer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer_helpers\reduce_scatter.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_events_provider.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_kernel_buffer.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_manager.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_profiler.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\device_id.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\device_subtasks_helper.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\devices_list.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\devices_provider.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\future.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\local_promise_future.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\mpi_promise_future.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\promise_factory.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\fwd.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\gpu_single_worker.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\hwloc_wrapper.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\inter_device_stream_section.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\kernel.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\mapping.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\memory_copy_performance.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\memory_pool\cuda_malloc_wrapper.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\memory_pool\stack_like_memory_pool.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\memory_provider_trait.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\mpi\mpi_manager.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\peer_devices.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\read_and_write_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\remote_objects.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\serialization\task_factory.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\single_device.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\slice.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\stream_section_tasks_launcher.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\task.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\cpu_func.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\enable_peers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\host_tasks.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\kernel_task.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\memory_allocation.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\memory_copy_staged_operation.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\memory_copy_tasks.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\memory_state_func.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\request_stream_task.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_impl\stream_section_task.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_queue\mpi_task_queue.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\tasks_queue\single_host_task_queue.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\worker_state.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\build\platform\cuda\cuda_runtime_include.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cache.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\column_aligment_helper.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cpu_reducers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_base.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer_helpers\all_reduce.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_reader.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_resharding.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer_helpers\buffer_writer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_buffer_helpers\reduce_scatter.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_events_provider.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_kernel_buffer.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_manager.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\cuda_profiler.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\device_id.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\device_subtasks_helper.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\devices_list.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\devices_provider.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\future\future.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\future\local_promise_future.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\future\mpi_promise_future.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\future\promise_factory.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\fwd.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\gpu_single_worker.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\helpers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\hwloc_wrapper.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\inter_device_stream_section.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\kernel.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\mapping.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\memory_copy_performance.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\memory_pool\cuda_malloc_wrapper.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\memory_pool\stack_like_memory_pool.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\memory_provider_trait.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\mpi\mpi_manager.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\peer_devices.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\read_and_write_helpers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\remote_objects.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\serialization\task_factory.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\single_device.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\slice.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\stream_section_tasks_launcher.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\task.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\cpu_func.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\enable_peers.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\host_tasks.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\kernel_task.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\memory_allocation.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\memory_copy_staged_operation.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\memory_copy_tasks.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\memory_state_func.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\request_stream_task.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_impl\stream_section_task.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_queue\mpi_task_queue.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\tasks_queue\single_host_task_queue.h"/>
+    <ClInclude Include="'$(SolutionDir)..'\catboost\cuda\cuda_lib\worker_state.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.pkg.fake.vcxproj">
       <Project>{607AFEC4-8A23-056F-2190-DCF65FF8934B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>

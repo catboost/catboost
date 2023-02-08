@@ -46,6 +46,49 @@ def remove_excessive_flags(cmd):
     return flags
 
 
+def fix_sanitize_flag(cmd):
+    """
+    Remove -fsanitize=address flag if sanitazers are linked explicitly for linux target.
+    """
+    for flag in cmd:
+        if flag.startswith('--target') and 'linux' not in flag.lower():
+            # use toolchained sanitize libraries
+            return cmd
+
+    if any(flag.startswith('-fsanitize-coverage=') for flag in cmd):
+        # use toolchained sanitize libraries as well
+        return cmd
+
+    CLANG_RT = 'contrib/libs/clang14-rt/lib/'
+    sanitize_flags = {
+        '-fsanitize=address': CLANG_RT + 'asan',
+        '-fsanitize=memory': CLANG_RT + 'msan',
+        '-fsanitize=leak': CLANG_RT + 'lsan',
+        '-fsanitize=undefined': CLANG_RT + 'ubsan',
+        '-fsanitize=thread': CLANG_RT + 'tsan'
+    }
+
+    used_sanitize_libs = []
+    aux = []
+    for flag in cmd:
+        if flag in sanitize_flags and any(s.startswith(sanitize_flags[flag]) for s in cmd):
+            # exclude '-fsanitize=' if appropriate library is linked explicitly
+            continue
+        if any(flag.startswith(lib) for lib in sanitize_flags.values()):
+            used_sanitize_libs.append(flag)
+            continue
+        aux.append(flag)
+
+    # move sanitize libraries out of the repeatedly searched group of archives
+    flags = []
+    for flag in aux:
+        if flag == '-Wl,--start-group':
+            flags += ['-Wl,--whole-archive'] + used_sanitize_libs + ['-Wl,--no-whole-archive']
+        flags.append(flag)
+
+    return flags
+
+
 def fix_cmd_for_musl(cmd):
     flags = []
     for flag in cmd:
@@ -106,6 +149,8 @@ if __name__ == '__main__':
     cmd = remove_excessive_flags(args)
     if opts.musl:
         cmd = fix_cmd_for_musl(cmd)
+
+    cmd = fix_sanitize_flag(cmd)
 
     if opts.dynamic_cuda:
         cmd = fix_cmd_for_dynamic_cuda(cmd)

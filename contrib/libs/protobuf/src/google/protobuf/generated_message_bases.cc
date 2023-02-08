@@ -68,7 +68,7 @@ const char* ZeroFieldsBase::_InternalParse(const char* ptr,
   }
 
   while (!ctx->Done(&ptr)) {
-    uint32_t tag;
+    arc_ui32 tag;
     ptr = internal::ReadTag(ptr, &tag);
     if ((tag == 0) || ((tag & 7) == 4)) {
       CHK_(ptr);

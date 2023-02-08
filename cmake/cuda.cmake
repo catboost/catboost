@@ -1,4 +1,8 @@
 if (NOT APPLE AND NOT ANDROID AND NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+  if(${CMAKE_VERSION} VERSION_LESS "3.17.0") 
+      message(FATAL_ERROR "Build with CUDA requires at least cmake 3.17.0")
+  endif()
+
   enable_language(CUDA)
 
   set(CUDA_DEFINES

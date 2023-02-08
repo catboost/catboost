@@ -70,6 +70,7 @@ class DescriptorPool;   // descriptor.h
 class MessageLite;      // message_lite.h
 class Message;          // message.h
 class MessageFactory;   // message.h
+class Reflection;       // message.h
 class UnknownFieldSet;  // unknown_field_set.h
 namespace internal {
 class FieldSkipper;  // wire_format_lite.h
@@ -100,22 +101,22 @@ typedef bool EnumValidityFuncWithArg(const void* arg, int number);
 
 // Information about a registered extension.
 struct ExtensionInfo {
-  inline ExtensionInfo() {}
-  inline ExtensionInfo(const MessageLite* extendee, int param_number,
-                       FieldType type_param, bool isrepeated, bool ispacked)
+  constexpr ExtensionInfo() : enum_validity_check() {}
+  constexpr ExtensionInfo(const MessageLite* extendee, int param_number,
+                          FieldType type_param, bool isrepeated, bool ispacked)
       : message(extendee),
         number(param_number),
         type(type_param),
         is_repeated(isrepeated),
         is_packed(ispacked),
-        descriptor(NULL) {}
+        enum_validity_check() {}
 
-  const MessageLite* message;
-  int number;
+  const MessageLite* message = nullptr;
+  int number = 0;
 
-  FieldType type;
-  bool is_repeated;
-  bool is_packed;
+  FieldType type = 0;
+  bool is_repeated = false;
+  bool is_packed = false;
 
   struct EnumValidityCheck {
     EnumValidityFuncWithArg* func;
@@ -132,9 +133,9 @@ struct ExtensionInfo {
   };
 
   // The descriptor for this extension, if one exists and is known.  May be
-  // NULL.  Must not be NULL if the descriptor for the extension does not
+  // nullptr.  Must not be nullptr if the descriptor for the extension does not
   // live in the same pool as the descriptor for the containing type.
-  const FieldDescriptor* descriptor;
+  const FieldDescriptor* descriptor = nullptr;
 };
 
 // Abstract interface for an object which looks up extension definitions.  Used
@@ -246,10 +247,10 @@ class PROTOBUF_EXPORT ExtensionSet {
 
   // singular fields -------------------------------------------------
 
-  int32_t GetInt32(int number, int32_t default_value) const;
-  int64 GetInt64(int number, int64 default_value) const;
-  uint32_t GetUInt32(int number, uint32_t default_value) const;
-  uint64 GetUInt64(int number, uint64 default_value) const;
+  arc_i32 GetInt32(int number, arc_i32 default_value) const;
+  arc_i64 GetInt64(int number, arc_i64 default_value) const;
+  arc_ui32 GetUInt32(int number, arc_ui32 default_value) const;
+  arc_ui64 GetUInt64(int number, arc_ui64 default_value) const;
   float GetFloat(int number, float default_value) const;
   double GetDouble(int number, double default_value) const;
   bool GetBool(int number, bool default_value) const;
@@ -261,14 +262,14 @@ class PROTOBUF_EXPORT ExtensionSet {
   const MessageLite& GetMessage(int number, const Descriptor* message_type,
                                 MessageFactory* factory) const;
 
-  // |descriptor| may be NULL so long as it is known that the descriptor for
+  // |descriptor| may be nullptr so long as it is known that the descriptor for
   // the extension lives in the same pool as the descriptor for the containing
   // type.
 #define desc const FieldDescriptor* descriptor  // avoid line wrapping
-  void SetInt32(int number, FieldType type, int32_t value, desc);
-  void SetInt64(int number, FieldType type, int64 value, desc);
-  void SetUInt32(int number, FieldType type, uint32_t value, desc);
-  void SetUInt64(int number, FieldType type, uint64 value, desc);
+  void SetInt32(int number, FieldType type, arc_i32 value, desc);
+  void SetInt64(int number, FieldType type, arc_i64 value, desc);
+  void SetUInt32(int number, FieldType type, arc_ui32 value, desc);
+  void SetUInt64(int number, FieldType type, arc_ui64 value, desc);
   void SetFloat(int number, FieldType type, float value, desc);
   void SetDouble(int number, FieldType type, double value, desc);
   void SetBool(int number, FieldType type, bool value, desc);
@@ -281,19 +282,19 @@ class PROTOBUF_EXPORT ExtensionSet {
                               MessageFactory* factory);
   // Adds the given message to the ExtensionSet, taking ownership of the
   // message object. Existing message with the same number will be deleted.
-  // If "message" is NULL, this is equivalent to "ClearExtension(number)".
+  // If "message" is nullptr, this is equivalent to "ClearExtension(number)".
   void SetAllocatedMessage(int number, FieldType type,
                            const FieldDescriptor* descriptor,
                            MessageLite* message);
   void UnsafeArenaSetAllocatedMessage(int number, FieldType type,
                                       const FieldDescriptor* descriptor,
                                       MessageLite* message);
-  PROTOBUF_MUST_USE_RESULT MessageLite* ReleaseMessage(
-      int number, const MessageLite& prototype);
+  PROTOBUF_NODISCARD MessageLite* ReleaseMessage(int number,
+                                                 const MessageLite& prototype);
   MessageLite* UnsafeArenaReleaseMessage(int number,
                                          const MessageLite& prototype);
 
-  PROTOBUF_MUST_USE_RESULT MessageLite* ReleaseMessage(
+  PROTOBUF_NODISCARD MessageLite* ReleaseMessage(
       const FieldDescriptor* descriptor, MessageFactory* factory);
   MessageLite* UnsafeArenaReleaseMessage(const FieldDescriptor* descriptor,
                                          MessageFactory* factory);
@@ -318,10 +319,10 @@ class PROTOBUF_EXPORT ExtensionSet {
   // (E.g.: borg/clients/internal/proto1/proto2_reflection.cc.)
   void* MutableRawRepeatedField(int number);
 
-  int32_t GetRepeatedInt32(int number, int index) const;
-  int64 GetRepeatedInt64(int number, int index) const;
-  uint32_t GetRepeatedUInt32(int number, int index) const;
-  uint64 GetRepeatedUInt64(int number, int index) const;
+  arc_i32 GetRepeatedInt32(int number, int index) const;
+  arc_i64 GetRepeatedInt64(int number, int index) const;
+  arc_ui32 GetRepeatedUInt32(int number, int index) const;
+  arc_ui64 GetRepeatedUInt64(int number, int index) const;
   float GetRepeatedFloat(int number, int index) const;
   double GetRepeatedDouble(int number, int index) const;
   bool GetRepeatedBool(int number, int index) const;
@@ -329,10 +330,10 @@ class PROTOBUF_EXPORT ExtensionSet {
   const TProtoStringType& GetRepeatedString(int number, int index) const;
   const MessageLite& GetRepeatedMessage(int number, int index) const;
 
-  void SetRepeatedInt32(int number, int index, int32_t value);
-  void SetRepeatedInt64(int number, int index, int64 value);
-  void SetRepeatedUInt32(int number, int index, uint32_t value);
-  void SetRepeatedUInt64(int number, int index, uint64 value);
+  void SetRepeatedInt32(int number, int index, arc_i32 value);
+  void SetRepeatedInt64(int number, int index, arc_i64 value);
+  void SetRepeatedUInt32(int number, int index, arc_ui32 value);
+  void SetRepeatedUInt64(int number, int index, arc_ui64 value);
   void SetRepeatedFloat(int number, int index, float value);
   void SetRepeatedDouble(int number, int index, double value);
   void SetRepeatedBool(int number, int index, bool value);
@@ -342,10 +343,10 @@ class PROTOBUF_EXPORT ExtensionSet {
   MessageLite* MutableRepeatedMessage(int number, int index);
 
 #define desc const FieldDescriptor* descriptor  // avoid line wrapping
-  void AddInt32(int number, FieldType type, bool packed, int32_t value, desc);
-  void AddInt64(int number, FieldType type, bool packed, int64 value, desc);
-  void AddUInt32(int number, FieldType type, bool packed, uint32_t value, desc);
-  void AddUInt64(int number, FieldType type, bool packed, uint64 value, desc);
+  void AddInt32(int number, FieldType type, bool packed, arc_i32 value, desc);
+  void AddInt64(int number, FieldType type, bool packed, arc_i64 value, desc);
+  void AddUInt32(int number, FieldType type, bool packed, arc_ui32 value, desc);
+  void AddUInt64(int number, FieldType type, bool packed, arc_ui64 value, desc);
   void AddFloat(int number, FieldType type, bool packed, float value, desc);
   void AddDouble(int number, FieldType type, bool packed, double value, desc);
   void AddBool(int number, FieldType type, bool packed, bool value, desc);
@@ -363,7 +364,7 @@ class PROTOBUF_EXPORT ExtensionSet {
 #undef desc
 
   void RemoveLast(int number);
-  PROTOBUF_MUST_USE_RESULT MessageLite* ReleaseLast(int number);
+  PROTOBUF_NODISCARD MessageLite* ReleaseLast(int number);
   MessageLite* UnsafeArenaReleaseLast(int number);
   void SwapElements(int number, int index1, int index2);
 
@@ -377,16 +378,17 @@ class PROTOBUF_EXPORT ExtensionSet {
   // class, but providing them here helps keep the generated code size down.
 
   void Clear();
-  void MergeFrom(const ExtensionSet& other);
-  void Swap(ExtensionSet* other);
+  void MergeFrom(const MessageLite* extendee, const ExtensionSet& other);
+  void Swap(const MessageLite* extendee, ExtensionSet* other);
   void InternalSwap(ExtensionSet* other);
-  void SwapExtension(ExtensionSet* other, int number);
+  void SwapExtension(const MessageLite* extendee, ExtensionSet* other,
+                     int number);
   void UnsafeShallowSwapExtension(ExtensionSet* other, int number);
   bool IsInitialized() const;
 
   // Parses a single extension from the input. The input should start out
   // positioned immediately after the tag.
-  bool ParseField(uint32_t tag, io::CodedInputStream* input,
+  bool ParseField(arc_ui32 tag, io::CodedInputStream* input,
                   ExtensionFinder* extension_finder,
                   FieldSkipper* field_skipper);
 
@@ -396,21 +398,21 @@ class PROTOBUF_EXPORT ExtensionSet {
   // extension by number.  See RegisterExtension(), above.  Unlike the other
   // methods of ExtensionSet, this only works for generated message types --
   // it looks up extensions registered using RegisterExtension().
-  bool ParseField(uint32_t tag, io::CodedInputStream* input,
+  bool ParseField(arc_ui32 tag, io::CodedInputStream* input,
                   const MessageLite* extendee);
-  bool ParseField(uint32_t tag, io::CodedInputStream* input,
+  bool ParseField(arc_ui32 tag, io::CodedInputStream* input,
                   const Message* extendee, UnknownFieldSet* unknown_fields);
-  bool ParseField(uint32_t tag, io::CodedInputStream* input,
+  bool ParseField(arc_ui32 tag, io::CodedInputStream* input,
                   const MessageLite* extendee,
                   io::CodedOutputStream* unknown_fields);
 
   // Lite parser
-  const char* ParseField(uint64_t tag, const char* ptr,
+  const char* ParseField(arc_ui64 tag, const char* ptr,
                          const MessageLite* extendee,
                          internal::InternalMetadata* metadata,
                          internal::ParseContext* ctx);
   // Full parser
-  const char* ParseField(uint64_t tag, const char* ptr, const Message* extendee,
+  const char* ParseField(arc_ui64 tag, const char* ptr, const Message* extendee,
                          internal::InternalMetadata* metadata,
                          internal::ParseContext* ctx);
   template <typename Msg>
@@ -426,7 +428,7 @@ class PROTOBUF_EXPORT ExtensionSet {
       InternalMetadata* metadata;
     } item{this, extendee, metadata};
     while (!ctx->Done(&ptr)) {
-      uint32_t tag;
+      arc_ui32 tag;
       ptr = ReadTag(ptr, &tag);
       GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
       if (tag == WireFormatLite::kMessageSetItemStartTag) {
@@ -544,18 +546,20 @@ class PROTOBUF_EXPORT ExtensionSet {
   template <typename Type, bool IsValid(int)>
   friend class RepeatedEnumTypeTraits;
 
-  const int32_t& GetRefInt32(int number, const int32_t& default_value) const;
-  const int64& GetRefInt64(int number, const int64& default_value) const;
-  const uint32_t& GetRefUInt32(int number, const uint32_t& default_value) const;
-  const uint64& GetRefUInt64(int number, const uint64& default_value) const;
+  friend class google::protobuf::Reflection;
+
+  const arc_i32& GetRefInt32(int number, const arc_i32& default_value) const;
+  const arc_i64& GetRefInt64(int number, const arc_i64& default_value) const;
+  const arc_ui32& GetRefUInt32(int number, const arc_ui32& default_value) const;
+  const arc_ui64& GetRefUInt64(int number, const arc_ui64& default_value) const;
   const float& GetRefFloat(int number, const float& default_value) const;
   const double& GetRefDouble(int number, const double& default_value) const;
   const bool& GetRefBool(int number, const bool& default_value) const;
   const int& GetRefEnum(int number, const int& default_value) const;
-  const int32_t& GetRefRepeatedInt32(int number, int index) const;
-  const int64& GetRefRepeatedInt64(int number, int index) const;
-  const uint32_t& GetRefRepeatedUInt32(int number, int index) const;
-  const uint64& GetRefRepeatedUInt64(int number, int index) const;
+  const arc_i32& GetRefRepeatedInt32(int number, int index) const;
+  const arc_i64& GetRefRepeatedInt64(int number, int index) const;
+  const arc_ui32& GetRefRepeatedUInt32(int number, int index) const;
+  const arc_ui64& GetRefRepeatedUInt64(int number, int index) const;
   const float& GetRefRepeatedFloat(int number, int index) const;
   const double& GetRefRepeatedDouble(int number, int index) const;
   const bool& GetRefRepeatedBool(int number, int index) const;
@@ -573,16 +577,17 @@ class PROTOBUF_EXPORT ExtensionSet {
     virtual ~LazyMessageExtension() {}
 
     virtual LazyMessageExtension* New(Arena* arena) const = 0;
-    virtual const MessageLite& GetMessage(
-        const MessageLite& prototype) const = 0;
+    virtual const MessageLite& GetMessage(const MessageLite& prototype,
+                                          Arena* arena) const = 0;
     virtual MessageLite* MutableMessage(const MessageLite& prototype,
                                         Arena* arena) = 0;
-    virtual void SetAllocatedMessage(MessageLite* message) = 0;
-    virtual void UnsafeArenaSetAllocatedMessage(MessageLite* message) = 0;
-    virtual PROTOBUF_MUST_USE_RESULT MessageLite* ReleaseMessage(
-        const MessageLite& prototype) = 0;
-    virtual MessageLite* UnsafeArenaReleaseMessage(
-        const MessageLite& prototype) = 0;
+    virtual void SetAllocatedMessage(MessageLite* message, Arena* arena) = 0;
+    virtual void UnsafeArenaSetAllocatedMessage(MessageLite* message,
+                                                Arena* arena) = 0;
+    PROTOBUF_NODISCARD virtual MessageLite* ReleaseMessage(
+        const MessageLite& prototype, Arena* arena) = 0;
+    virtual MessageLite* UnsafeArenaReleaseMessage(const MessageLite& prototype,
+                                                   Arena* arena) = 0;
 
     virtual bool IsInitialized() const = 0;
 
@@ -591,13 +596,15 @@ class PROTOBUF_EXPORT ExtensionSet {
     virtual size_t ByteSizeLong() const = 0;
     virtual size_t SpaceUsedLong() const = 0;
 
-    virtual void MergeFrom(const LazyMessageExtension& other, Arena* arena) = 0;
+    virtual void MergeFrom(const MessageLite* prototype,
+                           const LazyMessageExtension& other, Arena* arena) = 0;
     virtual void MergeFromMessage(const MessageLite& msg, Arena* arena) = 0;
     virtual void Clear() = 0;
 
     virtual bool ReadMessage(const MessageLite& prototype,
                              io::CodedInputStream* input) = 0;
-    virtual const char* _InternalParse(const char* ptr, ParseContext* ctx) = 0;
+    virtual const char* _InternalParse(const Message& prototype, Arena* arena,
+                                       const char* ptr, ParseContext* ctx) = 0;
     virtual uint8_t* WriteMessageToArray(
         const MessageLite* prototype, int number, uint8_t* target,
         io::EpsCopyOutputStream* stream) const = 0;
@@ -613,10 +620,10 @@ class PROTOBUF_EXPORT ExtensionSet {
     // The order of these fields packs Extension into 24 bytes when using 8
     // byte alignment. Consider this when adding or removing fields here.
     union {
-      int32_t int32_t_value;
-      int64 int64_value;
-      uint32_t uint32_t_value;
-      uint64 uint64_value;
+      arc_i32 arc_i32_value;
+      arc_i64 arc_i64_value;
+      arc_ui32 arc_ui32_value;
+      arc_ui64 arc_ui64_value;
       float float_value;
       double double_value;
       bool bool_value;
@@ -625,10 +632,10 @@ class PROTOBUF_EXPORT ExtensionSet {
       MessageLite* message_value;
       LazyMessageExtension* lazymessage_value;
 
-      RepeatedField<int32_t>* repeated_int32_t_value;
-      RepeatedField<int64>* repeated_int64_value;
-      RepeatedField<uint32_t>* repeated_uint32_t_value;
-      RepeatedField<uint64>* repeated_uint64_value;
+      RepeatedField<arc_i32>* repeated_arc_i32_value;
+      RepeatedField<arc_i64>* repeated_arc_i64_value;
+      RepeatedField<arc_ui32>* repeated_arc_ui32_value;
+      RepeatedField<arc_ui64>* repeated_arc_ui64_value;
       RepeatedField<float>* repeated_float_value;
       RepeatedField<double>* repeated_double_value;
       RepeatedField<bool>* repeated_bool_value;
@@ -664,8 +671,8 @@ class PROTOBUF_EXPORT ExtensionSet {
     mutable int cached_size;
 
     // The descriptor for this extension, if one exists and is known.  May be
-    // NULL.  Must not be NULL if the descriptor for the extension does not
-    // live in the same pool as the descriptor for the containing type.
+    // nullptr.  Must not be nullptr if the descriptor for the extension does
+    // not live in the same pool as the descriptor for the containing type.
     const FieldDescriptor* descriptor;
 
     // Some helper methods for operations on a single Extension.
@@ -766,13 +773,15 @@ class PROTOBUF_EXPORT ExtensionSet {
   }
 
   // Merges existing Extension from other_extension
-  void InternalExtensionMergeFrom(int number, const Extension& other_extension);
+  void InternalExtensionMergeFrom(const MessageLite* extendee, int number,
+                                  const Extension& other_extension,
+                                  Arena* other_arena);
 
   // Returns true and fills field_number and extension if extension is found.
   // Note to support packed repeated field compatibility, it also fills whether
   // the tag on wire is packed, which can be different from
   // extension->is_packed (whether packed=true is specified).
-  bool FindExtensionInfoFromTag(uint32_t tag, ExtensionFinder* extension_finder,
+  bool FindExtensionInfoFromTag(arc_ui32 tag, ExtensionFinder* extension_finder,
                                 int* field_number, ExtensionInfo* extension,
                                 bool* was_packed_on_wire);
 
@@ -806,6 +815,9 @@ class PROTOBUF_EXPORT ExtensionSet {
                              ExtensionFinder* extension_finder,
                              MessageSetFieldSkipper* field_skipper);
 
+  // Returns true if extension is present and lazy.
+  bool HasLazy(int number) const;
+
   // Gets the extension with the given number, creating it if it does not
   // already exist.  Returns true if the extension did not already exist.
   bool MaybeNewExtension(int number, const FieldDescriptor* descriptor,
@@ -826,26 +838,26 @@ class PROTOBUF_EXPORT ExtensionSet {
                            ExtensionFinder* extension_finder,
                            MessageSetFieldSkipper* field_skipper);
 
-  bool FindExtension(int wire_type, uint32_t field, const MessageLite* extendee,
+  bool FindExtension(int wire_type, arc_ui32 field, const MessageLite* extendee,
                      const internal::ParseContext* /*ctx*/,
                      ExtensionInfo* extension, bool* was_packed_on_wire) {
     GeneratedExtensionFinder finder(extendee);
     return FindExtensionInfoFromFieldNumber(wire_type, field, &finder,
                                             extension, was_packed_on_wire);
   }
-  inline bool FindExtension(int wire_type, uint32_t field,
+  inline bool FindExtension(int wire_type, arc_ui32 field,
                             const Message* extendee,
                             const internal::ParseContext* ctx,
                             ExtensionInfo* extension, bool* was_packed_on_wire);
   // Used for MessageSet only
-  const char* ParseFieldMaybeLazily(uint64_t tag, const char* ptr,
+  const char* ParseFieldMaybeLazily(arc_ui64 tag, const char* ptr,
                                     const MessageLite* extendee,
                                     internal::InternalMetadata* metadata,
                                     internal::ParseContext* ctx) {
     // Lite MessageSet doesn't implement lazy.
     return ParseField(tag, ptr, extendee, metadata, ctx);
   }
-  const char* ParseFieldMaybeLazily(uint64_t tag, const char* ptr,
+  const char* ParseFieldMaybeLazily(arc_ui64 tag, const char* ptr,
                                     const Message* extendee,
                                     internal::InternalMetadata* metadata,
                                     internal::ParseContext* ctx);
@@ -987,7 +999,7 @@ inline void ExtensionSet::AddString(int number, FieldType type,
 // For example, if "foo" is an extension of type "optional int32", then if you
 // try to write code like:
 //   my_message.MutableExtension(foo)
-// you will get a compile error because PrimitiveTypeTraits<int32_t> does not
+// you will get a compile error because PrimitiveTypeTraits<arc_i32> does not
 // have a "Mutable()" method.
 
 // -------------------------------------------------------------------
@@ -1055,10 +1067,10 @@ class PROTOBUF_EXPORT RepeatedPrimitiveDefaults {
   template <typename Type>
   friend class RepeatedPrimitiveTypeTraits;
   static const RepeatedPrimitiveDefaults* default_instance();
-  RepeatedField<int32_t> default_repeated_field_int32_t_;
-  RepeatedField<int64> default_repeated_field_int64_;
-  RepeatedField<uint32_t> default_repeated_field_uint32_t_;
-  RepeatedField<uint64> default_repeated_field_uint64_;
+  RepeatedField<arc_i32> default_repeated_field_arc_i32_;
+  RepeatedField<arc_i64> default_repeated_field_arc_i64_;
+  RepeatedField<arc_ui32> default_repeated_field_arc_ui32_;
+  RepeatedField<arc_ui64> default_repeated_field_arc_ui64_;
   RepeatedField<double> default_repeated_field_double_;
   RepeatedField<float> default_repeated_field_float_;
   RepeatedField<bool> default_repeated_field_bool_;
@@ -1078,7 +1090,7 @@ class PROTOBUF_EXPORT RepeatedPrimitiveDefaults {
   template <>                                                                  \
   inline void PrimitiveTypeTraits<TYPE>::Set(int number, FieldType field_type, \
                                              TYPE value, ExtensionSet* set) {  \
-    set->Set##METHOD(number, field_type, value, NULL);                         \
+    set->Set##METHOD(number, field_type, value, nullptr);                      \
   }                                                                            \
                                                                                \
   template <>                                                                  \
@@ -1100,7 +1112,7 @@ class PROTOBUF_EXPORT RepeatedPrimitiveDefaults {
   inline void RepeatedPrimitiveTypeTraits<TYPE>::Add(                          \
       int number, FieldType field_type, bool is_packed, TYPE value,            \
       ExtensionSet* set) {                                                     \
-    set->Add##METHOD(number, field_type, is_packed, value, NULL);              \
+    set->Add##METHOD(number, field_type, is_packed, value, nullptr);           \
   }                                                                            \
   template <>                                                                  \
   inline const RepeatedField<TYPE>*                                            \
@@ -1126,13 +1138,13 @@ class PROTOBUF_EXPORT RepeatedPrimitiveDefaults {
   RepeatedPrimitiveTypeTraits<TYPE>::MutableRepeated(                          \
       int number, FieldType field_type, bool is_packed, ExtensionSet* set) {   \
     return reinterpret_cast<RepeatedField<TYPE>*>(                             \
-        set->MutableRawRepeatedField(number, field_type, is_packed, NULL));    \
+        set->MutableRawRepeatedField(number, field_type, is_packed, nullptr)); \
   }
 
-PROTOBUF_DEFINE_PRIMITIVE_TYPE(int32_t, Int32)
-PROTOBUF_DEFINE_PRIMITIVE_TYPE(int64, Int64)
-PROTOBUF_DEFINE_PRIMITIVE_TYPE(uint32_t, UInt32)
-PROTOBUF_DEFINE_PRIMITIVE_TYPE(uint64, UInt64)
+PROTOBUF_DEFINE_PRIMITIVE_TYPE(arc_i32, Int32)
+PROTOBUF_DEFINE_PRIMITIVE_TYPE(arc_i64, Int64)
+PROTOBUF_DEFINE_PRIMITIVE_TYPE(arc_ui32, UInt32)
+PROTOBUF_DEFINE_PRIMITIVE_TYPE(arc_ui64, UInt64)
 PROTOBUF_DEFINE_PRIMITIVE_TYPE(float, Float)
 PROTOBUF_DEFINE_PRIMITIVE_TYPE(double, Double)
 PROTOBUF_DEFINE_PRIMITIVE_TYPE(bool, Bool)
@@ -1159,11 +1171,11 @@ class PROTOBUF_EXPORT StringTypeTraits {
   }
   static inline void Set(int number, FieldType field_type,
                          const TProtoStringType& value, ExtensionSet* set) {
-    set->SetString(number, field_type, value, NULL);
+    set->SetString(number, field_type, value, nullptr);
   }
   static inline TProtoStringType* Mutable(int number, FieldType field_type,
                                      ExtensionSet* set) {
-    return set->MutableString(number, field_type, NULL);
+    return set->MutableString(number, field_type, nullptr);
   }
   template <typename ExtendeeT>
   static void Register(int number, FieldType type, bool is_packed) {
@@ -1201,11 +1213,11 @@ class PROTOBUF_EXPORT RepeatedStringTypeTraits {
   }
   static inline void Add(int number, FieldType field_type, bool /*is_packed*/,
                          const TProtoStringType& value, ExtensionSet* set) {
-    set->AddString(number, field_type, value, NULL);
+    set->AddString(number, field_type, value, nullptr);
   }
   static inline TProtoStringType* Add(int number, FieldType field_type,
                                  ExtensionSet* set) {
-    return set->AddString(number, field_type, NULL);
+    return set->AddString(number, field_type, nullptr);
   }
   static inline const RepeatedPtrField<TProtoStringType>& GetRepeated(
       int number, const ExtensionSet& set) {
@@ -1216,7 +1228,7 @@ class PROTOBUF_EXPORT RepeatedStringTypeTraits {
   static inline RepeatedPtrField<TProtoStringType>* MutableRepeated(
       int number, FieldType field_type, bool is_packed, ExtensionSet* set) {
     return reinterpret_cast<RepeatedPtrField<TProtoStringType>*>(
-        set->MutableRawRepeatedField(number, field_type, is_packed, NULL));
+        set->MutableRawRepeatedField(number, field_type, is_packed, nullptr));
   }
 
   static const RepeatedFieldType* GetDefaultRepeatedField();
@@ -1256,7 +1268,7 @@ class EnumTypeTraits {
   static inline void Set(int number, FieldType field_type, ConstType value,
                          ExtensionSet* set) {
     GOOGLE_DCHECK(IsValid(value));
-    set->SetEnum(number, field_type, value, NULL);
+    set->SetEnum(number, field_type, value, nullptr);
   }
   template <typename ExtendeeT>
   static void Register(int number, FieldType type, bool is_packed) {
@@ -1290,7 +1302,7 @@ class RepeatedEnumTypeTraits {
   static inline void Add(int number, FieldType field_type, bool is_packed,
                          ConstType value, ExtensionSet* set) {
     GOOGLE_DCHECK(IsValid(value));
-    set->AddEnum(number, field_type, is_packed, value, NULL);
+    set->AddEnum(number, field_type, is_packed, value, nullptr);
   }
   static inline const RepeatedField<Type>& GetRepeated(
       int number, const ExtensionSet& set) {
@@ -1310,7 +1322,7 @@ class RepeatedEnumTypeTraits {
                                                      bool is_packed,
                                                      ExtensionSet* set) {
     return reinterpret_cast<RepeatedField<Type>*>(
-        set->MutableRawRepeatedField(number, field_type, is_packed, NULL));
+        set->MutableRawRepeatedField(number, field_type, is_packed, nullptr));
   }
 
   static const RepeatedFieldType* GetDefaultRepeatedField() {
@@ -1319,9 +1331,9 @@ class RepeatedEnumTypeTraits {
     // objects to return as default (empty) repeated fields on non-existent
     // extensions. We would not be able to know a-priori all of the enum types
     // (values of |Type|) to instantiate all of these, so we just re-use
-    // int32_t's default repeated field object.
+    // arc_i32's default repeated field object.
     return reinterpret_cast<const RepeatedField<Type>*>(
-        RepeatedPrimitiveTypeTraits<int32_t>::GetDefaultRepeatedField());
+        RepeatedPrimitiveTypeTraits<arc_i32>::GetDefaultRepeatedField());
   }
   template <typename ExtendeeT>
   static void Register(int number, FieldType type, bool is_packed) {
@@ -1347,27 +1359,27 @@ class MessageTypeTraits {
                               ConstType default_value) {
     return static_cast<const Type&>(set.GetMessage(number, default_value));
   }
-  static inline std::nullptr_t GetPtr(int /*number*/, const ExtensionSet& /*set*/,
-                                      ConstType /*default_value*/) {
+  static inline std::nullptr_t GetPtr(int /* number */, const ExtensionSet& /* set */,
+                                      ConstType /* default_value */) {
     // Cannot be implemented because of forward declared messages?
     return nullptr;
   }
   static inline MutableType Mutable(int number, FieldType field_type,
                                     ExtensionSet* set) {
     return static_cast<Type*>(set->MutableMessage(
-        number, field_type, Type::default_instance(), NULL));
+        number, field_type, Type::default_instance(), nullptr));
   }
   static inline void SetAllocated(int number, FieldType field_type,
                                   MutableType message, ExtensionSet* set) {
-    set->SetAllocatedMessage(number, field_type, NULL, message);
+    set->SetAllocatedMessage(number, field_type, nullptr, message);
   }
   static inline void UnsafeArenaSetAllocated(int number, FieldType field_type,
                                              MutableType message,
                                              ExtensionSet* set) {
-    set->UnsafeArenaSetAllocatedMessage(number, field_type, NULL, message);
+    set->UnsafeArenaSetAllocatedMessage(number, field_type, nullptr, message);
   }
-  static inline PROTOBUF_MUST_USE_RESULT MutableType
-  Release(int number, FieldType /* field_type */, ExtensionSet* set) {
+  PROTOBUF_NODISCARD static inline MutableType Release(
+      int number, FieldType /* field_type */, ExtensionSet* set) {
     return static_cast<Type*>(
         set->ReleaseMessage(number, Type::default_instance()));
   }
@@ -1400,13 +1412,13 @@ class RepeatedMessageTypeTraits {
   static inline ConstType Get(int number, const ExtensionSet& set, int index) {
     return static_cast<const Type&>(set.GetRepeatedMessage(number, index));
   }
-  static inline std::nullptr_t GetPtr(int /*number*/, const ExtensionSet& /*set*/,
-                                      int /*index*/) {
+  static inline std::nullptr_t GetPtr(int /* number */, const ExtensionSet& /* set */,
+                                      int /* index */) {
     // Cannot be implemented because of forward declared messages?
     return nullptr;
   }
-  static inline std::nullptr_t GetRepeatedPtr(int /*number*/,
-                                              const ExtensionSet& /*set*/) {
+  static inline std::nullptr_t GetRepeatedPtr(int /* number */,
+                                              const ExtensionSet& /* set */) {
     // Cannot be implemented because of forward declared messages?
     return nullptr;
   }
@@ -1416,7 +1428,7 @@ class RepeatedMessageTypeTraits {
   static inline MutableType Add(int number, FieldType field_type,
                                 ExtensionSet* set) {
     return static_cast<Type*>(
-        set->AddMessage(number, field_type, Type::default_instance(), NULL));
+        set->AddMessage(number, field_type, Type::default_instance(), nullptr));
   }
   static inline const RepeatedPtrField<Type>& GetRepeated(
       int number, const ExtensionSet& set) {
@@ -1433,7 +1445,7 @@ class RepeatedMessageTypeTraits {
                                                         bool is_packed,
                                                         ExtensionSet* set) {
     return reinterpret_cast<RepeatedPtrField<Type>*>(
-        set->MutableRawRepeatedField(number, field_type, is_packed, NULL));
+        set->MutableRawRepeatedField(number, field_type, is_packed, nullptr));
   }
 
   static const RepeatedFieldType* GetDefaultRepeatedField();
@@ -1460,7 +1472,7 @@ RepeatedMessageTypeTraits<Type>::GetDefaultRepeatedField() {
 //     optional int32 bar = 1234;
 //   }
 // then "bar" will be defined in C++ as:
-//   ExtensionIdentifier<Foo, PrimitiveTypeTraits<int32_t>, 5, false> bar(1234);
+//   ExtensionIdentifier<Foo, PrimitiveTypeTraits<arc_i32>, 5, false> bar(1234);
 //
 // Note that we could, in theory, supply the field number as a template
 // parameter, and thus make an instance of ExtensionIdentifier have no

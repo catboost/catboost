@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 "-I$(CUDA_PATH)/include" -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 "-I$(CUDA_PATH)/include" -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 "-I/include" -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 "-I/include" -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -67,8 +67,8 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     Mincore.lib Shlwapi.lib Winmm.lib "/LIBPATH:$(CUDA_PATH)/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    Mincore.lib Shlwapi.lib Winmm.lib "/LIBPATH:$(CUDA_PATH)/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     Mincore.lib Shlwapi.lib Winmm.lib "/LIBPATH:/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    Mincore.lib Shlwapi.lib Winmm.lib "/LIBPATH:/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -159,17 +159,17 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\_5198bb0d23295b7c07e035ce32.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\pytest\lib\__init__.py">
+    <CustomBuild Include="'$(SolutionDir)..'\catboost\pytest\lib\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/pytest/lib/__init__.py-" "$(SolutionDir)../catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/pytest/lib/__init__.py-" "$(SolutionDir).." "/catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_eb8e7d48525eb42d84dc5c565e.yasm" "-" "catboost/pytest/lib/__init__.py" "_810d4f24f4faeec1cf0ba37edc.rodata" "$(SolutionDir)../catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_78084837bc1b68b6ca5ace0256.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3" "_bef879bf060f8f8ba4b380695b.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ef74edd14bd06353261fe2bbfb.rodata" "-" "catboost/pytest/lib/common_helpers.py" "_0185ba3a74560aabe599f4a91d.rodata" "$(SolutionDir)../catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ee433380351b7f351b31668280.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3" "_b0a922c701dd4205de56703a93.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ee9e9d6cf302af1613521eb207.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_eb8e7d48525eb42d84dc5c565e.yasm" "-" "catboost/pytest/lib/__init__.py" "_810d4f24f4faeec1cf0ba37edc.rodata" "$(SolutionDir).." "/catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_78084837bc1b68b6ca5ace0256.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3" "_bef879bf060f8f8ba4b380695b.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ef74edd14bd06353261fe2bbfb.rodata" "-" "catboost/pytest/lib/common_helpers.py" "_0185ba3a74560aabe599f4a91d.rodata" "$(SolutionDir).." "/catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ee433380351b7f351b31668280.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3" "_b0a922c701dd4205de56703a93.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ee9e9d6cf302af1613521eb207.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,11 +182,11 @@ cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/pytest/lib/__init__.py-" "$(SolutionDir)../catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/pytest/lib/__init__.py-" "$(SolutionDir).." "/catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_eb8e7d48525eb42d84dc5c565e.yasm" "-" "catboost/pytest/lib/__init__.py" "_810d4f24f4faeec1cf0ba37edc.rodata" "$(SolutionDir)../catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_78084837bc1b68b6ca5ace0256.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3" "_bef879bf060f8f8ba4b380695b.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ef74edd14bd06353261fe2bbfb.rodata" "-" "catboost/pytest/lib/common_helpers.py" "_0185ba3a74560aabe599f4a91d.rodata" "$(SolutionDir)../catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ee433380351b7f351b31668280.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3" "_b0a922c701dd4205de56703a93.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ee9e9d6cf302af1613521eb207.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_eb8e7d48525eb42d84dc5c565e.yasm" "-" "catboost/pytest/lib/__init__.py" "_810d4f24f4faeec1cf0ba37edc.rodata" "$(SolutionDir).." "/catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_78084837bc1b68b6ca5ace0256.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3" "_bef879bf060f8f8ba4b380695b.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ef74edd14bd06353261fe2bbfb.rodata" "-" "catboost/pytest/lib/common_helpers.py" "_0185ba3a74560aabe599f4a91d.rodata" "$(SolutionDir).." "/catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ee433380351b7f351b31668280.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3" "_b0a922c701dd4205de56703a93.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_ee9e9d6cf302af1613521eb207.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -195,16 +195,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/pytest/lib/__init__.py.yapyc3	$B/catboost/pytest/lib/_eb8e7d48525eb42d84dc5c565e.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\pytest\lib\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;$(SolutionDir)$(Configuration)\catboost\pytest\lib\__init__.py.yapyc3;$(SolutionDir)..\catboost\pytest\lib\common_helpers.py;$(SolutionDir)$(Configuration)\catboost\pytest\lib\common_helpers.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\catboost\pytest\lib\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;$(SolutionDir)$(Configuration)\catboost\pytest\lib\__init__.py.yapyc3;'$(SolutionDir)..'\catboost\pytest\lib\common_helpers.py;$(SolutionDir)$(Configuration)\catboost\pytest\lib\common_helpers.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\__init__.py.yapyc3;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_eb8e7d48525eb42d84dc5c565e.yasm;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_78084837bc1b68b6ca5ace0256.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_ef74edd14bd06353261fe2bbfb.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_ee433380351b7f351b31668280.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_ee9e9d6cf302af1613521eb207.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\pytest\lib\common_helpers.py">
+    <CustomBuild Include="'$(SolutionDir)..'\catboost\pytest\lib\common_helpers.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/pytest/lib/common_helpers.py-" "$(SolutionDir)../catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/pytest/lib/common_helpers.py-" "$(SolutionDir).." "/catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -217,7 +217,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/pytest/lib/common_helpers.py-" "$(SolutionDir)../catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/pytest/lib/common_helpers.py-" "$(SolutionDir).." "/catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -226,7 +226,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/pytest/lib/common_helpers.py.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\pytest\lib\common_helpers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\catboost\pytest\lib\common_helpers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\common_helpers.py.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
@@ -235,9 +235,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.pkg.fake.vcxproj">
       <Project>{607AFEC4-8A23-056F-2190-DCF65FF8934B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cpu_compatibility_helpers\catboost-cuda-cpu_compatibility_helpers.vcxproj">
       <Project>{25AC1B6D-6F5F-550C-B8D7-D7E344784C2E}</Project>

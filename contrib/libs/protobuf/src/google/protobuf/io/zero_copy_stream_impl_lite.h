@@ -236,7 +236,7 @@ class PROTOBUF_EXPORT CopyingInputStreamAdaptor : public ZeroCopyInputStream {
 
   // The current position of copying_stream_, relative to the point where
   // we started reading.
-  int64_t position_;
+  arc_i64 position_;
 
   // Data is read into this buffer.  It may be NULL if no buffer is currently
   // in use.  Otherwise, it points to an array of size buffer_size_.
@@ -327,7 +327,7 @@ class PROTOBUF_EXPORT CopyingOutputStreamAdaptor : public ZeroCopyOutputStream {
 
   // The current position of copying_stream_, relative to the point where
   // we started writing.
-  int64_t position_;
+  arc_i64 position_;
 
   // Data is written from this buffer.  It may be NULL if no buffer is
   // currently in use.  Otherwise, it points to an array of size buffer_size_.
@@ -348,7 +348,7 @@ class PROTOBUF_EXPORT CopyingOutputStreamAdaptor : public ZeroCopyOutputStream {
 // a particular byte count.
 class PROTOBUF_EXPORT LimitingInputStream : public ZeroCopyInputStream {
  public:
-  LimitingInputStream(ZeroCopyInputStream* input, int64_t limit);
+  LimitingInputStream(ZeroCopyInputStream* input, arc_i64 limit);
   ~LimitingInputStream() override;
 
   // implements ZeroCopyInputStream ----------------------------------
@@ -360,8 +360,8 @@ class PROTOBUF_EXPORT LimitingInputStream : public ZeroCopyInputStream {
 
  private:
   ZeroCopyInputStream* input_;
-  int64_t limit_;  // Decreases as we go, becomes negative if we overshoot.
-  int64_t prior_bytes_read_;  // Bytes read on underlying stream at construction
+  arc_i64 limit_;  // Decreases as we go, becomes negative if we overshoot.
+  arc_i64 prior_bytes_read_;  // Bytes read on underlying stream at construction
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(LimitingInputStream);
 };

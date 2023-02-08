@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -186,11 +186,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\_597c339725c96dfb4c50a2d901.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\colorama\.dist-info\METADATA">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\colorama\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_9d104b6275ac037af7796eae64.yasm" "-" "contrib/python/colorama/.dist-info/METADATA" "_72061aa4afed5f742f3ba56b3e.rodata" "$(SolutionDir)../contrib/python/colorama/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_030de9490cbdbf6b158c8bab9b.rodata" "-" "contrib/python/colorama/.dist-info/top_level.txt" "_6f9d7e8ce80cddd30f97c11488.rodata" "$(SolutionDir)../contrib/python/colorama/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_8003bf47fd0066bf776a1e251a.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_9d104b6275ac037af7796eae64.yasm" "-" "contrib/python/colorama/.dist-info/METADATA" "_72061aa4afed5f742f3ba56b3e.rodata" "$(SolutionDir).." "/contrib/python/colorama/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_030de9490cbdbf6b158c8bab9b.rodata" "-" "contrib/python/colorama/.dist-info/top_level.txt" "_6f9d7e8ce80cddd30f97c11488.rodata" "$(SolutionDir).." "/contrib/python/colorama/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_8003bf47fd0066bf776a1e251a.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_9d104b6275ac037af7796eae64.yasm" "-" "contrib/python/colorama/.dist-info/METADATA" "_72061aa4afed5f742f3ba56b3e.rodata" "$(SolutionDir)../contrib/python/colorama/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_030de9490cbdbf6b158c8bab9b.rodata" "-" "contrib/python/colorama/.dist-info/top_level.txt" "_6f9d7e8ce80cddd30f97c11488.rodata" "$(SolutionDir)../contrib/python/colorama/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_8003bf47fd0066bf776a1e251a.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_9d104b6275ac037af7796eae64.yasm" "-" "contrib/python/colorama/.dist-info/METADATA" "_72061aa4afed5f742f3ba56b3e.rodata" "$(SolutionDir).." "/contrib/python/colorama/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_030de9490cbdbf6b158c8bab9b.rodata" "-" "contrib/python/colorama/.dist-info/top_level.txt" "_6f9d7e8ce80cddd30f97c11488.rodata" "$(SolutionDir).." "/contrib/python/colorama/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_8003bf47fd0066bf776a1e251a.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/colorama/_9d104b6275ac037af7796eae64.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\colorama\.dist-info\METADATA;$(SolutionDir)..\contrib\python\colorama\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\colorama\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\colorama\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\_9d104b6275ac037af7796eae64.yasm;$(SolutionDir)$(Configuration)\contrib\python\colorama\_030de9490cbdbf6b158c8bab9b.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_8003bf47fd0066bf776a1e251a.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\colorama\colorama\__init__.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\colorama\colorama\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_ad292e0dfca10f0e244a721f83.yasm" "-" "contrib/python/colorama/colorama/__init__.py" "_38388637e269de63fa0ffd6546.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_c4aa564e3dbde7bd126ee22de8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3" "_3e6cca657ebda1625340ad35cc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_565db499fe54dac25384721b80.rodata" "-" "contrib/python/colorama/colorama/ansi.py" "_caee6a735bff31992a93d19a03.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_47fdfa5f2001da924a4223ce6f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3" "_44486b1dedf0371661883aada6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_e6cb4106e2356c37905fccb533.rodata" "-" "contrib/python/colorama/colorama/ansitowin32.py" "_096ca461c91f8b1bd88a1d3428.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_fc9603863087f5e78bd43ea305.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3" "_94831d00c6e567ef7c8974f0db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_5a85ffef4a831688347f7cf1f5.rodata" "-" "contrib/python/colorama/colorama/initialise.py" "_b2eb88e667b8bdef4ad1da1f43.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_eb17503386f3e2bdc59e4b4e40.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3" "_bd2818fb14b54fecd1867bd438.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_c2cc7e0190827237c6497b0c93.rodata" "-" "contrib/python/colorama/colorama/win32.py" "_28ab62767e7daaa4f30496c4c4.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_4a04d8e1b0bf5775bb00d8bff9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3" "_c3b3cf215dbcea685051acde67.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_d0d2cae54b2941121e9ef9308a.rodata" "-" "contrib/python/colorama/colorama/winterm.py" "_5e63cb60cd13c221c85725be7b.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_513e30df2eb46dc17957ed4c09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3" "_6ecc1502c6b6757f0bd87d6bbd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_2bd75d2f9ccb561ce1950c7ab9.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_ad292e0dfca10f0e244a721f83.yasm" "-" "contrib/python/colorama/colorama/__init__.py" "_38388637e269de63fa0ffd6546.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_c4aa564e3dbde7bd126ee22de8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3" "_3e6cca657ebda1625340ad35cc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_565db499fe54dac25384721b80.rodata" "-" "contrib/python/colorama/colorama/ansi.py" "_caee6a735bff31992a93d19a03.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_47fdfa5f2001da924a4223ce6f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3" "_44486b1dedf0371661883aada6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_e6cb4106e2356c37905fccb533.rodata" "-" "contrib/python/colorama/colorama/ansitowin32.py" "_096ca461c91f8b1bd88a1d3428.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_fc9603863087f5e78bd43ea305.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3" "_94831d00c6e567ef7c8974f0db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_5a85ffef4a831688347f7cf1f5.rodata" "-" "contrib/python/colorama/colorama/initialise.py" "_b2eb88e667b8bdef4ad1da1f43.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_eb17503386f3e2bdc59e4b4e40.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3" "_bd2818fb14b54fecd1867bd438.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_c2cc7e0190827237c6497b0c93.rodata" "-" "contrib/python/colorama/colorama/win32.py" "_28ab62767e7daaa4f30496c4c4.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_4a04d8e1b0bf5775bb00d8bff9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3" "_c3b3cf215dbcea685051acde67.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_d0d2cae54b2941121e9ef9308a.rodata" "-" "contrib/python/colorama/colorama/winterm.py" "_5e63cb60cd13c221c85725be7b.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_513e30df2eb46dc17957ed4c09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3" "_6ecc1502c6b6757f0bd87d6bbd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_2bd75d2f9ccb561ce1950c7ab9.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/__init__.py-" "$(SolutionDir)../contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/__init__.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_ad292e0dfca10f0e244a721f83.yasm" "-" "contrib/python/colorama/colorama/__init__.py" "_38388637e269de63fa0ffd6546.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_c4aa564e3dbde7bd126ee22de8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3" "_3e6cca657ebda1625340ad35cc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_565db499fe54dac25384721b80.rodata" "-" "contrib/python/colorama/colorama/ansi.py" "_caee6a735bff31992a93d19a03.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_47fdfa5f2001da924a4223ce6f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3" "_44486b1dedf0371661883aada6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_e6cb4106e2356c37905fccb533.rodata" "-" "contrib/python/colorama/colorama/ansitowin32.py" "_096ca461c91f8b1bd88a1d3428.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_fc9603863087f5e78bd43ea305.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3" "_94831d00c6e567ef7c8974f0db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_5a85ffef4a831688347f7cf1f5.rodata" "-" "contrib/python/colorama/colorama/initialise.py" "_b2eb88e667b8bdef4ad1da1f43.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_eb17503386f3e2bdc59e4b4e40.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3" "_bd2818fb14b54fecd1867bd438.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_c2cc7e0190827237c6497b0c93.rodata" "-" "contrib/python/colorama/colorama/win32.py" "_28ab62767e7daaa4f30496c4c4.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_4a04d8e1b0bf5775bb00d8bff9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3" "_c3b3cf215dbcea685051acde67.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_d0d2cae54b2941121e9ef9308a.rodata" "-" "contrib/python/colorama/colorama/winterm.py" "_5e63cb60cd13c221c85725be7b.rodata" "$(SolutionDir)../contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_513e30df2eb46dc17957ed4c09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3" "_6ecc1502c6b6757f0bd87d6bbd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_2bd75d2f9ccb561ce1950c7ab9.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_ad292e0dfca10f0e244a721f83.yasm" "-" "contrib/python/colorama/colorama/__init__.py" "_38388637e269de63fa0ffd6546.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_c4aa564e3dbde7bd126ee22de8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3" "_3e6cca657ebda1625340ad35cc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_565db499fe54dac25384721b80.rodata" "-" "contrib/python/colorama/colorama/ansi.py" "_caee6a735bff31992a93d19a03.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_47fdfa5f2001da924a4223ce6f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3" "_44486b1dedf0371661883aada6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_e6cb4106e2356c37905fccb533.rodata" "-" "contrib/python/colorama/colorama/ansitowin32.py" "_096ca461c91f8b1bd88a1d3428.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_fc9603863087f5e78bd43ea305.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3" "_94831d00c6e567ef7c8974f0db.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_5a85ffef4a831688347f7cf1f5.rodata" "-" "contrib/python/colorama/colorama/initialise.py" "_b2eb88e667b8bdef4ad1da1f43.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_eb17503386f3e2bdc59e4b4e40.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3" "_bd2818fb14b54fecd1867bd438.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_c2cc7e0190827237c6497b0c93.rodata" "-" "contrib/python/colorama/colorama/win32.py" "_28ab62767e7daaa4f30496c4c4.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_4a04d8e1b0bf5775bb00d8bff9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3" "_c3b3cf215dbcea685051acde67.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_d0d2cae54b2941121e9ef9308a.rodata" "-" "contrib/python/colorama/colorama/winterm.py" "_5e63cb60cd13c221c85725be7b.rodata" "$(SolutionDir).." "/contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_513e30df2eb46dc17957ed4c09.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3" "_6ecc1502c6b6757f0bd87d6bbd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/colorama/_2bd75d2f9ccb561ce1950c7ab9.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/__init__.py-" "$(SolutionDir)../contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/__init__.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,16 +249,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/colorama/_ad292e0dfca10f0e244a721f83.yasm	$B/contrib/python/colorama/colorama/__init__.py.bhik.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\colorama\colorama\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\__init__.py.bhik.yapyc3;$(SolutionDir)..\contrib\python\colorama\colorama\ansi.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\ansi.py.4g5s.yapyc3;$(SolutionDir)..\contrib\python\colorama\colorama\ansitowin32.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\ansitowin32.py.ix4w.yapyc3;$(SolutionDir)..\contrib\python\colorama\colorama\initialise.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\initialise.py.mair.yapyc3;$(SolutionDir)..\contrib\python\colorama\colorama\win32.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\win32.py.7v3p.yapyc3;$(SolutionDir)..\contrib\python\colorama\colorama\winterm.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\winterm.py.ucrn.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\colorama\colorama\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\__init__.py.bhik.yapyc3;'$(SolutionDir)..'\contrib\python\colorama\colorama\ansi.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\ansi.py.4g5s.yapyc3;'$(SolutionDir)..'\contrib\python\colorama\colorama\ansitowin32.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\ansitowin32.py.ix4w.yapyc3;'$(SolutionDir)..'\contrib\python\colorama\colorama\initialise.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\initialise.py.mair.yapyc3;'$(SolutionDir)..'\contrib\python\colorama\colorama\win32.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\win32.py.7v3p.yapyc3;'$(SolutionDir)..'\contrib\python\colorama\colorama\winterm.py;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\winterm.py.ucrn.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\_ad292e0dfca10f0e244a721f83.yasm;$(SolutionDir)$(Configuration)\contrib\python\colorama\_c4aa564e3dbde7bd126ee22de8.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_565db499fe54dac25384721b80.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_47fdfa5f2001da924a4223ce6f.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_e6cb4106e2356c37905fccb533.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_fc9603863087f5e78bd43ea305.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_5a85ffef4a831688347f7cf1f5.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_eb17503386f3e2bdc59e4b4e40.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_c2cc7e0190827237c6497b0c93.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_4a04d8e1b0bf5775bb00d8bff9.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_d0d2cae54b2941121e9ef9308a.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_513e30df2eb46dc17957ed4c09.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\_2bd75d2f9ccb561ce1950c7ab9.rodata;$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\__init__.py.bhik.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\colorama\colorama\ansi.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\colorama\colorama\ansi.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/ansi.py-" "$(SolutionDir)../contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/ansi.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/ansi.py-" "$(SolutionDir)../contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/ansi.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,16 +280,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\colorama\colorama\ansi.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\colorama\colorama\ansi.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\ansi.py.4g5s.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\colorama\colorama\ansitowin32.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\colorama\colorama\ansitowin32.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/ansitowin32.py-" "$(SolutionDir)../contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/ansitowin32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -302,7 +302,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/ansitowin32.py-" "$(SolutionDir)../contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/ansitowin32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -311,16 +311,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\colorama\colorama\ansitowin32.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\colorama\colorama\ansitowin32.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\ansitowin32.py.ix4w.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\colorama\colorama\initialise.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\colorama\colorama\initialise.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/initialise.py-" "$(SolutionDir)../contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/initialise.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -333,7 +333,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/initialise.py-" "$(SolutionDir)../contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/initialise.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -342,16 +342,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/colorama/colorama/initialise.py.mair.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\colorama\colorama\initialise.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\colorama\colorama\initialise.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\initialise.py.mair.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\colorama\colorama\win32.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\colorama\colorama\win32.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/win32.py-" "$(SolutionDir)../contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/win32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -364,7 +364,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/win32.py-" "$(SolutionDir)../contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/win32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -373,16 +373,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/colorama/colorama/win32.py.7v3p.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\colorama\colorama\win32.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\colorama\colorama\win32.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\win32.py.7v3p.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\colorama\colorama\winterm.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\colorama\colorama\winterm.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/winterm.py-" "$(SolutionDir)../contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/winterm.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -395,7 +395,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/winterm.py-" "$(SolutionDir)../contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/colorama/colorama/winterm.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -404,16 +404,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\colorama\colorama\winterm.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\colorama\colorama\winterm.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\colorama\colorama\winterm.py.ucrn.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

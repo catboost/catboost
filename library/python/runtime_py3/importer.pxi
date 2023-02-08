@@ -112,6 +112,10 @@ def iter_py_modules(with_keys=False):
                 yield mod
 
 
+def py_src_key(filename):
+    return py_prefix + _b(filename)
+
+
 def iter_prefixes(s):
     i = s.find('.')
     while i >= 0:

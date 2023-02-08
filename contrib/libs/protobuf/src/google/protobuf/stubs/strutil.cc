@@ -1272,8 +1272,8 @@ char* DoubleToBuffer(double value, char* buffer) {
   // truncated to a double.
   volatile double parsed_value = internal::NoLocaleStrtod(buffer, nullptr);
   if (parsed_value != value) {
-    int snprintf_result =
-      snprintf(buffer, kDoubleToBufferSize, "%.*g", DBL_DIG+2, value);
+    snprintf_result =
+        snprintf(buffer, kDoubleToBufferSize, "%.*g", DBL_DIG + 2, value);
 
     // Should never overflow; see above.
     GOOGLE_DCHECK(snprintf_result > 0 && snprintf_result < kDoubleToBufferSize);
@@ -1384,8 +1384,8 @@ char* FloatToBuffer(float value, char* buffer) {
 
   float parsed_value;
   if (!safe_strtof(buffer, &parsed_value) || parsed_value != value) {
-    int snprintf_result =
-      snprintf(buffer, kFloatToBufferSize, "%.*g", FLT_DIG+3, value);
+    snprintf_result =
+        snprintf(buffer, kFloatToBufferSize, "%.*g", FLT_DIG + 3, value);
 
     // Should never overflow; see above.
     GOOGLE_DCHECK(snprintf_result > 0 && snprintf_result < kFloatToBufferSize);
@@ -2353,7 +2353,7 @@ void CleanStringLineEndings(TProtoStringType *str, bool auto_end_last_line) {
 
   for (ptrdiff_t input_pos = 0; input_pos < len;) {
     if (!r_seen && input_pos + 8 < len) {
-      uint64_t v = GOOGLE_UNALIGNED_LOAD64(p + input_pos);
+      arc_ui64 v = GOOGLE_UNALIGNED_LOAD64(p + input_pos);
       // Loop over groups of 8 bytes at a time until we come across
       // a word that has a byte whose value is less than or equal to
       // '\r' (i.e. could contain a \n (0x0a) or a \r (0x0d) ).

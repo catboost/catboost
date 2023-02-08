@@ -73,35 +73,38 @@ class NumDiffsReporter : public google::protobuf::util::MessageDifferencer::Repo
   NumDiffsReporter() : num_diffs_(0) {}
 
   // Returns the total number of diffs.
-  int32_t GetNumDiffs() const { return num_diffs_; }
+  arc_i32 GetNumDiffs() const { return num_diffs_; }
   void Reset() { num_diffs_ = 0; }
 
   // Report that a field has been added into Message2.
   void ReportAdded(
-      const google::protobuf::Message& message1, const google::protobuf::Message& message2,
+      const google::protobuf::Message& /* message1 */,
+      const google::protobuf::Message& /* message2 */,
       const std::vector<google::protobuf::util::MessageDifferencer::SpecificField>&
-          field_path) override {
+      /*field_path*/) override {
     ++num_diffs_;
   }
 
   // Report that a field has been deleted from Message1.
   void ReportDeleted(
-      const google::protobuf::Message& message1, const google::protobuf::Message& message2,
+      const google::protobuf::Message& /* message1 */,
+      const google::protobuf::Message& /* message2 */,
       const std::vector<google::protobuf::util::MessageDifferencer::SpecificField>&
-          field_path) override {
+      /*field_path*/) override {
     ++num_diffs_;
   }
 
   // Report that the value of a field has been modified.
   void ReportModified(
-      const google::protobuf::Message& message1, const google::protobuf::Message& message2,
+      const google::protobuf::Message& /* message1 */,
+      const google::protobuf::Message& /* message2 */,
       const std::vector<google::protobuf::util::MessageDifferencer::SpecificField>&
-          field_path) override {
+      /*field_path*/) override {
     ++num_diffs_;
   }
 
  private:
-  int32_t num_diffs_;
+  arc_i32 num_diffs_;
 };
 
 // When comparing a repeated field as map, MultipleFieldMapKeyComparator can
@@ -147,7 +150,7 @@ class MessageDifferencer::MultipleFieldsMapKeyComparator
       int path_index) const {
     const FieldDescriptor* field = key_field_path[path_index];
     std::vector<SpecificField> current_parent_fields(parent_fields);
-    if (path_index == static_cast<int64_t>(key_field_path.size() - 1)) {
+    if (path_index == static_cast<arc_i64>(key_field_path.size() - 1)) {
       if (field->is_map()) {
         return message_differencer_->CompareMapField(message1, message2, field,
                                                      &current_parent_fields);
@@ -1780,9 +1783,9 @@ bool MessageDifferencer::MatchRepeatedFieldIndices(
   Reporter* reporter = reporter_;
   reporter_ = NULL;
   NumDiffsReporter num_diffs_reporter;
-  std::vector<int32_t> num_diffs_list1;
+  std::vector<arc_i32> num_diffs_list1;
   if (is_treated_as_smart_set) {
-    num_diffs_list1.assign(count1, std::numeric_limits<int32_t>::max());
+    num_diffs_list1.assign(count1, std::numeric_limits<arc_i32>::max());
   }
 
   bool success = true;
@@ -1850,7 +1853,7 @@ bool MessageDifferencer::MatchRepeatedFieldIndices(
           } else if (repeated_field->cpp_type() ==
                      FieldDescriptor::CPPTYPE_MESSAGE) {
             // Replace with the one with fewer diffs.
-            const int32_t num_diffs = num_diffs_reporter.GetNumDiffs();
+            const arc_i32 num_diffs = num_diffs_reporter.GetNumDiffs();
             if (num_diffs < num_diffs_list1[i]) {
               // If j has been already matched to some element, ensure the
               // current num_diffs is smaller.
@@ -2076,9 +2079,9 @@ void MessageDifferencer::StreamReporter::Print(const TProtoStringType& str) {
 void MessageDifferencer::StreamReporter::PrintMapKey(
     bool left_side, const SpecificField& specific_field) {
   if (message1_ == nullptr || message2_ == nullptr) {
-    GOOGLE_LOG(WARNING) << "PrintPath cannot log map keys; "
-                    "use SetMessages to provide the messages "
-                    "being compared prior to any processing.";
+    GOOGLE_LOG(INFO) << "PrintPath cannot log map keys; "
+                 "use SetMessages to provide the messages "
+                 "being compared prior to any processing.";
     return;
   }
 
@@ -2104,7 +2107,7 @@ void MessageDifferencer::StreamReporter::PrintMapKey(
 }
 
 void MessageDifferencer::StreamReporter::ReportAdded(
-    const Message& message1, const Message& message2,
+    const Message& /*message1*/, const Message& message2,
     const std::vector<SpecificField>& field_path) {
   printer_->Print("added: ");
   PrintPath(field_path, false);
@@ -2114,7 +2117,7 @@ void MessageDifferencer::StreamReporter::ReportAdded(
 }
 
 void MessageDifferencer::StreamReporter::ReportDeleted(
-    const Message& message1, const Message& message2,
+    const Message& message1, const Message& /*message2*/,
     const std::vector<SpecificField>& field_path) {
   printer_->Print("deleted: ");
   PrintPath(field_path, true);
@@ -2153,7 +2156,7 @@ void MessageDifferencer::StreamReporter::ReportModified(
 }
 
 void MessageDifferencer::StreamReporter::ReportMoved(
-    const Message& message1, const Message& message2,
+    const Message& message1, const Message& /*message2*/,
     const std::vector<SpecificField>& field_path) {
   printer_->Print("moved: ");
   PrintPath(field_path, true);
@@ -2165,7 +2168,7 @@ void MessageDifferencer::StreamReporter::ReportMoved(
 }
 
 void MessageDifferencer::StreamReporter::ReportMatched(
-    const Message& message1, const Message& message2,
+    const Message& message1, const Message& /*message2*/,
     const std::vector<SpecificField>& field_path) {
   printer_->Print("matched: ");
   PrintPath(field_path, true);
@@ -2179,7 +2182,7 @@ void MessageDifferencer::StreamReporter::ReportMatched(
 }
 
 void MessageDifferencer::StreamReporter::ReportIgnored(
-    const Message& message1, const Message& message2,
+    const Message& /*message1*/, const Message& /*message2*/,
     const std::vector<SpecificField>& field_path) {
   printer_->Print("ignored: ");
   PrintPath(field_path, true);
@@ -2197,7 +2200,7 @@ void MessageDifferencer::StreamReporter::SetMessages(const Message& message1,
 }
 
 void MessageDifferencer::StreamReporter::ReportUnknownFieldIgnored(
-    const Message& message1, const Message& message2,
+    const Message& /*message1*/, const Message& /*message2*/,
     const std::vector<SpecificField>& field_path) {
   printer_->Print("ignored: ");
   PrintPath(field_path, true);

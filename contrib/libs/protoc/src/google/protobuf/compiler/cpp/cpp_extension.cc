@@ -44,18 +44,6 @@ namespace protobuf {
 namespace compiler {
 namespace cpp {
 
-namespace {
-
-// Returns the fully-qualified class name of the message that this field
-// extends. This function is used in the Google-internal code to handle some
-// legacy cases.
-TProtoStringType ExtendeeClassName(const FieldDescriptor* descriptor) {
-  const Descriptor* extendee = descriptor->containing_type();
-  return ClassName(extendee, true);
-}
-
-}  // anonymous namespace
-
 ExtensionGenerator::ExtensionGenerator(const FieldDescriptor* descriptor,
                                        const Options& options,
                                        MessageSCCAnalyzer* scc_analyzer)
@@ -88,7 +76,8 @@ ExtensionGenerator::ExtensionGenerator(const FieldDescriptor* descriptor,
       break;
   }
   SetCommonVars(options, &variables_);
-  variables_["extendee"] = ExtendeeClassName(descriptor_);
+  variables_["extendee"] =
+      QualifiedClassName(descriptor_->containing_type(), options_);
   variables_["type_traits"] = type_traits_;
   TProtoStringType name = descriptor_->name();
   variables_["name"] = ResolveKeyword(name);
@@ -169,7 +158,7 @@ void ExtensionGenerator::GenerateDefinition(io::Printer* printer) {
   // Likewise, class members need to declare the field constant variable.
   if (IsScoped()) {
     format(
-        "#if !defined(_MSC_VER) || _MSC_VER >= 1900\n"
+        "#if !defined(_MSC_VER) || (_MSC_VER >= 1900 && _MSC_VER < 1912)\n"
         "const int $scope$$constant_name$;\n"
         "#endif\n");
   }

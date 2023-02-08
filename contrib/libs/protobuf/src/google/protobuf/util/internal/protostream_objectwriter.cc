@@ -129,7 +129,7 @@ void SplitSecondsAndNanos(StringPiece input, StringPiece* seconds,
 Status GetNanosFromStringPiece(StringPiece s_nanos,
                                const char* parse_failure_message,
                                const char* exceeded_limit_message,
-                               int32_t* nanos) {
+                               arc_i32* nanos) {
   *nanos = 0;
 
   // Count the number of leading 0s and consume them.
@@ -137,7 +137,7 @@ Status GetNanosFromStringPiece(StringPiece s_nanos,
   while (s_nanos.Consume("0")) {
     num_leading_zeros++;
   }
-  int32 i_nanos = 0;
+  arc_i32 i_nanos = 0;
   // 's_nanos' contains fractional seconds -- i.e. 'nanos' is equal to
   // "0." + s_nanos.ToString() seconds. An int32 is used for the
   // conversion to 'nanos', rather than a double, so that there is no
@@ -156,11 +156,11 @@ Status GetNanosFromStringPiece(StringPiece s_nanos,
   if (i_nanos > 0) {
     // 'scale' is the number of digits to the right of the decimal
     // point in "0." + s_nanos.ToString()
-    int32_t scale = num_leading_zeros + s_nanos.size();
+    arc_i32 scale = num_leading_zeros + s_nanos.size();
     // 'conversion' converts i_nanos into nanoseconds.
     // conversion = kNanosPerSecond / static_cast<int32>(std::pow(10, scale))
     // For efficiency, we precompute the conversion factor.
-    int32_t conversion = 0;
+    arc_i32 conversion = 0;
     switch (scale) {
       case 1:
         conversion = 100000000;
@@ -920,7 +920,7 @@ Status ProtoStreamObjectWriter::RenderStructValue(ProtoStreamObjectWriter* ow,
   switch (data.type()) {
     case DataPiece::TYPE_INT32: {
       if (ow->options_.struct_integers_as_strings) {
-        util::StatusOr<int32_t> int_value = data.ToInt32();
+        util::StatusOr<arc_i32> int_value = data.ToInt32();
         if (int_value.ok()) {
           ow->ProtoWriter::RenderDataPiece(
               "string_value",
@@ -933,7 +933,7 @@ Status ProtoStreamObjectWriter::RenderStructValue(ProtoStreamObjectWriter* ow,
     }
     case DataPiece::TYPE_UINT32: {
       if (ow->options_.struct_integers_as_strings) {
-        util::StatusOr<uint32_t> int_value = data.ToUint32();
+        util::StatusOr<arc_ui32> int_value = data.ToUint32();
         if (int_value.ok()) {
           ow->ProtoWriter::RenderDataPiece(
               "string_value",
@@ -948,7 +948,7 @@ Status ProtoStreamObjectWriter::RenderStructValue(ProtoStreamObjectWriter* ow,
       // If the option to treat integers as strings is set, then render them as
       // strings. Otherwise, fallback to rendering them as double.
       if (ow->options_.struct_integers_as_strings) {
-        util::StatusOr<int64_t> int_value = data.ToInt64();
+        util::StatusOr<arc_i64> int_value = data.ToInt64();
         if (int_value.ok()) {
           ow->ProtoWriter::RenderDataPiece(
               "string_value", DataPiece(StrCat(int_value.value()), true));
@@ -962,7 +962,7 @@ Status ProtoStreamObjectWriter::RenderStructValue(ProtoStreamObjectWriter* ow,
       // If the option to treat integers as strings is set, then render them as
       // strings. Otherwise, fallback to rendering them as double.
       if (ow->options_.struct_integers_as_strings) {
-        util::StatusOr<uint64_t> int_value = data.ToUint64();
+        util::StatusOr<arc_ui64> int_value = data.ToUint64();
         if (int_value.ok()) {
           ow->ProtoWriter::RenderDataPiece(
               "string_value", DataPiece(StrCat(int_value.value()), true));
@@ -1091,13 +1091,13 @@ Status ProtoStreamObjectWriter::RenderDuration(ProtoStreamObjectWriter* ow,
 
   StringPiece s_secs, s_nanos;
   SplitSecondsAndNanos(value, &s_secs, &s_nanos);
-  uint64_t unsigned_seconds;
+  arc_ui64 unsigned_seconds;
   if (!safe_strtou64(s_secs, &unsigned_seconds)) {
     return util::InvalidArgumentError(
         "Invalid duration format, failed to parse seconds");
   }
 
-  int32_t nanos = 0;
+  arc_i32 nanos = 0;
   Status nanos_status = GetNanosFromStringPiece(
       s_nanos, "Invalid duration format, failed to parse nano seconds",
       "Duration value exceeds limits", &nanos);
@@ -1106,7 +1106,7 @@ Status ProtoStreamObjectWriter::RenderDuration(ProtoStreamObjectWriter* ow,
   }
   nanos = sign * nanos;
 
-  int64_t seconds = sign * unsigned_seconds;
+  arc_i64 seconds = sign * unsigned_seconds;
   if (seconds > kDurationMaxSeconds || seconds < kDurationMinSeconds ||
       nanos <= -kNanosPerSecond || nanos >= kNanosPerSecond) {
     return util::InvalidArgumentError("Duration value exceeds limits");

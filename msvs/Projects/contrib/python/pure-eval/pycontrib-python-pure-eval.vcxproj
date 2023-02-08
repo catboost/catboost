@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -186,11 +186,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_887604046c51a9e02b12a564ff.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pure-eval\.dist-info\METADATA">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pure-eval\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_c19977b144b159fc0d1d5eeaee.yasm" "-" "contrib/python/pure-eval/.dist-info/METADATA" "_5947083c27ecbe147d6b5f34b8.rodata" "$(SolutionDir)../contrib/python/pure-eval/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_48663ef337caa3987457bdfb80.rodata" "-" "contrib/python/pure-eval/.dist-info/top_level.txt" "_7e6e6eb7d13bddc822abe2274e.rodata" "$(SolutionDir)../contrib/python/pure-eval/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_524f3f66d7cd3e621917dfc625.rodata" "-" "contrib/python/pure-eval/pure_eval/py.typed" "_3a816b72dd00cb9b261e33d19d.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_65b5bb964b4bdc479b33a15a20.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_c19977b144b159fc0d1d5eeaee.yasm" "-" "contrib/python/pure-eval/.dist-info/METADATA" "_5947083c27ecbe147d6b5f34b8.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_48663ef337caa3987457bdfb80.rodata" "-" "contrib/python/pure-eval/.dist-info/top_level.txt" "_7e6e6eb7d13bddc822abe2274e.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_524f3f66d7cd3e621917dfc625.rodata" "-" "contrib/python/pure-eval/pure_eval/py.typed" "_3a816b72dd00cb9b261e33d19d.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_65b5bb964b4bdc479b33a15a20.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_c19977b144b159fc0d1d5eeaee.yasm" "-" "contrib/python/pure-eval/.dist-info/METADATA" "_5947083c27ecbe147d6b5f34b8.rodata" "$(SolutionDir)../contrib/python/pure-eval/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_48663ef337caa3987457bdfb80.rodata" "-" "contrib/python/pure-eval/.dist-info/top_level.txt" "_7e6e6eb7d13bddc822abe2274e.rodata" "$(SolutionDir)../contrib/python/pure-eval/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_524f3f66d7cd3e621917dfc625.rodata" "-" "contrib/python/pure-eval/pure_eval/py.typed" "_3a816b72dd00cb9b261e33d19d.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_65b5bb964b4bdc479b33a15a20.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_c19977b144b159fc0d1d5eeaee.yasm" "-" "contrib/python/pure-eval/.dist-info/METADATA" "_5947083c27ecbe147d6b5f34b8.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_48663ef337caa3987457bdfb80.rodata" "-" "contrib/python/pure-eval/.dist-info/top_level.txt" "_7e6e6eb7d13bddc822abe2274e.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_524f3f66d7cd3e621917dfc625.rodata" "-" "contrib/python/pure-eval/pure_eval/py.typed" "_3a816b72dd00cb9b261e33d19d.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_65b5bb964b4bdc479b33a15a20.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pure-eval/_c19977b144b159fc0d1d5eeaee.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pure-eval\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pure-eval\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\pure-eval\pure_eval\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pure-eval\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\pure-eval\.dist-info\top_level.txt;'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_c19977b144b159fc0d1d5eeaee.yasm;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_48663ef337caa3987457bdfb80.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_524f3f66d7cd3e621917dfc625.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_65b5bb964b4bdc479b33a15a20.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pure-eval\pure_eval\__init__.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_61f58205a261975def873f439a.yasm" "-" "contrib/python/pure-eval/pure_eval/__init__.py" "_19c75648e996bce03ef6e3f7df.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_e2d6be03ecf8e7fd33b9a69157.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3" "_0ff5e8613b2106090e45e43185.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_a5876aab25242b8e307af3164e.rodata" "-" "contrib/python/pure-eval/pure_eval/core.py" "_f51d3ddad4508e6b987f82426a.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/core.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_309f3eaa56f30b681568dd8e4c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3" "_c086029c09671ab6bc033a70f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_1ba75086cd0078ccc616667747.rodata" "-" "contrib/python/pure-eval/pure_eval/my_getattr_static.py" "_9ed4099ee4038eb93f11f9e86b.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/my_getattr_static.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_025b86cdafa6506d213e12d040.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3" "_88011e077162c9265ce579a548.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_a3e43921a36faaf31c4cfedb3e.rodata" "-" "contrib/python/pure-eval/pure_eval/utils.py" "_801b1f6bd8c077ea1485ba460f.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_8812c79620c10922a909cae066.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3" "_defc729ae8c8ffc72fb679f078.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_d294a6683eee8853894d7a84e5.rodata" "-" "contrib/python/pure-eval/pure_eval/version.py" "_a1401ae680af766bc3972adaf8.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/version.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_cd15db17024f1a6283c08072f4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3" "_a7b0f6b16975cb3305edde57f8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_1a9ba7d8d3c24c4ea6aa4c0260.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_61f58205a261975def873f439a.yasm" "-" "contrib/python/pure-eval/pure_eval/__init__.py" "_19c75648e996bce03ef6e3f7df.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_e2d6be03ecf8e7fd33b9a69157.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3" "_0ff5e8613b2106090e45e43185.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_a5876aab25242b8e307af3164e.rodata" "-" "contrib/python/pure-eval/pure_eval/core.py" "_f51d3ddad4508e6b987f82426a.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/core.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_309f3eaa56f30b681568dd8e4c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3" "_c086029c09671ab6bc033a70f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_1ba75086cd0078ccc616667747.rodata" "-" "contrib/python/pure-eval/pure_eval/my_getattr_static.py" "_9ed4099ee4038eb93f11f9e86b.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/my_getattr_static.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_025b86cdafa6506d213e12d040.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3" "_88011e077162c9265ce579a548.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_a3e43921a36faaf31c4cfedb3e.rodata" "-" "contrib/python/pure-eval/pure_eval/utils.py" "_801b1f6bd8c077ea1485ba460f.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_8812c79620c10922a909cae066.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3" "_defc729ae8c8ffc72fb679f078.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_d294a6683eee8853894d7a84e5.rodata" "-" "contrib/python/pure-eval/pure_eval/version.py" "_a1401ae680af766bc3972adaf8.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/version.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_cd15db17024f1a6283c08072f4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3" "_a7b0f6b16975cb3305edde57f8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_1a9ba7d8d3c24c4ea6aa4c0260.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/__init__.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/__init__.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_61f58205a261975def873f439a.yasm" "-" "contrib/python/pure-eval/pure_eval/__init__.py" "_19c75648e996bce03ef6e3f7df.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_e2d6be03ecf8e7fd33b9a69157.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3" "_0ff5e8613b2106090e45e43185.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_a5876aab25242b8e307af3164e.rodata" "-" "contrib/python/pure-eval/pure_eval/core.py" "_f51d3ddad4508e6b987f82426a.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/core.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_309f3eaa56f30b681568dd8e4c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3" "_c086029c09671ab6bc033a70f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_1ba75086cd0078ccc616667747.rodata" "-" "contrib/python/pure-eval/pure_eval/my_getattr_static.py" "_9ed4099ee4038eb93f11f9e86b.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/my_getattr_static.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_025b86cdafa6506d213e12d040.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3" "_88011e077162c9265ce579a548.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_a3e43921a36faaf31c4cfedb3e.rodata" "-" "contrib/python/pure-eval/pure_eval/utils.py" "_801b1f6bd8c077ea1485ba460f.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_8812c79620c10922a909cae066.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3" "_defc729ae8c8ffc72fb679f078.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_d294a6683eee8853894d7a84e5.rodata" "-" "contrib/python/pure-eval/pure_eval/version.py" "_a1401ae680af766bc3972adaf8.rodata" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/version.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_cd15db17024f1a6283c08072f4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3" "_a7b0f6b16975cb3305edde57f8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_1a9ba7d8d3c24c4ea6aa4c0260.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_61f58205a261975def873f439a.yasm" "-" "contrib/python/pure-eval/pure_eval/__init__.py" "_19c75648e996bce03ef6e3f7df.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_e2d6be03ecf8e7fd33b9a69157.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3" "_0ff5e8613b2106090e45e43185.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_a5876aab25242b8e307af3164e.rodata" "-" "contrib/python/pure-eval/pure_eval/core.py" "_f51d3ddad4508e6b987f82426a.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/core.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_309f3eaa56f30b681568dd8e4c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3" "_c086029c09671ab6bc033a70f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_1ba75086cd0078ccc616667747.rodata" "-" "contrib/python/pure-eval/pure_eval/my_getattr_static.py" "_9ed4099ee4038eb93f11f9e86b.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/my_getattr_static.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_025b86cdafa6506d213e12d040.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3" "_88011e077162c9265ce579a548.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_a3e43921a36faaf31c4cfedb3e.rodata" "-" "contrib/python/pure-eval/pure_eval/utils.py" "_801b1f6bd8c077ea1485ba460f.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_8812c79620c10922a909cae066.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3" "_defc729ae8c8ffc72fb679f078.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_d294a6683eee8853894d7a84e5.rodata" "-" "contrib/python/pure-eval/pure_eval/version.py" "_a1401ae680af766bc3972adaf8.rodata" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/version.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_cd15db17024f1a6283c08072f4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3" "_a7b0f6b16975cb3305edde57f8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/_1a9ba7d8d3c24c4ea6aa4c0260.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/__init__.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/__init__.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,16 +249,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pure-eval/_61f58205a261975def873f439a.yasm	$B/contrib/python/pure-eval/pure_eval/__init__.py.unzc.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pure-eval\pure_eval\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\__init__.py.unzc.yapyc3;$(SolutionDir)..\contrib\python\pure-eval\pure_eval\core.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\core.py.f7b5.yapyc3;$(SolutionDir)..\contrib\python\pure-eval\pure_eval\my_getattr_static.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\my_getattr_static.py.h4k6.yapyc3;$(SolutionDir)..\contrib\python\pure-eval\pure_eval\utils.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\utils.py.otwl.yapyc3;$(SolutionDir)..\contrib\python\pure-eval\pure_eval\version.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\version.py.gxgw.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\__init__.py.unzc.yapyc3;'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\core.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\core.py.f7b5.yapyc3;'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\my_getattr_static.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\my_getattr_static.py.h4k6.yapyc3;'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\utils.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\utils.py.otwl.yapyc3;'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\version.py;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\version.py.gxgw.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_61f58205a261975def873f439a.yasm;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_e2d6be03ecf8e7fd33b9a69157.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_a5876aab25242b8e307af3164e.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_309f3eaa56f30b681568dd8e4c.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_1ba75086cd0078ccc616667747.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_025b86cdafa6506d213e12d040.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_a3e43921a36faaf31c4cfedb3e.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_8812c79620c10922a909cae066.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_d294a6683eee8853894d7a84e5.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_cd15db17024f1a6283c08072f4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\_1a9ba7d8d3c24c4ea6aa4c0260.rodata;$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\__init__.py.unzc.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pure-eval\pure_eval\core.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\core.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/core.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/core.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/core.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/core.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/core.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/core.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/core.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/core.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,16 +280,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pure-eval/pure_eval/core.py.f7b5.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pure-eval\pure_eval\core.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\core.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\core.py.f7b5.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pure-eval\pure_eval\my_getattr_static.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\my_getattr_static.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/my_getattr_static.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/my_getattr_static.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/my_getattr_static.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/my_getattr_static.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -302,7 +302,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/my_getattr_static.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/my_getattr_static.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/my_getattr_static.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/my_getattr_static.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -311,16 +311,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pure-eval/pure_eval/my_getattr_static.py.h4k6.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pure-eval\pure_eval\my_getattr_static.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\my_getattr_static.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\my_getattr_static.py.h4k6.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pure-eval\pure_eval\utils.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\utils.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/utils.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/utils.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -333,7 +333,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/utils.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/utils.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -342,16 +342,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pure-eval/pure_eval/utils.py.otwl.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pure-eval\pure_eval\utils.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\utils.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\utils.py.otwl.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pure-eval\pure_eval\version.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\version.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/version.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/version.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/version.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/version.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -364,7 +364,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pure-eval
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/version.py-" "$(SolutionDir)../contrib/python/pure-eval/pure_eval/version.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pure-eval/pure_eval/version.py-" "$(SolutionDir).." "/contrib/python/pure-eval/pure_eval/version.py" "$(SolutionDir)$(Configuration)/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -373,16 +373,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pure-eval/pure_eval/version.py.gxgw.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pure-eval\pure_eval\version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pure-eval\pure_eval\version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pure_eval\version.py.gxgw.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

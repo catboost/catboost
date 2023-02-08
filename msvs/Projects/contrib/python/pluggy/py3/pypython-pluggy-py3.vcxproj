@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -186,11 +186,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_cb5c3dbc69b5e2de5d4831f5ab.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\py3\.dist-info\METADATA">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pluggy\py3\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_72f91d2fadc47e4123d366ae9a.yasm" "-" "contrib/python/pluggy/py3/.dist-info/METADATA" "_ca6e0c6bf478f88dd76a7f5422.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_127c331c9a23652d4f8e2e801e.rodata" "-" "contrib/python/pluggy/py3/.dist-info/top_level.txt" "_2a6408da446ffd723cb3de02a3.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8af930a6134aee5ce2c907940a.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_72f91d2fadc47e4123d366ae9a.yasm" "-" "contrib/python/pluggy/py3/.dist-info/METADATA" "_ca6e0c6bf478f88dd76a7f5422.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_127c331c9a23652d4f8e2e801e.rodata" "-" "contrib/python/pluggy/py3/.dist-info/top_level.txt" "_2a6408da446ffd723cb3de02a3.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8af930a6134aee5ce2c907940a.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_72f91d2fadc47e4123d366ae9a.yasm" "-" "contrib/python/pluggy/py3/.dist-info/METADATA" "_ca6e0c6bf478f88dd76a7f5422.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_127c331c9a23652d4f8e2e801e.rodata" "-" "contrib/python/pluggy/py3/.dist-info/top_level.txt" "_2a6408da446ffd723cb3de02a3.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8af930a6134aee5ce2c907940a.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_72f91d2fadc47e4123d366ae9a.yasm" "-" "contrib/python/pluggy/py3/.dist-info/METADATA" "_ca6e0c6bf478f88dd76a7f5422.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_127c331c9a23652d4f8e2e801e.rodata" "-" "contrib/python/pluggy/py3/.dist-info/top_level.txt" "_2a6408da446ffd723cb3de02a3.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8af930a6134aee5ce2c907940a.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/py3/_72f91d2fadc47e4123d366ae9a.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\py3\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pluggy\py3\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pluggy\py3\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\pluggy\py3\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_72f91d2fadc47e4123d366ae9a.yasm;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_127c331c9a23652d4f8e2e801e.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_8af930a6134aee5ce2c907940a.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\__init__.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_a80eb186d4a70abf0f6b3aab0d.yasm" "-" "contrib/python/pluggy/py3/pluggy/__init__.py" "_c2aa9eaa4833d5eb0249557fb2.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8ddd61ffd1cfa418bf6d1f3c5b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3" "_66e5325cb023ab733fb0da05d1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_6586b2e4f183cf930ecaa005da.rodata" "-" "contrib/python/pluggy/py3/pluggy/_callers.py" "_ca8a5143e2776b22c350fe8405.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_df3999c47555b10c58994e3daf.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3" "_8eba3cdb1b6b5f341c6e58faa2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_84ba9e560dd693bbaf58310ffb.rodata" "-" "contrib/python/pluggy/py3/pluggy/_hooks.py" "_997a45ddbaeb63ea0fe761a28b.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_edefeea1e6f05d7de2c7497d46.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3" "_1e045aa6425bb99d4354eb4301.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_e4c47b6469a82cb0390b21b044.rodata" "-" "contrib/python/pluggy/py3/pluggy/_manager.py" "_f852c523791974bf7b3684130d.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_b9102a3b4a400c686761a9ee42.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3" "_ae44701b920db0176c490a769d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_200030d69ffa3451200c82bdd9.rodata" "-" "contrib/python/pluggy/py3/pluggy/_result.py" "_e73f71fd3ed1e24bfed4b71f04.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_result.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_d65f411756e0c1b688708ce398.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3" "_bf7d0dc70fe2d10d511b581643.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_7106fb4e4363a1f50e712fd770.rodata" "-" "contrib/python/pluggy/py3/pluggy/_tracing.py" "_460ed21f32e0e65b024eb3f548.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_c8ff767ae1cae64cbf2d85dbca.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3" "_e65c2d6df63a2a88bdebf5a225.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_12287d6e3aba5fe678a1f3a0f6.rodata" "-" "contrib/python/pluggy/py3/pluggy/_version.py" "_d1ea739c663b7f43b708886d96.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8786b2bcec4c25048dc86bd568.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3" "_ff2caf5f9d0d73e0dc1e6b4e88.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_1c78cc4dea422646d743036460.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_a80eb186d4a70abf0f6b3aab0d.yasm" "-" "contrib/python/pluggy/py3/pluggy/__init__.py" "_c2aa9eaa4833d5eb0249557fb2.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8ddd61ffd1cfa418bf6d1f3c5b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3" "_66e5325cb023ab733fb0da05d1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_6586b2e4f183cf930ecaa005da.rodata" "-" "contrib/python/pluggy/py3/pluggy/_callers.py" "_ca8a5143e2776b22c350fe8405.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_df3999c47555b10c58994e3daf.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3" "_8eba3cdb1b6b5f341c6e58faa2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_84ba9e560dd693bbaf58310ffb.rodata" "-" "contrib/python/pluggy/py3/pluggy/_hooks.py" "_997a45ddbaeb63ea0fe761a28b.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_edefeea1e6f05d7de2c7497d46.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3" "_1e045aa6425bb99d4354eb4301.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_e4c47b6469a82cb0390b21b044.rodata" "-" "contrib/python/pluggy/py3/pluggy/_manager.py" "_f852c523791974bf7b3684130d.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_b9102a3b4a400c686761a9ee42.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3" "_ae44701b920db0176c490a769d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_200030d69ffa3451200c82bdd9.rodata" "-" "contrib/python/pluggy/py3/pluggy/_result.py" "_e73f71fd3ed1e24bfed4b71f04.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_result.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_d65f411756e0c1b688708ce398.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3" "_bf7d0dc70fe2d10d511b581643.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_7106fb4e4363a1f50e712fd770.rodata" "-" "contrib/python/pluggy/py3/pluggy/_tracing.py" "_460ed21f32e0e65b024eb3f548.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_c8ff767ae1cae64cbf2d85dbca.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3" "_e65c2d6df63a2a88bdebf5a225.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_12287d6e3aba5fe678a1f3a0f6.rodata" "-" "contrib/python/pluggy/py3/pluggy/_version.py" "_d1ea739c663b7f43b708886d96.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8786b2bcec4c25048dc86bd568.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3" "_ff2caf5f9d0d73e0dc1e6b4e88.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_1c78cc4dea422646d743036460.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/__init__.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/__init__.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_a80eb186d4a70abf0f6b3aab0d.yasm" "-" "contrib/python/pluggy/py3/pluggy/__init__.py" "_c2aa9eaa4833d5eb0249557fb2.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8ddd61ffd1cfa418bf6d1f3c5b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3" "_66e5325cb023ab733fb0da05d1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_6586b2e4f183cf930ecaa005da.rodata" "-" "contrib/python/pluggy/py3/pluggy/_callers.py" "_ca8a5143e2776b22c350fe8405.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_df3999c47555b10c58994e3daf.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3" "_8eba3cdb1b6b5f341c6e58faa2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_84ba9e560dd693bbaf58310ffb.rodata" "-" "contrib/python/pluggy/py3/pluggy/_hooks.py" "_997a45ddbaeb63ea0fe761a28b.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_edefeea1e6f05d7de2c7497d46.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3" "_1e045aa6425bb99d4354eb4301.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_e4c47b6469a82cb0390b21b044.rodata" "-" "contrib/python/pluggy/py3/pluggy/_manager.py" "_f852c523791974bf7b3684130d.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_b9102a3b4a400c686761a9ee42.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3" "_ae44701b920db0176c490a769d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_200030d69ffa3451200c82bdd9.rodata" "-" "contrib/python/pluggy/py3/pluggy/_result.py" "_e73f71fd3ed1e24bfed4b71f04.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_result.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_d65f411756e0c1b688708ce398.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3" "_bf7d0dc70fe2d10d511b581643.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_7106fb4e4363a1f50e712fd770.rodata" "-" "contrib/python/pluggy/py3/pluggy/_tracing.py" "_460ed21f32e0e65b024eb3f548.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_c8ff767ae1cae64cbf2d85dbca.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3" "_e65c2d6df63a2a88bdebf5a225.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_12287d6e3aba5fe678a1f3a0f6.rodata" "-" "contrib/python/pluggy/py3/pluggy/_version.py" "_d1ea739c663b7f43b708886d96.rodata" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8786b2bcec4c25048dc86bd568.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3" "_ff2caf5f9d0d73e0dc1e6b4e88.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_1c78cc4dea422646d743036460.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_a80eb186d4a70abf0f6b3aab0d.yasm" "-" "contrib/python/pluggy/py3/pluggy/__init__.py" "_c2aa9eaa4833d5eb0249557fb2.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8ddd61ffd1cfa418bf6d1f3c5b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3" "_66e5325cb023ab733fb0da05d1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_6586b2e4f183cf930ecaa005da.rodata" "-" "contrib/python/pluggy/py3/pluggy/_callers.py" "_ca8a5143e2776b22c350fe8405.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_df3999c47555b10c58994e3daf.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3" "_8eba3cdb1b6b5f341c6e58faa2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_84ba9e560dd693bbaf58310ffb.rodata" "-" "contrib/python/pluggy/py3/pluggy/_hooks.py" "_997a45ddbaeb63ea0fe761a28b.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_edefeea1e6f05d7de2c7497d46.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3" "_1e045aa6425bb99d4354eb4301.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_e4c47b6469a82cb0390b21b044.rodata" "-" "contrib/python/pluggy/py3/pluggy/_manager.py" "_f852c523791974bf7b3684130d.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_b9102a3b4a400c686761a9ee42.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3" "_ae44701b920db0176c490a769d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_200030d69ffa3451200c82bdd9.rodata" "-" "contrib/python/pluggy/py3/pluggy/_result.py" "_e73f71fd3ed1e24bfed4b71f04.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_result.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_d65f411756e0c1b688708ce398.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3" "_bf7d0dc70fe2d10d511b581643.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_7106fb4e4363a1f50e712fd770.rodata" "-" "contrib/python/pluggy/py3/pluggy/_tracing.py" "_460ed21f32e0e65b024eb3f548.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_c8ff767ae1cae64cbf2d85dbca.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3" "_e65c2d6df63a2a88bdebf5a225.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_12287d6e3aba5fe678a1f3a0f6.rodata" "-" "contrib/python/pluggy/py3/pluggy/_version.py" "_d1ea739c663b7f43b708886d96.rodata" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_8786b2bcec4c25048dc86bd568.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3" "_ff2caf5f9d0d73e0dc1e6b4e88.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/_1c78cc4dea422646d743036460.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/__init__.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/__init__.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,16 +249,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/py3/_a80eb186d4a70abf0f6b3aab0d.yasm	$B/contrib/python/pluggy/py3/pluggy/__init__.py.dbcb.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\__init__.py.dbcb.yapyc3;$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_callers.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_callers.py.egt6.yapyc3;$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_hooks.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_hooks.py.5jpm.yapyc3;$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_manager.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_manager.py.3ju3.yapyc3;$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_result.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_result.py.aorj.yapyc3;$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_tracing.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_tracing.py.mbz3.yapyc3;$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_version.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_version.py.iyaq.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\__init__.py.dbcb.yapyc3;'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_callers.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_callers.py.egt6.yapyc3;'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_hooks.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_hooks.py.5jpm.yapyc3;'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_manager.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_manager.py.3ju3.yapyc3;'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_result.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_result.py.aorj.yapyc3;'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_tracing.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_tracing.py.mbz3.yapyc3;'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_version.py;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_version.py.iyaq.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_a80eb186d4a70abf0f6b3aab0d.yasm;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_8ddd61ffd1cfa418bf6d1f3c5b.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_6586b2e4f183cf930ecaa005da.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_df3999c47555b10c58994e3daf.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_84ba9e560dd693bbaf58310ffb.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_edefeea1e6f05d7de2c7497d46.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_e4c47b6469a82cb0390b21b044.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_b9102a3b4a400c686761a9ee42.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_200030d69ffa3451200c82bdd9.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_d65f411756e0c1b688708ce398.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_7106fb4e4363a1f50e712fd770.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_c8ff767ae1cae64cbf2d85dbca.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_12287d6e3aba5fe678a1f3a0f6.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_8786b2bcec4c25048dc86bd568.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\_1c78cc4dea422646d743036460.rodata;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\__init__.py.dbcb.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_callers.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_callers.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_callers.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_callers.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_callers.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_callers.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,16 +280,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/py3/pluggy/_callers.py.egt6.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_callers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_callers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_callers.py.egt6.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_hooks.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_hooks.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_hooks.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_hooks.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -302,7 +302,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_hooks.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_hooks.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -311,16 +311,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/py3/pluggy/_hooks.py.5jpm.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_hooks.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_hooks.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_hooks.py.5jpm.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_manager.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_manager.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_manager.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_manager.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -333,7 +333,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_manager.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_manager.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -342,16 +342,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/py3/pluggy/_manager.py.3ju3.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_manager.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_manager.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_manager.py.3ju3.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_result.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_result.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_result.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_result.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_result.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_result.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -364,7 +364,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_result.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_result.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_result.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_result.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -373,16 +373,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/py3/pluggy/_result.py.aorj.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_result.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_result.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_result.py.aorj.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_tracing.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_tracing.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_tracing.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_tracing.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -395,7 +395,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_tracing.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_tracing.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -404,16 +404,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/py3/pluggy/_tracing.py.mbz3.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_tracing.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_tracing.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_tracing.py.mbz3.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_version.py">
+    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_version.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_version.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_version.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -426,7 +426,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py3
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_version.py-" "$(SolutionDir)../contrib/python/pluggy/py3/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/pluggy/py3/pluggy/_version.py-" "$(SolutionDir).." "/contrib/python/pluggy/py3/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -435,16 +435,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pluggy/py3/pluggy/_version.py.iyaq.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pluggy\py3\pluggy\_version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\pluggy\py3\pluggy\_version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pluggy\_version.py.iyaq.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

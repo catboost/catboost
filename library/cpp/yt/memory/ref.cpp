@@ -29,6 +29,8 @@ public:
         : Blob_(std::move(blob))
     { }
 
+    // NB: TBlob's capacity is dynamic; cannot provide GetTotalByteSize implementation.
+
 private:
     const TBlob Blob_;
 };
@@ -61,6 +63,12 @@ public:
     const TString& String() const
     {
         return String_;
+    }
+
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        return String_.capacity();
     }
 
 private:
@@ -96,7 +104,10 @@ protected:
     TRefCountedTypeCookie Cookie_;
 #endif
 
-    void Initialize(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
+    void Initialize(
+        size_t size,
+        TSharedMutableRefAllocateOptions options,
+        TRefCountedTypeCookie cookie)
     {
         Size_ = size;
         Cookie_ = cookie;
@@ -117,7 +128,10 @@ class TDefaultAllocationHolder
     , public TWithExtraSpace<TDefaultAllocationHolder>
 {
 public:
-    TDefaultAllocationHolder(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
+    TDefaultAllocationHolder(
+        size_t size,
+        TSharedMutableRefAllocateOptions options,
+        TRefCountedTypeCookie cookie)
     {
         if (options.ExtendToUsableSize) {
             if (auto usableSize = GetUsableSpaceSize(); usableSize != 0) {
@@ -131,6 +145,12 @@ public:
     {
         return static_cast<char*>(GetExtraSpacePtr());
     }
+
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        return Size_;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +159,10 @@ class TPageAlignedAllocationHolder
     : public TAllocationHolderBase<TPageAlignedAllocationHolder>
 {
 public:
-    TPageAlignedAllocationHolder(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
+    TPageAlignedAllocationHolder(
+        size_t size,
+        TSharedMutableRefAllocateOptions options,
+        TRefCountedTypeCookie cookie)
         : Begin_(static_cast<char*>(::aligned_malloc(size, GetPageSize())))
     {
         Initialize(size, options, cookie);
@@ -153,6 +176,12 @@ public:
     char* GetBegin()
     {
         return Begin_;
+    }
+
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        return AlignUp(Size_, GetPageSize());
     }
 
 private:

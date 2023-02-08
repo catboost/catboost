@@ -63,8 +63,8 @@ inline TProtoStringType ProtobufNamespace(const Options& /* options */) {
   return "PROTOBUF_NAMESPACE_ID";
 }
 
-inline TProtoStringType MacroPrefix(const Options& options) {
-  return options.opensource_runtime ? "GOOGLE_PROTOBUF" : "GOOGLE_PROTOBUF";
+inline TProtoStringType MacroPrefix(const Options& /* options */) {
+  return "GOOGLE_PROTOBUF";
 }
 
 inline TProtoStringType DeprecatedAttribute(const Options& /* options */,
@@ -742,6 +742,27 @@ class PROTOC_EXPORT Formatter {
   void Indent() const { printer_->Indent(); }
   void Outdent() const { printer_->Outdent(); }
   io::Printer* printer() const { return printer_; }
+
+  class PROTOC_EXPORT ScopedIndenter {
+   public:
+    explicit ScopedIndenter(Formatter* format) : format_(format) {
+      format_->Indent();
+    }
+    ~ScopedIndenter() { format_->Outdent(); }
+
+   private:
+    Formatter* format_;
+  };
+
+  PROTOBUF_NODISCARD ScopedIndenter ScopedIndent() {
+    return ScopedIndenter(this);
+  }
+  template <typename... Args>
+  PROTOBUF_NODISCARD ScopedIndenter ScopedIndent(const char* format,
+                                                 const Args&&... args) {
+    (*this)(format, static_cast<Args&&>(args)...);
+    return ScopedIndenter(this);
+  }
 
   class PROTOC_EXPORT SaveState {
    public:

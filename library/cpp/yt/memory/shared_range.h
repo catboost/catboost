@@ -1,10 +1,13 @@
 #pragma once
 
+#include "public.h"
 #include "intrusive_ptr.h"
 #include "range.h"
 #include "ref_counted.h"
 
 #include <library/cpp/yt/assert/assert.h>
+
+#include <optional>
 
 namespace NYT {
 
@@ -20,12 +23,21 @@ struct TSharedRangeHolderCloneOptions
     bool KeepMemoryReferenceTracking = true;
 };
 
-DECLARE_REFCOUNTED_STRUCT(TSharedRangeHolder)
-
 struct TSharedRangeHolder
     : public TRefCounted
 {
-    virtual TSharedRangeHolderPtr Clone(const TSharedRangeHolderCloneOptions& /*options*/);
+    //! Clones the holder possibly adjusting its flavor based on #options.
+    /*!
+     *  The default implementation just returns this.
+     */
+    virtual TSharedRangeHolderPtr Clone(const TSharedRangeHolderCloneOptions& options);
+
+    //! Returns the (estimated) total number of bytes being held or |null| if unable to estimate.
+    /*!
+     *  The returned value is static and never changes.
+     *  The default implementation returns |null|.
+     */
+    virtual std::optional<size_t> GetTotalByteSize() const;
 };
 
 DEFINE_REFCOUNTED_TYPE(TSharedRangeHolder)

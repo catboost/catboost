@@ -1020,6 +1020,7 @@ class MetaHasTraits(MetaHasDescriptors):
                 cls._traits[name] = value
                 trait = value
                 default_method_name = "_%s_default" % name
+                mro_trait = mro
                 try:
                     mro_trait = mro[: mro.index(trait.this_class) + 1]  # type:ignore[arg-type]
                 except ValueError:

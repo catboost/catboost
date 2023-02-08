@@ -179,6 +179,8 @@ Options::Options() {
     expected_prefixes_suppressions =
         Split(suppressions, ";", true);
   }
+  prefixes_must_be_registered = false;
+  require_prefixes = false;
 }
 
 namespace {
@@ -993,7 +995,7 @@ TProtoStringType DefaultValue(const FieldDescriptor* field) {
 
         // Must convert to a standard byte order for packing length into
         // a cstring.
-        uint32 length = ghtonl(default_string.length());
+        arc_ui32 length = ghtonl(default_string.length());
         TProtoStringType bytes((const char*)&length, sizeof(length));
         bytes.append(default_string);
         return "(NSData*)\"" + EscapeTrigraphs(CEscape(bytes)) + "\"";
@@ -1228,6 +1230,7 @@ bool LoadExpectedPackagePrefixes(const Options& generation_options,
 bool ValidateObjCClassPrefix(
     const FileDescriptor* file, const TProtoStringType& expected_prefixes_path,
     const std::map<TProtoStringType, TProtoStringType>& expected_package_prefixes,
+    bool prefixes_must_be_registered, bool require_prefixes,
     TProtoStringType* out_error) {
   // Reminder: An explicit prefix option of "" is valid in case the default
   // prefixing is set to use the proto package and a file needs to be generated
@@ -1266,6 +1269,12 @@ bool ValidateObjCClassPrefix(
 
   // If there was no prefix option, we're done at this point.
   if (!has_prefix) {
+    if (require_prefixes) {
+      *out_error =
+        "error: '" + file->name() + "' does not have a required 'option" +
+        " objc_class_prefix'.";
+      return false;
+    }
     return true;
   }
 
@@ -1345,9 +1354,18 @@ bool ValidateObjCClassPrefix(
     std::cerr.flush();
   }
 
-  // Check: Warning - If the given package/prefix pair wasn't expected, issue a
-  // warning suggesting it gets added to the file.
+  // Check: Error/Warning - If the given package/prefix pair wasn't expected,
+  // issue a error/warning to added to the file.
   if (have_expected_prefix_file) {
+    if (prefixes_must_be_registered) {
+      *out_error =
+        "error: '" + file->name() + "' has 'option objc_class_prefix = \"" +
+        prefix + "\";', but it is not registered; add it to the expected " +
+        "prefixes file (" + expected_prefixes_path + ") for the package '" +
+        package + "'.";
+      return false;
+    }
+
     std::cerr
          << "protoc:0: warning: Found unexpected 'option objc_class_prefix = \""
          << prefix << "\";' in '" << file->name() << "';"
@@ -1392,6 +1410,8 @@ bool ValidateObjCClassPrefixes(const std::vector<const FileDescriptor*>& files,
         ValidateObjCClassPrefix(files[i],
                                 generation_options.expected_prefixes_path,
                                 expected_package_prefixes,
+                                generation_options.prefixes_must_be_registered,
+                                generation_options.require_prefixes,
                                 out_error);
     if (!is_valid) {
       return false;
@@ -1404,7 +1424,7 @@ TextFormatDecodeData::TextFormatDecodeData() { }
 
 TextFormatDecodeData::~TextFormatDecodeData() { }
 
-void TextFormatDecodeData::AddString(int32 key,
+void TextFormatDecodeData::AddString(arc_i32 key,
                                      const TProtoStringType& input_for_decode,
                                      const TProtoStringType& desired_output) {
   for (std::vector<DataEntry>::const_iterator i = entries_.begin();
@@ -1460,12 +1480,12 @@ class DecodeDataBuilder {
   }
 
  private:
-  static constexpr uint8 kAddUnderscore = 0x80;
+  static constexpr uint8_t kAddUnderscore = 0x80;
 
-  static constexpr uint8 kOpAsIs = 0x00;
-  static constexpr uint8 kOpFirstUpper = 0x40;
-  static constexpr uint8 kOpFirstLower = 0x20;
-  static constexpr uint8 kOpAllUpper = 0x60;
+  static constexpr uint8_t kOpAsIs = 0x00;
+  static constexpr uint8_t kOpFirstUpper = 0x40;
+  static constexpr uint8_t kOpFirstLower = 0x20;
+  static constexpr uint8_t kOpAllUpper = 0x60;
 
   static constexpr int kMaxSegmentLen = 0x1f;
 
@@ -1475,7 +1495,7 @@ class DecodeDataBuilder {
   }
 
   void Push() {
-    uint8 op = (op_ | segment_len_);
+    uint8_t op = (op_ | segment_len_);
     if (need_underscore_) op |= kAddUnderscore;
     if (op != 0) {
       decode_data_ += (char)op;
@@ -1507,7 +1527,7 @@ class DecodeDataBuilder {
 
   bool need_underscore_;
   bool is_all_upper_;
-  uint8 op_;
+  uint8_t op_;
   int segment_len_;
 
   TProtoStringType decode_data_;
@@ -1619,69 +1639,69 @@ class Parser {
   Parser(LineConsumer* line_consumer)
       : line_consumer_(line_consumer), line_(0) {}
 
-  // Parses a check of input, returning success/failure.
-  bool ParseChunk(StringPiece chunk);
+  // Feeds in some input, parse what it can, returning success/failure. Calling
+  // again after an error is undefined.
+  bool ParseChunk(StringPiece chunk, TProtoStringType* out_error);
 
   // Should be called to finish parsing (after all input has been provided via
-  // ParseChunk()).  Returns success/failure.
-  bool Finish();
+  // successful calls to ParseChunk(), calling after a ParseChunk() failure is
+  // undefined). Returns success/failure.
+  bool Finish(TProtoStringType* out_error);
 
   int last_line() const { return line_; }
-  TProtoStringType error_str() const { return error_str_; }
 
  private:
-  bool ParseLoop();
-
   LineConsumer* line_consumer_;
   int line_;
-  TProtoStringType error_str_;
-  StringPiece p_;
   TProtoStringType leftover_;
 };
 
-bool Parser::ParseChunk(StringPiece chunk) {
+bool Parser::ParseChunk(StringPiece chunk, TProtoStringType* out_error) {
+  StringPiece full_chunk;
   if (!leftover_.empty()) {
     leftover_ += TProtoStringType(chunk);
-    p_ = StringPiece(leftover_);
+    full_chunk = StringPiece(leftover_);
   } else {
-    p_ = chunk;
+    full_chunk = chunk;
   }
-  bool result = ParseLoop();
-  if (p_.empty()) {
-    leftover_.clear();
-  } else {
-    leftover_ = TProtoStringType(p_);
-  }
-  return result;
-}
 
-bool Parser::Finish() {
-  if (leftover_.empty()) {
-    return true;
-  }
-  // Force a newline onto the end to finish parsing.
-  leftover_ += "\n";
-  p_ = StringPiece(leftover_);
-  if (!ParseLoop()) {
-    return false;
-  }
-  return p_.empty();  // Everything used?
-}
-
-bool Parser::ParseLoop() {
   StringPiece line;
-  while (ReadLine(&p_, &line)) {
+  while (ReadLine(&full_chunk, &line)) {
     ++line_;
     RemoveComment(&line);
     TrimWhitespace(&line);
-    if (line.empty()) {
-      continue;  // Blank line.
-    }
-    if (!line_consumer_->ConsumeLine(line, &error_str_)) {
+    if (!line.empty() && !line_consumer_->ConsumeLine(line, out_error)) {
+      if (out_error->empty()) {
+        *out_error = "ConsumeLine failed without setting an error.";
+      }
+      leftover_.clear();
       return false;
     }
   }
+
+  if (full_chunk.empty()) {
+    leftover_.clear();
+  } else {
+    leftover_ = TProtoStringType(full_chunk);
+  }
   return true;
+}
+
+bool Parser::Finish(TProtoStringType* out_error) {
+  // If there is still something to go, flush it with a newline.
+  if (!leftover_.empty() && !ParseChunk("\n", out_error)) {
+    return false;
+  }
+  // This really should never fail if ParseChunk succeeded, but check to be sure.
+  if (!leftover_.empty()) {
+    *out_error = "ParseSimple Internal error: finished with pending data.";
+    return false;
+  }
+  return true;
+}
+
+TProtoStringType FullErrorString(const TProtoStringType& name, int line_num, const TProtoStringType& msg) {
+  return TProtoStringType("error: ") + name + " Line " + StrCat(line_num) + ", " + msg;
 }
 
 }  // namespace
@@ -1704,22 +1724,33 @@ bool ParseSimpleFile(const TProtoStringType& path, LineConsumer* line_consumer,
   io::FileInputStream file_stream(fd);
   file_stream.SetCloseOnDelete(true);
 
+  return ParseSimpleStream(file_stream, path, line_consumer, out_error);
+}
+
+bool ParseSimpleStream(io::ZeroCopyInputStream& input_stream,
+                       const TProtoStringType& stream_name,
+                       LineConsumer* line_consumer,
+                       TProtoStringType* out_error) {
+  TProtoStringType local_error;
   Parser parser(line_consumer);
   const void* buf;
   int buf_len;
-  while (file_stream.Next(&buf, &buf_len)) {
+  while (input_stream.Next(&buf, &buf_len)) {
     if (buf_len == 0) {
       continue;
     }
 
-    if (!parser.ParseChunk(StringPiece(static_cast<const char*>(buf), buf_len))) {
-      *out_error =
-          TProtoStringType("error: ") + path +
-          " Line " + StrCat(parser.last_line()) + ", " + parser.error_str();
+    if (!parser.ParseChunk(StringPiece(static_cast<const char*>(buf), buf_len),
+                           &local_error)) {
+      *out_error = FullErrorString(stream_name, parser.last_line(), local_error);
       return false;
     }
   }
-  return parser.Finish();
+  if (!parser.Finish(&local_error)) {
+    *out_error = FullErrorString(stream_name, parser.last_line(), local_error);
+    return false;
+  }
+  return true;
 }
 
 ImportWriter::ImportWriter(

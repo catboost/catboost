@@ -50,6 +50,11 @@
 #include <string_view>
 #endif  // defined(__cpp_lib_string_view)
 
+#if !defined(GOOGLE_PROTOBUF_NO_RDTSC) && defined(__APPLE__)
+#define GOOGLE_PROTOBUF_NO_RDTSC 1
+//#include <mach/mach_time.h>
+#endif
+
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/generated_enum_util.h>
@@ -1023,12 +1028,12 @@ class Map {
     size_type BucketNumber(const K& k) const {
       // We xor the hash value against the random seed so that we effectively
       // have a random hash function.
-      uint64_t h = hash_function()(k) ^ seed_;
+      arc_ui64 h = hash_function()(k) ^ seed_;
 
       // We use the multiplication method to determine the bucket number from
       // the hash value. The constant kPhi (suggested by Knuth) is roughly
       // (sqrt(5) - 1) / 2 * 2^64.
-      constexpr uint64_t kPhi = uint64_t{0x9e3779b97f4a7c15};
+      constexpr arc_ui64 kPhi = arc_ui64{0x9e3779b97f4a7c15};
       return ((kPhi * h) >> 32) & (num_buckets_ - 1);
     }
 
@@ -1080,12 +1085,24 @@ class Map {
       // lower bits are not very random, due to alignment, so we discard them
       // and shift the higher bits into their place.
       size_type s = reinterpret_cast<uintptr_t>(this) >> 4;
-#if defined(__x86_64__) && defined(__GNUC__) && \
-    !defined(GOOGLE_PROTOBUF_NO_RDTSC)
-      uint32_t hi, lo;
+#if !defined(GOOGLE_PROTOBUF_NO_RDTSC)
+#if defined(__APPLE__)
+      // Use a commpage-based fast time function on Apple environments (MacOS,
+      // iOS, tvOS, watchOS, etc).
+      s += mach_absolute_time();
+#elif defined(__x86_64__) && defined(__GNUC__)
+      arc_ui32 hi, lo;
       asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
-      s += ((static_cast<uint64_t>(hi) << 32) | lo);
+      s += ((static_cast<arc_ui64>(hi) << 32) | lo);
+#elif defined(__aarch64__) && defined(__GNUC__)
+      // There is no rdtsc on ARMv8. CNTVCT_EL0 is the virtual counter of the
+      // system timer. It runs at a different frequency than the CPU's, but is
+      // the best source of time-based entropy we get.
+      arc_ui64 virtual_timer_value;
+      asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
+      s += virtual_timer_value;
 #endif
+#endif  // !defined(GOOGLE_PROTOBUF_NO_RDTSC)
       return s;
     }
 

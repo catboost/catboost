@@ -38,6 +38,7 @@
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 
 #include <google/protobuf/port_def.inc>
 
@@ -67,6 +68,8 @@ struct Options {
   TProtoStringType generate_for_named_framework;
   TProtoStringType named_framework_to_proto_path_mappings_path;
   TProtoStringType runtime_import_prefix;
+  bool prefixes_must_be_registered;
+  bool require_prefixes;
 };
 
 // Escape C++ trigraphs by escaping question marks to "\?".
@@ -260,7 +263,7 @@ class PROTOC_EXPORT TextFormatDecodeData {
   TextFormatDecodeData(const TextFormatDecodeData&) = delete;
   TextFormatDecodeData& operator=(const TextFormatDecodeData&) = delete;
 
-  void AddString(int32 key, const TProtoStringType& input_for_decode,
+  void AddString(arc_i32 key, const TProtoStringType& input_for_decode,
                  const TProtoStringType& desired_output);
   size_t num_entries() const { return entries_.size(); }
   TProtoStringType Data() const;
@@ -269,7 +272,7 @@ class PROTOC_EXPORT TextFormatDecodeData {
                                          const TProtoStringType& desired_output);
 
  private:
-  typedef std::pair<int32, TProtoStringType> DataEntry;
+  typedef std::pair<arc_i32, TProtoStringType> DataEntry;
   std::vector<DataEntry> entries_;
 };
 
@@ -284,6 +287,11 @@ class PROTOC_EXPORT LineConsumer {
 bool PROTOC_EXPORT ParseSimpleFile(const TProtoStringType& path,
                                    LineConsumer* line_consumer,
                                    TProtoStringType* out_error);
+
+bool PROTOC_EXPORT ParseSimpleStream(io::ZeroCopyInputStream& input_stream,
+                                     const TProtoStringType& stream_name,
+                                     LineConsumer* line_consumer,
+                                     TProtoStringType* out_error);
 
 // Helper class for parsing framework import mappings and generating
 // import statements.

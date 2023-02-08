@@ -8,7 +8,7 @@ This library is mainly for CLI programs that carefully produce output for
 Terminals, or make pretend to be an emulator.
 
 **Problem Statement**: The printable length of *most* strings are equal to the
-number of cells they occupy on the screen ``1 charater : 1 cell``.  However,
+number of cells they occupy on the screen ``1 character : 1 cell``.  However,
 there are categories of characters that *occupy 2 cells* (full-wide), and
 others that *occupy 0* cells (zero-width).
 
@@ -39,7 +39,7 @@ output length is wrong::
     5
 
     >>> print('コンニチハ'.rjust(20, '_'))
-    _____コンニチハ
+    _______________コンニチハ
 
 By defining our own "rjust" function that uses wcwidth, we can correct this::
 
@@ -111,14 +111,14 @@ Execute unit tests using tox_::
 
 Regenerate python code tables from latest Unicode Specification data files::
 
-   tox -eupdate
+   tox -e update
 
 Supplementary tools for browsing and testing terminals for wide unicode
 characters are found in the `bin/`_ of this project's source code.  Just ensure
 to first ``pip install -erequirements-develop.txt`` from this projects main
 folder. For example, an interactive browser for testing::
 
-  ./bin/wcwidth-browser.py
+  python ./bin/wcwidth-browser.py
 
 Uses
 ----
@@ -168,6 +168,16 @@ Other Languages
 History
 -------
 
+0.2.6 *2023-01-14*
+  * **Updated** tables to include Unicode Specification 14.0.0 and 15.0.0.
+  * **Changed** developer tools to use pip-compile, and to use jinja2 templates
+    for code generation in `bin/update-tables.py` to prepare for possible
+    compiler optimization release.
+
+0.2.1 .. 0.2.5 *2020-06-23*
+  * **Repository** changes to update tests and packaging issues, and
+    begin tagging repository with matching release versions.
+
 0.2.0 *2020-06-01*
   * **Enhancement**: Unicode version may be selected by exporting the
     Environment variable ``UNICODE_VERSION``, such as ``13.0``, or ``6.3.0``.
@@ -177,8 +187,6 @@ History
   * **Updated** tables for *all* Unicode Specifications with files
     published in a programmatically consumable format, versions 4.1.0
     through 13.0
-    that are published
-    , versions
 
 0.1.9 *2020-03-22*
   * **Performance** optimization by `Avram Lubkin`_, `PR #35`_.

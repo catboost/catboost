@@ -622,12 +622,6 @@ Py_GetArgcArgv(int *argc, wchar_t ***argv)
 }
 
 
-void
-Py_InitArgcArgv(int argc, wchar_t **argv)
-{
-    _Py_SetArgcArgv((Py_ssize_t)argc, argv);
-}
-
 /* --- PyConfig ---------------------------------------------- */
 
 #define MAX_HASH_SEED 4294967295UL
