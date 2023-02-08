@@ -112,6 +112,7 @@
     <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\methods\pointwise_optimization_subsets.cpp"/>
     <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\methods\pointwise_score_calcer.cpp"/>
     <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\methods\serialization_helper.cpp"/>
+    <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\methods\stripe_target_wrapper.cpp"/>
     <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\methods\tree_ctr_datasets_visitor.cpp"/>
     <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\methods\tree_ctrs.cpp"/>
     <ClCompile Include="'$(SolutionDir)..'\catboost\cuda\methods\tree_ctrs_dataset.cpp"/>
