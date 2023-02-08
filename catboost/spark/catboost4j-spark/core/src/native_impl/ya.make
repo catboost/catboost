@@ -76,6 +76,8 @@ IF (USE_SYSTEM_JDK)
 ELSE()
     IF (NOT OPENSOURCE OR AUTOCHECK)
         PEERDIR(contrib/libs/jdk)
+    ELSEIF(EXPORT_CMAKE)
+        PEERDIR(build/platform/java/jni)
     ELSE()
         # warning instead of an error to enable configure w/o specifying JAVA_HOME
         MESSAGE(WARNING System JDK required)
