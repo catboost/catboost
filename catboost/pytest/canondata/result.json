@@ -1534,6 +1534,11 @@
             "uri": "file://test.test_dataset_statistics_custom_feature_limits/res.json"
         }
     ],
+    "test.test_dataset_statistics_multitarget": [
+        {
+            "uri": "file://test.test_dataset_statistics_multitarget/res.json"
+        }
+    ],
     "test.test_deep_tree_classification[Ordered-4]": [
         {
             "uri": "file://test.test_deep_tree_classification_Ordered-4_/test.eval"

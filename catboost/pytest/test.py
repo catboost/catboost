@@ -10439,6 +10439,22 @@ def test_dataset_statistics(with_groups, groups_stats_only, use_spots):
     ]
 
 
+def test_dataset_statistics_multitarget():
+    output_result_path = yatest.common.test_output_path('res.json')
+    command = [
+        CATBOOST_PATH,
+        'dataset-statistics',
+        '--input-path', data_file('multiregression', 'train'),
+        '--column-description', data_file('multiregression', 'train.cd'),
+        '-T', '4',
+        '--output-path', output_result_path,
+    ]
+    yatest.common.execute(command)
+    return [
+        local_canonical_file(output_result_path),
+    ]
+
+
 def test_dataset_statistics_custom_feature_limits():
     output_result_path = yatest.common.test_output_path('res.json')
     command = [

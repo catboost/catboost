@@ -110,7 +110,7 @@ void TFloatFeatureStatistics::Update(const TFloatFeatureStatistics& update) {
 template<typename TStatistic>
 void SetCustomBorders(const TFeatureCustomBorders& customBorders, TVector<TStatistic>* statistics) {
     for (const auto& [key, value] : customBorders) {
-        CB_ENSURE(key < statistics->size());
+        CB_ENSURE(key < statistics->size(), "id " << key << " statistics size " << statistics->size());
         statistics->at(key).SetCustomBorders(value);
     }
 }
