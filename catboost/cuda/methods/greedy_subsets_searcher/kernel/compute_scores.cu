@@ -170,6 +170,9 @@ namespace NKernel {
         numBlocks.x = argmaxBlockCount;
         numBlocks.y = partBlockCount;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         #define RUN() \
         ComputeOptimalSplits<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partIds, partBlockSize, restPartIds, restPartCount, multiclassOptimization, scoreCalcer, result);
@@ -493,6 +496,9 @@ namespace NKernel {
         numBlocks.x = argmaxBlockCount;
         numBlocks.y = partCount;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         #define RUN() \
         ComputeOptimalSplitsRegion<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partIds, multiclassOptimization, scoreCalcer, result);
@@ -562,6 +568,9 @@ namespace NKernel {
         numBlocks.x = argmaxBlockCount;
         numBlocks.y = partId == maybeSecondPartId ? 1 : 2;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         #define RUN() \
         ComputeOptimalSplit<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partId, maybeSecondPartId, multiclassOptimization, scoreCalcer, result);

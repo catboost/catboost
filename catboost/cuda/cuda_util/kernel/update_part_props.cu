@@ -214,6 +214,9 @@ namespace NKernel {
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
         Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         UpdatePartitionsPropsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(partIds, parts, source, statLineSize, tempVars);
         {
@@ -364,6 +367,9 @@ namespace NKernel {
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
         Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         UpdatePartitionsPropsForSplitImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(leftPartIds, rightPartIds, parts, source, statLineSize, tempVars);
         {
@@ -391,6 +397,9 @@ namespace NKernel {
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
         Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         UpdatePartitionsPropsForSingleSplitImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(leftPartId, rightPartId, parts, source, statLineSize, tempVars);
         {
@@ -421,6 +430,9 @@ namespace NKernel {
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
         Y_VERIFY((ui64)numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         UpdatePartitionsPropsForOffsetsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(offsets, source,  statLineSize, count, tempVars);
         {

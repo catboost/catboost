@@ -241,6 +241,9 @@ namespace NKernel {
             const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
             numBlocks.x = ((nbCount + 3) / 4);
             numBlocks.x *= multiplier;
+            if (IsGridEmpty(numBlocks)) {
+                return;
+            }
 
             #define COMPUTE(k)\
              RunComputeHist2NonBinaryKernel<blockSize, Bits, k>(nbFeatures, nbCount, cindex,  target, weight,  indices, \

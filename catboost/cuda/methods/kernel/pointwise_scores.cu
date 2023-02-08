@@ -559,7 +559,7 @@ namespace NKernel {
         }
     }
 
-    bool GatherHistogramByLeaves(const float* histogram,
+    void GatherHistogramByLeaves(const float* histogram,
                                  const ui32 binFeatureCount,
                                  const ui32 histCount,
                                  const ui32 leafCount,
@@ -574,22 +574,25 @@ namespace NKernel {
         numBlocks.x = (binFeatureCount + (blockSize / leavesInBlock) - 1) / (blockSize / leavesInBlock);
         numBlocks.y = foldCount;
         numBlocks.z = (leafCount + blockSize - 1) / blockSize;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         switch (histCount) {
             case 1: {
                 GatherHistogramsByLeavesImpl<blockSize, 1> <<<numBlocks, blockSize, 0, stream>>>(binFeatureCount, histogram, histCount, leafCount, foldCount, result);
-                return true;
+                return;
             }
             case 2: {
                 GatherHistogramsByLeavesImpl<blockSize, 2> <<<numBlocks, blockSize, 0, stream>>>(binFeatureCount, histogram, histCount, leafCount, foldCount, result);
-                return true;
+                return;
             }
             case 4: {
                 GatherHistogramsByLeavesImpl<blockSize, 4> <<<numBlocks, blockSize, 0, stream>>>(binFeatureCount, histogram, histCount, leafCount, foldCount, result);
-                return true;
+                return;
             }
             default: {
-                return false;
+                CB_ENSURE_INTERNAL(false, "histCount should be 1, 2, or 4, not " << histCount);
             }
         }
     }

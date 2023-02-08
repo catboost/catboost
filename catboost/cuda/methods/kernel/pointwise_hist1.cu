@@ -793,6 +793,9 @@ template <int BlockSize, bool IsFullPass>
         constexpr ui32 BlockSize = 768;
         const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64u);
         numBlocks.x *= multiplier;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         if (bCount) {
 
@@ -843,6 +846,9 @@ template <int BlockSize, bool IsFullPass>
         constexpr ui32 BlockSize = 768;
         const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
         numBlocks.x *= multiplier;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         if (halfByteFeaturesCount) {
 
@@ -897,6 +903,9 @@ template <int BlockSize, bool IsFullPass>
             constexpr ui32 BlockSize = 384;
             const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
             numBlocks.x *= multiplier;
+            if (IsGridEmpty(numBlocks)) {
+                return;
+            }
 
             #define COMPUTE(k)                                                                                              \
              RunComputeHist1NonBinaryKernel<BlockSize, k>(nbFeatures, nbCount, cindex,  target, indices,                    \

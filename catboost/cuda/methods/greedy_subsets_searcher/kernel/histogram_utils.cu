@@ -239,7 +239,7 @@ namespace NKernel
         numBlocks.y = idsCount;
         numBlocks.z = statCount;
 
-        if (idsCount && statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             ZeroHistogramsImpl<<<numBlocks, blockSize, 0, stream>>>(histIds,
                                                                     binFeatureCount,
                                                                     dstHistogram);
@@ -276,7 +276,7 @@ namespace NKernel
         numBlocks.y = 1;
         numBlocks.z = statCount;
 
-        if (statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             ZeroHistogramImpl<<<numBlocks, blockSize, 0, stream>>>(histId,
                 binFeatureCount,
                 dstHistogram);
@@ -324,7 +324,7 @@ namespace NKernel
         numBlocks.y = idsCount;
         numBlocks.z = statCount;
 
-        if (idsCount && statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             SubstractHistogramsImpl<<<numBlocks, blockSize, 0, stream>>>(fromIds, whatIds, binFeatureCount, dstHistogram);
         }
     }
@@ -365,7 +365,7 @@ namespace NKernel
         numBlocks.y = 1;
         numBlocks.z = statCount;
 
-        if (statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             SubstractHistogramImpl<<<numBlocks, blockSize, 0, stream>>>(fromIds, whatIds, binFeatureCount, dstHistogram);
         }
     }
@@ -443,7 +443,7 @@ namespace NKernel
         numBlocks.y = idsCount;
         numBlocks.z = statCount;
 
-        if (idsCount && statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             ScanHistogramsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(features, fCount, ids, binFeatureCount, histograms);
         }
     }
@@ -520,7 +520,7 @@ namespace NKernel
         numBlocks.y = 1;
         numBlocks.z = statCount;
 
-        if (statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             ScanHistogramImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(features, fCount, id, binFeatureCount, histograms);
         }
     }

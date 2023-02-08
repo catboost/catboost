@@ -379,7 +379,7 @@ namespace NKernel {
             return;
         }
 
-        if (sixBitsFeatureCount > 0) {
+        if (sixBitsFeatureCount > 0 && partCount / (fullPass ? 1 : 4) > 0) {
             const int blockSize = 192;
             dim3 numBlocks;
             numBlocks.x = (sixBitsFeatureCount + 3) / 4;

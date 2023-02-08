@@ -16,7 +16,7 @@ namespace NKernel {
                               TCudaStream stream);
 
 
-    bool GatherHistogramByLeaves(const float* histogram,
+    void GatherHistogramByLeaves(const float* histogram,
                                  const ui32 binFeatureCount,
                                  const ui32 histCount,
                                  const ui32 leafCount,
