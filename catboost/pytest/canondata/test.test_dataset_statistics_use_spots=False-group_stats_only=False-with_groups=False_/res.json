@@ -43,7 +43,6 @@
             "MaxValue":72,
             "MinValue":17,
             "ObjectCount":101,
-            "OutOfDomainValuesCount":0,
             "Sum":"3872",
             "SumSqr":"168730"
           },
@@ -51,7 +50,6 @@
             "MaxValue":749105,
             "MinValue":30226,
             "ObjectCount":101,
-            "OutOfDomainValuesCount":0,
             "Sum":"21849792",
             "SumSqr":"6.152885338e+12"
           },
@@ -59,7 +57,6 @@
             "MaxValue":16,
             "MinValue":4,
             "ObjectCount":101,
-            "OutOfDomainValuesCount":0,
             "Sum":"1039",
             "SumSqr":"11455"
           },
@@ -67,7 +64,6 @@
             "MaxValue":20051,
             "MinValue":0,
             "ObjectCount":101,
-            "OutOfDomainValuesCount":0,
             "Sum":"71645",
             "SumSqr":"989813173"
           },
@@ -75,7 +71,6 @@
             "MaxValue":2415,
             "MinValue":0,
             "ObjectCount":101,
-            "OutOfDomainValuesCount":0,
             "Sum":"15650",
             "SumSqr":"31250680"
           },
@@ -83,7 +78,6 @@
             "MaxValue":80,
             "MinValue":7,
             "ObjectCount":101,
-            "OutOfDomainValuesCount":0,
             "Sum":"3932",
             "SumSqr":"163034"
           }

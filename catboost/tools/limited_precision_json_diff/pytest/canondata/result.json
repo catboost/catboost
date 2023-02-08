@@ -1,25 +1,21 @@
 {
     "test.test_cut": [
         {
-            "checksum": "e3dae79d11fc3865d4aa8861d5820919",
             "uri": "file://test.test_cut/stdout"
         }
     ],
     "test.test_totally_different": [
         {
-            "checksum": "36496f4784dcf4a40f2e6928cc405169",
             "uri": "file://test.test_totally_different/stdout"
         }
     ],
     "test.test_with_small_noise": [
         {
-            "checksum": "ba44204b5789e0b895733e1abb248e31",
             "uri": "file://test.test_with_small_noise/stdout"
         }
     ],
     "test.test_with_small_noise_outside_precision": [
         {
-            "checksum": "4adb363d277db51316c1dd429fe77346",
             "uri": "file://test.test_with_small_noise_outside_precision/stdout"
         }
     ]

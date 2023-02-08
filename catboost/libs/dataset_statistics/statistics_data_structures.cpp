@@ -14,6 +14,8 @@ TFloatFeatureStatistics::TFloatFeatureStatistics()
     , CustomMin(std::numeric_limits<double>::lowest())
     , CustomMax(std::numeric_limits<double>::max())
     , OutOfDomainValuesCount(0)
+    , Underflow(0)
+    , Overflow(0)
     , Sum(0.)
     , SumSqr(0.)
     , ObjectCount(0)
@@ -28,10 +30,12 @@ void TFloatFeatureStatistics::Update(float feature) {
         }
         if (feature < CustomMin) {
             OutOfDomainValuesCount++;
+            Underflow++;
             return;
         }
         if (feature > CustomMax) {
             OutOfDomainValuesCount++;
+            Overflow++;
             return;
         }
         MinValue = Min<float>(MinValue, feature);
@@ -45,8 +49,8 @@ void TFloatFeatureStatistics::Update(float feature) {
 
 bool TFloatFeatureStatistics::operator==(const TFloatFeatureStatistics& rhs) const {
     return (
-        std::tie(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Sum, SumSqr, ObjectCount) ==
-        std::tie(rhs.MinValue, rhs.MaxValue, rhs.CustomMin, rhs.CustomMax, rhs.OutOfDomainValuesCount, rhs.Sum, SumSqr, rhs.ObjectCount)
+        std::tie(MinValue, MaxValue, CustomMin, CustomMax, OutOfDomainValuesCount, Underflow, Overflow, Sum, SumSqr, ObjectCount) ==
+        std::tie(rhs.MinValue, rhs.MaxValue, rhs.CustomMin, rhs.CustomMax, rhs.OutOfDomainValuesCount, rhs.Underflow, rhs.Overflow, rhs.Sum, SumSqr, rhs.ObjectCount)
     );
 }
 
@@ -78,7 +82,15 @@ NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
     if (CustomMax != std::numeric_limits<double>::max()) {
         InsertFloatValue("CustomMax", CustomMax, &result);
     }
-    result.InsertValue("OutOfDomainValuesCount", OutOfDomainValuesCount);
+    if (OutOfDomainValuesCount > 0) {
+        result.InsertValue("OutOfDomainValuesCount", OutOfDomainValuesCount);
+    }
+    if (Underflow > 0) {
+        result.InsertValue("Underflow", Underflow);
+    }
+    if (Overflow > 0) {
+        result.InsertValue("Overflow", Overflow);
+    }
     return result;
 }
 
@@ -87,6 +99,8 @@ void TFloatFeatureStatistics::Update(const TFloatFeatureStatistics& update) {
         MinValue = Min<float>(MinValue, update.MinValue);
         MaxValue = Max<float>(MaxValue, update.MaxValue);
         OutOfDomainValuesCount += update.OutOfDomainValuesCount;
+        Underflow += update.Underflow;
+        Overflow += update.Overflow;
         Sum += update.Sum;
         SumSqr += update.SumSqr;
         ObjectCount += update.ObjectCount;
