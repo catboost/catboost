@@ -10470,3 +10470,46 @@ def test_dataset_statistics_custom_feature_limits():
     return [
         local_canonical_file(output_result_path),
     ]
+
+
+def test_bow_multilogoss():
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [['0', 'Label'],
+                         ['1', 'Label'],
+                         ['2', 'Text']
+                         ], fmt='%s', delimiter='\t')
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, [['1', '0', 'a e i'],
+                            ['1', '0', 'o u'],
+                            ['1', '1', 'a b c'],
+                            ['0', '1', 'b c'],
+                            ['0', '1', 'x y z'],
+                            ], fmt='%s', delimiter='\t')
+
+    tokenizers = [{'tokenizer_id': 'ByDelimiter', 'separator_type': 'ByDelimiter', 'token_types': ['Word']}]
+    feature_processing = [{
+        'feature_calcers': ['BoW'],
+        'dictionaries_names': ['Word'],
+        'tokenizers_names': ['ByDelimiter']
+    }]
+
+    text_processing = {
+        'feature_processing': {'default': feature_processing},
+        'dictionaries': [{'dictionary_id': 'Word', 'occurrence_lower_bound' : '0'}],
+        'tokenizers': tokenizers
+    }
+
+    output_path = yatest.common.test_output_path('output.txt')
+    cmd_fit = ('--loss-function', 'MultiLogloss',
+               '--cd', cd_path,
+               '-f', train_path,
+               '--text-processing', json.dumps(text_processing),
+               '-i', '5',
+               '-T', '1',
+               '--learn-err-log', output_path,
+               )
+    execute_catboost_fit('CPU', cmd_fit)
+    return [
+        local_canonical_file(output_path),
+    ]

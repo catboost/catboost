@@ -735,6 +735,11 @@
             "uri": "file://test.test_bootstrap_calc_block=60-Plain_/test_no.eval"
         }
     ],
+    "test.test_bow_multilogoss": [
+        {
+            "uri": "file://test.test_bow_multilogoss/output.txt"
+        }
+    ],
     "test.test_calc_prediction_type[Ordered]": {
         "uri": "file://test.test_calc_prediction_type_Ordered_/test.eval"
     },

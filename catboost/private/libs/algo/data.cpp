@@ -322,6 +322,7 @@ namespace NCB {
 
     static TFeatureEstimatorsPtr CreateEstimators(
         bool isClassification,
+        bool isMultiLabel,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TTrainingDataProviders pools,
         NPar::ILocalExecutor* localExecutor
@@ -333,7 +334,7 @@ namespace NCB {
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
 
         TClassificationTargetPtr learnClassificationTarget;
-        if (isClassification) {
+        if (isClassification && !isMultiLabel) {
             learnClassificationTarget = CreateClassificationTarget(*pools.Learn->TargetData);
         }
 
@@ -369,7 +370,7 @@ namespace NCB {
                         estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
                     }
 
-                    if (isClassification) {
+                    if (isClassification && !isMultiLabel) {
                         // There're no online text estimators for regression for now
 
                         auto onlineEstimators = CreateTextEstimators(
@@ -488,8 +489,10 @@ namespace NCB {
         if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0
             || trainingData.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0) {
 
+            const auto lossFunction = params->LossFunctionDescription->LossFunction;
             trainingData.FeatureEstimators = CreateEstimators(
-                IsClassificationObjective(params->LossFunctionDescription->LossFunction),
+                IsClassificationObjective(lossFunction),
+                IsMultiLabelObjective(lossFunction),
                 quantizedFeaturesInfo,
                 trainingData,
                 localExecutor);
