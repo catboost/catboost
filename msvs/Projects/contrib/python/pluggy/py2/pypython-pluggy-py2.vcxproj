@@ -136,27 +136,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/__init__.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/__init__.py.dbcb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/__init__.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/__init__.py.dbcb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/_tracing.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/_tracing.py.mbz3.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/_tracing.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/_tracing.py.mbz3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/_version.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/_version.py.iyaq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/_version.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/_version.py.iyaq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/callers.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/callers.py.qx2l.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/callers.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/callers.py.qx2l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/hooks.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/hooks.py.k56u.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/hooks.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/hooks.py.k56u.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/manager.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/manager.py.dv55.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/manager.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/manager.py.dv55.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -167,27 +167,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/__init__.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/__init__.py.dbcb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/__init__.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/__init__.py.dbcb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/_tracing.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/_tracing.py.mbz3.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/_tracing.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/_tracing.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/_tracing.py.mbz3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/_version.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/_version.py.iyaq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/_version.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/_version.py.iyaq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/callers.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/callers.py.qx2l.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/callers.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/callers.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/callers.py.qx2l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/hooks.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/hooks.py.k56u.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/hooks.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/hooks.py.k56u.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/manager.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/manager.py.dv55.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pluggy/py2/pluggy/manager.py-" "$(SolutionDir).." "/contrib/python/pluggy/py2/pluggy/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/pluggy/manager.py.dv55.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

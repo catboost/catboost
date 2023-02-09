@@ -172,7 +172,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_dfd59cf6a58b920daaf5f257c1.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_e2d21a3bbf0dc2dc9edb7277f8.yasm" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_1e0a0286a10370de78ac32d5ed.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_dfd59cf6a58b920daaf5f257c1.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_e2d21a3bbf0dc2dc9edb7277f8.yasm" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_1e0a0286a10370de78ac32d5ed.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,7 +183,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_dfd59cf6a58b920daaf5f257c1.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_e2d21a3bbf0dc2dc9edb7277f8.yasm" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_1e0a0286a10370de78ac32d5ed.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_dfd59cf6a58b920daaf5f257c1.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_e2d21a3bbf0dc2dc9edb7277f8.yasm" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_1e0a0286a10370de78ac32d5ed.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -136,15 +136,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/backports/configparser/__init__.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/backports/configparser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/backports/configparser/__init__.py.kh4v.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/backports/configparser/__init__.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/backports/configparser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/backports/configparser/__init__.py.kh4v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/backports/configparser/helpers.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/backports/configparser/helpers.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/backports/configparser/helpers.py.sbni.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/backports/configparser/helpers.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/backports/configparser/helpers.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/backports/configparser/helpers.py.sbni.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/configparser.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/configparser.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/configparser.py.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/configparser.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/configparser.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/configparser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,15 +155,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/backports/configparser/__init__.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/backports/configparser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/backports/configparser/__init__.py.kh4v.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/backports/configparser/__init__.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/backports/configparser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/backports/configparser/__init__.py.kh4v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/backports/configparser/helpers.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/backports/configparser/helpers.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/backports/configparser/helpers.py.sbni.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/backports/configparser/helpers.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/backports/configparser/helpers.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/backports/configparser/helpers.py.sbni.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/configparser.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/configparser.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/configparser.py.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/configparser/configparser.py-" "$(SolutionDir).." "/contrib/deprecated/python/configparser/configparser.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/configparser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

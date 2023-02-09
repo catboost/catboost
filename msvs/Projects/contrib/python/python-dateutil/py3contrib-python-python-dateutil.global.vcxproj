@@ -180,7 +180,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\python-dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_04648a8a3cea22323e53e60ae8.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_d1a9ad8a2c4ef920729b1fddf5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_737e48b9a75a3bb3492f6970f8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_51f0a2de026a76d32e9b2acf10.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_04648a8a3cea22323e53e60ae8.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_d1a9ad8a2c4ef920729b1fddf5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_737e48b9a75a3bb3492f6970f8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_51f0a2de026a76d32e9b2acf10.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -191,7 +191,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\python-dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_04648a8a3cea22323e53e60ae8.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_d1a9ad8a2c4ef920729b1fddf5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_737e48b9a75a3bb3492f6970f8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_51f0a2de026a76d32e9b2acf10.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/join_04648a8a3cea22323e53e60ae8.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_d1a9ad8a2c4ef920729b1fddf5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_737e48b9a75a3bb3492f6970f8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/python-dateutil/_51f0a2de026a76d32e9b2acf10.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

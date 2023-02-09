@@ -136,19 +136,19 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/__init__.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/__init__.py.2peu.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/__init__.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/__init__.py.2peu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_compat.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_compat.py.4ouc.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_compat.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_compat.py.4ouc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_constants.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_constants.py.4sol.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_constants.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_constants.py.4sol.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_native.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_native.py.6e2b.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_native.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_native.py.6e2b.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -159,19 +159,19 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/__init__.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/__init__.py.2peu.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/__init__.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/__init__.py.2peu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_compat.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_compat.py.4ouc.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_compat.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_compat.py.4ouc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_constants.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_constants.py.4sol.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_constants.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_constants.py.4sol.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_native.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_native.py.6e2b.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/MarkupSafe/py2/markupsafe/_native.py-" "$(SolutionDir).." "/contrib/python/MarkupSafe/py2/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/py2/markupsafe/_native.py.6e2b.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

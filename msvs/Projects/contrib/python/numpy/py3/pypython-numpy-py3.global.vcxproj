@@ -748,7 +748,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/join_c7ff226aadbe719220ec18c2af.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_94b44cb5e1e55e32b74cf747e3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_996f0623ab4869208cf1ebdfd5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_135b256019cd15a02aef4480ba.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_dcb4835cb5410a358500319deb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_0d84f9336f2ce4074d4b2f8066.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_e6d48ebdfd30ceff497ad417df.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_bbebb9a53a826581024136778a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_1c0d6f41d1e562902b75199847.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_162243417654d1c38446091f82.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_9bf2e57a8601711e897584d0b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_498358575f81baa3c115eaba0e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_ad7a5e562a0b6daca29e97a579.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_68dbf709c441fa273191f45154.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_a6d2394771dffcd42a3b9cc1ab.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_d41a636c0deeacc07fff39782a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_47f2ea795a65ae39360d910cb6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_b5a7bf6e6940d17185a3d97022.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_6ee61947e7918d6b021a782e0b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_1110c9ed1d7310489b39b002bb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_22edcc3956aa6a72301df1224a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7366548d48d525d4e62673eefd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_8e08ffa236d2a2b5904ec099fb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_8922b84984036d0d9abbacb478.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7da57eb87ab4451d29c599d948.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_3ba09b09e4d9a369a027ef83b6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_df04c6153090bac82e3d103235.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7fcbad3c278effd9470b1067a0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_99011840be9dad7cb92e02d082.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7e1cd99d3da5ed944399019eda.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_bc758cc080099b60eb565d8eab.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/join_c7ff226aadbe719220ec18c2af.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_94b44cb5e1e55e32b74cf747e3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_996f0623ab4869208cf1ebdfd5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_135b256019cd15a02aef4480ba.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_dcb4835cb5410a358500319deb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_0d84f9336f2ce4074d4b2f8066.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_e6d48ebdfd30ceff497ad417df.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_bbebb9a53a826581024136778a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_1c0d6f41d1e562902b75199847.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_162243417654d1c38446091f82.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_9bf2e57a8601711e897584d0b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_498358575f81baa3c115eaba0e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_ad7a5e562a0b6daca29e97a579.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_68dbf709c441fa273191f45154.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_a6d2394771dffcd42a3b9cc1ab.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_d41a636c0deeacc07fff39782a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_47f2ea795a65ae39360d910cb6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_b5a7bf6e6940d17185a3d97022.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_6ee61947e7918d6b021a782e0b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_1110c9ed1d7310489b39b002bb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_22edcc3956aa6a72301df1224a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7366548d48d525d4e62673eefd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_8e08ffa236d2a2b5904ec099fb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_8922b84984036d0d9abbacb478.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7da57eb87ab4451d29c599d948.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_3ba09b09e4d9a369a027ef83b6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_df04c6153090bac82e3d103235.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7fcbad3c278effd9470b1067a0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_99011840be9dad7cb92e02d082.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7e1cd99d3da5ed944399019eda.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_bc758cc080099b60eb565d8eab.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -759,7 +759,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/join_c7ff226aadbe719220ec18c2af.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_94b44cb5e1e55e32b74cf747e3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_996f0623ab4869208cf1ebdfd5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_135b256019cd15a02aef4480ba.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_dcb4835cb5410a358500319deb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_0d84f9336f2ce4074d4b2f8066.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_e6d48ebdfd30ceff497ad417df.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_bbebb9a53a826581024136778a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_1c0d6f41d1e562902b75199847.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_162243417654d1c38446091f82.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_9bf2e57a8601711e897584d0b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_498358575f81baa3c115eaba0e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_ad7a5e562a0b6daca29e97a579.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_68dbf709c441fa273191f45154.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_a6d2394771dffcd42a3b9cc1ab.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_d41a636c0deeacc07fff39782a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_47f2ea795a65ae39360d910cb6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_b5a7bf6e6940d17185a3d97022.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_6ee61947e7918d6b021a782e0b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_1110c9ed1d7310489b39b002bb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_22edcc3956aa6a72301df1224a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7366548d48d525d4e62673eefd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_8e08ffa236d2a2b5904ec099fb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_8922b84984036d0d9abbacb478.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7da57eb87ab4451d29c599d948.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_3ba09b09e4d9a369a027ef83b6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_df04c6153090bac82e3d103235.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7fcbad3c278effd9470b1067a0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_99011840be9dad7cb92e02d082.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7e1cd99d3da5ed944399019eda.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_bc758cc080099b60eb565d8eab.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/join_c7ff226aadbe719220ec18c2af.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_94b44cb5e1e55e32b74cf747e3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_996f0623ab4869208cf1ebdfd5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_135b256019cd15a02aef4480ba.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_dcb4835cb5410a358500319deb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_0d84f9336f2ce4074d4b2f8066.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_e6d48ebdfd30ceff497ad417df.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_bbebb9a53a826581024136778a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_1c0d6f41d1e562902b75199847.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_162243417654d1c38446091f82.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_9bf2e57a8601711e897584d0b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_498358575f81baa3c115eaba0e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_ad7a5e562a0b6daca29e97a579.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_68dbf709c441fa273191f45154.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_a6d2394771dffcd42a3b9cc1ab.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_d41a636c0deeacc07fff39782a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_47f2ea795a65ae39360d910cb6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_b5a7bf6e6940d17185a3d97022.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_6ee61947e7918d6b021a782e0b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_1110c9ed1d7310489b39b002bb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_22edcc3956aa6a72301df1224a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7366548d48d525d4e62673eefd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_8e08ffa236d2a2b5904ec099fb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_8922b84984036d0d9abbacb478.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7da57eb87ab4451d29c599d948.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_3ba09b09e4d9a369a027ef83b6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_df04c6153090bac82e3d103235.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7fcbad3c278effd9470b1067a0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_99011840be9dad7cb92e02d082.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_7e1cd99d3da5ed944399019eda.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/_bc758cc080099b60eb565d8eab.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -802,43 +802,43 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._multiarray_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._multiarray_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._multiarray_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._multiarray_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._multiarray_umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._multiarray_umath.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._multiarray_umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._multiarray_umath.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._operand_flag_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._operand_flag_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._rational_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._rational_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._simd" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._simd.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._simd" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._simd.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._struct_ufunc_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._struct_ufunc_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._umath_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._umath_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.fft._pocketfft_internal" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.fft._pocketfft_internal.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.fft._pocketfft_internal" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.fft._pocketfft_internal.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.linalg._umath_linalg.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.linalg._umath_linalg.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.linalg.lapack_lite.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.linalg.lapack_lite.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -849,43 +849,43 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._multiarray_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._multiarray_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._multiarray_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._multiarray_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._multiarray_umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._multiarray_umath.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._multiarray_umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._multiarray_umath.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._operand_flag_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._operand_flag_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._rational_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._rational_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._simd" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._simd.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._simd" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._simd.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._struct_ufunc_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._struct_ufunc_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._umath_tests.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.core._umath_tests.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.fft._pocketfft_internal" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.fft._pocketfft_internal.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.fft._pocketfft_internal" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.fft._pocketfft_internal.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.linalg._umath_linalg.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.linalg._umath_linalg" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.linalg._umath_linalg.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.linalg.lapack_lite.reg3.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.linalg.lapack_lite" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy.linalg.lapack_lite.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

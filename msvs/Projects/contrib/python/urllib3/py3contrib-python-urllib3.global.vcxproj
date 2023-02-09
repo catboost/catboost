@@ -196,7 +196,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_5c528259e604dba7a8ce6157fa.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ba4ee88983277f491a0795f94e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4ce186cd7afbed73ce5440a998.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_bc246d0ce7e231f00a9f116892.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a5ca61969fa2325d7b3daf86ea.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_eb3326ab1df2ce9622c8fc5e93.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_5c528259e604dba7a8ce6157fa.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ba4ee88983277f491a0795f94e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4ce186cd7afbed73ce5440a998.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_bc246d0ce7e231f00a9f116892.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a5ca61969fa2325d7b3daf86ea.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_eb3326ab1df2ce9622c8fc5e93.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -207,7 +207,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_5c528259e604dba7a8ce6157fa.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ba4ee88983277f491a0795f94e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4ce186cd7afbed73ce5440a998.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_bc246d0ce7e231f00a9f116892.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a5ca61969fa2325d7b3daf86ea.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_eb3326ab1df2ce9622c8fc5e93.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_5c528259e604dba7a8ce6157fa.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ba4ee88983277f491a0795f94e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4ce186cd7afbed73ce5440a998.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_bc246d0ce7e231f00a9f116892.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a5ca61969fa2325d7b3daf86ea.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_eb3326ab1df2ce9622c8fc5e93.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

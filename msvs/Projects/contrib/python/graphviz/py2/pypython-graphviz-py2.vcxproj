@@ -136,31 +136,31 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/__init__.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/__init__.py.65lc.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/__init__.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/__init__.py.65lc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/_compat.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/_compat.py.oclx.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/_compat.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/_compat.py.oclx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/backend.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/backend.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/backend.py.5jge.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/backend.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/backend.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/backend.py.5jge.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/dot.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/dot.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/dot.py.gmxj.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/dot.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/dot.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/dot.py.gmxj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/files.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/files.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/files.py.qu4b.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/files.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/files.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/files.py.qu4b.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/lang.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/lang.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/lang.py.drlr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/lang.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/lang.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/lang.py.drlr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/tools.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/tools.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/tools.py.j3et.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/tools.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/tools.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/tools.py.j3et.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -171,31 +171,31 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/__init__.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/__init__.py.65lc.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/__init__.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/__init__.py.65lc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/_compat.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/_compat.py.oclx.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/_compat.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/_compat.py.oclx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/backend.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/backend.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/backend.py.5jge.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/backend.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/backend.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/backend.py.5jge.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/dot.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/dot.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/dot.py.gmxj.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/dot.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/dot.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/dot.py.gmxj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/files.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/files.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/files.py.qu4b.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/files.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/files.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/files.py.qu4b.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/lang.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/lang.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/lang.py.drlr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/lang.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/lang.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/lang.py.drlr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\graphviz\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/tools.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/tools.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/tools.py.j3et.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/graphviz/py2/graphviz/tools.py-" "$(SolutionDir).." "/contrib/python/graphviz/py2/graphviz/tools.py" "$(SolutionDir)$(Configuration)/contrib/python/graphviz/py2/graphviz/tools.py.j3et.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

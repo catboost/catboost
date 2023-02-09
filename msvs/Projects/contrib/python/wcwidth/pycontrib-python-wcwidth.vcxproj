@@ -136,23 +136,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/__init__.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/__init__.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/table_wide.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/table_wide.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/table_zero.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/table_zero.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/unicode_versions.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/unicode_versions.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/wcwidth.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/wcwidth.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -163,23 +163,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/__init__.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/__init__.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/table_wide.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/table_wide.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/table_zero.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/table_zero.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/unicode_versions.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/unicode_versions.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/wcwidth.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/wcwidth/wcwidth/wcwidth.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

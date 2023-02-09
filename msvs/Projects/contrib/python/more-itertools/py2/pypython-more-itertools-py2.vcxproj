@@ -136,15 +136,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/__init__.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/__init__.py.yuoo.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/__init__.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/__init__.py.yuoo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/more.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/more.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/more.py.u73j.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/more.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/more.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/more.py.u73j.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/recipes.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/recipes.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/recipes.py.mhyf.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/recipes.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/recipes.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/recipes.py.mhyf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,15 +155,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/__init__.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/__init__.py.yuoo.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/__init__.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/__init__.py.yuoo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/more.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/more.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/more.py.u73j.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/more.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/more.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/more.py.u73j.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\more-itertools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/recipes.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/recipes.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/recipes.py.mhyf.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/more-itertools/py2/more_itertools/recipes.py-" "$(SolutionDir).." "/contrib/python/more-itertools/py2/more_itertools/recipes.py" "$(SolutionDir)$(Configuration)/contrib/python/more-itertools/py2/more_itertools/recipes.py.mhyf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

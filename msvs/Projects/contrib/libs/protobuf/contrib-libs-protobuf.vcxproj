@@ -169,47 +169,47 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/any.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/any.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/api.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/api.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/descriptor.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/descriptor.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/duration.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/duration.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/empty.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/empty.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/field_mask.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/field_mask.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/source_context.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/source_context.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/struct.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/struct.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/timestamp.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/timestamp.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/type.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/type.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/wrappers.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/wrappers.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -220,47 +220,47 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/any.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/any.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/api.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/api.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/descriptor.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/descriptor.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/duration.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/duration.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/empty.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/empty.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/field_mask.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/field_mask.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/source_context.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/source_context.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/struct.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/struct.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/timestamp.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/timestamp.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/type.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/type.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/wrappers.proto"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/wrappers.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

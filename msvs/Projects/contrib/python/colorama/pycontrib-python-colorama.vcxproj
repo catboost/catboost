@@ -136,27 +136,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/__init__.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/__init__.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/ansi.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/ansi.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/ansitowin32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/ansitowin32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/initialise.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/initialise.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/win32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/win32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/winterm.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/winterm.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -167,27 +167,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/__init__.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/__init__.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/__init__.py.bhik.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/ansi.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/ansi.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansi.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansi.py.4g5s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/ansitowin32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/ansitowin32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/ansitowin32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/ansitowin32.py.ix4w.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/initialise.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/initialise.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/initialise.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/initialise.py.mair.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/win32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/win32.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/win32.py.7v3p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\colorama
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/winterm.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/colorama/colorama/winterm.py-" "$(SolutionDir).." "/contrib/python/colorama/colorama/winterm.py" "$(SolutionDir)$(Configuration)/contrib/python/colorama/colorama/winterm.py.ucrn.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

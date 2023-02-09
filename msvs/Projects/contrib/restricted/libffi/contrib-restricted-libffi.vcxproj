@@ -102,7 +102,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\restricted\libffi
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/restricted/libffi/_/configs/x86_64-microsoft-windows/win64_intel.masm.obj" "$(SolutionDir).." "/contrib/restricted/libffi/configs/x86_64-microsoft-windows/win64_intel.masm"
+python.exe "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/restricted/libffi/_/configs/x86_64-microsoft-windows/win64_intel.masm.obj" "$(SolutionDir).." "/contrib/restricted/libffi/configs/x86_64-microsoft-windows/win64_intel.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -115,7 +115,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\restricted\libffi
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/restricted/libffi/_/configs/x86_64-microsoft-windows/win64_intel.masm.obj" "$(SolutionDir).." "/contrib/restricted/libffi/configs/x86_64-microsoft-windows/win64_intel.masm"
+python.exe "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/restricted/libffi/_/configs/x86_64-microsoft-windows/win64_intel.masm.obj" "$(SolutionDir).." "/contrib/restricted/libffi/configs/x86_64-microsoft-windows/win64_intel.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

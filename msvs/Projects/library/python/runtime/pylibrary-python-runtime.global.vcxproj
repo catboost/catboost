@@ -121,11 +121,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -136,11 +136,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

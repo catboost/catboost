@@ -259,7 +259,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/join_00bae2f29e569a8d2205f810fa.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_7e8d6ff9c7465c87d50eda2249.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_c2214f5950d88a97810f4922b4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_912bb52968cbcad8959cf2109a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_7738f836bee6fc83ef982c716e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_316756532a67ed55ee2568d103.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/join_00bae2f29e569a8d2205f810fa.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_7e8d6ff9c7465c87d50eda2249.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_c2214f5950d88a97810f4922b4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_912bb52968cbcad8959cf2109a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_7738f836bee6fc83ef982c716e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_316756532a67ed55ee2568d103.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -270,7 +270,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/join_00bae2f29e569a8d2205f810fa.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_7e8d6ff9c7465c87d50eda2249.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_c2214f5950d88a97810f4922b4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_912bb52968cbcad8959cf2109a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_7738f836bee6fc83ef982c716e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_316756532a67ed55ee2568d103.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/join_00bae2f29e569a8d2205f810fa.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_7e8d6ff9c7465c87d50eda2249.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_c2214f5950d88a97810f4922b4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_912bb52968cbcad8959cf2109a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_7738f836bee6fc83ef982c716e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/_316756532a67ed55ee2568d103.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -313,175 +313,175 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/__init__.py.iisc.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/__init__.py.iisc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/big5freq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/big5freq.py.qiow.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/big5freq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/big5freq.py.qiow.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/big5prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/big5prober.py.u5aq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/big5prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/big5prober.py.u5aq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/chardistribution.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/chardistribution.py.hdp4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/chardistribution.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/chardistribution.py.hdp4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/charsetgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/charsetgroupprober.py.fcpq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/charsetgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/charsetgroupprober.py.fcpq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/charsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/charsetprober.py.3pbi.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/charsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/charsetprober.py.3pbi.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cli/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cli/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cli/__init__.py.qz7u.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cli/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cli/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cli/__init__.py.qz7u.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cli/chardetect.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cli/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cli/chardetect.py.ok36.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cli/chardetect.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cli/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cli/chardetect.py.ok36.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/codingstatemachine.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/codingstatemachine.py.6pkr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/codingstatemachine.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/codingstatemachine.py.6pkr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/compat.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/compat.py.jtqr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/compat.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/compat.py.jtqr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cp949prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cp949prober.py.ylr6.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cp949prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cp949prober.py.ylr6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/enums.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/enums.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/enums.py.t3on.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/enums.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/enums.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/enums.py.t3on.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/escprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/escprober.py.gben.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/escprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/escprober.py.gben.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/escsm.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/escsm.py.wlhk.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/escsm.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/escsm.py.wlhk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/eucjpprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/eucjpprober.py.qbcj.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/eucjpprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/eucjpprober.py.qbcj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euckrfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euckrfreq.py.c4ax.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euckrfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euckrfreq.py.c4ax.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euckrprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euckrprober.py.auhv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euckrprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euckrprober.py.auhv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euctwfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euctwfreq.py.bu5u.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euctwfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euctwfreq.py.bu5u.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euctwprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euctwprober.py.6b35.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euctwprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euctwprober.py.6b35.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/gb2312freq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/gb2312freq.py.t3k3.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/gb2312freq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/gb2312freq.py.t3k3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/gb2312prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/gb2312prober.py.pt2n.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/gb2312prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/gb2312prober.py.pt2n.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/hebrewprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/hebrewprober.py.nlbs.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/hebrewprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/hebrewprober.py.nlbs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/jisfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/jisfreq.py.vsah.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/jisfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/jisfreq.py.vsah.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/jpcntx.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/jpcntx.py.p4nq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/jpcntx.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/jpcntx.py.p4nq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langbulgarianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langbulgarianmodel.py.oslv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langbulgarianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langbulgarianmodel.py.oslv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langgreekmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langgreekmodel.py.oidz.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langgreekmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langgreekmodel.py.oidz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langhebrewmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langhebrewmodel.py.u4m4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langhebrewmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langhebrewmodel.py.u4m4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langhungarianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langhungarianmodel.py.7vk7.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langhungarianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langhungarianmodel.py.7vk7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langrussianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langrussianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langrussianmodel.py.bv5m.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langrussianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langrussianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langrussianmodel.py.bv5m.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langthaimodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langthaimodel.py.sc7p.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langthaimodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langthaimodel.py.sc7p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langturkishmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langturkishmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langturkishmodel.py.aqj5.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langturkishmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langturkishmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langturkishmodel.py.aqj5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/latin1prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/latin1prober.py.ethd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/latin1prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/latin1prober.py.ethd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcharsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcharsetprober.py.67dm.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcharsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcharsetprober.py.67dm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcsgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcsgroupprober.py.55ds.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcsgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcsgroupprober.py.55ds.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcssm.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcssm.py.6kft.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcssm.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcssm.py.6kft.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/metadata/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/metadata/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/metadata/__init__.py.ibnr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/metadata/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/metadata/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/metadata/__init__.py.ibnr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/metadata/languages.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/metadata/languages.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/metadata/languages.py.4hws.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/metadata/languages.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/metadata/languages.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/metadata/languages.py.4hws.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sbcharsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sbcharsetprober.py.6yd6.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sbcharsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sbcharsetprober.py.6yd6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sbcsgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sbcsgroupprober.py.6idm.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sbcsgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sbcsgroupprober.py.6idm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sjisprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sjisprober.py.alyr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sjisprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sjisprober.py.alyr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/universaldetector.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/universaldetector.py.bori.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/universaldetector.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/universaldetector.py.bori.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/utf8prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/utf8prober.py.5ruo.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/utf8prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/utf8prober.py.5ruo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/version.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/version.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/version.py.3nyd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/version.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/version.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/version.py.3nyd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -492,175 +492,175 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/__init__.py.iisc.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/__init__.py.iisc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/big5freq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/big5freq.py.qiow.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/big5freq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/big5freq.py.qiow.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/big5prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/big5prober.py.u5aq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/big5prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/big5prober.py.u5aq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/chardistribution.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/chardistribution.py.hdp4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/chardistribution.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/chardistribution.py.hdp4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/charsetgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/charsetgroupprober.py.fcpq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/charsetgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/charsetgroupprober.py.fcpq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/charsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/charsetprober.py.3pbi.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/charsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/charsetprober.py.3pbi.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cli/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cli/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cli/__init__.py.qz7u.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cli/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cli/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cli/__init__.py.qz7u.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cli/chardetect.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cli/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cli/chardetect.py.ok36.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cli/chardetect.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cli/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cli/chardetect.py.ok36.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/codingstatemachine.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/codingstatemachine.py.6pkr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/codingstatemachine.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/codingstatemachine.py.6pkr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/compat.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/compat.py.jtqr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/compat.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/compat.py.jtqr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cp949prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cp949prober.py.ylr6.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/cp949prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/cp949prober.py.ylr6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/enums.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/enums.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/enums.py.t3on.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/enums.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/enums.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/enums.py.t3on.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/escprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/escprober.py.gben.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/escprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/escprober.py.gben.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/escsm.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/escsm.py.wlhk.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/escsm.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/escsm.py.wlhk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/eucjpprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/eucjpprober.py.qbcj.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/eucjpprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/eucjpprober.py.qbcj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euckrfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euckrfreq.py.c4ax.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euckrfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euckrfreq.py.c4ax.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euckrprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euckrprober.py.auhv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euckrprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euckrprober.py.auhv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euctwfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euctwfreq.py.bu5u.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euctwfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euctwfreq.py.bu5u.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euctwprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euctwprober.py.6b35.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/euctwprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/euctwprober.py.6b35.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/gb2312freq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/gb2312freq.py.t3k3.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/gb2312freq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/gb2312freq.py.t3k3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/gb2312prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/gb2312prober.py.pt2n.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/gb2312prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/gb2312prober.py.pt2n.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/hebrewprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/hebrewprober.py.nlbs.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/hebrewprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/hebrewprober.py.nlbs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/jisfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/jisfreq.py.vsah.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/jisfreq.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/jisfreq.py.vsah.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/jpcntx.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/jpcntx.py.p4nq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/jpcntx.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/jpcntx.py.p4nq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langbulgarianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langbulgarianmodel.py.oslv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langbulgarianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langbulgarianmodel.py.oslv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langgreekmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langgreekmodel.py.oidz.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langgreekmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langgreekmodel.py.oidz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langhebrewmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langhebrewmodel.py.u4m4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langhebrewmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langhebrewmodel.py.u4m4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langhungarianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langhungarianmodel.py.7vk7.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langhungarianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langhungarianmodel.py.7vk7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langrussianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langrussianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langrussianmodel.py.bv5m.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langrussianmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langrussianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langrussianmodel.py.bv5m.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langthaimodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langthaimodel.py.sc7p.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langthaimodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langthaimodel.py.sc7p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langturkishmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langturkishmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langturkishmodel.py.aqj5.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/langturkishmodel.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/langturkishmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/langturkishmodel.py.aqj5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/latin1prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/latin1prober.py.ethd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/latin1prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/latin1prober.py.ethd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcharsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcharsetprober.py.67dm.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcharsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcharsetprober.py.67dm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcsgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcsgroupprober.py.55ds.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcsgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcsgroupprober.py.55ds.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcssm.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcssm.py.6kft.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/mbcssm.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/mbcssm.py.6kft.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/metadata/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/metadata/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/metadata/__init__.py.ibnr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/metadata/__init__.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/metadata/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/metadata/__init__.py.ibnr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/metadata/languages.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/metadata/languages.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/metadata/languages.py.4hws.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/metadata/languages.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/metadata/languages.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/metadata/languages.py.4hws.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sbcharsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sbcharsetprober.py.6yd6.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sbcharsetprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sbcharsetprober.py.6yd6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sbcsgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sbcsgroupprober.py.6idm.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sbcsgroupprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sbcsgroupprober.py.6idm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sjisprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sjisprober.py.alyr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/sjisprober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/sjisprober.py.alyr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/universaldetector.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/universaldetector.py.bori.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/universaldetector.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/universaldetector.py.bori.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/utf8prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/utf8prober.py.5ruo.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/utf8prober.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/utf8prober.py.5ruo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\chardet\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/version.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/version.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/version.py.3nyd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/chardet/py2/chardet/version.py-" "$(SolutionDir).." "/contrib/python/chardet/py2/chardet/version.py" "$(SolutionDir)$(Configuration)/contrib/python/chardet/py2/chardet/version.py.3nyd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

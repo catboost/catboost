@@ -199,7 +199,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_e0499cf9dafd86378d1e36d056.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/_0142ff8ebb50caa892a639ea8c.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/_5a490ce89b7b866f0893dab865.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_e0499cf9dafd86378d1e36d056.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/_0142ff8ebb50caa892a639ea8c.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/_5a490ce89b7b866f0893dab865.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,7 +210,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_e0499cf9dafd86378d1e36d056.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/_0142ff8ebb50caa892a639ea8c.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/_5a490ce89b7b866f0893dab865.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_e0499cf9dafd86378d1e36d056.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/_0142ff8ebb50caa892a639ea8c.yasm" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/_5a490ce89b7b866f0893dab865.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

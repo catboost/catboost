@@ -190,7 +190,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\charset-normalizer
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/join_75a07afaecd536463ad82445b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_07eb946dc0c625b237b3d98d2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/charset-normalizer/_ce0c2aeb245f10d99c4cc1144e.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -136,47 +136,47 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/__init__.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/__init__.py.mmzg.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/__init__.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/__init__.py.mmzg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/_version.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/_version.py.i5d2.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/_version.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/_version.py.i5d2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/encoding.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/encoding.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/encoding.py.g3d4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/encoding.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/encoding.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/encoding.py.g3d4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/importstring.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/importstring.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/importstring.py.dio4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/importstring.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/importstring.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/importstring.py.dio4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/ipstruct.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/ipstruct.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/ipstruct.py.f4rs.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/ipstruct.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/ipstruct.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/ipstruct.py.f4rs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/path.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/path.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/path.py.ztin.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/path.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/path.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/path.py.ztin.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/py3compat.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/py3compat.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/py3compat.py.4m4r.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/py3compat.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/py3compat.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/py3compat.py.4m4r.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/tempdir.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/tempdir.py.6tjd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/tempdir.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/tempdir.py.6tjd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py.yrrq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py.yrrq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py.7b6g.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py.7b6g.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/text.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/text.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/text.py.mvpo.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/text.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/text.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/text.py.mvpo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -187,47 +187,47 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/__init__.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/__init__.py.mmzg.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/__init__.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/__init__.py.mmzg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/_version.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/_version.py.i5d2.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/_version.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/_version.py.i5d2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/encoding.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/encoding.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/encoding.py.g3d4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/encoding.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/encoding.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/encoding.py.g3d4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/importstring.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/importstring.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/importstring.py.dio4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/importstring.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/importstring.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/importstring.py.dio4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/ipstruct.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/ipstruct.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/ipstruct.py.f4rs.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/ipstruct.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/ipstruct.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/ipstruct.py.f4rs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/path.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/path.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/path.py.ztin.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/path.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/path.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/path.py.ztin.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/py3compat.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/py3compat.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/py3compat.py.4m4r.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/py3compat.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/py3compat.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/py3compat.py.4m4r.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/tempdir.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/tempdir.py.6tjd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/tempdir.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/tempdir.py.6tjd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py.yrrq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/testing/__init__.py.yrrq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py.7b6g.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/testing/decorators.py.7b6g.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/text.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/text.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/text.py.mvpo.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/ipython-genutils/ipython_genutils/text.py-" "$(SolutionDir).." "/contrib/python/ipython-genutils/ipython_genutils/text.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/ipython_genutils/text.py.mvpo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

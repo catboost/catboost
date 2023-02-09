@@ -171,7 +171,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\parso\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/join_cfd139150e97effe39bfc99f80.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_9893373746e78c69695b36b138.yasm" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_b19ddbd8182a05ebf0d3342d7d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_5bc3bce02890cd9d8f9c810889.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/join_cfd139150e97effe39bfc99f80.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_9893373746e78c69695b36b138.yasm" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_b19ddbd8182a05ebf0d3342d7d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_5bc3bce02890cd9d8f9c810889.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,7 +182,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\parso\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/join_cfd139150e97effe39bfc99f80.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_9893373746e78c69695b36b138.yasm" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_b19ddbd8182a05ebf0d3342d7d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_5bc3bce02890cd9d8f9c810889.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/join_cfd139150e97effe39bfc99f80.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_9893373746e78c69695b36b138.yasm" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_b19ddbd8182a05ebf0d3342d7d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/_5bc3bce02890cd9d8f9c810889.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

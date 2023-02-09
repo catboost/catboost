@@ -136,59 +136,59 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/__init__.py.pltm.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/__init__.py.pltm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/_version.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/_version.py.or34.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/_version.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/_version.py.or34.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/__init__.py.3fsb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/__init__.py.3fsb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/application.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/application.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/application.py.7zke.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/application.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/application.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/application.py.7zke.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/configurable.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/configurable.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/configurable.py.qmpb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/configurable.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/configurable.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/configurable.py.qmpb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/loader.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/loader.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/loader.py.xalw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/loader.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/loader.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/loader.py.xalw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/manager.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/manager.py.hoju.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/manager.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/manager.py.hoju.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/log.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/log.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/log.py.6egf.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/log.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/log.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/log.py.6egf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/traitlets.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/traitlets.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/traitlets.py.rxcb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/traitlets.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/traitlets.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/traitlets.py.rxcb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/__init__.py.7qnw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/__init__.py.7qnw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/bunch.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/bunch.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/bunch.py.xgky.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/bunch.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/bunch.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/bunch.py.xgky.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/getargspec.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/getargspec.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/getargspec.py.54yb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/getargspec.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/getargspec.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/getargspec.py.54yb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/importstring.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/importstring.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/importstring.py.jbnt.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/importstring.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/importstring.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/importstring.py.jbnt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/sentinel.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/sentinel.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/sentinel.py.bgkx.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/sentinel.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/sentinel.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/sentinel.py.bgkx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -199,59 +199,59 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/__init__.py.pltm.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/__init__.py.pltm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/_version.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/_version.py.or34.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/_version.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/_version.py.or34.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/__init__.py.3fsb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/__init__.py.3fsb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/application.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/application.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/application.py.7zke.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/application.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/application.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/application.py.7zke.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/configurable.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/configurable.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/configurable.py.qmpb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/configurable.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/configurable.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/configurable.py.qmpb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/loader.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/loader.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/loader.py.xalw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/loader.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/loader.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/loader.py.xalw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/manager.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/manager.py.hoju.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/config/manager.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/config/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/config/manager.py.hoju.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/log.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/log.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/log.py.6egf.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/log.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/log.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/log.py.6egf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/traitlets.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/traitlets.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/traitlets.py.rxcb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/traitlets.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/traitlets.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/traitlets.py.rxcb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/__init__.py.7qnw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/__init__.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/__init__.py.7qnw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/bunch.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/bunch.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/bunch.py.xgky.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/bunch.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/bunch.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/bunch.py.xgky.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/getargspec.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/getargspec.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/getargspec.py.54yb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/getargspec.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/getargspec.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/getargspec.py.54yb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/importstring.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/importstring.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/importstring.py.jbnt.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/importstring.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/importstring.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/importstring.py.jbnt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/sentinel.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/sentinel.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/sentinel.py.bgkx.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/traitlets/py2/traitlets/utils/sentinel.py-" "$(SolutionDir).." "/contrib/python/traitlets/py2/traitlets/utils/sentinel.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/traitlets/utils/sentinel.py.bgkx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

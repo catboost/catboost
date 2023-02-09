@@ -181,7 +181,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I='$(SolutionDir)..'/" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "-I='$(SolutionDir)..'/contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I='$(SolutionDir)..'/" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "-I='$(SolutionDir)..'/contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -194,7 +194,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I='$(SolutionDir)..'/" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "-I='$(SolutionDir)..'/contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I='$(SolutionDir)..'/" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "-I='$(SolutionDir)..'/contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -212,7 +212,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I='$(SolutionDir)..'/" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "-I='$(SolutionDir)..'/contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I='$(SolutionDir)..'/" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "-I='$(SolutionDir)..'/contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -225,7 +225,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I='$(SolutionDir)..'/" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "-I='$(SolutionDir)..'/contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
+python.exe "$(SolutionDir).." "/build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "_pb2.pyi" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I='$(SolutionDir)..'/" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "-I='$(SolutionDir)..'/contrib/libs/protoc/src" "-I=$(SolutionDir)$(Configuration)" "-I='$(SolutionDir)..'/contrib/libs/protobuf/src" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto" "--plugin=protoc-gen-mypy=$(SolutionDir)$(Configuration)/contrib/python/mypy-protobuf/bin/protoc-gen-mypy/protoc-gen-mypy.exe" "--mypy_out=$(SolutionDir)$(Configuration)/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

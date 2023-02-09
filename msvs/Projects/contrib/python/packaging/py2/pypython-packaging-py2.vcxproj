@@ -136,47 +136,47 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/__about__.py.llsl.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/__about__.py.llsl.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/__init__.py.ope4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/__init__.py.ope4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_compat.py.bsie.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_compat.py.bsie.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_structures.py.aiu4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_structures.py.aiu4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_typing.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_typing.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_typing.py.foeb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_typing.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_typing.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_typing.py.foeb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/markers.py.tgy4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/markers.py.tgy4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/requirements.py.6emt.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/requirements.py.6emt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/specifiers.py.csmx.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/specifiers.py.csmx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/tags.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/tags.py.xaxr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/tags.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/tags.py.xaxr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/utils.py.icgh.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/utils.py.icgh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/version.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/version.py.qmvt.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/version.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/version.py.qmvt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -187,47 +187,47 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/__about__.py.llsl.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/__about__.py.llsl.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/__init__.py.ope4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/__init__.py.ope4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_compat.py.bsie.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_compat.py.bsie.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_structures.py.aiu4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_structures.py.aiu4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_typing.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_typing.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_typing.py.foeb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/_typing.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/_typing.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/_typing.py.foeb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/markers.py.tgy4.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/markers.py.tgy4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/requirements.py.6emt.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/requirements.py.6emt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/specifiers.py.csmx.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/specifiers.py.csmx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/tags.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/tags.py.xaxr.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/tags.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/tags.py.xaxr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/utils.py.icgh.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/utils.py.icgh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/version.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/version.py.qmvt.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/packaging/py2/packaging/version.py-" "$(SolutionDir).." "/contrib/python/packaging/py2/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/packaging/py2/packaging/version.py.qmvt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

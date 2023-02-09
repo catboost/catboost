@@ -233,7 +233,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_190b9f10757cfbda12ea6797cd.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_9d73e365353a06cd5771260418.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_f3713d0a421221fcb75e6935f3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a287e997a40ad63fe5f491128b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ea7d158e69a3af1b11fe08e9e1.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_190b9f10757cfbda12ea6797cd.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_9d73e365353a06cd5771260418.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_f3713d0a421221fcb75e6935f3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a287e997a40ad63fe5f491128b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ea7d158e69a3af1b11fe08e9e1.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -244,7 +244,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_190b9f10757cfbda12ea6797cd.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_9d73e365353a06cd5771260418.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_f3713d0a421221fcb75e6935f3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a287e997a40ad63fe5f491128b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ea7d158e69a3af1b11fe08e9e1.yasm" "--ya-end-command-file"
+python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_190b9f10757cfbda12ea6797cd.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_9d73e365353a06cd5771260418.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_f3713d0a421221fcb75e6935f3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a287e997a40ad63fe5f491128b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ea7d158e69a3af1b11fe08e9e1.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -287,123 +287,123 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/__init__.py.kzyw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/__init__.py.kzyw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_collections.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_collections.py.vsdq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_collections.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_collections.py.vsdq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_version.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_version.py.tccd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_version.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_version.py.tccd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connection.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connection.py.xj6l.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connection.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connection.py.xj6l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connectionpool.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connectionpool.py.eenl.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connectionpool.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connectionpool.py.eenl.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/__init__.py.b7v2.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/__init__.py.b7v2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/_appengine_environ.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/_appengine_environ.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/_appengine_environ.py.a3ur.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/_appengine_environ.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/_appengine_environ.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/_appengine_environ.py.a3ur.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/appengine.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/appengine.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/appengine.py.ek7n.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/appengine.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/appengine.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/appengine.py.ek7n.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/socks.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/socks.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/socks.py.fka3.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/socks.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/socks.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/socks.py.fka3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/exceptions.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/exceptions.py.vbfk.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/exceptions.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/exceptions.py.vbfk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/fields.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/fields.py.x3ku.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/fields.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/fields.py.x3ku.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/filepost.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/filepost.py.4cip.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/filepost.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/filepost.py.4cip.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/__init__.py.zruw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/__init__.py.zruw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/six.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/six.py.nehn.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/six.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/six.py.nehn.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/poolmanager.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/poolmanager.py.aqa3.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/poolmanager.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/poolmanager.py.aqa3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/request.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/request.py.bbnv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/request.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/request.py.bbnv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/response.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/response.py.agkv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/response.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/response.py.agkv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/__init__.py.or3m.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/__init__.py.or3m.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/connection.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/connection.py.klfw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/connection.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/connection.py.klfw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/proxy.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/proxy.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/proxy.py.r3wu.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/proxy.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/proxy.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/proxy.py.r3wu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/queue.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/queue.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/queue.py.m2ga.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/queue.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/queue.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/queue.py.m2ga.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/request.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/request.py.foay.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/request.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/request.py.foay.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/response.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/response.py.wnk5.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/response.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/response.py.wnk5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/retry.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/retry.py.3b5j.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/retry.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/retry.py.3b5j.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_.py.rnxi.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_.py.rnxi.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_match_hostname.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssl_match_hostname.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_match_hostname.py.amcg.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_match_hostname.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssl_match_hostname.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_match_hostname.py.amcg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssltransport.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssltransport.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssltransport.py.swce.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssltransport.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssltransport.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssltransport.py.swce.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/timeout.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/timeout.py.sv7v.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/timeout.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/timeout.py.sv7v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/url.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/url.py.65xb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/url.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/url.py.65xb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/wait.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/wait.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/wait.py.myfd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/wait.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/wait.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/wait.py.myfd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -414,123 +414,123 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/__init__.py.kzyw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/__init__.py.kzyw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_collections.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_collections.py.vsdq.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_collections.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_collections.py.vsdq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_version.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_version.py.tccd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_version.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_version.py.tccd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connection.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connection.py.xj6l.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connection.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connection.py.xj6l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connectionpool.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connectionpool.py.eenl.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connectionpool.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connectionpool.py.eenl.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/__init__.py.b7v2.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/__init__.py.b7v2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/_appengine_environ.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/_appengine_environ.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/_appengine_environ.py.a3ur.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/_appengine_environ.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/_appengine_environ.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/_appengine_environ.py.a3ur.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/appengine.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/appengine.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/appengine.py.ek7n.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/appengine.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/appengine.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/appengine.py.ek7n.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/socks.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/socks.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/socks.py.fka3.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/contrib/socks.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/contrib/socks.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/contrib/socks.py.fka3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/exceptions.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/exceptions.py.vbfk.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/exceptions.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/exceptions.py.vbfk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/fields.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/fields.py.x3ku.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/fields.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/fields.py.x3ku.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/filepost.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/filepost.py.4cip.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/filepost.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/filepost.py.4cip.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/__init__.py.zruw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/__init__.py.zruw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/six.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/six.py.nehn.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/six.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/six.py.nehn.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/poolmanager.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/poolmanager.py.aqa3.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/poolmanager.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/poolmanager.py.aqa3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/request.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/request.py.bbnv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/request.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/request.py.bbnv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/response.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/response.py.agkv.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/response.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/response.py.agkv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/__init__.py.or3m.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/__init__.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/__init__.py.or3m.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/connection.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/connection.py.klfw.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/connection.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/connection.py.klfw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/proxy.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/proxy.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/proxy.py.r3wu.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/proxy.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/proxy.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/proxy.py.r3wu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/queue.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/queue.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/queue.py.m2ga.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/queue.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/queue.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/queue.py.m2ga.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/request.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/request.py.foay.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/request.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/request.py.foay.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/response.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/response.py.wnk5.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/response.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/response.py.wnk5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/retry.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/retry.py.3b5j.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/retry.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/retry.py.3b5j.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_.py.rnxi.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_.py.rnxi.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_match_hostname.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssl_match_hostname.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_match_hostname.py.amcg.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_match_hostname.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssl_match_hostname.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_match_hostname.py.amcg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssltransport.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssltransport.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssltransport.py.swce.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssltransport.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/ssltransport.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssltransport.py.swce.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/timeout.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/timeout.py.sv7v.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/timeout.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/timeout.py.sv7v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/url.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/url.py.65xb.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/url.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/url.py.65xb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/wait.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/wait.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/wait.py.myfd.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/wait.py-" "$(SolutionDir).." "/contrib/python/urllib3/urllib3/util/wait.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/wait.py.myfd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

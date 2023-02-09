@@ -136,11 +136,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/funcsigs/funcsigs/__init__.py-" "$(SolutionDir).." "/contrib/python/funcsigs/funcsigs/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/funcsigs/__init__.py.a443.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/funcsigs/funcsigs/__init__.py-" "$(SolutionDir).." "/contrib/python/funcsigs/funcsigs/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/funcsigs/__init__.py.a443.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/funcsigs/funcsigs/version.py-" "$(SolutionDir).." "/contrib/python/funcsigs/funcsigs/version.py" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/funcsigs/version.py.yuoo.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/funcsigs/funcsigs/version.py-" "$(SolutionDir).." "/contrib/python/funcsigs/funcsigs/version.py" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/funcsigs/version.py.yuoo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -151,11 +151,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/funcsigs/funcsigs/__init__.py-" "$(SolutionDir).." "/contrib/python/funcsigs/funcsigs/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/funcsigs/__init__.py.a443.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/funcsigs/funcsigs/__init__.py-" "$(SolutionDir).." "/contrib/python/funcsigs/funcsigs/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/funcsigs/__init__.py.a443.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\funcsigs
 if %errorlevel% neq 0 goto :cmEnd
-"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/funcsigs/funcsigs/version.py-" "$(SolutionDir).." "/contrib/python/funcsigs/funcsigs/version.py" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/funcsigs/version.py.yuoo.yapyc"
+python.exe "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/funcsigs/funcsigs/version.py-" "$(SolutionDir).." "/contrib/python/funcsigs/funcsigs/version.py" "$(SolutionDir)$(Configuration)/contrib/python/funcsigs/funcsigs/version.py.yuoo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
