@@ -97,11 +97,11 @@ function(generate_enum_serilization Tgt Input)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
     COMMAND
-      ${TOOLS_ROOT}/tools/enum_parser/enum_parser/bin/enum_parser
+      ${TOOLS_ROOT}/tools/enum_parser/enum_parser/enum_parser
       ${Input}
       --include-path ${ENUM_SERIALIZATION_ARGS_INCLUDE_HEADERS}
       --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
-    DEPENDS ${Input} ${TOOLS_ROOT}/tools/enum_parser/enum_parser/bin/enum_parser
+    DEPENDS ${Input} ${TOOLS_ROOT}/tools/enum_parser/enum_parser/enum_parser
   )
   target_sources(${Tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp)
 endfunction()
