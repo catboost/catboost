@@ -291,14 +291,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\private-libs-algo.vcxproj">
       <Project>57E74FB3-A4F4-6EEA-1797-1666D9FC13A2</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\ut\catboost_ut.vcxproj">
-      <Project>859701F5-CC85-0B81-547C-18957C1E1848</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\ut\catboost-private-libs-algo-ut.vcxproj">
+      <Project>EE91D2D1-A106-9148-C32E-0399111372B2</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo_helpers\private-libs-algo_helpers.vcxproj">
       <Project>EB3D7653-201F-4D73-1FD4-98AAF0E592AD</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo_helpers\ut\catboost_ut.vcxproj">
-      <Project>DCF299BE-3BFC-F117-AE7B-33FF0717B584</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo_helpers\ut\catboost-private-libs-algo_helpers-ut.vcxproj">
+      <Project>A36FDD25-B2C9-E1C6-D3C9-52A6B7E72CA1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\app_helpers\private-libs-app_helpers.vcxproj">
       <Project>0F9A14A7-EC11-ECD1-4292-3D1414CD5EA3</Project>
@@ -339,8 +339,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\functools\private-libs-functools.vcxproj">
       <Project>DA3CA223-F5CD-A8D5-08DD-830BB28E5F6D</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\functools\ut\catboost_ut.vcxproj">
-      <Project>B35CF851-AC1D-3CD3-621A-BEC75DEE28FF</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\functools\ut\catboost-private-libs-functools-ut.vcxproj">
+      <Project>D0F47E59-E7BC-9CFE-3F00-0791A5ECA6A5</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\hyperparameter_tuning\private-libs-hyperparameter_tuning.vcxproj">
       <Project>04C491F9-96F4-CDFB-2117-03AF003B49CD</Project>
