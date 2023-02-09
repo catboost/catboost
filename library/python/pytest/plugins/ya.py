@@ -402,7 +402,7 @@ def pytest_runtest_setup(item):
     yatest_logger.info(separator)
     yatest_logger.info("Test setup")
 
-    test_item = CrashedTestItem(item.nodeid, pytest_config.option.test_suffix)
+    test_item = CrashedTestItem(item.nodeid, item.location[0], pytest_config.option.test_suffix)
     pytest_config.ya_trace_reporter.on_start_test_class(test_item)
     pytest_config.ya_trace_reporter.on_start_test_case(test_item)
 
@@ -420,7 +420,7 @@ def pytest_deselected(items):
     config = pytest_config
     if config.option.report_deselected:
         for item in items:
-            deselected_item = DeselectedTestItem(item.nodeid, config.option.test_suffix)
+            deselected_item = DeselectedTestItem(item.nodeid, item.location[0], config.option.test_suffix)
             config.ya_trace_reporter.on_start_test_class(deselected_item)
             config.ya_trace_reporter.on_finish_test_case(deselected_item)
             config.ya_trace_reporter.on_finish_test_class(deselected_item)
@@ -433,7 +433,7 @@ def pytest_collection_modifyitems(items, config):
         filtered_items = []
         deselected_items = []
         for item in items:
-            canonical_node_id = str(CustomTestItem(item.nodeid, pytest_config.option.test_suffix))
+            canonical_node_id = str(CustomTestItem(item.nodeid, item.location[0], pytest_config.option.test_suffix))
             matched = False
             for flt in filters:
                 if "::" not in flt and "*" not in flt:
@@ -498,14 +498,14 @@ def pytest_collection_modifyitems(items, config):
 
     if config.option.mode == yatest_lib.ya.RunMode.Run:
         for item in items:
-            test_item = NotLaunchedTestItem(item.nodeid, config.option.test_suffix)
+            test_item = NotLaunchedTestItem(item.nodeid, item.location[0], config.option.test_suffix)
             config.ya_trace_reporter.on_start_test_class(test_item)
             config.ya_trace_reporter.on_finish_test_case(test_item)
             config.ya_trace_reporter.on_finish_test_class(test_item)
     elif config.option.mode == yatest_lib.ya.RunMode.List:
         tests = []
         for item in items:
-            item = CustomTestItem(item.nodeid, pytest_config.option.test_suffix, item.keywords)
+            item = CustomTestItem(item.nodeid, item.location[0], pytest_config.option.test_suffix, item.keywords)
             record = {
                 "class": item.class_name,
                 "test": item.test_name,
@@ -522,7 +522,7 @@ def pytest_collection_modifyitems(items, config):
 def pytest_collectreport(report):
     if not report.passed:
         if hasattr(pytest_config, 'ya_trace_reporter'):
-            test_item = TestItem(report, None, pytest_config.option.test_suffix)
+            test_item = TestItem(report, None, None, pytest_config.option.test_suffix)
             pytest_config.ya_trace_reporter.on_error(test_item)
         else:
             sys.stderr.write(yatest_lib.tools.to_utf8(report.longrepr))
@@ -549,7 +549,7 @@ def pytest_pyfunc_call(pyfuncitem):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     def logreport(report, result, call, markers):
-        test_item = TestItem(report, result, pytest_config.option.test_suffix, markers=markers)
+        test_item = TestItem(report, item.location[0], result, pytest_config.option.test_suffix, markers=markers)
         if not pytest_config.suite_metrics and context.Ctx.get("YA_PYTEST_START_TIMESTAMP"):
             pytest_config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
             pytest_config.ya_trace_reporter.dump_suite_metrics()
@@ -583,7 +583,7 @@ def pytest_runtest_makereport(item, call):
     if hasattr(item, 'retval') and item.retval is not None:
         result = item.retval
         if not pytest_config.from_ya_test:
-            ti = TestItem(rep, result, pytest_config.option.test_suffix)
+            ti = TestItem(rep, item.location[0], result, pytest_config.option.test_suffix)
             tr = pytest_config.pluginmanager.getplugin('terminalreporter')
             tr.write_line("{} - Validating canonical data is not supported when running standalone binary".format(ti), yellow=True, bold=True)
     logreport(rep, result, call, item.own_markers)
@@ -630,16 +630,16 @@ def colorize(longrepr):
 
 class TestItem(object):
 
-    def __init__(self, report, result, test_suffix, markers=None):
+    def __init__(self, report, location, result, test_suffix, markers=None):
         self._result = result
         self.nodeid = report.nodeid
         self._class_name, self._test_name = tools.split_node_id(self.nodeid, test_suffix)
         self._error = ""
         self._status = None
+        self._location = location
         self._duration = hasattr(report, 'duration') and report.duration or 0
         self._keywords = getattr(report, "keywords", {})
         self._xfaildiff = any(m.name == 'xfaildiff' for m in (markers or []))
-
         self._process_report(report)
 
     def _process_report(self, report):
@@ -688,6 +688,10 @@ class TestItem(object):
     def error(self):
         return self._error
 
+    @property
+    def location(self):
+        return self._location
+
     def set_error(self, entry, marker='bad'):
         assert entry != ""
         if isinstance(entry, _pytest.reports.BaseReport):
@@ -715,9 +719,10 @@ class TestItem(object):
 
 class CustomTestItem(TestItem):
 
-    def __init__(self, nodeid, test_suffix, keywords=None):
+    def __init__(self, nodeid, location, test_suffix, keywords=None):
         self._result = None
         self.nodeid = nodeid
+        self._location = location
         self._class_name, self._test_name = tools.split_node_id(nodeid, test_suffix)
         self._duration = 0
         self._error = ""
@@ -726,22 +731,22 @@ class CustomTestItem(TestItem):
 
 class NotLaunchedTestItem(CustomTestItem):
 
-    def __init__(self, nodeid, test_suffix):
-        super(NotLaunchedTestItem, self).__init__(nodeid, test_suffix)
+    def __init__(self, nodeid, location, test_suffix):
+        super(NotLaunchedTestItem, self).__init__(nodeid, location, test_suffix)
         self._status = "not_launched"
 
 
 class CrashedTestItem(CustomTestItem):
 
-    def __init__(self, nodeid, test_suffix):
-        super(CrashedTestItem, self).__init__(nodeid, test_suffix)
+    def __init__(self, nodeid, location, test_suffix):
+        super(CrashedTestItem, self).__init__(nodeid, location, test_suffix)
         self._status = "crashed"
 
 
 class DeselectedTestItem(CustomTestItem):
 
-    def __init__(self, nodeid, test_suffix):
-        super(DeselectedTestItem, self).__init__(nodeid, test_suffix)
+    def __init__(self, nodeid, location, test_suffix):
+        super(DeselectedTestItem, self).__init__(nodeid, location, test_suffix)
         self._status = "deselected"
 
 
@@ -818,6 +823,9 @@ class TraceReportGenerator(object):
             'class': class_name,
             'subtest': subtest_name,
         }
+        # Enable when CI is ready, see YA-465
+        if False and test_item.location:
+            message['path'] = test_item.location
         if test_item.nodeid in pytest_config.test_logs:
             message['logs'] = pytest_config.test_logs[test_item.nodeid]
         pytest_config.ya.set_test_item_node_id(test_item.nodeid)
@@ -851,6 +859,9 @@ class TraceReportGenerator(object):
                 'is_diff_test': 'diff_test' in test_item.keywords,
                 'tags': _get_item_tags(test_item),
             }
+            # Enable when CI is ready, see YA-465
+            if False and test_item.location:
+                message['path'] = test_item.location
             if test_item.nodeid in pytest_config.test_logs:
                 message['logs'] = pytest_config.test_logs[test_item.nodeid]
 
