@@ -136,35 +136,35 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/__init__.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/__init__.py.zf7h.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/__init__.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/__init__.py.zf7h.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/codec.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/codec.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/codec.py.hwwb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/codec.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/codec.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/codec.py.hwwb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/compat.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/compat.py.ur7v.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/compat.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/compat.py.ur7v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/core.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/core.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/core.py.33p3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/core.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/core.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/core.py.33p3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/idnadata.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/idnadata.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/idnadata.py.x3nv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/idnadata.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/idnadata.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/idnadata.py.x3nv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/intranges.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/intranges.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/intranges.py.rqtd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/intranges.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/intranges.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/intranges.py.rqtd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/package_data.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/package_data.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/package_data.py.nlv4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/package_data.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/package_data.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/package_data.py.nlv4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/uts46data.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/uts46data.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/uts46data.py.wwtd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/uts46data.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/uts46data.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/uts46data.py.wwtd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -175,35 +175,35 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/__init__.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/__init__.py.zf7h.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/__init__.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/__init__.py.zf7h.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/codec.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/codec.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/codec.py.hwwb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/codec.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/codec.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/codec.py.hwwb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/compat.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/compat.py.ur7v.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/compat.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/compat.py.ur7v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/core.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/core.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/core.py.33p3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/core.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/core.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/core.py.33p3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/idnadata.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/idnadata.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/idnadata.py.x3nv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/idnadata.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/idnadata.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/idnadata.py.x3nv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/intranges.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/intranges.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/intranges.py.rqtd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/intranges.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/intranges.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/intranges.py.rqtd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/package_data.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/package_data.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/package_data.py.nlv4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/package_data.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/package_data.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/package_data.py.nlv4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\idna\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/uts46data.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/uts46data.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/uts46data.py.wwtd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/idna/py2/idna/uts46data.py-" "$(SolutionDir).." "/contrib/python/idna/py2/idna/uts46data.py" "$(SolutionDir)$(Configuration)/contrib/python/idna/py2/idna/uts46data.py.wwtd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

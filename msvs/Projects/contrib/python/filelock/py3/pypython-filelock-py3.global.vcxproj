@@ -163,7 +163,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/join_762118bfadc849d7253f3dcb97.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_ea8eca21322c7e55bcd7065f9e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_9f09f4f1ae6ca11f880d86fa44.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/join_762118bfadc849d7253f3dcb97.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_ea8eca21322c7e55bcd7065f9e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_9f09f4f1ae6ca11f880d86fa44.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -174,7 +174,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\filelock\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/join_762118bfadc849d7253f3dcb97.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_ea8eca21322c7e55bcd7065f9e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_9f09f4f1ae6ca11f880d86fa44.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/join_762118bfadc849d7253f3dcb97.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_ea8eca21322c7e55bcd7065f9e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/filelock/py3/_9f09f4f1ae6ca11f880d86fa44.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

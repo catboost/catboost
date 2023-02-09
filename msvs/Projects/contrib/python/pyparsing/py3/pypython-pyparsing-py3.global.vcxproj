@@ -172,7 +172,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/join_5bf4bb0f71f58f82911b001832.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_7d6de29ecd6296ac04bae5552c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_a827d157510a70957e6c117514.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/join_5bf4bb0f71f58f82911b001832.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_7d6de29ecd6296ac04bae5552c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_a827d157510a70957e6c117514.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,7 +183,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/join_5bf4bb0f71f58f82911b001832.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_7d6de29ecd6296ac04bae5552c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_a827d157510a70957e6c117514.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/join_5bf4bb0f71f58f82911b001832.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_7d6de29ecd6296ac04bae5552c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_a827d157510a70957e6c117514.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

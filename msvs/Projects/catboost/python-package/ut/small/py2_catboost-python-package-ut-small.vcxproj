@@ -200,11 +200,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\small
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "catboost/python-package/ut/small/test_pyx_funcs.py-" "$(SolutionDir).." "/catboost/python-package/ut/small/test_pyx_funcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/small/test_pyx_funcs.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "catboost/python-package/ut/small/test_pyx_funcs.py-" "$(SolutionDir).." "/catboost/python-package/ut/small/test_pyx_funcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/small/test_pyx_funcs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\small
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "catboost/python-package/ut/small/test_utils.py-" "$(SolutionDir).." "/catboost/python-package/ut/small/test_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/small/test_utils.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "catboost/python-package/ut/small/test_utils.py-" "$(SolutionDir).." "/catboost/python-package/ut/small/test_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/small/test_utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -215,11 +215,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\small
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "catboost/python-package/ut/small/test_pyx_funcs.py-" "$(SolutionDir).." "/catboost/python-package/ut/small/test_pyx_funcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/small/test_pyx_funcs.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "catboost/python-package/ut/small/test_pyx_funcs.py-" "$(SolutionDir).." "/catboost/python-package/ut/small/test_pyx_funcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/small/test_pyx_funcs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\small
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "catboost/python-package/ut/small/test_utils.py-" "$(SolutionDir).." "/catboost/python-package/ut/small/test_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/small/test_utils.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "catboost/python-package/ut/small/test_utils.py-" "$(SolutionDir).." "/catboost/python-package/ut/small/test_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/small/test_utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

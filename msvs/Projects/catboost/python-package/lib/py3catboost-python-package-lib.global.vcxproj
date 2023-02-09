@@ -198,7 +198,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_47110edc44861a0e10cec8cdd0.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_a8b1423153d7d4d7ee6ab4ded4.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_0208d41938ca0cf755fa0c89fa.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_32a60c6eca1da7fdefb345255a.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_655a28f6d4f7ccc0f0ac9ed191.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_47110edc44861a0e10cec8cdd0.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_a8b1423153d7d4d7ee6ab4ded4.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_0208d41938ca0cf755fa0c89fa.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_32a60c6eca1da7fdefb345255a.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_655a28f6d4f7ccc0f0ac9ed191.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,7 +209,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_47110edc44861a0e10cec8cdd0.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_a8b1423153d7d4d7ee6ab4ded4.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_0208d41938ca0cf755fa0c89fa.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_32a60c6eca1da7fdefb345255a.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_655a28f6d4f7ccc0f0ac9ed191.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_47110edc44861a0e10cec8cdd0.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_a8b1423153d7d4d7ee6ab4ded4.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_0208d41938ca0cf755fa0c89fa.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_32a60c6eca1da7fdefb345255a.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_655a28f6d4f7ccc0f0ac9ed191.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -252,7 +252,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -263,7 +263,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

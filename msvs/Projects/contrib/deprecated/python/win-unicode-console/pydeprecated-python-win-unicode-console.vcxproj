@@ -163,47 +163,47 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py.y7gq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py.y7gq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py.qcin.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py.qcin.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py.gv3g.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py.gv3g.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py.2mea.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py.2mea.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py.oubf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py.oubf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py.s4xf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py.s4xf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py.cqy4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py.cqy4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py.d43u.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py.d43u.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py.gvcj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py.gvcj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py.t3l5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py.t3l5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py.7djj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py.7djj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -214,47 +214,47 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py.y7gq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/__init__.py.y7gq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py.qcin.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/buffer.py.qcin.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py.gv3g.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/console.py.gv3g.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py.2mea.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/file_object.py.2mea.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py.oubf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/info.py.oubf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py.s4xf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/raw_input.py.s4xf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py.cqy4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/readline_hook.py.cqy4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py.d43u.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/runner.py.d43u.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py.gvcj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/streams.py.gvcj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py.t3l5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/tokenize_open.py.t3l5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py.7djj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py-" "$(SolutionDir).." "/contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/win_unicode_console/unicode_argv.py.7djj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

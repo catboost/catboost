@@ -1308,7 +1308,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6e1930d2367e20385a25a877f5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a441bf2d9dc2f02d9109a82074.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_3ed1eb08de1c05a7b85aa9aa62.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_7a4868a2e57348ec6d241d95b1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_de7dba987786c04cb4ee639122.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_927c69c7c401a170a329580b72.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f6c2314f2cadd0d007255a4274.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_9247707047fd934f87e977525e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6e5883170471275b862f4fa39b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_2566d80d1339e51ec1143bc2e7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_dc68fc9ac698353de35340ab62.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_c5becaf6154163469bd92bc454.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8604432f524132ffcf26e1ecd3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_5d688f063b22a8e33102f40ac6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_29819f6614ed460b60597acdbc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_5f9cd1a1be57ee91609ffee4d7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f18f9deec812da12afacde668f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_17d9d7815d53aff29de7590b27.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a4488787f7963bc2ffd7e8d018.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8bd5f74af7b549e78599cc5fae.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ad4442820c90ce62eba05c915f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_13a99b459d03571ca370d5d0c7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_16153cf9cde350b45b91f927e8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_88dfe77bc03e0c39f9b8075159.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_79e69157cacd1040d0f10bd8a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0491f0d345d67f6ae162d743e9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ab0d82d3f6ad1f5037cf00fd4f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_c02a349fe46440508eb68d4d0a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_55b2e0381bc52b9c30ca642832.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0cde906f37e6d8311f937aa110.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_4baef003862f32e02d4767bff4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6c6e24b278bcaaa15760e8de1c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8e0e70d265453d94ff072fae0c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6a90339a297108bbbca31ed510.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_4b590899016648a9381c51ce58.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_61abb5fa1e8133324a5a7272b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0626c6452e37728b7919248e64.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_bbd0347ad5dcf52647d644ff7c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_79c81407ab93f900f6a72e4d51.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a70b2f1bb6524359f008e29c6e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_032470e7d116ecf1ede6d88d34.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ebc4c7dcd18c37addf7daf8cc4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8b12fdbf41bc751d868072bf2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6583926e96bcdabbf83871ae13.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8de705395b4a7e9e04a71f3fe7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_cc2e37b043df9bbfeb5005d8a7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_fa46aa9ae8d07784544f4155a6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f38b86ccff8ffcc8da7ca40400.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6e1930d2367e20385a25a877f5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a441bf2d9dc2f02d9109a82074.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_3ed1eb08de1c05a7b85aa9aa62.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_7a4868a2e57348ec6d241d95b1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_de7dba987786c04cb4ee639122.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_927c69c7c401a170a329580b72.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f6c2314f2cadd0d007255a4274.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_9247707047fd934f87e977525e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6e5883170471275b862f4fa39b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_2566d80d1339e51ec1143bc2e7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_dc68fc9ac698353de35340ab62.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_c5becaf6154163469bd92bc454.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8604432f524132ffcf26e1ecd3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_5d688f063b22a8e33102f40ac6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_29819f6614ed460b60597acdbc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_5f9cd1a1be57ee91609ffee4d7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f18f9deec812da12afacde668f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_17d9d7815d53aff29de7590b27.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a4488787f7963bc2ffd7e8d018.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8bd5f74af7b549e78599cc5fae.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ad4442820c90ce62eba05c915f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_13a99b459d03571ca370d5d0c7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_16153cf9cde350b45b91f927e8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_88dfe77bc03e0c39f9b8075159.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_79e69157cacd1040d0f10bd8a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0491f0d345d67f6ae162d743e9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ab0d82d3f6ad1f5037cf00fd4f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_c02a349fe46440508eb68d4d0a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_55b2e0381bc52b9c30ca642832.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0cde906f37e6d8311f937aa110.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_4baef003862f32e02d4767bff4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6c6e24b278bcaaa15760e8de1c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8e0e70d265453d94ff072fae0c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6a90339a297108bbbca31ed510.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_4b590899016648a9381c51ce58.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_61abb5fa1e8133324a5a7272b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0626c6452e37728b7919248e64.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_bbd0347ad5dcf52647d644ff7c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_79c81407ab93f900f6a72e4d51.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a70b2f1bb6524359f008e29c6e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_032470e7d116ecf1ede6d88d34.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ebc4c7dcd18c37addf7daf8cc4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8b12fdbf41bc751d868072bf2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6583926e96bcdabbf83871ae13.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8de705395b4a7e9e04a71f3fe7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_cc2e37b043df9bbfeb5005d8a7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_fa46aa9ae8d07784544f4155a6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f38b86ccff8ffcc8da7ca40400.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1319,7 +1319,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6e1930d2367e20385a25a877f5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a441bf2d9dc2f02d9109a82074.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_3ed1eb08de1c05a7b85aa9aa62.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_7a4868a2e57348ec6d241d95b1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_de7dba987786c04cb4ee639122.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_927c69c7c401a170a329580b72.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f6c2314f2cadd0d007255a4274.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_9247707047fd934f87e977525e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6e5883170471275b862f4fa39b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_2566d80d1339e51ec1143bc2e7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_dc68fc9ac698353de35340ab62.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_c5becaf6154163469bd92bc454.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8604432f524132ffcf26e1ecd3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_5d688f063b22a8e33102f40ac6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_29819f6614ed460b60597acdbc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_5f9cd1a1be57ee91609ffee4d7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f18f9deec812da12afacde668f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_17d9d7815d53aff29de7590b27.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a4488787f7963bc2ffd7e8d018.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8bd5f74af7b549e78599cc5fae.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ad4442820c90ce62eba05c915f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_13a99b459d03571ca370d5d0c7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_16153cf9cde350b45b91f927e8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_88dfe77bc03e0c39f9b8075159.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_79e69157cacd1040d0f10bd8a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0491f0d345d67f6ae162d743e9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ab0d82d3f6ad1f5037cf00fd4f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_c02a349fe46440508eb68d4d0a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_55b2e0381bc52b9c30ca642832.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0cde906f37e6d8311f937aa110.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_4baef003862f32e02d4767bff4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6c6e24b278bcaaa15760e8de1c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8e0e70d265453d94ff072fae0c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6a90339a297108bbbca31ed510.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_4b590899016648a9381c51ce58.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_61abb5fa1e8133324a5a7272b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0626c6452e37728b7919248e64.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_bbd0347ad5dcf52647d644ff7c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_79c81407ab93f900f6a72e4d51.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a70b2f1bb6524359f008e29c6e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_032470e7d116ecf1ede6d88d34.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ebc4c7dcd18c37addf7daf8cc4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8b12fdbf41bc751d868072bf2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6583926e96bcdabbf83871ae13.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8de705395b4a7e9e04a71f3fe7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_cc2e37b043df9bbfeb5005d8a7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_fa46aa9ae8d07784544f4155a6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f38b86ccff8ffcc8da7ca40400.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/join_41a198b009e4c45bea33076f60.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6e1930d2367e20385a25a877f5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a441bf2d9dc2f02d9109a82074.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_3ed1eb08de1c05a7b85aa9aa62.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_7a4868a2e57348ec6d241d95b1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_de7dba987786c04cb4ee639122.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_927c69c7c401a170a329580b72.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f6c2314f2cadd0d007255a4274.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_9247707047fd934f87e977525e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6e5883170471275b862f4fa39b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_2566d80d1339e51ec1143bc2e7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_dc68fc9ac698353de35340ab62.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_c5becaf6154163469bd92bc454.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8604432f524132ffcf26e1ecd3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_5d688f063b22a8e33102f40ac6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_29819f6614ed460b60597acdbc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_5f9cd1a1be57ee91609ffee4d7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f18f9deec812da12afacde668f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_17d9d7815d53aff29de7590b27.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a4488787f7963bc2ffd7e8d018.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8bd5f74af7b549e78599cc5fae.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ad4442820c90ce62eba05c915f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_13a99b459d03571ca370d5d0c7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_16153cf9cde350b45b91f927e8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_88dfe77bc03e0c39f9b8075159.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_79e69157cacd1040d0f10bd8a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0491f0d345d67f6ae162d743e9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ab0d82d3f6ad1f5037cf00fd4f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_c02a349fe46440508eb68d4d0a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_55b2e0381bc52b9c30ca642832.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0cde906f37e6d8311f937aa110.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_4baef003862f32e02d4767bff4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6c6e24b278bcaaa15760e8de1c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8e0e70d265453d94ff072fae0c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6a90339a297108bbbca31ed510.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_4b590899016648a9381c51ce58.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_61abb5fa1e8133324a5a7272b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_0626c6452e37728b7919248e64.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_bbd0347ad5dcf52647d644ff7c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_79c81407ab93f900f6a72e4d51.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_a70b2f1bb6524359f008e29c6e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_032470e7d116ecf1ede6d88d34.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_ebc4c7dcd18c37addf7daf8cc4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8b12fdbf41bc751d868072bf2b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_6583926e96bcdabbf83871ae13.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_8de705395b4a7e9e04a71f3fe7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_cc2e37b043df9bbfeb5005d8a7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_fa46aa9ae8d07784544f4155a6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_f38b86ccff8ffcc8da7ca40400.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1362,303 +1362,303 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib._ccallback_c" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib._ccallback_c.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib._ccallback_c" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib._ccallback_c.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib._fpumode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib._fpumode.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib._fpumode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib._fpumode.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib.messagestream" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib.messagestream.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib.messagestream" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib.messagestream.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._hierarchy" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._hierarchy.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._hierarchy" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._hierarchy.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._optimal_leaf_ordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._optimal_leaf_ordering.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._optimal_leaf_ordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._optimal_leaf_ordering.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._vq" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._vq.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._vq" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._vq.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.fftpack._fftpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.fftpack._fftpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.fftpack._fftpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.fftpack._fftpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.fftpack.convolve" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.fftpack.convolve.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.fftpack.convolve" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.fftpack.convolve.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._dop.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._dop.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._odepack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._odepack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._quadpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._quadpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate.lsoda.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate.lsoda.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate.vode.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate.vode.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._bspl" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._bspl.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._bspl" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._bspl.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._fitpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._fitpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._fitpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._fitpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._interpolate" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._interpolate.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._interpolate" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._interpolate.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._ppoly" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._ppoly.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._ppoly" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._ppoly.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate.dfitpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate.dfitpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate.dfitpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate.dfitpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate.interpnd" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate.interpnd.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate.interpnd" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate.interpnd.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.mio5_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.mio5_utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.mio5_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.mio5_utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.mio_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.mio_utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.mio_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.mio_utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.streams" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.streams.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.streams" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.streams.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._decomp_update" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._decomp_update.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._decomp_update" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._decomp_update.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._fblas" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._fblas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._fblas" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._fblas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._flapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._flapack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._flapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._flapack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._flinalg" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._flinalg.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._flinalg" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._flinalg.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._interpolative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._interpolative.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._interpolative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._interpolative.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._solve_toeplitz" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._solve_toeplitz.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._solve_toeplitz" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._solve_toeplitz.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg.cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg.cython_blas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg.cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg.cython_blas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg.cython_lapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg.cython_lapack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg.cython_lapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg.cython_lapack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._ctest" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._ctest.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._ctest" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._ctest.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._cytest" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._cytest.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._cytest" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._cytest.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._nd_image" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._nd_image.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._nd_image" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._nd_image.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._ni_label" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._ni_label.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._ni_label" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._ni_label.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.odr.__odrpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.odr.__odrpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.odr.__odrpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.odr.__odrpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._cobyla" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._cobyla.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._cobyla" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._cobyla.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._group_columns" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._group_columns.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._group_columns" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._group_columns.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._lbfgsb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._lbfgsb.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._lbfgsb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._lbfgsb.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._lsq.givens_elimination" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._lsq.givens_elimination.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._lsq.givens_elimination" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._lsq.givens_elimination.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._minpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._minpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._minpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._minpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._nnls" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._nnls.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._nnls" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._nnls.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._slsqp" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._slsqp.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._slsqp" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._slsqp.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._trlib._trlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._trlib._trlib.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._trlib._trlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._trlib._trlib.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._zeros" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._zeros.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._zeros" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._zeros.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize.minpack2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize.minpack2.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize.minpack2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize.minpack2.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize.moduleTNC" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize.moduleTNC.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize.moduleTNC" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize.moduleTNC.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._max_len_seq_inner" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._max_len_seq_inner.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._max_len_seq_inner" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._max_len_seq_inner.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._peak_finding_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._peak_finding_utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._peak_finding_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._peak_finding_utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._spectral" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._spectral.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._spectral" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._spectral.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._upfirdn_apply" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._upfirdn_apply.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._upfirdn_apply" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._upfirdn_apply.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal.sigtools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal.sigtools.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal.sigtools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal.sigtools.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal.spline" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal.spline.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal.spline" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal.spline.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse._csparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse._csparsetools.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse._csparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse._csparsetools.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse._sparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse._sparsetools.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse._sparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse._sparsetools.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._min_spanning_tree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._min_spanning_tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._min_spanning_tree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._min_spanning_tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._reordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._reordering.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._reordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._reordering.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._shortest_path" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._shortest_path.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._shortest_path" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._shortest_path.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._tools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._tools.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._tools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._tools.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._traversal" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._traversal.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._traversal" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._traversal.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.dsolve._superlu" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.dsolve._superlu.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.dsolve._superlu" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.dsolve._superlu.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.eigen.arpack._arpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.eigen.arpack._arpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.eigen.arpack._arpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.eigen.arpack._arpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.isolve._iterative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.isolve._iterative.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.isolve._iterative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.isolve._iterative.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._distance_wrap" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._distance_wrap.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._distance_wrap" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._distance_wrap.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._hausdorff" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._hausdorff.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._hausdorff" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._hausdorff.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._voronoi" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._voronoi.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._voronoi" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._voronoi.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial.ckdtree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial.ckdtree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial.ckdtree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial.ckdtree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial.qhull" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial.qhull.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial.qhull" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial.qhull.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._comb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._comb.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._comb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._comb.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ellip_harm_2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ellip_harm_2.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ellip_harm_2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ellip_harm_2.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ufuncs" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ufuncs.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ufuncs" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ufuncs.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ufuncs_cxx" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ufuncs_cxx.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ufuncs_cxx" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ufuncs_cxx.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special.cython_special" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special.cython_special.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special.cython_special" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special.cython_special.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special.specfun" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special.specfun.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special.specfun" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special.specfun.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.stats._stats" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.stats._stats.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.stats._stats" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.stats._stats.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.stats.statlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.stats.statlib.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.stats.statlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.stats.statlib.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1669,303 +1669,303 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib._ccallback_c" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib._ccallback_c.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib._ccallback_c" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib._ccallback_c.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib._fpumode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib._fpumode.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib._fpumode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib._fpumode.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib.messagestream" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib.messagestream.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy._lib.messagestream" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy._lib.messagestream.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._hierarchy" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._hierarchy.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._hierarchy" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._hierarchy.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._optimal_leaf_ordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._optimal_leaf_ordering.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._optimal_leaf_ordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._optimal_leaf_ordering.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._vq" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._vq.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.cluster._vq" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.cluster._vq.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.fftpack._fftpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.fftpack._fftpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.fftpack._fftpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.fftpack._fftpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.fftpack.convolve" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.fftpack.convolve.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.fftpack.convolve" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.fftpack.convolve.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._dop.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._dop.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._odepack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._odepack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._quadpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate._quadpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate.lsoda.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate.lsoda.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate.vode.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.integrate.vode.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._bspl" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._bspl.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._bspl" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._bspl.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._fitpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._fitpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._fitpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._fitpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._interpolate" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._interpolate.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._interpolate" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._interpolate.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._ppoly" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._ppoly.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate._ppoly" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate._ppoly.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate.dfitpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate.dfitpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate.dfitpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate.dfitpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate.interpnd" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate.interpnd.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.interpolate.interpnd" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.interpolate.interpnd.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.mio5_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.mio5_utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.mio5_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.mio5_utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.mio_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.mio_utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.mio_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.mio_utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.streams" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.streams.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.io.matlab.streams" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.io.matlab.streams.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._decomp_update" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._decomp_update.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._decomp_update" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._decomp_update.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._fblas" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._fblas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._fblas" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._fblas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._flapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._flapack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._flapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._flapack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._flinalg" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._flinalg.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._flinalg" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._flinalg.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._interpolative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._interpolative.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._interpolative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._interpolative.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._solve_toeplitz" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._solve_toeplitz.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg._solve_toeplitz" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg._solve_toeplitz.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg.cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg.cython_blas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg.cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg.cython_blas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg.cython_lapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg.cython_lapack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.linalg.cython_lapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.linalg.cython_lapack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._ctest" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._ctest.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._ctest" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._ctest.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._cytest" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._cytest.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._cytest" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._cytest.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._nd_image" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._nd_image.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._nd_image" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._nd_image.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._ni_label" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._ni_label.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.ndimage._ni_label" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.ndimage._ni_label.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.odr.__odrpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.odr.__odrpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.odr.__odrpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.odr.__odrpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._cobyla" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._cobyla.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._cobyla" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._cobyla.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._group_columns" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._group_columns.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._group_columns" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._group_columns.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._lbfgsb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._lbfgsb.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._lbfgsb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._lbfgsb.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._lsq.givens_elimination" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._lsq.givens_elimination.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._lsq.givens_elimination" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._lsq.givens_elimination.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._minpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._minpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._minpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._minpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._nnls" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._nnls.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._nnls" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._nnls.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._slsqp" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._slsqp.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._slsqp" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._slsqp.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._trlib._trlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._trlib._trlib.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._trlib._trlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._trlib._trlib.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._zeros" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._zeros.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize._zeros" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize._zeros.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize.minpack2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize.minpack2.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize.minpack2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize.minpack2.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize.moduleTNC" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize.moduleTNC.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.optimize.moduleTNC" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.optimize.moduleTNC.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._max_len_seq_inner" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._max_len_seq_inner.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._max_len_seq_inner" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._max_len_seq_inner.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._peak_finding_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._peak_finding_utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._peak_finding_utils" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._peak_finding_utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._spectral" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._spectral.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._spectral" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._spectral.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._upfirdn_apply" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._upfirdn_apply.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal._upfirdn_apply" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal._upfirdn_apply.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal.sigtools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal.sigtools.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal.sigtools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal.sigtools.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal.spline" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal.spline.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.signal.spline" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.signal.spline.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse._csparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse._csparsetools.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse._csparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse._csparsetools.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse._sparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse._sparsetools.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse._sparsetools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse._sparsetools.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._min_spanning_tree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._min_spanning_tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._min_spanning_tree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._min_spanning_tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._reordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._reordering.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._reordering" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._reordering.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._shortest_path" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._shortest_path.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._shortest_path" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._shortest_path.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._tools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._tools.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._tools" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._tools.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._traversal" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._traversal.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.csgraph._traversal" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.csgraph._traversal.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.dsolve._superlu" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.dsolve._superlu.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.dsolve._superlu" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.dsolve._superlu.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.eigen.arpack._arpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.eigen.arpack._arpack.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.eigen.arpack._arpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.eigen.arpack._arpack.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.isolve._iterative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.isolve._iterative.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.sparse.linalg.isolve._iterative" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.sparse.linalg.isolve._iterative.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._distance_wrap" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._distance_wrap.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._distance_wrap" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._distance_wrap.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._hausdorff" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._hausdorff.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._hausdorff" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._hausdorff.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._voronoi" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._voronoi.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial._voronoi" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial._voronoi.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial.ckdtree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial.ckdtree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial.ckdtree" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial.ckdtree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial.qhull" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial.qhull.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.spatial.qhull" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.spatial.qhull.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._comb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._comb.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._comb" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._comb.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ellip_harm_2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ellip_harm_2.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ellip_harm_2" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ellip_harm_2.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ufuncs" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ufuncs.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ufuncs" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ufuncs.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ufuncs_cxx" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ufuncs_cxx.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special._ufuncs_cxx" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special._ufuncs_cxx.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special.cython_special" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special.cython_special.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special.cython_special" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special.cython_special.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special.specfun" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special.specfun.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.special.specfun" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.special.specfun.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.stats._stats" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.stats._stats.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.stats._stats" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.stats._stats.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.stats.statlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.stats.statlib.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "scipy.stats.statlib" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/scipy.stats.statlib.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

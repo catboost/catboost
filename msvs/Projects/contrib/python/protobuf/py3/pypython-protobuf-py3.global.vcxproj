@@ -261,7 +261,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/join_ed5711e6094a89e166fb7f16c0.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_01e3570760f9a9afa33befc1a2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_7a51cb3f90109a28db17da307f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_0c964918f49444fe3a6f0fe2dd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_7dc62c8beafc81c4d45d8e0da4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_82ab5d875f369091375d9f658d.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/join_ed5711e6094a89e166fb7f16c0.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_01e3570760f9a9afa33befc1a2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_7a51cb3f90109a28db17da307f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_0c964918f49444fe3a6f0fe2dd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_7dc62c8beafc81c4d45d8e0da4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_82ab5d875f369091375d9f658d.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -272,7 +272,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/join_ed5711e6094a89e166fb7f16c0.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_01e3570760f9a9afa33befc1a2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_7a51cb3f90109a28db17da307f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_0c964918f49444fe3a6f0fe2dd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_7dc62c8beafc81c4d45d8e0da4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_82ab5d875f369091375d9f658d.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/join_ed5711e6094a89e166fb7f16c0.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_01e3570760f9a9afa33befc1a2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_7a51cb3f90109a28db17da307f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_0c964918f49444fe3a6f0fe2dd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_7dc62c8beafc81c4d45d8e0da4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/_82ab5d875f369091375d9f658d.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -315,11 +315,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "google.protobuf.internal._api_implementation" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/google.protobuf.internal._api_implementation.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "google.protobuf.internal._api_implementation" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/google.protobuf.internal._api_implementation.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "google.protobuf.pyext._message" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/google.protobuf.pyext._message.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "google.protobuf.pyext._message" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/google.protobuf.pyext._message.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -330,11 +330,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "google.protobuf.internal._api_implementation" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/google.protobuf.internal._api_implementation.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "google.protobuf.internal._api_implementation" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/google.protobuf.internal._api_implementation.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "google.protobuf.pyext._message" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/google.protobuf.pyext._message.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "google.protobuf.pyext._message" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py3/google.protobuf.pyext._message.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

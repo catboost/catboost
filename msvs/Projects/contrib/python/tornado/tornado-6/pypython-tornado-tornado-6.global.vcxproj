@@ -197,7 +197,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_5ca627b580192d7480fca8b6b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_ef57d62a586e2f2107bcffa0d2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d84ac7688b2740d990de48911a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3476ba246277ed417be05ca43a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_65e7de6da86ad20a3fd29b51d9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d2efd1bb95c6c09fbd2fa18cd3.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_5ca627b580192d7480fca8b6b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_ef57d62a586e2f2107bcffa0d2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d84ac7688b2740d990de48911a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3476ba246277ed417be05ca43a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_65e7de6da86ad20a3fd29b51d9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d2efd1bb95c6c09fbd2fa18cd3.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -208,7 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_5ca627b580192d7480fca8b6b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_ef57d62a586e2f2107bcffa0d2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d84ac7688b2740d990de48911a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3476ba246277ed417be05ca43a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_65e7de6da86ad20a3fd29b51d9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d2efd1bb95c6c09fbd2fa18cd3.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_5ca627b580192d7480fca8b6b2.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_ef57d62a586e2f2107bcffa0d2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d84ac7688b2740d990de48911a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_3476ba246277ed417be05ca43a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_65e7de6da86ad20a3fd29b51d9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/_d2efd1bb95c6c09fbd2fa18cd3.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -251,7 +251,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "tornado.speedups" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado.speedups.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "tornado.speedups" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado.speedups.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -262,7 +262,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "tornado.speedups" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado.speedups.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "tornado.speedups" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/tornado.speedups.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

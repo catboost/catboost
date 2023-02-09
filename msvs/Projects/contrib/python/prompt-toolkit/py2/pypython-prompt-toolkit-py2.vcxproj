@@ -325,415 +325,415 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py.lesx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py.lesx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py.3quj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py.3quj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py.zabt.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py.zabt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py.patu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py.patu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py.t3vh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py.t3vh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py.535p.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py.535p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py.bjss.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py.bjss.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py.u7ov.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py.u7ov.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py.oauj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py.oauj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py.24zg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py.24zg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py.7amr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py.7amr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py.ui3b.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py.ui3b.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py.f3x4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py.f3x4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py.mgj6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py.mgj6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py.pfri.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py.pfri.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py.bbfq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py.bbfq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py.qig2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py.qig2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py.fkk7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py.fkk7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py.35s2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py.35s2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py.u2ha.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py.u2ha.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py.ffnd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py.ffnd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py.rifw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py.rifw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py.yfzv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py.yfzv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py.jswm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py.jswm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py.kjgy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py.kjgy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py.4s46.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py.4s46.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py.rgh4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py.rgh4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py.rzrk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py.rzrk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py.4quo.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py.4quo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py.5pmj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py.5pmj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py.ulx5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py.ulx5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py.27ll.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py.27ll.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py.ofbb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py.ofbb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py.mdeo.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py.mdeo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py.g6lz.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py.g6lz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py.5sgj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py.5sgj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py.r5hy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py.r5hy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py.4rjy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py.4rjy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py.hpxy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py.hpxy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py.jxao.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py.jxao.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py.rbxu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py.rbxu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py.3ndi.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py.3ndi.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py.gkhg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py.gkhg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py.kxwd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py.kxwd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py.nzkc.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py.nzkc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py.6yfj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py.6yfj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py.r5ke.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py.r5ke.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py.aiw7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py.aiw7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py.a7oq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py.a7oq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py.deap.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py.deap.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py.wokn.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py.wokn.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py.xwxw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py.xwxw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py.24g5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py.24g5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py.vc45.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py.vc45.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py.6irs.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py.6irs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py.nr66.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py.nr66.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py.ohto.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py.ohto.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py.yyfq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py.yyfq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py.c4uo.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py.c4uo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py.7ifr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py.7ifr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py.an6y.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py.an6y.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py.77s4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py.77s4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py.i22p.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py.i22p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py.mrel.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py.mrel.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py.v3dk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py.v3dk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py.3fnh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py.3fnh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py.piqr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py.piqr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py.hsps.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py.hsps.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py.jwki.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py.jwki.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py.dsbr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py.dsbr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py.ekt7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py.ekt7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py.xezk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py.xezk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py.5exq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py.5exq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py.7eb2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py.7eb2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py.gmol.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py.gmol.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py.vyok.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py.vyok.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py.uxl7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py.uxl7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py.2tfa.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py.2tfa.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py.b6ao.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py.b6ao.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py.45hx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py.45hx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py.sic3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py.sic3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py.xnhj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py.xnhj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py.kaz6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py.kaz6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py.mbnu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py.mbnu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py.c234.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py.c234.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py.wkp4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py.wkp4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py.geds.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py.geds.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py.nl7r.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py.nl7r.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py.gvpk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py.gvpk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py.hapg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py.hapg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py.svr7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py.svr7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py.xs2v.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py.xs2v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py.yo6t.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py.yo6t.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py.c7tq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py.c7tq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py.fnj7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py.fnj7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py.b3gy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py.b3gy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py.qypy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py.qypy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py.4uer.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py.4uer.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py.z6sq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py.z6sq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py.mmjd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py.mmjd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py.ywtb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py.ywtb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py.4p2g.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py.4p2g.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py.vcto.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py.vcto.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -744,415 +744,415 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py.lesx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/__init__.py.lesx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py.3quj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/application.py.3quj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py.zabt.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/auto_suggest.py.zabt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py.patu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer.py.patu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py.t3vh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/buffer_mapping.py.t3vh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py.535p.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/cache.py.535p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py.bjss.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/__init__.py.bjss.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py.u7ov.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/base.py.u7ov.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py.oauj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/in_memory.py.oauj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py.24zg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/clipboard/pyperclip.py.24zg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py.7amr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/completion.py.7amr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py.ui3b.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/__init__.py.ui3b.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py.f3x4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/__init__.py.f3x4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py.mgj6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/base.py.mgj6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py.pfri.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/filesystem.py.pfri.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py.bbfq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/completers/system.py.bbfq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py.qig2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/__init__.py.qig2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py.fkk7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/compiler.py.fkk7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py.35s2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/completion.py.35s2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py.u2ha.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/lexer.py.u2ha.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py.ffnd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/regex_parser.py.ffnd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py.rifw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/regular_languages/validation.py.rifw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py.yfzv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/__init__.py.yfzv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py.jswm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/application.py.jswm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py.kjgy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/log.py.kjgy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py.4s46.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/protocol.py.4s46.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py.rgh4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/telnet/server.py.rgh4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py.rzrk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/__init__.py.rzrk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py.4quo.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/contrib/validators/base.py.4quo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py.5pmj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/document.py.5pmj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py.ulx5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/enums.py.ulx5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py.27ll.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/__init__.py.27ll.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py.ofbb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_base.py.ofbb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py.mdeo.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_posix.py.mdeo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py.g6lz.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/asyncio_win32.py.g6lz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py.5sgj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/base.py.5sgj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py.r5hy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/callbacks.py.r5hy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py.4rjy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/inputhook.py.4rjy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py.hpxy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix.py.hpxy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py.jxao.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/posix_utils.py.jxao.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py.rbxu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/select.py.rbxu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py.3ndi.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/utils.py.3ndi.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py.gkhg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/eventloop/win32.py.gkhg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py.kxwd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/__init__.py.kxwd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py.nzkc.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/base.py.nzkc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py.6yfj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/cli.py.6yfj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py.r5ke.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/types.py.r5ke.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py.aiw7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/filters/utils.py.aiw7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py.a7oq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/history.py.a7oq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py.deap.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/input.py.deap.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py.wokn.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/interface.py.wokn.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py.xwxw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/__init__.py.xwxw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py.24g5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/__init__.py.24g5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py.vc45.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/basic.py.vc45.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py.6irs.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/completion.py.6irs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py.nr66.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/emacs.py.nr66.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py.ohto.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/named_commands.py.ohto.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py.yyfq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/scroll.py.yyfq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py.c4uo.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/utils.py.c4uo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py.7ifr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/bindings/vi.py.7ifr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py.an6y.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/defaults.py.an6y.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py.77s4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/digraphs.py.77s4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py.i22p.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/input_processor.py.i22p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py.mrel.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/manager.py.mrel.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py.v3dk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/registry.py.v3dk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py.3fnh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/key_binding/vi_state.py.3fnh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py.piqr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/keys.py.piqr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py.hsps.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/__init__.py.hsps.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py.jwki.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/containers.py.jwki.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py.dsbr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/controls.py.dsbr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py.ekt7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/dimension.py.ekt7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py.xezk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/lexers.py.xezk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py.5exq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/margins.py.5exq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py.7eb2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/menus.py.7eb2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py.gmol.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/mouse_handlers.py.gmol.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py.vyok.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/processors.py.vyok.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py.uxl7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/prompt.py.uxl7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py.2tfa.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/screen.py.2tfa.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py.b6ao.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/toolbars.py.b6ao.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py.45hx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/layout/utils.py.45hx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py.sic3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/mouse_events.py.sic3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py.xnhj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/output.py.xnhj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py.kaz6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/reactive.py.kaz6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py.mbnu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/renderer.py.mbnu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py.c234.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/search_state.py.c234.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py.wkp4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/selection.py.wkp4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py.geds.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/shortcuts.py.geds.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py.nl7r.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/__init__.py.nl7r.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py.gvpk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/base.py.gvpk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py.hapg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/defaults.py.hapg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py.svr7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_dict.py.svr7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py.xs2v.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/from_pygments.py.xs2v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py.yo6t.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/styles/utils.py.yo6t.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py.c7tq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/__init__.py.c7tq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py.fnj7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/conemu_output.py.fnj7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py.b3gy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_input.py.b3gy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py.qypy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/vt100_output.py.qypy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py.4uer.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_input.py.4uer.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py.z6sq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/terminal/win32_output.py.z6sq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py.mmjd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/token.py.mmjd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py.ywtb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/utils.py.ywtb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py.4p2g.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/validation.py.4p2g.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py.vcto.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py-" "$(SolutionDir).." "/contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py" "$(SolutionDir)$(Configuration)/contrib/python/prompt-toolkit/py2/prompt_toolkit/win32_types.py.vcto.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

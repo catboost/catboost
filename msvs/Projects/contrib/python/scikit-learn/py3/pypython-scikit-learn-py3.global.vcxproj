@@ -1034,11 +1034,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/join_d563a10b063ad6646f24e05bb7.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_9cf57b680dbf0480f4d3163cb0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_ef9996f69331bddb7390dada6a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_507a096c315058363f871b437a.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/join_d563a10b063ad6646f24e05bb7.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_9cf57b680dbf0480f4d3163cb0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_ef9996f69331bddb7390dada6a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_507a096c315058363f871b437a.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/join_eff40b1d575fbbae28ecc7dfa5.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_819340eab1ad9124f5b334cbc2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_af42bc2d7086de0adf0dd42c87.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1d9a9831ba9f81541fc1d93950.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_39309805810ca14018010c66fb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1a7063eb4574ebcb6ea897a853.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_bc9446c8c600b00f0e40ee3be4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_55a35239c07b4dada6b33003a6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d7cb3b964f2a5b9e43c30d9c69.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_e8bd7df138610bdbde346d15d3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_37c268d7a567e90527a393be39.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_b7766318b89252dbd7aa7cb78e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_38fb1ca483c763176de6886d33.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d555c5ca14e3bd8a6896daff5f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_005bb485e0278034bf65f5d120.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_ed9873c131e3dcd075e9daf2d0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d7f4d0b8cd03b300d088e574f6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1a1cc01034d9a106e0084f5e21.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_902c9ceaa9fac6fda9388855a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_84c43ea9503c2f6b76a2bbbae7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_518677a34c9128bf32729da00d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_6e1747b7b24c91f382ec8738d3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_74a59457557deffc88d919fc77.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_0248d5d64ce475fbba60718d24.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_7014716978bc9450b062db476a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_c5581ec3f768642b0a7bdcd67a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_5d4596496f0fc0b7ae02ad0624.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_484d355cb30cfbeca5b428ce43.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_bd4029a98bc20ec545a285afdb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_73194173f45f8420efedb7eacf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d5910ece41aeb1221de58706f9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_0513d7b5e9224537f45aba35c6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_5803d686fdfdebde3e780534f6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_894a4375f380de173fc82d1b07.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_6536e92711c8617568b0d54605.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_434f287b92d1364eea719ae5b0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_cf3dd6db9c70184d084e5d9130.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_160f085a2506c1fe4aed6178d4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1e173d909d5f868a1a7cdc7db1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_77519759e1a812fd3119f73b51.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/join_eff40b1d575fbbae28ecc7dfa5.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_819340eab1ad9124f5b334cbc2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_af42bc2d7086de0adf0dd42c87.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1d9a9831ba9f81541fc1d93950.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_39309805810ca14018010c66fb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1a7063eb4574ebcb6ea897a853.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_bc9446c8c600b00f0e40ee3be4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_55a35239c07b4dada6b33003a6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d7cb3b964f2a5b9e43c30d9c69.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_e8bd7df138610bdbde346d15d3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_37c268d7a567e90527a393be39.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_b7766318b89252dbd7aa7cb78e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_38fb1ca483c763176de6886d33.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d555c5ca14e3bd8a6896daff5f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_005bb485e0278034bf65f5d120.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_ed9873c131e3dcd075e9daf2d0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d7f4d0b8cd03b300d088e574f6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1a1cc01034d9a106e0084f5e21.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_902c9ceaa9fac6fda9388855a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_84c43ea9503c2f6b76a2bbbae7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_518677a34c9128bf32729da00d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_6e1747b7b24c91f382ec8738d3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_74a59457557deffc88d919fc77.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_0248d5d64ce475fbba60718d24.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_7014716978bc9450b062db476a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_c5581ec3f768642b0a7bdcd67a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_5d4596496f0fc0b7ae02ad0624.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_484d355cb30cfbeca5b428ce43.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_bd4029a98bc20ec545a285afdb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_73194173f45f8420efedb7eacf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d5910ece41aeb1221de58706f9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_0513d7b5e9224537f45aba35c6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_5803d686fdfdebde3e780534f6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_894a4375f380de173fc82d1b07.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_6536e92711c8617568b0d54605.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_434f287b92d1364eea719ae5b0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_cf3dd6db9c70184d084e5d9130.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_160f085a2506c1fe4aed6178d4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1e173d909d5f868a1a7cdc7db1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_77519759e1a812fd3119f73b51.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1049,11 +1049,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/join_d563a10b063ad6646f24e05bb7.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_9cf57b680dbf0480f4d3163cb0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_ef9996f69331bddb7390dada6a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_507a096c315058363f871b437a.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/join_d563a10b063ad6646f24e05bb7.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_9cf57b680dbf0480f4d3163cb0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_ef9996f69331bddb7390dada6a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_507a096c315058363f871b437a.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/join_eff40b1d575fbbae28ecc7dfa5.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_819340eab1ad9124f5b334cbc2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_af42bc2d7086de0adf0dd42c87.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1d9a9831ba9f81541fc1d93950.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_39309805810ca14018010c66fb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1a7063eb4574ebcb6ea897a853.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_bc9446c8c600b00f0e40ee3be4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_55a35239c07b4dada6b33003a6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d7cb3b964f2a5b9e43c30d9c69.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_e8bd7df138610bdbde346d15d3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_37c268d7a567e90527a393be39.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_b7766318b89252dbd7aa7cb78e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_38fb1ca483c763176de6886d33.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d555c5ca14e3bd8a6896daff5f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_005bb485e0278034bf65f5d120.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_ed9873c131e3dcd075e9daf2d0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d7f4d0b8cd03b300d088e574f6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1a1cc01034d9a106e0084f5e21.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_902c9ceaa9fac6fda9388855a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_84c43ea9503c2f6b76a2bbbae7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_518677a34c9128bf32729da00d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_6e1747b7b24c91f382ec8738d3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_74a59457557deffc88d919fc77.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_0248d5d64ce475fbba60718d24.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_7014716978bc9450b062db476a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_c5581ec3f768642b0a7bdcd67a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_5d4596496f0fc0b7ae02ad0624.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_484d355cb30cfbeca5b428ce43.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_bd4029a98bc20ec545a285afdb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_73194173f45f8420efedb7eacf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d5910ece41aeb1221de58706f9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_0513d7b5e9224537f45aba35c6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_5803d686fdfdebde3e780534f6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_894a4375f380de173fc82d1b07.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_6536e92711c8617568b0d54605.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_434f287b92d1364eea719ae5b0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_cf3dd6db9c70184d084e5d9130.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_160f085a2506c1fe4aed6178d4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1e173d909d5f868a1a7cdc7db1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_77519759e1a812fd3119f73b51.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/join_eff40b1d575fbbae28ecc7dfa5.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_819340eab1ad9124f5b334cbc2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_af42bc2d7086de0adf0dd42c87.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1d9a9831ba9f81541fc1d93950.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_39309805810ca14018010c66fb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1a7063eb4574ebcb6ea897a853.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_bc9446c8c600b00f0e40ee3be4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_55a35239c07b4dada6b33003a6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d7cb3b964f2a5b9e43c30d9c69.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_e8bd7df138610bdbde346d15d3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_37c268d7a567e90527a393be39.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_b7766318b89252dbd7aa7cb78e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_38fb1ca483c763176de6886d33.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d555c5ca14e3bd8a6896daff5f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_005bb485e0278034bf65f5d120.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_ed9873c131e3dcd075e9daf2d0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d7f4d0b8cd03b300d088e574f6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1a1cc01034d9a106e0084f5e21.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_902c9ceaa9fac6fda9388855a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_84c43ea9503c2f6b76a2bbbae7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_518677a34c9128bf32729da00d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_6e1747b7b24c91f382ec8738d3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_74a59457557deffc88d919fc77.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_0248d5d64ce475fbba60718d24.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_7014716978bc9450b062db476a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_c5581ec3f768642b0a7bdcd67a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_5d4596496f0fc0b7ae02ad0624.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_484d355cb30cfbeca5b428ce43.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_bd4029a98bc20ec545a285afdb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_73194173f45f8420efedb7eacf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_d5910ece41aeb1221de58706f9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_0513d7b5e9224537f45aba35c6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_5803d686fdfdebde3e780534f6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_894a4375f380de173fc82d1b07.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_6536e92711c8617568b0d54605.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_434f287b92d1364eea719ae5b0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_cf3dd6db9c70184d084e5d9130.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_160f085a2506c1fe4aed6178d4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_1e173d909d5f868a1a7cdc7db1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/_77519759e1a812fd3119f73b51.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1104,259 +1104,259 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.__check_build._check_build" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.__check_build._check_build.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.__check_build._check_build" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.__check_build._check_build.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn._isotonic" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn._isotonic.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn._isotonic" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn._isotonic.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn._loss._loss" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn._loss._loss.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn._loss._loss" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn._loss._loss.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._dbscan_inner" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._dbscan_inner.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._dbscan_inner" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._dbscan_inner.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._hierarchical_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._hierarchical_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._hierarchical_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._hierarchical_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_common" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_common.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_common" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_common.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_elkan" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_elkan.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_elkan" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_elkan.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_lloyd" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_lloyd.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_lloyd" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_lloyd.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_minibatch" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_minibatch.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_minibatch" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_minibatch.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.datasets._svmlight_format_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.datasets._svmlight_format_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.datasets._svmlight_format_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.datasets._svmlight_format_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.decomposition._cdnmf_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.decomposition._cdnmf_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.decomposition._cdnmf_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.decomposition._cdnmf_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.decomposition._online_lda_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.decomposition._online_lda_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.decomposition._online_lda_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.decomposition._online_lda_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._gradient_boosting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._gradient_boosting.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._gradient_boosting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._gradient_boosting.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._binning" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._binning.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._binning" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._binning.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._bitset" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._bitset.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._bitset" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._bitset.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._gradient_boosting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._gradient_boosting.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._gradient_boosting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._gradient_boosting.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._predictor" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._predictor.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._predictor" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._predictor.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.common" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.common.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.common" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.common.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.histogram" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.histogram.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.histogram" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.histogram.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.splitting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.splitting.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.splitting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.splitting.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.feature_extraction._hashing_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.feature_extraction._hashing_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.feature_extraction._hashing_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.feature_extraction._hashing_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._cd_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._cd_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._cd_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._cd_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._sag_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._sag_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._sag_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._sag_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._sgd_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._sgd_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._sgd_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._sgd_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.manifold._barnes_hut_tsne" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.manifold._barnes_hut_tsne.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.manifold._barnes_hut_tsne" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.manifold._barnes_hut_tsne.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.manifold._utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.manifold._utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.manifold._utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.manifold._utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._dist_metrics" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._dist_metrics.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._dist_metrics" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._dist_metrics.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._argkmin" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._argkmin.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._argkmin" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._argkmin.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._base" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._base.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._base" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._base.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._datasets_pair" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._datasets_pair.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._datasets_pair" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._datasets_pair.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._middle_term_computer" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._middle_term_computer.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._middle_term_computer" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._middle_term_computer.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._radius_neighbors" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._radius_neighbors.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._radius_neighbors" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._radius_neighbors.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics.cluster._expected_mutual_info_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics.cluster._expected_mutual_info_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics.cluster._expected_mutual_info_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics.cluster._expected_mutual_info_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._ball_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._ball_tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._ball_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._ball_tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._kd_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._kd_tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._kd_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._kd_tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._partition_nodes" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._partition_nodes.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._partition_nodes" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._partition_nodes.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._quad_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._quad_tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._quad_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._quad_tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.preprocessing._csr_polynomial_expansion" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.preprocessing._csr_polynomial_expansion.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.preprocessing._csr_polynomial_expansion" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.preprocessing._csr_polynomial_expansion.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._liblinear" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._liblinear.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._liblinear" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._liblinear.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._libsvm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._libsvm.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._libsvm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._libsvm.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._libsvm_sparse" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._libsvm_sparse.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._libsvm_sparse" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._libsvm_sparse.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._newrand" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._newrand.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._newrand" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._newrand.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._criterion" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._criterion.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._criterion" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._criterion.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._splitter" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._splitter.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._splitter" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._splitter.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._cython_blas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._cython_blas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._fast_dict" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._fast_dict.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._fast_dict" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._fast_dict.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._heap" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._heap.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._heap" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._heap.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._isfinite" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._isfinite.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._isfinite" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._isfinite.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._logistic_sigmoid" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._logistic_sigmoid.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._logistic_sigmoid" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._logistic_sigmoid.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._openmp_helpers" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._openmp_helpers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._openmp_helpers" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._openmp_helpers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._random" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._random.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._random" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._random.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._readonly_array_wrapper" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._readonly_array_wrapper.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._readonly_array_wrapper" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._readonly_array_wrapper.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._seq_dataset" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._seq_dataset.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._seq_dataset" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._seq_dataset.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._sorting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._sorting.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._sorting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._sorting.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._typedefs" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._typedefs.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._typedefs" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._typedefs.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._vector_sentinel" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._vector_sentinel.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._vector_sentinel" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._vector_sentinel.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._weight_vector" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._weight_vector.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._weight_vector" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._weight_vector.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.arrayfuncs" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.arrayfuncs.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.arrayfuncs" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.arrayfuncs.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.murmurhash" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.murmurhash.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.murmurhash" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.murmurhash.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.sparsefuncs_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.sparsefuncs_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.sparsefuncs_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.sparsefuncs_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1367,259 +1367,259 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.__check_build._check_build" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.__check_build._check_build.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.__check_build._check_build" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.__check_build._check_build.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn._isotonic" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn._isotonic.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn._isotonic" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn._isotonic.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn._loss._loss" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn._loss._loss.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn._loss._loss" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn._loss._loss.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._dbscan_inner" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._dbscan_inner.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._dbscan_inner" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._dbscan_inner.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._hierarchical_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._hierarchical_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._hierarchical_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._hierarchical_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_common" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_common.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_common" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_common.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_elkan" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_elkan.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_elkan" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_elkan.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_lloyd" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_lloyd.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_lloyd" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_lloyd.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_minibatch" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_minibatch.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.cluster._k_means_minibatch" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.cluster._k_means_minibatch.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.datasets._svmlight_format_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.datasets._svmlight_format_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.datasets._svmlight_format_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.datasets._svmlight_format_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.decomposition._cdnmf_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.decomposition._cdnmf_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.decomposition._cdnmf_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.decomposition._cdnmf_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.decomposition._online_lda_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.decomposition._online_lda_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.decomposition._online_lda_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.decomposition._online_lda_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._gradient_boosting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._gradient_boosting.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._gradient_boosting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._gradient_boosting.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._binning" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._binning.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._binning" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._binning.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._bitset" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._bitset.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._bitset" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._bitset.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._gradient_boosting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._gradient_boosting.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._gradient_boosting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._gradient_boosting.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._predictor" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._predictor.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting._predictor" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting._predictor.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.common" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.common.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.common" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.common.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.histogram" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.histogram.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.histogram" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.histogram.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.splitting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.splitting.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.splitting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.splitting.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.ensemble._hist_gradient_boosting.utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.ensemble._hist_gradient_boosting.utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.feature_extraction._hashing_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.feature_extraction._hashing_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.feature_extraction._hashing_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.feature_extraction._hashing_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._cd_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._cd_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._cd_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._cd_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._sag_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._sag_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._sag_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._sag_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._sgd_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._sgd_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.linear_model._sgd_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.linear_model._sgd_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.manifold._barnes_hut_tsne" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.manifold._barnes_hut_tsne.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.manifold._barnes_hut_tsne" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.manifold._barnes_hut_tsne.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.manifold._utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.manifold._utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.manifold._utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.manifold._utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._dist_metrics" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._dist_metrics.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._dist_metrics" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._dist_metrics.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._argkmin" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._argkmin.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._argkmin" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._argkmin.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._base" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._base.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._base" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._base.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._datasets_pair" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._datasets_pair.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._datasets_pair" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._datasets_pair.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._middle_term_computer" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._middle_term_computer.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._middle_term_computer" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._middle_term_computer.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._radius_neighbors" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._radius_neighbors.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_distances_reduction._radius_neighbors" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_distances_reduction._radius_neighbors.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics._pairwise_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics._pairwise_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics.cluster._expected_mutual_info_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics.cluster._expected_mutual_info_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.metrics.cluster._expected_mutual_info_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.metrics.cluster._expected_mutual_info_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._ball_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._ball_tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._ball_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._ball_tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._kd_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._kd_tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._kd_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._kd_tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._partition_nodes" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._partition_nodes.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._partition_nodes" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._partition_nodes.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._quad_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._quad_tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.neighbors._quad_tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.neighbors._quad_tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.preprocessing._csr_polynomial_expansion" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.preprocessing._csr_polynomial_expansion.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.preprocessing._csr_polynomial_expansion" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.preprocessing._csr_polynomial_expansion.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._liblinear" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._liblinear.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._liblinear" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._liblinear.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._libsvm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._libsvm.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._libsvm" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._libsvm.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._libsvm_sparse" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._libsvm_sparse.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._libsvm_sparse" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._libsvm_sparse.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._newrand" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._newrand.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.svm._newrand" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.svm._newrand.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._criterion" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._criterion.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._criterion" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._criterion.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._splitter" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._splitter.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._splitter" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._splitter.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._tree.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._tree" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._tree.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._utils.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.tree._utils" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.tree._utils.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._cython_blas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._cython_blas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._fast_dict" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._fast_dict.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._fast_dict" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._fast_dict.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._heap" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._heap.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._heap" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._heap.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._isfinite" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._isfinite.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._isfinite" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._isfinite.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._logistic_sigmoid" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._logistic_sigmoid.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._logistic_sigmoid" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._logistic_sigmoid.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._openmp_helpers" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._openmp_helpers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._openmp_helpers" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._openmp_helpers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._random" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._random.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._random" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._random.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._readonly_array_wrapper" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._readonly_array_wrapper.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._readonly_array_wrapper" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._readonly_array_wrapper.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._seq_dataset" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._seq_dataset.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._seq_dataset" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._seq_dataset.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._sorting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._sorting.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._sorting" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._sorting.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._typedefs" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._typedefs.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._typedefs" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._typedefs.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._vector_sentinel" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._vector_sentinel.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._vector_sentinel" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._vector_sentinel.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._weight_vector" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._weight_vector.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils._weight_vector" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils._weight_vector.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.arrayfuncs" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.arrayfuncs.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.arrayfuncs" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.arrayfuncs.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.murmurhash" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.murmurhash.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.murmurhash" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.murmurhash.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scikit-learn\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.sparsefuncs_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.sparsefuncs_fast.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "sklearn.utils.sparsefuncs_fast" "$(SolutionDir)$(Configuration)/contrib/python/scikit-learn/py3/sklearn.utils.sparsefuncs_fast.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

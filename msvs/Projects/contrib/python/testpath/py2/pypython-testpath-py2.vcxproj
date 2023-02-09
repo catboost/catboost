@@ -136,23 +136,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/__init__.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/__init__.py.h23w.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/__init__.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/__init__.py.h23w.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/asserts.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/asserts.py.xcwt.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/asserts.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/asserts.py.xcwt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/commands.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/commands.py.tqid.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/commands.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/commands.py.tqid.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/env.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/env.py.4xmd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/env.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/env.py.4xmd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/tempdir.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/tempdir.py.7t57.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/tempdir.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/tempdir.py.7t57.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -163,23 +163,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/__init__.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/__init__.py.h23w.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/__init__.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/__init__.py.h23w.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/asserts.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/asserts.py.xcwt.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/asserts.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/asserts.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/asserts.py.xcwt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/commands.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/commands.py.tqid.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/commands.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/commands.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/commands.py.tqid.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/env.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/env.py.4xmd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/env.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/env.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/env.py.4xmd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\testpath\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/tempdir.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/tempdir.py.7t57.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/testpath/py2/testpath/tempdir.py-" "$(SolutionDir).." "/contrib/python/testpath/py2/testpath/tempdir.py" "$(SolutionDir)$(Configuration)/contrib/python/testpath/py2/testpath/tempdir.py.7t57.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

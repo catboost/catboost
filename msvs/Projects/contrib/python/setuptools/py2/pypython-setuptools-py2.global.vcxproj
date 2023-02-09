@@ -443,7 +443,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/join_0a4d2859e9522a4cec9de44162.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_de8a59084903c0c5c0af862b78.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_8586200714d39df4ae63995e25.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_0ac91d6d7fed3e34ec3ae6ca6c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_c5095768080309ea7622c994b1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_75fe25ec0f01659c8fc1b545b7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_c44b20df6173cf58d3fb9c8939.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_697191ddcb636f23556edb34e6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_3145cb2eb3d5d31fbde9df7182.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_1523252281fda85d8774a1dadd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_12cd0ed509bede4660c56d7cea.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/join_0a4d2859e9522a4cec9de44162.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_de8a59084903c0c5c0af862b78.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_8586200714d39df4ae63995e25.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_0ac91d6d7fed3e34ec3ae6ca6c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_c5095768080309ea7622c994b1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_75fe25ec0f01659c8fc1b545b7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_c44b20df6173cf58d3fb9c8939.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_697191ddcb636f23556edb34e6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_3145cb2eb3d5d31fbde9df7182.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_1523252281fda85d8774a1dadd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_12cd0ed509bede4660c56d7cea.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -454,7 +454,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/join_0a4d2859e9522a4cec9de44162.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_de8a59084903c0c5c0af862b78.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_8586200714d39df4ae63995e25.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_0ac91d6d7fed3e34ec3ae6ca6c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_c5095768080309ea7622c994b1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_75fe25ec0f01659c8fc1b545b7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_c44b20df6173cf58d3fb9c8939.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_697191ddcb636f23556edb34e6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_3145cb2eb3d5d31fbde9df7182.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_1523252281fda85d8774a1dadd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_12cd0ed509bede4660c56d7cea.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/join_0a4d2859e9522a4cec9de44162.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_de8a59084903c0c5c0af862b78.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_8586200714d39df4ae63995e25.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_0ac91d6d7fed3e34ec3ae6ca6c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_c5095768080309ea7622c994b1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_75fe25ec0f01659c8fc1b545b7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_c44b20df6173cf58d3fb9c8939.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_697191ddcb636f23556edb34e6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_3145cb2eb3d5d31fbde9df7182.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_1523252281fda85d8774a1dadd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/_12cd0ed509bede4660c56d7cea.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -497,351 +497,351 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/easy_install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/easy_install.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/easy_install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/easy_install.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/__init__.py.qhpe.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/__init__.py.qhpe.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py.iuqx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py.iuqx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py.kshf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py.kshf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py.g4g7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py.g4g7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py.j4p3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py.j4p3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py.mojx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py.mojx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py.fwby.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py.fwby.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py.bqck.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py.bqck.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py.ajis.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py.ajis.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py.zeu7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py.zeu7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py.urev.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py.urev.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py.7pt5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py.7pt5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py.3qn3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py.3qn3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/six.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/six.py.nggk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/six.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/six.py.nggk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/extern/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/extern/__init__.py.bhvf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/extern/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/extern/__init__.py.bhvf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/py31compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/py31compat.py.mtxh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/py31compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/py31compat.py.mtxh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/__init__.py.nnmr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/__init__.py.nnmr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_deprecation_warning.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_deprecation_warning.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_deprecation_warning.py.xopx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_deprecation_warning.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_deprecation_warning.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_deprecation_warning.py.xopx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_imp.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_imp.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_imp.py.kj2r.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_imp.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_imp.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_imp.py.kj2r.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/__init__.py.lo27.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/__init__.py.lo27.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py.56wj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py.56wj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py.bco6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py.bco6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py.eap5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py.eap5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py.53ai.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py.53ai.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py.jmvv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py.jmvv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py.jihr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py.jihr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py.6jia.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py.6jia.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py.lzcr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py.lzcr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py.v3b2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py.v3b2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py.wn3k.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py.wn3k.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py.xso5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py.xso5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py.luve.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py.luve.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/six.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/six.py.73kg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/six.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/six.py.73kg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/archive_util.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/archive_util.py.fa4k.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/archive_util.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/archive_util.py.fa4k.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/build_meta.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/build_meta.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/build_meta.py.ntrs.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/build_meta.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/build_meta.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/build_meta.py.ntrs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/__init__.py.az5f.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/__init__.py.az5f.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/alias.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/alias.py.tcq6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/alias.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/alias.py.tcq6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_egg.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_egg.py.bygj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_egg.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_egg.py.bygj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py.thtb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py.thtb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py.hrrz.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py.hrrz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_clib.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_clib.py.vqvk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_clib.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_clib.py.vqvk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_ext.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_ext.py.vmxj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_ext.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_ext.py.vmxj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_py.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_py.py.yary.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_py.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_py.py.yary.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/develop.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/develop.py.jgij.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/develop.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/develop.py.jgij.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/dist_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/dist_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/dist_info.py.t3it.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/dist_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/dist_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/dist_info.py.t3it.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/easy_install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/easy_install.py.a7t2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/easy_install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/easy_install.py.a7t2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/egg_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/egg_info.py.7pcm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/egg_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/egg_info.py.7pcm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install.py.h7tp.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install.py.h7tp.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_egg_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_egg_info.py.yc7i.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_egg_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_egg_info.py.yc7i.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_lib.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_lib.py.tlzb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_lib.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_lib.py.tlzb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_scripts.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_scripts.py.7kyv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_scripts.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_scripts.py.7kyv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/py36compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/py36compat.py.qjj6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/py36compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/py36compat.py.qjj6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/register.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/register.py.pln2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/register.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/register.py.pln2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/rotate.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/rotate.py.sqbb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/rotate.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/rotate.py.sqbb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/saveopts.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/saveopts.py.uxww.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/saveopts.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/saveopts.py.uxww.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/sdist.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/sdist.py.4jyd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/sdist.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/sdist.py.4jyd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/setopt.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/setopt.py.ufyu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/setopt.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/setopt.py.ufyu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/test.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/test.py.czzs.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/test.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/test.py.czzs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/upload.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/upload.py.d6lg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/upload.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/upload.py.d6lg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/upload_docs.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/upload_docs.py.ik5e.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/upload_docs.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/upload_docs.py.ik5e.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/config.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/config.py.gyaf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/config.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/config.py.gyaf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/dep_util.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/dep_util.py.kpzj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/dep_util.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/dep_util.py.kpzj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/depends.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/depends.py.jsud.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/depends.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/depends.py.jsud.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/dist.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/dist.py.b4z5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/dist.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/dist.py.b4z5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/errors.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/errors.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/errors.py.tm3s.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/errors.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/errors.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/errors.py.tm3s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/extension.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/extension.py.66nm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/extension.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/extension.py.66nm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/extern/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/extern/__init__.py.y2kq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/extern/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/extern/__init__.py.y2kq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/glob.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/glob.py.oaur.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/glob.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/glob.py.oaur.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/installer.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/installer.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/installer.py.dijm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/installer.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/installer.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/installer.py.dijm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/launch.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/launch.py.g2fd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/launch.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/launch.py.g2fd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/lib2to3_ex.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/lib2to3_ex.py.wwas.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/lib2to3_ex.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/lib2to3_ex.py.wwas.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/monkey.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/monkey.py.pjlq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/monkey.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/monkey.py.pjlq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/msvc.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/msvc.py.5po2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/msvc.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/msvc.py.5po2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/namespaces.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/namespaces.py.nixu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/namespaces.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/namespaces.py.nixu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/package_index.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/package_index.py.fxks.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/package_index.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/package_index.py.fxks.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py27compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py27compat.py.p45l.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py27compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py27compat.py.p45l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py31compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py31compat.py.iav2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py31compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py31compat.py.iav2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py33compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py33compat.py.idaz.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py33compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py33compat.py.idaz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py34compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py34compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py34compat.py.hpfy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py34compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py34compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py34compat.py.hpfy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/sandbox.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/sandbox.py.tiw7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/sandbox.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/sandbox.py.tiw7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/site-patch.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/site-patch.py.3qsw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/site-patch.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/site-patch.py.3qsw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/ssl_support.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/ssl_support.py.smdc.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/ssl_support.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/ssl_support.py.smdc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/unicode_utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/unicode_utils.py.ma4w.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/unicode_utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/unicode_utils.py.ma4w.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/version.py.2kt3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/version.py.2kt3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/wheel.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/wheel.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/wheel.py.c62s.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/wheel.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/wheel.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/wheel.py.c62s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/windows_support.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/windows_support.py.6cz3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/windows_support.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/windows_support.py.6cz3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -852,351 +852,351 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/easy_install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/easy_install.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/easy_install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/easy_install.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/__init__.py.qhpe.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/__init__.py.qhpe.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py.iuqx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/__init__.py.iuqx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py.kshf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/appdirs.py.kshf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py.g4g7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__about__.py.g4g7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py.j4p3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/__init__.py.j4p3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py.mojx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_compat.py.mojx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py.fwby.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/_structures.py.fwby.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py.bqck.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/markers.py.bqck.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py.ajis.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/requirements.py.ajis.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py.zeu7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/specifiers.py.zeu7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py.urev.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/utils.py.urev.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py.7pt5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/packaging/version.py.7pt5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py.3qn3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/pyparsing.py.3qn3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/six.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/six.py.nggk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/_vendor/six.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/_vendor/six.py.nggk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/extern/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/extern/__init__.py.bhvf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/extern/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/extern/__init__.py.bhvf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/py31compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/py31compat.py.mtxh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/pkg_resources/py31compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/pkg_resources/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/pkg_resources/py31compat.py.mtxh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/__init__.py.nnmr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/__init__.py.nnmr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_deprecation_warning.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_deprecation_warning.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_deprecation_warning.py.xopx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_deprecation_warning.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_deprecation_warning.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_deprecation_warning.py.xopx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_imp.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_imp.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_imp.py.kj2r.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_imp.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_imp.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_imp.py.kj2r.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/__init__.py.lo27.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/__init__.py.lo27.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py.56wj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/ordered_set.py.56wj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py.bco6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__about__.py.bco6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py.eap5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/__init__.py.eap5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py.53ai.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_compat.py.53ai.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py.jmvv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/_structures.py.jmvv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py.jihr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/markers.py.jihr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py.6jia.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/requirements.py.6jia.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py.lzcr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/specifiers.py.lzcr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py.v3b2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/tags.py.v3b2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py.wn3k.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/utils.py.wn3k.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py.xso5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/packaging/version.py.xso5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py.luve.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/pyparsing.py.luve.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/six.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/six.py.73kg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/_vendor/six.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/_vendor/six.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/_vendor/six.py.73kg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/archive_util.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/archive_util.py.fa4k.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/archive_util.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/archive_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/archive_util.py.fa4k.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/build_meta.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/build_meta.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/build_meta.py.ntrs.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/build_meta.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/build_meta.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/build_meta.py.ntrs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/__init__.py.az5f.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/__init__.py.az5f.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/alias.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/alias.py.tcq6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/alias.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/alias.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/alias.py.tcq6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_egg.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_egg.py.bygj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_egg.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_egg.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_egg.py.bygj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py.thtb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_rpm.py.thtb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py.hrrz.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/bdist_wininst.py.hrrz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_clib.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_clib.py.vqvk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_clib.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_clib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_clib.py.vqvk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_ext.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_ext.py.vmxj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_ext.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_ext.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_ext.py.vmxj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_py.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_py.py.yary.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/build_py.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/build_py.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/build_py.py.yary.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/develop.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/develop.py.jgij.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/develop.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/develop.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/develop.py.jgij.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/dist_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/dist_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/dist_info.py.t3it.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/dist_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/dist_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/dist_info.py.t3it.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/easy_install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/easy_install.py.a7t2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/easy_install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/easy_install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/easy_install.py.a7t2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/egg_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/egg_info.py.7pcm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/egg_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/egg_info.py.7pcm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install.py.h7tp.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install.py.h7tp.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_egg_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_egg_info.py.yc7i.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_egg_info.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_egg_info.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_egg_info.py.yc7i.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_lib.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_lib.py.tlzb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_lib.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_lib.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_lib.py.tlzb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_scripts.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_scripts.py.7kyv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/install_scripts.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/install_scripts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/install_scripts.py.7kyv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/py36compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/py36compat.py.qjj6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/py36compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/py36compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/py36compat.py.qjj6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/register.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/register.py.pln2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/register.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/register.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/register.py.pln2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/rotate.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/rotate.py.sqbb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/rotate.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/rotate.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/rotate.py.sqbb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/saveopts.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/saveopts.py.uxww.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/saveopts.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/saveopts.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/saveopts.py.uxww.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/sdist.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/sdist.py.4jyd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/sdist.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/sdist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/sdist.py.4jyd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/setopt.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/setopt.py.ufyu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/setopt.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/setopt.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/setopt.py.ufyu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/test.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/test.py.czzs.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/test.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/test.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/test.py.czzs.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/upload.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/upload.py.d6lg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/upload.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/upload.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/upload.py.d6lg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/upload_docs.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/upload_docs.py.ik5e.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/command/upload_docs.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/command/upload_docs.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/command/upload_docs.py.ik5e.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/config.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/config.py.gyaf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/config.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/config.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/config.py.gyaf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/dep_util.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/dep_util.py.kpzj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/dep_util.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/dep_util.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/dep_util.py.kpzj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/depends.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/depends.py.jsud.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/depends.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/depends.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/depends.py.jsud.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/dist.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/dist.py.b4z5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/dist.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/dist.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/dist.py.b4z5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/errors.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/errors.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/errors.py.tm3s.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/errors.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/errors.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/errors.py.tm3s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/extension.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/extension.py.66nm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/extension.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/extension.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/extension.py.66nm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/extern/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/extern/__init__.py.y2kq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/extern/__init__.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/extern/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/extern/__init__.py.y2kq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/glob.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/glob.py.oaur.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/glob.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/glob.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/glob.py.oaur.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/installer.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/installer.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/installer.py.dijm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/installer.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/installer.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/installer.py.dijm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/launch.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/launch.py.g2fd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/launch.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/launch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/launch.py.g2fd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/lib2to3_ex.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/lib2to3_ex.py.wwas.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/lib2to3_ex.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/lib2to3_ex.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/lib2to3_ex.py.wwas.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/monkey.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/monkey.py.pjlq.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/monkey.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/monkey.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/monkey.py.pjlq.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/msvc.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/msvc.py.5po2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/msvc.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/msvc.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/msvc.py.5po2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/namespaces.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/namespaces.py.nixu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/namespaces.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/namespaces.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/namespaces.py.nixu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/package_index.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/package_index.py.fxks.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/package_index.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/package_index.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/package_index.py.fxks.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py27compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py27compat.py.p45l.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py27compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py27compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py27compat.py.p45l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py31compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py31compat.py.iav2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py31compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py31compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py31compat.py.iav2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py33compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py33compat.py.idaz.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py33compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py33compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py33compat.py.idaz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py34compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py34compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py34compat.py.hpfy.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/py34compat.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/py34compat.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/py34compat.py.hpfy.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/sandbox.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/sandbox.py.tiw7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/sandbox.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/sandbox.py.tiw7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/site-patch.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/site-patch.py.3qsw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/site-patch.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/site-patch.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/site-patch.py.3qsw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/ssl_support.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/ssl_support.py.smdc.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/ssl_support.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/ssl_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/ssl_support.py.smdc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/unicode_utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/unicode_utils.py.ma4w.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/unicode_utils.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/unicode_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/unicode_utils.py.ma4w.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/version.py.2kt3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/version.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/version.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/version.py.2kt3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/wheel.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/wheel.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/wheel.py.c62s.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/wheel.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/wheel.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/wheel.py.c62s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/windows_support.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/windows_support.py.6cz3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/setuptools/py2/setuptools/windows_support.py-" "$(SolutionDir).." "/contrib/python/setuptools/py2/setuptools/windows_support.py" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py2/setuptools/windows_support.py.6cz3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

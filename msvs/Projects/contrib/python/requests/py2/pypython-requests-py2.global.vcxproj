@@ -154,7 +154,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/join_f080493d243f4cdff4e46b2133.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/_61db83b922906da11890bc42c1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/_acaab066b9a6fbdf44740a1c5f.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/join_f080493d243f4cdff4e46b2133.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/_61db83b922906da11890bc42c1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/_acaab066b9a6fbdf44740a1c5f.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -165,7 +165,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/join_f080493d243f4cdff4e46b2133.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/_61db83b922906da11890bc42c1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/_acaab066b9a6fbdf44740a1c5f.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/join_f080493d243f4cdff4e46b2133.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/_61db83b922906da11890bc42c1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/_acaab066b9a6fbdf44740a1c5f.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -208,75 +208,75 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/__init__.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/__init__.py.g5nb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/__init__.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/__init__.py.g5nb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/__version__.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/__version__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/__version__.py.2vq7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/__version__.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/__version__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/__version__.py.2vq7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/_internal_utils.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/_internal_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/_internal_utils.py.fmtj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/_internal_utils.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/_internal_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/_internal_utils.py.fmtj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/adapters.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/adapters.py.gh3o.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/adapters.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/adapters.py.gh3o.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/api.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/api.py.nxn7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/api.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/api.py.nxn7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/auth.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/auth.py.t45j.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/auth.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/auth.py.t45j.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/certs.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/certs.py.pexh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/certs.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/certs.py.pexh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/compat.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/compat.py.fowv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/compat.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/compat.py.fowv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/cookies.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/cookies.py.gvpt.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/cookies.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/cookies.py.gvpt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/exceptions.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/exceptions.py.lom2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/exceptions.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/exceptions.py.lom2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/help.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/help.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/help.py.sxco.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/help.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/help.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/help.py.sxco.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/hooks.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/hooks.py.vmze.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/hooks.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/hooks.py.vmze.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/models.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/models.py.v7k2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/models.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/models.py.v7k2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/packages.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/packages.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/packages.py.hgwl.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/packages.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/packages.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/packages.py.hgwl.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/sessions.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/sessions.py.fdth.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/sessions.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/sessions.py.fdth.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/status_codes.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/status_codes.py.gxee.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/status_codes.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/status_codes.py.gxee.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/structures.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/structures.py.fpn6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/structures.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/structures.py.fpn6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/utils.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/utils.py.lfla.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/utils.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/utils.py.lfla.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -287,75 +287,75 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/__init__.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/__init__.py.g5nb.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/__init__.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/__init__.py.g5nb.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/__version__.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/__version__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/__version__.py.2vq7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/__version__.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/__version__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/__version__.py.2vq7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/_internal_utils.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/_internal_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/_internal_utils.py.fmtj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/_internal_utils.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/_internal_utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/_internal_utils.py.fmtj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/adapters.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/adapters.py.gh3o.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/adapters.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/adapters.py.gh3o.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/api.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/api.py.nxn7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/api.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/api.py.nxn7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/auth.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/auth.py.t45j.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/auth.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/auth.py.t45j.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/certs.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/certs.py.pexh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/certs.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/certs.py.pexh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/compat.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/compat.py.fowv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/compat.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/compat.py.fowv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/cookies.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/cookies.py.gvpt.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/cookies.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/cookies.py.gvpt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/exceptions.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/exceptions.py.lom2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/exceptions.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/exceptions.py.lom2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/help.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/help.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/help.py.sxco.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/help.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/help.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/help.py.sxco.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/hooks.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/hooks.py.vmze.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/hooks.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/hooks.py.vmze.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/models.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/models.py.v7k2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/models.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/models.py.v7k2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/packages.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/packages.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/packages.py.hgwl.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/packages.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/packages.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/packages.py.hgwl.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/sessions.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/sessions.py.fdth.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/sessions.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/sessions.py.fdth.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/status_codes.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/status_codes.py.gxee.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/status_codes.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/status_codes.py.gxee.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/structures.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/structures.py.fpn6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/structures.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/structures.py.fpn6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/utils.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/utils.py.lfla.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/requests/py2/requests/utils.py-" "$(SolutionDir).." "/contrib/python/requests/py2/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/py2/requests/utils.py.lfla.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

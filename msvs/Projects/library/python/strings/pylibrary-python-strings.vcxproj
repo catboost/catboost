@@ -110,7 +110,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/strings/__init__.py-" "$(SolutionDir).." "/library/python/strings/__init__.py" "$(SolutionDir)$(Configuration)/library/python/strings/__init__.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/strings/__init__.py-" "$(SolutionDir).." "/library/python/strings/__init__.py" "$(SolutionDir)$(Configuration)/library/python/strings/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/strings/__init__.py-" "$(SolutionDir).." "/library/python/strings/__init__.py" "$(SolutionDir)$(Configuration)/library/python/strings/__init__.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/strings/__init__.py-" "$(SolutionDir).." "/library/python/strings/__init__.py" "$(SolutionDir)$(Configuration)/library/python/strings/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -137,7 +137,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "library.python.strings.strings" "--init-suffix" "7library6python7strings7strings" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/strings/strings.py" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "$(SolutionDir).." "/library/python/strings/strings.py" "-o" "$(SolutionDir)$(Configuration)/library/python/strings/strings.py.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "library.python.strings.strings" "--init-suffix" "7library6python7strings7strings" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/strings/strings.py" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "$(SolutionDir).." "/library/python/strings/strings.py" "-o" "$(SolutionDir)$(Configuration)/library/python/strings/strings.py.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -148,7 +148,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "library.python.strings.strings" "--init-suffix" "7library6python7strings7strings" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/strings/strings.py" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "$(SolutionDir).." "/library/python/strings/strings.py" "-o" "$(SolutionDir)$(Configuration)/library/python/strings/strings.py.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "library.python.strings.strings" "--init-suffix" "7library6python7strings7strings" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/strings/strings.py" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "$(SolutionDir).." "/library/python/strings/strings.py" "-o" "$(SolutionDir)$(Configuration)/library/python/strings/strings.py.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

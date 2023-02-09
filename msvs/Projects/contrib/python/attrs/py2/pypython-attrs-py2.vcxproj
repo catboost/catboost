@@ -136,51 +136,51 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/__init__.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/__init__.py.xwht.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/__init__.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/__init__.py.xwht.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_cmp.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_cmp.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_cmp.py.5oo4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_cmp.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_cmp.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_cmp.py.5oo4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_compat.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_compat.py.uihj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_compat.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_compat.py.uihj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_config.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_config.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_config.py.xwhv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_config.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_config.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_config.py.xwhv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_funcs.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_funcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_funcs.py.hhk5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_funcs.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_funcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_funcs.py.hhk5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_make.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_make.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_make.py.qnlu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_make.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_make.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_make.py.qnlu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_version_info.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_version_info.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_version_info.py.dnmj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_version_info.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_version_info.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_version_info.py.dnmj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/converters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/converters.py.oqg6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/converters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/converters.py.oqg6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/exceptions.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/exceptions.py.bnme.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/exceptions.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/exceptions.py.bnme.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/filters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/filters.py.4jwx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/filters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/filters.py.4jwx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/setters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/setters.py.utwm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/setters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/setters.py.utwm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/validators.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/validators.py.xi5i.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/validators.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/validators.py.xi5i.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -191,51 +191,51 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/__init__.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/__init__.py.xwht.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/__init__.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/__init__.py.xwht.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_cmp.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_cmp.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_cmp.py.5oo4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_cmp.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_cmp.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_cmp.py.5oo4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_compat.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_compat.py.uihj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_compat.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_compat.py.uihj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_config.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_config.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_config.py.xwhv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_config.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_config.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_config.py.xwhv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_funcs.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_funcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_funcs.py.hhk5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_funcs.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_funcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_funcs.py.hhk5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_make.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_make.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_make.py.qnlu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_make.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_make.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_make.py.qnlu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_version_info.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_version_info.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_version_info.py.dnmj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/_version_info.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/_version_info.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/_version_info.py.dnmj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/converters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/converters.py.oqg6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/converters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/converters.py.oqg6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/exceptions.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/exceptions.py.bnme.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/exceptions.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/exceptions.py.bnme.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/filters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/filters.py.4jwx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/filters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/filters.py.4jwx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/setters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/setters.py.utwm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/setters.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/setters.py.utwm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/validators.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/validators.py.xi5i.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/attrs/py2/attr/validators.py-" "$(SolutionDir).." "/contrib/python/attrs/py2/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/attr/validators.py.xi5i.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

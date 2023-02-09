@@ -1971,7 +1971,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1984,7 +1984,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2002,7 +2002,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2015,7 +2015,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2033,7 +2033,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2046,7 +2046,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2064,7 +2064,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2077,7 +2077,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2095,7 +2095,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2108,7 +2108,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2126,7 +2126,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2139,7 +2139,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2157,7 +2157,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2170,7 +2170,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2188,7 +2188,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2201,7 +2201,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2219,7 +2219,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2232,7 +2232,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2250,7 +2250,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2263,7 +2263,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2281,7 +2281,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2294,7 +2294,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2312,7 +2312,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2325,7 +2325,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2343,7 +2343,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2356,7 +2356,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2374,7 +2374,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2387,7 +2387,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2405,7 +2405,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2418,7 +2418,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2436,7 +2436,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2449,7 +2449,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2467,7 +2467,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2480,7 +2480,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2498,7 +2498,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2511,7 +2511,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2529,7 +2529,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2542,7 +2542,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2560,7 +2560,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2573,7 +2573,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2591,7 +2591,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2604,7 +2604,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2622,7 +2622,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2635,7 +2635,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2653,7 +2653,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2666,7 +2666,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2684,7 +2684,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2697,7 +2697,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2715,7 +2715,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2728,7 +2728,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2746,7 +2746,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2759,7 +2759,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2777,7 +2777,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/uplink-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/uplink-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/uplink-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/uplink-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2790,7 +2790,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/uplink-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/uplink-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/uplink-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/uplink-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2808,7 +2808,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2821,7 +2821,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2839,7 +2839,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2852,7 +2852,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.masm"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.masm.obj" "$(SolutionDir).." "/contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

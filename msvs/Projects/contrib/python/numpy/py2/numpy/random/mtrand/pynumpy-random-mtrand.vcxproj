@@ -94,7 +94,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "$(SolutionDir).." "/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx.c"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "$(SolutionDir).." "/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -105,7 +105,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "$(SolutionDir).." "/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx.c"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-I$(SolutionDir)$(Configuration)" "-I'$(SolutionDir)..'" "-I'$(SolutionDir)..'/contrib/tools/cython/Cython/Includes" "$(SolutionDir).." "/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/random/mtrand/mtrand.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

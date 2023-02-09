@@ -171,7 +171,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/join_a21ea82733d01482fade682a25.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_7a95eef26d09b17bd331cd96bc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_35924816e055c1ee6132747571.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_f7cbffc518e952c0a48766c801.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/join_a21ea82733d01482fade682a25.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_7a95eef26d09b17bd331cd96bc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_35924816e055c1ee6132747571.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_f7cbffc518e952c0a48766c801.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,7 +182,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/join_a21ea82733d01482fade682a25.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_7a95eef26d09b17bd331cd96bc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_35924816e055c1ee6132747571.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_f7cbffc518e952c0a48766c801.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/join_a21ea82733d01482fade682a25.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_7a95eef26d09b17bd331cd96bc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_35924816e055c1ee6132747571.yasm" "$(SolutionDir)$(Configuration)/contrib/python/requests/py3/_f7cbffc518e952c0a48766c801.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

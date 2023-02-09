@@ -128,39 +128,39 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._bounded_integers" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._bounded_integers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._bounded_integers" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._bounded_integers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._common" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._common.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._common" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._common.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._generator.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._generator.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._mt19937" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._mt19937.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._mt19937" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._mt19937.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._pcg64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._pcg64.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._pcg64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._pcg64.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._philox" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._philox.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._philox" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._philox.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._sfc64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._sfc64.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._sfc64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._sfc64.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random.bit_generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.bit_generator.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random.bit_generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.bit_generator.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.mtrand.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.mtrand.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -171,39 +171,39 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._bounded_integers" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._bounded_integers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._bounded_integers" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._bounded_integers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._common" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._common.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._common" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._common.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._generator.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._generator.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._mt19937" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._mt19937.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._mt19937" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._mt19937.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._pcg64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._pcg64.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._pcg64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._pcg64.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._philox" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._philox.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._philox" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._philox.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._sfc64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._sfc64.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random._sfc64" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random._sfc64.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random.bit_generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.bit_generator.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random.bit_generator" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.bit_generator.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py3\numpy\random
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.mtrand.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py3/numpy/random/numpy.random.mtrand.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

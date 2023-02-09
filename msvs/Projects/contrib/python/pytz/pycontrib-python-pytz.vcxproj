@@ -109,27 +109,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/__init__.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/__init__.py.qzp2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/__init__.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/__init__.py.qzp2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/exceptions.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/exceptions.py.ngxk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/exceptions.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/exceptions.py.ngxk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/lazy.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/lazy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/lazy.py.dd42.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/lazy.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/lazy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/lazy.py.dd42.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/reference.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/reference.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/reference.py.i5qg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/reference.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/reference.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/reference.py.i5qg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzfile.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/tzfile.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzfile.py.6c7s.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzfile.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/tzfile.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzfile.py.6c7s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzinfo.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/tzinfo.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzinfo.py.k5pg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzinfo.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/tzinfo.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzinfo.py.k5pg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -140,27 +140,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/__init__.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/__init__.py.qzp2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/__init__.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/__init__.py.qzp2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/exceptions.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/exceptions.py.ngxk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/exceptions.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/exceptions.py.ngxk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/lazy.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/lazy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/lazy.py.dd42.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/lazy.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/lazy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/lazy.py.dd42.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/reference.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/reference.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/reference.py.i5qg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/reference.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/reference.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/reference.py.i5qg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzfile.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/tzfile.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzfile.py.6c7s.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzfile.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/tzfile.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzfile.py.6c7s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzinfo.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/tzinfo.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzinfo.py.k5pg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzinfo.py-" "$(SolutionDir).." "/contrib/python/pytz/pytz/tzinfo.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzinfo.py.k5pg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

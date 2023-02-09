@@ -150,131 +150,131 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/__init__.py.4qp3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/__init__.py.4qp3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/__init__.py.efno.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/__init__.py.efno.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py.aoq4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py.aoq4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor.py.dlkm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor.py.dlkm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor_database.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor_database.py.pgpk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor_database.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor_database.py.pgpk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py.mul6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py.mul6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/__init__.py.xlzc.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/__init__.py.xlzc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py.io53.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py.io53.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py.5xsa.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py.5xsa.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/containers.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/containers.py.drzk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/containers.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/containers.py.drzk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/decoder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/decoder.py.ngpr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/decoder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/decoder.py.ngpr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/encoder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/encoder.py.cglv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/encoder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/encoder.py.cglv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py.todd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py.todd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py.at3r.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py.at3r.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py.26n2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py.26n2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/python_message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/python_message.py.pgny.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/python_message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/python_message.py.pgny.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py.lsaf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py.lsaf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py.uw4w.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py.uw4w.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py.fbwi.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py.fbwi.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/json_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/json_format.py.blzk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/json_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/json_format.py.blzk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/message.py.lf7p.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/message.py.lf7p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/message_factory.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/message_factory.py.u6jo.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/message_factory.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/message_factory.py.u6jo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/proto_builder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/proto_builder.py.zren.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/proto_builder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/proto_builder.py.zren.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py.547v.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py.547v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py.7bnf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py.7bnf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/reflection.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/reflection.py.uut7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/reflection.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/reflection.py.uut7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/service.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/service.py.s7rh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/service.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/service.py.s7rh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/service_reflection.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/service_reflection.py.fkjx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/service_reflection.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/service_reflection.py.fkjx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/symbol_database.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/symbol_database.py.3zhf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/symbol_database.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/symbol_database.py.3zhf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/text_encoding.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/text_encoding.py.7ubc.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/text_encoding.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/text_encoding.py.7ubc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/text_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/text_format.py.llkw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/text_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/text_format.py.llkw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/util/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/util/__init__.py.wqvr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/util/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/util/__init__.py.wqvr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -285,131 +285,131 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/__init__.py.4qp3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/__init__.py.4qp3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/__init__.py.efno.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/__init__.py.efno.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py.aoq4.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/compiler/__init__.py.aoq4.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor.py.dlkm.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor.py.dlkm.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor_database.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor_database.py.pgpk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor_database.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor_database.py.pgpk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py.mul6.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/descriptor_pool.py.mul6.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/__init__.py.xlzc.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/__init__.py.xlzc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py.io53.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/_parameterized.py.io53.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py.5xsa.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/api_implementation.py.5xsa.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/containers.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/containers.py.drzk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/containers.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/containers.py.drzk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/decoder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/decoder.py.ngpr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/decoder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/decoder.py.ngpr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/encoder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/encoder.py.cglv.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/encoder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/encoder.py.cglv.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py.todd.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/enum_type_wrapper.py.todd.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py.at3r.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/extension_dict.py.at3r.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py.26n2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/message_listener.py.26n2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/python_message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/python_message.py.pgny.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/python_message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/python_message.py.pgny.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py.lsaf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/type_checkers.py.lsaf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py.uw4w.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/well_known_types.py.uw4w.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py.fbwi.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/internal/wire_format.py.fbwi.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/json_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/json_format.py.blzk.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/json_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/json_format.py.blzk.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/message.py.lf7p.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/message.py.lf7p.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/message_factory.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/message_factory.py.u6jo.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/message_factory.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/message_factory.py.u6jo.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/proto_builder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/proto_builder.py.zren.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/proto_builder.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/proto_builder.py.zren.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py.547v.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/pyext/__init__.py.547v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py.7bnf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/pyext/cpp_message.py.7bnf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/reflection.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/reflection.py.uut7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/reflection.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/reflection.py.uut7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/service.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/service.py.s7rh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/service.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/service.py.s7rh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/service_reflection.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/service_reflection.py.fkjx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/service_reflection.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/service_reflection.py.fkjx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/symbol_database.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/symbol_database.py.3zhf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/symbol_database.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/symbol_database.py.3zhf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/text_encoding.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/text_encoding.py.7ubc.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/text_encoding.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/text_encoding.py.7ubc.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/text_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/text_format.py.llkw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/text_format.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/text_format.py.llkw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/util/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/util/__init__.py.wqvr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/protobuf/py2/google/protobuf/util/__init__.py-" "$(SolutionDir).." "/contrib/python/protobuf/py2/google/protobuf/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/google/protobuf/util/__init__.py.wqvr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

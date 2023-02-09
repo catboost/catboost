@@ -139,7 +139,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/scandir/scandir.py-" "$(SolutionDir).." "/contrib/deprecated/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/scandir.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/scandir/scandir.py-" "$(SolutionDir).." "/contrib/deprecated/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/scandir.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -150,7 +150,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/scandir/scandir.py-" "$(SolutionDir).." "/contrib/deprecated/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/scandir.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/deprecated/python/scandir/scandir.py-" "$(SolutionDir).." "/contrib/deprecated/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/scandir.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

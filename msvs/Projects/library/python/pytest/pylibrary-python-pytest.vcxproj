@@ -136,27 +136,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/__init__.py-" "$(SolutionDir).." "/library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/__init__.py-" "$(SolutionDir).." "/library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/config.py-" "$(SolutionDir).." "/library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/config.py-" "$(SolutionDir).." "/library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir).." "/library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir).." "/library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir).." "/library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir).." "/library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/rewrite.py-" "$(SolutionDir).." "/library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/rewrite.py-" "$(SolutionDir).." "/library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir).." "/library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir).." "/library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -167,27 +167,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/__init__.py-" "$(SolutionDir).." "/library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/__init__.py-" "$(SolutionDir).." "/library/python/pytest/__init__.py" "$(SolutionDir)$(Configuration)/library/python/pytest/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/config.py-" "$(SolutionDir).." "/library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/config.py-" "$(SolutionDir).." "/library/python/pytest/config.py" "$(SolutionDir)$(Configuration)/library/python/pytest/config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir).." "/library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/context.py-" "$(SolutionDir).." "/library/python/pytest/context.py" "$(SolutionDir)$(Configuration)/library/python/pytest/context.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir).." "/library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir).." "/library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/rewrite.py-" "$(SolutionDir).." "/library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/rewrite.py-" "$(SolutionDir).." "/library/python/pytest/rewrite.py" "$(SolutionDir)$(Configuration)/library/python/pytest/rewrite.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir).." "/library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir).." "/library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

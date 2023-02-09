@@ -189,7 +189,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/join_aafbfbd90ae0483d500121522c.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_c1320468ad8a3cc7e3f51fd65f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_8ec9949696a0464a15610dd25c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_93a17bea14bcfa56df9b4f7a64.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/join_aafbfbd90ae0483d500121522c.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_c1320468ad8a3cc7e3f51fd65f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_8ec9949696a0464a15610dd25c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_93a17bea14bcfa56df9b4f7a64.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -200,7 +200,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/join_aafbfbd90ae0483d500121522c.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_c1320468ad8a3cc7e3f51fd65f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_8ec9949696a0464a15610dd25c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_93a17bea14bcfa56df9b4f7a64.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/join_aafbfbd90ae0483d500121522c.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_c1320468ad8a3cc7e3f51fd65f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_8ec9949696a0464a15610dd25c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/_93a17bea14bcfa56df9b4f7a64.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -243,103 +243,103 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/__init__.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/__init__.py.l5ij.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/__init__.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/__init__.py.l5ij.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/_compat.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/_compat.py.tx3s.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/_compat.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/_compat.py.tx3s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/_identifier.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/_identifier.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/_identifier.py.mmvx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/_identifier.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/_identifier.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/_identifier.py.mmvx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/bccache.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/bccache.py.ecyu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/bccache.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/bccache.py.ecyu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/compiler.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/compiler.py.yhkg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/compiler.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/compiler.py.yhkg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/constants.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/constants.py.nqlf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/constants.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/constants.py.nqlf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/debug.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/debug.py.fykt.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/debug.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/debug.py.fykt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/defaults.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/defaults.py.zipj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/defaults.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/defaults.py.zipj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/environment.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/environment.py.qs6l.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/environment.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/environment.py.qs6l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/exceptions.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/exceptions.py.wamp.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/exceptions.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/exceptions.py.wamp.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/ext.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/ext.py.7rb3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/ext.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/ext.py.7rb3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/filters.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/filters.py.gpon.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/filters.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/filters.py.gpon.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/idtracking.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/idtracking.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/idtracking.py.w64v.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/idtracking.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/idtracking.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/idtracking.py.w64v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/lexer.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/lexer.py.mxj7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/lexer.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/lexer.py.mxj7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/loaders.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/loaders.py.cddh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/loaders.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/loaders.py.cddh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/meta.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/meta.py.ujws.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/meta.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/meta.py.ujws.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/nativetypes.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/nativetypes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/nativetypes.py.ji25.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/nativetypes.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/nativetypes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/nativetypes.py.ji25.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/nodes.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/nodes.py.k7cz.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/nodes.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/nodes.py.k7cz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/optimizer.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/optimizer.py.b2us.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/optimizer.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/optimizer.py.b2us.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/parser.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/parser.py.lcg2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/parser.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/parser.py.lcg2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/runtime.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/runtime.py.halr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/runtime.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/runtime.py.halr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/sandbox.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/sandbox.py.wuk5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/sandbox.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/sandbox.py.wuk5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/tests.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/tests.py.xyxl.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/tests.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/tests.py.xyxl.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/utils.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/utils.py.r53l.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/utils.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/utils.py.r53l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/visitor.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/visitor.py.6nxw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/visitor.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/visitor.py.6nxw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -350,103 +350,103 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/__init__.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/__init__.py.l5ij.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/__init__.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/__init__.py.l5ij.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/_compat.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/_compat.py.tx3s.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/_compat.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/_compat.py.tx3s.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/_identifier.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/_identifier.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/_identifier.py.mmvx.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/_identifier.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/_identifier.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/_identifier.py.mmvx.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/bccache.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/bccache.py.ecyu.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/bccache.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/bccache.py.ecyu.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/compiler.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/compiler.py.yhkg.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/compiler.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/compiler.py.yhkg.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/constants.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/constants.py.nqlf.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/constants.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/constants.py.nqlf.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/debug.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/debug.py.fykt.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/debug.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/debug.py.fykt.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/defaults.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/defaults.py.zipj.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/defaults.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/defaults.py.zipj.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/environment.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/environment.py.qs6l.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/environment.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/environment.py.qs6l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/exceptions.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/exceptions.py.wamp.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/exceptions.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/exceptions.py.wamp.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/ext.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/ext.py.7rb3.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/ext.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/ext.py.7rb3.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/filters.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/filters.py.gpon.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/filters.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/filters.py.gpon.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/idtracking.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/idtracking.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/idtracking.py.w64v.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/idtracking.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/idtracking.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/idtracking.py.w64v.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/lexer.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/lexer.py.mxj7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/lexer.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/lexer.py.mxj7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/loaders.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/loaders.py.cddh.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/loaders.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/loaders.py.cddh.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/meta.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/meta.py.ujws.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/meta.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/meta.py.ujws.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/nativetypes.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/nativetypes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/nativetypes.py.ji25.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/nativetypes.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/nativetypes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/nativetypes.py.ji25.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/nodes.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/nodes.py.k7cz.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/nodes.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/nodes.py.k7cz.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/optimizer.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/optimizer.py.b2us.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/optimizer.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/optimizer.py.b2us.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/parser.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/parser.py.lcg2.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/parser.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/parser.py.lcg2.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/runtime.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/runtime.py.halr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/runtime.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/runtime.py.halr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/sandbox.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/sandbox.py.wuk5.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/sandbox.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/sandbox.py.wuk5.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/tests.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/tests.py.xyxl.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/tests.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/tests.py.xyxl.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/utils.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/utils.py.r53l.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/utils.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/utils.py.r53l.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/visitor.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/visitor.py.6nxw.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/Jinja2/py2/jinja2/visitor.py-" "$(SolutionDir).." "/contrib/python/Jinja2/py2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/jinja2/visitor.py.6nxw.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

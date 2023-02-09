@@ -86,19 +86,19 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._operand_flag_tests.reg.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._operand_flag_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._rational_tests.reg.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._rational_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._struct_ufunc_tests.reg.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._struct_ufunc_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._umath_tests.reg.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._umath_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -109,19 +109,19 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._operand_flag_tests.reg.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._operand_flag_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._operand_flag_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._rational_tests.reg.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._rational_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._rational_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._struct_ufunc_tests.reg.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._struct_ufunc_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._struct_ufunc_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\umath
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._umath_tests.reg.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py_reg.py" "numpy.core._umath_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/umath/numpy.core._umath_tests.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

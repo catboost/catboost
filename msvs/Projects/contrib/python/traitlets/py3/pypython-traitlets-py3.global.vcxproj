@@ -233,7 +233,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_dac96bac5040b21de80de34ac6.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_e5e86a63c396d884ed7137bb18.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_c430731521e1a0d2a20e1f8183.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_e241ee833ad75c78a21cc7ca0c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_9a319d04fef2e57651118b5939.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_dac96bac5040b21de80de34ac6.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_e5e86a63c396d884ed7137bb18.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_c430731521e1a0d2a20e1f8183.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_e241ee833ad75c78a21cc7ca0c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_9a319d04fef2e57651118b5939.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -244,7 +244,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_dac96bac5040b21de80de34ac6.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_e5e86a63c396d884ed7137bb18.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_c430731521e1a0d2a20e1f8183.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_e241ee833ad75c78a21cc7ca0c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_9a319d04fef2e57651118b5939.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_dac96bac5040b21de80de34ac6.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_e5e86a63c396d884ed7137bb18.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_c430731521e1a0d2a20e1f8183.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_e241ee833ad75c78a21cc7ca0c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/_9a319d04fef2e57651118b5939.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

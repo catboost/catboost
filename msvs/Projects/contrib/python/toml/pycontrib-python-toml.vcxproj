@@ -136,23 +136,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/__init__.py-" "$(SolutionDir).." "/contrib/python/toml/toml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/__init__.py-" "$(SolutionDir).." "/contrib/python/toml/toml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/decoder.py-" "$(SolutionDir).." "/contrib/python/toml/toml/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/decoder.py-" "$(SolutionDir).." "/contrib/python/toml/toml/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/encoder.py-" "$(SolutionDir).." "/contrib/python/toml/toml/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/encoder.py-" "$(SolutionDir).." "/contrib/python/toml/toml/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/ordered.py-" "$(SolutionDir).." "/contrib/python/toml/toml/ordered.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/ordered.py-" "$(SolutionDir).." "/contrib/python/toml/toml/ordered.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/tz.py-" "$(SolutionDir).." "/contrib/python/toml/toml/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/tz.py-" "$(SolutionDir).." "/contrib/python/toml/toml/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -163,23 +163,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/__init__.py-" "$(SolutionDir).." "/contrib/python/toml/toml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/__init__.py-" "$(SolutionDir).." "/contrib/python/toml/toml/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/__init__.py.u3ek.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/decoder.py-" "$(SolutionDir).." "/contrib/python/toml/toml/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/decoder.py-" "$(SolutionDir).." "/contrib/python/toml/toml/decoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/decoder.py.pb46.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/encoder.py-" "$(SolutionDir).." "/contrib/python/toml/toml/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/encoder.py-" "$(SolutionDir).." "/contrib/python/toml/toml/encoder.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/encoder.py.6rra.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/ordered.py-" "$(SolutionDir).." "/contrib/python/toml/toml/ordered.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/ordered.py-" "$(SolutionDir).." "/contrib/python/toml/toml/ordered.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/ordered.py.pcrr.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\toml
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/tz.py-" "$(SolutionDir).." "/contrib/python/toml/toml/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/py_compile.py" "contrib/python/toml/toml/tz.py-" "$(SolutionDir).." "/contrib/python/toml/toml/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/toml/toml/tz.py.jgg7.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

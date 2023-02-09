@@ -1225,7 +1225,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/join_ea2b7f507490c2416ccf8dd36f.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_e84c950dd1750473b2e530be44.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4890e6b969d00e01f66c084a14.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_a93723e1de9b08ca87c2530f08.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f576f47b8ec4632e7271d76ada.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_869fdd0328753c0acdf6545416.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_de8b12271d529c2342ed892393.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8eb4e4b0e9ce7d39543010b273.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_57f2b55656ed1e09f8d626fa36.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_465cb9550132f296f855768705.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4dacbd216d6e397c2caf0afddb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4350dadc75ba31126d2ed3f3f2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_86e54a4a4dd536201ba1d8b5a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_14d86bc4bc7cb998a6c8eefcdf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_6630e97ab8d0a836ef1f8f86c8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4517cbb01bf9990b7ad0319734.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_9ae63dc375c97a44c95b0a3db7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8bb416d301bc733d344554ecd4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4ccf6be6c3b578930276236d8d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_1efc34e16580419c9f82cd4046.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5118fe626fbe8cb567c05dd6e7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_950a7775b92a1b4d10d7e7e910.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_333bf1513ebc2946e0a515bcc6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_6dcb08ade64b4d1e49a6c0e5b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_fce413b078487c1081f8170149.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ed390407537d9a5b6798c2d178.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_b4d1c0e2d44635c1acb3b4d978.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_9ca052ff73dcdc239776d5a79f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_cef6f530833b0d9c89deb1f407.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_b4787c8ef5bd7d06271876de76.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ed074d8669b79cb13219310ae1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_997838f4d05e5548c02eeeb3e5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ac8e9dac0ffc236108e2760949.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_84529438a207aacddda04a04b9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_946c8996b7c13c609fed8d6c34.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_65de203dba84061fd490f7e51c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_2b24a2d2f0d9718206287b5f3d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_fed867a90d4d318852f504bdbd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8c0c663c36b9e66e7656008983.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_889fd97515a49298e4a2a8b0bd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_7338aa4d5b5bf7daa784471e85.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5d1f36837b43396c6652ee4625.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ccba24470a2e1789d9c8d57158.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_277153e318b0a0592391ab91d2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5c524b435c37e2f0e302641b29.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/join_ea2b7f507490c2416ccf8dd36f.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_e84c950dd1750473b2e530be44.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4890e6b969d00e01f66c084a14.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_a93723e1de9b08ca87c2530f08.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f576f47b8ec4632e7271d76ada.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_869fdd0328753c0acdf6545416.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_de8b12271d529c2342ed892393.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8eb4e4b0e9ce7d39543010b273.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_57f2b55656ed1e09f8d626fa36.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_465cb9550132f296f855768705.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4dacbd216d6e397c2caf0afddb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4350dadc75ba31126d2ed3f3f2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_86e54a4a4dd536201ba1d8b5a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_14d86bc4bc7cb998a6c8eefcdf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_6630e97ab8d0a836ef1f8f86c8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4517cbb01bf9990b7ad0319734.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_9ae63dc375c97a44c95b0a3db7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8bb416d301bc733d344554ecd4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4ccf6be6c3b578930276236d8d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_1efc34e16580419c9f82cd4046.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5118fe626fbe8cb567c05dd6e7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_950a7775b92a1b4d10d7e7e910.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_333bf1513ebc2946e0a515bcc6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_6dcb08ade64b4d1e49a6c0e5b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_fce413b078487c1081f8170149.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ed390407537d9a5b6798c2d178.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_b4d1c0e2d44635c1acb3b4d978.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_9ca052ff73dcdc239776d5a79f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_cef6f530833b0d9c89deb1f407.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_b4787c8ef5bd7d06271876de76.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ed074d8669b79cb13219310ae1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_997838f4d05e5548c02eeeb3e5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ac8e9dac0ffc236108e2760949.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_84529438a207aacddda04a04b9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_946c8996b7c13c609fed8d6c34.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_65de203dba84061fd490f7e51c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_2b24a2d2f0d9718206287b5f3d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_fed867a90d4d318852f504bdbd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8c0c663c36b9e66e7656008983.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_889fd97515a49298e4a2a8b0bd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_7338aa4d5b5bf7daa784471e85.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5d1f36837b43396c6652ee4625.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ccba24470a2e1789d9c8d57158.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_277153e318b0a0592391ab91d2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5c524b435c37e2f0e302641b29.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1236,7 +1236,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/join_ea2b7f507490c2416ccf8dd36f.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_e84c950dd1750473b2e530be44.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4890e6b969d00e01f66c084a14.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_a93723e1de9b08ca87c2530f08.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f576f47b8ec4632e7271d76ada.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_869fdd0328753c0acdf6545416.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_de8b12271d529c2342ed892393.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8eb4e4b0e9ce7d39543010b273.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_57f2b55656ed1e09f8d626fa36.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_465cb9550132f296f855768705.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4dacbd216d6e397c2caf0afddb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4350dadc75ba31126d2ed3f3f2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_86e54a4a4dd536201ba1d8b5a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_14d86bc4bc7cb998a6c8eefcdf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_6630e97ab8d0a836ef1f8f86c8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4517cbb01bf9990b7ad0319734.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_9ae63dc375c97a44c95b0a3db7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8bb416d301bc733d344554ecd4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4ccf6be6c3b578930276236d8d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_1efc34e16580419c9f82cd4046.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5118fe626fbe8cb567c05dd6e7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_950a7775b92a1b4d10d7e7e910.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_333bf1513ebc2946e0a515bcc6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_6dcb08ade64b4d1e49a6c0e5b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_fce413b078487c1081f8170149.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ed390407537d9a5b6798c2d178.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_b4d1c0e2d44635c1acb3b4d978.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_9ca052ff73dcdc239776d5a79f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_cef6f530833b0d9c89deb1f407.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_b4787c8ef5bd7d06271876de76.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ed074d8669b79cb13219310ae1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_997838f4d05e5548c02eeeb3e5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ac8e9dac0ffc236108e2760949.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_84529438a207aacddda04a04b9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_946c8996b7c13c609fed8d6c34.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_65de203dba84061fd490f7e51c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_2b24a2d2f0d9718206287b5f3d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_fed867a90d4d318852f504bdbd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8c0c663c36b9e66e7656008983.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_889fd97515a49298e4a2a8b0bd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_7338aa4d5b5bf7daa784471e85.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5d1f36837b43396c6652ee4625.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ccba24470a2e1789d9c8d57158.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_277153e318b0a0592391ab91d2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5c524b435c37e2f0e302641b29.yasm" "--ya-end-command-file"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/join_ea2b7f507490c2416ccf8dd36f.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_e84c950dd1750473b2e530be44.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4890e6b969d00e01f66c084a14.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_a93723e1de9b08ca87c2530f08.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_f576f47b8ec4632e7271d76ada.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_869fdd0328753c0acdf6545416.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_de8b12271d529c2342ed892393.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8eb4e4b0e9ce7d39543010b273.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_57f2b55656ed1e09f8d626fa36.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_465cb9550132f296f855768705.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4dacbd216d6e397c2caf0afddb.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4350dadc75ba31126d2ed3f3f2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_86e54a4a4dd536201ba1d8b5a3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_14d86bc4bc7cb998a6c8eefcdf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_6630e97ab8d0a836ef1f8f86c8.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4517cbb01bf9990b7ad0319734.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_9ae63dc375c97a44c95b0a3db7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8bb416d301bc733d344554ecd4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_4ccf6be6c3b578930276236d8d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_1efc34e16580419c9f82cd4046.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5118fe626fbe8cb567c05dd6e7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_950a7775b92a1b4d10d7e7e910.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_333bf1513ebc2946e0a515bcc6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_6dcb08ade64b4d1e49a6c0e5b5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_fce413b078487c1081f8170149.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ed390407537d9a5b6798c2d178.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_b4d1c0e2d44635c1acb3b4d978.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_9ca052ff73dcdc239776d5a79f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_cef6f530833b0d9c89deb1f407.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_b4787c8ef5bd7d06271876de76.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ed074d8669b79cb13219310ae1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_997838f4d05e5548c02eeeb3e5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ac8e9dac0ffc236108e2760949.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_84529438a207aacddda04a04b9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_946c8996b7c13c609fed8d6c34.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_65de203dba84061fd490f7e51c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_2b24a2d2f0d9718206287b5f3d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_fed867a90d4d318852f504bdbd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_8c0c663c36b9e66e7656008983.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_889fd97515a49298e4a2a8b0bd.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_7338aa4d5b5bf7daa784471e85.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5d1f36837b43396c6652ee4625.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_ccba24470a2e1789d9c8d57158.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_277153e318b0a0592391ab91d2.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/_5c524b435c37e2f0e302641b29.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1279,171 +1279,171 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.algos" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.algos.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.algos" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.algos.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.arrays" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.arrays.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.arrays" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.arrays.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.groupby" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.groupby.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.groupby" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.groupby.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.hashing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.hashing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.hashing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.hashing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.hashtable" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.hashtable.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.hashtable" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.hashtable.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.index" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.index.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.index" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.index.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.indexing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.indexing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.indexing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.indexing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.internals" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.internals.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.internals" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.internals.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.interval" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.interval.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.interval" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.interval.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.join" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.join.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.join" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.join.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.json" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.json.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.json" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.json.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.lib" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.lib.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.lib" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.lib.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.missing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.missing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.missing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.missing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.ops" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.ops.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.ops" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.ops.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.ops_dispatch" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.ops_dispatch.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.ops_dispatch" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.ops_dispatch.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.parsers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.parsers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.parsers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.parsers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.properties" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.properties.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.properties" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.properties.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.reduction" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.reduction.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.reduction" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.reduction.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.reshape" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.reshape.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.reshape" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.reshape.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.sparse" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.sparse.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.sparse" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.sparse.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.testing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.testing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.testing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.testing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslib" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslib.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslib" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslib.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.base" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.base.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.base" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.base.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.ccalendar" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.ccalendar.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.ccalendar" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.ccalendar.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.conversion" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.conversion.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.conversion" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.conversion.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.dtypes" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.dtypes.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.dtypes" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.dtypes.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.fields" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.fields.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.fields" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.fields.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.nattype" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.nattype.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.nattype" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.nattype.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.np_datetime" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.np_datetime.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.np_datetime" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.np_datetime.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.offsets" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.offsets.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.offsets" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.offsets.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.parsing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.parsing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.parsing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.parsing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.period" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.period.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.period" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.period.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.strptime" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.strptime.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.strptime" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.strptime.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timedeltas" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timedeltas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timedeltas" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timedeltas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timestamps" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timestamps.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timestamps" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timestamps.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timezones" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timezones.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timezones" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timezones.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.tzconversion" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.tzconversion.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.tzconversion" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.tzconversion.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.vectorized" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.vectorized.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.vectorized" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.vectorized.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.window.aggregations" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.window.aggregations.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.window.aggregations" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.window.aggregations.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.window.indexers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.window.indexers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.window.indexers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.window.indexers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.writers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.writers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.writers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.writers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas.io.sas.sas" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas.io.sas.sas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas.io.sas.sas" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas.io.sas.sas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1454,171 +1454,171 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.algos" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.algos.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.algos" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.algos.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.arrays" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.arrays.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.arrays" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.arrays.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.groupby" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.groupby.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.groupby" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.groupby.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.hashing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.hashing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.hashing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.hashing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.hashtable" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.hashtable.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.hashtable" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.hashtable.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.index" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.index.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.index" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.index.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.indexing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.indexing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.indexing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.indexing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.internals" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.internals.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.internals" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.internals.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.interval" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.interval.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.interval" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.interval.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.join" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.join.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.join" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.join.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.json" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.json.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.json" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.json.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.lib" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.lib.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.lib" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.lib.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.missing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.missing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.missing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.missing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.ops" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.ops.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.ops" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.ops.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.ops_dispatch" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.ops_dispatch.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.ops_dispatch" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.ops_dispatch.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.parsers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.parsers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.parsers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.parsers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.properties" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.properties.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.properties" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.properties.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.reduction" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.reduction.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.reduction" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.reduction.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.reshape" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.reshape.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.reshape" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.reshape.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.sparse" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.sparse.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.sparse" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.sparse.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.testing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.testing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.testing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.testing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslib" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslib.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslib" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslib.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.base" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.base.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.base" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.base.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.ccalendar" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.ccalendar.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.ccalendar" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.ccalendar.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.conversion" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.conversion.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.conversion" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.conversion.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.dtypes" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.dtypes.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.dtypes" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.dtypes.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.fields" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.fields.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.fields" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.fields.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.nattype" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.nattype.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.nattype" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.nattype.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.np_datetime" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.np_datetime.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.np_datetime" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.np_datetime.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.offsets" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.offsets.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.offsets" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.offsets.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.parsing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.parsing.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.parsing" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.parsing.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.period" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.period.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.period" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.period.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.strptime" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.strptime.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.strptime" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.strptime.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timedeltas" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timedeltas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timedeltas" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timedeltas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timestamps" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timestamps.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timestamps" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timestamps.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timezones" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timezones.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.timezones" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.timezones.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.tzconversion" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.tzconversion.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.tzconversion" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.tzconversion.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.vectorized" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.vectorized.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.tslibs.vectorized" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.tslibs.vectorized.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.window.aggregations" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.window.aggregations.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.window.aggregations" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.window.aggregations.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.window.indexers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.window.indexers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.window.indexers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.window.indexers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.writers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.writers.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas._libs.writers" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas._libs.writers.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/home/thegeorg/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas.io.sas.sas" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas.io.sas.sas.reg3.cpp"
+"/logs/root/.ya/tools/v4/2989598506/python.exe" "$(SolutionDir).." "/build/scripts/gen_py3_reg.py" "pandas.io.sas.sas" "$(SolutionDir)$(Configuration)/contrib/python/pandas/py3/pandas.io.sas.sas.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
