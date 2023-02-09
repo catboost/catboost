@@ -78,8 +78,7 @@ target_cuda_flags(catboost-cuda-gpu_data
   -gencode
   arch=compute_70,code=compute_70
   --ptxas-options=-v
-  -gencode
-  arch=compute_30,code=compute_30
+  -gencode=arch=compute_80,code=sm_80
 )
 
 add_global_library_for(catboost-cuda-gpu_data.global catboost-cuda-gpu_data)
