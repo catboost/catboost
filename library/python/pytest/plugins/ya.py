@@ -810,11 +810,9 @@ class TraceReportGenerator(object):
         pytest_config.ya.set_test_item_node_id(test_item.nodeid)
         class_name = test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name
         self._current_test = (class_name, None)
-        self.trace('test-started', {'class': class_name})
 
     def on_finish_test_class(self, test_item):
         pytest_config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-finished', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
 
     def on_start_test_case(self, test_item):
         class_name = yatest_lib.tools.to_utf8(test_item.class_name)
