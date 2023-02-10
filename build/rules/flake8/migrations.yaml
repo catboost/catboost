@@ -834,7 +834,6 @@ migrations:
     - maps/wikimap/stat/kpi/valuable_edits/report/tests
     - market/access/puller/beam
     - market/assortment/ecom_log/lib/extract_source
-    - market/dynamic_pricing/pricing/common/prepare_data_for_axapta
     - market/dynamic_pricing/pricing/dynamic_pricing/autostrategy_v2/predict
     - market/dynamic_pricing/pricing/dynamic_pricing/prepare_stats
     - market/forecast/ff_gross_forecast/tasks
@@ -856,7 +855,6 @@ migrations:
     - market/sre/tools/capacityV2/mcapacity_tool/lib/yt
     - market/tools/code_generator
     - market/tools/outdated_report_experiments
-    - market/yamarec/yamarec/yamarec1/data
     - mds/s3/tasklets/teamcity/impl
     - ml/libs/ml_data_reader/src/ml_data_reader/iterators
     - ml/nirvana/dataset_description_lib
@@ -1076,8 +1074,6 @@ migrations:
     - sandbox/projects/quasar/datasync_uploader/lib
     - sandbox/projects/release_machine/components/configs
     - sandbox/projects/release_machine_tasks/NeedToBackport
-    - sandbox/projects/rope/parameters
-    - sandbox/projects/rope/toposort
     - sandbox/projects/taxi/BuildLogisticDispatcher
     - sandbox/projects/tsar/upload_tsar_pytorch_to_yt
     - sandbox/projects/tycoon/TycoonAdverts
@@ -1367,7 +1363,6 @@ migrations:
     - ads/quality/tlm/pylib
     - ads/tools/ml_spiral
     - afisha/infra/libs/mdb
-    - alice/analytics/operations/dialog/sessions
     - alice/analytics/operations/priemka/alice_parser/lib
     - alice/analytics/operations/timespent/timespent
     - antiadblock/tasks/bypass_uids_stat
@@ -1552,8 +1547,6 @@ migrations:
     - oebs/bi/essbase_loader
     - orgvisits/ugc_features/features_calculation
     - paysys/sre/tools/monitorings/configs/balance_app/base
-    - paysys/sre/tools/monitorings/configs/configshop/stable
-    - paysys/sre/tools/monitorings/configs/configshop/testing
     - quality/ab_testing/scripts/ems/ems/metrics/tasks
     - quality/ab_testing/scripts/gmv_analytics/order_surplus
     - quality/functionality/facts/ml_experiments/bert/0084_info_uber_distill_50
@@ -1648,7 +1641,6 @@ migrations:
     - weather/workers/common/clean_satellite
     - weather/workers/common/outer_execution
     - weather/workers/imports/geobase
-    - yabs/artmon/metric_proxy/config
     - yabs/qa/oneshots/inna-kudelkina/BSDEV-88366/set_exp_group_pages
     - yabs/qa/oneshots/naignatov/BSSERVER-16112
     - yabs/qa/tools/paint_cli_report
@@ -1719,7 +1711,6 @@ migrations:
     - yweb/video/faas/vh_wrappers/package
     - yweb/yasap/answers/answers/utils/the_question
     - yweb/yasap/answers/telegram_bot/telegram_bot/lib
-    - yweb/yasap/answers/tests/test_admin
     - yweb/yasap/answers/tests/test_resources
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/repositories
     - yweb/yasap/pdb/tools/push_notifications
@@ -1788,7 +1779,6 @@ migrations:
     - billing/dwh/src/dwh/grocery/dcs/export
     - billing/log_tariffication/py/tests/integration/partner_tariff
     - build
-    - cloud/filestore/tests/python/lib
     - cloud/iam/ydb_tools/reindex
     - cloud/iam/ydb_tools/set_default
     - cloud/iam/ydb_tools/ydb_copy
@@ -2268,7 +2258,6 @@ migrations:
     - yabs/server/test/ft/BSDEV-69385
     - yabs/server/test/ft/BSDEV-85219
     - yabs/server/test/ft/BSDEV-85352
-    - yabs/server/test/ft/BSSERVER-10995
     - yabs/server/test/ft/BSSERVER-11693
     - yabs/server/test/ft/BSSERVER-11699
     - yabs/server/test/ft/BSSERVER-12593
@@ -3676,7 +3665,6 @@ migrations:
     - search/begemot/tools/its
     - search/daemons/models_proxy/tests/generator
     - search/garden/runtime_tests/util
-    - search/geo/tools/download_metrics_serp
     - search/geo/tools/emulator
     - search/geo/tools/importer
     - search/geo/tools/metrics_tools/testid_to_params
@@ -3684,10 +3672,6 @@ migrations:
     - search/geo/tools/output_selector2/load_factors
     - search/geo/tools/production/headquarters
     - search/geo/tools/production/print_base_shards
-    - search/geo/tools/social_links/build_profile2geoids
-    - search/geo/tools/social_links/build_saas_snippets
-    - search/geo/tools/social_links/extract_facts/lib
-    - search/geo/tools/social_links/upload_mds_image
     - search/geo/tools/task_manager/generators/popular_streets/zeliboba_parser
     - search/geo/tools/transport_wizard/prepare_rearrange_data
     - search/integration_tests/util
@@ -4966,7 +4950,6 @@ migrations:
     - cloud/blockstore/tests/python/lib
     - cloud/blockstore/tests/recipes/notify-mock
     - cloud/blockstore/tools/analytics/overcommit-factor
-    - cloud/filestore/tests/python/lib
     - cloud/gauthling/gauthling_daemon_tornado/lib
     - cloud/iam/planning_tool/library
     - cloud/infra/packages/monitoring/lib
@@ -5067,7 +5050,6 @@ migrations:
     - devtools/ya/app
     - devtools/ya/build/gen_plan
     - devtools/ya/build/ymake2
-    - devtools/ya/exts
     - devtools/ya/handlers/dump
     - devtools/ya/handlers/pr
     - devtools/ya/handlers/project/lib
@@ -5480,7 +5462,6 @@ migrations:
     - logfeller/python/logfeller/infra/yt/util
     - logfeller/python/logfeller/lib
     - logfeller/python/logfeller/util/solomon/ut
-    - logos/libs/md/descriptor
     - logos/projects/ads/tasks/tsar_pytorch_rsya_bc/lib
     - logos/projects/money_dwh/tasks/bs_chevent_cooked_log/builder
     - logos/projects/statkey/tasks/cubes/superapp/cooked_appmetrica_log/v1
@@ -5649,7 +5630,6 @@ migrations:
     - market/tools/hroom/lib/asyncio_bot
     - market/tools/outdated_report_experiments
     - market/yamarec/metarouter/yamarec_metarouter
-    - market/yamarec/yamarec/yamarec1/data
     - mds/walle_cms/cms/lib
     - mds/walle_cms/cms/lib/foreign/python_conductor
     - media-billing/recipes/mongodb
@@ -5789,11 +5769,6 @@ migrations:
     - quality/ab_testing/tools/postgres_local/recipe
     - quality/ab_testing/zc/calc_efh_squeeze/ut
     - quality/antifraud/analytics/xurma/prepare_features
-    - quality/antifraud/py_libs/common
-    - quality/antifraud/py_libs/juggler
-    - quality/antifraud/py_libs/solomon
-    - quality/antifraud/py_libs/yabs_dropstat
-    - quality/antifraud/py_libs/yt_helpers
     - quality/antifraud/scripts/prod/prepare_features
     - quality/antifraud/scripts/prod/prepare_features_single_table
     - quality/antifraud/scripts/prod/sync_staff_pools
@@ -6212,7 +6187,6 @@ migrations:
     - sandbox/projects/yabs/partner_share/lib/integratest
     - sandbox/projects/yabs/partner_share/tasks/apply_changes
     - sandbox/projects/yabs/prebilling_tests/executer
-    - sandbox/projects/yabs/qa/ammo_module/requestlog/adapters/yabs_specific/common
     - sandbox/projects/yabs/qa/ammo_module/requestlog/adapters/yabs_specific/sandbox
     - sandbox/projects/yabs/qa/ammo_module/requestlog/adapters/yabs_specific/standalone
     - sandbox/projects/yabs/qa/errorbooster
@@ -6269,17 +6243,12 @@ migrations:
     - search/geo/tools/basket_gathering/misspel_sampling
     - search/geo/tools/basket_gathering_2020/mine_baskets
     - search/geo/tools/basket_gathering_2021/mine_baskets
-    - search/geo/tools/download_metrics_serp
     - search/geo/tools/dump_objects_answers
     - search/geo/tools/emulator
-    - search/geo/tools/iznanka/lib
     - search/geo/tools/personal_pois/extractor
     - search/geo/tools/personal_pois/lib
     - search/geo/tools/production/headquarters
     - search/geo/tools/serp_tools/eda_organic_generator
-    - search/geo/tools/social_links/build_profile2geoids
-    - search/geo/tools/social_links/extract_facts
-    - search/geo/tools/social_links/quality_scripts/dategram_analysis
     - search/geo/tools/task_manager/generators/common
     - search/geo/tools/task_manager/system
     - search/geo/tools/toponym_snippets/best_companies
@@ -7503,7 +7472,6 @@ migrations:
     - sprav/mining/partners/gis/lib
     - sprav/mining/quarantine/feature_grep
     - sprav/misc/python/mining
-    - sprav/snezhana_v3/metrics/task_length
     - statbox/nile/nile/drivers/yql
     - statbox/nile/nile/processing
     - statbox/nile/tests/cluster
@@ -7584,7 +7552,6 @@ migrations:
     - logbroker/tools/cluster_migration/get_max_retention
     - logos/projects/graph_for_tests/graph
     - logos/projects/statkey_py3/tasks/cubes/clicks_attribution/v2
-    - maps/analyzer/libs/jams_level_prediction/pylib
     - maps/analyzer/pylibs/envkit
     - maps/analyzer/pylibs/models
     - maps/analyzer/pylibs/schema
@@ -7657,7 +7624,6 @@ migrations:
     - ads/nirvana/vw/vw_launcher/test
     - ads/pytorch/lib/online_learning/production/factor_stats
     - ads/quality/adv_machine/scripts/factor_stat
-    - ads/quality/adv_machine/tools/torch/preprocessing/torch
     - ads/quality/autotargeting/bloss
     - ads/quality/bid_correction/lib
     - ads/quality/bm_scoring/pipeline/manage_pools
@@ -8238,7 +8204,6 @@ migrations:
     - sdg/rtlogs/rtlogsb/monitoring
     - search/begemot/rules/thesaurus/lib/tools/arcinfo/tests
     - search/geo/tools/afisha/toponym_snippet_builder
-    - search/geo/tools/iznanka/get_company_urls
     - search/geo/tools/personal_pois/lib
     - search/geo/tools/production/downloader
     - search/geo/tools/task_manager/generators/service_orgs/build_snippet
@@ -8273,7 +8238,6 @@ migrations:
     - sprav/assay/ml_queue_prepare
     - sprav/fast_features/drugs/model/match
     - sprav/feature_vault/tests/test
-    - sprav/snezhana_v3/metrics/lib
     - statbox/bindings/tdigest/tests/common
     - statbox/nile/tests/cluster
     - statbox/qb2_core/tests/common
@@ -8675,8 +8639,6 @@ migrations:
     - mssngr/botplatform/src/bots/pusher
     - payplatform/spirit/match_receipts/ut
     - paysys/sre/tools/monitorings/configs/balance_app/base
-    - quality/antifraud/py_libs/config_engine
-    - quality/antifraud/py_libs/nested_sectional_config
     - quality/antifraud/xurma/tools/dump_restore/lib
     - release_machine/tasklets/ab_tests/configure_ab_experiments_tests/utils
     - release_machine/tasklets/common/mixins
@@ -8766,7 +8728,6 @@ migrations:
     - travel/avia/library/python/sandbox
     - travel/avia/library/python/shared_flights_client
     - travel/avia/library/python/sirena_client
-    - travel/avia/library/python/tanker
     - travel/avia/library/python/ticket_daemon/caches/operating_flights
     - travel/avia/library/python/ticket_daemon/memo
     - travel/avia/library/python/ticket_daemon/ydb/banned_variants
@@ -8952,7 +8913,6 @@ migrations:
     - market/dynamic_pricing/tools/offline_modeling
     - market/mobile_validator/mt
     - market/seo/tools/postgres_local/recipe
-    - market/yamarec/yamarec/yamarec1
     - ml/tensorflow/ytensorflow
     - modadvert/libs/antispam/threat_mapping/ut
     - modadvert/libs/jsonrpc2/client
@@ -9299,8 +9259,6 @@ migrations:
     - market/sre/services/cema-proxy/lib
     - market/sre/services/cema/lib
     - market/sre/services/cema/lib/classes
-    - market/yamarec/yamarec/yamarec1
-    - market/yamarec/yamarec/yamarec1/tasks
     - milab/lib/i2tclient/python
     - mlp/mail/aspam/experiments/MLP_231
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
@@ -10399,7 +10357,6 @@ migrations:
     - jupytercloud/tools/mass_rsync
     - jupytercloud/tools/puncher-sync
     - keyboard/analytics/toloka/scripts/api_client
-    - kikimr/juggler/bundle/checks
     - kikimr/yf/tests/ydb
     - maps/garden/libs_server/graph/tests/py
     - maps/poi/notification/bin/prepare_org_status_pushes
@@ -10530,7 +10487,6 @@ migrations:
     - april/web/bas/qa
     - dict/mt/video/ci/vt_e2e/impl
     - extsearch/video/functionality/fastdelivery/NewCombineVhsRequests/NewCombineVhsFilms
-    - grut/tools/admin/commands
     - maps/b2bgeo/libs/py_sqlalchemy_utils
     - maps/garden/modules/ymapsdf/lib/ymapsdf_tester
     - maps/infra/duty/generator/lib
@@ -10912,7 +10868,6 @@ migrations:
     - modadvert/programs/direct_proxy/libs/handlers
     - modadvert/programs/saas_indexer/libs
     - modadvert/programs/transfer_manager/libs
-    - mssngr/router/tools/state_cache_updater_v2
     - opensource/sync/bin/arc2git
     - opensource/sync/bin/git2git
     - orgvisits/library/python/text_tools
@@ -12186,7 +12141,6 @@ migrations:
     - search/geo/tools/personal_pois/tools/future_click_pool
     - search/geo/tools/qloss
     - search/geo/tools/ranking
-    - search/geo/tools/social_links/quality_scripts/extract_facts_analysis
     - search/geo/tools/util
     - search/gta/hc2ch/lib
     - search/gta/ltv/hc1_reducer/lib
@@ -12809,34 +12763,6 @@ migrations:
     - yabs/indoor/tests
     - yabs/server/libs/py_decrypt_predictions/test
     - yabs/server/libs/py_pibf/test
-    - yabs/server/test/ft/lua/page_1
-    - yabs/server/test/ft/lua/page_14
-    - yabs/server/test/ft/lua/page_158973
-    - yabs/server/test/ft/lua/page_162514
-    - yabs/server/test/ft/lua/page_164717
-    - yabs/server/test/ft/lua/page_168577
-    - yabs/server/test/ft/lua/page_180897
-    - yabs/server/test/ft/lua/page_185459
-    - yabs/server/test/ft/lua/page_186549
-    - yabs/server/test/ft/lua/page_2
-    - yabs/server/test/ft/lua/page_242
-    - yabs/server/test/ft/lua/page_243449
-    - yabs/server/test/ft/lua/page_244345
-    - yabs/server/test/ft/lua/page_273214
-    - yabs/server/test/ft/lua/page_278239
-    - yabs/server/test/ft/lua/page_280743
-    - yabs/server/test/ft/lua/page_281945
-    - yabs/server/test/ft/lua/page_285318
-    - yabs/server/test/ft/lua/page_2_on_trafarets
-    - yabs/server/test/ft/lua/page_323453
-    - yabs/server/test/ft/lua/page_338535
-    - yabs/server/test/ft/lua/page_341469
-    - yabs/server/test/ft/lua/page_342532
-    - yabs/server/test/ft/lua/page_355611
-    - yabs/server/test/ft/lua/page_357267
-    - yabs/server/test/ft/lua/page_3897
-    - yabs/server/test/ft/lua/page_417631
-    - yabs/server/test/ft/lua/page_420097
     - yabs/server/test/pylibs/blowfish/test
     - yabs/server/test/tools/oneshot_tester/lib/tests
     - yabs/vh/cms-pgaas/test/ft/ad_config_importer

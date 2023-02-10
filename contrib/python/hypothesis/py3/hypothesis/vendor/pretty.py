@@ -762,9 +762,14 @@ def _repr_dataframe(obj, p, cycle):  # pragma: no cover
     p.break_()
 
 
+def _repr_enum(obj, p, cycle):
+    p.text(type(obj).__name__ + "." + obj.name)
+
+
 for_type_by_name("collections", "defaultdict", _defaultdict_pprint)
 for_type_by_name("collections", "OrderedDict", _ordereddict_pprint)
 for_type_by_name("ordereddict", "OrderedDict", _ordereddict_pprint)
 for_type_by_name("collections", "deque", _deque_pprint)
 for_type_by_name("collections", "Counter", _counter_pprint)
 for_type_by_name("pandas.core.frame", "DataFrame", _repr_dataframe)
+for_type_by_name("enum", "Enum", _repr_enum)
