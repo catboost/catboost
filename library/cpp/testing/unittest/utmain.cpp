@@ -130,13 +130,11 @@ private:
     void OnUnitStart(const TUnit* unit) override {
         NJson::TJsonValue event;
         event.InsertValue("class", unit->name);
-        Trace("test-started", event);
     }
 
     void OnUnitStop(const TUnit* unit) override {
         NJson::TJsonValue event;
         event.InsertValue("class", unit->name);
-        Trace("test-finished", event);
     }
 
     void OnError(const TError* descr) override {
