@@ -445,7 +445,6 @@ def _guess_strategy_by_argname(name: str) -> st.SearchStrategy:
 
 def _get_params(func: Callable) -> Dict[str, inspect.Parameter]:
     """Get non-vararg parameters of `func` as an ordered dict."""
-    var_param_kinds = (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
     try:
         params = list(get_signature(func).parameters.values())
     except Exception:
@@ -493,6 +492,13 @@ def _get_params(func: Callable) -> Dict[str, inspect.Parameter]:
             # If we haven't managed to recover a signature through the tricks above,
             # we're out of ideas and should just re-raise the exception.
             raise
+    return _params_to_dict(params)
+
+
+def _params_to_dict(
+    params: Iterable[inspect.Parameter],
+) -> Dict[str, inspect.Parameter]:
+    var_param_kinds = (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
     return OrderedDict((p.name, p) for p in params if p.kind not in var_param_kinds)
 
 
@@ -831,16 +837,19 @@ def _annotate_args(
 ) -> Iterable[str]:
     arg_parameters: DefaultDict[str, Set[Any]] = defaultdict(set)
     for func in funcs:
-        for key, param in _get_params(func).items():
-            arg_parameters[key].add(param.annotation)
+        try:
+            params = tuple(get_signature(func, eval_str=True).parameters.values())
+        except Exception:
+            # don't add parameters if the annotations could not be evaluated
+            pass
+        else:
+            for key, param in _params_to_dict(params).items():
+                if param.annotation != inspect.Parameter.empty:
+                    arg_parameters[key].add(param.annotation)
 
     for argname in argnames:
         parameters = arg_parameters.get(argname)
-        annotation = (
-            None
-            if parameters is None
-            else _parameters_to_annotation_name(parameters, imports)
-        )
+        annotation = _parameters_to_annotation_name(parameters, imports)
         if annotation is None:
             yield argname
         else:
@@ -853,15 +862,13 @@ class _AnnotationData(NamedTuple):
 
 
 def _parameters_to_annotation_name(
-    parameters: Iterable[Any], imports: ImportSet
+    parameters: Optional[Iterable[Any]], imports: ImportSet
 ) -> Optional[str]:
+    if parameters is None:
+        return None
     annotations = tuple(
         annotation
-        for annotation in (
-            _parameter_to_annotation(parameter)
-            for parameter in parameters
-            if parameter != inspect.Parameter.empty
-        )
+        for annotation in map(_parameter_to_annotation, parameters)
         if annotation is not None
     )
     if not annotations:
@@ -883,6 +890,15 @@ def _join_generics(
 ) -> Optional[_AnnotationData]:
     if origin_type_data is None:
         return None
+
+    # because typing.Optional is converted to a Union, it also contains None
+    # since typing.Optional only accepts one type variable, we need to remove it
+    if origin_type_data is not None and origin_type_data[0] == "typing.Optional":
+        annotations = (
+            annotation
+            for annotation in annotations
+            if annotation is None or annotation.type_name != "None"
+        )
 
     origin_type, imports = origin_type_data
     joined = _join_argument_annotations(annotations)
@@ -920,35 +936,41 @@ def _parameter_to_annotation(parameter: Any) -> Optional[_AnnotationData]:
             return None
         return _parameter_to_annotation(forwarded_value)
 
+    # the arguments of Callable are in a list
+    if isinstance(parameter, list):
+        joined = _join_argument_annotations(
+            _parameter_to_annotation(param) for param in parameter
+        )
+        if joined is None:
+            return None
+        arg_type_names, new_imports = joined
+        return _AnnotationData("[{}]".format(", ".join(arg_type_names)), new_imports)
+
     if isinstance(parameter, type):
         if parameter.__module__ == "builtins":
             return _AnnotationData(
                 "None" if parameter.__name__ == "NoneType" else parameter.__name__,
                 set(),
             )
-        return _AnnotationData(
-            f"{parameter.__module__}.{parameter.__name__}", {parameter.__module__}
-        )
 
-    # the arguments of Callable are in a list
-    if isinstance(parameter, list):
-        joined = _join_argument_annotations(map(_parameter_to_annotation, parameter))
-        if joined is None:
-            return None
-        arg_type_names, new_imports = joined
-        return _AnnotationData("[{}]".format(", ".join(arg_type_names)), new_imports)
+        type_name = f"{parameter.__module__}.{parameter.__name__}"
+
+        # the types.UnionType does not support type arguments and needs to be translated
+        if type_name == "types.UnionType":
+            return _AnnotationData("typing.Union", {"typing"})
+    else:
+        if hasattr(parameter, "__module__") and hasattr(parameter, "__name__"):
+            type_name = f"{parameter.__module__}.{parameter.__name__}"
+        else:
+            type_name = str(parameter)
 
     origin_type = get_origin(parameter)
 
     # if not generic or no generic arguments
     if origin_type is None or origin_type == parameter:
-        type_name = str(parameter)
-        if type_name.startswith("typing."):
-            return _AnnotationData(type_name, {"typing"})
-        return _AnnotationData(type_name, set())
+        return _AnnotationData(type_name, set(type_name.rsplit(".", maxsplit=1)[:-1]))
 
     arg_types = get_args(parameter)
-    type_name = str(parameter)
 
     # typing types get translated to classes that don't support generics
     origin_annotation: Optional[_AnnotationData]
@@ -963,7 +985,8 @@ def _parameter_to_annotation(parameter: Any) -> Optional[_AnnotationData]:
 
     if arg_types:
         return _join_generics(
-            origin_annotation, map(_parameter_to_annotation, arg_types)
+            origin_annotation,
+            (_parameter_to_annotation(arg_type) for arg_type in arg_types),
         )
     return origin_annotation
 
