@@ -66,6 +66,7 @@ resources(libs-model-model_export.global
   ${CMAKE_BINARY_DIR}/catboost/libs/model/model_export/77c3b517a51b01ef586874d93ea5bd32.cpp
   INPUTS
   ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model.py
+  ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model_without_cat.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_structs.py
   ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_calcer.py
   ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model.cpp
@@ -73,6 +74,7 @@ resources(libs-model-model_export.global
   ${CMAKE_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_calcer.cpp
   KEYS
   catboost_model_export_python_model_applicator
+  catboost_model_export_cpp_model_applicator_without_cat
   catboost_model_export_python_ctr_structs
   catboost_model_export_python_ctr_calcer
   catboost_model_export_cpp_model_applicator
