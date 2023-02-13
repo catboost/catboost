@@ -79,7 +79,6 @@ migrations:
     - distribution_interface/backend/tests/test_platform
     - dj/torch/tools/runner/py_formatter
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
-    - education/english/services/scheduler_worker/app
     - education/schoolbook/analytics/ml/lib/ut
     - education/services/checking_system/marker_checker/it/api/v1
     - education/services/checking_system/marker_checker/it/api/v1/check_data
@@ -265,7 +264,6 @@ migrations:
     - search/geo/tools/basket_gathering_2021/mine_baskets
     - search/hamster/auto_incidents_creator/get_reqid
     - search/metrics/nirvana_macro/workflow
-    - search/mon/bot/tests/modules/warden
     - search/mon/curators_helper
     - search/mon/marty_tool_check/marty_icon_meta_aggr
     - search/mon/uchenki/lib
@@ -306,7 +304,6 @@ migrations:
     - web/app_host/tools/upper_template_generator/src/adonly
     - web/src_setup/tests/server_test/test_suites/SHARED
     - web/src_setup/tests/server_test/test_suites/WEB
-    - yabs/artmon/metric_proxy/config
     - yabs/autobudget/tools/daily_limits_calculator
     - yabs/indoor/samogon/plugin
     - yabs/qa/oneshots/gshovkoplyas/BSSERVER-21792/update_blocksettings_replica
@@ -334,7 +331,6 @@ migrations:
     - yabs/server/test/ft/BSDEV-85352
     - yabs/server/test/ft/BSDEV-86239
     - yabs/server/test/ft/BSEFFECTIVE-427
-    - yabs/server/test/ft/BSSERVER-10045
     - yabs/server/test/ft/BSSERVER-11693
     - yabs/server/test/ft/BSSERVER-14121
     - yabs/server/test/ft/BSSERVER-14909
@@ -2029,7 +2025,6 @@ migrations:
     - offline_data/call_center/nirvana/send_sms
     - passport/backend/core/serializers/eav/tests
     - passport/backend/logbroker_client/challenge_pushes/tests
-    - passport/backend/qa/autotests/base/steps
     - quality/ab_testing/scripts/ems/ems/metrics/controllers
     - quality/antifraud/scripts/dev/fury_local
     - quality/antifraud/scripts/dev/pxhf
@@ -2188,7 +2183,6 @@ migrations:
     - search/geo/tools/task_manager/generators/ugc_aspects
     - search/integration_tests/util
     - search/mon/curators_helper
-    - search/mon/dredd2/dredd_detective
     - search/mon/uchenki/lib/utils
     - search/mon/wabbajack/bin/configurator
     - search/mon/warden/src/workers
@@ -2466,7 +2460,6 @@ migrations:
     - games/admin/background_modules
     - geoproduct/aml/assessors/results_export/tests
     - geoproduct/aml/toloka/monitorings
-    - geosuggest/conveyors/geosuccube/drop_features_and_compress
     - geotargeting/library/python/geoplotting
     - infra/capacity_planning/utils/resources/all_resources
     - infra/dostavlyator/lib/proto_utils/tests
@@ -3677,9 +3670,7 @@ migrations:
     - search/integration_tests/util
     - search/itditp/static_models_archive/data
     - search/itditp/static_models_archive/prepare_archive
-    - search/mon/dredd2/dredd_detective
     - search/mon/dredd2/dredd_judge
-    - search/mon/fm_monitor
     - search/mon/stater/src/tasks/clone_sync_to_yt
     - search/mon/stater/src/tasks/marty_kbf_stats
     - search/mon/tasklets/goal_creator/src
@@ -4559,7 +4550,6 @@ migrations:
     - voicetech/asr/pipeline/vh
     - voicetech/bio/scripts/score/draw_roc_curve
     - voicetech/tts/training/pauser
-    - voicetech/tts/training/tacotron
     - voicetech/vqe/experiments/nn_postfilter/train_utils/pytorch_train/transforms/numpy
     - voicetech/vqe/pylibs/opt
     - weather/ml/experiments/neural_nowcasting/neural_nowcasting
@@ -5309,8 +5299,6 @@ migrations:
     - geoproduct/external_cc/project/manage
     - geoproduct/external_cc/settings
     - geoproduct/external_cc/util
-    - geosuggest/conveyors/geosuccube/client_specific_logic
-    - geosuggest/conveyors/geosuccube/ut
     - geosuggest/conveyors/learn_pool
     - geosuggest/tools/international_quality/geo_shooting/lib
     - geosuggest/tools/international_quality/prepare_google_basket
@@ -7104,7 +7092,6 @@ migrations:
     - devtools/ya/jbuild/maven
     - devtools/ya/package
     - devtools/ya/test/facility
-    - devtools/ya/test/programs/test_tool/lib/monitor
     - devtools/ya/test/programs/test_tool/run_black
     - devtools/ya/test/programs/test_tool/run_clang_tidy
     - devtools/ya/test/programs/test_tool/run_fuzz
@@ -9505,8 +9492,6 @@ migrations:
     - geoproduct/advert_ranking/traffic_prediction/nirvana
     - geoproduct/advert_ranking/traffic_prediction/predictor
     - sandbox/projects/market/WHSupport/RestartingOrder
-    - search/mon/dredd2/dredd_detective
-    - search/mon/dredd2/dredd_notifier
     - yweb/antispam/cid/phones_base/verdict_classifiers
   PLC0327:
     ignore:
@@ -10064,7 +10049,6 @@ migrations:
     - search/priemka/yappy/tests/test_yappy_lib/test_yappy_lib
     - voicetech/vqe/tools/health_check/lib
     - yp/scripts/yp_util/tests
-    - yweb/yasap/answers/tests/test_admin
   PLR1736:
     ignore:
     - PLR1736
@@ -10256,7 +10240,6 @@ migrations:
     - passport/backend/oauth/api/api/old/bundle_views
     - search/mon/bot/bot
     - search/mon/bot/kbf
-    - search/mon/bot/tests/protocols
     - search/mon/wabbajack/libs/workers
     - taxi/robowarehouse/lib/api/routes/v1/monitoring
     - yabs/analytics/ml_monitor/classify_catboost
@@ -10332,7 +10315,6 @@ migrations:
     - comdep_analytics/comdep_recsys/etl_core/utils
     - dict/mt/make/processes/gen_download_commoncrawl_graph/libs/commoncrawl_cube/lib
     - dict/mt/make/processes/gen_download_commoncrawl_graph/libs/parse_warc
-    - education/english/services/gente/app/service
     - extsearch/video/functionality/fastdelivery/NewCombineVhsRequests/NewCombineVhsSeries
     - infra/dostavlyator/lib/db
     - logbroker/tools/manual/analyze_and_set_maximum_partition_speed
