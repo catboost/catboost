@@ -8484,7 +8484,6 @@ migrations:
     - dict/mt/analytics/mr_metrics/web/metrics/session_properties/reducer
     - dict/mt/analytics/mr_metrics/web/metrics/simple_session/reducer
     - dict/mt/libs/python/levenshtein
-    - dict/mt/libs/python/yasm_metrics
     - dict/mt/video/lib/vt_requests/cli
     - dict/mt/video/tools/browser_queue_handler
     - education/english/lib/metric_exporter/src
