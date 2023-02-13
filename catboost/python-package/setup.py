@@ -187,7 +187,7 @@ class build_ext(_build_ext):
         elif 'win' in sys.platform:
             self.build_with_msbuild(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
         else:
-            self.build_with_make(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
+            self.build_with_cmake_and_ninja(topsrc_dir, build_dir, 'lib' + catboost_ext, put_dir, verbose, dry_run)
 
     def build_with_ymake(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
         logging.info('Buildling {} with ymake'.format(catboost_ext))
@@ -218,6 +218,34 @@ class build_ext(_build_ext):
 
         logging_execute(ymake_cmd + ['-DHAVE_CUDA=no'], verbose, dry_run)
         logging.info('Successfully built {} without CUDA support'.format(catboost_ext))
+        distutils.file_util.copy_file(dll, put_dir, verbose=verbose, dry_run=dry_run)
+
+    def build_with_cmake_and_ninja(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
+        logging.info('Buildling {} with cmake and ninja'.format(catboost_ext))
+
+        cmake_cmd = [
+            'cmake',
+            topsrc_dir,
+            '-B', build_dir,
+            '-G', 'Ninja',
+            '-DCMAKE_BUILD_TYPE=Release',
+            '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(topsrc_dir, 'build', 'toolchains', 'clang.toolchain'),
+            '-DCMAKE_POSITION_INDEPENDENT_CODE=On'
+        ]
+        logging_execute(cmake_cmd, verbose, dry_run)
+
+        ninja_cmd = [
+            'ninja',
+            '-C', build_dir,
+            '_catboost'
+        ]
+        if self.parallel is not None:
+            ninja_cmd += ['-j', str(self.parallel)]
+        logging_execute(ninja_cmd, verbose, dry_run)
+
+        logging.info('Successfully built {} with CUDA support'.format(catboost_ext))
+
+        dll = os.path.join(build_dir, 'catboost', 'python-package', 'catboost', catboost_ext)
         distutils.file_util.copy_file(dll, put_dir, verbose=verbose, dry_run=dry_run)
 
     def build_with_make(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
