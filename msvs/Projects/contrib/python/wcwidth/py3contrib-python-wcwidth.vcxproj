@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -186,11 +186,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_56879694a1bbe08a7ffcfb54b1.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\wcwidth\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\wcwidth\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm" "-" "contrib/python/wcwidth/.dist-info/METADATA" "_5192f48d6b126e7024c4873edc.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9874134f4dcf4f23b8e018324f.rodata" "-" "contrib/python/wcwidth/.dist-info/top_level.txt" "_e440ced00bfa542421cc8c0775.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7f036cdd07c599e74ad9c79548.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm" "-" "contrib/python/wcwidth/.dist-info/METADATA" "_5192f48d6b126e7024c4873edc.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9874134f4dcf4f23b8e018324f.rodata" "-" "contrib/python/wcwidth/.dist-info/top_level.txt" "_e440ced00bfa542421cc8c0775.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7f036cdd07c599e74ad9c79548.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm" "-" "contrib/python/wcwidth/.dist-info/METADATA" "_5192f48d6b126e7024c4873edc.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9874134f4dcf4f23b8e018324f.rodata" "-" "contrib/python/wcwidth/.dist-info/top_level.txt" "_e440ced00bfa542421cc8c0775.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7f036cdd07c599e74ad9c79548.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm" "-" "contrib/python/wcwidth/.dist-info/METADATA" "_5192f48d6b126e7024c4873edc.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9874134f4dcf4f23b8e018324f.rodata" "-" "contrib/python/wcwidth/.dist-info/top_level.txt" "_e440ced00bfa542421cc8c0775.rodata" "$(SolutionDir)../contrib/python/wcwidth/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7f036cdd07c599e74ad9c79548.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/wcwidth/_eba70071a77093dc8176c1c98c.yasm	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\wcwidth\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\wcwidth\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\wcwidth\.dist-info\METADATA;$(SolutionDir)..\contrib\python\wcwidth\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_eba70071a77093dc8176c1c98c.yasm;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_9874134f4dcf4f23b8e018324f.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_7f036cdd07c599e74ad9c79548.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\wcwidth\wcwidth\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_dedcbb61132413071320f5be12.yasm" "-" "contrib/python/wcwidth/wcwidth/__init__.py" "_00480085b89c9599719f84576c.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_ba116a7f96593f9ba1a57e6dbc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3" "_032d6d66ecb2a6835f18b4c570.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_f9514b5e309600068865d58d99.rodata" "-" "contrib/python/wcwidth/wcwidth/table_wide.py" "_78eb415f68ec7a8a60fb1c77a0.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_2bf3a57ae22bbbebb1765c5a43.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3" "_bd8ad66b61ceb11d9304bca211.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_69a85c4eee0e0896605b49cf58.rodata" "-" "contrib/python/wcwidth/wcwidth/table_zero.py" "_93693c67c58a217b44b1624392.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_b889488a9f67aaf1d1df6924d4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3" "_e9aa0a9dfd0be7cbb3739ad662.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_aa8ea1cacd3ca20b02bfea58fe.rodata" "-" "contrib/python/wcwidth/wcwidth/unicode_versions.py" "_a041a6e2542d590127e7220a2f.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_37f38d21ceb0ed4e3ad4ea4e99.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3" "_f49d1cbfbdce670a6b7c6835f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7fa2c7119fd8bfc93fded5c302.rodata" "-" "contrib/python/wcwidth/wcwidth/wcwidth.py" "_c4ed0f10234e380d7f2e62dd75.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9e01734f7697622ab86b22efd3.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3" "_dd3353766b5e98a0b61b575d68.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_884b7503349ebe4b046c22bee2.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_dedcbb61132413071320f5be12.yasm" "-" "contrib/python/wcwidth/wcwidth/__init__.py" "_00480085b89c9599719f84576c.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_ba116a7f96593f9ba1a57e6dbc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3" "_032d6d66ecb2a6835f18b4c570.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_f9514b5e309600068865d58d99.rodata" "-" "contrib/python/wcwidth/wcwidth/table_wide.py" "_78eb415f68ec7a8a60fb1c77a0.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_2bf3a57ae22bbbebb1765c5a43.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3" "_bd8ad66b61ceb11d9304bca211.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_69a85c4eee0e0896605b49cf58.rodata" "-" "contrib/python/wcwidth/wcwidth/table_zero.py" "_93693c67c58a217b44b1624392.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_b889488a9f67aaf1d1df6924d4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3" "_e9aa0a9dfd0be7cbb3739ad662.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_aa8ea1cacd3ca20b02bfea58fe.rodata" "-" "contrib/python/wcwidth/wcwidth/unicode_versions.py" "_a041a6e2542d590127e7220a2f.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_37f38d21ceb0ed4e3ad4ea4e99.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3" "_f49d1cbfbdce670a6b7c6835f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7fa2c7119fd8bfc93fded5c302.rodata" "-" "contrib/python/wcwidth/wcwidth/wcwidth.py" "_c4ed0f10234e380d7f2e62dd75.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9e01734f7697622ab86b22efd3.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3" "_dd3353766b5e98a0b61b575d68.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_884b7503349ebe4b046c22bee2.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/__init__.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/__init__.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_dedcbb61132413071320f5be12.yasm" "-" "contrib/python/wcwidth/wcwidth/__init__.py" "_00480085b89c9599719f84576c.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_ba116a7f96593f9ba1a57e6dbc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3" "_032d6d66ecb2a6835f18b4c570.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_f9514b5e309600068865d58d99.rodata" "-" "contrib/python/wcwidth/wcwidth/table_wide.py" "_78eb415f68ec7a8a60fb1c77a0.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_2bf3a57ae22bbbebb1765c5a43.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3" "_bd8ad66b61ceb11d9304bca211.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_69a85c4eee0e0896605b49cf58.rodata" "-" "contrib/python/wcwidth/wcwidth/table_zero.py" "_93693c67c58a217b44b1624392.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_b889488a9f67aaf1d1df6924d4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3" "_e9aa0a9dfd0be7cbb3739ad662.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_aa8ea1cacd3ca20b02bfea58fe.rodata" "-" "contrib/python/wcwidth/wcwidth/unicode_versions.py" "_a041a6e2542d590127e7220a2f.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_37f38d21ceb0ed4e3ad4ea4e99.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3" "_f49d1cbfbdce670a6b7c6835f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7fa2c7119fd8bfc93fded5c302.rodata" "-" "contrib/python/wcwidth/wcwidth/wcwidth.py" "_c4ed0f10234e380d7f2e62dd75.rodata" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9e01734f7697622ab86b22efd3.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3" "_dd3353766b5e98a0b61b575d68.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_884b7503349ebe4b046c22bee2.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_dedcbb61132413071320f5be12.yasm" "-" "contrib/python/wcwidth/wcwidth/__init__.py" "_00480085b89c9599719f84576c.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_ba116a7f96593f9ba1a57e6dbc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3" "_032d6d66ecb2a6835f18b4c570.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_f9514b5e309600068865d58d99.rodata" "-" "contrib/python/wcwidth/wcwidth/table_wide.py" "_78eb415f68ec7a8a60fb1c77a0.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_2bf3a57ae22bbbebb1765c5a43.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3" "_bd8ad66b61ceb11d9304bca211.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_69a85c4eee0e0896605b49cf58.rodata" "-" "contrib/python/wcwidth/wcwidth/table_zero.py" "_93693c67c58a217b44b1624392.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_b889488a9f67aaf1d1df6924d4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3" "_e9aa0a9dfd0be7cbb3739ad662.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_aa8ea1cacd3ca20b02bfea58fe.rodata" "-" "contrib/python/wcwidth/wcwidth/unicode_versions.py" "_a041a6e2542d590127e7220a2f.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_37f38d21ceb0ed4e3ad4ea4e99.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3" "_f49d1cbfbdce670a6b7c6835f3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_7fa2c7119fd8bfc93fded5c302.rodata" "-" "contrib/python/wcwidth/wcwidth/wcwidth.py" "_c4ed0f10234e380d7f2e62dd75.rodata" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_9e01734f7697622ab86b22efd3.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3" "_dd3353766b5e98a0b61b575d68.rodata" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/_884b7503349ebe4b046c22bee2.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/__init__.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/__init__.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,16 +249,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/wcwidth/_dedcbb61132413071320f5be12.yasm	$B/contrib/python/wcwidth/wcwidth/__init__.py.fx7f.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\__init__.py.fx7f.yapyc3;'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\table_wide.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\table_wide.py.bp7j.yapyc3;'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\table_zero.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\table_zero.py.325i.yapyc3;'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\unicode_versions.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\unicode_versions.py.3z4k.yapyc3;'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\wcwidth.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\wcwidth.py.6jpv.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\wcwidth\wcwidth\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\__init__.py.fx7f.yapyc3;$(SolutionDir)..\contrib\python\wcwidth\wcwidth\table_wide.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\table_wide.py.bp7j.yapyc3;$(SolutionDir)..\contrib\python\wcwidth\wcwidth\table_zero.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\table_zero.py.325i.yapyc3;$(SolutionDir)..\contrib\python\wcwidth\wcwidth\unicode_versions.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\unicode_versions.py.3z4k.yapyc3;$(SolutionDir)..\contrib\python\wcwidth\wcwidth\wcwidth.py;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\wcwidth.py.6jpv.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_dedcbb61132413071320f5be12.yasm;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_ba116a7f96593f9ba1a57e6dbc.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_f9514b5e309600068865d58d99.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_2bf3a57ae22bbbebb1765c5a43.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_69a85c4eee0e0896605b49cf58.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_b889488a9f67aaf1d1df6924d4.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_aa8ea1cacd3ca20b02bfea58fe.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_37f38d21ceb0ed4e3ad4ea4e99.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_7fa2c7119fd8bfc93fded5c302.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_9e01734f7697622ab86b22efd3.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\_884b7503349ebe4b046c22bee2.rodata;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\__init__.py.fx7f.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\table_wide.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\wcwidth\wcwidth\table_wide.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/table_wide.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/table_wide.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/table_wide.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/table_wide.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/table_wide.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,16 +280,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/wcwidth/wcwidth/table_wide.py.bp7j.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\table_wide.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\wcwidth\wcwidth\table_wide.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\table_wide.py.bp7j.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\table_zero.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\wcwidth\wcwidth\table_zero.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/table_zero.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/table_zero.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -302,7 +302,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/table_zero.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/table_zero.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/table_zero.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -311,16 +311,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/wcwidth/wcwidth/table_zero.py.325i.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\table_zero.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\wcwidth\wcwidth\table_zero.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\table_zero.py.325i.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\unicode_versions.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\wcwidth\wcwidth\unicode_versions.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/unicode_versions.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/unicode_versions.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -333,7 +333,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/unicode_versions.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/unicode_versions.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/unicode_versions.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -342,16 +342,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/wcwidth/wcwidth/unicode_versions.py.3z4k.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\unicode_versions.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\wcwidth\wcwidth\unicode_versions.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\unicode_versions.py.3z4k.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\wcwidth.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\wcwidth\wcwidth\wcwidth.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/wcwidth.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/wcwidth.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -364,7 +364,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/wcwidth.py-" "$(SolutionDir).." "/contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/wcwidth/wcwidth/wcwidth.py-" "$(SolutionDir)../contrib/python/wcwidth/wcwidth/wcwidth.py" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -373,7 +373,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/wcwidth/wcwidth/wcwidth.py.6jpv.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\wcwidth\wcwidth\wcwidth.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\wcwidth\wcwidth\wcwidth.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\wcwidth\wcwidth.py.6jpv.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>

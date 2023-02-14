@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CONFIG_H -DYASM_LIB_SOURCE  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CONFIG_H -DYASM_LIB_SOURCE  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CONFIG_H -DYASM_LIB_SOURCE  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CONFIG_H -DYASM_LIB_SOURCE  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/tools/yasm;'$(SolutionDir)..'/contrib/tools/yasm/frontends/yasm;'$(SolutionDir)..'/contrib/tools/yasm/modules;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/yasm;$(SolutionDir)../contrib/tools/yasm/frontends/yasm;$(SolutionDir)../contrib/tools/yasm/modules;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,293 +78,293 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\frontends\yasm\yasm-options.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\frontends\yasm\yasm-options.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\frontends\yasm\yasm.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\frontends\yasm\yasm.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\assocdat.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\assocdat.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bc-align.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bc-align.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bc-data.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bc-data.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bc-incbin.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bc-incbin.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bc-org.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bc-org.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bc-reserve.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bc-reserve.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bitvect.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bitvect.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bytecode.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bytecode.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\cmake-module.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\cmake-module.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\errwarn.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\errwarn.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\expr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\expr.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\file.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\file.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\floatnum.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\floatnum.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\hamt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\hamt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\insn.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\insn.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\intnum.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\intnum.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\inttree.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\inttree.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\linemap.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\linemap.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\md5.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\md5.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\mergesort.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\mergesort.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\phash.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\phash.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\replace_path.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\replace_path.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\section.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\section.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\strcasecmp.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\strcasecmp.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\strsep.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\strsep.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\symrec.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\symrec.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\valparam.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\valparam.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\value.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\value.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\xmalloc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\xmalloc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\xstrdup.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\xstrdup.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\arch\lc3b\lc3barch.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\arch\lc3b\lc3barch.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\arch\lc3b\lc3bbc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\arch\lc3b\lc3bbc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\arch\x86\x86arch.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\arch\x86\x86arch.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\arch\x86\x86bc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\arch\x86\x86bc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\arch\x86\x86expr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\arch\x86\x86expr.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\arch\x86\x86id.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\arch\x86\x86id.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\codeview\cv-dbgfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\codeview\cv-dbgfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\codeview\cv-symline.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\codeview\cv-symline.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\codeview\cv-type.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\codeview\cv-type.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-aranges.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-aranges.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-dbgfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-dbgfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-info.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-info.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-line.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-line.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\null\null-dbgfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\null\null-dbgfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\stabs\stabs-dbgfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\stabs\stabs-dbgfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\gas-token.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\gas-token.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\init_plugin.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\init_plugin.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\lc3bid.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\lc3bid.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\listfmts\nasm\nasm-listfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\listfmts\nasm\nasm-listfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\nasm-token.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\nasm-token.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\bin\bin-objfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\bin\bin-objfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\coff\coff-objfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\coff\coff-objfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\coff\win64-except.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\coff\win64-except.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\dbg\dbg-objfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\dbg\dbg-objfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\elf\elf-objfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\elf\elf-objfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\elf\elf-x86-amd64.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\elf\elf-x86-amd64.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\elf\elf-x86-x32.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\elf\elf-x86-x32.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\elf\elf-x86-x86.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\elf\elf-x86-x86.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\elf\elf.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\elf\elf.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\macho\macho-objfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\macho\macho-objfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\rdf\rdf-objfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\rdf\rdf-objfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\xdf\xdf-objfmt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\xdf\xdf-objfmt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\parsers\gas\gas-parse-intel.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\parsers\gas\gas-parse-intel.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\parsers\gas\gas-parse.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\parsers\gas\gas-parse.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\parsers\gas\gas-parser.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\parsers\gas\gas-parser.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\parsers\nasm\nasm-parse.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\parsers\nasm\nasm-parse.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\parsers\nasm\nasm-parser.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\parsers\nasm\nasm-parser.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\cpp\cpp-preproc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\cpp\cpp-preproc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\gas\gas-eval.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\gas\gas-eval.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\gas\gas-preproc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\gas\gas-preproc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\nasm\nasm-eval.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\nasm\nasm-eval.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\nasm\nasm-pp.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\nasm\nasm-pp.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\nasm\nasm-preproc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\nasm\nasm-preproc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\nasm\nasmlib.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\nasm\nasmlib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\raw\raw-preproc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\raw\raw-preproc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\x86cpu.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\x86cpu.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\x86regtmod.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\modules\x86regtmod.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\config-osx-linux.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\config-win.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\config.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\frontends\yasm\yasm-options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\frontends\yasm\yasm-plugin.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm-stdint.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\arch.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\assocdat.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bitvect.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\bytecode.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\compat-queue.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\coretype.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\dbgfmt.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\errwarn.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\expr.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\file.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\floatnum.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\hamt.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\insn.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\intnum.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\inttree.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\linemap.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\listfmt.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\md5.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\module.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\objfmt.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\parser.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\phash.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\preproc.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\section.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\symrec.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\valparam.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\libyasm\value.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\arch\lc3b\lc3barch.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\arch\x86\x86arch.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\codeview\cv-dbgfmt.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-dbgfmt.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\coff\coff-objfmt.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\elf\elf-machine.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\objfmts\elf\elf.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\parsers\gas\gas-parser.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\parsers\nasm\nasm-parser-struct.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\parsers\nasm\nasm-parser.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\gas\gas-eval.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\nasm\nasm-eval.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\nasm\nasm-pp.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\nasm\nasm.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\modules\preprocs\nasm\nasmlib.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\yasm\util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\config-osx-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\config-win.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\config.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\frontends\yasm\yasm-options.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\frontends\yasm\yasm-plugin.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm-stdint.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\arch.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\assocdat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bitvect.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\bytecode.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\compat-queue.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\coretype.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\dbgfmt.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\errwarn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\expr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\file.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\floatnum.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\hamt.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\insn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\intnum.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\inttree.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\linemap.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\listfmt.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\md5.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\module.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\objfmt.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\parser.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\phash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\preproc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\section.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\symrec.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\valparam.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\value.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\arch\lc3b\lc3barch.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\arch\x86\x86arch.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\codeview\cv-dbgfmt.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\dbgfmts\dwarf2\dwarf2-dbgfmt.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\coff\coff-objfmt.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\elf\elf-machine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\objfmts\elf\elf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\parsers\gas\gas-parser.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\parsers\nasm\nasm-parser-struct.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\parsers\nasm\nasm-parser.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\gas\gas-eval.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\nasm\nasm-eval.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\nasm\nasm-pp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\nasm\nasm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\modules\preprocs\nasm\nasmlib.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\yasm\util.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

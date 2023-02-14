@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -186,11 +186,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\_9ceba63a7a31880bdda812ba9d.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\threadpoolctl\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\threadpoolctl\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\threadpoolctl
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_1dc10c67ea55ec7c461566ba8c.yasm" "-" "contrib/python/threadpoolctl/.dist-info/METADATA" "_772ddc1256bf76e5da65adcfbe.rodata" "$(SolutionDir).." "/contrib/python/threadpoolctl/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_f0c395d2c2e3d5a2257b7234ec.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_1dc10c67ea55ec7c461566ba8c.yasm" "-" "contrib/python/threadpoolctl/.dist-info/METADATA" "_772ddc1256bf76e5da65adcfbe.rodata" "$(SolutionDir)../contrib/python/threadpoolctl/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_f0c395d2c2e3d5a2257b7234ec.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\threadpoolctl
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_1dc10c67ea55ec7c461566ba8c.yasm" "-" "contrib/python/threadpoolctl/.dist-info/METADATA" "_772ddc1256bf76e5da65adcfbe.rodata" "$(SolutionDir).." "/contrib/python/threadpoolctl/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_f0c395d2c2e3d5a2257b7234ec.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_1dc10c67ea55ec7c461566ba8c.yasm" "-" "contrib/python/threadpoolctl/.dist-info/METADATA" "_772ddc1256bf76e5da65adcfbe.rodata" "$(SolutionDir)../contrib/python/threadpoolctl/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_f0c395d2c2e3d5a2257b7234ec.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/threadpoolctl/_1dc10c67ea55ec7c461566ba8c.yasm	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\threadpoolctl\.dist-info\METADATA;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\threadpoolctl\.dist-info\METADATA;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\_1dc10c67ea55ec7c461566ba8c.yasm;$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\_f0c395d2c2e3d5a2257b7234ec.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\threadpoolctl\threadpoolctl.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\threadpoolctl\threadpoolctl.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\threadpoolctl
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_a490d595ae132ceb6d9ba40661.yasm" "-" "contrib/python/threadpoolctl/threadpoolctl.py" "_9c6a3f0289265f46293669ebfb.rodata" "$(SolutionDir).." "/contrib/python/threadpoolctl/threadpoolctl.py" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_5e034fe91043a97d2e030acbac.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3" "_6c5e2ce88f26c18eab68c31c7d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_0b196718a3d3269e06f4df7fb9.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_a490d595ae132ceb6d9ba40661.yasm" "-" "contrib/python/threadpoolctl/threadpoolctl.py" "_9c6a3f0289265f46293669ebfb.rodata" "$(SolutionDir)../contrib/python/threadpoolctl/threadpoolctl.py" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_5e034fe91043a97d2e030acbac.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3" "_6c5e2ce88f26c18eab68c31c7d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_0b196718a3d3269e06f4df7fb9.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\threadpoolctl
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/threadpoolctl/threadpoolctl.py-" "$(SolutionDir).." "/contrib/python/threadpoolctl/threadpoolctl.py" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/threadpoolctl/threadpoolctl.py-" "$(SolutionDir)../contrib/python/threadpoolctl/threadpoolctl.py" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\threadpoolctl
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_a490d595ae132ceb6d9ba40661.yasm" "-" "contrib/python/threadpoolctl/threadpoolctl.py" "_9c6a3f0289265f46293669ebfb.rodata" "$(SolutionDir).." "/contrib/python/threadpoolctl/threadpoolctl.py" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_5e034fe91043a97d2e030acbac.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3" "_6c5e2ce88f26c18eab68c31c7d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_0b196718a3d3269e06f4df7fb9.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_a490d595ae132ceb6d9ba40661.yasm" "-" "contrib/python/threadpoolctl/threadpoolctl.py" "_9c6a3f0289265f46293669ebfb.rodata" "$(SolutionDir)../contrib/python/threadpoolctl/threadpoolctl.py" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_5e034fe91043a97d2e030acbac.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3" "_6c5e2ce88f26c18eab68c31c7d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/_0b196718a3d3269e06f4df7fb9.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\threadpoolctl
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/threadpoolctl/threadpoolctl.py-" "$(SolutionDir).." "/contrib/python/threadpoolctl/threadpoolctl.py" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/threadpoolctl/threadpoolctl.py-" "$(SolutionDir)../contrib/python/threadpoolctl/threadpoolctl.py" "$(SolutionDir)$(Configuration)/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,7 +249,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/threadpoolctl/_a490d595ae132ceb6d9ba40661.yasm	$B/contrib/python/threadpoolctl/threadpoolctl.py.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\threadpoolctl\threadpoolctl.py;$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\threadpoolctl.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\threadpoolctl\threadpoolctl.py;$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\threadpoolctl.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\_a490d595ae132ceb6d9ba40661.yasm;$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\_5e034fe91043a97d2e030acbac.rodata;$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\_0b196718a3d3269e06f4df7fb9.rodata;$(SolutionDir)$(Configuration)\contrib\python\threadpoolctl\threadpoolctl.py.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>

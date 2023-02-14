@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -186,11 +186,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_21ffcd435007749d1749cb5137.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\asttokens\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm" "-" "contrib/python/asttokens/.dist-info/METADATA" "_f4e1775e8e66b8aa5fae6883bb.rodata" "$(SolutionDir).." "/contrib/python/asttokens/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_456c30773e246d078865d56825.rodata" "-" "contrib/python/asttokens/.dist-info/top_level.txt" "_8fe2902698116373c3b2fb235d.rodata" "$(SolutionDir).." "/contrib/python/asttokens/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_58af84f6f08244041c0280ca03.rodata" "-" "contrib/python/asttokens/asttokens/py.typed" "_23e79f9dfd019c040efd9b0fa3.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e8c10e59afbe96acf82a3ad749.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm" "-" "contrib/python/asttokens/.dist-info/METADATA" "_f4e1775e8e66b8aa5fae6883bb.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_456c30773e246d078865d56825.rodata" "-" "contrib/python/asttokens/.dist-info/top_level.txt" "_8fe2902698116373c3b2fb235d.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_58af84f6f08244041c0280ca03.rodata" "-" "contrib/python/asttokens/asttokens/py.typed" "_23e79f9dfd019c040efd9b0fa3.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e8c10e59afbe96acf82a3ad749.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm" "-" "contrib/python/asttokens/.dist-info/METADATA" "_f4e1775e8e66b8aa5fae6883bb.rodata" "$(SolutionDir).." "/contrib/python/asttokens/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_456c30773e246d078865d56825.rodata" "-" "contrib/python/asttokens/.dist-info/top_level.txt" "_8fe2902698116373c3b2fb235d.rodata" "$(SolutionDir).." "/contrib/python/asttokens/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_58af84f6f08244041c0280ca03.rodata" "-" "contrib/python/asttokens/asttokens/py.typed" "_23e79f9dfd019c040efd9b0fa3.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e8c10e59afbe96acf82a3ad749.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm" "-" "contrib/python/asttokens/.dist-info/METADATA" "_f4e1775e8e66b8aa5fae6883bb.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_456c30773e246d078865d56825.rodata" "-" "contrib/python/asttokens/.dist-info/top_level.txt" "_8fe2902698116373c3b2fb235d.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_58af84f6f08244041c0280ca03.rodata" "-" "contrib/python/asttokens/asttokens/py.typed" "_23e79f9dfd019c040efd9b0fa3.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e8c10e59afbe96acf82a3ad749.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\asttokens\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\asttokens\.dist-info\top_level.txt;'$(SolutionDir)..'\contrib\python\asttokens\asttokens\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\.dist-info\METADATA;$(SolutionDir)..\contrib\python\asttokens\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\asttokens\asttokens\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_e65fe2c794caf5597c183cc8a8.yasm;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_456c30773e246d078865d56825.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_58af84f6f08244041c0280ca03.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_e8c10e59afbe96acf82a3ad749.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\asttokens\asttokens\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\asttokens\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_c44dbf666125518cd97fae3527.yasm" "-" "contrib/python/asttokens/asttokens/__init__.py" "_a161da1f1104f0316ebca82ada.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_15f46a07ec4cfe352c764cd4eb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3" "_c750ba89d3cad6aa7476ebb7a5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_85352ae5752ce6876615f4c862.rodata" "-" "contrib/python/asttokens/asttokens/astroid_compat.py" "_8777fd713741dee9c0ea7f3650.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/astroid_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_56e7b720099da426a6b80d7f73.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3" "_f28ad22aedf7606ff407486bea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_6d5ca181739469e56f003484eb.rodata" "-" "contrib/python/asttokens/asttokens/asttokens.py" "_c87df67a3373fb5d9b77256175.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/asttokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_cf44d6edd400032ac43d6fb329.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3" "_fea389d4ba002d9cf754d35ad4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_ca6e5a018f35a95ddd120fb911.rodata" "-" "contrib/python/asttokens/asttokens/line_numbers.py" "_74eb962fd20b9247c1d4ed9869.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/line_numbers.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_3dbb51d855b1b21ab328a03f84.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3" "_cb95c3c20c469b9ae08a255d44.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_250726112a40f6da7882601dbf.rodata" "-" "contrib/python/asttokens/asttokens/mark_tokens.py" "_b3013f678fcd0f18eb7d700037.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/mark_tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_4a1a606bb630917508b38a8215.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3" "_ed6b7358959d36ed757aeb3374.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_198d64fb7cdda3d428d2c415a8.rodata" "-" "contrib/python/asttokens/asttokens/util.py" "_6729f93ecf8c23151c834a1c46.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/util.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_9614e41c3a2eff94e50fcc4d03.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3" "_112a7c30f0fae94af3ef2bb843.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_8d1e81f11b40f3e4141f7737be.rodata" "-" "contrib/python/asttokens/asttokens/version.py" "_00b1679952445e0cdbd76a62cf.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/version.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e0353e50a9eba93212cfef9f72.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3" "_73aaed380f576752445480140c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_94a8cc5571639ef14d9257360f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_c44dbf666125518cd97fae3527.yasm" "-" "contrib/python/asttokens/asttokens/__init__.py" "_a161da1f1104f0316ebca82ada.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_15f46a07ec4cfe352c764cd4eb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3" "_c750ba89d3cad6aa7476ebb7a5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_85352ae5752ce6876615f4c862.rodata" "-" "contrib/python/asttokens/asttokens/astroid_compat.py" "_8777fd713741dee9c0ea7f3650.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/astroid_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_56e7b720099da426a6b80d7f73.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3" "_f28ad22aedf7606ff407486bea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_6d5ca181739469e56f003484eb.rodata" "-" "contrib/python/asttokens/asttokens/asttokens.py" "_c87df67a3373fb5d9b77256175.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/asttokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_cf44d6edd400032ac43d6fb329.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3" "_fea389d4ba002d9cf754d35ad4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_ca6e5a018f35a95ddd120fb911.rodata" "-" "contrib/python/asttokens/asttokens/line_numbers.py" "_74eb962fd20b9247c1d4ed9869.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/line_numbers.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_3dbb51d855b1b21ab328a03f84.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3" "_cb95c3c20c469b9ae08a255d44.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_250726112a40f6da7882601dbf.rodata" "-" "contrib/python/asttokens/asttokens/mark_tokens.py" "_b3013f678fcd0f18eb7d700037.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/mark_tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_4a1a606bb630917508b38a8215.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3" "_ed6b7358959d36ed757aeb3374.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_198d64fb7cdda3d428d2c415a8.rodata" "-" "contrib/python/asttokens/asttokens/util.py" "_6729f93ecf8c23151c834a1c46.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/util.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_9614e41c3a2eff94e50fcc4d03.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3" "_112a7c30f0fae94af3ef2bb843.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_8d1e81f11b40f3e4141f7737be.rodata" "-" "contrib/python/asttokens/asttokens/version.py" "_00b1679952445e0cdbd76a62cf.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/version.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e0353e50a9eba93212cfef9f72.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3" "_73aaed380f576752445480140c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_94a8cc5571639ef14d9257360f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/__init__.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/__init__.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_c44dbf666125518cd97fae3527.yasm" "-" "contrib/python/asttokens/asttokens/__init__.py" "_a161da1f1104f0316ebca82ada.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_15f46a07ec4cfe352c764cd4eb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3" "_c750ba89d3cad6aa7476ebb7a5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_85352ae5752ce6876615f4c862.rodata" "-" "contrib/python/asttokens/asttokens/astroid_compat.py" "_8777fd713741dee9c0ea7f3650.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/astroid_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_56e7b720099da426a6b80d7f73.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3" "_f28ad22aedf7606ff407486bea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_6d5ca181739469e56f003484eb.rodata" "-" "contrib/python/asttokens/asttokens/asttokens.py" "_c87df67a3373fb5d9b77256175.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/asttokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_cf44d6edd400032ac43d6fb329.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3" "_fea389d4ba002d9cf754d35ad4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_ca6e5a018f35a95ddd120fb911.rodata" "-" "contrib/python/asttokens/asttokens/line_numbers.py" "_74eb962fd20b9247c1d4ed9869.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/line_numbers.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_3dbb51d855b1b21ab328a03f84.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3" "_cb95c3c20c469b9ae08a255d44.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_250726112a40f6da7882601dbf.rodata" "-" "contrib/python/asttokens/asttokens/mark_tokens.py" "_b3013f678fcd0f18eb7d700037.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/mark_tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_4a1a606bb630917508b38a8215.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3" "_ed6b7358959d36ed757aeb3374.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_198d64fb7cdda3d428d2c415a8.rodata" "-" "contrib/python/asttokens/asttokens/util.py" "_6729f93ecf8c23151c834a1c46.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/util.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_9614e41c3a2eff94e50fcc4d03.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3" "_112a7c30f0fae94af3ef2bb843.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_8d1e81f11b40f3e4141f7737be.rodata" "-" "contrib/python/asttokens/asttokens/version.py" "_00b1679952445e0cdbd76a62cf.rodata" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/version.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e0353e50a9eba93212cfef9f72.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3" "_73aaed380f576752445480140c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_94a8cc5571639ef14d9257360f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_c44dbf666125518cd97fae3527.yasm" "-" "contrib/python/asttokens/asttokens/__init__.py" "_a161da1f1104f0316ebca82ada.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_15f46a07ec4cfe352c764cd4eb.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3" "_c750ba89d3cad6aa7476ebb7a5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_85352ae5752ce6876615f4c862.rodata" "-" "contrib/python/asttokens/asttokens/astroid_compat.py" "_8777fd713741dee9c0ea7f3650.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/astroid_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_56e7b720099da426a6b80d7f73.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3" "_f28ad22aedf7606ff407486bea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_6d5ca181739469e56f003484eb.rodata" "-" "contrib/python/asttokens/asttokens/asttokens.py" "_c87df67a3373fb5d9b77256175.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/asttokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_cf44d6edd400032ac43d6fb329.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3" "_fea389d4ba002d9cf754d35ad4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_ca6e5a018f35a95ddd120fb911.rodata" "-" "contrib/python/asttokens/asttokens/line_numbers.py" "_74eb962fd20b9247c1d4ed9869.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/line_numbers.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_3dbb51d855b1b21ab328a03f84.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3" "_cb95c3c20c469b9ae08a255d44.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_250726112a40f6da7882601dbf.rodata" "-" "contrib/python/asttokens/asttokens/mark_tokens.py" "_b3013f678fcd0f18eb7d700037.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/mark_tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_4a1a606bb630917508b38a8215.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3" "_ed6b7358959d36ed757aeb3374.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_198d64fb7cdda3d428d2c415a8.rodata" "-" "contrib/python/asttokens/asttokens/util.py" "_6729f93ecf8c23151c834a1c46.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/util.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_9614e41c3a2eff94e50fcc4d03.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3" "_112a7c30f0fae94af3ef2bb843.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_8d1e81f11b40f3e4141f7737be.rodata" "-" "contrib/python/asttokens/asttokens/version.py" "_00b1679952445e0cdbd76a62cf.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/version.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e0353e50a9eba93212cfef9f72.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3" "_73aaed380f576752445480140c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_94a8cc5571639ef14d9257360f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/__init__.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/__init__.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,16 +249,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/_c44dbf666125518cd97fae3527.yasm	$B/contrib/python/asttokens/asttokens/__init__.py.swqk.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\asttokens\asttokens\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\__init__.py.swqk.yapyc3;'$(SolutionDir)..'\contrib\python\asttokens\asttokens\astroid_compat.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\astroid_compat.py.njet.yapyc3;'$(SolutionDir)..'\contrib\python\asttokens\asttokens\asttokens.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\asttokens.py.rc2v.yapyc3;'$(SolutionDir)..'\contrib\python\asttokens\asttokens\line_numbers.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\line_numbers.py.ri6v.yapyc3;'$(SolutionDir)..'\contrib\python\asttokens\asttokens\mark_tokens.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\mark_tokens.py.l7fa.yapyc3;'$(SolutionDir)..'\contrib\python\asttokens\asttokens\util.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\util.py.zo3s.yapyc3;'$(SolutionDir)..'\contrib\python\asttokens\asttokens\version.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\version.py.2d7q.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\asttokens\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\__init__.py.swqk.yapyc3;$(SolutionDir)..\contrib\python\asttokens\asttokens\astroid_compat.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\astroid_compat.py.njet.yapyc3;$(SolutionDir)..\contrib\python\asttokens\asttokens\asttokens.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\asttokens.py.rc2v.yapyc3;$(SolutionDir)..\contrib\python\asttokens\asttokens\line_numbers.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\line_numbers.py.ri6v.yapyc3;$(SolutionDir)..\contrib\python\asttokens\asttokens\mark_tokens.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\mark_tokens.py.l7fa.yapyc3;$(SolutionDir)..\contrib\python\asttokens\asttokens\util.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\util.py.zo3s.yapyc3;$(SolutionDir)..\contrib\python\asttokens\asttokens\version.py;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\version.py.2d7q.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_c44dbf666125518cd97fae3527.yasm;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_15f46a07ec4cfe352c764cd4eb.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_85352ae5752ce6876615f4c862.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_56e7b720099da426a6b80d7f73.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_6d5ca181739469e56f003484eb.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_cf44d6edd400032ac43d6fb329.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_ca6e5a018f35a95ddd120fb911.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_3dbb51d855b1b21ab328a03f84.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_250726112a40f6da7882601dbf.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_4a1a606bb630917508b38a8215.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_198d64fb7cdda3d428d2c415a8.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_9614e41c3a2eff94e50fcc4d03.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_8d1e81f11b40f3e4141f7737be.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_e0353e50a9eba93212cfef9f72.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_94a8cc5571639ef14d9257360f.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\__init__.py.swqk.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\asttokens\asttokens\astroid_compat.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\asttokens\astroid_compat.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/astroid_compat.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/astroid_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/astroid_compat.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/astroid_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/astroid_compat.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/astroid_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/astroid_compat.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/astroid_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,16 +280,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/asttokens/astroid_compat.py.njet.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\asttokens\asttokens\astroid_compat.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\asttokens\astroid_compat.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\astroid_compat.py.njet.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\asttokens\asttokens\asttokens.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\asttokens\asttokens.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/asttokens.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/asttokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/asttokens.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/asttokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -302,7 +302,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/asttokens.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/asttokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/asttokens.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/asttokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -311,16 +311,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/asttokens/asttokens.py.rc2v.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\asttokens\asttokens\asttokens.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\asttokens\asttokens.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\asttokens.py.rc2v.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\asttokens\asttokens\line_numbers.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\asttokens\line_numbers.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/line_numbers.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/line_numbers.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/line_numbers.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/line_numbers.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -333,7 +333,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/line_numbers.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/line_numbers.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/line_numbers.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/line_numbers.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -342,16 +342,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/asttokens/line_numbers.py.ri6v.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\asttokens\asttokens\line_numbers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\asttokens\line_numbers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\line_numbers.py.ri6v.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\asttokens\asttokens\mark_tokens.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\asttokens\mark_tokens.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/mark_tokens.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/mark_tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/mark_tokens.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/mark_tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -364,7 +364,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/mark_tokens.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/mark_tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/mark_tokens.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/mark_tokens.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -373,16 +373,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/asttokens/mark_tokens.py.l7fa.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\asttokens\asttokens\mark_tokens.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\asttokens\mark_tokens.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\mark_tokens.py.l7fa.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\asttokens\asttokens\util.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\asttokens\util.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/util.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/util.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/util.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/util.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -395,7 +395,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/util.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/util.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/util.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/util.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -404,16 +404,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/asttokens/util.py.zo3s.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\asttokens\asttokens\util.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\asttokens\util.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\util.py.zo3s.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\asttokens\asttokens\version.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\asttokens\version.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/version.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/version.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/version.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/version.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -426,7 +426,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/version.py-" "$(SolutionDir).." "/contrib/python/asttokens/asttokens/version.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/asttokens/asttokens/version.py-" "$(SolutionDir)../contrib/python/asttokens/asttokens/version.py" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -435,7 +435,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/asttokens/version.py.2d7q.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\asttokens\asttokens\version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\asttokens\version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\asttokens\version.py.2d7q.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>

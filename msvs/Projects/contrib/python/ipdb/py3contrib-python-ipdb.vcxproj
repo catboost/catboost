@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -221,11 +221,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\_0ea32455965b116c72de81ef52.yasm;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_bb4e52efac8d384e0456d667a1.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\ipdb\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\ipdb\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_9ca8ffabc7df4a969881963434.yasm" "-" "contrib/python/ipdb/.dist-info/METADATA" "_8e847814b1550149984cda2fa9.rodata" "$(SolutionDir).." "/contrib/python/ipdb/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_e017846ff47b6b5f85aebdbd83.rodata" "-" "contrib/python/ipdb/.dist-info/entry_points.txt" "_864bcd094894c2a3f28de0cf72.rodata" "$(SolutionDir).." "/contrib/python/ipdb/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_12371b35c4ff6341d283324ef4.rodata" "-" "contrib/python/ipdb/.dist-info/top_level.txt" "_73cf9c25a12a486f5f4e9a0389.rodata" "$(SolutionDir).." "/contrib/python/ipdb/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_e0cd0ca751305ce72a5ecbc17e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_9ca8ffabc7df4a969881963434.yasm" "-" "contrib/python/ipdb/.dist-info/METADATA" "_8e847814b1550149984cda2fa9.rodata" "$(SolutionDir)../contrib/python/ipdb/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_e017846ff47b6b5f85aebdbd83.rodata" "-" "contrib/python/ipdb/.dist-info/entry_points.txt" "_864bcd094894c2a3f28de0cf72.rodata" "$(SolutionDir)../contrib/python/ipdb/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_12371b35c4ff6341d283324ef4.rodata" "-" "contrib/python/ipdb/.dist-info/top_level.txt" "_73cf9c25a12a486f5f4e9a0389.rodata" "$(SolutionDir)../contrib/python/ipdb/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_e0cd0ca751305ce72a5ecbc17e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -236,7 +236,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_9ca8ffabc7df4a969881963434.yasm" "-" "contrib/python/ipdb/.dist-info/METADATA" "_8e847814b1550149984cda2fa9.rodata" "$(SolutionDir).." "/contrib/python/ipdb/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_e017846ff47b6b5f85aebdbd83.rodata" "-" "contrib/python/ipdb/.dist-info/entry_points.txt" "_864bcd094894c2a3f28de0cf72.rodata" "$(SolutionDir).." "/contrib/python/ipdb/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_12371b35c4ff6341d283324ef4.rodata" "-" "contrib/python/ipdb/.dist-info/top_level.txt" "_73cf9c25a12a486f5f4e9a0389.rodata" "$(SolutionDir).." "/contrib/python/ipdb/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_e0cd0ca751305ce72a5ecbc17e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_9ca8ffabc7df4a969881963434.yasm" "-" "contrib/python/ipdb/.dist-info/METADATA" "_8e847814b1550149984cda2fa9.rodata" "$(SolutionDir)../contrib/python/ipdb/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_e017846ff47b6b5f85aebdbd83.rodata" "-" "contrib/python/ipdb/.dist-info/entry_points.txt" "_864bcd094894c2a3f28de0cf72.rodata" "$(SolutionDir)../contrib/python/ipdb/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_12371b35c4ff6341d283324ef4.rodata" "-" "contrib/python/ipdb/.dist-info/top_level.txt" "_73cf9c25a12a486f5f4e9a0389.rodata" "$(SolutionDir)../contrib/python/ipdb/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_e0cd0ca751305ce72a5ecbc17e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -245,20 +245,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/ipdb/_9ca8ffabc7df4a969881963434.yasm	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\ipdb\.dist-info\METADATA;'$(SolutionDir)..'\contrib\python\ipdb\.dist-info\entry_points.txt;'$(SolutionDir)..'\contrib\python\ipdb\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\ipdb\.dist-info\METADATA;$(SolutionDir)..\contrib\python\ipdb\.dist-info\entry_points.txt;$(SolutionDir)..\contrib\python\ipdb\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\_9ca8ffabc7df4a969881963434.yasm;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_e017846ff47b6b5f85aebdbd83.rodata;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_12371b35c4ff6341d283324ef4.rodata;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_e0cd0ca751305ce72a5ecbc17e.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\ipdb\ipdb\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\ipdb\ipdb\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_1a00d370492dbc4e1dfc3c41f0.yasm" "-" "contrib/python/ipdb/ipdb/__init__.py" "_426b879b9f07190c4f840a9654.rodata" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_5dbcc237e69ca05f0c5ac54336.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3" "_f5144113fea366b191a4fad2e9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_4fb5a433465165552493dc620f.rodata" "-" "contrib/python/ipdb/ipdb/__main__.py" "_71bff59837c5fcf34a49eafc72.rodata" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/__main__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_12fc2d33aae75f0ebbc7acebee.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3" "_96818774e821bcc8eb50198bf5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_77ca536a298fd6822e11317432.rodata" "-" "contrib/python/ipdb/ipdb/stdout.py" "_82a7d961cf7b7b3167b48dc361.rodata" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/stdout.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_004e7f7065be3dbae248b25923.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3" "_de90307607b04eb540f54c0360.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_fc616d3958c5a124d184bf9ad2.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_1a00d370492dbc4e1dfc3c41f0.yasm" "-" "contrib/python/ipdb/ipdb/__init__.py" "_426b879b9f07190c4f840a9654.rodata" "$(SolutionDir)../contrib/python/ipdb/ipdb/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_5dbcc237e69ca05f0c5ac54336.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3" "_f5144113fea366b191a4fad2e9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_4fb5a433465165552493dc620f.rodata" "-" "contrib/python/ipdb/ipdb/__main__.py" "_71bff59837c5fcf34a49eafc72.rodata" "$(SolutionDir)../contrib/python/ipdb/ipdb/__main__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_12fc2d33aae75f0ebbc7acebee.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3" "_96818774e821bcc8eb50198bf5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_77ca536a298fd6822e11317432.rodata" "-" "contrib/python/ipdb/ipdb/stdout.py" "_82a7d961cf7b7b3167b48dc361.rodata" "$(SolutionDir)../contrib/python/ipdb/ipdb/stdout.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_004e7f7065be3dbae248b25923.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3" "_de90307607b04eb540f54c0360.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_fc616d3958c5a124d184bf9ad2.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/__init__.py-" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/__init__.py-" "$(SolutionDir)../contrib/python/ipdb/ipdb/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -269,13 +269,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_1a00d370492dbc4e1dfc3c41f0.yasm" "-" "contrib/python/ipdb/ipdb/__init__.py" "_426b879b9f07190c4f840a9654.rodata" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_5dbcc237e69ca05f0c5ac54336.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3" "_f5144113fea366b191a4fad2e9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_4fb5a433465165552493dc620f.rodata" "-" "contrib/python/ipdb/ipdb/__main__.py" "_71bff59837c5fcf34a49eafc72.rodata" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/__main__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_12fc2d33aae75f0ebbc7acebee.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3" "_96818774e821bcc8eb50198bf5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_77ca536a298fd6822e11317432.rodata" "-" "contrib/python/ipdb/ipdb/stdout.py" "_82a7d961cf7b7b3167b48dc361.rodata" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/stdout.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_004e7f7065be3dbae248b25923.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3" "_de90307607b04eb540f54c0360.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_fc616d3958c5a124d184bf9ad2.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_1a00d370492dbc4e1dfc3c41f0.yasm" "-" "contrib/python/ipdb/ipdb/__init__.py" "_426b879b9f07190c4f840a9654.rodata" "$(SolutionDir)../contrib/python/ipdb/ipdb/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_5dbcc237e69ca05f0c5ac54336.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3" "_f5144113fea366b191a4fad2e9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_4fb5a433465165552493dc620f.rodata" "-" "contrib/python/ipdb/ipdb/__main__.py" "_71bff59837c5fcf34a49eafc72.rodata" "$(SolutionDir)../contrib/python/ipdb/ipdb/__main__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_12fc2d33aae75f0ebbc7acebee.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3" "_96818774e821bcc8eb50198bf5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_77ca536a298fd6822e11317432.rodata" "-" "contrib/python/ipdb/ipdb/stdout.py" "_82a7d961cf7b7b3167b48dc361.rodata" "$(SolutionDir)../contrib/python/ipdb/ipdb/stdout.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_004e7f7065be3dbae248b25923.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3" "_de90307607b04eb540f54c0360.rodata" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/_fc616d3958c5a124d184bf9ad2.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/__init__.py-" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/__init__.py-" "$(SolutionDir)../contrib/python/ipdb/ipdb/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -284,16 +284,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/ipdb/_1a00d370492dbc4e1dfc3c41f0.yasm	$B/contrib/python/ipdb/ipdb/__init__.py.ecml.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\ipdb\ipdb\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\__init__.py.ecml.yapyc3;'$(SolutionDir)..'\contrib\python\ipdb\ipdb\__main__.py;$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\__main__.py.gaa4.yapyc3;'$(SolutionDir)..'\contrib\python\ipdb\ipdb\stdout.py;$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\stdout.py.b2lm.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\ipdb\ipdb\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\__init__.py.ecml.yapyc3;$(SolutionDir)..\contrib\python\ipdb\ipdb\__main__.py;$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\__main__.py.gaa4.yapyc3;$(SolutionDir)..\contrib\python\ipdb\ipdb\stdout.py;$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\stdout.py.b2lm.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\_1a00d370492dbc4e1dfc3c41f0.yasm;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_5dbcc237e69ca05f0c5ac54336.rodata;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_4fb5a433465165552493dc620f.rodata;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_12fc2d33aae75f0ebbc7acebee.rodata;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_77ca536a298fd6822e11317432.rodata;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_004e7f7065be3dbae248b25923.rodata;$(SolutionDir)$(Configuration)\contrib\python\ipdb\_fc616d3958c5a124d184bf9ad2.rodata;$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\__init__.py.ecml.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\ipdb\ipdb\__main__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\ipdb\ipdb\__main__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/__main__.py-" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/__main__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/__main__.py-" "$(SolutionDir)../contrib/python/ipdb/ipdb/__main__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -306,7 +306,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/__main__.py-" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/__main__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/__main__.py-" "$(SolutionDir)../contrib/python/ipdb/ipdb/__main__.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -315,16 +315,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/ipdb/ipdb/__main__.py.gaa4.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\ipdb\ipdb\__main__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\ipdb\ipdb\__main__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\__main__.py.gaa4.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\contrib\python\ipdb\ipdb\stdout.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\ipdb\ipdb\stdout.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/stdout.py-" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/stdout.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/stdout.py-" "$(SolutionDir)../contrib/python/ipdb/ipdb/stdout.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -337,7 +337,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/stdout.py-" "$(SolutionDir).." "/contrib/python/ipdb/ipdb/stdout.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/ipdb/ipdb/stdout.py-" "$(SolutionDir)../contrib/python/ipdb/ipdb/stdout.py" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -346,7 +346,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/ipdb/ipdb/stdout.py.b2lm.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\contrib\python\ipdb\ipdb\stdout.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\ipdb\ipdb\stdout.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\ipdb\stdout.py.b2lm.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>

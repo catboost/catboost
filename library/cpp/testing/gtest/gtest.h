@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/cpp/testing/gtest/matchers.h>
+
 #include <library/cpp/testing/gtest_extensions/gtest_extensions.h>
 
 #include <gtest/gtest.h>

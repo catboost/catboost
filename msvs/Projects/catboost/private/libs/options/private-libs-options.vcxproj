@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/libs/tbb/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/tbb/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,49 +78,49 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\analytical_mode_params.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\binarization_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\boosting_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\bootstrap_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\cat_feature_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\catboost_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\check_train_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\class_label_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\cross_validation_params.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\data_processing_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\dataset_reading_params.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\defaults_helper.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\embedding_processing_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\enum_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\analytical_mode_params.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\binarization_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\boosting_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\bootstrap_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\cat_feature_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\catboost_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\check_train_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\class_label_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\cross_validation_params.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\data_processing_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\dataset_reading_params.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\defaults_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\embedding_processing_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\enum_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\private\libs\options\enums.h_serialized.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\feature_eval_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\feature_penalties_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\features_select_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\json_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\feature_eval_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\feature_penalties_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\features_select_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\json_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\private\libs\options\json_helper.h_serialized.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\load_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\loss_description.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\metric_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\model_based_eval_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\monotone_constraints.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\oblivious_tree_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\option.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\output_file_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\overfitting_detector_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\parse_per_feature_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\path_helpers.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\plain_options_helper.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\pool_metainfo_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\runtime_embedding_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\runtime_text_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\split_params.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\system_options.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\private\libs\options\text_processing_options.cpp"/>
-    <CustomBuild Include="'$(SolutionDir)..'\catboost\private\libs\options\enums.h">
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\load_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\loss_description.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\metric_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\model_based_eval_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\monotone_constraints.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\oblivious_tree_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\option.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\output_file_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\overfitting_detector_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\parse_per_feature_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\path_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\plain_options_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\pool_metainfo_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\runtime_embedding_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\runtime_text_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\split_params.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\system_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\text_processing_options.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\catboost\private\libs\options\enums.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\options
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/private/libs/options/enums.h" "--include-path" "catboost/private/libs/options/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/private/libs/options/enums.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/private/libs/options/enums.h" "--include-path" "catboost/private/libs/options/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/private/libs/options/enums.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -131,7 +131,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\options
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/private/libs/options/enums.h" "--include-path" "catboost/private/libs/options/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/private/libs/options/enums.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/private/libs/options/enums.h" "--include-path" "catboost/private/libs/options/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/private/libs/options/enums.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -140,14 +140,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/private/libs/options/enums.h_serialized.cpp	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\catboost\private\libs\options\enums.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\private\libs\options\enums.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\private\libs\options\enums.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\catboost\private\libs\options\json_helper.h">
+    <CustomBuild Include="$(SolutionDir)..\catboost\private\libs\options\json_helper.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\options
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/private/libs/options/json_helper.h" "--include-path" "catboost/private/libs/options/json_helper.h" "--output" "$(SolutionDir)$(Configuration)/catboost/private/libs/options/json_helper.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/private/libs/options/json_helper.h" "--include-path" "catboost/private/libs/options/json_helper.h" "--output" "$(SolutionDir)$(Configuration)/catboost/private/libs/options/json_helper.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -158,7 +158,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\options
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/private/libs/options/json_helper.h" "--include-path" "catboost/private/libs/options/json_helper.h" "--output" "$(SolutionDir)$(Configuration)/catboost/private/libs/options/json_helper.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/private/libs/options/json_helper.h" "--include-path" "catboost/private/libs/options/json_helper.h" "--output" "$(SolutionDir)$(Configuration)/catboost/private/libs/options/json_helper.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -167,46 +167,46 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/private/libs/options/json_helper.h_serialized.cpp	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\catboost\private\libs\options\json_helper.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\private\libs\options\json_helper.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\private\libs\options\json_helper.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\analytical_mode_params.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\binarization_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\boosting_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\bootstrap_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\cat_feature_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\catboost_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\check_train_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\class_label_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\cross_validation_params.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\data_processing_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\dataset_reading_params.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\defaults_helper.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\embedding_processing_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\enum_helpers.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\feature_eval_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\feature_penalties_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\features_select_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\load_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\loss_description.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\metric_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\model_based_eval_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\monotone_constraints.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\oblivious_tree_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\option.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\output_file_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\overfitting_detector_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\parse_per_feature_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\path_helpers.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\plain_options_helper.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\pool_metainfo_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\restrictions.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\runtime_embedding_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\runtime_text_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\split_params.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\system_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\text_processing_options.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\private\libs\options\unimplemented_aware_option.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\analytical_mode_params.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\binarization_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\boosting_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\bootstrap_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\cat_feature_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\catboost_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\check_train_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\class_label_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\cross_validation_params.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\data_processing_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\dataset_reading_params.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\defaults_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\embedding_processing_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\enum_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\feature_eval_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\feature_penalties_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\features_select_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\load_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\loss_description.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\metric_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\model_based_eval_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\monotone_constraints.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\oblivious_tree_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\option.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\output_file_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\overfitting_detector_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\parse_per_feature_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\path_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\plain_options_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\pool_metainfo_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\restrictions.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\runtime_embedding_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\runtime_text_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\split_params.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\system_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\text_processing_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\unimplemented_aware_option.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

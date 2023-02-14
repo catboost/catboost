@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CONFIG_H -DHAVE_PTHREAD=1 -DHAVE_ZLIB=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CONFIG_H -DHAVE_PTHREAD=1 -DHAVE_ZLIB=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CONFIG_H -DHAVE_PTHREAD=1 -DHAVE_ZLIB=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DHAVE_CONFIG_H -DHAVE_PTHREAD=1 -DHAVE_ZLIB=1 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/protobuf/src;'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,138 +78,138 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\any.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\any.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\any_lite.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\api.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\arena.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\arenastring.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\descriptor.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\descriptor.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\descriptor_database.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\duration.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\dynamic_message.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\empty.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\extension_set.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\extension_set_heavy.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\field_mask.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_enum_util.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_bases.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_reflection.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven_lite.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_full.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_lite.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_util.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\implicit_weak_message.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\inlined_string_field.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\coded_stream.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\gzip_stream.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\io_win32.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\printer.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\strtod.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\tokenizer.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream_impl.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream_impl_lite.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\json_util.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map_field.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\message.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\message_lite.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\messagext.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\parse_context.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\reflection_ops.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\repeated_field.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\repeated_ptr_field.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\service.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\source_context.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\struct.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\bytestream.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\common.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\int128.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\status.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\statusor.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\stringpiece.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\stringprintf.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\structurally_valid.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\strutil.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\substitute.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\time.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\text_format.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\timestamp.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\type.pb.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\unknown_field_set.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\delimited_message_util.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\field_comparator.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\field_mask_util.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\datapiece.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\default_value_objectwriter.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\error_listener.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\field_mask_utility.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\json_escaping.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\json_objectwriter.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\json_stream_parser.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\object_writer.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\proto_writer.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectsource.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectwriter.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\type_info.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\utility.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\json_util.cc">
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\api.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\arena.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\arenastring.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\descriptor.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\descriptor.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\descriptor_database.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\duration.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\dynamic_message.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\empty.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set_heavy.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_mask.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_bases.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_reflection.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_full.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\implicit_weak_message.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\inlined_string_field.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\coded_stream.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\gzip_stream.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\io_win32.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\printer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\strtod.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\tokenizer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream_impl.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream_impl_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\json_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map_field.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messagext.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\parse_context.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\reflection_ops.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\repeated_field.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\repeated_ptr_field.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\service.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\source_context.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\struct.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\bytestream.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\common.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\int128.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\status.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\statusor.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\stringpiece.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\stringprintf.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\structurally_valid.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\strutil.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\substitute.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\time.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\text_format.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\timestamp.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\type.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\unknown_field_set.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\delimited_message_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\field_comparator.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\field_mask_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\datapiece.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\default_value_objectwriter.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\error_listener.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\field_mask_utility.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\json_escaping.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\json_objectwriter.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\json_stream_parser.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\object_writer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\proto_writer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectsource.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectwriter.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\type_info.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\utility.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\json_util.cc">
       <ObjectFileName>$(IntDir)json_util_extra1.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\message_differencer.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\time_util.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\type_resolver_util.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\wire_format.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\wire_format_lite.cc"/>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\wrappers.pb.cc"/>
-    <CustomBuild Include="'$(SolutionDir)..'\build\scripts\fs_tools.py">
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\message_differencer.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\time_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\type_resolver_util.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wire_format.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wire_format_lite.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wrappers.pb.cc"/>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/any.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/any.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/api.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/api.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/descriptor.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/descriptor.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/duration.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/duration.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/empty.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/empty.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/field_mask.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/field_mask.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/source_context.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/source_context.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/struct.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/struct.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/timestamp.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/timestamp.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/type.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/type.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/wrappers.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/wrappers.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -220,47 +220,47 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/any.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/any.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/api.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/api.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/descriptor.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/descriptor.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/duration.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/duration.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/empty.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/empty.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/field_mask.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/field_mask.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/source_context.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/source_context.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/struct.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/struct.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/timestamp.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/timestamp.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/type.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/type.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/fs_tools.py" "copy" "$(SolutionDir).." "/contrib/libs/protobuf/src/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/wrappers.proto"
+python.exe "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/src/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/src/google/protobuf/wrappers.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -269,124 +269,124 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/protobuf/src/google/protobuf/any.proto	$B/contrib/libs/protobuf/src/google/protobuf/api.proto	$B/contrib/libs/protobuf/src/google/protobuf/descriptor.proto	$B/contrib/libs/protobuf/src/google/protobuf/duration.proto	$B/contrib/libs/protobuf/src/google/protobuf/empty.proto	$B/contrib/libs/protobuf/src/google/protobuf/field_mask.proto	$B/contrib/libs/protobuf/src/google/protobuf/source_context.proto	$B/contrib/libs/protobuf/src/google/protobuf/struct.proto	$B/contrib/libs/protobuf/src/google/protobuf/timestamp.proto	$B/contrib/libs/protobuf/src/google/protobuf/type.proto	$B/contrib/libs/protobuf/src/google/protobuf/wrappers.proto	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\build\scripts\fs_tools.py;'$(SolutionDir)..'\build\scripts\process_command_files.py;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\any.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\api.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\descriptor.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\duration.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\empty.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\field_mask.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\source_context.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\struct.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\timestamp.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\type.proto;'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\wrappers.proto;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\api.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\descriptor.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\duration.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\empty.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_mask.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\source_context.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\struct.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\timestamp.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\type.proto;$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wrappers.proto;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\any.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\api.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\descriptor.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\duration.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\empty.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\field_mask.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\source_context.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\struct.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\timestamp.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\type.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\src\google\protobuf\wrappers.proto;</Outputs>
     </CustomBuild>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\any.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\any.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\api.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\arena.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\arena_impl.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\arenastring.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\descriptor.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\descriptor.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\descriptor_database.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\duration.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\dynamic_message.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\empty.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\explicitly_constructed.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\extension_set.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\extension_set_inl.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\field_mask.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_enum_reflection.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_enum_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_bases.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_reflection.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven_lite.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_decl.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_impl.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\generated_message_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\has_bits.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\implicit_weak_message.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\inlined_string_field.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\coded_stream.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\gzip_stream.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\io_win32.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\printer.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\strtod.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\tokenizer.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream_impl.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream_impl_lite.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\json_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map_entry.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map_entry_lite.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map_field.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map_field_inl.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map_field_lite.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\map_type_handler.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\message.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\message_lite.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\messagext.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\metadata_lite.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\parse_context.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\port.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\reflection.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\reflection_internal.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\reflection_ops.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\repeated_field.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\repeated_ptr_field.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\service.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\source_context.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\struct.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\bytestream.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\callback.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\casts.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\common.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\hash.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\int128.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\logging.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\macros.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\map_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\mathutil.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\mutex.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\once.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\platform_macros.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\port.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\status.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\status_macros.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\statusor.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\stl_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\stringpiece.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\stringprintf.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\strutil.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\substitute.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\stubs\time.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\text_format.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\timestamp.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\type.pb.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\unknown_field_set.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\delimited_message_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\field_comparator.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\field_mask_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\constants.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\datapiece.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\default_value_objectwriter.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\error_listener.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\field_mask_utility.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\json_escaping.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\json_objectwriter.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\json_stream_parser.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\location_tracker.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\object_location_tracker.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\object_source.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\object_writer.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\proto_writer.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectsource.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectwriter.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\structured_objectwriter.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\type_info.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\internal\utility.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\json_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\message_differencer.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\time_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\type_resolver.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\util\type_resolver_util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\wire_format.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\wire_format_lite.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\libs\protobuf\src\google\protobuf\wrappers.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\api.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\arena.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\arena_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\arenastring.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\descriptor.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\descriptor.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\descriptor_database.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\duration.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\dynamic_message.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\empty.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\explicitly_constructed.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\extension_set_inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\field_mask.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_reflection.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_enum_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_bases.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_reflection.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_table_driven_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_decl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_tctable_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\generated_message_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\has_bits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\implicit_weak_message.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\inlined_string_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\coded_stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\gzip_stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\io_win32.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\printer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\strtod.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\tokenizer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\io\zero_copy_stream_impl_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\json_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map_entry.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map_entry_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map_field_inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\map_type_handler.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\message_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\messagext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\metadata_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\parse_context.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\port.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\reflection.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\reflection_internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\reflection_ops.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\repeated_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\repeated_ptr_field.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\service.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\source_context.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\struct.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\bytestream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\callback.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\casts.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\int128.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\logging.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\macros.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\map_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\mathutil.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\once.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\platform_macros.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\port.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\status.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\status_macros.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\statusor.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\stl_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\stringpiece.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\stringprintf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\strutil.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\substitute.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\stubs\time.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\text_format.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\timestamp.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\type.pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\unknown_field_set.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\delimited_message_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\field_comparator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\field_mask_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\constants.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\datapiece.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\default_value_objectwriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\error_listener.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\field_mask_utility.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\json_escaping.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\json_objectwriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\json_stream_parser.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\location_tracker.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\object_location_tracker.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\object_source.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\object_writer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\proto_writer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectsource.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\protostream_objectwriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\structured_objectwriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\type_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\internal\utility.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\json_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\message_differencer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\time_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\type_resolver.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\util\type_resolver_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wire_format.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wire_format_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\wrappers.pb.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

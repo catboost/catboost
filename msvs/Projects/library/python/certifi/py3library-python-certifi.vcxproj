@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -186,11 +186,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\certifi\_0ece6e25a619e8ee242921135a.yasm;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\library\python\certifi\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\library\python\certifi\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/certifi/_26df9ff032b80472c65227b736.yasm" "-" "library/python/certifi/.dist-info/METADATA" "_cda5be44cc2f6bdb5d243480d6.rodata" "$(SolutionDir).." "/library/python/certifi/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/library/python/certifi/_b5f2a2d5f6342bb86f453d5ca8.rodata" "-" "library/python/certifi/.dist-info/top_level.txt" "_1932654c2dc2b34acd3381b7e2.rodata" "$(SolutionDir).." "/library/python/certifi/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/library/python/certifi/_507d51ac9862b56a9146c91c74.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/certifi/_26df9ff032b80472c65227b736.yasm" "-" "library/python/certifi/.dist-info/METADATA" "_cda5be44cc2f6bdb5d243480d6.rodata" "$(SolutionDir)../library/python/certifi/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/library/python/certifi/_b5f2a2d5f6342bb86f453d5ca8.rodata" "-" "library/python/certifi/.dist-info/top_level.txt" "_1932654c2dc2b34acd3381b7e2.rodata" "$(SolutionDir)../library/python/certifi/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/library/python/certifi/_507d51ac9862b56a9146c91c74.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/certifi/_26df9ff032b80472c65227b736.yasm" "-" "library/python/certifi/.dist-info/METADATA" "_cda5be44cc2f6bdb5d243480d6.rodata" "$(SolutionDir).." "/library/python/certifi/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/library/python/certifi/_b5f2a2d5f6342bb86f453d5ca8.rodata" "-" "library/python/certifi/.dist-info/top_level.txt" "_1932654c2dc2b34acd3381b7e2.rodata" "$(SolutionDir).." "/library/python/certifi/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/library/python/certifi/_507d51ac9862b56a9146c91c74.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/certifi/_26df9ff032b80472c65227b736.yasm" "-" "library/python/certifi/.dist-info/METADATA" "_cda5be44cc2f6bdb5d243480d6.rodata" "$(SolutionDir)../library/python/certifi/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/library/python/certifi/_b5f2a2d5f6342bb86f453d5ca8.rodata" "-" "library/python/certifi/.dist-info/top_level.txt" "_1932654c2dc2b34acd3381b7e2.rodata" "$(SolutionDir)../library/python/certifi/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/library/python/certifi/_507d51ac9862b56a9146c91c74.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,20 +210,20 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/certifi/_26df9ff032b80472c65227b736.yasm	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\library\python\certifi\.dist-info\METADATA;'$(SolutionDir)..'\library\python\certifi\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\python\certifi\.dist-info\METADATA;$(SolutionDir)..\library\python\certifi\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\certifi\_26df9ff032b80472c65227b736.yasm;$(SolutionDir)$(Configuration)\library\python\certifi\_b5f2a2d5f6342bb86f453d5ca8.rodata;$(SolutionDir)$(Configuration)\library\python\certifi\_507d51ac9862b56a9146c91c74.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\library\python\certifi\certifi\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\library\python\certifi\certifi\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/certifi/_4dd1b8e5f97d2429b3683814aa.yasm" "-" "library/python/certifi/certifi/__init__.py" "_f5e099f4e6f2c76a6fcbae113b.rodata" "$(SolutionDir).." "/library/python/certifi/certifi/__init__.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_010d633d5580d869e751a33405.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3" "_f11ae77444c6221c21efcb59b1.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_5699aed36c514c9cc46b478268.rodata" "-" "library/python/certifi/certifi/binary.py" "_f9a64be1f00ad4d1362513d436.rodata" "$(SolutionDir).." "/library/python/certifi/certifi/binary.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_caa279d6dc76b3bdff2244be7d.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3" "_492a6b165bede16f4311f96bda.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_bf1015a036621a2bbc9025d547.rodata" "-" "library/python/certifi/certifi/source.py" "_821e11290eef7c290770ff3231.rodata" "$(SolutionDir).." "/library/python/certifi/certifi/source.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_68c866bda546c60b46994c3653.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3" "_33d5d33a9d8a7ab9745c41feeb.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_28242801516dc96cab3fee9e7f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/certifi/_4dd1b8e5f97d2429b3683814aa.yasm" "-" "library/python/certifi/certifi/__init__.py" "_f5e099f4e6f2c76a6fcbae113b.rodata" "$(SolutionDir)../library/python/certifi/certifi/__init__.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_010d633d5580d869e751a33405.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3" "_f11ae77444c6221c21efcb59b1.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_5699aed36c514c9cc46b478268.rodata" "-" "library/python/certifi/certifi/binary.py" "_f9a64be1f00ad4d1362513d436.rodata" "$(SolutionDir)../library/python/certifi/certifi/binary.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_caa279d6dc76b3bdff2244be7d.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3" "_492a6b165bede16f4311f96bda.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_bf1015a036621a2bbc9025d547.rodata" "-" "library/python/certifi/certifi/source.py" "_821e11290eef7c290770ff3231.rodata" "$(SolutionDir)../library/python/certifi/certifi/source.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_68c866bda546c60b46994c3653.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3" "_33d5d33a9d8a7ab9745c41feeb.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_28242801516dc96cab3fee9e7f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/__init__.py-" "$(SolutionDir).." "/library/python/certifi/certifi/__init__.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/__init__.py-" "$(SolutionDir)../library/python/certifi/certifi/__init__.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,13 +234,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/certifi/_4dd1b8e5f97d2429b3683814aa.yasm" "-" "library/python/certifi/certifi/__init__.py" "_f5e099f4e6f2c76a6fcbae113b.rodata" "$(SolutionDir).." "/library/python/certifi/certifi/__init__.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_010d633d5580d869e751a33405.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3" "_f11ae77444c6221c21efcb59b1.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_5699aed36c514c9cc46b478268.rodata" "-" "library/python/certifi/certifi/binary.py" "_f9a64be1f00ad4d1362513d436.rodata" "$(SolutionDir).." "/library/python/certifi/certifi/binary.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_caa279d6dc76b3bdff2244be7d.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3" "_492a6b165bede16f4311f96bda.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_bf1015a036621a2bbc9025d547.rodata" "-" "library/python/certifi/certifi/source.py" "_821e11290eef7c290770ff3231.rodata" "$(SolutionDir).." "/library/python/certifi/certifi/source.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_68c866bda546c60b46994c3653.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3" "_33d5d33a9d8a7ab9745c41feeb.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_28242801516dc96cab3fee9e7f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/certifi/_4dd1b8e5f97d2429b3683814aa.yasm" "-" "library/python/certifi/certifi/__init__.py" "_f5e099f4e6f2c76a6fcbae113b.rodata" "$(SolutionDir)../library/python/certifi/certifi/__init__.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_010d633d5580d869e751a33405.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3" "_f11ae77444c6221c21efcb59b1.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_5699aed36c514c9cc46b478268.rodata" "-" "library/python/certifi/certifi/binary.py" "_f9a64be1f00ad4d1362513d436.rodata" "$(SolutionDir)../library/python/certifi/certifi/binary.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_caa279d6dc76b3bdff2244be7d.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3" "_492a6b165bede16f4311f96bda.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_bf1015a036621a2bbc9025d547.rodata" "-" "library/python/certifi/certifi/source.py" "_821e11290eef7c290770ff3231.rodata" "$(SolutionDir)../library/python/certifi/certifi/source.py" "$(SolutionDir)$(Configuration)/library/python/certifi/_68c866bda546c60b46994c3653.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3" "_33d5d33a9d8a7ab9745c41feeb.rodata" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3" "$(SolutionDir)$(Configuration)/library/python/certifi/_28242801516dc96cab3fee9e7f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/__init__.py-" "$(SolutionDir).." "/library/python/certifi/certifi/__init__.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/__init__.py-" "$(SolutionDir)../library/python/certifi/certifi/__init__.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/__init__.py.5edr.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -249,16 +249,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/certifi/_4dd1b8e5f97d2429b3683814aa.yasm	$B/library/python/certifi/certifi/__init__.py.5edr.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\library\python\certifi\certifi\__init__.py;$(SolutionDir)$(Configuration)\library\python\certifi\certifi\__init__.py.5edr.yapyc3;'$(SolutionDir)..'\library\python\certifi\certifi\binary.py;$(SolutionDir)$(Configuration)\library\python\certifi\certifi\binary.py.4fdq.yapyc3;'$(SolutionDir)..'\library\python\certifi\certifi\source.py;$(SolutionDir)$(Configuration)\library\python\certifi\certifi\source.py.4sdi.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\python\certifi\certifi\__init__.py;$(SolutionDir)$(Configuration)\library\python\certifi\certifi\__init__.py.5edr.yapyc3;$(SolutionDir)..\library\python\certifi\certifi\binary.py;$(SolutionDir)$(Configuration)\library\python\certifi\certifi\binary.py.4fdq.yapyc3;$(SolutionDir)..\library\python\certifi\certifi\source.py;$(SolutionDir)$(Configuration)\library\python\certifi\certifi\source.py.4sdi.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\certifi\_4dd1b8e5f97d2429b3683814aa.yasm;$(SolutionDir)$(Configuration)\library\python\certifi\_010d633d5580d869e751a33405.rodata;$(SolutionDir)$(Configuration)\library\python\certifi\_5699aed36c514c9cc46b478268.rodata;$(SolutionDir)$(Configuration)\library\python\certifi\_caa279d6dc76b3bdff2244be7d.rodata;$(SolutionDir)$(Configuration)\library\python\certifi\_bf1015a036621a2bbc9025d547.rodata;$(SolutionDir)$(Configuration)\library\python\certifi\_68c866bda546c60b46994c3653.rodata;$(SolutionDir)$(Configuration)\library\python\certifi\_28242801516dc96cab3fee9e7f.rodata;$(SolutionDir)$(Configuration)\library\python\certifi\certifi\__init__.py.5edr.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\library\python\certifi\certifi\binary.py">
+    <CustomBuild Include="$(SolutionDir)..\library\python\certifi\certifi\binary.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/binary.py-" "$(SolutionDir).." "/library/python/certifi/certifi/binary.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/binary.py-" "$(SolutionDir)../library/python/certifi/certifi/binary.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/binary.py-" "$(SolutionDir).." "/library/python/certifi/certifi/binary.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/binary.py-" "$(SolutionDir)../library/python/certifi/certifi/binary.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/binary.py.4fdq.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,16 +280,16 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/certifi/certifi/binary.py.4fdq.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\library\python\certifi\certifi\binary.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\python\certifi\certifi\binary.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\certifi\certifi\binary.py.4fdq.yapyc3;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\library\python\certifi\certifi\source.py">
+    <CustomBuild Include="$(SolutionDir)..\library\python\certifi\certifi\source.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/source.py-" "$(SolutionDir).." "/library/python/certifi/certifi/source.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/source.py-" "$(SolutionDir)../library/python/certifi/certifi/source.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -302,7 +302,7 @@ cd /d $(SolutionDir)$(Configuration)\library\python\certifi
 if %errorlevel% neq 0 goto :cmEnd
 set "PYTHONHASHSEED=0"
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/source.py-" "$(SolutionDir).." "/library/python/certifi/certifi/source.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3"
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/certifi/certifi/source.py-" "$(SolutionDir)../library/python/certifi/certifi/source.py" "$(SolutionDir)$(Configuration)/library/python/certifi/certifi/source.py.4sdi.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -311,7 +311,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/certifi/certifi/source.py.4sdi.yapyc3	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\library\python\certifi\certifi\source.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\python\certifi\certifi\source.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\certifi\certifi\source.py.4sdi.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>

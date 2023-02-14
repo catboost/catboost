@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUNQUOTED_VERSION=2.7 /DXMLCALL= /DXMLIMPORT= -DPy_BUILD_CORE -DBUILD_ZLIB -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DHAVE_MEMMOVE -DUSE_PYEXPAT_CAPI -DEAI_ADDRFAMILY=1 -DHAVE_SOCKADDR_STORAGE=1 -DHAVE_ADDRINFO=1 /D_WIN64 /D_M_X64 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUNQUOTED_VERSION=2.7 /DXMLCALL= /DXMLIMPORT= -DPy_BUILD_CORE -DBUILD_ZLIB -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DHAVE_MEMMOVE -DUSE_PYEXPAT_CAPI -DEAI_ADDRFAMILY=1 -DHAVE_SOCKADDR_STORAGE=1 -DHAVE_ADDRINFO=1 /D_WIN64 /D_M_X64 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUNQUOTED_VERSION=2.7 /DXMLCALL= /DXMLIMPORT= -DPy_BUILD_CORE -DBUILD_ZLIB -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DHAVE_MEMMOVE -DUSE_PYEXPAT_CAPI -DEAI_ADDRFAMILY=1 -DHAVE_SOCKADDR_STORAGE=1 -DHAVE_ADDRINFO=1 /D_WIN64 /D_M_X64 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUNQUOTED_VERSION=2.7 /DXMLCALL= /DXMLIMPORT= -DPy_BUILD_CORE -DBUILD_ZLIB -DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DHAVE_MEMMOVE -DUSE_PYEXPAT_CAPI -DEAI_ADDRFAMILY=1 -DHAVE_SOCKADDR_STORAGE=1 -DHAVE_ADDRINFO=1 /D_WIN64 /D_M_X64 -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/tools/python/src/Include;'$(SolutionDir)..'/contrib/tools/python/src;'$(SolutionDir)..'/contrib/tools/python/src/Python;'$(SolutionDir)..'/contrib/tools/python/src/PC;'$(SolutionDir)..'/contrib/libs/expat;'$(SolutionDir)..'/contrib/libs/libbz2;'$(SolutionDir)..'/contrib/libs/zlib;'$(SolutionDir)..'/contrib/restricted/libffi/include;'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/libs/openssl/include;'$(SolutionDir)..'/contrib/restricted/libffi/include;'$(SolutionDir)..'/contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/tools/python/src/Python;$(SolutionDir)../contrib/tools/python/src/PC;$(SolutionDir)../contrib/libs/expat;$(SolutionDir)../contrib/libs/libbz2;$(SolutionDir)../contrib/libs/zlib;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,534 +78,534 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_bisectmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_bisectmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_codecsmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_codecsmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_collectionsmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_collectionsmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_csv.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_csv.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_ctypes\_ctypes.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\_ctypes.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_ctypes\callbacks.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\callbacks.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_ctypes\callproc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\callproc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_ctypes\cfield.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\cfield.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_ctypes\stgdict.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\stgdict.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_elementtree.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_elementtree.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_functoolsmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_functoolsmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_hashopenssl.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_hashopenssl.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_heapqmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_heapqmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_hotshot.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_hotshot.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_io\_iomodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_io\_iomodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_io\bufferedio.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_io\bufferedio.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_io\bytesio.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_io\bytesio.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_io\fileio.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_io\fileio.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_io\iobase.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_io\iobase.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_io\stringio.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_io\stringio.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_io\textio.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_io\textio.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_json.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_json.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_localemodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_localemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_lsprof.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_lsprof.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_math.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_math.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_multiprocessing\multiprocessing.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_multiprocessing\multiprocessing.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_multiprocessing\pipe_connection.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_multiprocessing\pipe_connection.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_multiprocessing\semaphore.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_multiprocessing\semaphore.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_multiprocessing\socket_connection.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_multiprocessing\socket_connection.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_multiprocessing\win32_functions.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_multiprocessing\win32_functions.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_randommodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_randommodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_sre.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_sre.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_ssl.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ssl.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_struct.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_struct.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\_weakref.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_weakref.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\arraymodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\arraymodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\audioop.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\audioop.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\binascii.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\binascii.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\bz2module.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\bz2module.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\cPickle.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\cPickle.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\cStringIO.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\cStringIO.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\cjkcodecs\multibytecodec.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\cjkcodecs\multibytecodec.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\cmathmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\cmathmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\config.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\config.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\datetimemodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\datetimemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\errnomodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\errnomodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\future_builtins.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\future_builtins.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\gcmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\gcmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\getbuildinfo.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\getbuildinfo.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\itertoolsmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\itertoolsmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\main.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\main.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\mathmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\mathmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\md5.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\md5.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\md5module.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\md5module.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\mmapmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\mmapmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\operator.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\operator.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\parsermodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\parsermodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\posixmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\posixmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\pyexpat.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\pyexpat.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\rotatingtree.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\rotatingtree.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\selectmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\selectmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\sha256module.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\sha256module.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\sha512module.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\sha512module.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\shamodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\shamodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\signalmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\signalmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\socketmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\socketmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\stropmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\stropmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\symtablemodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\symtablemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\threadmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\threadmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\timemodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\timemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\unicodedata.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\unicodedata.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\xxsubtype.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\xxsubtype.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\zipimport.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\zipimport.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Modules\zlibmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\zlibmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\abstract.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\abstract.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\boolobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\boolobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\bufferobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\bufferobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\bytearrayobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\bytearrayobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\bytes_methods.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\bytes_methods.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\capsule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\capsule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\cellobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\cellobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\classobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\classobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\cobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\cobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\codeobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\codeobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\complexobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\complexobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\descrobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\descrobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\dictobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\dictobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\enumobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\enumobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\exceptions.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\exceptions.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\fileobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\fileobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\floatobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\floatobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\frameobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\frameobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\funcobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\funcobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\genobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\genobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\intobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\intobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\iterobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\iterobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\listobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\listobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\longobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\longobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\memoryobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\memoryobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\methodobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\methodobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\moduleobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\moduleobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\object.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\object.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\obmalloc.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\obmalloc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\rangeobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\rangeobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\setobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\setobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\sliceobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\sliceobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\stringobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\stringobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\structseq.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\structseq.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\tupleobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\tupleobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\typeobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\typeobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\unicodectype.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\unicodectype.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\unicodeobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\unicodeobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Objects\weakrefobject.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Objects\weakrefobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\PC\_subprocess.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\PC\_subprocess.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\PC\_winreg.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\PC\_winreg.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\PC\dl_nt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\PC\dl_nt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\PC\getpathp.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\PC\getpathp.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\PC\import_nt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\PC\import_nt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\PC\msvcrtmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\PC\msvcrtmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\acceler.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\acceler.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\bitset.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\bitset.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\firstsets.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\firstsets.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\grammar.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\grammar.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\grammar1.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\grammar1.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\listnode.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\listnode.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\metagrammar.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\metagrammar.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\myreadline.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\myreadline.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\node.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\node.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\parser.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\parser.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\parsetok.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\parsetok.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\pgen.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\pgen.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Parser\tokenizer.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Parser\tokenizer.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\Python-ast.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\Python-ast.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\_warnings.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\_warnings.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\asdl.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\asdl.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\ast.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\ast.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\bltinmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\bltinmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\ceval.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\ceval.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\codecs.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\codecs.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\compile.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\compile.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\dtoa.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\dtoa.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\dynload_win.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\dynload_win.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\errors.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\errors.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\formatter_string.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\formatter_string.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\formatter_unicode.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\formatter_unicode.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\future.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\future.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\getargs.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\getargs.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\getcompiler.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\getcompiler.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\getcopyright.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\getcopyright.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\getopt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\getopt.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\getplatform.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\getplatform.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\getversion.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\getversion.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\graminit.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\graminit.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\import.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\import.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\importdl.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\importdl.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\marshal.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\marshal.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\modsupport.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\modsupport.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\mysnprintf.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\mysnprintf.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\mystrtoul.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\mystrtoul.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\peephole.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\peephole.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\pyarena.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\pyarena.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\pyctype.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\pyctype.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\pyfpe.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\pyfpe.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\pymath.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\pymath.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\pystate.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\pystate.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\pystrcmp.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\pystrcmp.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\pystrtod.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\pystrtod.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\pythonrun.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\pythonrun.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\random.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\random.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\structmember.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\structmember.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\symtable.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\symtable.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\sysmodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\sysmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\thread.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\thread.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="'$(SolutionDir)..'\contrib\tools\python\src\Python\traceback.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Python\traceback.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python\base\pyconfig.config.cpp"/>
-    <CustomBuild Include="'$(SolutionDir)..'\build\scripts\check_config_h.py">
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\check_config_h.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\base
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
+python.exe "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -616,7 +616,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\base
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir).." "/build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
+python.exe "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -625,10 +625,10 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/tools/python/base/pyconfig.config.cpp	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\build\scripts\check_config_h.py;'$(SolutionDir)..'\contrib\tools\python\src\Include\pyconfig.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\check_config_h.py;$(SolutionDir)..\contrib\tools\python\src\Include\pyconfig.h;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python\base\pyconfig.config.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="'$(SolutionDir)..'\contrib\tools\python\src\Include\pyconfig.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python\src\Include\pyconfig.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT='$(SolutionDir)..' /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);'$(SolutionDir)..';'$(SolutionDir)..'/contrib/libs/cxxsupp/libcxx/include;'$(SolutionDir)..'/contrib/libs/zlib/include;'$(SolutionDir)..'/contrib/libs/double-conversion;'$(SolutionDir)..'/contrib/libs/libc_compat/include/windows;'$(SolutionDir)..'/contrib/libs/tbb/include;'$(SolutionDir)..'/contrib/libs/libf2c;'$(SolutionDir)..'/contrib/libs/protobuf/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,57 +78,57 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\async_row_processor.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\baseline.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\async_row_processor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\baseline.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\baseline.h_serialized.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\borders_io.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\cat_feature_perfect_hash.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\cat_feature_perfect_hash_helper.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\cb_dsv_loader.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\borders_io.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\cb_dsv_loader.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\columns.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\columns.h_serialized.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\composite_columns.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\ctrs.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\data_provider.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\data_provider_builders.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\exclusive_feature_bundling.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\external_columns.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\feature_estimators.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\feature_grouping.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\feature_index.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\feature_names_converter.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\features_layout.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\features_layout_helpers.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\lazy_columns.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\libsvm_loader.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\load_and_quantize_data.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\load_data.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\loader.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\meta_info.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\model_dataset_compatibility.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\objects.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\objects_grouping.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\order.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\composite_columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\ctrs.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\data_provider.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\data_provider_builders.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\exclusive_feature_bundling.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\external_columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\feature_estimators.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\feature_grouping.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\feature_index.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\feature_names_converter.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\features_layout.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\features_layout_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\lazy_columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\libsvm_loader.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\load_and_quantize_data.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\load_data.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\loader.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\meta_info.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\model_dataset_compatibility.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\objects.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\objects_grouping.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\order.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\order.h_serialized.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\packed_binary_features.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\pairs.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\pairs_data_loaders.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\proceed_pool_in_blocks.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\quantization.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\quantized_features_info.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\sparse_columns.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\target.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\packed_binary_features.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\pairs.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\pairs_data_loaders.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\proceed_pool_in_blocks.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantization.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantized_features_info.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\sparse_columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\target.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\target.h_serialized.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\unaligned_mem.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\util.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\visitor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\unaligned_mem.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\util.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\visitor.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\visitor.h_serialized.cpp"/>
-    <ClCompile Include="'$(SolutionDir)..'\catboost\libs\data\weights.cpp"/>
-    <CustomBuild Include="'$(SolutionDir)..'\catboost\libs\data\baseline.h">
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\weights.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data\baseline.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/baseline.h" "--include-path" "catboost/libs/data/baseline.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/baseline.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/baseline.h" "--include-path" "catboost/libs/data/baseline.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/baseline.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -139,7 +139,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/baseline.h" "--include-path" "catboost/libs/data/baseline.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/baseline.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/baseline.h" "--include-path" "catboost/libs/data/baseline.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/baseline.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -148,14 +148,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/data/baseline.h_serialized.cpp	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\catboost\libs\data\baseline.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data\baseline.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\baseline.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\catboost\libs\data\columns.h">
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data\columns.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/columns.h" "--include-path" "catboost/libs/data/columns.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/columns.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/columns.h" "--include-path" "catboost/libs/data/columns.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/columns.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -166,7 +166,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/columns.h" "--include-path" "catboost/libs/data/columns.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/columns.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/columns.h" "--include-path" "catboost/libs/data/columns.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/columns.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -175,14 +175,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/data/columns.h_serialized.cpp	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\catboost\libs\data\columns.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data\columns.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\columns.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\catboost\libs\data\order.h">
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data\order.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/order.h" "--include-path" "catboost/libs/data/order.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/order.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/order.h" "--include-path" "catboost/libs/data/order.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/order.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -193,7 +193,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/order.h" "--include-path" "catboost/libs/data/order.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/order.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/order.h" "--include-path" "catboost/libs/data/order.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/order.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -202,14 +202,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/data/order.h_serialized.cpp	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\catboost\libs\data\order.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data\order.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\order.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\catboost\libs\data\target.h">
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data\target.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/target.h" "--include-path" "catboost/libs/data/target.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/target.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/target.h" "--include-path" "catboost/libs/data/target.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/target.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -220,7 +220,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/target.h" "--include-path" "catboost/libs/data/target.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/target.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/target.h" "--include-path" "catboost/libs/data/target.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/target.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -229,14 +229,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/data/target.h_serialized.cpp	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\catboost\libs\data\target.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data\target.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\target.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="'$(SolutionDir)..'\catboost\libs\data\visitor.h">
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data\visitor.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/visitor.h" "--include-path" "catboost/libs/data/visitor.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/visitor.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/visitor.h" "--include-path" "catboost/libs/data/visitor.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/visitor.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -247,7 +247,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir).." "/catboost/libs/data/visitor.h" "--include-path" "catboost/libs/data/visitor.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/visitor.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/visitor.h" "--include-path" "catboost/libs/data/visitor.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/visitor.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -256,45 +256,45 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/data/visitor.h_serialized.cpp	</Message>
-      <AdditionalInputs>'$(SolutionDir)..'\catboost\libs\data\visitor.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data\visitor.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\visitor.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\async_row_processor.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\borders_io.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\cat_feature_perfect_hash.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\cat_feature_perfect_hash_helper.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\cb_dsv_loader.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\composite_columns.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\ctrs.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\data_provider.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\data_provider_builders.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\exclusive_feature_bundling.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\external_columns.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\feature_estimators.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\feature_grouping.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\feature_index.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\feature_names_converter.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\features_layout.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\features_layout_helpers.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\lazy_columns.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\libsvm_loader.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\load_and_quantize_data.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\load_data.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\loader.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\meta_info.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\model_dataset_compatibility.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\objects.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\objects_grouping.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\packed_binary_features.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\pairs.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\pairs_data_loaders.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\proceed_pool_in_blocks.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\quantization.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\quantized_features_info.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\sparse_columns.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\unaligned_mem.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\util.h"/>
-    <ClInclude Include="'$(SolutionDir)..'\catboost\libs\data\weights.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\async_row_processor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\borders_io.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cb_dsv_loader.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\composite_columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\ctrs.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\data_provider.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\data_provider_builders.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\exclusive_feature_bundling.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\external_columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\feature_estimators.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\feature_grouping.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\feature_index.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\feature_names_converter.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\features_layout.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\features_layout_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\lazy_columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\libsvm_loader.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_and_quantize_data.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_data.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\loader.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\meta_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\model_dataset_compatibility.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\objects.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\objects_grouping.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\packed_binary_features.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\pairs.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\pairs_data_loaders.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\proceed_pool_in_blocks.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantization.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantized_features_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\sparse_columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\unaligned_mem.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\util.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\weights.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
