@@ -17,9 +17,7 @@ EXT_SRC = 'catboost_so_src'
 
 def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
     topnames = (
-        '.arcadia.root',
         'AUTHORS', 'LICENSE', 'CONTRIBUTING.md', 'README.md', 'RELEASE.md',
-        'ya', 'ya.bat', 'ya.conf', 'ya.make',
         'build',
         'catboost/cuda',
         'catboost/idl',
