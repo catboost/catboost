@@ -28,7 +28,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         'contrib/python',
         'contrib/tools',
         'library',
-        'make',
         'msvs',
         'tools',
         'util',
