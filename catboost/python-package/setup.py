@@ -15,21 +15,41 @@ PKG_INFO = 'PKG-INFO'
 EXT_SRC = 'catboost_so_src'
 
 
+def get_all_cmake_lists(base_dir):
+    return [
+        os.path.join(base_dir, f)
+        for f in [
+            'CMakeLists.android-arm.txt',
+            'CMakeLists.android-arm64.txt',
+            'CMakeLists.android-x86.txt',
+            'CMakeLists.android-x86_64.txt',
+            'CMakeLists.darwin-arm64.txt',
+            'CMakeLists.darwin.txt',
+            'CMakeLists.linux-aarch64.txt',
+            'CMakeLists.linux.txt',
+            'CMakeLists.txt'
+        ]
+    ]
+
 def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
-    topnames = (
+    topnames = [
         'AUTHORS', 'LICENSE', 'CONTRIBUTING.md', 'README.md', 'RELEASE.md',
+        'conanfile.txt',
         'build',
         'catboost/cuda',
         'catboost/idl',
         'catboost/libs',
         'catboost/private',
         'catboost/python-package/catboost',
+        'cmake',
         'contrib',
         'library',
         'msvs',
         'tools',
         'util',
-    )
+    ]
+    topnames += get_all_cmake_lists('')
+    topnames += get_all_cmake_lists('catboost')
     for name in topnames:
         src = os.path.join(topdir, name)
         dst = os.path.join(pkgdir, name)
