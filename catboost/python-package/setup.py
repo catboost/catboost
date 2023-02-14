@@ -255,6 +255,8 @@ if __name__ == '__main__':
             'Documentation': 'https://catboost.ai/docs/concepts/about.html',
             'Benchmarks': 'https://catboost.ai/#benchmark',
         },
+        keywords=['catboost'],
+        platforms=['Linux', 'Mac OSX', 'Windows', 'Unix'],
         classifiers=[
             "Development Status :: 5 - Production/Stable",
             "Topic :: Scientific/Engineering :: Artificial Intelligence",
