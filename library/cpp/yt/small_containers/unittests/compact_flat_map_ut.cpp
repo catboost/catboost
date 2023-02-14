@@ -219,6 +219,66 @@ TEST(TCompactFlatMapTest, GrowShrinkGrow)
     // Must not crash or trigger asan.
 }
 
+TEST(TCompactFlatMapTest, LowerBound)
+{
+    TMap m;
+    EXPECT_EQ(m.lower_bound("a"), m.end());
+
+    m.emplace("b", "value");
+    EXPECT_EQ(m.lower_bound("a")->second, "value");
+    EXPECT_EQ(m.lower_bound("b")->second, "value");
+
+    m.emplace("c", "value2");
+
+    // Grows here.
+    m.emplace("d", "value3");
+    EXPECT_EQ(m.lower_bound("a")->second, "value");
+    EXPECT_EQ(m.lower_bound("e"), m.end());
+}
+
+TEST(TCompactFlatMapTest, UpperBound)
+{
+    using TKeyValue = std::pair<std::string, std::string>;
+    TMap m;
+    EXPECT_EQ(m.upper_bound("a"), m.end());
+
+    m.emplace("b", "value");
+    EXPECT_EQ(m.upper_bound("a")->second, "value");
+    EXPECT_EQ(m.upper_bound("b"), m.end());
+
+    m.emplace("c", "value2");
+
+    // Grows here.
+    m.emplace("d", "value3");
+
+    EXPECT_EQ(*m.upper_bound("a"), TKeyValue("b", "value"));
+    EXPECT_EQ(*m.upper_bound("b"), TKeyValue("c", "value2"));
+    EXPECT_EQ(m.upper_bound("d"), m.end());
+}
+
+TEST(TCompactFlatMapTest, EqualRange)
+{
+    TMap m;
+    EXPECT_EQ(m.equal_range("a"), std::make_pair(m.end(), m.end()));
+
+    m.emplace("b", "value-b");
+    EXPECT_EQ(m.equal_range("a"), std::make_pair(m.begin(), m.begin()));
+    EXPECT_EQ(m.equal_range("b"), std::make_pair(m.begin(), m.end()));
+    EXPECT_EQ(m.equal_range("c"), std::make_pair(m.end(), m.end()));
+
+    m.emplace("c", "value-c");
+    m.emplace("d", "value-d");
+
+    auto it = m.begin();
+    EXPECT_EQ(m.equal_range("a"), std::make_pair(it, it));
+    EXPECT_EQ(m.equal_range("b"), std::make_pair(it, std::next(it)));
+    ++it;
+    EXPECT_EQ(m.equal_range("c"), std::make_pair(it, std::next(it)));
+    ++it;
+    EXPECT_EQ(m.equal_range("d"), std::make_pair(it, std::next(it)));
+    EXPECT_EQ(m.equal_range("e"), std::make_pair(m.end(), m.end()));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

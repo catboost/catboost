@@ -81,6 +81,13 @@ public:
     iterator find(const K& k);
     const_iterator find(const K& k) const;
 
+    iterator lower_bound(const K& k);
+    const_iterator lower_bound(const K& k) const;
+    iterator upper_bound(const K& k);
+    const_iterator upper_bound(const K& k) const;
+    std::pair<iterator, iterator> equal_range(const K& k);
+    std::pair<const_iterator, const_iterator> equal_range(const K& k) const;
+
     bool contains(const K& k) const;
 
     std::pair<iterator, bool> insert(const value_type& value);
@@ -100,9 +107,6 @@ public:
 
 private:
     TStorage Storage_;
-
-    std::pair<iterator, iterator> equal_range(const K& k);
-    std::pair<const_iterator, const_iterator> equal_range(const K& k) const;
 
     template <class TArg>
     std::pair<iterator, bool> do_insert(TArg&& value);

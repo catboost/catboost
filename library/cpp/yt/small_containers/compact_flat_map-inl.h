@@ -210,6 +210,30 @@ TCompactFlatMap<K, V, N>::equal_range(const K& k) const
     return result;
 }
 
+template <class K, class V, size_t N>
+typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::lower_bound(const K& k) const
+{
+    return std::lower_bound(Storage_.begin(), Storage_.end(), k, TKeyComparer());
+}
+
+template <class K, class V, size_t N>
+typename TCompactFlatMap<K, V, N>::iterator TCompactFlatMap<K, V, N>::lower_bound(const K& k)
+{
+    return std::lower_bound(Storage_.begin(), Storage_.end(), k, TKeyComparer());
+}
+
+template <class K, class V, size_t N>
+typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::upper_bound(const K& k) const
+{
+    return std::upper_bound(Storage_.begin(), Storage_.end(), k, TKeyComparer());
+}
+
+template <class K, class V, size_t N>
+typename TCompactFlatMap<K, V, N>::iterator TCompactFlatMap<K, V, N>::upper_bound(const K& k)
+{
+    return std::upper_bound(Storage_.begin(), Storage_.end(), k, TKeyComparer());
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
