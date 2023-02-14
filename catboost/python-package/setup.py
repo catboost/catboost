@@ -68,18 +68,12 @@ def python_version():
 
 class Helper(object):
     options = [
-        ('python-config=', None, emph('Python configure script, e.g. python3-config')),
         ('with-cuda=', None, emph('Build with CUDA support (cuda-root|no)')),
-        ('os-sdk=', None, emph('For Yandex-internal use, e.g. local')),
-        ('with-ymake=', None, emph('Use ymake or not (YES|no)')),
         ('parallel=', 'j', emph('Number of parallel build jobs')),
     ]
 
     def initialize_options(self):
-        self.python_config = 'python3-config' if python_version().startswith('3') else 'python-config'
         self.with_cuda = os.environ.get('CUDA_PATH') or os.environ.get('CUDA_ROOT') or None
-        self.os_sdk = 'local'
-        self.with_ymake = True
         self.parallel = None
 
     def finalize_options(self):
@@ -87,15 +81,11 @@ class Helper(object):
             logging.info("Targeting for CUDA support with {}".format(self.with_cuda))
         else:
             self.with_cuda = None
-        self.with_ymake = self.with_ymake not in ('N', 'n', 'No', 'no', 'None', 'none', False, 'False', 'false', 'F', 'f', '0', None)
 
     def propagate_options(self, origin, subcommand):
         self.distribution.get_command_obj(subcommand).set_undefined_options(
             origin,
-            ("python_config", "python_config"),
             ("with_cuda", "with_cuda"),
-            ("os_sdk", "os_sdk"),
-            ("with_ymake", "with_ymake"),
             ("parallel", "parallel"),
         )
 
@@ -182,43 +172,10 @@ class build_ext(_build_ext):
         dry_run = self.distribution.dry_run
         distutils.dir_util.mkpath(put_dir, verbose=verbose, dry_run=dry_run)
 
-        if self.with_ymake:
-            self.build_with_ymake(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
-        elif 'win' in sys.platform:
+        if 'win' in sys.platform:
             self.build_with_msbuild(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
         else:
             self.build_with_cmake_and_ninja(topsrc_dir, build_dir, 'lib' + catboost_ext, put_dir, verbose, dry_run)
-
-    def build_with_ymake(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
-        logging.info('Buildling {} with ymake'.format(catboost_ext))
-        ya = os.path.abspath(os.path.join(topsrc_dir, 'ya'))
-        python = sys.executable
-        ymake_cmd = [
-            python, ya, 'make', os.path.join(topsrc_dir, 'catboost', 'python-package', 'catboost'),
-            '--no-src-links',
-            '--output', build_dir,
-            '-DPYTHON_CONFIG=' + self.python_config,
-            '-DUSE_ARCADIA_PYTHON=no',
-            '-DOS_SDK=' + self.os_sdk,
-        ]
-        ymake_cmd += ['-d'] if self.debug else ['-r', '-DNO_DEBUGINFO']
-        if self.os_sdk != 'local':
-            ymake_cmd += ['-DUSE_SYSTEM_PYTHON=' + '.'.join(python_version().split('.')[:2])]
-        if self.parallel is not None:
-            ymake_cmd += ['-j', str(self.parallel)]
-        dll = os.path.join(build_dir, 'catboost', 'python-package', 'catboost', catboost_ext)
-        if self.with_cuda:
-            try:
-                logging_execute(ymake_cmd + ['-DHAVE_CUDA=yes', '-DCUDA_ROOT={}'.format(self.with_cuda)], verbose, dry_run)
-                logging.info('Successfully built {} with CUDA support'.format(catboost_ext))
-                distutils.file_util.copy_file(dll, put_dir, verbose=verbose, dry_run=dry_run)
-                return
-            except subprocess.CalledProcessError:
-                logging.error('Cannot build {} with CUDA support, will build without CUDA'.format(catboost_ext))
-
-        logging_execute(ymake_cmd + ['-DHAVE_CUDA=no'], verbose, dry_run)
-        logging.info('Successfully built {} without CUDA support'.format(catboost_ext))
-        distutils.file_util.copy_file(dll, put_dir, verbose=verbose, dry_run=dry_run)
 
     def build_with_cmake_and_ninja(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
         logging.info('Buildling {} with cmake and ninja'.format(catboost_ext))
