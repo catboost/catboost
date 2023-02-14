@@ -248,23 +248,6 @@ class build_ext(_build_ext):
         dll = os.path.join(build_dir, 'catboost', 'python-package', 'catboost', catboost_ext)
         distutils.file_util.copy_file(dll, put_dir, verbose=verbose, dry_run=dry_run)
 
-    def build_with_make(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
-        logging.info('Buildling {} with gnu make'.format(catboost_ext))
-        makefile = 'python{}.{}CLANG11-LINUX-X86_64.makefile'.format(python_version()[0], 'CUDA.' if self.with_cuda else '')
-        make_cmd = [
-            'make', '-f', '../../make/' + makefile,
-            'CC=clang-11',
-            'CXX=clang++-11',
-            'BUILD_ROOT=' + build_dir,
-            'SOURCE_ROOT=' + topsrc_dir,
-        ]
-        if self.parallel is not None:
-            make_cmd += ['-j', str(self.parallel)]
-        logging_execute(make_cmd, verbose, dry_run)
-        logging.info('Successfully built {} with{} CUDA support'.format(catboost_ext, '' if self.with_cuda else 'out'))
-        dll = os.path.join(build_dir, 'catboost', 'python-package', 'catboost', catboost_ext)
-        distutils.file_util.copy_file(dll, put_dir, verbose=verbose, dry_run=dry_run)
-
     def build_with_msbuild(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
         logging.info('Buildling {} with msbuild'.format(catboost_ext))
         raise ValueError('TODO: build with msbuild')
