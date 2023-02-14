@@ -189,7 +189,6 @@ migrations:
     - ml/tensorflow/models/userbert/tests/pretrain
     - ml/tensorflow/tfnn/src/tfnn/task/seq2seq/models
     - ml/tensorflow/tfnn/src/tfnn/train
-    - ml/tensorflow/tfnn/tests/tools
     - ml/zeliboba/experiments/2020_03_17_finetune_lm_12
     - ml/zeliboba/experiments/2021_03_19_stages_boltalka_lm10
     - ml/zeliboba/experiments/2021_04_06_stages_boltalka_lm10_ctrl
@@ -602,8 +601,6 @@ migrations:
     - datacloud/dev_utils/validators
     - datacloud/features/cluster/tests/yt_tests
     - datacloud/ml_utils/kmeans/lib
-    - datalens/backend/app/bi_api/bi
-    - datalens/backend/app/bi_api/bi/api_common
     - datalens/backend/app/bi_billing/bi_billing
     - devtools/codenav/pyndexer
     - devtools/local_cache/toolscache/tests/medium
@@ -1750,7 +1747,6 @@ migrations:
     - alice/hollywood/library/scenarios/tr_navi/handcrafted/it
     - alice/nlu/data/ru/test/binary_classifiers/common
     - alice/nlu/tools/binary_classifier
-    - alice/notification_creator/lib
     - alice/tests/library/scenario
     - alice/tests/library/surface/directives
     - alice/tools/qloud_format/lib/ut
@@ -4185,7 +4181,6 @@ migrations:
     - datacloud/features/dssm
     - datacloud/features/dssm/sample_app
     - datacloud/ml_utils/kmeans/app
-    - datalens/backend/app/bi_api/bi/resources
     - datalens/backend/app/dls/yadls/dj/dls
     - datalens/backend/lib/clickhouse-sqlalchemy/tests
     - datalens/backend/lib/sqlalchemy_statface_api/tests
@@ -5565,7 +5560,6 @@ migrations:
     - market/idx/datacamp/yatf
     - market/idx/datacamp/yatf/matchers
     - market/infra/itreg/softreg
-    - market/library/cms_promo/py_utils
     - market/library/shiny/external/rps_limiter/beam
     - market/library/shiny/server/gen/lib
     - market/mbi/mbi-dwh/mbi-dwh-copy-script
@@ -6343,7 +6337,6 @@ migrations:
     - strm/strm_trns_manager/lib/utils
     - strm/tools/bad-streams-generator/suites
     - sup/slow_queries
-    - sup/tools/cropper/bin
     - sup/tools/mongo_isolation
     - talents/recommender/viewer
     - taxi/antifraud/christopher/proactive_chats
@@ -6566,7 +6559,6 @@ migrations:
     - yabs/server/test/qabs_bsserver_pytest/db
     - yabs/server/tools/config/cloud
     - yabs/server/tools/filter_reason_disable
-    - yabs/stat/bigrt/fast_event/test
     - yabs/utils/broadmatch-overdraft/task
     - yabs/utils/yabs-big-brother-client-ng
     - yabs/utils/yabs_duty_scheduler/lib
@@ -8123,9 +8115,7 @@ migrations:
     - sandbox/projects/bsyeti/make_bigb_ab_experiment_config
     - sandbox/projects/bsyeti/make_bigb_test_data
     - sandbox/projects/bsyeti/make_caesar_bases
-    - sandbox/projects/bsyeti/make_config_json
     - sandbox/projects/bsyeti/make_geo_permalink_dict
-    - sandbox/projects/bsyeti/make_heavy_bases
     - sandbox/projects/bsyeti/make_idf_counters_base
     - sandbox/projects/bsyeti/make_mobile_apps_base
     - sandbox/projects/bsyeti/make_sampled_catalogia_queries
@@ -8423,7 +8413,6 @@ migrations:
     - ads/emily/storage/transport/indexer/validators/catboost
     - ads/emily/storage/transport/indexer/validators/lib
     - ads/emily/storage/transport/yt_loader/bin
-    - ads/libs/py_ml_dashboard
     - ads/libs/py_yt_as_cache
     - ads/libs/tenfifty
     - ads/libs/yql/conftest
@@ -9376,7 +9365,6 @@ migrations:
     - F842
     prefixes:
     - cloud/mdb/dbaas_worker/test/mocks
-    - datalens/backend/app/bi_api/bi/resources_async/dataset
     - datalens/backend/app/bi_external_api/bi_external_api/converter/dash
     - datalens/backend/app/bi_external_api/bi_external_api/workbook_ops
     - media/sport/nirvana/sport_thumbnail_loader/biz/ott_sport
@@ -10825,7 +10813,6 @@ migrations:
     - maps/wikimap/stat/libs/common/tests/lib/dates_ut
     - market/contrib/python/yaconf_v0.1.2
     - market/contrib/python/yaconf_v0.1.2/yaconf
-    - market/library/cms_promo/py_utils
     - market/sre/library/python/maaslib
     - market/sre/services/balancer_api/lib
     - market/tools/report_stats/lib
