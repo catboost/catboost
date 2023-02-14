@@ -1327,11 +1327,6 @@ migrations:
     - zootopia/analytics/ml/uplift_modeling/experiments_processor
     - zootopia/analytics/ml/util/cb
     - zootopia/analytics/ml/util/logs_context_manager/lib
-  E128:
-    ignore:
-    - E128
-    prefixes:
-    - comdep_analytics/comdep_recsys/etl_core/etl/clickhouse
   E131:
     ignore:
     - E131
