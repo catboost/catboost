@@ -15,7 +15,6 @@ migrations:
     - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom
     - ads/quality/embedding/tools/mx_crosscheck
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/preprocess
-    - ads/quality/ltp/libs/featurist/mt/test_consistency_save_to_proto
     - ads/quality/max_positions
     - ads/quality/tlm/pylib
     - ads/tools/zc
@@ -560,7 +559,6 @@ migrations:
     - cmnt/tools/regression/request_classes
     - cmnt/tools/request_generator
     - comdep_analytics/client_clustering/lib
-    - comdep_analytics/comdep_recsys/etl_core/etl/clickhouse
     - comdep_analytics/comdep_recsys/etl_core/utils
     - comdep_analytics/revenue_forecasting/lib
     - crm/infra/pymonitor
@@ -1789,7 +1787,6 @@ migrations:
     - cv/short2long/training/yt_load_highlights
     - datalens/backend/lib/bi_core/bi_core/api_commons
     - devtools/autocheck/partition_metod/uids_by_root_target
-    - devtools/contrib/osci/gharchive
     - devtools/project-insights/analytics/aggr_main_steps
     - devtools/project-insights/analytics/aggr_pr_files
     - devtools/project-insights/analytics/aggregate
@@ -2811,7 +2808,6 @@ migrations:
     - analytics/geo/navi/utils/nirvana/megafon_report_proc
     - analytics/geo/navi/utils/nirvana/xlsx_to_tsv
     - antiadblock/tasks/argus_test_run
-    - antiadblock/tasks/turbo_money
     - antirobot/scripts/log_viewer
     - antirobot/scripts/metrics/get_factors_fraction
     - apphost/conf/tickets_integration
@@ -3218,7 +3214,6 @@ migrations:
     - maps/photos/backoffice/tools/automoderator/make_model
     - maps/photos/tools/create_db
     - maps/pylibs/blackbox/lib
-    - maps/pymod/yandex/maps/jams/graph4/tests
     - maps/renderer/tilesgen/tools/lib
     - maps/search/integration_tests/offline_business
     - maps/search/metrics/pipeline/points/limit_points_number
@@ -5515,8 +5510,6 @@ migrations:
     - maps/pylibs/nginx_testlib
     - maps/pylibs/recipes/mongo
     - maps/pylibs/utils/tests
-    - maps/pymod/yandex/maps/jams/graph4/tests
-    - maps/pymod/yandex/maps/pbstream/tests
     - maps/renderer/tilesgen/tools/lib
     - maps/search/geocoder/python/lib
     - maps/search/libs/integration_testlib
@@ -7079,7 +7072,6 @@ migrations:
     - devtools/ya/jbuild/maven
     - devtools/ya/package
     - devtools/ya/test/facility
-    - devtools/ya/test/programs/test_tool/run_black
     - devtools/ya/test/programs/test_tool/run_clang_tidy
     - devtools/ya/test/programs/test_tool/run_fuzz
     - devtools/ya/test/tests/lib
@@ -8531,7 +8523,6 @@ migrations:
     - logos/libs/deploy
     - logos/libs/differs
     - logos/libs/differs/docy_differs
-    - logos/libs/differs/ut
     - logos/libs/docy
     - logos/libs/logtype
     - logos/libs/logtype/settings
@@ -11606,7 +11597,6 @@ migrations:
     - mds/mastermind/common
     - mds/mastermind/flowmastermind/src
     - mds/mastermind/jobs_integration_tests/src
-    - mds/mastermind/minion
     - ml/tensorflow/ytensorflow/bin/ytf-local-inference
     - ml/tensorflow/ytensorflow/bin/ytf-yt-inference
     - ml/tensorflow/ytensorflow/ytensorflow/build
