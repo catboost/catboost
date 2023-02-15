@@ -1,4 +1,9 @@
 """Helper utilities for integrating argcomplete with traitlets"""
+
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+
 import argparse
 import os
 import typing as t
@@ -76,23 +81,25 @@ def increment_argcomplete_index():
 class ExtendedCompletionFinder(CompletionFinder):
     """An extension of CompletionFinder which dynamically completes class-trait based options
 
-    This finder mainly adds 2 functionalities:
+    This finder adds a few functionalities:
 
-    1. When completing options, it will add --Class. to the list of completions, for each
-    class in Application.classes that could complete the current option.
-    2. If it detects that we are currently trying to complete an option related to --Class.,
-    it will add the corresponding config traits of Class to the ArgumentParser instance,
+    1. When completing options, it will add ``--Class.`` to the list of completions, for each
+    class in `Application.classes` that could complete the current option.
+    2. If it detects that we are currently trying to complete an option related to ``--Class.``,
+    it will add the corresponding config traits of Class to the `ArgumentParser` instance,
     so that the traits' completers can be used.
+    3. If there are any subcommands, they are added as completions for the first word
 
-    Note that we are avoiding adding all config traits of all classes to the ArgumentParser,
+    Note that we are avoiding adding all config traits of all classes to the `ArgumentParser`,
     which would be easier but would add more runtime overhead and would also make completions
     appear more spammy.
 
-    These changes do require using the internals of argcomplete.CompletionFinder.
+    These changes do require using the internals of `argcomplete.CompletionFinder`.
     """
 
     _parser: argparse.ArgumentParser
-    config_classes: t.List[t.Any]  # Configurables
+    config_classes: t.List[t.Any] = []  # Configurables
+    subcommands: t.List[str] = []
 
     def match_class_completions(self, cword_prefix: str) -> t.List[t.Tuple[t.Any, str]]:
         """Match the word to be completed against our Configurable classes
@@ -182,6 +189,16 @@ class ExtendedCompletionFinder(CompletionFinder):
 
         completions: t.List[str]
         completions = super()._get_completions(comp_words, cword_prefix, *args)
+
+        # For subcommand-handling: it is difficult to get this to work
+        # using argparse subparsers, because the ArgumentParser accepts
+        # arbitrary extra_args, which ends up masking subparsers.
+        # Instead, check if comp_words only consists of the script,
+        # if so check if any subcommands start with cword_prefix.
+        if self.subcommands and len(comp_words) == 1:
+            argcomplete.debug("Adding subcommands for", cword_prefix)
+            completions.extend(subc for subc in self.subcommands if subc.startswith(cword_prefix))
+
         return completions
 
     def _get_option_completions(

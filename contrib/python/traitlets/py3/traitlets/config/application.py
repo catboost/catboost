@@ -731,7 +731,7 @@ class Application(SingletonConfigurable):
         This prevents issues such as an alias pointing to InteractiveShell,
         but a config file setting the same trait in TerminalInteraciveShell
         getting inappropriate priority over the command-line arg.
-        Also, loaders expect ``(key: longname)`` and not ````key: (longname, help)`` items.
+        Also, loaders expect ``(key: longname)`` and not ``key: (longname, help)`` items.
 
         Only aliases with exactly one descendent in the class list
         will be promoted.
@@ -785,7 +785,9 @@ class Application(SingletonConfigurable):
         return flags, aliases
 
     def _create_loader(self, argv, aliases, flags, classes):
-        return KVArgParseConfigLoader(argv, aliases, flags, classes=classes, log=self.log)
+        return KVArgParseConfigLoader(
+            argv, aliases, flags, classes=classes, log=self.log, subcommands=self.subcommands
+        )
 
     @classmethod
     def _get_sys_argv(cls, check_argcomplete: bool = False) -> t.List[str]:

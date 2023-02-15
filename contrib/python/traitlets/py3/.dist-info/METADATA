@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: traitlets
-Version: 5.8.1
+Version: 5.9.0
 Summary: Traitlets Python configuration system
 Project-URL: Homepage, https://github.com/ipython/traitlets
 Author-email: IPython Development Team <ipython-dev@python.org>

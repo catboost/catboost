@@ -137,6 +137,10 @@ class TestApplication(TestCase):
         self.assertEqual(app.classes, [MyApp, Bar, Foo])  # type:ignore
         self.assertEqual(app.config_file, "")
 
+    def test_app_name_set_via_constructor(self):
+        app = MyApp(name='set_via_constructor')
+        assert app.name == "set_via_constructor"
+
     def test_mro_discovery(self):
         app = MyApp()
 
@@ -632,6 +636,9 @@ class TestApplication(TestCase):
         # Check parent hierarchy.
         self.assertIs(app.subapp.parent, app)
         self.assertIs(app.subapp.subapp.parent, app.subapp)  # Set by factory.
+
+        Root.clear_instance()
+        Sub1.clear_instance()
 
     def test_loaded_config_files(self):
         app = MyApp()
