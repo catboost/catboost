@@ -2107,7 +2107,6 @@ migrations:
     - sandbox/projects/avia/shared_flights/flying_time
     - sandbox/projects/browser/autotests_qa_tools/classes/autoduty
     - sandbox/projects/browser/metrics/common
-    - sandbox/projects/deploy/DeployTicketWatcher
     - sandbox/projects/devops/HardwareGencfgGroups
     - sandbox/projects/devops/UpdateGoals
     - sandbox/projects/di/build/precommit_checks
@@ -2242,7 +2241,6 @@ migrations:
     - yabs/server/test/ft/BSDEV-85352
     - yabs/server/test/ft/BSSERVER-11693
     - yabs/server/test/ft/BSSERVER-11699
-    - yabs/server/test/ft/BSSERVER-12593
     - yabs/server/test/ft/BSSERVER-14407
     - yabs/server/test/ft/BSSERVER-16347
     - yabs/server/test/ft/BSSERVER-17987
@@ -3820,7 +3818,6 @@ migrations:
     - yabs/server/test/ft/BSDEV-70956
     - yabs/server/test/ft/BSDEV-71906
     - yabs/server/test/ft/BSSERVER-11192
-    - yabs/server/test/ft/BSSERVER-13868
     - yabs/server/test/ft/BSSERVER-20512
     - yabs/server/test/ft/BSSERVER-23252
     - yabs/server/test/ft/BSSERVER-3381
@@ -8709,7 +8706,6 @@ migrations:
     - travel/avia/revise/utils
     - travel/avia/shared_flights/admin/app/parsers
     - travel/avia/shared_flights/tasks/amadeus_parser
-    - travel/avia/ticket_daemon/ticket_daemon/lib/sirena
     - travel/avia/ticket_daemon_api/jsonrpc/lib/operating_checker
     - travel/library/python/base_http_client
     - travel/library/python/base_http_client/tests
@@ -9855,7 +9851,6 @@ migrations:
     - quality/neural_net/bert/tools/autobert/lib
     - robot/metrics/translated_search/join_statuses
     - rt-research/bannerland/lib/archive_workers
-    - search/mon/bot/bot/modules/protocols
     - search/plutonium/deploy/instance_syncer
     - yabs/server/test/ft/BSSERVER-11310
     - yabs/server/test/ft/BSSERVER-13708
