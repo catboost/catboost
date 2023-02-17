@@ -409,7 +409,6 @@ def arrays(
     .. code-block:: pycon
 
       >>> import numpy as np
-      >>> from hypothesis import strategies as st
       >>> arrays(np.int8, (2, 3)).example()
       array([[-8,  6,  3],
              [-6,  4,  6]], dtype=int8)

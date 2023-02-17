@@ -401,7 +401,7 @@ def floats(
 
     The width argument specifies the maximum number of bits of precision
     required to represent the generated float. Valid values are 16, 32, or 64.
-    Passing ``width=32`` will still use the builtin 64-bit ``float`` class,
+    Passing ``width=32`` will still use the builtin 64-bit :class:`~python:float` class,
     but always for values which can be exactly represented as a 32-bit float.
 
     The exclude_min and exclude_max argument can be used to generate numbers

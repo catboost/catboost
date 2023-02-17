@@ -1630,8 +1630,10 @@ def complex_numbers(
     allow_infinity: Optional[bool] = None,
     allow_nan: Optional[bool] = None,
     allow_subnormal: bool = True,
+    width: int = 128,
 ) -> SearchStrategy[complex]:
-    """Returns a strategy that generates complex numbers.
+    """Returns a strategy that generates :class:`~python:complex`
+    numbers.
 
     This strategy draws complex numbers with constrained magnitudes.
     The ``min_magnitude`` and ``max_magnitude`` parameters should be
@@ -1642,12 +1644,21 @@ def complex_numbers(
     is an error to enable ``allow_nan``.  If ``max_magnitude`` is finite,
     it is an error to enable ``allow_infinity``.
 
-    ``allow_subnormal`` is applied to each part of the complex number
-    separately, as for :func:`~hypothesis.strategies.floats`.
+    ``allow_infinity``, ``allow_nan``, and ``allow_subnormal`` are
+    applied to each part of the complex number separately, as for
+    :func:`~hypothesis.strategies.floats`.
 
     The magnitude constraints are respected up to a relative error
     of (around) floating-point epsilon, due to implementation via
     the system ``sqrt`` function.
+
+    The width argument specifies the maximum number of bits of precision
+    required to represent the entire generated complex number.
+    Valid values are 32, 64 or 128, which correspond to the real and imaginary
+    components each having width 16, 32 or 64, respectively.
+    Passing ``width=64`` will still use the builtin 128-bit
+    :class:`~python:complex` class, but always for values which can be
+    exactly represented as two 32-bit floats.
 
     Examples from this strategy shrink by shrinking their real and
     imaginary parts, as :func:`~hypothesis.strategies.floats`.
@@ -1677,8 +1688,15 @@ def complex_numbers(
             f"Cannot have allow_nan={allow_nan!r}, min_magnitude={min_magnitude!r} "
             f"max_magnitude={max_magnitude!r}"
         )
-
     check_type(bool, allow_subnormal, "allow_subnormal")
+    if width not in (32, 64, 128):
+        raise InvalidArgument(
+            f"width={width!r}, but must be 32, 64 or 128 (other complex dtypes "
+            "such as complex192 or complex256 are not supported)"
+            # For numpy, these types would be supported (but not by CPython):
+            # https://numpy.org/doc/stable/reference/arrays.scalars.html#complex-floating-point-types
+        )
+    component_width = width // 2
     allow_kw = {
         "allow_nan": allow_nan,
         "allow_infinity": allow_infinity,
@@ -1686,6 +1704,7 @@ def complex_numbers(
         # then allow_subnormal=True would be an error with the min_value to the floats()
         # strategy for the real part.  We therefore replace True with None.
         "allow_subnormal": None if allow_subnormal else allow_subnormal,
+        "width": component_width,
     }
 
     if min_magnitude == 0 and max_magnitude is None:

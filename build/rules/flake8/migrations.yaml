@@ -777,7 +777,6 @@ migrations:
     - maps/adv/analytics/regular/top_spenders_tier1
     - maps/analytics/datasets/routes/mobile-maps
     - maps/analytics/legacy/nile/statadhoc-12591-retention-geo-fiches/daily-publish
-    - maps/analyzer/modules/matcher/scripts/gen_ammo
     - maps/automotive/tools/key_resetter/bin
     - maps/automotive/tools/statistics_auto/bin/build_tracks
     - maps/automotive/tools/statistics_auto/pylib/calc_hu_offline
@@ -1642,7 +1641,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14904
     - yabs/server/test/ft/BSSERVER-1971
     - yabs/server/test/ft/BSSERVER-3685
-    - yabs/server/test/ft/RMP-2557
     - yabs/server/test/qabs_bsserver_pytest
     - yabs/stat/direct_monitoring/libs/checks
     - yabs/stat/dropstat2/pylibs/common
@@ -1989,7 +1987,6 @@ migrations:
     - ml/tensorflow/tfnn/src/tfnn
     - ml/tensorflow/tfnn/src/tfnn/layers
     - ml/tensorflow/tfnn/src/tfnn/ops/sliced_argmax
-    - ml/tensorflow/tfnn/src/tfnn/task/seq2seq/inference
     - ml/tensorflow/tfnn/src/tfnn/task/seq2seq/tools
     - ml/tensorflow/tfnn/src/tfnn/tools
     - ml/tensorflow/tfnn/src/tfnn/train
@@ -3863,7 +3860,6 @@ migrations:
     - yp/scripts/add_read_acl_for_accounts
     - yql/tools/schema_stats
     - yql/tools/udf_autocomplete/system/tools/compare_pkg_json_and_yaml
-    - yql/tools/worker_metrics
     - ysite/parser/tools/parse/tests/parse_mp3
     - ysite/yandex/pers/feat/scripts
     - yt/admin/shiva2/bin/cli
@@ -8300,7 +8296,6 @@ migrations:
     - yabs/utils/yabs_duty_scheduler/lib
     - yabs/vh/cms-pgaas/db-resource-cleaner/biz
     - yabs/vh/frontend/test/vh_pytest
-    - ydb/tests/functional/suite_tests
     - ydo/devops/monitorings/analyze_scripts/analyze_duty_problems
     - ydo/devops/monitorings/analyze_scripts/analyze_spw
     - ydo/erp/database/lib
@@ -9962,7 +9957,6 @@ migrations:
     - datalens/backend/lib/clickhouse-sqlalchemy/clickhouse_sqlalchemy/parsers
     - education/services/checking_system/marker_checker/lib/markers/columncalc/objects
     - extsearch/goods/indexer/monitoring/index_releases
-    - extsearch/ymusic/scripts/reindex
     - geoproduct/amocrm/processes/bin/staff/users_presence
     - infra/awacs/vendor/kazoo/kazoo
     - intranet/wiki/src/wiki/legacy/ya_blockdiag
@@ -11589,9 +11583,7 @@ migrations:
     - mds/elliptics/tests/pytests
     - mds/libs/eblob/tests/python
     - mds/libs/jerasure/python
-    - mds/mastermind/common
     - mds/mastermind/flowmastermind/src
-    - mds/mastermind/jobs_integration_tests/src
     - ml/tensorflow/ytensorflow/bin/ytf-local-inference
     - ml/tensorflow/ytensorflow/bin/ytf-yt-inference
     - ml/tensorflow/ytensorflow/ytensorflow/build
