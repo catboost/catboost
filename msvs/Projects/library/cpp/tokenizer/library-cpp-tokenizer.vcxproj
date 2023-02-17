@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\cpp\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-python3.exe "$(SolutionDir)../build/scripts/rodata2asm.py" "SpecialTokens" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata.asm"
+py.exe "$(SolutionDir)../build/scripts/rodata2asm.py" "SpecialTokens" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata.obj" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
@@ -133,7 +133,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\cpp\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-python3.exe "$(SolutionDir)../build/scripts/rodata2asm.py" "SpecialTokens" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata.asm"
+py.exe "$(SolutionDir)../build/scripts/rodata2asm.py" "SpecialTokens" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata.obj" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/SpecialTokens.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
@@ -151,11 +151,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\cpp\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-L" "-G2" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/nlptok_v2.rl6.cpp" "$(SolutionDir)../library/cpp/tokenizer/nlptok_v2.rl6"
+py.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-L" "-G2" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/nlptok_v2.rl6.cpp" "$(SolutionDir)../library/cpp/tokenizer/nlptok_v2.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\cpp\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-L" "-G2" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/nlptok_v3.rl6.cpp" "$(SolutionDir)../library/cpp/tokenizer/nlptok_v3.rl6"
+py.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-L" "-G2" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/nlptok_v3.rl6.cpp" "$(SolutionDir)../library/cpp/tokenizer/nlptok_v3.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -166,11 +166,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\cpp\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-L" "-G2" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/nlptok_v2.rl6.cpp" "$(SolutionDir)../library/cpp/tokenizer/nlptok_v2.rl6"
+py.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-L" "-G2" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/nlptok_v2.rl6.cpp" "$(SolutionDir)../library/cpp/tokenizer/nlptok_v2.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\cpp\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-L" "-G2" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/nlptok_v3.rl6.cpp" "$(SolutionDir)../library/cpp/tokenizer/nlptok_v3.rl6"
+py.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-L" "-G2" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/tokenizer/nlptok_v3.rl6.cpp" "$(SolutionDir)../library/cpp/tokenizer/nlptok_v3.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

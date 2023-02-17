@@ -84,7 +84,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\cpp\json\fast_sax
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/json/fast_sax/parser.rl6.cpp" "$(SolutionDir)../library/cpp/json/fast_sax/parser.rl6"
+py.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/json/fast_sax/parser.rl6.cpp" "$(SolutionDir)../library/cpp/json/fast_sax/parser.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\cpp\json\fast_sax
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/json/fast_sax/parser.rl6.cpp" "$(SolutionDir)../library/cpp/json/fast_sax/parser.rl6"
+py.exe "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/cpp/json/fast_sax/parser.rl6.cpp" "$(SolutionDir)../library/cpp/json/fast_sax/parser.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

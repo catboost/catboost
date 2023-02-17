@@ -222,7 +222,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
+py.exe "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,7 +235,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
+py.exe "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

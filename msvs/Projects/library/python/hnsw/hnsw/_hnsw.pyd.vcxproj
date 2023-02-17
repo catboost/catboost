@@ -84,7 +84,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\hnsw\hnsw
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_hnsw" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy" "$(SolutionDir)../library/python/hnsw/hnsw/_hnsw.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/hnsw/hnsw/_hnsw.pyx.cpp"
+py.exe "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_hnsw" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy" "$(SolutionDir)../library/python/hnsw/hnsw/_hnsw.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/hnsw/hnsw/_hnsw.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\hnsw\hnsw
 if %errorlevel% neq 0 goto :cmEnd
-python.exe "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_hnsw" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy" "$(SolutionDir)../library/python/hnsw/hnsw/_hnsw.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/hnsw/hnsw/_hnsw.pyx.cpp"
+py.exe "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_hnsw" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include" "-I$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy" "$(SolutionDir)../library/python/hnsw/hnsw/_hnsw.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/hnsw/hnsw/_hnsw.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
