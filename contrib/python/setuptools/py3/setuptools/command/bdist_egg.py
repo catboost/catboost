@@ -11,9 +11,10 @@ import re
 import textwrap
 import marshal
 
-from pkg_resources import get_build_platform, Distribution, ensure_directory
+from pkg_resources import get_build_platform, Distribution
 from setuptools.extension import Library
 from setuptools import Command
+from .._path import ensure_directory
 
 from sysconfig import get_path, get_python_version
 

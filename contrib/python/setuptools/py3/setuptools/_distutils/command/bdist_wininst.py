@@ -9,62 +9,92 @@ import warnings
 from distutils.core import Command
 from distutils.util import get_platform
 from distutils.dir_util import remove_tree
-from distutils.errors import *
+from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.sysconfig import get_python_version
 from distutils import log
+
 
 class bdist_wininst(Command):
 
     description = "create an executable installer for MS Windows"
 
-    user_options = [('bdist-dir=', None,
-                     "temporary directory for creating the distribution"),
-                    ('plat-name=', 'p',
-                     "platform name to embed in generated filenames "
-                     "(default: %s)" % get_platform()),
-                    ('keep-temp', 'k',
-                     "keep the pseudo-installation tree around after " +
-                     "creating the distribution archive"),
-                    ('target-version=', None,
-                     "require a specific python version" +
-                     " on the target system"),
-                    ('no-target-compile', 'c',
-                     "do not compile .py to .pyc on the target system"),
-                    ('no-target-optimize', 'o',
-                     "do not compile .py to .pyo (optimized) "
-                     "on the target system"),
-                    ('dist-dir=', 'd',
-                     "directory to put final built distributions in"),
-                    ('bitmap=', 'b',
-                     "bitmap to use for the installer instead of python-powered logo"),
-                    ('title=', 't',
-                     "title to display on the installer background instead of default"),
-                    ('skip-build', None,
-                     "skip rebuilding everything (for testing/debugging)"),
-                    ('install-script=', None,
-                     "basename of installation script to be run after "
-                     "installation or before deinstallation"),
-                    ('pre-install-script=', None,
-                     "Fully qualified filename of a script to be run before "
-                     "any files are installed.  This script need not be in the "
-                     "distribution"),
-                    ('user-access-control=', None,
-                     "specify Vista's UAC handling - 'none'/default=no "
-                     "handling, 'auto'=use UAC if target Python installed for "
-                     "all users, 'force'=always use UAC"),
-                   ]
+    user_options = [
+        ('bdist-dir=', None, "temporary directory for creating the distribution"),
+        (
+            'plat-name=',
+            'p',
+            "platform name to embed in generated filenames "
+            "(default: %s)" % get_platform(),
+        ),
+        (
+            'keep-temp',
+            'k',
+            "keep the pseudo-installation tree around after "
+            + "creating the distribution archive",
+        ),
+        (
+            'target-version=',
+            None,
+            "require a specific python version" + " on the target system",
+        ),
+        ('no-target-compile', 'c', "do not compile .py to .pyc on the target system"),
+        (
+            'no-target-optimize',
+            'o',
+            "do not compile .py to .pyo (optimized) " "on the target system",
+        ),
+        ('dist-dir=', 'd', "directory to put final built distributions in"),
+        (
+            'bitmap=',
+            'b',
+            "bitmap to use for the installer instead of python-powered logo",
+        ),
+        (
+            'title=',
+            't',
+            "title to display on the installer background instead of default",
+        ),
+        ('skip-build', None, "skip rebuilding everything (for testing/debugging)"),
+        (
+            'install-script=',
+            None,
+            "basename of installation script to be run after "
+            "installation or before deinstallation",
+        ),
+        (
+            'pre-install-script=',
+            None,
+            "Fully qualified filename of a script to be run before "
+            "any files are installed.  This script need not be in the "
+            "distribution",
+        ),
+        (
+            'user-access-control=',
+            None,
+            "specify Vista's UAC handling - 'none'/default=no "
+            "handling, 'auto'=use UAC if target Python installed for "
+            "all users, 'force'=always use UAC",
+        ),
+    ]
 
-    boolean_options = ['keep-temp', 'no-target-compile', 'no-target-optimize',
-                       'skip-build']
+    boolean_options = [
+        'keep-temp',
+        'no-target-compile',
+        'no-target-optimize',
+        'skip-build',
+    ]
 
     # bpo-10945: bdist_wininst requires mbcs encoding only available on Windows
-    _unsupported = (sys.platform != "win32")
+    _unsupported = sys.platform != "win32"
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        warnings.warn("bdist_wininst command is deprecated since Python 3.8, "
-                      "use bdist_wheel (wheel packages) instead",
-                      DeprecationWarning, 2)
+        warnings.warn(
+            "bdist_wininst command is deprecated since Python 3.8, "
+            "use bdist_wheel (wheel packages) instead",
+            DeprecationWarning,
+            2,
+        )
 
     def initialize_options(self):
         self.bdist_dir = None
@@ -80,7 +110,6 @@ class bdist_wininst(Command):
         self.install_script = None
         self.pre_install_script = None
         self.user_access_control = None
-
 
     def finalize_options(self):
         self.set_undefined_options('bdist', ('skip_build', 'skip_build'))
@@ -102,14 +131,16 @@ class bdist_wininst(Command):
             short_version = get_python_version()
             if self.target_version and self.target_version != short_version:
                 raise DistutilsOptionError(
-                      "target version can only be %s, or the '--skip-build'" \
-                      " option must be specified" % (short_version,))
+                    "target version can only be %s, or the '--skip-build'"
+                    " option must be specified" % (short_version,)
+                )
             self.target_version = short_version
 
-        self.set_undefined_options('bdist',
-                                   ('dist_dir', 'dist_dir'),
-                                   ('plat_name', 'plat_name'),
-                                  )
+        self.set_undefined_options(
+            'bdist',
+            ('dist_dir', 'dist_dir'),
+            ('plat_name', 'plat_name'),
+        )
 
         if self.install_script:
             for script in self.distribution.scripts:
@@ -117,16 +148,17 @@ class bdist_wininst(Command):
                     break
             else:
                 raise DistutilsOptionError(
-                      "install_script '%s' not found in scripts"
-                      % self.install_script)
+                    "install_script '%s' not found in scripts" % self.install_script
+                )
 
     def run(self):
-        if (sys.platform != "win32" and
-            (self.distribution.has_ext_modules() or
-             self.distribution.has_c_libraries())):
-            raise DistutilsPlatformError \
-                  ("distribution contains extensions and/or C libraries; "
-                   "must be compiled on a Windows 32 platform")
+        if sys.platform != "win32" and (
+            self.distribution.has_ext_modules() or self.distribution.has_c_libraries()
+        ):
+            raise DistutilsPlatformError(
+                "distribution contains extensions and/or C libraries; "
+                "must be compiled on a Windows 32 platform"
+            )
 
         if not self.skip_build:
             self.run_command('build')
@@ -153,10 +185,9 @@ class bdist_wininst(Command):
             if not target_version:
                 assert self.skip_build, "Should have already checked this"
                 target_version = '%d.%d' % sys.version_info[:2]
-            plat_specifier = ".%s-%s" % (self.plat_name, target_version)
+            plat_specifier = ".{}-{}".format(self.plat_name, target_version)
             build = self.get_finalized_command('build')
-            build.build_lib = os.path.join(build.build_base,
-                                           'lib' + plat_specifier)
+            build.build_lib = os.path.join(build.build_base, 'lib' + plat_specifier)
 
         # Use a custom scheme for the zip-file, because we have to decide
         # at installation time which scheme to use.
@@ -164,9 +195,7 @@ class bdist_wininst(Command):
             value = key.upper()
             if key == 'headers':
                 value = value + '/Include/$dist_name'
-            setattr(install,
-                    'install_' + key,
-                    value)
+            setattr(install, 'install_' + key, value)
 
         log.info("installing to %s", self.bdist_dir)
         install.ensure_finalized()
@@ -182,18 +211,19 @@ class bdist_wininst(Command):
         # And make an archive relative to the root of the
         # pseudo-installation tree.
         from tempfile import mktemp
+
         archive_basename = mktemp()
         fullname = self.distribution.get_fullname()
-        arcname = self.make_archive(archive_basename, "zip",
-                                    root_dir=self.bdist_dir)
+        arcname = self.make_archive(archive_basename, "zip", root_dir=self.bdist_dir)
         # create an exe containing the zip-file
         self.create_exe(arcname, fullname, self.bitmap)
         if self.distribution.has_ext_modules():
             pyversion = get_python_version()
         else:
             pyversion = 'any'
-        self.distribution.dist_files.append(('bdist_wininst', pyversion,
-                                             self.get_installer_filename(fullname)))
+        self.distribution.dist_files.append(
+            ('bdist_wininst', pyversion, self.get_installer_filename(fullname))
+        )
         # remove the zip-file again
         log.debug("removing temporary file '%s'", arcname)
         os.remove(arcname)
@@ -217,13 +247,20 @@ class bdist_wininst(Command):
         def escape(s):
             return s.replace("\n", "\\n")
 
-        for name in ["author", "author_email", "description", "maintainer",
-                     "maintainer_email", "name", "url", "version"]:
+        for name in [
+            "author",
+            "author_email",
+            "description",
+            "maintainer",
+            "maintainer_email",
+            "name",
+            "url",
+            "version",
+        ]:
             data = getattr(metadata, name, "")
             if data:
-                info = info + ("\n    %s: %s" % \
-                               (name.capitalize(), escape(data)))
-                lines.append("%s=%s" % (name, escape(data)))
+                info = info + ("\n    {}: {}".format(name.capitalize(), escape(data)))
+                lines.append("{}={}".format(name, escape(data)))
 
         # The [setup] section contains entries controlling
         # the installer runtime.
@@ -242,8 +279,11 @@ class bdist_wininst(Command):
         lines.append("title=%s" % escape(title))
         import time
         import distutils
-        build_info = "Built %s with distutils-%s" % \
-                     (time.ctime(time.time()), distutils.__version__)
+
+        build_info = "Built {} with distutils-{}".format(
+            time.ctime(time.time()),
+            distutils.__version__,
+        )
         lines.append("build_info=%s" % build_info)
         return "\n".join(lines)
 
@@ -279,8 +319,7 @@ class bdist_wininst(Command):
                 # We need to normalize newlines, so we open in text mode and
                 # convert back to bytes. "latin-1" simply avoids any possible
                 # failures.
-                with open(self.pre_install_script, "r",
-                          encoding="latin-1") as script:
+                with open(self.pre_install_script, encoding="latin-1") as script:
                     script_data = script.read().encode("latin-1")
                 cfgdata = cfgdata + script_data + b"\n\0"
             else:
@@ -293,11 +332,12 @@ class bdist_wininst(Command):
             # expects.  If the layout changes, increment that number, make
             # the corresponding changes to the wininst.exe sources, and
             # recompile them.
-            header = struct.pack("<iii",
-                                0x1234567B,       # tag
-                                len(cfgdata),     # length
-                                bitmaplen,        # number of bytes in bitmap
-                                )
+            header = struct.pack(
+                "<iii",
+                0x1234567B,  # tag
+                len(cfgdata),  # length
+                bitmaplen,  # number of bytes in bitmap
+            )
             file.write(header)
             with open(arcname, "rb") as f:
                 file.write(f.read())
@@ -307,15 +347,17 @@ class bdist_wininst(Command):
         if self.target_version:
             # if we create an installer for a specific python version,
             # it's better to include this in the name
-            installer_name = os.path.join(self.dist_dir,
-                                          "%s.%s-py%s.exe" %
-                                           (fullname, self.plat_name, self.target_version))
+            installer_name = os.path.join(
+                self.dist_dir,
+                "{}.{}-py{}.exe".format(fullname, self.plat_name, self.target_version),
+            )
         else:
-            installer_name = os.path.join(self.dist_dir,
-                                          "%s.%s.exe" % (fullname, self.plat_name))
+            installer_name = os.path.join(
+                self.dist_dir, "{}.{}.exe".format(fullname, self.plat_name)
+            )
         return installer_name
 
-    def get_exe_bytes(self):
+    def get_exe_bytes(self):  # noqa: C901
         # If a target-version other than the current version has been
         # specified, then using the MSVC version from *this* build is no good.
         # Without actually finding and executing the target version and parsing
@@ -355,7 +397,6 @@ class bdist_wininst(Command):
                 major = CRT_ASSEMBLY_VERSION.partition('.')[0]
                 bv = major + '.0'
 
-
         # wininst-x.y.exe is in the same directory as this file
         directory = os.path.dirname(__file__)
         # we must use a wininst-x.y.exe built with the same C compiler
@@ -369,7 +410,7 @@ class bdist_wininst(Command):
         else:
             sfix = ''
 
-        filename = os.path.join(directory, "wininst-%s%s.exe" % (bv, sfix))
+        filename = os.path.join(directory, "wininst-{}{}.exe".format(bv, sfix))
         f = open(filename, "rb")
         try:
             return f.read()

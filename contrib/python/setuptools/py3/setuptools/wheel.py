@@ -15,6 +15,7 @@ from pkg_resources import parse_version
 from setuptools.extern.packaging.tags import sys_tags
 from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.command.egg_info import write_requirements
+from setuptools.archive_util import _unpack_zipfile_obj
 
 
 WHEEL_NAME = re.compile(
@@ -121,8 +122,7 @@ class Wheel:
             raise ValueError(
                 'unsupported wheel format version: %s' % wheel_version)
         # Extract to target directory.
-        os.mkdir(destination_eggdir)
-        zf.extractall(destination_eggdir)
+        _unpack_zipfile_obj(zf, destination_eggdir)
         # Convert metadata.
         dist_info = os.path.join(destination_eggdir, dist_info)
         dist = pkg_resources.Distribution.from_location(
@@ -136,13 +136,13 @@ class Wheel:
         def raw_req(req):
             req.marker = None
             return str(req)
-        install_requires = list(sorted(map(raw_req, dist.requires())))
+        install_requires = list(map(raw_req, dist.requires()))
         extras_require = {
-            extra: sorted(
+            extra: [
                 req
                 for req in map(raw_req, dist.requires((extra,)))
                 if req not in install_requires
-            )
+            ]
             for extra in dist.extras
         }
         os.rename(dist_info, egg_info)

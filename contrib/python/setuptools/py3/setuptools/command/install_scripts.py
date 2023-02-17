@@ -4,7 +4,8 @@ from distutils.errors import DistutilsModuleError
 import os
 import sys
 
-from pkg_resources import Distribution, PathMetadata, ensure_directory
+from pkg_resources import Distribution, PathMetadata
+from .._path import ensure_directory
 
 
 class install_scripts(orig.install_scripts):

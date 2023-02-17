@@ -9,7 +9,8 @@ configure-like tasks: "try to compile this C code", or "figure out where
 this header file lives".
 """
 
-import os, re
+import os
+import re
 
 from distutils.core import Command
 from distutils.errors import DistutilsExecError
@@ -18,32 +19,26 @@ from distutils import log
 
 LANG_EXT = {"c": ".c", "c++": ".cxx"}
 
+
 class config(Command):
 
     description = "prepare to build"
 
     user_options = [
-        ('compiler=', None,
-         "specify the compiler type"),
-        ('cc=', None,
-         "specify the compiler executable"),
-        ('include-dirs=', 'I',
-         "list of directories to search for header files"),
-        ('define=', 'D',
-         "C preprocessor macros to define"),
-        ('undef=', 'U',
-         "C preprocessor macros to undefine"),
-        ('libraries=', 'l',
-         "external C libraries to link with"),
-        ('library-dirs=', 'L',
-         "directories to search for external C libraries"),
-
-        ('noisy', None,
-         "show every action (compile, link, run, ...) taken"),
-        ('dump-source', None,
-         "dump generated source files before attempting to compile them"),
-        ]
-
+        ('compiler=', None, "specify the compiler type"),
+        ('cc=', None, "specify the compiler executable"),
+        ('include-dirs=', 'I', "list of directories to search for header files"),
+        ('define=', 'D', "C preprocessor macros to define"),
+        ('undef=', 'U', "C preprocessor macros to undefine"),
+        ('libraries=', 'l', "external C libraries to link with"),
+        ('library-dirs=', 'L', "directories to search for external C libraries"),
+        ('noisy', None, "show every action (compile, link, run, ...) taken"),
+        (
+            'dump-source',
+            None,
+            "dump generated source files before attempting to compile them",
+        ),
+    ]
 
     # The three standard command methods: since the "config" command
     # does nothing by default, these are empty.
@@ -93,9 +88,11 @@ class config(Command):
         # We do this late, and only on-demand, because this is an expensive
         # import.
         from distutils.ccompiler import CCompiler, new_compiler
+
         if not isinstance(self.compiler, CCompiler):
-            self.compiler = new_compiler(compiler=self.compiler,
-                                         dry_run=self.dry_run, force=1)
+            self.compiler = new_compiler(
+                compiler=self.compiler, dry_run=self.dry_run, force=1
+            )
             customize_compiler(self.compiler)
             if self.include_dirs:
                 self.compiler.set_include_dirs(self.include_dirs)
@@ -132,14 +129,16 @@ class config(Command):
         self.compiler.compile([src], include_dirs=include_dirs)
         return (src, obj)
 
-    def _link(self, body, headers, include_dirs, libraries, library_dirs,
-              lang):
+    def _link(self, body, headers, include_dirs, libraries, library_dirs, lang):
         (src, obj) = self._compile(body, headers, include_dirs, lang)
         prog = os.path.splitext(os.path.basename(src))[0]
-        self.compiler.link_executable([obj], prog,
-                                      libraries=libraries,
-                                      library_dirs=library_dirs,
-                                      target_lang=lang)
+        self.compiler.link_executable(
+            [obj],
+            prog,
+            libraries=libraries,
+            library_dirs=library_dirs,
+            target_lang=lang,
+        )
 
         if self.compiler.exe_extension is not None:
             prog = prog + self.compiler.exe_extension
@@ -157,7 +156,6 @@ class config(Command):
                 os.remove(filename)
             except OSError:
                 pass
-
 
     # XXX these ignore the dry-run flag: what to do, what to do? even if
     # you want a dry-run build, you still need some sort of configuration
@@ -177,6 +175,7 @@ class config(Command):
         ('body' probably isn't of much use, but what the heck.)
         """
         from distutils.ccompiler import CompileError
+
         self._check_compiler()
         ok = True
         try:
@@ -187,8 +186,7 @@ class config(Command):
         self._clean()
         return ok
 
-    def search_cpp(self, pattern, body=None, headers=None, include_dirs=None,
-                   lang="c"):
+    def search_cpp(self, pattern, body=None, headers=None, include_dirs=None, lang="c"):
         """Construct a source file (just like 'try_cpp()'), run it through
         the preprocessor, and return true if any line of the output matches
         'pattern'.  'pattern' should either be a compiled regex object or a
@@ -220,6 +218,7 @@ class config(Command):
         Return true on success, false otherwise.
         """
         from distutils.ccompiler import CompileError
+
         self._check_compiler()
         try:
             self._compile(body, headers, include_dirs, lang)
@@ -231,17 +230,24 @@ class config(Command):
         self._clean()
         return ok
 
-    def try_link(self, body, headers=None, include_dirs=None, libraries=None,
-                 library_dirs=None, lang="c"):
+    def try_link(
+        self,
+        body,
+        headers=None,
+        include_dirs=None,
+        libraries=None,
+        library_dirs=None,
+        lang="c",
+    ):
         """Try to compile and link a source file, built from 'body' and
         'headers', to executable form.  Return true on success, false
         otherwise.
         """
         from distutils.ccompiler import CompileError, LinkError
+
         self._check_compiler()
         try:
-            self._link(body, headers, include_dirs,
-                       libraries, library_dirs, lang)
+            self._link(body, headers, include_dirs, libraries, library_dirs, lang)
             ok = True
         except (CompileError, LinkError):
             ok = False
@@ -250,17 +256,26 @@ class config(Command):
         self._clean()
         return ok
 
-    def try_run(self, body, headers=None, include_dirs=None, libraries=None,
-                library_dirs=None, lang="c"):
+    def try_run(
+        self,
+        body,
+        headers=None,
+        include_dirs=None,
+        libraries=None,
+        library_dirs=None,
+        lang="c",
+    ):
         """Try to compile, link to an executable, and run a program
         built from 'body' and 'headers'.  Return true on success, false
         otherwise.
         """
         from distutils.ccompiler import CompileError, LinkError
+
         self._check_compiler()
         try:
-            src, obj, exe = self._link(body, headers, include_dirs,
-                                       libraries, library_dirs, lang)
+            src, obj, exe = self._link(
+                body, headers, include_dirs, libraries, library_dirs, lang
+            )
             self.spawn([exe])
             ok = True
         except (CompileError, LinkError, DistutilsExecError):
@@ -270,13 +285,20 @@ class config(Command):
         self._clean()
         return ok
 
-
     # -- High-level methods --------------------------------------------
     # (these are the ones that are actually likely to be useful
     # when implementing a real-world config command!)
 
-    def check_func(self, func, headers=None, include_dirs=None,
-                   libraries=None, library_dirs=None, decl=0, call=0):
+    def check_func(
+        self,
+        func,
+        headers=None,
+        include_dirs=None,
+        libraries=None,
+        library_dirs=None,
+        decl=0,
+        call=0,
+    ):
         """Determine if function 'func' is available by constructing a
         source file that refers to 'func', and compiles and links it.
         If everything succeeds, returns true; otherwise returns false.
@@ -302,11 +324,16 @@ class config(Command):
         body.append("}")
         body = "\n".join(body) + "\n"
 
-        return self.try_link(body, headers, include_dirs,
-                             libraries, library_dirs)
+        return self.try_link(body, headers, include_dirs, libraries, library_dirs)
 
-    def check_lib(self, library, library_dirs=None, headers=None,
-                  include_dirs=None, other_libraries=[]):
+    def check_lib(
+        self,
+        library,
+        library_dirs=None,
+        headers=None,
+        include_dirs=None,
+        other_libraries=[],
+    ):
         """Determine if 'library' is available to be linked against,
         without actually checking that any particular symbols are provided
         by it.  'headers' will be used in constructing the source file to
@@ -316,17 +343,23 @@ class config(Command):
         has symbols that depend on other libraries.
         """
         self._check_compiler()
-        return self.try_link("int main (void) { }", headers, include_dirs,
-                             [library] + other_libraries, library_dirs)
+        return self.try_link(
+            "int main (void) { }",
+            headers,
+            include_dirs,
+            [library] + other_libraries,
+            library_dirs,
+        )
 
-    def check_header(self, header, include_dirs=None, library_dirs=None,
-                     lang="c"):
+    def check_header(self, header, include_dirs=None, library_dirs=None, lang="c"):
         """Determine if the system header file named by 'header_file'
         exists and can be found by the preprocessor; return true if so,
         false otherwise.
         """
-        return self.try_cpp(body="/* No body */", headers=[header],
-                            include_dirs=include_dirs)
+        return self.try_cpp(
+            body="/* No body */", headers=[header], include_dirs=include_dirs
+        )
+
 
 def dump_file(filename, head=None):
     """Dumps a file content into log.info.

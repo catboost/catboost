@@ -1,63 +1,47 @@
-import ast
-import io
-import os
-import sys
+"""
+Load setuptools configuration from ``setup.cfg`` files.
 
-import warnings
+**API will be made private in the future**
+"""
+import os
+
+import contextlib
 import functools
-import importlib
+import warnings
 from collections import defaultdict
 from functools import partial
 from functools import wraps
-from glob import iglob
-import contextlib
+from typing import (TYPE_CHECKING, Callable, Any, Dict, Generic, Iterable, List,
+                    Optional, Tuple, TypeVar, Union)
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
+from setuptools.extern.packaging.requirements import Requirement, InvalidRequirement
 from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+
+from . import expand
+
+if TYPE_CHECKING:
+    from setuptools.dist import Distribution  # noqa
+    from distutils.dist import DistributionMetadata  # noqa
+
+_Path = Union[str, os.PathLike]
+SingleCommandOptions = Dict["str", Tuple["str", Any]]
+"""Dict that associate the name of the options of a particular command to a
+tuple. The first element of the tuple indicates the origin of the option value
+(e.g. the name of the configuration file where it was read from),
+while the second element of the tuple is the option value itself
+"""
+AllCommandOptions = Dict["str", SingleCommandOptions]  # cmd name => its options
+Target = TypeVar("Target", bound=Union["Distribution", "DistributionMetadata"])
 
 
-class StaticModule:
-    """
-    Attempt to load the module by the name
-    """
-
-    def __init__(self, name):
-        spec = importlib.util.find_spec(name)
-        with open(spec.origin) as strm:
-            src = strm.read()
-        module = ast.parse(src)
-        vars(self).update(locals())
-        del self.self
-
-    def __getattr__(self, attr):
-        try:
-            return next(
-                ast.literal_eval(statement.value)
-                for statement in self.module.body
-                if isinstance(statement, ast.Assign)
-                for target in statement.targets
-                if isinstance(target, ast.Name) and target.id == attr
-            )
-        except Exception as e:
-            raise AttributeError(
-                "{self.name} has no attribute {attr}".format(**locals())
-            ) from e
-
-
-@contextlib.contextmanager
-def patch_path(path):
-    """
-    Add path to front of sys.path for the duration of the context.
-    """
-    try:
-        sys.path.insert(0, path)
-        yield
-    finally:
-        sys.path.remove(path)
-
-
-def read_configuration(filepath, find_others=False, ignore_option_errors=False):
+def read_configuration(
+    filepath: _Path,
+    find_others=False,
+    ignore_option_errors=False
+) -> dict:
     """Read given configuration file and returns options from it as a dict.
 
     :param str|unicode filepath: Path to configuration file
@@ -73,7 +57,30 @@ def read_configuration(filepath, find_others=False, ignore_option_errors=False):
 
     :rtype: dict
     """
-    from setuptools.dist import Distribution, _Distribution
+    from setuptools.dist import Distribution
+
+    dist = Distribution()
+    filenames = dist.find_config_files() if find_others else []
+    handlers = _apply(dist, filepath, filenames, ignore_option_errors)
+    return configuration_to_dict(handlers)
+
+
+def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution":
+    """Apply the configuration from a ``setup.cfg`` file into an existing
+    distribution object.
+    """
+    _apply(dist, filepath)
+    dist._finalize_requires()
+    return dist
+
+
+def _apply(
+    dist: "Distribution", filepath: _Path,
+    other_files: Iterable[_Path] = (),
+    ignore_option_errors: bool = False,
+) -> Tuple["ConfigHandler", ...]:
+    """Read configuration from ``filepath`` and applies to the ``dist`` object."""
+    from setuptools.dist import _Distribution
 
     filepath = os.path.abspath(filepath)
 
@@ -82,27 +89,21 @@ def read_configuration(filepath, find_others=False, ignore_option_errors=False):
 
     current_directory = os.getcwd()
     os.chdir(os.path.dirname(filepath))
+    filenames = [*other_files, filepath]
 
     try:
-        dist = Distribution()
-
-        filenames = dist.find_config_files() if find_others else []
-        if filepath not in filenames:
-            filenames.append(filepath)
-
         _Distribution.parse_config_files(dist, filenames=filenames)
-
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
-
+        dist._finalize_license_files()
     finally:
         os.chdir(current_directory)
 
-    return configuration_to_dict(handlers)
+    return handlers
 
 
-def _get_option(target_obj, key):
+def _get_option(target_obj: Target, key: str):
     """
     Given a target object and option key, get that option from
     the target object, either through a get_{key} method or
@@ -114,7 +115,7 @@ def _get_option(target_obj, key):
     return getter()
 
 
-def configuration_to_dict(handlers):
+def configuration_to_dict(handlers: Tuple["ConfigHandler", ...]) -> dict:
     """Returns configuration data gathered by given handlers as a dict.
 
     :param list[ConfigHandler] handlers: Handlers list,
@@ -122,7 +123,7 @@ def configuration_to_dict(handlers):
 
     :rtype: dict
     """
-    config_dict = defaultdict(dict)
+    config_dict: dict = defaultdict(dict)
 
     for handler in handlers:
         for option in handler.set_options:
@@ -132,7 +133,11 @@ def configuration_to_dict(handlers):
     return config_dict
 
 
-def parse_configuration(distribution, command_options, ignore_option_errors=False):
+def parse_configuration(
+    distribution: "Distribution",
+    command_options: AllCommandOptions,
+    ignore_option_errors=False
+) -> Tuple["ConfigMetadataHandler", "ConfigOptionsHandler"]:
     """Performs additional parsing of configuration options
     for a distribution.
 
@@ -146,38 +151,88 @@ def parse_configuration(distribution, command_options, ignore_option_errors=Fals
         If False exceptions are propagated as expected.
     :rtype: list
     """
-    options = ConfigOptionsHandler(distribution, command_options, ignore_option_errors)
-    options.parse()
+    with expand.EnsurePackagesDiscovered(distribution) as ensure_discovered:
+        options = ConfigOptionsHandler(
+            distribution,
+            command_options,
+            ignore_option_errors,
+            ensure_discovered,
+        )
 
-    meta = ConfigMetadataHandler(
-        distribution.metadata,
-        command_options,
-        ignore_option_errors,
-        distribution.package_dir,
-    )
-    meta.parse()
+        options.parse()
+        if not distribution.package_dir:
+            distribution.package_dir = options.package_dir  # Filled by `find_packages`
+
+        meta = ConfigMetadataHandler(
+            distribution.metadata,
+            command_options,
+            ignore_option_errors,
+            ensure_discovered,
+            distribution.package_dir,
+            distribution.src_root,
+        )
+        meta.parse()
 
     return meta, options
 
 
-class ConfigHandler:
+def _warn_accidental_env_marker_misconfig(label: str, orig_value: str, parsed: list):
+    """Because users sometimes misinterpret this configuration:
+
+    [options.extras_require]
+    foo = bar;python_version<"4"
+
+    It looks like one requirement with an environment marker
+    but because there is no newline, it's parsed as two requirements
+    with a semicolon as separator.
+
+    Therefore, if:
+        * input string does not contain a newline AND
+        * parsed result contains two requirements AND
+        * parsing of the two parts from the result ("<first>;<second>")
+        leads in a valid Requirement with a valid marker
+    a UserWarning is shown to inform the user about the possible problem.
+    """
+    if "\n" in orig_value or len(parsed) != 2:
+        return
+
+    with contextlib.suppress(InvalidRequirement):
+        original_requirements_str = ";".join(parsed)
+        req = Requirement(original_requirements_str)
+        if req.marker is not None:
+            msg = (
+                f"One of the parsed requirements in `{label}` "
+                f"looks like a valid environment marker: '{parsed[1]}'\n"
+                "Make sure that the config is correct and check "
+                "https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#opt-2"  # noqa: E501
+            )
+            warnings.warn(msg, UserWarning)
+
+
+class ConfigHandler(Generic[Target]):
     """Handles metadata supplied in configuration files."""
 
-    section_prefix = None
+    section_prefix: str
     """Prefix for config sections handled by this handler.
     Must be provided by class heirs.
 
     """
 
-    aliases = {}
+    aliases: Dict[str, str] = {}
     """Options aliases.
     For compatibility with various packages. E.g.: d2to1 and pbr.
     Note: `-` in keys is replaced with `_` by config parser.
 
     """
 
-    def __init__(self, target_obj, options, ignore_option_errors=False):
-        sections = {}
+    def __init__(
+        self,
+        target_obj: Target,
+        options: AllCommandOptions,
+        ignore_option_errors,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
+    ):
+        sections: AllCommandOptions = {}
 
         section_prefix = self.section_prefix
         for section_name, section_options in options.items():
@@ -190,7 +245,8 @@ class ConfigHandler:
         self.ignore_option_errors = ignore_option_errors
         self.target_obj = target_obj
         self.sections = sections
-        self.set_options = []
+        self.set_options: List[str] = []
+        self.ensure_discovered = ensure_discovered
 
     @property
     def parsers(self):
@@ -258,34 +314,6 @@ class ConfigHandler:
         return [chunk.strip() for chunk in value if chunk.strip()]
 
     @classmethod
-    def _parse_list_glob(cls, value, separator=','):
-        """Equivalent to _parse_list() but expands any glob patterns using glob().
-
-        However, unlike with glob() calls, the results remain relative paths.
-
-        :param value:
-        :param separator: List items separator character.
-        :rtype: list
-        """
-        glob_characters = ('*', '?', '[', ']', '{', '}')
-        values = cls._parse_list(value, separator=separator)
-        expanded_values = []
-        for value in values:
-
-            # Has globby characters?
-            if any(char in value for char in glob_characters):
-                # then expand the glob pattern while keeping paths *relative*:
-                expanded_values.extend(sorted(
-                    os.path.relpath(path, os.getcwd())
-                    for path in iglob(os.path.abspath(value))))
-
-            else:
-                # take the value as-is:
-                expanded_values.append(value)
-
-        return expanded_values
-
-    @classmethod
     def _parse_dict(cls, value):
         """Represents value as a dict.
 
@@ -338,7 +366,7 @@ class ConfigHandler:
         return parser
 
     @classmethod
-    def _parse_file(cls, value):
+    def _parse_file(cls, value, root_dir: _Path):
         """Represents value as a string, allowing including text
         from nearest files using `file:` directive.
 
@@ -360,25 +388,10 @@ class ConfigHandler:
             return value
 
         spec = value[len(include_directive) :]
-        filepaths = (os.path.abspath(path.strip()) for path in spec.split(','))
-        return '\n'.join(
-            cls._read_file(path)
-            for path in filepaths
-            if (cls._assert_local(path) or True) and os.path.isfile(path)
-        )
+        filepaths = (path.strip() for path in spec.split(','))
+        return expand.read_files(filepaths, root_dir)
 
-    @staticmethod
-    def _assert_local(filepath):
-        if not filepath.startswith(os.getcwd()):
-            raise DistutilsOptionError('`file:` directive can not access %s' % filepath)
-
-    @staticmethod
-    def _read_file(filepath):
-        with io.open(filepath, encoding='utf-8') as f:
-            return f.read()
-
-    @classmethod
-    def _parse_attr(cls, value, package_dir=None):
+    def _parse_attr(self, value, package_dir, root_dir: _Path):
         """Represents value as a module attribute.
 
         Examples:
@@ -392,36 +405,11 @@ class ConfigHandler:
         if not value.startswith(attr_directive):
             return value
 
-        attrs_path = value.replace(attr_directive, '').strip().split('.')
-        attr_name = attrs_path.pop()
+        attr_desc = value.replace(attr_directive, '')
 
-        module_name = '.'.join(attrs_path)
-        module_name = module_name or '__init__'
-
-        parent_path = os.getcwd()
-        if package_dir:
-            if attrs_path[0] in package_dir:
-                # A custom path was specified for the module we want to import
-                custom_path = package_dir[attrs_path[0]]
-                parts = custom_path.rsplit('/', 1)
-                if len(parts) > 1:
-                    parent_path = os.path.join(os.getcwd(), parts[0])
-                    module_name = parts[1]
-                else:
-                    module_name = custom_path
-            elif '' in package_dir:
-                # A custom parent directory was specified for all root modules
-                parent_path = os.path.join(os.getcwd(), package_dir[''])
-
-        with patch_path(parent_path):
-            try:
-                # attempt to load value statically
-                return getattr(StaticModule(module_name), attr_name)
-            except Exception:
-                # fallback to simple import
-                module = importlib.import_module(module_name)
-
-        return getattr(module, attr_name)
+        # Make sure package_dir is populated correctly, so `attr:` directives can work
+        package_dir.update(self.ensure_discovered.package_dir)
+        return expand.read_attr(attr_desc, package_dir, root_dir)
 
     @classmethod
     def _get_parser_compound(cls, *parse_methods):
@@ -444,20 +432,32 @@ class ConfigHandler:
         return parse
 
     @classmethod
-    def _parse_section_to_dict(cls, section_options, values_parser=None):
+    def _parse_section_to_dict_with_key(cls, section_options, values_parser):
         """Parses section options into a dictionary.
 
-        Optionally applies a given parser to values.
+        Applies a given parser to each option in a section.
 
         :param dict section_options:
-        :param callable values_parser:
+        :param callable values_parser: function with 2 args corresponding to key, value
         :rtype: dict
         """
         value = {}
-        values_parser = values_parser or (lambda val: val)
         for key, (_, val) in section_options.items():
-            value[key] = values_parser(val)
+            value[key] = values_parser(key, val)
         return value
+
+    @classmethod
+    def _parse_section_to_dict(cls, section_options, values_parser=None):
+        """Parses section options into a dictionary.
+
+        Optionally applies a given parser to each value.
+
+        :param dict section_options:
+        :param callable values_parser: function with 1 arg corresponding to option value
+        :rtype: dict
+        """
+        parser = (lambda _, v: values_parser(v)) if values_parser else (lambda _, v: v)
+        return cls._parse_section_to_dict_with_key(section_options, parser)
 
     def parse_section(self, section_options):
         """Parses configuration file section.
@@ -465,11 +465,9 @@ class ConfigHandler:
         :param dict section_options:
         """
         for (name, (_, value)) in section_options.items():
-            try:
+            with contextlib.suppress(KeyError):
+                # Keep silent for a new option may appear anytime.
                 self[name] = value
-
-            except KeyError:
-                pass  # Keep silent for a new option may appear anytime.
 
     def parse(self):
         """Parses configuration file items from one
@@ -482,7 +480,7 @@ class ConfigHandler:
             if section_name:  # [section.option] variant
                 method_postfix = '_%s' % section_name
 
-            section_parser_method = getattr(
+            section_parser_method: Optional[Callable] = getattr(
                 self,
                 # Dots in section names are translated into dunderscores.
                 ('parse_section%s' % method_postfix).replace('.', '__'),
@@ -513,7 +511,7 @@ class ConfigHandler:
         return config_handler
 
 
-class ConfigMetadataHandler(ConfigHandler):
+class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
 
     section_prefix = 'metadata'
 
@@ -531,18 +529,23 @@ class ConfigMetadataHandler(ConfigHandler):
     """
 
     def __init__(
-        self, target_obj, options, ignore_option_errors=False, package_dir=None
+        self,
+        target_obj: "DistributionMetadata",
+        options: AllCommandOptions,
+        ignore_option_errors: bool,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
+        package_dir: Optional[dict] = None,
+        root_dir: _Path = os.curdir
     ):
-        super(ConfigMetadataHandler, self).__init__(
-            target_obj, options, ignore_option_errors
-        )
+        super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.package_dir = package_dir
+        self.root_dir = root_dir
 
     @property
     def parsers(self):
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
-        parse_file = self._parse_file
+        parse_file = partial(self._parse_file, root_dir=self.root_dir)
         parse_dict = self._parse_dict
         exclude_files_parser = self._exclude_files_parser
 
@@ -554,7 +557,7 @@ class ConfigMetadataHandler(ConfigHandler):
                 parse_list,
                 "The requires parameter is deprecated, please use "
                 "install_requires for runtime dependencies.",
-                DeprecationWarning,
+                SetuptoolsDeprecationWarning,
             ),
             'obsoletes': parse_list,
             'classifiers': self._get_parser_compound(parse_file, parse_list),
@@ -563,7 +566,7 @@ class ConfigMetadataHandler(ConfigHandler):
                 exclude_files_parser('license_file'),
                 "The license_file parameter is deprecated, "
                 "use license_files instead.",
-                DeprecationWarning,
+                SetuptoolsDeprecationWarning,
             ),
             'license_files': parse_list,
             'description': parse_file,
@@ -579,7 +582,7 @@ class ConfigMetadataHandler(ConfigHandler):
         :rtype: str
 
         """
-        version = self._parse_file(value)
+        version = self._parse_file(value, self.root_dir)
 
         if version != value:
             version = version.strip()
@@ -596,29 +599,43 @@ class ConfigMetadataHandler(ConfigHandler):
 
             return version
 
-        version = self._parse_attr(value, self.package_dir)
-
-        if callable(version):
-            version = version()
-
-        if not isinstance(version, str):
-            if hasattr(version, '__iter__'):
-                version = '.'.join(map(str, version))
-            else:
-                version = '%s' % version
-
-        return version
+        return expand.version(self._parse_attr(value, self.package_dir, self.root_dir))
 
 
-class ConfigOptionsHandler(ConfigHandler):
+class ConfigOptionsHandler(ConfigHandler["Distribution"]):
 
     section_prefix = 'options'
+
+    def __init__(
+        self,
+        target_obj: "Distribution",
+        options: AllCommandOptions,
+        ignore_option_errors: bool,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
+    ):
+        super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
+        self.root_dir = target_obj.src_root
+        self.package_dir: Dict[str, str] = {}  # To be filled by `find_packages`
+
+    @classmethod
+    def _parse_list_semicolon(cls, value):
+        return cls._parse_list(value, separator=';')
+
+    def _parse_file_in_root(self, value):
+        return self._parse_file(value, root_dir=self.root_dir)
+
+    def _parse_requirements_list(self, label: str, value: str):
+        # Parse a requirements list, either by reading in a `file:`, or a list.
+        parsed = self._parse_list_semicolon(self._parse_file_in_root(value))
+        _warn_accidental_env_marker_misconfig(label, value, parsed)
+        # Filter it to only include lines that are not comments. `parse_list`
+        # will have stripped each line and filtered out empties.
+        return [line for line in parsed if not line.startswith("#")]
 
     @property
     def parsers(self):
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
-        parse_list_semicolon = partial(self._parse_list, separator=';')
         parse_bool = self._parse_bool
         parse_dict = self._parse_dict
         parse_cmdclass = self._parse_cmdclass
@@ -630,28 +647,27 @@ class ConfigOptionsHandler(ConfigHandler):
             'scripts': parse_list,
             'eager_resources': parse_list,
             'dependency_links': parse_list,
-            'namespace_packages': parse_list,
-            'install_requires': parse_list_semicolon,
-            'setup_requires': parse_list_semicolon,
-            'tests_require': parse_list_semicolon,
+            'namespace_packages': self._deprecated_config_handler(
+                parse_list,
+                "The namespace_packages parameter is deprecated, "
+                "consider using implicit namespaces instead (PEP 420).",
+                SetuptoolsDeprecationWarning,
+            ),
+            'install_requires': partial(
+                self._parse_requirements_list, "install_requires"
+            ),
+            'setup_requires': self._parse_list_semicolon,
+            'tests_require': self._parse_list_semicolon,
             'packages': self._parse_packages,
-            'entry_points': self._parse_file,
+            'entry_points': self._parse_file_in_root,
             'py_modules': parse_list,
             'python_requires': SpecifierSet,
             'cmdclass': parse_cmdclass,
         }
 
     def _parse_cmdclass(self, value):
-        def resolve_class(qualified_class_name):
-            idx = qualified_class_name.rfind('.')
-            class_name = qualified_class_name[idx + 1 :]
-            pkg_name = qualified_class_name[:idx]
-
-            module = __import__(pkg_name)
-
-            return getattr(module, class_name)
-
-        return {k: resolve_class(v) for k, v in self._parse_dict(value).items()}
+        package_dir = self.ensure_discovered.package_dir
+        return expand.cmdclass(self._parse_dict(value), package_dir, self.root_dir)
 
     def _parse_packages(self, value):
         """Parses `packages` option value.
@@ -665,19 +681,18 @@ class ConfigOptionsHandler(ConfigHandler):
         if trimmed_value not in find_directives:
             return self._parse_list(value)
 
-        findns = trimmed_value == find_directives[1]
-
         # Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(
             self.sections.get('packages.find', {})
         )
 
-        if findns:
-            from setuptools import find_namespace_packages as find_packages
-        else:
-            from setuptools import find_packages
+        find_kwargs.update(
+            namespaces=(trimmed_value == find_directives[1]),
+            root_dir=self.root_dir,
+            fill_package_dir=self.package_dir,
+        )
 
-        return find_packages(**find_kwargs)
+        return expand.find_packages(**find_kwargs)
 
     def parse_section_packages__find(self, section_options):
         """Parses `packages.find` configuration file section.
@@ -709,14 +724,8 @@ class ConfigOptionsHandler(ConfigHandler):
         self['entry_points'] = parsed
 
     def _parse_package_data(self, section_options):
-        parsed = self._parse_section_to_dict(section_options, self._parse_list)
-
-        root = parsed.get('*')
-        if root:
-            parsed[''] = root
-            del parsed['*']
-
-        return parsed
+        package_data = self._parse_section_to_dict(section_options, self._parse_list)
+        return expand.canonic_package_data(package_data)
 
     def parse_section_package_data(self, section_options):
         """Parses `package_data` configuration file section.
@@ -737,15 +746,17 @@ class ConfigOptionsHandler(ConfigHandler):
 
         :param dict section_options:
         """
-        parse_list = partial(self._parse_list, separator=';')
-        self['extras_require'] = self._parse_section_to_dict(
-            section_options, parse_list
+        parsed = self._parse_section_to_dict_with_key(
+            section_options,
+            lambda k, v: self._parse_requirements_list(f"extras_require[{k}]", v)
         )
+
+        self['extras_require'] = parsed
 
     def parse_section_data_files(self, section_options):
         """Parses `data_files` configuration file section.
 
         :param dict section_options:
         """
-        parsed = self._parse_section_to_dict(section_options, self._parse_list_glob)
-        self['data_files'] = [(k, v) for k, v in parsed.items()]
+        parsed = self._parse_section_to_dict(section_options, self._parse_list)
+        self['data_files'] = expand.canonic_data_files(parsed, self.root_dir)

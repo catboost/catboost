@@ -17,10 +17,10 @@ from distutils.errors import (
     DistutilsArgError, DistutilsOptionError,
     DistutilsError, DistutilsPlatformError,
 )
-from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
 from distutils.spawn import find_executable
+from distutils.command import install
 import sys
 import os
 import zipimport
@@ -39,9 +39,10 @@ import subprocess
 import shlex
 import io
 import configparser
+import sysconfig
 
 
-from sysconfig import get_config_vars, get_path
+from sysconfig import get_path
 
 from setuptools import SetuptoolsDeprecationWarning
 
@@ -55,40 +56,27 @@ from setuptools.package_index import (
 from setuptools.command import bdist_egg, egg_info
 from setuptools.wheel import Wheel
 from pkg_resources import (
-    yield_lines, normalize_path, resource_string, ensure_directory,
+    normalize_path, resource_string,
     get_distribution, find_distributions, Environment, Requirement,
     Distribution, PathMetadata, EggMetadata, WorkingSet, DistributionNotFound,
     VersionConflict, DEVELOP_DIST,
 )
 import pkg_resources
+from .._path import ensure_directory
+from ..extern.jaraco.text import yield_lines
+
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
 
 __all__ = [
-    'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
+    'easy_install', 'PthDistributions', 'extract_wininst_cfg',
     'get_exe_prefixes',
 ]
 
 
 def is_64bit():
     return struct.calcsize("P") == 8
-
-
-def samefile(p1, p2):
-    """
-    Determine if two paths reference the same file.
-
-    Augments os.path.samefile to work on Windows and
-    suppresses errors if the path doesn't exist.
-    """
-    both_exist = os.path.exists(p1) and os.path.exists(p2)
-    use_samefile = hasattr(os.path, 'samefile') and both_exist
-    if use_samefile:
-        return os.path.samefile(p1, p2)
-    norm_p1 = os.path.normpath(os.path.normcase(p1))
-    norm_p2 = os.path.normpath(os.path.normcase(p2))
-    return norm_p1 == norm_p2
 
 
 def _to_bytes(s):
@@ -181,12 +169,8 @@ class easy_install(Command):
         self.install_data = None
         self.install_base = None
         self.install_platbase = None
-        if site.ENABLE_USER_SITE:
-            self.install_userbase = site.USER_BASE
-            self.install_usersite = site.USER_SITE
-        else:
-            self.install_userbase = None
-            self.install_usersite = None
+        self.install_userbase = site.USER_BASE
+        self.install_usersite = site.USER_SITE
         self.no_find_links = None
 
         # Options not specifiable via command line
@@ -236,28 +220,38 @@ class easy_install(Command):
         self.version and self._render_version()
 
         py_version = sys.version.split()[0]
-        prefix, exec_prefix = get_config_vars('prefix', 'exec_prefix')
 
-        self.config_vars = {
+        self.config_vars = dict(sysconfig.get_config_vars())
+
+        self.config_vars.update({
             'dist_name': self.distribution.get_name(),
             'dist_version': self.distribution.get_version(),
             'dist_fullname': self.distribution.get_fullname(),
             'py_version': py_version,
-            'py_version_short': py_version[0:3],
-            'py_version_nodot': py_version[0] + py_version[2],
-            'sys_prefix': prefix,
-            'prefix': prefix,
-            'sys_exec_prefix': exec_prefix,
-            'exec_prefix': exec_prefix,
+            'py_version_short': f'{sys.version_info.major}.{sys.version_info.minor}',
+            'py_version_nodot': f'{sys.version_info.major}{sys.version_info.minor}',
+            'sys_prefix': self.config_vars['prefix'],
+            'sys_exec_prefix': self.config_vars['exec_prefix'],
             # Only python 3.2+ has abiflags
             'abiflags': getattr(sys, 'abiflags', ''),
-        }
+            'platlibdir': getattr(sys, 'platlibdir', 'lib'),
+        })
+        with contextlib.suppress(AttributeError):
+            # only for distutils outside stdlib
+            self.config_vars.update({
+                'implementation_lower': install._get_implementation().lower(),
+                'implementation': install._get_implementation(),
+            })
 
-        if site.ENABLE_USER_SITE:
-            self.config_vars['userbase'] = self.install_userbase
-            self.config_vars['usersite'] = self.install_usersite
+        # pypa/distutils#113 Python 3.9 compat
+        self.config_vars.setdefault(
+            'py_version_nodot_plat',
+            getattr(sys, 'windir', '').replace('.', ''),
+        )
 
-        elif self.user:
+        self.config_vars['userbase'] = self.install_userbase
+        self.config_vars['usersite'] = self.install_usersite
+        if self.user and not site.ENABLE_USER_SITE:
             log.warn("WARNING: The user site-packages directory is disabled.")
 
         self._fix_install_dir_for_user_site()
@@ -293,27 +287,14 @@ class easy_install(Command):
             self.script_dir = self.install_scripts
         # default --record from the install command
         self.set_undefined_options('install', ('record', 'record'))
-        # Should this be moved to the if statement below? It's not used
-        # elsewhere
-        normpath = map(normalize_path, sys.path)
         self.all_site_dirs = get_site_dirs()
-        if self.site_dirs is not None:
-            site_dirs = [
-                os.path.expanduser(s.strip()) for s in
-                self.site_dirs.split(',')
-            ]
-            for d in site_dirs:
-                if not os.path.isdir(d):
-                    log.warn("%s (in --site-dirs) does not exist", d)
-                elif normalize_path(d) not in normpath:
-                    raise DistutilsOptionError(
-                        d + " (in --site-dirs) is not on sys.path"
-                    )
-                else:
-                    self.all_site_dirs.append(normalize_path(d))
+        self.all_site_dirs.extend(self._process_site_dirs(self.site_dirs))
+
         if not self.editable:
             self.check_site_dir()
-        self.index_url = self.index_url or "https://pypi.org/simple/"
+        default_index = os.getenv("__EASYINSTALL_INDEX", "https://pypi.org/simple/")
+        # ^ Private API for testing purposes only
+        self.index_url = self.index_url or default_index
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
             if path_item not in self.shadow_path:
@@ -339,15 +320,7 @@ class easy_install(Command):
         if not self.no_find_links:
             self.package_index.add_find_links(self.find_links)
         self.set_undefined_options('install_lib', ('optimize', 'optimize'))
-        if not isinstance(self.optimize, int):
-            try:
-                self.optimize = int(self.optimize)
-                if not (0 <= self.optimize <= 2):
-                    raise ValueError
-            except ValueError as e:
-                raise DistutilsOptionError(
-                    "--optimize must be 0, 1, or 2"
-                ) from e
+        self.optimize = self._validate_optimize(self.optimize)
 
         if self.editable and not self.build_directory:
             raise DistutilsArgError(
@@ -359,11 +332,44 @@ class easy_install(Command):
 
         self.outputs = []
 
+    @staticmethod
+    def _process_site_dirs(site_dirs):
+        if site_dirs is None:
+            return
+
+        normpath = map(normalize_path, sys.path)
+        site_dirs = [
+            os.path.expanduser(s.strip()) for s in
+            site_dirs.split(',')
+        ]
+        for d in site_dirs:
+            if not os.path.isdir(d):
+                log.warn("%s (in --site-dirs) does not exist", d)
+            elif normalize_path(d) not in normpath:
+                raise DistutilsOptionError(
+                    d + " (in --site-dirs) is not on sys.path"
+                )
+            else:
+                yield normalize_path(d)
+
+    @staticmethod
+    def _validate_optimize(value):
+        try:
+            value = int(value)
+            if value not in range(3):
+                raise ValueError
+        except ValueError as e:
+            raise DistutilsOptionError(
+                "--optimize must be 0, 1, or 2"
+            ) from e
+
+        return value
+
     def _fix_install_dir_for_user_site(self):
         """
         Fix the install_dir if "--user" was used.
         """
-        if not self.user or not site.ENABLE_USER_SITE:
+        if not self.user:
             return
 
         self.create_home_path()
@@ -371,7 +377,7 @@ class easy_install(Command):
             msg = "User base directory is not specified"
             raise DistutilsPlatformError(msg)
         self.install_base = self.install_platbase = self.install_userbase
-        scheme_name = os.name.replace('posix', 'unix') + '_user'
+        scheme_name = f'{os.name}_user'
         self.select_scheme(scheme_name)
 
     def _expand_attrs(self, attrs):
@@ -711,13 +717,11 @@ class easy_install(Command):
                     return dist
 
     def select_scheme(self, name):
-        """Sets the install directories by applying the install schemes."""
-        # it's the caller's problem if they supply a bad name!
-        scheme = INSTALL_SCHEMES[name]
-        for key in SCHEME_KEYS:
-            attrname = 'install_' + key
-            if getattr(self, attrname) is None:
-                setattr(self, attrname, scheme[key])
+        try:
+            install._select_scheme(self, name)
+        except AttributeError:
+            # stdlib distutils
+            install.install.select_scheme(self, name.replace('posix', 'unix'))
 
     # FIXME: 'easy_install.process_distribution' is too complex (12)
     def process_distribution(  # noqa: C901
@@ -914,7 +918,9 @@ class easy_install(Command):
             ensure_directory(destination)
 
         dist = self.egg_distribution(egg_path)
-        if not samefile(egg_path, destination):
+        if not (
+            os.path.exists(destination) and os.path.samefile(egg_path, destination)
+        ):
             if os.path.isdir(destination) and not os.path.islink(destination):
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
             elif os.path.exists(destination):
@@ -1323,7 +1329,7 @@ class easy_install(Command):
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for name, path in self.config_vars.items():
+        for path in only_strs(self.config_vars.values()):
             if path.startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
@@ -1345,7 +1351,7 @@ class easy_install(Command):
 
         if self.prefix:
             # Set default install_dir/scripts from --prefix
-            config_vars = config_vars.copy()
+            config_vars = dict(config_vars)
             config_vars['base'] = self.prefix
             scheme = self.INSTALL_SCHEMES.get(os.name, self.DEFAULT_SCHEME)
             for attr, val in scheme.items():
@@ -1572,7 +1578,7 @@ class PthDistributions(Environment):
         self.sitedirs = list(map(normalize_path, sitedirs))
         self.basedir = normalize_path(os.path.dirname(self.filename))
         self._load()
-        Environment.__init__(self, [], None, None)
+        super().__init__([], None, None)
         for path in yield_lines(self.paths):
             list(map(self.add, find_distributions(path, True)))
 
@@ -1645,14 +1651,14 @@ class PthDistributions(Environment):
         if new_path:
             self.paths.append(dist.location)
             self.dirty = True
-        Environment.add(self, dist)
+        super().add(dist)
 
     def remove(self, dist):
         """Remove `dist` from the distribution map"""
         while dist.location in self.paths:
             self.paths.remove(dist.location)
             self.dirty = True
-        Environment.remove(self, dist)
+        super().remove(dist)
 
     def make_relative(self, path):
         npath, last = os.path.split(normalize_path(path))
@@ -2291,6 +2297,13 @@ def current_umask():
     tmp = os.umask(0o022)
     os.umask(tmp)
     return tmp
+
+
+def only_strs(values):
+    """
+    Exclude non-str values. Ref #3063.
+    """
+    return filter(lambda val: isinstance(val, str), values)
 
 
 class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):

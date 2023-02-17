@@ -90,7 +90,7 @@ class Tag:
         return f"{self._interpreter}-{self._abi}-{self._platform}"
 
     def __repr__(self) -> str:
-        return "<{self} @ {self_id}>".format(self=self, self_id=id(self))
+        return f"<{self} @ {id(self)}>"
 
 
 def parse_tag(tag: str) -> FrozenSet[Tag]:
@@ -192,7 +192,7 @@ def cpython_tags(
     if not python_version:
         python_version = sys.version_info[:2]
 
-    interpreter = "cp{}".format(_version_nodot(python_version[:2]))
+    interpreter = f"cp{_version_nodot(python_version[:2])}"
 
     if abis is None:
         if len(python_version) > 1:
@@ -268,11 +268,11 @@ def _py_interpreter_range(py_version: PythonVersion) -> Iterator[str]:
     all previous versions of that major version.
     """
     if len(py_version) > 1:
-        yield "py{version}".format(version=_version_nodot(py_version[:2]))
-    yield "py{major}".format(major=py_version[0])
+        yield f"py{_version_nodot(py_version[:2])}"
+    yield f"py{py_version[0]}"
     if len(py_version) > 1:
         for minor in range(py_version[1] - 1, -1, -1):
-            yield "py{version}".format(version=_version_nodot((py_version[0], minor)))
+            yield f"py{_version_nodot((py_version[0], minor))}"
 
 
 def compatible_tags(
@@ -481,4 +481,7 @@ def sys_tags(*, warn: bool = False) -> Iterator[Tag]:
     else:
         yield from generic_tags()
 
-    yield from compatible_tags()
+    if interp_name == "pp":
+        yield from compatible_tags(interpreter="pp3")
+    else:
+        yield from compatible_tags()

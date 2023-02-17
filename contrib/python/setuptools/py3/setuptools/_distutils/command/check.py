@@ -13,18 +13,26 @@ try:
     from docutils import nodes
 
     class SilentReporter(Reporter):
-
-        def __init__(self, source, report_level, halt_level, stream=None,
-                     debug=0, encoding='ascii', error_handler='replace'):
+        def __init__(
+            self,
+            source,
+            report_level,
+            halt_level,
+            stream=None,
+            debug=0,
+            encoding='ascii',
+            error_handler='replace',
+        ):
             self.messages = []
-            Reporter.__init__(self, source, report_level, halt_level, stream,
-                              debug, encoding, error_handler)
+            super().__init__(
+                source, report_level, halt_level, stream, debug, encoding, error_handler
+            )
 
         def system_message(self, level, message, *children, **kwargs):
             self.messages.append((level, message, children, kwargs))
-            return nodes.system_message(message, level=level,
-                                        type=self.levels[level],
-                                        *children, **kwargs)
+            return nodes.system_message(
+                message, level=level, type=self.levels[level], *children, **kwargs
+            )
 
     HAS_DOCUTILS = True
 except Exception:
@@ -32,16 +40,23 @@ except Exception:
     # indicate that docutils is not ported to Py3k.
     HAS_DOCUTILS = False
 
+
 class check(Command):
-    """This command checks the meta-data of the package.
-    """
-    description = ("perform some checks on the package")
-    user_options = [('metadata', 'm', 'Verify meta-data'),
-                    ('restructuredtext', 'r',
-                     ('Checks if long string meta-data syntax '
-                      'are reStructuredText-compliant')),
-                    ('strict', 's',
-                     'Will exit with an error if a check fails')]
+    """This command checks the meta-data of the package."""
+
+    description = "perform some checks on the package"
+    user_options = [
+        ('metadata', 'm', 'Verify meta-data'),
+        (
+            'restructuredtext',
+            'r',
+            (
+                'Checks if long string meta-data syntax '
+                'are reStructuredText-compliant'
+            ),
+        ),
+        ('strict', 's', 'Will exit with an error if a check fails'),
+    ]
 
     boolean_options = ['metadata', 'restructuredtext', 'strict']
 
@@ -80,34 +95,19 @@ class check(Command):
         """Ensures that all required elements of meta-data are supplied.
 
         Required fields:
-            name, version, URL
-
-        Recommended fields:
-            (author and author_email) or (maintainer and maintainer_email))
+            name, version
 
         Warns if any are missing.
         """
         metadata = self.distribution.metadata
 
         missing = []
-        for attr in ('name', 'version', 'url'):
-            if not (hasattr(metadata, attr) and getattr(metadata, attr)):
+        for attr in 'name', 'version':
+            if not getattr(metadata, attr, None):
                 missing.append(attr)
 
         if missing:
-            self.warn("missing required meta-data: %s"  % ', '.join(missing))
-        if metadata.author:
-            if not metadata.author_email:
-                self.warn("missing meta-data: if 'author' supplied, " +
-                          "'author_email' should be supplied too")
-        elif metadata.maintainer:
-            if not metadata.maintainer_email:
-                self.warn("missing meta-data: if 'maintainer' supplied, " +
-                          "'maintainer_email' should be supplied too")
-        else:
-            self.warn("missing meta-data: either (author and author_email) " +
-                      "or (maintainer and maintainer_email) " +
-                      "should be supplied")
+            self.warn("missing required meta-data: %s" % ', '.join(missing))
 
     def check_restructuredtext(self):
         """Checks if the long string fields are reST-compliant."""
@@ -117,7 +117,7 @@ class check(Command):
             if line is None:
                 warning = warning[1]
             else:
-                warning = '%s (line %s)' % (warning[1], line)
+                warning = '{} (line {})'.format(warning[1], line)
             self.warn(warning)
 
     def _check_rst_data(self, data):
@@ -129,13 +129,15 @@ class check(Command):
         settings.tab_width = 4
         settings.pep_references = None
         settings.rfc_references = None
-        reporter = SilentReporter(source_path,
-                          settings.report_level,
-                          settings.halt_level,
-                          stream=settings.warning_stream,
-                          debug=settings.debug,
-                          encoding=settings.error_encoding,
-                          error_handler=settings.error_encoding_error_handler)
+        reporter = SilentReporter(
+            source_path,
+            settings.report_level,
+            settings.halt_level,
+            stream=settings.warning_stream,
+            debug=settings.debug,
+            encoding=settings.error_encoding,
+            error_handler=settings.error_encoding_error_handler,
+        )
 
         document = nodes.document(settings, reporter, source=source_path)
         document.note_source(source_path, -1)
@@ -143,6 +145,7 @@ class check(Command):
             parser.parse(data, document)
         except AttributeError as e:
             reporter.messages.append(
-                (-1, 'Could not finish the parsing: %s.' % e, '', {}))
+                (-1, 'Could not finish the parsing: %s.' % e, '', {})
+            )
 
         return reporter.messages

@@ -285,7 +285,7 @@ class PackageIndex(Environment):
             self, index_url="https://pypi.org/simple/", hosts=('*',),
             ca_bundle=None, verify_ssl=True, *args, **kw
     ):
-        Environment.__init__(self, *args, **kw)
+        super().__init__(*args, **kw)
         self.index_url = index_url + "/" [:not index_url.endswith('/')]
         self.scanned_urls = {}
         self.fetched_urls = {}
@@ -680,8 +680,7 @@ class PackageIndex(Environment):
             # Make sure the file has been downloaded to the temp dir.
             if os.path.dirname(filename) != tmpdir:
                 dst = os.path.join(tmpdir, basename)
-                from setuptools.command.easy_install import samefile
-                if not samefile(filename, dst):
+                if not (os.path.exists(dst) and os.path.samefile(filename, dst)):
                     shutil.copy2(filename, dst)
                     filename = dst
 
@@ -1002,7 +1001,7 @@ class PyPIConfig(configparser.RawConfigParser):
         Load from ~/.pypirc
         """
         defaults = dict.fromkeys(['username', 'password', 'repository'], '')
-        configparser.RawConfigParser.__init__(self, defaults)
+        super().__init__(defaults)
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):

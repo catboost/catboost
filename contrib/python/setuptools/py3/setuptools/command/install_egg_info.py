@@ -4,6 +4,7 @@ import os
 from setuptools import Command
 from setuptools import namespaces
 from setuptools.archive_util import unpack_archive
+from .._path import ensure_directory
 import pkg_resources
 
 
@@ -37,7 +38,7 @@ class install_egg_info(namespaces.Installer, Command):
         elif os.path.exists(self.target):
             self.execute(os.unlink, (self.target,), "Removing " + self.target)
         if not self.dry_run:
-            pkg_resources.ensure_directory(self.target)
+            ensure_directory(self.target)
         self.execute(
             self.copytree, (), "Copying %s to %s" % (self.source, self.target)
         )

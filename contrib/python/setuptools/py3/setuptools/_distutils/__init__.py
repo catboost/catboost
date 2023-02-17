@@ -11,7 +11,7 @@ used from a setup script as
 import sys
 import importlib
 
-__version__ = sys.version[:sys.version.index(' ')]
+__version__ = sys.version[: sys.version.index(' ')]
 
 
 try:

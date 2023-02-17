@@ -17,18 +17,22 @@ import warnings
 import time
 import collections
 
+from .._importlib import metadata
+from .. import _entry_points
+
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
 from pkg_resources import (
-    parse_requirements, safe_name, parse_version,
-    safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
+    Requirement, safe_name, parse_version,
+    safe_version, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
+from setuptools.extern.jaraco.text import yield_lines
 from setuptools import SetuptoolsDeprecationWarning
 
 
@@ -132,11 +136,21 @@ class InfoCommon:
         in which case the version string already contains all tags.
         """
         return (
-            version if self.vtags and version.endswith(self.vtags)
+            version if self.vtags and self._already_tagged(version)
             else version + self.vtags
         )
 
-    def tags(self):
+    def _already_tagged(self, version: str) -> bool:
+        # Depending on their format, tags may change with version normalization.
+        # So in addition the regular tags, we have to search for the normalized ones.
+        return version.endswith(self.vtags) or version.endswith(self._safe_tags())
+
+    def _safe_tags(self) -> str:
+        # To implement this we can rely on `safe_version` pretending to be version 0
+        # followed by tags. Then we simply discard the starting 0 (fake version number)
+        return safe_version(f"0{self.vtags}")[1:]
+
+    def tags(self) -> str:
         version = ''
         if self.tag_build:
             version += self.tag_build
@@ -205,12 +219,8 @@ class egg_info(InfoCommon, Command):
 
         try:
             is_version = isinstance(parsed_version, packaging.version.Version)
-            spec = (
-                "%s==%s" if is_version else "%s===%s"
-            )
-            list(
-                parse_requirements(spec % (self.egg_name, self.egg_version))
-            )
+            spec = "%s==%s" if is_version else "%s===%s"
+            Requirement(spec % (self.egg_name, self.egg_version))
         except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
@@ -285,10 +295,8 @@ class egg_info(InfoCommon, Command):
     def run(self):
         self.mkpath(self.egg_info)
         os.utime(self.egg_info, None)
-        installer = self.distribution.fetch_build_egg
-        for ep in iter_entry_points('egg_info.writers'):
-            ep.require(installer=installer)
-            writer = ep.resolve()
+        for ep in metadata.entry_points(group='egg_info.writers'):
+            writer = ep.load()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
         # Get rid of native_libs.txt if it was put there by older bdist_egg
@@ -719,20 +727,9 @@ def write_arg(cmd, basename, filename, force=False):
 
 
 def write_entries(cmd, basename, filename):
-    ep = cmd.distribution.entry_points
-
-    if isinstance(ep, str) or ep is None:
-        data = ep
-    elif ep is not None:
-        data = []
-        for section, contents in sorted(ep.items()):
-            if not isinstance(contents, str):
-                contents = EntryPoint.parse_group(section, contents)
-                contents = '\n'.join(sorted(map(str, contents.values())))
-            data.append('[%s]\n%s\n\n' % (section, contents))
-        data = ''.join(data)
-
-    cmd.write_or_delete_file('entry points', filename, data, True)
+    eps = _entry_points.load(cmd.distribution.entry_points)
+    defn = _entry_points.render(eps)
+    cmd.write_or_delete_file('entry points', filename, defn, True)
 
 
 def get_pkg_info_revision():

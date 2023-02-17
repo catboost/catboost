@@ -7,14 +7,14 @@ import contextlib
 
 from .py36compat import sdist_add_defaults
 
-import pkg_resources
+from .._importlib import metadata
 
 _default_revctrl = list
 
 
 def walk_revctrl(dirname=''):
     """Find all files under revision control"""
-    for ep in pkg_resources.iter_entry_points('setuptools.file_finders'):
+    for ep in metadata.entry_points(group='setuptools.file_finders'):
         for item in ep.load()(dirname):
             yield item
 

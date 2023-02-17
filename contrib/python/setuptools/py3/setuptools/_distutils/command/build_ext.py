@@ -9,7 +9,14 @@ import os
 import re
 import sys
 from distutils.core import Command
-from distutils.errors import *
+from distutils.errors import (
+    DistutilsOptionError,
+    DistutilsSetupError,
+    CCompilerError,
+    DistutilsError,
+    CompileError,
+    DistutilsPlatformError,
+)
 from distutils.sysconfig import customize_compiler, get_python_version
 from distutils.sysconfig import get_config_h_filename
 from distutils.dep_util import newer_group
@@ -22,12 +29,12 @@ from site import USER_BASE
 
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).
-extension_name_re = re.compile \
-    (r'^[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]*)*$')
+extension_name_re = re.compile(r'^[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]*)*$')
 
 
-def show_compilers ():
+def show_compilers():
     from distutils.ccompiler import show_compilers
+
     show_compilers()
 
 
@@ -55,54 +62,50 @@ class build_ext(Command):
 
     sep_by = " (separated by '%s')" % os.pathsep
     user_options = [
-        ('build-lib=', 'b',
-         "directory for compiled extension modules"),
-        ('build-temp=', 't',
-         "directory for temporary files (build by-products)"),
-        ('plat-name=', 'p',
-         "platform name to cross-compile for, if supported "
-         "(default: %s)" % get_platform()),
-        ('inplace', 'i',
-         "ignore build-lib and put compiled extensions into the source " +
-         "directory alongside your pure Python modules"),
-        ('include-dirs=', 'I',
-         "list of directories to search for header files" + sep_by),
-        ('define=', 'D',
-         "C preprocessor macros to define"),
-        ('undef=', 'U',
-         "C preprocessor macros to undefine"),
-        ('libraries=', 'l',
-         "external C libraries to link with"),
-        ('library-dirs=', 'L',
-         "directories to search for external C libraries" + sep_by),
-        ('rpath=', 'R',
-         "directories to search for shared C libraries at runtime"),
-        ('link-objects=', 'O',
-         "extra explicit link objects to include in the link"),
-        ('debug', 'g',
-         "compile/link with debugging information"),
-        ('force', 'f',
-         "forcibly build everything (ignore file timestamps)"),
-        ('compiler=', 'c',
-         "specify the compiler type"),
-        ('parallel=', 'j',
-         "number of parallel build jobs"),
-        ('swig-cpp', None,
-         "make SWIG create C++ files (default is C)"),
-        ('swig-opts=', None,
-         "list of SWIG command line options"),
-        ('swig=', None,
-         "path to the SWIG executable"),
-        ('user', None,
-         "add user include, library and rpath")
-        ]
+        ('build-lib=', 'b', "directory for compiled extension modules"),
+        ('build-temp=', 't', "directory for temporary files (build by-products)"),
+        (
+            'plat-name=',
+            'p',
+            "platform name to cross-compile for, if supported "
+            "(default: %s)" % get_platform(),
+        ),
+        (
+            'inplace',
+            'i',
+            "ignore build-lib and put compiled extensions into the source "
+            + "directory alongside your pure Python modules",
+        ),
+        (
+            'include-dirs=',
+            'I',
+            "list of directories to search for header files" + sep_by,
+        ),
+        ('define=', 'D', "C preprocessor macros to define"),
+        ('undef=', 'U', "C preprocessor macros to undefine"),
+        ('libraries=', 'l', "external C libraries to link with"),
+        (
+            'library-dirs=',
+            'L',
+            "directories to search for external C libraries" + sep_by,
+        ),
+        ('rpath=', 'R', "directories to search for shared C libraries at runtime"),
+        ('link-objects=', 'O', "extra explicit link objects to include in the link"),
+        ('debug', 'g', "compile/link with debugging information"),
+        ('force', 'f', "forcibly build everything (ignore file timestamps)"),
+        ('compiler=', 'c', "specify the compiler type"),
+        ('parallel=', 'j', "number of parallel build jobs"),
+        ('swig-cpp', None, "make SWIG create C++ files (default is C)"),
+        ('swig-opts=', None, "list of SWIG command line options"),
+        ('swig=', None, "path to the SWIG executable"),
+        ('user', None, "add user include, library and rpath"),
+    ]
 
     boolean_options = ['inplace', 'debug', 'force', 'swig-cpp', 'user']
 
     help_options = [
-        ('help-compiler', None,
-         "list available compilers", show_compilers),
-        ]
+        ('help-compiler', None, "list available compilers", show_compilers),
+    ]
 
     def initialize_options(self):
         self.extensions = None
@@ -128,18 +131,19 @@ class build_ext(Command):
         self.user = None
         self.parallel = None
 
-    def finalize_options(self):
+    def finalize_options(self):  # noqa: C901
         from distutils import sysconfig
 
-        self.set_undefined_options('build',
-                                   ('build_lib', 'build_lib'),
-                                   ('build_temp', 'build_temp'),
-                                   ('compiler', 'compiler'),
-                                   ('debug', 'debug'),
-                                   ('force', 'force'),
-                                   ('parallel', 'parallel'),
-                                   ('plat_name', 'plat_name'),
-                                   )
+        self.set_undefined_options(
+            'build',
+            ('build_lib', 'build_lib'),
+            ('build_temp', 'build_temp'),
+            ('compiler', 'compiler'),
+            ('debug', 'debug'),
+            ('force', 'force'),
+            ('parallel', 'parallel'),
+            ('plat_name', 'plat_name'),
+        )
 
         if self.package is None:
             self.package = self.distribution.ext_package
@@ -164,8 +168,7 @@ class build_ext(Command):
         # any local include dirs take precedence.
         self.include_dirs.extend(py_include.split(os.path.pathsep))
         if plat_py_include != py_include:
-            self.include_dirs.extend(
-                plat_py_include.split(os.path.pathsep))
+            self.include_dirs.extend(plat_py_include.split(os.path.pathsep))
 
         self.ensure_string_list('libraries')
         self.ensure_string_list('link_objects')
@@ -220,9 +223,11 @@ class build_ext(Command):
         if sys.platform[:6] == 'cygwin':
             if not sysconfig.python_build:
                 # building third party extensions
-                self.library_dirs.append(os.path.join(sys.prefix, "lib",
-                                                      "python" + get_python_version(),
-                                                      "config"))
+                self.library_dirs.append(
+                    os.path.join(
+                        sys.prefix, "lib", "python" + get_python_version(), "config"
+                    )
+                )
             else:
                 # building python standard extensions
                 self.library_dirs.append('.')
@@ -230,7 +235,7 @@ class build_ext(Command):
         # For building extensions with a shared Python library,
         # Python's library directory must be appended to library_dirs
         # See Issues: #1600860, #4366
-        if (sysconfig.get_config_var('Py_ENABLE_SHARED')):
+        if sysconfig.get_config_var('Py_ENABLE_SHARED'):
             if not sysconfig.python_build:
                 # building third party extensions
                 self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))
@@ -274,7 +279,7 @@ class build_ext(Command):
             except ValueError:
                 raise DistutilsOptionError("parallel should be an integer")
 
-    def run(self):
+    def run(self):  # noqa: C901
         from distutils.ccompiler import new_compiler
 
         # 'self.extensions', as supplied by setup.py, is a list of
@@ -302,10 +307,12 @@ class build_ext(Command):
 
         # Setup the CCompiler object that we'll use to do all the
         # compiling and linking
-        self.compiler = new_compiler(compiler=self.compiler,
-                                     verbose=self.verbose,
-                                     dry_run=self.dry_run,
-                                     force=self.force)
+        self.compiler = new_compiler(
+            compiler=self.compiler,
+            verbose=self.verbose,
+            dry_run=self.dry_run,
+            force=self.force,
+        )
         customize_compiler(self.compiler)
         # If we are cross-compiling, init the compiler now (if we are not
         # cross-compiling, init would not hurt, but people may rely on
@@ -338,7 +345,7 @@ class build_ext(Command):
         # Now actually compile and link everything.
         self.build_extensions()
 
-    def check_extensions_list(self, extensions):
+    def check_extensions_list(self, extensions):  # noqa: C901
         """Ensure that the list of extensions (presumably provided as a
         command option 'extensions') is valid, i.e. it is a list of
         Extension objects.  We also support the old-style list of 2-tuples,
@@ -350,34 +357,40 @@ class build_ext(Command):
         """
         if not isinstance(extensions, list):
             raise DistutilsSetupError(
-                  "'ext_modules' option must be a list of Extension instances")
+                "'ext_modules' option must be a list of Extension instances"
+            )
 
         for i, ext in enumerate(extensions):
             if isinstance(ext, Extension):
-                continue                # OK! (assume type-checking done
-                                        # by Extension constructor)
+                continue  # OK! (assume type-checking done
+                # by Extension constructor)
 
             if not isinstance(ext, tuple) or len(ext) != 2:
                 raise DistutilsSetupError(
-                       "each element of 'ext_modules' option must be an "
-                       "Extension instance or 2-tuple")
+                    "each element of 'ext_modules' option must be an "
+                    "Extension instance or 2-tuple"
+                )
 
             ext_name, build_info = ext
 
-            log.warn("old-style (ext_name, build_info) tuple found in "
-                     "ext_modules for extension '%s' "
-                     "-- please convert to Extension instance", ext_name)
+            log.warn(
+                "old-style (ext_name, build_info) tuple found in "
+                "ext_modules for extension '%s' "
+                "-- please convert to Extension instance",
+                ext_name,
+            )
 
-            if not (isinstance(ext_name, str) and
-                    extension_name_re.match(ext_name)):
+            if not (isinstance(ext_name, str) and extension_name_re.match(ext_name)):
                 raise DistutilsSetupError(
-                       "first element of each tuple in 'ext_modules' "
-                       "must be the extension name (a string)")
+                    "first element of each tuple in 'ext_modules' "
+                    "must be the extension name (a string)"
+                )
 
             if not isinstance(build_info, dict):
                 raise DistutilsSetupError(
-                       "second element of each tuple in 'ext_modules' "
-                       "must be a dictionary (build info)")
+                    "second element of each tuple in 'ext_modules' "
+                    "must be a dictionary (build info)"
+                )
 
             # OK, the (ext_name, build_info) dict is type-safe: convert it
             # to an Extension instance.
@@ -385,9 +398,14 @@ class build_ext(Command):
 
             # Easy stuff: one-to-one mapping from dict elements to
             # instance attributes.
-            for key in ('include_dirs', 'library_dirs', 'libraries',
-                        'extra_objects', 'extra_compile_args',
-                        'extra_link_args'):
+            for key in (
+                'include_dirs',
+                'library_dirs',
+                'libraries',
+                'extra_objects',
+                'extra_compile_args',
+                'extra_link_args',
+            ):
                 val = build_info.get(key)
                 if val is not None:
                     setattr(ext, key, val)
@@ -395,8 +413,7 @@ class build_ext(Command):
             # Medium-easy stuff: same syntax/semantics, different names.
             ext.runtime_library_dirs = build_info.get('rpath')
             if 'def_file' in build_info:
-                log.warn("'def_file' element of build info dict "
-                         "no longer supported")
+                log.warn("'def_file' element of build info dict " "no longer supported")
 
             # Non-trivial stuff: 'macros' split into 'define_macros'
             # and 'undef_macros'.
@@ -407,8 +424,9 @@ class build_ext(Command):
                 for macro in macros:
                     if not (isinstance(macro, tuple) and len(macro) in (1, 2)):
                         raise DistutilsSetupError(
-                              "'macros' element of build info dict "
-                              "must be 1- or 2-tuple")
+                            "'macros' element of build info dict "
+                            "must be 1- or 2-tuple"
+                        )
                     if len(macro) == 1:
                         ext.undef_macros.append(macro[0])
                     elif len(macro) == 2:
@@ -461,8 +479,9 @@ class build_ext(Command):
             return
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = [executor.submit(self.build_extension, ext)
-                       for ext in self.extensions]
+            futures = [
+                executor.submit(self.build_extension, ext) for ext in self.extensions
+            ]
             for ext, fut in zip(self.extensions, futures):
                 with self._filter_build_errors(ext):
                     fut.result()
@@ -479,16 +498,16 @@ class build_ext(Command):
         except (CCompilerError, DistutilsError, CompileError) as e:
             if not ext.optional:
                 raise
-            self.warn('building extension "%s" failed: %s' %
-                      (ext.name, e))
+            self.warn('building extension "{}" failed: {}'.format(ext.name, e))
 
     def build_extension(self, ext):
         sources = ext.sources
         if sources is None or not isinstance(sources, (list, tuple)):
             raise DistutilsSetupError(
-                  "in 'ext_modules' option (extension '%s'), "
-                  "'sources' must be present and must be "
-                  "a list of source filenames" % ext.name)
+                "in 'ext_modules' option (extension '%s'), "
+                "'sources' must be present and must be "
+                "a list of source filenames" % ext.name
+            )
         # sort to make the resulting .so file build reproducible
         sources = sorted(sources)
 
@@ -525,13 +544,15 @@ class build_ext(Command):
         for undef in ext.undef_macros:
             macros.append((undef,))
 
-        objects = self.compiler.compile(sources,
-                                         output_dir=self.build_temp,
-                                         macros=macros,
-                                         include_dirs=ext.include_dirs,
-                                         debug=self.debug,
-                                         extra_postargs=extra_args,
-                                         depends=ext.depends)
+        objects = self.compiler.compile(
+            sources,
+            output_dir=self.build_temp,
+            macros=macros,
+            include_dirs=ext.include_dirs,
+            debug=self.debug,
+            extra_postargs=extra_args,
+            depends=ext.depends,
+        )
 
         # XXX outdated variable, kept here in case third-part code
         # needs it.
@@ -548,7 +569,8 @@ class build_ext(Command):
         language = ext.language or self.compiler.detect_language(sources)
 
         self.compiler.link_shared_object(
-            objects, ext_path,
+            objects,
+            ext_path,
             libraries=self.get_libraries(ext),
             library_dirs=ext.library_dirs,
             runtime_library_dirs=ext.runtime_library_dirs,
@@ -556,7 +578,8 @@ class build_ext(Command):
             export_symbols=self.get_export_symbols(ext),
             debug=self.debug,
             build_temp=self.build_temp,
-            target_lang=language)
+            target_lang=language,
+        )
 
     def swig_sources(self, sources, extension):
         """Walk the list of source files in 'sources', looking for SWIG
@@ -576,15 +599,18 @@ class build_ext(Command):
         if self.swig_cpp:
             log.warn("--swig-cpp is deprecated - use --swig-opts=-c++")
 
-        if self.swig_cpp or ('-c++' in self.swig_opts) or \
-           ('-c++' in extension.swig_opts):
+        if (
+            self.swig_cpp
+            or ('-c++' in self.swig_opts)
+            or ('-c++' in extension.swig_opts)
+        ):
             target_ext = '.cpp'
         else:
             target_ext = '.c'
 
         for source in sources:
             (base, ext) = os.path.splitext(source)
-            if ext == ".i":             # SWIG interface file
+            if ext == ".i":  # SWIG interface file
                 new_sources.append(base + '_wrap' + target_ext)
                 swig_sources.append(source)
                 swig_targets[source] = new_sources[-1]
@@ -631,8 +657,9 @@ class build_ext(Command):
                 return "swig.exe"
         else:
             raise DistutilsPlatformError(
-                  "I don't know how to find (much less run) SWIG "
-                  "on platform '%s'" % os.name)
+                "I don't know how to find (much less run) SWIG "
+                "on platform '%s'" % os.name
+            )
 
     # -- Name generators -----------------------------------------------
     # (extension names, filenames, whatever)
@@ -650,7 +677,7 @@ class build_ext(Command):
             # no further work needed
             # returning :
             #   build_dir/package/path/filename
-            filename = os.path.join(*modpath[:-1]+[filename])
+            filename = os.path.join(*modpath[:-1] + [filename])
             return os.path.join(self.build_lib, filename)
 
         # the inplace option requires to find the package directory
@@ -678,6 +705,7 @@ class build_ext(Command):
         "foo\bar.pyd").
         """
         from distutils.sysconfig import get_config_var
+
         ext_path = ext_name.split('.')
         ext_suffix = get_config_var('EXT_SUFFIX')
         return os.path.join(*ext_path) + ext_suffix
@@ -703,7 +731,7 @@ class build_ext(Command):
             ext.export_symbols.append(initfunc_name)
         return ext.export_symbols
 
-    def get_libraries(self, ext):
+    def get_libraries(self, ext):  # noqa: C901
         """Return the list of libraries to link against when building a
         shared extension.  On most platforms, this is just 'ext.libraries';
         on Windows, we add the Python library (eg. python20.dll).
@@ -715,12 +743,15 @@ class build_ext(Command):
         # Append '_d' to the python import library on debug builds.
         if sys.platform == "win32":
             from distutils._msvccompiler import MSVCCompiler
+
             if not isinstance(self.compiler, MSVCCompiler):
                 template = "python%d%d"
                 if self.debug:
                     template = template + '_d'
-                pythonlib = (template %
-                       (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff))
+                pythonlib = template % (
+                    sys.hexversion >> 24,
+                    (sys.hexversion >> 16) & 0xFF,
+                )
                 # don't extend ext.libraries, it may be shared with other
                 # extensions, it is a reference to the original list
                 return ext.libraries + [pythonlib]
@@ -734,6 +765,7 @@ class build_ext(Command):
             # Windows like MinGW) it is simply necessary that all symbols in
             # shared libraries are resolved at link time.
             from distutils.sysconfig import get_config_var
+
             link_libpython = False
             if get_config_var('Py_ENABLE_SHARED'):
                 # A native build on an Android device or on Cygwin

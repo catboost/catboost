@@ -14,6 +14,7 @@ from distutils.errors import DistutilsOptionError
 # Extension for Python source files.
 PYTHON_SOURCE_EXTENSION = ".py"
 
+
 class install_lib(Command):
 
     description = "install all Python modules (extensions and pure Python)"
@@ -35,18 +36,21 @@ class install_lib(Command):
 
     user_options = [
         ('install-dir=', 'd', "directory to install to"),
-        ('build-dir=','b', "build directory (where to install from)"),
+        ('build-dir=', 'b', "build directory (where to install from)"),
         ('force', 'f', "force installation (overwrite existing files)"),
         ('compile', 'c', "compile .py to .pyc [default]"),
         ('no-compile', None, "don't compile .py files"),
-        ('optimize=', 'O',
-         "also compile with optimization: -O1 for \"python -O\", "
-         "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"),
+        (
+            'optimize=',
+            'O',
+            "also compile with optimization: -O1 for \"python -O\", "
+            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+        ),
         ('skip-build', None, "skip the build steps"),
-        ]
+    ]
 
     boolean_options = ['force', 'compile', 'skip-build']
-    negative_opt = {'no-compile' : 'compile'}
+    negative_opt = {'no-compile': 'compile'}
 
     def initialize_options(self):
         # let the 'install' command dictate our installation directory
@@ -61,14 +65,15 @@ class install_lib(Command):
         # Get all the information we need to install pure Python modules
         # from the umbrella 'install' command -- build (source) directory,
         # install (target) directory, and whether to compile .py files.
-        self.set_undefined_options('install',
-                                   ('build_lib', 'build_dir'),
-                                   ('install_lib', 'install_dir'),
-                                   ('force', 'force'),
-                                   ('compile', 'compile'),
-                                   ('optimize', 'optimize'),
-                                   ('skip_build', 'skip_build'),
-                                  )
+        self.set_undefined_options(
+            'install',
+            ('build_lib', 'build_dir'),
+            ('install_lib', 'install_dir'),
+            ('force', 'force'),
+            ('compile', 'compile'),
+            ('optimize', 'optimize'),
+            ('skip_build', 'skip_build'),
+        )
 
         if self.compile is None:
             self.compile = True
@@ -110,8 +115,9 @@ class install_lib(Command):
         if os.path.isdir(self.build_dir):
             outfiles = self.copy_tree(self.build_dir, self.install_dir)
         else:
-            self.warn("'%s' does not exist -- no Python modules to install" %
-                      self.build_dir)
+            self.warn(
+                "'%s' does not exist -- no Python modules to install" % self.build_dir
+            )
             return
         return outfiles
 
@@ -129,14 +135,22 @@ class install_lib(Command):
         install_root = self.get_finalized_command('install').root
 
         if self.compile:
-            byte_compile(files, optimize=0,
-                         force=self.force, prefix=install_root,
-                         dry_run=self.dry_run)
+            byte_compile(
+                files,
+                optimize=0,
+                force=self.force,
+                prefix=install_root,
+                dry_run=self.dry_run,
+            )
         if self.optimize > 0:
-            byte_compile(files, optimize=self.optimize,
-                         force=self.force, prefix=install_root,
-                         verbose=self.verbose, dry_run=self.dry_run)
-
+            byte_compile(
+                files,
+                optimize=self.optimize,
+                force=self.force,
+                prefix=install_root,
+                verbose=self.verbose,
+                dry_run=self.dry_run,
+            )
 
     # -- Utility methods -----------------------------------------------
 
@@ -165,14 +179,17 @@ class install_lib(Command):
             if ext != PYTHON_SOURCE_EXTENSION:
                 continue
             if self.compile:
-                bytecode_files.append(importlib.util.cache_from_source(
-                    py_file, optimization=''))
+                bytecode_files.append(
+                    importlib.util.cache_from_source(py_file, optimization='')
+                )
             if self.optimize > 0:
-                bytecode_files.append(importlib.util.cache_from_source(
-                    py_file, optimization=self.optimize))
+                bytecode_files.append(
+                    importlib.util.cache_from_source(
+                        py_file, optimization=self.optimize
+                    )
+                )
 
         return bytecode_files
-
 
     # -- External interface --------------------------------------------
     # (called by outsiders)
@@ -182,19 +199,23 @@ class install_lib(Command):
         were actually run.  Not affected by the "dry-run" flag or whether
         modules have actually been built yet.
         """
-        pure_outputs = \
-            self._mutate_outputs(self.distribution.has_pure_modules(),
-                                 'build_py', 'build_lib',
-                                 self.install_dir)
+        pure_outputs = self._mutate_outputs(
+            self.distribution.has_pure_modules(),
+            'build_py',
+            'build_lib',
+            self.install_dir,
+        )
         if self.compile:
             bytecode_outputs = self._bytecode_filenames(pure_outputs)
         else:
             bytecode_outputs = []
 
-        ext_outputs = \
-            self._mutate_outputs(self.distribution.has_ext_modules(),
-                                 'build_ext', 'build_lib',
-                                 self.install_dir)
+        ext_outputs = self._mutate_outputs(
+            self.distribution.has_ext_modules(),
+            'build_ext',
+            'build_lib',
+            self.install_dir,
+        )
 
         return pure_outputs + bytecode_outputs + ext_outputs
 

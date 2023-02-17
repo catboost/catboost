@@ -1,3 +1,4 @@
+from functools import partial
 from glob import glob
 from distutils.util import convert_path
 import distutils.command.build_py as orig
@@ -8,6 +9,9 @@ import io
 import distutils.errors
 import itertools
 import stat
+import warnings
+from pathlib import Path
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools.extern.more_itertools import unique_everseen
 
 
@@ -98,7 +102,7 @@ class build_py(orig.build_py):
             package,
             src_dir,
         )
-        globs_expanded = map(glob, patterns)
+        globs_expanded = map(partial(glob, recursive=True), patterns)
         # flatten the expanded globs into an iterable of matches
         globs_matches = itertools.chain.from_iterable(globs_expanded)
         glob_files = filter(os.path.isfile, globs_matches)
@@ -129,6 +133,7 @@ class build_py(orig.build_py):
             src_dirs[assert_relative(self.get_package_dir(package))] = package
 
         self.run_command('egg_info')
+        check = _IncludePackageDataAbuse()
         ei_cmd = self.get_finalized_command('egg_info')
         for path in ei_cmd.filelist.files:
             d, f = os.path.split(assert_relative(path))
@@ -139,8 +144,13 @@ class build_py(orig.build_py):
                 d, df = os.path.split(d)
                 f = os.path.join(df, f)
             if d in src_dirs:
-                if path.endswith('.py') and f == oldf:
-                    continue  # it's a module, not data
+                if f == oldf:
+                    if check.is_module(f):
+                        continue  # it's a module, not data
+                else:
+                    importable = check.importable_subpackage(src_dirs[d], f)
+                    if importable:
+                        check.warn(importable)
                 mf.setdefault(src_dirs[d], []).append(path)
 
     def get_data_files(self):
@@ -240,3 +250,49 @@ def assert_relative(path):
         % path
     )
     raise DistutilsSetupError(msg)
+
+
+class _IncludePackageDataAbuse:
+    """Inform users that package or module is included as 'data file'"""
+
+    MESSAGE = """\
+    Installing {importable!r} as data is deprecated, please list it in `packages`.
+    !!\n\n
+    ############################
+    # Package would be ignored #
+    ############################
+    Python recognizes {importable!r} as an importable package,
+    but it is not listed in the `packages` configuration of setuptools.
+
+    {importable!r} has been automatically added to the distribution only
+    because it may contain data files, but this behavior is likely to change
+    in future versions of setuptools (and therefore is considered deprecated).
+
+    Please make sure that {importable!r} is included as a package by using
+    the `packages` configuration field or the proper discovery methods
+    (for example by using `find_namespace_packages(...)`/`find_namespace:`
+    instead of `find_packages(...)`/`find:`).
+
+    You can read more about "package discovery" and "data files" on setuptools
+    documentation page.
+    \n\n!!
+    """
+
+    def __init__(self):
+        self._already_warned = set()
+
+    def is_module(self, file):
+        return file.endswith(".py") and file[:-len(".py")].isidentifier()
+
+    def importable_subpackage(self, parent, file):
+        pkg = Path(file).parent
+        parts = list(itertools.takewhile(str.isidentifier, pkg.parts))
+        if parts:
+            return ".".join([parent, *parts])
+        return None
+
+    def warn(self, importable):
+        if importable not in self._already_warned:
+            msg = textwrap.dedent(self.MESSAGE).format(importable=importable)
+            warnings.warn(msg, SetuptoolsDeprecationWarning, stacklevel=2)
+            self._already_warned.add(importable)

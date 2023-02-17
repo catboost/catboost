@@ -8,11 +8,12 @@ import sys
 import glob
 
 from distutils.core import Command
-from distutils.errors import *
+from distutils.errors import DistutilsOptionError, DistutilsFileError
 from distutils.util import convert_path
 from distutils import log
 
-class build_py (Command):
+
+class build_py(Command):
 
     description = "\"build\" pure Python modules (copy to build directory)"
 
@@ -20,14 +21,17 @@ class build_py (Command):
         ('build-lib=', 'd', "directory to \"build\" (copy) to"),
         ('compile', 'c', "compile .py to .pyc"),
         ('no-compile', None, "don't compile .py files [default]"),
-        ('optimize=', 'O',
-         "also compile with optimization: -O1 for \"python -O\", "
-         "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"),
+        (
+            'optimize=',
+            'O',
+            "also compile with optimization: -O1 for \"python -O\", "
+            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+        ),
         ('force', 'f', "forcibly build everything (ignore file timestamps)"),
-        ]
+    ]
 
     boolean_options = ['compile', 'force']
-    negative_opt = {'no-compile' : 'compile'}
+    negative_opt = {'no-compile': 'compile'}
 
     def initialize_options(self):
         self.build_lib = None
@@ -40,9 +44,9 @@ class build_py (Command):
         self.force = None
 
     def finalize_options(self):
-        self.set_undefined_options('build',
-                                   ('build_lib', 'build_lib'),
-                                   ('force', 'force'))
+        self.set_undefined_options(
+            'build', ('build_lib', 'build_lib'), ('force', 'force')
+        )
 
         # Get the distribution options that are aliases for build_py
         # options -- list of packages and list of modules.
@@ -109,42 +113,42 @@ class build_py (Command):
             # Length of path to strip from found files
             plen = 0
             if src_dir:
-                plen = len(src_dir)+1
+                plen = len(src_dir) + 1
 
             # Strip directory from globbed filenames
-            filenames = [
-                file[plen:] for file in self.find_data_files(package, src_dir)
-                ]
+            filenames = [file[plen:] for file in self.find_data_files(package, src_dir)]
             data.append((package, src_dir, build_dir, filenames))
         return data
 
     def find_data_files(self, package, src_dir):
         """Return filenames for package's data files in 'src_dir'"""
-        globs = (self.package_data.get('', [])
-                 + self.package_data.get(package, []))
+        globs = self.package_data.get('', []) + self.package_data.get(package, [])
         files = []
         for pattern in globs:
             # Each pattern has to be converted to a platform-specific path
-            filelist = glob.glob(os.path.join(glob.escape(src_dir), convert_path(pattern)))
+            filelist = glob.glob(
+                os.path.join(glob.escape(src_dir), convert_path(pattern))
+            )
             # Files that match more than one pattern are only added once
-            files.extend([fn for fn in filelist if fn not in files
-                and os.path.isfile(fn)])
+            files.extend(
+                [fn for fn in filelist if fn not in files and os.path.isfile(fn)]
+            )
         return files
 
     def build_package_data(self):
         """Copy data files into build directory"""
-        lastdir = None
         for package, src_dir, build_dir, filenames in self.data_files:
             for filename in filenames:
                 target = os.path.join(build_dir, filename)
                 self.mkpath(os.path.dirname(target))
-                self.copy_file(os.path.join(src_dir, filename), target,
-                               preserve_mode=False)
+                self.copy_file(
+                    os.path.join(src_dir, filename), target, preserve_mode=False
+                )
 
     def get_package_dir(self, package):
         """Return the directory, relative to the top of the source
-           distribution, where package 'package' should be found
-           (at least according to the 'package_dir' option, if any)."""
+        distribution, where package 'package' should be found
+        (at least according to the 'package_dir' option, if any)."""
         path = package.split('.')
 
         if not self.package_dir:
@@ -188,20 +192,19 @@ class build_py (Command):
         if package_dir != "":
             if not os.path.exists(package_dir):
                 raise DistutilsFileError(
-                      "package directory '%s' does not exist" % package_dir)
+                    "package directory '%s' does not exist" % package_dir
+                )
             if not os.path.isdir(package_dir):
                 raise DistutilsFileError(
-                       "supposed package directory '%s' exists, "
-                       "but is not a directory" % package_dir)
+                    "supposed package directory '%s' exists, "
+                    "but is not a directory" % package_dir
+                )
 
-        # Require __init__.py for all but the "root package"
+        # Directories without __init__.py are namespace packages (PEP 420).
         if package:
             init_py = os.path.join(package_dir, "__init__.py")
             if os.path.isfile(init_py):
                 return init_py
-            else:
-                log.warn(("package init file '%s' not found " +
-                          "(or not a regular file)"), init_py)
 
         # Either not in a package at all (__init__.py not expected), or
         # __init__.py doesn't exist -- so don't return the filename.
@@ -313,17 +316,21 @@ class build_py (Command):
             outputs.append(filename)
             if include_bytecode:
                 if self.compile:
-                    outputs.append(importlib.util.cache_from_source(
-                        filename, optimization=''))
+                    outputs.append(
+                        importlib.util.cache_from_source(filename, optimization='')
+                    )
                 if self.optimize > 0:
-                    outputs.append(importlib.util.cache_from_source(
-                        filename, optimization=self.optimize))
+                    outputs.append(
+                        importlib.util.cache_from_source(
+                            filename, optimization=self.optimize
+                        )
+                    )
 
         outputs += [
             os.path.join(build_dir, filename)
             for package, src_dir, build_dir, filenames in self.data_files
             for filename in filenames
-            ]
+        ]
 
         return outputs
 
@@ -332,7 +339,8 @@ class build_py (Command):
             package = package.split('.')
         elif not isinstance(package, (list, tuple)):
             raise TypeError(
-                  "'package' must be a string (dot-separated), list, or tuple")
+                "'package' must be a string (dot-separated), list, or tuple"
+            )
 
         # Now put the module source file into the "build" area -- this is
         # easy, we just copy it somewhere under self.build_lib (the build
@@ -377,6 +385,7 @@ class build_py (Command):
             return
 
         from distutils.util import byte_compile
+
         prefix = self.build_lib
         if prefix[-1] != os.sep:
             prefix = prefix + os.sep
@@ -385,8 +394,14 @@ class build_py (Command):
         # method of the "install_lib" command, except for the determination
         # of the 'prefix' string.  Hmmm.
         if self.compile:
-            byte_compile(files, optimize=0,
-                         force=self.force, prefix=prefix, dry_run=self.dry_run)
+            byte_compile(
+                files, optimize=0, force=self.force, prefix=prefix, dry_run=self.dry_run
+            )
         if self.optimize > 0:
-            byte_compile(files, optimize=self.optimize,
-                         force=self.force, prefix=prefix, dry_run=self.dry_run)
+            byte_compile(
+                files,
+                optimize=self.optimize,
+                force=self.force,
+                prefix=prefix,
+                dry_run=self.dry_run,
+            )
