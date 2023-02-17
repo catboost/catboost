@@ -5685,25 +5685,34 @@ TMetricHolder TMultiCrossEntropyMetric::EvalSingleThread(
     const int approxDimension = approx.ysize();
 
     TMetricHolder error(2);
-    TVector<double> evaluatedApprox(approxDimension);
-    auto evaluatedApproxRef = MakeArrayRef(evaluatedApprox);
-
-    for (int docIdx = begin; docIdx < end; ++docIdx) {
-        GetMultiDimensionalApprox(docIdx, approx, approxDelta, evaluatedApproxRef);
-        double sumDimErrors = 0;
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            const double expApprox = exp(evaluatedApproxRef[dim]);
-            sumDimErrors += IsFinite(expApprox) ? -log(1 + expApprox) : -evaluatedApproxRef[dim];
+    constexpr auto BlockSize = 32;
+    std::array<double, BlockSize> zeroDelta;
+    std::array<double, BlockSize> expApprox;
+    std::array<float, BlockSize> unitWeight;
+    zeroDelta.fill(0.0);
+    unitWeight.fill(1.0f);
+    double sumDimErrors = 0;
+    for (int dim = 0; dim < approxDimension; ++dim) {
+        for (int docIdx = begin; docIdx < end; docIdx += BlockSize) {
+            auto count = Min<int>(end - docIdx, BlockSize);
+            TConstArrayRef<double> approxRef(&approx[dim][docIdx], count);
+            TConstArrayRef<double> approxDeltaRef(approxDelta.empty() ? &zeroDelta[0] : &approxDelta[dim][docIdx], count);
+            TConstArrayRef<float> targetRef(&target[dim][docIdx], count);
+            TConstArrayRef<float> weightRef(weight.empty() ? &unitWeight[0] : &weight[docIdx], count);
+            for (int j = 0; j < count; ++j) {
+                expApprox[j] = approxRef[j] + approxDeltaRef[j];
+            }
+            FastExpInplace(&expApprox[0], count);
+            for (int j = 0; j < count; ++j) {
+                const auto evaluatedApprox = approxRef[j] + approxDeltaRef[j];
+                const auto w = weightRef[j];
+                sumDimErrors += (IsFinite(expApprox[j]) ? -log(1 + expApprox[j]) : -evaluatedApprox) * w;
+                sumDimErrors += (targetRef[j] * evaluatedApprox) * w;
+            }
         }
-
-        for (int targetClass = 0; targetClass < approxDimension; targetClass++) {
-            sumDimErrors += target[targetClass][docIdx] * evaluatedApproxRef[targetClass];
-        }
-
-        const float w = weight.empty() ? 1 : weight[docIdx];
-        error.Stats[0] -= sumDimErrors / approxDimension * w;
-        error.Stats[1] += w;
     }
+    error.Stats[0] = -sumDimErrors / approxDimension;
+    error.Stats[1] = weight.empty() ? end - begin : Accumulate(weight, 0);
     return error;
 }
 
