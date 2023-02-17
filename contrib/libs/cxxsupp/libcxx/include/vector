@@ -3294,7 +3294,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<vector<bool, _Allocator> >
         size_t __idx = 0;
         size_t __n = __vec.size();
         constexpr size_t __bits_per_word = sizeof(typename allocator_traits<_Allocator>::size_type) * CHAR_BIT;
-        static_assert(sizeof(typename allocator_traits<_Allocator>::size_type) <= sizeof(size_t));
+        static_assert(sizeof(typename allocator_traits<_Allocator>::size_type) <= sizeof(size_t), "size_type constraint violated");
         for (;__idx + __bits_per_word <= __n;) {
             for (size_t __bit = 0; __bit < __bits_per_word; __bit++, __idx++) {
                 __h ^= static_cast<size_t>(__vec[__idx]) << __bit;
