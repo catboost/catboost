@@ -528,7 +528,7 @@ def pytest_collectreport(report):
             sys.stderr.write(yatest_lib.tools.to_utf8(report.longrepr))
 
 
-@pytest.mark.tryfirst
+@pytest.hookimpl(tryfirst=True)
 def pytest_pyfunc_call(pyfuncitem):
     testfunction = pyfuncitem.obj
     iscoroutinefunction = getattr(inspect, "iscoroutinefunction", None)
