@@ -9,7 +9,7 @@
 
 add_library(contrib-libs-xxhash)
 target_compile_options(contrib-libs-xxhash PRIVATE
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_link_libraries(contrib-libs-xxhash PUBLIC
   contrib-libs-linux-headers

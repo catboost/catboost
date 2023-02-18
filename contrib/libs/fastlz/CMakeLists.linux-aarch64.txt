@@ -9,7 +9,7 @@
 
 add_library(contrib-libs-fastlz)
 target_compile_options(contrib-libs-fastlz PRIVATE
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_link_libraries(contrib-libs-fastlz PUBLIC
   contrib-libs-linux-headers

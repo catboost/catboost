@@ -9,7 +9,7 @@
 
 add_library(abseil-cpp-absl-container)
 target_compile_options(abseil-cpp-absl-container PRIVATE
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(abseil-cpp-absl-container PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

@@ -15,7 +15,7 @@ target_compile_options(libs-cxxsupp-libcxx PUBLIC
 )
 target_compile_options(libs-cxxsupp-libcxx PRIVATE
   -D_LIBCPP_BUILDING_LIBRARY
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-cxxsupp-libcxx PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include

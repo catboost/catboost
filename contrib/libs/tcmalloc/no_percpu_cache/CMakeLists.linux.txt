@@ -11,7 +11,7 @@ add_library(libs-tcmalloc-no_percpu_cache)
 target_compile_options(libs-tcmalloc-no_percpu_cache PRIVATE
   -DTCMALLOC_256K_PAGES
   -DTCMALLOC_DEPRECATED_PERTHREAD
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_link_libraries(libs-tcmalloc-no_percpu_cache PUBLIC
   contrib-libs-linux-headers
@@ -27,7 +27,7 @@ add_global_library_for(libs-tcmalloc-no_percpu_cache.global libs-tcmalloc-no_per
 target_compile_options(libs-tcmalloc-no_percpu_cache.global PRIVATE
   -DTCMALLOC_256K_PAGES
   -DTCMALLOC_DEPRECATED_PERTHREAD
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_link_libraries(libs-tcmalloc-no_percpu_cache.global PUBLIC
   contrib-libs-linux-headers

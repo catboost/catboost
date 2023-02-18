@@ -15,7 +15,7 @@ target_compile_options(contrib-libs-tbb PRIVATE
   -DUSE_PTHREAD
   -D__TBB_USE_ITT_NOTIFY
   -DDO_ITT_NOTIFY
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-tbb PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/include

@@ -11,7 +11,7 @@ add_subdirectory(no_cuda)
 
 add_library(_catboost SHARED)
 target_compile_options(_catboost PRIVATE
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_cython_sources(_catboost PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx

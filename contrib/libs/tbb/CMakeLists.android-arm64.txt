@@ -11,7 +11,7 @@ add_library(contrib-libs-tbb)
 target_compile_options(contrib-libs-tbb PRIVATE
   -D__TBB_BUILD
   -DUSE_PTHREAD
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-tbb PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/include

@@ -9,7 +9,7 @@
 
 add_executable(cpp_styleguide)
 target_compile_options(cpp_styleguide PRIVATE
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_link_libraries(cpp_styleguide PUBLIC
   contrib-libs-linux-headers

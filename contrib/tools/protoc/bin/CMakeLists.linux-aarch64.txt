@@ -9,7 +9,7 @@
 
 add_executable(protoc)
 target_compile_options(protoc PRIVATE
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_link_libraries(protoc PUBLIC
   contrib-libs-linux-headers

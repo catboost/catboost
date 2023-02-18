@@ -138,12 +138,6 @@ migrations:
     - maps/analyzer/sandbox/masstransit/export_eda_courier_deviceid/lib
     - maps/b2bgeo/tools/domain_check/bin
     - maps/b2bgeo/ya_courier/analytics_backend/test_lib/data
-    - maps/garden/modules/masstransit_tester/tests/ut
-    - maps/garden/modules/pedestrian_tester/tests/ut
-    - maps/garden/modules/ymapsdf/lib/merge_poi
-    - maps/garden/modules/ymapsdf/tests/ymapsdf_tester
-    - maps/garden/modules/ymapsdf_osm/tests/tasks
-    - maps/garden/tools/module_monitoring/lib
     - maps/goods/autotests/src/data_types
     - maps/masstransit/libs/realtime_signals_monitoring/py/tests
     - maps/masstransit/ydbfree/services/predictor/tools/uploader/tests/integration
@@ -1450,7 +1444,6 @@ migrations:
     - kikimr/ci/libraries/tasks
     - kikimr/library/ci/teamcity_core/core
     - library/python/toloka-kit/tests
-    - load/projects/cloud/loadtesting/db/tables
     - load/projects/tasklets/shooting/py_impl
     - logbroker/tools/manual/get_data_from_logs/common
     - logfeller/python/logfeller/infra/release/nirvactor
@@ -1929,7 +1922,6 @@ migrations:
     - maps/b2bgeo/mvrp_solver/backend/integration_tests/bin
     - maps/bicycle/tools/matrix_compare/bin
     - maps/bizdir/sps/signal_processor/tests
-    - maps/garden/modules/ymapsdf_osm/tests/tasks
     - maps/garden/sdk/resources/scanners
     - maps/garden/sdk/resources/scanners/tests
     - maps/garden/tools/stat_updater/lib
@@ -1965,7 +1957,6 @@ migrations:
     - market/idx/datacamp/controllers/stroller/yatf
     - market/idx/datacamp/dev/yd_tool
     - market/idx/datacamp/miner/yatf/resources
-    - market/idx/datacamp/picrobot/regular_jobs/delete_event_generator
     - market/infra/java-application/mj/v1/generate-project-tool/python-script
     - market/mstat/cubes-web/lib
     - market/pinger-report/lib
@@ -2479,8 +2470,6 @@ migrations:
     - maps/automotive/remote_access/autotests/tests
     - maps/automotive/remote_access/autotests/tests/lib
     - maps/b2bgeo/tools/log_to_json
-    - maps/garden/modules/ymapsdf/lib/parent_finder
-    - maps/garden/modules/ymapsdf_osm/tests/tasks
     - maps/garden/tools/stat_updater/tests/test_yt_table_description
     - maps/geoq/hypotheses/lib
     - maps/geoq/hypotheses/lib/tests
@@ -2656,7 +2645,6 @@ migrations:
     - yweb/antispam/ytgr/legal_loader/library
     - yweb/blender/knn_features/converter
     - yweb/blender/pers_factors/lib/common
-    - yweb/dups/dups_mr/task/test
     - yweb/news/api_tests
     - yweb/news/api_tests/tops_export
     - yweb/news/common/python/site_attributes/ut
@@ -2911,7 +2899,6 @@ migrations:
     - devtools/autocheck/stat
     - devtools/codenav/kytheprotobufgen
     - devtools/experimental/ylog/ylog
-    - devtools/gdb/test
     - devtools/search-env
     - devtools/ya/package
     - devtools/ya/yalibrary/vcs/vcsversion
@@ -3537,7 +3524,6 @@ migrations:
     - quality/user_sessions/py_amon/examples/parser_web
     - quality/user_sessions/rt/deploy
     - quality/user_sessions/rt/packages/us-rt-config-generators/scripts
-    - quality/user_sessions/rt/yt_sync/settings
     - quality/userdata/nest
     - quality/userdata/scripts
     - quality/userdata/scripts/state_validation
@@ -4287,7 +4273,6 @@ migrations:
     - mail/transfer/ora2pg/tools
     - mail/ymod_queuedb/tests/integration
     - maps/analytics/legacy/clickhouse/statadhoc-11869-audience-platform-geography-generic-events-report
-    - maps/geoq/hypotheses/osm
     - maps/streetview/backoffice/tools/yt_image_uploader
     - maps/wikimap/mapspro/services/mrc/eye/experiments/signs_map/car_mask
     - maps/wikimap/mapspro/services/mrc/eye/experiments/signs_map/matcher/match
@@ -4947,7 +4932,6 @@ migrations:
     - crypta/graph/v1/python/infra/radius
     - crypta/graph/v1/python/matching/device_matching
     - crypta/graph/v1/python/matching/device_matching/app_metrica
-    - crypta/graph/v1/python/matching/device_matching/app_metrica/account_manager_decoder
     - crypta/graph/v1/python/utils
     - crypta/graph/v1/python/v2/soup
     - crypta/graph/v1/tests/libs
@@ -5478,7 +5462,6 @@ migrations:
     - maps/garden/libs/common_graph_deploy
     - maps/garden/modules/renderer_publication_validator/lib
     - maps/garden/modules/transit_tester/lib
-    - maps/garden/modules/ymapsdf/lib/ymapsdf_load
     - maps/garden/sandbox/osm_downloader/task
     - maps/garden/sdk/core
     - maps/garden/sdk/module_rpc
@@ -6932,7 +6915,6 @@ migrations:
     - yweb/contentgen/articles_classifier
     - yweb/dups/dmetric3/bin
     - yweb/dups/dmetric_nanny/bin
-    - yweb/dups/dups_mr/sort_htmls/tests
     - yweb/rca/server/app
     - yweb/yasap/answers/answers/models
     - yweb/yasap/answers/answers_common
@@ -7538,7 +7520,6 @@ migrations:
     - yt/cron/merge/perform_merge/lib
     - yweb/antiporno/nirvana/operations/self_updateable
     - yweb/dups/dmetric3/bin
-    - yweb/dups/dups_mr/sort_htmls/tests
     - yweb/video/faas/lib/abr
     - yweb/video/faas/lib/drm
     - yweb/yasap/answers/admin/admin/resources
@@ -8097,7 +8078,6 @@ migrations:
     - sandbox/projects/bsyeti/make_caesar_bases
     - sandbox/projects/bsyeti/make_geo_permalink_dict
     - sandbox/projects/bsyeti/make_idf_counters_base
-    - sandbox/projects/bsyeti/make_mobile_apps_base
     - sandbox/projects/bsyeti/make_sampled_catalogia_queries
     - sandbox/projects/bsyeti/make_sovetnik_dict
     - sandbox/projects/bsyeti/make_visithistory_log
@@ -8568,8 +8548,6 @@ migrations:
     - logos/projects/statkey_py3/tasks/money_allocations_merger/v1
     - logos/projects/statkey_py3/tasks/services/gen_sample
     - logos/projects/zen/graph
-    - logos/tests/graph/graph_test
-    - logos/tests/graph/graph_test_2
     - logos/tests/graph/lib
     - logos/tests/task/lib
     - logos/tools/mkdocs/plugin
@@ -9673,7 +9651,6 @@ migrations:
     - yt/odin-checks/bin/operations_snapshots
     - yt/python/yt/wrapper
     - yweb/antimalware/visual_html_parser/yandex-search-antivirus-common/antivir/common
-    - yweb/dups/dups_mr/sort_htmls
   PLE0710:
     ignore:
     - PLE0710
@@ -11583,7 +11560,6 @@ migrations:
     - mds/elliptics/tests/pytests
     - mds/libs/eblob/tests/python
     - mds/libs/jerasure/python
-    - mds/mastermind/flowmastermind/src
     - ml/tensorflow/ytensorflow/bin/ytf-local-inference
     - ml/tensorflow/ytensorflow/bin/ytf-yt-inference
     - ml/tensorflow/ytensorflow/ytensorflow/build

@@ -10,7 +10,7 @@
 add_library(libs-brotli-common)
 target_compile_options(libs-brotli-common PRIVATE
   -DBROTLI_BUILD_PORTABLE
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-brotli-common PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/include

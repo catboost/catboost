@@ -9,7 +9,7 @@
 
 add_library(libs-cxxsupp-builtins)
 target_compile_options(libs-cxxsupp-builtins PRIVATE
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_link_libraries(libs-cxxsupp-builtins PUBLIC
   contrib-libs-linux-headers

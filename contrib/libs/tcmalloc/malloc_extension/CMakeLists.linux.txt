@@ -10,7 +10,7 @@
 add_library(libs-tcmalloc-malloc_extension)
 target_compile_options(libs-tcmalloc-malloc_extension PRIVATE
   -DTCMALLOC_256K_PAGES
-  -Wno-everything
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-tcmalloc-malloc_extension PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/tcmalloc
