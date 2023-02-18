@@ -132,7 +132,7 @@ static THolder<IDatasetLoader> GetDatasetLoader(
     const TCalculateStatisticsParams& calculateStatisticsParams,
     NPar::TLocalExecutor* localExecutor
 ) {
-    const int blockSize = Max<int>(
+    const ui32 blockSize = Max<ui32>(
         10000, 10000 // ToDo: meaningful estimation
     );
 
