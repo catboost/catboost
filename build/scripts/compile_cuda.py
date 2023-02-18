@@ -22,8 +22,12 @@ def main():
         skip_nocxxinc = False
 
     spl = sys.argv.index('--cflags')
-    mtime0 = sys.argv[1]
-    command = sys.argv[2: spl]
+    cmd = 1
+    mtime0 = None
+    if sys.argv[1] == '--mtime':
+        mtime0 = sys.argv[2]
+        cmd = 3
+    command = sys.argv[cmd: spl]
     cflags = sys.argv[spl + 1:]
 
     dump_args = False
@@ -149,7 +153,8 @@ def main():
     # time (converted to string in the local timezone) and the current working
     # directory.  To stabilize the names of these symbols we need to fix mtime,
     # timezone, and cwd.
-    os.environ['LD_PRELOAD'] = mtime0
+    if mtime0:
+        os.environ['LD_PRELOAD'] = mtime0
     os.environ['TZ'] = 'UTC0'  # POSIX fixed offset format.
     os.environ['TZDIR'] = '/var/empty'  # Against counterfeit /usr/share/zoneinfo/$TZ.
 
