@@ -12,7 +12,6 @@ migrations:
     - ads/emily/storage/models/tsars/models
     - ads/libs/py_ml_factors/matrixnet
     - ads/pytorch/lib/pool/py_formatter
-    - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom
     - ads/quality/embedding/tools/mx_crosscheck
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/preprocess
     - ads/quality/max_positions
@@ -1259,7 +1258,6 @@ migrations:
     - yt/meta_scheduler/tests
     - yt/odin-checks/bin/cloud_cpu
     - yt/odin-checks/bin/wrapper_files_count
-    - yt/python/yt/environment
     - yt/python/yt/test_helpers
     - yt/python/yt/wrapper
     - yt/python/yt/yson/tests
@@ -2477,7 +2475,6 @@ migrations:
     - maps/mobile/server/init/tools/ammo_generator
     - maps/photos/backoffice/tools/automoderator/make_model
     - maps/poi/streetview_poi/sign_hypotheses
-    - maps/routing/navigator_stopwatch/python/tests
     - maps/routing/zero_speed_banner/build_model_pool
     - maps/statistics/external/export_accidents
     - maps/statistics/external/traffic_lights/lib
@@ -4930,8 +4927,6 @@ migrations:
     - crypta/graph/staff/lib
     - crypta/graph/v1/python/infra
     - crypta/graph/v1/python/infra/radius
-    - crypta/graph/v1/python/matching/device_matching
-    - crypta/graph/v1/python/matching/device_matching/app_metrica
     - crypta/graph/v1/python/utils
     - crypta/graph/v1/python/v2/soup
     - crypta/graph/v1/tests/libs
@@ -12397,7 +12392,6 @@ migrations:
     - ads/nirvana/difacto/dmlc_launcher/test
     - ads/nirvana/online_learning/run_flowkeeper/workflow_tests
     - ads/pytorch/deploy/bindings/ut
-    - ads/quality/adv_machine/tsar/cm_robot/cmpy/turbo
     - ads/quality/metric_eval/tests/ut
     - ads/sandbox_scripts/logs_scheme/fat
     - advq/generation/broadmatch_export/tests

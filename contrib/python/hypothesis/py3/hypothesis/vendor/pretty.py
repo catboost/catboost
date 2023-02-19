@@ -357,6 +357,7 @@ class RepresentationPrinter:
             # We're OK with printing this call on a single line, but will it fit?
             # If not, we'd rather fall back to one-argument-per-line instead.
             p = RepresentationPrinter()
+            p.stack = self.stack.copy()
             p.known_object_printers = self.known_object_printers
             p.repr_call("_" * self.output_width, args, kwargs, force_split=False)
             s = p.getvalue()

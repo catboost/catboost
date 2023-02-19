@@ -139,11 +139,12 @@ def from_dtype(
         # If anyone wants to add a `width` argument to `complex_numbers()`, we would
         # accept a pull request and add passthrough support for magnitude bounds,
         # but it's a low priority otherwise.
+        kws = compat_kw("allow_nan", "allow_infinity", "allow_subnormal")
         if dtype.itemsize == 8:
-            float32 = st.floats(width=32, **compat_kw("allow_nan", "allow_infinity"))
+            float32 = st.floats(width=32, **kws)
             result = st.builds(complex, float32, float32)
         else:
-            result = st.complex_numbers(**compat_kw("allow_nan", "allow_infinity"))
+            result = st.complex_numbers(**kws)
     elif dtype.kind in ("S", "a"):
         # Numpy strings are null-terminated; only allow round-trippable values.
         # `itemsize == 0` means 'fixed length determined at array creation'
