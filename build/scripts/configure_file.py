@@ -44,7 +44,7 @@ def main(inputPath, outputPath, varDict):
 
 
 def usage():
-    print "usage: configure_file.py inputPath outputPath key1=value1 ..."
+    print("usage: configure_file.py inputPath outputPath key1=value1 ...")
     exit(1)
 
 
