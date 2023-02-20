@@ -396,9 +396,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_perftest\model_perftest.vcxproj">
       <Project>52A4E0D4-99AD-0864-3BDA-5EC48B9B5392</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
-      <Project>C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
     </ProjectReference>
@@ -452,9 +449,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
-      <Project>BF794ED3-B687-CE38-5FC3-A9AC59EC392B</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
       <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
@@ -540,9 +534,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\include\python-numpy-include.vcxproj">
       <Project>09FC0446-04FA-A4E9-2AB6-23078034F2BC</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
-      <Project>C4244186-1688-FFD7-FAB5-CB9E056577E2</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\flatc\flatc.vcxproj">
       <Project>0C8EE1E1-B849-8567-35CD-A4E5AFA87E60</Project>
     </ProjectReference>
@@ -551,18 +542,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\protoc.vcxproj">
       <Project>855A73D1-3E50-6765-A6D8-DB4F6F2EA5F8</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
-      <Project>EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
-      <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
-      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
-      <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel5\aapl\tools-ragel5-aapl.vcxproj">
       <Project>1305930F-BAF5-B7CA-F748-A1A62BE68A67</Project>
