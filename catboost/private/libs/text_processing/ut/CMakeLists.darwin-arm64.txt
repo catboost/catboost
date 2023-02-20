@@ -12,6 +12,7 @@ add_executable(catboost-private-libs-text_processing-ut)
 target_link_libraries(catboost-private-libs-text_processing-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-system
   cpp-testing-unittest_main
   private-libs-text_processing
   text_processing-ut-lib

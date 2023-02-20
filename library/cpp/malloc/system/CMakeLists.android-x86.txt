@@ -7,20 +7,11 @@
 
 
 
-add_executable(rescompiler)
-target_link_libraries(rescompiler PUBLIC
+add_library(cpp-malloc-system)
+target_link_libraries(cpp-malloc-system PUBLIC
   contrib-libs-cxxsupp
-  yutil
-  cpp-malloc-system
-  library-cpp-resource
+  cpp-malloc-api
 )
-target_link_options(rescompiler PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
-  -fPIC
-  -fPIC
+target_sources(cpp-malloc-system PRIVATE
+  ${CMAKE_SOURCE_DIR}/library/cpp/malloc/system/malloc-info.cpp
 )
-target_sources(rescompiler PRIVATE
-  ${CMAKE_SOURCE_DIR}/tools/rescompiler/main.cpp
-)
-vcs_info(rescompiler)

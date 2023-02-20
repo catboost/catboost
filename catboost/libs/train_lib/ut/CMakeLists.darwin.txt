@@ -14,6 +14,7 @@ target_include_directories(catboost-libs-train_lib-ut PRIVATE
 target_link_libraries(catboost-libs-train_lib-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-system
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-libs-train_lib

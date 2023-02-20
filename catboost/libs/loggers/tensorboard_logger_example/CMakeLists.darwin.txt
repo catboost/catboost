@@ -11,6 +11,7 @@ add_executable(tensorboard_logger_example)
 target_link_libraries(tensorboard_logger_example PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-system
   library-cpp-cpuid_check
   catboost-libs-loggers
 )

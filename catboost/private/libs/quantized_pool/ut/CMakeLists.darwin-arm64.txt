@@ -14,6 +14,7 @@ target_include_directories(catboost-private-libs-quantized_pool-ut PRIVATE
 target_link_libraries(catboost-private-libs-quantized_pool-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-system
   cpp-testing-unittest_main
   private-libs-quantized_pool
   idl-pool-flat

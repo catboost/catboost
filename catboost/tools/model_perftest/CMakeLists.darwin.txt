@@ -12,6 +12,7 @@ add_executable(model_perftest)
 target_link_libraries(model_perftest PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-system
   library-cpp-cpuid_check
   tools-model_perftest-lib
   library-cpp-getopt

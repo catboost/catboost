@@ -15,6 +15,7 @@ target_compile_options(model_comparator PRIVATE
 target_link_libraries(model_comparator PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-system
   library-cpp-cpuid_check
   catboost-libs-model
   libs-model-model_export

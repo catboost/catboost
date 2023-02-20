@@ -11,6 +11,7 @@ add_executable(catboost-libs-dataset_statistics-ut)
 target_link_libraries(catboost-libs-dataset_statistics-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-system
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-libs-dataset_statistics
