@@ -57,7 +57,7 @@ target_sources(_catboost_no_cuda PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp
 )
 set_python_type_for_cython(_catboost_no_cuda
-  PY2
+  PY3
 )
 target_cython_include_directories(_catboost_no_cuda
   ${CMAKE_BINARY_DIR}
