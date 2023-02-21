@@ -59,7 +59,6 @@ def infer_dtype_if_necessary(dtype, values, elements, draw):
 
 @check_function
 def elements_and_dtype(elements, dtype, source=None):
-
     if source is None:
         prefix = ""
     else:

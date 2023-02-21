@@ -786,7 +786,6 @@ class StateForActualGivenExecution:
             with local_settings(self.settings):
                 with deterministic_PRNG():
                     with BuildContext(data, is_final=is_final) as context:
-
                         # Generate all arguments to the test function.
                         args, kwargs = data.draw(self.search_strategy)
                         if expected_failure is not None:
@@ -1399,9 +1398,9 @@ def given(
             if not (ran_explicit_examples or state.ever_executed):
                 raise SKIP_BECAUSE_NO_EXAMPLES
 
-        def _get_fuzz_target() -> Callable[
-            [Union[bytes, bytearray, memoryview, BinaryIO]], Optional[bytes]
-        ]:
+        def _get_fuzz_target() -> (
+            Callable[[Union[bytes, bytearray, memoryview, BinaryIO]], Optional[bytes]]
+        ):
             # Because fuzzing interfaces are very performance-sensitive, we use a
             # somewhat more complicated structure here.  `_get_fuzz_target()` is
             # called by the `HypothesisHandle.fuzz_one_input` property, allowing

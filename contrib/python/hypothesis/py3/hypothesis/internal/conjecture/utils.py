@@ -311,7 +311,6 @@ class Sampler:
     table: List[Tuple[int, int, float]]  # (base_idx, alt_idx, alt_chance)
 
     def __init__(self, weights: Sequence[float]):
-
         n = len(weights)
 
         table: "list[list[int | float | None]]" = [[i, None, None] for i in range(n)]

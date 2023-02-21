@@ -180,7 +180,6 @@ def get_type_hints(thing):
                     and is_a_type(p.annotation)
                     and p.annotation is not p.empty
                 ):
-
                     p_hint = p.annotation
 
                     # Defer to `get_type_hints` if signature annotation is, or

@@ -1790,7 +1790,6 @@ def ufunc(
 
 
 def _make_ufunc_body(func, *, except_, style, annotate):
-
     import hypothesis.extra.numpy as npst
 
     if func.signature is None:

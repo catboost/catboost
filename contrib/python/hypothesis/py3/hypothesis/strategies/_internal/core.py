@@ -1652,7 +1652,7 @@ def complex_numbers(
     of (around) floating-point epsilon, due to implementation via
     the system ``sqrt`` function.
 
-    The width argument specifies the maximum number of bits of precision
+    The ``width`` argument specifies the maximum number of bits of precision
     required to represent the entire generated complex number.
     Valid values are 32, 64 or 128, which correspond to the real and imaginary
     components each having width 16, 32 or 64, respectively.
