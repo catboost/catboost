@@ -811,3 +811,10 @@
 #  undef __has_builtin
 #  undef PROTOBUF_has_builtin_DEFINED_
 #endif
+
+#if defined(__clang__) && defined(_WIN32)
+#undef PROTOBUF_MUSTTAIL
+#undef PROTOBUF_TAILCALL
+#define PROTOBUF_MUSTTAIL
+#define PROTOBUF_TAILCALL false
+#endif
