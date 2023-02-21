@@ -27,7 +27,6 @@ def _set_platform_dir_class() -> type[PlatformDirsABC]:
         from platformdirs.unix import Unix as Result
 
     if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
-
         if os.getenv("SHELL") or os.getenv("PREFIX"):
             return Result
 

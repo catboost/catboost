@@ -16,7 +16,7 @@ class MacOS(PlatformDirsABC):
     @property
     def user_data_dir(self) -> str:
         """:return: data directory tied to the user, e.g. ``~/Library/Application Support/$appname/$version``"""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Application Support/"))
+        return self._append_app_name_and_version(os.path.expanduser("~/Library/Application Support"))
 
     @property
     def site_data_dir(self) -> str:
@@ -25,13 +25,13 @@ class MacOS(PlatformDirsABC):
 
     @property
     def user_config_dir(self) -> str:
-        """:return: config directory tied to the user, e.g. ``~/Library/Preferences/$appname/$version``"""
-        return self._append_app_name_and_version(os.path.expanduser("~/Library/Preferences/"))
+        """:return: config directory tied to the user, same as `user_data_dir`"""
+        return self.user_data_dir
 
     @property
     def site_config_dir(self) -> str:
-        """:return: config directory shared by the users, e.g. ``/Library/Preferences/$appname``"""
-        return self._append_app_name_and_version("/Library/Preferences")
+        """:return: config directory shared by the users, same as `site_data_dir`"""
+        return self.site_data_dir
 
     @property
     def user_cache_dir(self) -> str:
