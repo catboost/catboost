@@ -426,7 +426,7 @@ def pytest_deselected(items):
             config.ya_trace_reporter.on_finish_test_class(deselected_item)
 
 
-@pytest.mark.trylast
+@pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(items, config):
 
     def filter_items(filters):
