@@ -5,7 +5,7 @@
 #pragma once
 
 #include <mutex>
-#include <util/generic/string.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -22,7 +22,7 @@ void FunctionExpandHelper(
     const NodeProto& node,
     const FunctionProto& func,
     GraphProto& g,
-    const TString& node_prefix = "");
+    const std::string& node_prefix = "");
 
 class FunctionBodyHelper {
  public:
@@ -36,29 +36,29 @@ class FunctionBodyHelper {
     }
 
     template <typename T>
-    AttributeProtoWrapper(const TString& attr_name, const T& value) {
+    AttributeProtoWrapper(const std::string& attr_name, const T& value) {
       proto = MakeAttribute(attr_name, value);
     }
   };
 
   struct NodeDef {
     NodeDef(
-        std::vector<TString> outputs,
-        TString op_type,
-        std::vector<TString> inputs,
+        std::vector<std::string> outputs,
+        std::string op_type,
+        std::vector<std::string> inputs,
         std::vector<AttributeProtoWrapper> attributes = {},
-        TString domain = "")
+        std::string domain = "")
         : outputs(std::move(outputs)),
           op_type(std::move(op_type)),
           inputs(std::move(inputs)),
           attributes(std::move(attributes)),
           domain(std::move(domain)) {}
 
-    std::vector<TString> outputs;
-    TString op_type;
-    std::vector<TString> inputs;
+    std::vector<std::string> outputs;
+    std::string op_type;
+    std::vector<std::string> inputs;
     std::vector<AttributeProtoWrapper> attributes;
-    TString domain;
+    std::string domain;
   };
 
   /*
@@ -97,12 +97,12 @@ class FunctionBodyHelper {
       const std::vector<OperatorSetIdProto>& relied_opsets);
 
   template <typename T>
-  static NodeDef Const(const TString& name, const T& value) {
+  static NodeDef Const(const std::string& name, const T& value) {
     return NodeDef{{name}, "Constant", {}, {{"value", ToTensor<T>(value)}}};
   }
 
   template <typename T>
-  static NodeDef Const(const TString& name, const std::vector<T>& values) {
+  static NodeDef Const(const std::string& name, const std::vector<T>& values) {
     return NodeDef{{name}, "Constant", {}, {{"value", ToTensor<T>(values)}}};
   }
 };
@@ -142,28 +142,28 @@ class FunctionBuilder {
   }
 
   template <typename T>
-  FunctionBuilder& Add(const char* node_txt, const TString& attr_name, const T& attr_value) {
+  FunctionBuilder& Add(const char* node_txt, const std::string& attr_name, const T& attr_value) {
     return Add(node_txt, MakeAttribute(attr_name, attr_value));
   }
 
-  FunctionBuilder& Const(const TString& name, const TensorProto& tensor) {
-    TString constant_op(name);
+  FunctionBuilder& Const(const std::string& name, const TensorProto& tensor) {
+    std::string constant_op(name);
     constant_op += " = Constant()";
     return Add(constant_op.c_str(), MakeAttribute("value", tensor));
   }
 
   // Creates a scalar constant (a tensor of rank zero).
   template <typename T>
-  FunctionBuilder& Const(const TString& name, T const_value) {
-    TString constant_op(name);
+  FunctionBuilder& Const(const std::string& name, T const_value) {
+    std::string constant_op(name);
     constant_op += " = Constant()";
     return Add(constant_op.c_str(), MakeAttribute("value", ToTensor(const_value)));
   }
 
   // Creates a 1D tensor constant consisting of a single value.
   template <typename T>
-  FunctionBuilder& Const1D(const TString& name, T const_value) {
-    TString constant_op(name);
+  FunctionBuilder& Const1D(const std::string& name, T const_value) {
+    std::string constant_op(name);
     constant_op += " = Constant()";
     auto tensor = ToTensor(const_value);
     tensor.add_dims(1);
@@ -172,8 +172,8 @@ class FunctionBuilder {
 
   // Creates a 1D tensor constant consisting of zero or more values.
   template <typename T>
-  FunctionBuilder& Const(const TString& name, const std::vector<T>& values) {
-    TString constant_op(name);
+  FunctionBuilder& Const(const std::string& name, const std::vector<T>& values) {
+    std::string constant_op(name);
     constant_op += " = Constant()";
     auto tensor = ToTensor(values);
     tensor.add_dims(values.size()); // Treat as 1D tensor.
@@ -183,7 +183,7 @@ class FunctionBuilder {
 
   FunctionBuilder& AddOpset(const char* domain, int version) {
     auto* opset = funProto.add_opset_import();
-    opset->set_domain(domain);
+    opset->set_domain(TString{domain});
     opset->set_version(version);
     return *this;
   }

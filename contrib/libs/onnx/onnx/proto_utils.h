@@ -19,7 +19,7 @@ namespace ONNX_NAMESPACE {
 
 #ifdef ONNX_USE_LITE_PROTO
 using ::google::protobuf::MessageLite;
-inline TString ProtoDebugString(const MessageLite& proto) {
+inline std::string ProtoDebugString(const MessageLite& proto) {
   // Since the MessageLite interface does not support reflection, there is very
   // little information that this and similar methods can provide.
   // But when using lite proto this is the best we can provide.
@@ -27,7 +27,7 @@ inline TString ProtoDebugString(const MessageLite& proto) {
 }
 #else
 using ::google::protobuf::Message;
-inline TString ProtoDebugString(const Message& proto) {
+inline std::string ProtoDebugString(const Message& proto) {
   return proto.ShortDebugString();
 }
 #endif
@@ -56,7 +56,7 @@ inline std::vector<int64_t> RetrieveValues(const AttributeProto& attr) {
 }
 
 template <>
-inline std::vector<TString> RetrieveValues(const AttributeProto& attr) {
+inline std::vector<std::string> RetrieveValues(const AttributeProto& attr) {
   return {attr.strings().begin(), attr.strings().end()};
 }
 

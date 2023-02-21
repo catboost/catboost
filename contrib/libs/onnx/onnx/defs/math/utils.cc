@@ -8,7 +8,7 @@ namespace ONNX_NAMESPACE {
 std::function<void(OpSchema&)>
 SoftmaxFamilyDocGenerator(const char* name, const char* description, const char* equation) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 The operator computes the {description} values for the given input:
 
@@ -21,7 +21,7 @@ and contains the {name} values of the corresponding input.
                         ReplaceAll(doc, "{name}", name);
                         ReplaceAll(doc, "{description}", description);
                         ReplaceAll(doc, "{equation}", equation););
-    TString axis_attr;
+    std::string axis_attr;
     POPULATE_OP_DOC_STR(axis_attr = R"DOC(
 Describes the dimension {name} will be performed on.
 Negative value means counting dimensions

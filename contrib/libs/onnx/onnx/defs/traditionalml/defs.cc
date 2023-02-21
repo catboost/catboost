@@ -42,7 +42,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             const auto& indices_shape = getInputShape(ctx, 1);
             if (indices_shape.dim_size() > 0) {
               int64_t num_indices = 1;
-              TString single_symbolic_dim;
+              std::string single_symbolic_dim;
               for (int i = 0; i < indices_shape.dim_size(); i++) {
                 if (indices_shape.dim(i).has_dim_value()) {
                   num_indices *= indices_shape.dim(i).dim_value();
@@ -60,7 +60,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
               if (single_symbolic_dim.empty()) {
                 last_dim->set_dim_value(num_indices);
               } else if (num_indices == 1) {
-                last_dim->set_dim_param(single_symbolic_dim);
+                last_dim->set_dim_param(TString{single_symbolic_dim});
               }
             }
           }
@@ -112,12 +112,12 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "cast_to",
             "A string indicating the desired element type of the output tensor, one of 'TO_FLOAT', 'TO_STRING', 'TO_INT64'.",
             AttributeProto::STRING,
-            TString("TO_FLOAT"))
+            std::string("TO_FLOAT"))
         .Attr(
             "map_form",
             "Indicates whether to only output as many values as are in the input (dense), or position the input based on using the key of the map as the index of the output (sparse).<br>One of 'DENSE', 'SPARSE'.",
             AttributeProto::STRING,
-            TString("DENSE"))
+            std::string("DENSE"))
         .Attr(
             "max_map",
             "If the value of map_form is 'SPARSE,' this attribute indicates the total length of the output tensor.",
@@ -180,7 +180,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "default_string",
             "A string to use when an input integer value is not found in the map.<br>One and only one of the 'default_*' attributes must be defined.",
             AttributeProto::STRING,
-            TString("_Unused"))
+            std::string("_Unused"))
         .Attr(
             "default_int64",
             "An integer to use when an input string value is not found in the map.<br>One and only one of the 'default_*' attributes must be defined.",
@@ -346,7 +346,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             OPTIONAL_VALUE)
         .Attr("values_int64s", "A list of ints.", AttributeProto::INTS, OPTIONAL_VALUE)
         .Attr("values_floats", "A list of floats.", AttributeProto::FLOATS, OPTIONAL_VALUE)
-        .Attr("default_string", "A string.", AttributeProto::STRING, TString("_Unused"))
+        .Attr("default_string", "A string.", AttributeProto::STRING, std::string("_Unused"))
         .Attr("default_int64", "An integer.", AttributeProto::INT, static_cast<int64_t>(-1))
         .Attr("default_float", "A float.", AttributeProto::FLOAT, -0.f)
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
@@ -359,7 +359,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
           }
 
           // Load all key_* attributes.
-          std::vector<TString> keys_strings;
+          std::vector<std::string> keys_strings;
           bool keys_strings_result = getRepeatedAttribute(ctx, "keys_strings", keys_strings);
           std::vector<int64_t> keys_int64s;
           bool keys_int64s_result = getRepeatedAttribute(ctx, "keys_int64s", keys_int64s);
@@ -386,7 +386,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
           }
 
           // Load all values_* attributes.
-          std::vector<TString> values_strings;
+          std::vector<std::string> values_strings;
           bool values_strings_result = getRepeatedAttribute(ctx, "values_strings", values_strings);
           std::vector<int64_t> values_int64s;
           bool values_int64s_result = getRepeatedAttribute(ctx, "values_int64s", values_int64s);
@@ -454,9 +454,9 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "post_transform",
             "Indicates the transform to apply to the scores vector.<br>One of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT'",
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
-          std::vector<TString> label_strs;
+          std::vector<std::string> label_strs;
           std::vector<int64_t> label_ints;
 
           auto labels_strings_present = getRepeatedAttribute(ctx, "classlabels_strings", label_strs);
@@ -532,7 +532,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "post_transform",
             "Indicates the transform to apply to the regression output vector.<br>One of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT'",
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .Attr("coefficients", "Weights of the model(s).", AttributeProto::FLOATS, OPTIONAL_VALUE)
         .Attr("intercepts", "Weights of the intercepts, if used.", AttributeProto::FLOATS, OPTIONAL_VALUE)
         .Attr(
@@ -565,7 +565,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "T",
             {"tensor(float)", "tensor(double)", "tensor(int64)", "tensor(int32)"},
             "The input must be a tensor of a numeric type.")
-        .Attr("norm", "One of 'MAX,' 'L1,' 'L2'", AttributeProto::STRING, TString("MAX")));
+        .Attr("norm", "One of 'MAX,' 'L1,' 'L2'", AttributeProto::STRING, std::string("MAX")));
 
 static const char* OneHotEncoder_ver1_doc = R"DOC(
     Replace each input element with an array of ones and zeros, where a single
@@ -659,7 +659,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "kernel_type",
             "The kernel type, one of 'LINEAR,' 'POLY,' 'RBF,' 'SIGMOID'.",
             AttributeProto::STRING,
-            TString("LINEAR"))
+            std::string("LINEAR"))
         .Attr(
             "kernel_params",
             "List of 3 elements containing gamma, coef0, and degree, in that order. Zero if unused for the kernel.",
@@ -679,7 +679,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "post_transform",
             "Indicates the transform to apply to the score. <br>One of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT'",
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .Attr(
             "classlabels_strings",
             "Class labels if using string labels.<br>One and only one of the 'classlabels_*' attributes must be defined.",
@@ -691,7 +691,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             AttributeProto::INTS,
             OPTIONAL_VALUE)
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
-          std::vector<TString> label_strs;
+          std::vector<std::string> label_strs;
           auto result = getRepeatedAttribute(ctx, "classlabels_strings", label_strs);
           bool using_strings = (result && !label_strs.empty());
           auto output_elem_type = ctx.getOutputType(0)->mutable_tensor_type();
@@ -721,7 +721,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "kernel_type",
             "The kernel type, one of 'LINEAR,' 'POLY,' 'RBF,' 'SIGMOID'.",
             AttributeProto::STRING,
-            TString("LINEAR"))
+            std::string("LINEAR"))
         .Attr(
             "kernel_params",
             "List of 3 elements containing gamma, coef0, and degree, in that order. Zero if unused for the kernel.",
@@ -739,7 +739,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "post_transform",
             "Indicates the transform to apply to the score. <br>One of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT.'",
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .Attr("rho", "", AttributeProto::FLOATS, OPTIONAL_VALUE));
 
 static const char* TreeEnsembleClassifier_ver3_doc = R"DOC(
@@ -834,7 +834,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "post_transform",
             "Indicates the transform to apply to the score. <br> One of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT.'",
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .Attr(
             "base_values",
             "Base values for classification, added to final class score; the size must be the same as the classes or can be left unassigned (assumed 0)",
@@ -872,7 +872,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
                 "Only one of the attributes 'base_values', 'base_values_as_tensor' should be specified.");
           }
 
-          std::vector<TString> classlabels_strings;
+          std::vector<std::string> classlabels_strings;
           auto result = getRepeatedAttribute(ctx, "classlabels_strings", classlabels_strings);
           bool using_strings = (result && !classlabels_strings.empty());
           if (using_strings) {
@@ -975,12 +975,12 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "post_transform",
             "Indicates the transform to apply to the score. <br>One of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT'",
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .Attr(
             "aggregate_function",
             "Defines how to aggregate leaf values within a target. <br>One of 'AVERAGE,' 'SUM,' 'MIN,' 'MAX.'",
             AttributeProto::STRING,
-            TString("SUM"))
+            std::string("SUM"))
         .Attr(
             "base_values",
             "Base values for classification, added to final class score; the size must be the same as the classes or can be left unassigned (assumed 0)",
@@ -1057,7 +1057,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             AttributeProto::INTS,
             OPTIONAL_VALUE)
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
-          std::vector<TString> classlabels_strings;
+          std::vector<std::string> classlabels_strings;
           bool result = getRepeatedAttribute(ctx, "classlabels_strings", classlabels_strings);
           auto output_map_type = ctx.getOutputType(0)->mutable_sequence_type()->mutable_elem_type()->mutable_map_type();
           output_map_type->mutable_value_type()->mutable_tensor_type()->set_elem_type(TensorProto::FLOAT);

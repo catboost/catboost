@@ -18,7 +18,7 @@ namespace ONNX_NAMESPACE {
       return res;                                                          \
     }                                                                      \
     /* make copy as we may have to reverse bytes */                        \
-    TString raw_data = tensor->raw();                                  \
+    std::string raw_data = tensor->raw();                                  \
     /* okay to remove const qualifier as we have already made a copy */    \
     char* bytes = const_cast<char*>(raw_data.c_str());                     \
     /*onnx is little endian serialized always-tweak byte order if needed*/ \

@@ -10,7 +10,7 @@ namespace ONNX_NAMESPACE {
 
 std::function<void(OpSchema&)> BinaryLogicDocGenerator_opset12(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Returns the tensor resulted from performing the `{name}` logical operation
 elementwise on the input tensors `A` and `B` (with Numpy-style broadcasting support).
@@ -83,7 +83,7 @@ inline void logicalOpInference_opset1(InferenceContext& ctx) {
 
 std::function<void(OpSchema&)> BinaryLogicDocGenerator_opset1(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Returns the tensor resulted from performing the `{name}` logical operation
 elementwise on the input tensors `A` and `B`.
@@ -105,7 +105,7 @@ detailed description of the broadcasting rules.
 
 std::function<void(OpSchema&)> BinaryLogicDocGenerator_opset7(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Returns the tensor resulted from performing the `{name}` logical operation
 elementwise on the input tensors `A` and `B` (with Numpy-style broadcasting support).

@@ -22,7 +22,7 @@ struct Tensor final {
   int64_t segment_begin_;
   int64_t segment_end_;
   bool has_name_;
-  TString name_;
+  std::string name_;
   int32_t elem_type_;
   std::vector<int64_t> sizes_;
 
@@ -31,10 +31,10 @@ struct Tensor final {
   std::vector<int32_t> int32_data_;
   std::vector<int64_t> int64_data_;
   std::vector<uint64_t> uint64_data_;
-  std::vector<TString> string_data_;
+  std::vector<std::string> string_data_;
 
   bool is_raw_data_;
-  TString raw_data_;
+  std::string raw_data_;
 
   template <typename F, typename T>
   void bin_func(const F& f, T* ptr, const T* a_ptr);
@@ -70,10 +70,10 @@ struct Tensor final {
     // Deep copy. Avoid copy on write when using gcc<5.0
     string_data_.resize(other.string_data_.size());
     for (unsigned int i = 0; i < other.string_data_.size(); ++i) {
-      string_data_[i] = TString(other.string_data_[i].data(), other.string_data_[i].size());
+      string_data_[i] = std::string(other.string_data_[i].data(), other.string_data_[i].size());
     }
-    name_ = TString(other.name_.data(), other.name_.size());
-    raw_data_ = TString(other.raw_data_.data(), other.raw_data_.size());
+    name_ = std::string(other.name_.data(), other.name_.size());
+    raw_data_ = std::string(other.raw_data_.data(), other.raw_data_.size());
   }
   Tensor(Tensor&&) = default;
   ~Tensor() = default;
@@ -125,11 +125,11 @@ struct Tensor final {
     return elem_type_;
   }
 
-  std::vector<TString>& strings() {
+  std::vector<std::string>& strings() {
     return string_data_;
   }
 
-  const std::vector<TString>& strings() const {
+  const std::vector<std::string>& strings() const {
     return string_data_;
   }
 
@@ -173,11 +173,11 @@ struct Tensor final {
     return uint64_data_;
   }
 
-  const TString& raw() const {
+  const std::string& raw() const {
     return raw_data_;
   }
 
-  void set_raw_data(TString raw_data) {
+  void set_raw_data(std::string raw_data) {
     is_raw_data_ = true;
     raw_data_ = std::move(raw_data);
   }
@@ -210,11 +210,11 @@ struct Tensor final {
     return has_name_;
   }
 
-  const TString& name() const {
+  const std::string& name() const {
     return name_;
   }
 
-  void setName(TString name) {
+  void setName(std::string name) {
     has_name_ = true;
     name_ = std::move(name);
   }
@@ -289,7 +289,7 @@ define_data(double, double_data_);
 define_data(int32_t, int32_data_);
 define_data(int64_t, int64_data_);
 define_data(uint64_t, uint64_data_);
-define_data(TString, string_data_);
+define_data(std::string, string_data_);
 #undef define_data
 
 template <typename F, typename T>

@@ -13,7 +13,7 @@
  * Use MOVE_CAPTURE_IF_CPP14 in a lambda capture so it gets
  * copied in C++11 and moved in C++14.
  * Example:
- *   TString mystring;
+ *   std::string mystring;
  *   auto lambda = [MOVE_CAPTURE_IF_CPP14(mystring)] {
  *     std::cout << mystring;
  *   }

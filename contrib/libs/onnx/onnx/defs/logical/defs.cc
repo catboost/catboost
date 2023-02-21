@@ -18,7 +18,7 @@ inline void unaryLogicalOpInference(InferenceContext& ctx) {
 
 std::function<void(OpSchema&)> BinaryLogicDocGenerator(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Returns the tensor resulted from performing the `{name}` logical operation
 elementwise on the input tensors `A` and `B` (with Numpy-style broadcasting support).
@@ -155,7 +155,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     BitShift,
     11,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(BitShift_ver11_doc) + GenerateBroadcastingDocMul()))
+        .SetDoc(GET_OP_DOC_STR(std::string(BitShift_ver11_doc) + GenerateBroadcastingDocMul()))
         .Input(
             0,
             "X",
@@ -245,7 +245,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 
 std::function<void(OpSchema&)> BinaryBitwiseDocGenerator(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Returns the tensor resulting from performing the bitwise `{name}` operation
 elementwise on the input tensors `A` and `B` (with Numpy-style broadcasting support).

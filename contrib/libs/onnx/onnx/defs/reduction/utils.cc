@@ -6,7 +6,7 @@
 #include <algorithm>
 
 namespace ONNX_NAMESPACE {
-std::vector<TString> GetSupportedDataTypesForReductionOps(bool supports8bit) {
+std::vector<std::string> GetSupportedDataTypesForReductionOps(bool supports8bit) {
   if (supports8bit) {
     auto data_types = OpSchema::numeric_types_for_math_reduction_with_bfloat();
     data_types.push_back("tensor(uint8)");
@@ -25,7 +25,7 @@ std::function<void(OpSchema&)> ReduceDocGenerator_opset13_18(
     const char* func_body,
     ContextDependentFunctionBodyBuilder function_builder) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Computes the {name} of the input tensor's element along the provided axes. The resulting
 tensor has the same rank as the input if keepdims equals 1. If keepdims equals 0, then

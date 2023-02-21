@@ -8,25 +8,25 @@
 #pragma once
 
 #include <stdexcept>
-#include <util/generic/string.h>
+#include <string>
 
 namespace ONNX_NAMESPACE {
 
 struct assert_error : public std::runtime_error {
  public:
-  explicit assert_error(const TString& msg) : runtime_error(msg) {}
+  explicit assert_error(const std::string& msg) : runtime_error(msg) {}
 };
 
 struct tensor_error : public assert_error {
  public:
-  explicit tensor_error(const TString& msg) : assert_error(msg) {}
+  explicit tensor_error(const std::string& msg) : assert_error(msg) {}
 };
 
-TString barf(const char* fmt, ...);
+std::string barf(const char* fmt, ...);
 
-[[noreturn]] void throw_assert_error(TString&);
+[[noreturn]] void throw_assert_error(std::string&);
 
-[[noreturn]] void throw_tensor_error(TString&);
+[[noreturn]] void throw_tensor_error(std::string&);
 
 } // namespace ONNX_NAMESPACE
 
@@ -38,7 +38,7 @@ TString barf(const char* fmt, ...);
 
 #define ONNX_ASSERT(cond)                                                                                 \
   if (_ONNX_EXPECT(!(cond), 0)) {                                                                         \
-    TString error_msg =                                                                               \
+    std::string error_msg =                                                                               \
         ::ONNX_NAMESPACE::barf("%s:%u: %s: Assertion `%s` failed.", __FILE__, __LINE__, __func__, #cond); \
     throw_assert_error(error_msg);                                                                        \
   }
@@ -50,7 +50,7 @@ TString barf(const char* fmt, ...);
 // Note: msg must be a string literal
 #define _ONNX_ASSERTM(cond, msg, ...)                                                                \
   if (_ONNX_EXPECT(!(cond), 0)) {                                                                    \
-    TString error_msg = ::ONNX_NAMESPACE::barf(                                                  \
+    std::string error_msg = ::ONNX_NAMESPACE::barf(                                                  \
         "%s:%u: %s: Assertion `%s` failed: " msg, __FILE__, __LINE__, __func__, #cond, __VA_ARGS__); \
     throw_assert_error(error_msg);                                                                   \
   }
@@ -62,7 +62,7 @@ TString barf(const char* fmt, ...);
 
 #define _TENSOR_ASSERTM(cond, msg, ...)                                                              \
   if (_ONNX_EXPECT(!(cond), 0)) {                                                                    \
-    TString error_msg = ::ONNX_NAMESPACE::barf(                                                  \
+    std::string error_msg = ::ONNX_NAMESPACE::barf(                                                  \
         "%s:%u: %s: Assertion `%s` failed: " msg, __FILE__, __LINE__, __func__, #cond, __VA_ARGS__); \
     throw_tensor_error(error_msg);                                                                   \
   }

@@ -12,7 +12,7 @@
 
 namespace ONNX_NAMESPACE {
 
-inline int MathOpTwoIntegers(TString op_type, int a, int b) {
+inline int MathOpTwoIntegers(std::string op_type, int a, int b) {
   if (op_type == "Add") {
     return a + b;
   } else if (op_type == "Sub") {
@@ -23,7 +23,7 @@ inline int MathOpTwoIntegers(TString op_type, int a, int b) {
   fail_shape_inference("Wrong op_type name for running propagation: ", op_type);
 }
 
-inline void MathOpDataPropagator(DataPropagationContext& ctx, TString op_type) {
+inline void MathOpDataPropagator(DataPropagationContext& ctx, std::string op_type) {
   const auto input_0 = ctx.getInputData(0);
   const auto input_1 = ctx.getInputData(1);
   if (input_0 == nullptr || input_1 == nullptr) {
@@ -52,7 +52,7 @@ inline void MathOpDataPropagator(DataPropagationContext& ctx, TString op_type) {
 
 std::function<void(OpSchema&)> MathDocGenerator(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Performs element-wise binary {name} (with Numpy-style broadcasting support).
 
@@ -649,7 +649,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Pow,
     15,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Pow_ver15_doc) + GenerateBroadcastingDocMul()))
+        .SetDoc(GET_OP_DOC_STR(std::string(Pow_ver15_doc) + GenerateBroadcastingDocMul()))
         .Input(0, "X", "First operand, base of the exponent.", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,
@@ -708,7 +708,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     16,
     OpSchema()
         .SetDoc(
-            GET_OP_DOC_STR(TString(PRelu_ver16_doc) + GenerateBroadcastingDocUni("tensor slope", "input tensor X")))
+            GET_OP_DOC_STR(std::string(PRelu_ver16_doc) + GenerateBroadcastingDocUni("tensor slope", "input tensor X")))
         .Input(0, "X", "Input tensor", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,
@@ -830,7 +830,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 // unspecified.
 std::function<void(OpSchema&)> ElementwiseMultiOpDocGenerator(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Element-wise {name} of each of the input tensors (with Numpy-style broadcasting support).
 All inputs and outputs must have the same data type.
@@ -842,7 +842,7 @@ All inputs and outputs must have the same data type.
     schema.Input(
         0,
         "data_0",
-        "List of tensors for " + TString(name) + ".",
+        "List of tensors for " + std::string(name) + ".",
         "T",
         OpSchema::Variadic,
         true,
@@ -1170,7 +1170,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     13,
     OpSchema()
         .SetDoc(GET_OP_DOC_STR(
-            TString(Gemm_ver13_doc) + GenerateBroadcastingDocUni("tensor C", "tensor A * B") + "\n" +
+            std::string(Gemm_ver13_doc) + GenerateBroadcastingDocUni("tensor C", "tensor A * B") + "\n" +
             GenerateOptionalArgumentsDoc()))
         .Input(
             0,
@@ -2296,7 +2296,7 @@ bool BuildContextDependentFunctionBody(
   auto input_type = ctx.getInputType(0)->tensor_type().elem_type();
   bool float_input = input_type == TensorProto_DataType_FLOAT;
   auto reduction_attr_proto = ctx.getAttribute("reduction");
-  TString reduction_attr =
+  std::string reduction_attr =
       reduction_attr_proto != nullptr && reduction_attr_proto->has_s() ? reduction_attr_proto->s() : "mean";
 
   FunctionBuilder builder(functionProto);
@@ -2440,7 +2440,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "'sum': the output will be summed. "
             "'mean': the sum of the output will be divided by the sum of applied weights.",
             AttributeProto::STRING,
-            TString("mean"))
+            std::string("mean"))
         .Attr(
             "ignore_index",
             "Specifies a target value that is ignored and does not contribute to the input gradient. It's an optional value.",
@@ -2642,7 +2642,7 @@ ONNX_OPERATOR_SET_SCHEMA(
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
           // Type inference
           propagateElemTypeFromInputToOutput(ctx, 0, 0);
-          TString equation = getAttribute(ctx, "equation", "");
+          std::string equation = getAttribute(ctx, "equation", "");
           if (equation.compare("") == 0) {
             return;
           }
@@ -2732,7 +2732,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     13,
     OpSchema()
         .SetDoc(SoftmaxCrossEntropyLoss_ver13_doc)
-        .Attr("reduction", reduction_doc_sce, AttributeProto::STRING, TString("mean"))
+        .Attr("reduction", reduction_doc_sce, AttributeProto::STRING, std::string("mean"))
         .Attr(
             "ignore_index",
             "Specifies a target value that is ignored and does not contribute to the input gradient. It's an optional value.",
@@ -2800,7 +2800,7 @@ ONNX_OPERATOR_SET_SCHEMA(
         .SetContextDependentFunctionBodyBuilder(BuildContextDependentFunctionBodySCE)
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
           propagateElemTypeFromInputToOutput(ctx, 0, 0);
-          TString reduction = getAttribute(ctx, "reduction", "mean");
+          std::string reduction = getAttribute(ctx, "reduction", "mean");
           if (reduction.compare("none") == 0) {
             if (hasInputShape(ctx, 1)) {
               propagateShapeFromInputToOutput(ctx, 1, 0);
@@ -2979,7 +2979,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 
 std::function<void(OpSchema&)> CosineSumWindowOpDocGenerator(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Generates a {name} window as described in the paper https://ieeexplore.ieee.org/document/1455106.
 )DOC";
@@ -3009,7 +3009,7 @@ Generates a {name} window as described in the paper https://ieeexplore.ieee.org/
         true,
         1,
         OpSchema::NonDifferentiable);
-    TString output_doc("A {name} window with length: size. The output has the shape: [size].");
+    std::string output_doc("A {name} window with length: size. The output has the shape: [size].");
     ReplaceAll(output_doc, "{name}", name);
     schema.Output(0, "output", output_doc, "T2", OpSchema::Single, true, 1, OpSchema::NonDifferentiable);
     schema.TypeAndShapeInferenceFunction([](ONNX_NAMESPACE::InferenceContext& ctx) {

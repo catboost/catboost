@@ -626,9 +626,9 @@ bool BuildSequenceMapBodyFunc(
   }
 
   // Loop body subgraph
-  TString loopbody_graph_name("SequenceMap_loop_body");
+  std::string loopbody_graph_name("SequenceMap_loop_body");
   GraphProto loopbody_graph;
-  loopbody_graph.set_name(loopbody_graph_name);
+  loopbody_graph.set_name(TString{loopbody_graph_name});
   {
     TypeProto int64_type;
     int64_type.mutable_tensor_type()->set_elem_type(TensorProto_DataType_INT64);
@@ -639,28 +639,28 @@ bool BuildSequenceMapBodyFunc(
     bool_type.mutable_tensor_type()->mutable_shape()->Clear();
 
     ValueInfoProto iter_count;
-    TString iter_count_name = MakeString(loopbody_graph_name, "_itercount");
-    iter_count.set_name(iter_count_name);
+    std::string iter_count_name = MakeString(loopbody_graph_name, "_itercount");
+    iter_count.set_name(TString{iter_count_name});
     *iter_count.mutable_type() = int64_type;
     *loopbody_graph.add_input() = iter_count;
 
     ValueInfoProto cond_in;
-    TString cond_in_name = MakeString(loopbody_graph_name, "_cond_in");
-    cond_in.set_name(cond_in_name);
+    std::string cond_in_name = MakeString(loopbody_graph_name, "_cond_in");
+    cond_in.set_name(TString{cond_in_name});
     *cond_in.mutable_type() = bool_type;
     *loopbody_graph.add_input() = cond_in;
 
     ValueInfoProto cond_out;
-    TString cond_out_name = MakeString(loopbody_graph_name, "_cond_out");
-    cond_out.set_name(cond_out_name);
+    std::string cond_out_name = MakeString(loopbody_graph_name, "_cond_out");
+    cond_out.set_name(TString{cond_out_name});
     *cond_out.mutable_type() = bool_type;
     *loopbody_graph.add_output() = cond_out;
 
     NodeProto cond_identity;
-    cond_identity.set_domain(ONNX_DOMAIN);
-    cond_identity.set_op_type("Identity");
-    cond_identity.add_input(cond_in_name);
-    cond_identity.add_output(cond_out_name);
+    cond_identity.set_domain(TString{ONNX_DOMAIN});
+    cond_identity.set_op_type(TString{"Identity"});
+    cond_identity.add_input(TString{cond_in_name});
+    cond_identity.add_output(TString{cond_out_name});
     *loopbody_graph.add_node() = cond_identity;
 
     for (int inputIndex = 0; inputIndex < ninputs; inputIndex++) {
@@ -668,19 +668,19 @@ bool BuildSequenceMapBodyFunc(
       if (input_type && input_type->has_sequence_type()) {
         // If it's a sequence input, extract ``iter_count`` element
         NodeProto seq_at_node;
-        seq_at_node.set_domain(ONNX_DOMAIN);
-        seq_at_node.set_op_type("SequenceAt");
-        seq_at_node.add_input(functionProto.input(inputIndex));
-        seq_at_node.add_input(iter_count_name);
-        seq_at_node.add_output(g_inputs.Get(inputIndex).name());
+        seq_at_node.set_domain(TString{ONNX_DOMAIN});
+        seq_at_node.set_op_type(TString{"SequenceAt"});
+        seq_at_node.add_input(TString{functionProto.input(inputIndex)});
+        seq_at_node.add_input(TString{iter_count_name});
+        seq_at_node.add_output(TString{g_inputs.Get(inputIndex).name()});
         *loopbody_graph.add_node() = seq_at_node;
       } else {
         // If not a sequence, simply connect
         NodeProto identity;
-        identity.set_domain(ONNX_DOMAIN);
-        identity.set_op_type("Identity");
-        identity.add_input(functionProto.input(inputIndex));
-        identity.add_output(g_inputs.Get(inputIndex).name());
+        identity.set_domain(TString{ONNX_DOMAIN});
+        identity.set_op_type(TString{"Identity"});
+        identity.add_input(TString{functionProto.input(inputIndex)});
+        identity.add_output(TString{g_inputs.Get(inputIndex).name()});
         *loopbody_graph.add_node() = identity;
       }
     }
@@ -697,25 +697,25 @@ bool BuildSequenceMapBodyFunc(
     for (int outputIndex = 0; outputIndex < noutputs; outputIndex++) {
       const auto& body_out_i = body.output(outputIndex);
       assert(body_out_i.type().has_tensor_type());
-      TString prefix = MakeString(loopbody_graph_name, "_", body_out_i.name());
-      TString loopbody_in_name = MakeString(prefix, "_in");
+      std::string prefix = MakeString(loopbody_graph_name, "_", body_out_i.name());
+      std::string loopbody_in_name = MakeString(prefix, "_in");
 
       ValueInfoProto tmp;
       *tmp.mutable_type()->mutable_sequence_type()->mutable_elem_type()->mutable_tensor_type() =
           body_out_i.type().tensor_type();
-      tmp.set_name(loopbody_in_name);
+      tmp.set_name(TString{loopbody_in_name});
       *loopbody_graph.add_input() = tmp;
 
-      TString loopbody_out_name = MakeString(prefix, "_out");
-      tmp.set_name(loopbody_out_name);
+      std::string loopbody_out_name = MakeString(prefix, "_out");
+      tmp.set_name(TString{loopbody_out_name});
       *loopbody_graph.add_output() = tmp;
 
       NodeProto seq_insert_node;
-      seq_insert_node.set_domain(ONNX_DOMAIN);
-      seq_insert_node.set_op_type("SequenceInsert");
-      seq_insert_node.add_input(loopbody_in_name);
-      seq_insert_node.add_input(body_out_i.name());
-      seq_insert_node.add_output(loopbody_out_name);
+      seq_insert_node.set_domain(TString{ONNX_DOMAIN});
+      seq_insert_node.set_op_type(TString{"SequenceInsert"});
+      seq_insert_node.add_input(TString{loopbody_in_name});
+      seq_insert_node.add_input(TString{body_out_i.name()});
+      seq_insert_node.add_output(TString{loopbody_out_name});
       *loopbody_graph.add_node() = seq_insert_node;
     }
   }
@@ -724,20 +724,20 @@ bool BuildSequenceMapBodyFunc(
 
   // TODO: figure out a way to prevent name collisions?
   auto first_input_name = functionProto.input(0);
-  TString prefix = MakeString("SequenceMap_", first_input_name);
-  TString seqlen = MakeString(prefix, "_seqlen");
+  std::string prefix = MakeString("SequenceMap_", first_input_name);
+  std::string seqlen = MakeString(prefix, "_seqlen");
   nodes.push_back({{seqlen}, "SequenceLength", {first_input_name}});
 
-  TString cond_bool = MakeString(prefix, "_cond");
+  std::string cond_bool = MakeString(prefix, "_cond");
   nodes.push_back(FunctionBodyHelper::Const<bool>(cond_bool, true));
 
-  std::vector<TString> loop_node_inputs = {seqlen, cond_bool};
-  std::vector<TString> loop_node_outputs;
+  std::vector<std::string> loop_node_inputs = {seqlen, cond_bool};
+  std::vector<std::string> loop_node_outputs;
   for (int outputIndex = 0; outputIndex < noutputs; outputIndex++) {
     auto output_name = functionProto.output(outputIndex);
-    TString out_prefix = MakeString("SequenceMap_", output_name);
+    std::string out_prefix = MakeString("SequenceMap_", output_name);
 
-    TString seqempty_name = MakeString(out_prefix, "_seqempty");
+    std::string seqempty_name = MakeString(out_prefix, "_seqempty");
     int64_t dtype = g_outputs.Get(outputIndex).type().tensor_type().elem_type();
     nodes.push_back({{seqempty_name}, "SequenceEmpty", {}, {MakeAttribute("dtype", dtype)}});
     loop_node_inputs.push_back(seqempty_name);

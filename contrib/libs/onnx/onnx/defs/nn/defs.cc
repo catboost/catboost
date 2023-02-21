@@ -191,7 +191,7 @@ void convPoolShapeInference(
   }
 }
 
-std::vector<TString> GetSupportedDataTypesForPoolingOps(bool supports8bit) {
+std::vector<std::string> GetSupportedDataTypesForPoolingOps(bool supports8bit) {
   if (supports8bit) {
     return {"tensor(float16)", "tensor(float)", "tensor(double)", "tensor(int8)", "tensor(uint8)"};
   }
@@ -205,7 +205,7 @@ std::function<void(OpSchema&)> PoolOpSchemaGenerator(
     bool use_dilation,
     bool supports8bit = false) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(
         doc = R"DOC(
  {name} consumes an input tensor X and applies {opName} pooling across
@@ -251,7 +251,7 @@ std::function<void(OpSchema&)> PoolOpSchemaGenerator(
         "Stride along each spatial axis. If not present, the stride defaults to 1 along each spatial axis.",
         AttributeProto::INTS,
         OPTIONAL_VALUE);
-    schema.Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "ceil_mode",
@@ -543,7 +543,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 
 std::function<void(OpSchema&)> LpPoolOpSchemaGenerator(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
  {name} consumes an input tensor X and applies Lp pooling across
  the tensor according to kernel sizes, stride sizes, and pad lengths.
@@ -585,7 +585,7 @@ std::function<void(OpSchema&)> LpPoolOpSchemaGenerator(const char* name) {
         "dilation value along each spatial axis of the filter. If not present, the dilation defaults is 1 along each spatial axis.",
         AttributeProto::INTS,
         OPTIONAL_VALUE);
-    schema.Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "p", "p value of the Lp norm used to pool over the input data.", AttributeProto::INT, static_cast<int64_t>(2));
@@ -676,7 +676,7 @@ void roiPoolTypeShapeInference(InferenceContext& ctx) {
 
 std::function<void(OpSchema&)> RoiPoolOpSchemaGenerator(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
  ROI {name} pool consumes an input tensor X and region of interests (RoIs) to
  apply {name} pooling across each RoI, to produce output 4-D tensor of shape
@@ -734,7 +734,7 @@ ONNX_OPERATOR_SET_SCHEMA(MaxRoiPool, 1, OpSchema().FillUsing(RoiPoolOpSchemaGene
 
 std::function<void(OpSchema&)> ConvOpSchemaGenerator(const char* filter_desc) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 The convolution operator consumes an input tensor and {filter_desc}, and
 computes the output.)DOC";
@@ -822,7 +822,7 @@ computes the output.)DOC";
         "Stride along each spatial axis. If not present, the stride defaults is 1 along each spatial axis.",
         AttributeProto::INTS,
         OPTIONAL_VALUE);
-    schema.Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "group",
@@ -932,7 +932,7 @@ ONNX_OPERATOR_SET_SCHEMA(
         .TypeConstraint("T2", {"tensor(int8)", "tensor(uint8)"}, "Constrain filter type to 8-bit integer tensor.")
         .TypeConstraint("T3", {"tensor(int8)", "tensor(uint8)"}, "Constrain output type to 8-bit integer tensor.")
         .TypeConstraint("T4", {"tensor(int32)"}, "Constrain bias type to 32-bit integer tensor.")
-        .Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, TString("NOTSET"))
+        .Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, std::string("NOTSET"))
         .Attr(
             "kernel_shape",
             "The shape of the convolution kernel. If not present, should be inferred from input 'w'.",
@@ -1059,7 +1059,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             {"tensor(int8)", "tensor(uint8)"},
             "Constrain input w and its zero point data type to 8-bit integer tensor.")
         .TypeConstraint("T3", {"tensor(int32)"}, "Constrain output y data type to 32-bit integer tensor.")
-        .Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, TString("NOTSET"))
+        .Attr("auto_pad", conv_auto_pad_doc, AttributeProto::STRING, std::string("NOTSET"))
         .Attr(
             "kernel_shape",
             "The shape of the convolution kernel. If not present, should be inferred from input 'w'.",
@@ -1250,7 +1250,7 @@ void convTransposeShapeInference(InferenceContext& ctx) {
 
 std::function<void(OpSchema&)> ConvTransposeOpSchemaGenerator(const char* filter_desc) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 The convolution transpose operator consumes an input tensor and {filter_desc},
 and computes the output.
@@ -1358,7 +1358,7 @@ output_shape can also be explicitly specified in which case pads values are auto
         "Stride along each spatial axis. If not present, the stride defaults to 1 along each spatial axis.",
         AttributeProto::INTS,
         OPTIONAL_VALUE);
-    schema.Attr("auto_pad", conv_transpose_auto_pad_doc, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", conv_transpose_auto_pad_doc, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "group",
@@ -1400,7 +1400,7 @@ void globalPoolTypeShapeInference(InferenceContext& ctx) {
 
 std::function<void(OpSchema&)> GlobalPoolingOpSchemaGenerator(const char* op_type, const char* op) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
  Global{op_type} consumes an input tensor X and applies {op} pooling across
  the values in the same channel. This is equivalent to {op_type} with kernel size
@@ -1450,7 +1450,7 @@ ONNX_OPERATOR_SET_SCHEMA(GlobalMaxPool, 1, OpSchema().FillUsing(GlobalPoolingOpS
 
 std::function<void(OpSchema&)> GlobalLpPoolingOpSchemaGenerator(const char* op_type, const char* op) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
  Global{op_type} consumes an input tensor X and applies {op} pooling across
  the values in the same channel. This is equivalent to {op_type} with kernel size
@@ -1788,7 +1788,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Dropout,
     13,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Dropout_ver13_doc) + GenerateOptionalArgumentsDoc()))
+        .SetDoc(GET_OP_DOC_STR(std::string(Dropout_ver13_doc) + GenerateOptionalArgumentsDoc()))
         .Attr(
             "seed",
             "(Optional) Seed to the random generator, if not specified we will auto generate one.",
@@ -2152,14 +2152,14 @@ ONNX_OPERATOR_SET_SCHEMA(
         .Input(0, "X", "UTF-8 strings to normalize", "tensor(string)")
         .Output(0, "Y", "UTF-8 Normalized strings", "tensor(string)")
         .Attr(
-            TString("case_change_action"),
-            TString("string enum that cases output to be lowercased/uppercases/unchanged."
+            std::string("case_change_action"),
+            std::string("string enum that cases output to be lowercased/uppercases/unchanged."
                         " Valid values are \"LOWER\", \"UPPER\", \"NONE\". Default is \"NONE\""),
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .Attr(
-            TString("is_case_sensitive"),
-            TString("Boolean. Whether the identification of stop words in X is case-sensitive. Default is false"),
+            std::string("is_case_sensitive"),
+            std::string("Boolean. Whether the identification of stop words in X is case-sensitive. Default is false"),
             AttributeProto::INT,
             static_cast<int64_t>(0))
         .Attr(

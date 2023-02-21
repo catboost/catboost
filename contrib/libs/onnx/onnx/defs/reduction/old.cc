@@ -9,7 +9,7 @@
 
 namespace ONNX_NAMESPACE {
 
-std::vector<TString> GetSupportedDataTypesForReductionOps_opset12(bool supports8bit) {
+std::vector<std::string> GetSupportedDataTypesForReductionOps_opset12(bool supports8bit) {
   if (supports8bit) {
     auto data_types = OpSchema::numeric_types_for_math_reduction();
     data_types.push_back("tensor(uint8)");
@@ -23,7 +23,7 @@ std::vector<TString> GetSupportedDataTypesForReductionOps_opset12(bool supports8
 
 std::function<void(OpSchema&)> ReduceDocGenerator_opset12(const char* name, bool supports_8bit_datatypes = false) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Computes the {name} of the input tensor's element along the provided axes. The resulting
 tensor has the same rank as the input if keepdims equals 1. If keepdims equal 0, then
@@ -116,7 +116,7 @@ ONNX_OPERATOR_SET_SCHEMA(ReduceL2, 11, OpSchema().FillUsing(ReduceDocGenerator_o
 
 std::function<void(OpSchema&)> ArgReduceDocGenerator_opset12(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Computes the indices of the {name} elements of the input tensor's element along the
 provided axis. The resulting tensor has the same rank as the input if keepdims equals 1.
@@ -195,7 +195,7 @@ ONNX_OPERATOR_SET_SCHEMA(ArgMin, 12, OpSchema().FillUsing(ArgReduceDocGenerator_
 
 std::function<void(OpSchema&)> ReduceDocGenerator_opset1(const char* name, int opset = 1) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Computes the {name} of the input tensor's element along the provided axes. The resulting
 tensor has the same rank as the input if keepdims equals 1. If keepdims equal 0, then
@@ -290,7 +290,7 @@ ONNX_OPERATOR_SET_SCHEMA(ReduceMin, 11, OpSchema().FillUsing(ReduceDocGenerator_
 
 std::function<void(OpSchema&)> ArgReduceDocGenerator_opset1(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Computes the indices of the {name} elements of the input tensor's element along the
 provided axis. The resulting tensor has the same rank as the input if keepdims equals 1.
@@ -354,7 +354,7 @@ ONNX_OPERATOR_SET_SCHEMA(ArgMin, 1, OpSchema().FillUsing(ArgReduceDocGenerator_o
 
 std::function<void(OpSchema&)> ArgReduceDocGenerator_opset11(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc = R"DOC(
+    std::string doc = R"DOC(
 Computes the indices of the {name} elements of the input tensor's element along the
 provided axis. The resulting tensor has the same rank as the input if keepdims equals 1.
 If keepdims equal 0, then the resulting tensor has the reduced dimension pruned.

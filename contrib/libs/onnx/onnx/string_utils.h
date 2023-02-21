@@ -5,19 +5,19 @@
 #pragma once
 
 #include <sstream>
-#include <util/generic/string.h>
+#include <string>
 
 namespace ONNX_NAMESPACE {
 
 #if defined(__ANDROID__)
 template <typename T>
-TString to_string(T value) {
+std::string to_string(T value) {
   std::ostringstream os;
   os << value;
   return os.str();
 }
 
-inline int stoi(const TString& str) {
+inline int stoi(const std::string& str) {
   std::stringstream ss;
   int n = 0;
   ss << str;
@@ -44,18 +44,18 @@ inline void MakeStringInternal(std::stringstream& ss, const T& t, const Args&...
 }
 
 template <typename... Args>
-TString MakeString(const Args&... args) {
+std::string MakeString(const Args&... args) {
   std::stringstream ss;
   MakeStringInternal(ss, args...);
-  return TString(ss.str());
+  return std::string(ss.str());
 }
 
 // Specializations for already-a-string types.
 template <>
-inline TString MakeString(const TString& str) {
+inline std::string MakeString(const std::string& str) {
   return str;
 }
-inline TString MakeString(const char* c_str) {
-  return TString(c_str);
+inline std::string MakeString(const char* c_str) {
+  return std::string(c_str);
 }
 } // namespace ONNX_NAMESPACE

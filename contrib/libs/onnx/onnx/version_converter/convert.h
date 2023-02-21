@@ -54,7 +54,7 @@ class DefaultVersionConverter : public BaseVersionConverter {
   std::pair<int, int> version_range;
 
   bool searchOpDomainMap(
-      const std::unordered_map<TString, std::map<int64_t, const OpSchema*>>& op_domain_map,
+      const std::unordered_map<std::string, std::map<int64_t, const OpSchema*>>& op_domain_map,
       int64_t curr_version,
       int64_t step) const {
     bool up = step == 1;
@@ -64,7 +64,7 @@ class DefaultVersionConverter : public BaseVersionConverter {
          (version_it->second.find(curr_version + step) != version_it->second.end() && up));
   }
 
-  void debug(const TString& str) const {
+  void debug(const std::string& str) const {
     if (DEBUG)
       std::cerr << str << std::endl;
   }
@@ -77,7 +77,7 @@ class DefaultVersionConverter : public BaseVersionConverter {
         version_range.second);
   }
 
-  void assertDefaultDomain(const TString& initial_domain, const TString& target_domain) const {
+  void assertDefaultDomain(const std::string& initial_domain, const std::string& target_domain) const {
     ONNX_ASSERTM(
         (initial_domain == "" || initial_domain == "ai.onnx") && (target_domain == "" || target_domain == "ai.onnx"),
         "Warning: default onnx version converter can only convert "
@@ -89,7 +89,7 @@ class DefaultVersionConverter : public BaseVersionConverter {
 
  public:
   DefaultVersionConverter() {
-    const std::unordered_map<TString, std::pair<int, int>>& versions_map =
+    const std::unordered_map<std::string, std::pair<int, int>>& versions_map =
         OpSchemaRegistry::DomainToVersionRange::Instance().Map();
     version_range = versions_map.at("");
     // Register adapters to the version converter

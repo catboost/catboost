@@ -11,19 +11,19 @@ namespace ONNX_NAMESPACE {
 #ifdef _WIN32
 #else
 
-TString path_join(const TString& origin, const TString& append) {
+std::string path_join(const std::string& origin, const std::string& append) {
   if (origin.find_last_of(k_preferred_path_separator) != origin.length() - 1) {
     return origin + k_preferred_path_separator + append;
   }
   return origin + append;
 }
 
-TString clean_relative_path(const TString& path) {
+std::string clean_relative_path(const std::string& path) {
   if (path.empty()) {
     return ".";
   }
 
-  TString out;
+  std::string out;
 
   size_t n = path.size();
 

@@ -15,7 +15,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include <util/generic/string.h>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -69,13 +69,13 @@ class ResourceGuard final {
 
 struct Dimension final {
   Dimension() : is_unknown(true), is_int(false), dim(-1) {}
-  Dimension(TString param) : is_unknown(false), is_int(false), dim(-1), param(std::move(param)) {} // NOLINT
+  Dimension(std::string param) : is_unknown(false), is_int(false), dim(-1), param(std::move(param)) {} // NOLINT
   Dimension(int64_t dim) : is_unknown(false), is_int(true), dim(dim) {} // NOLINT
 
   bool is_unknown;
   bool is_int;
   int64_t dim;
-  TString param;
+  std::string param;
 };
 
 enum class AttributeKind : uint8_t {
@@ -153,8 +153,8 @@ using FloatAttr = ScalarAttributeValue<double, AttributeKind::f>;
 using FloatsAttr = VectorAttributeValue<double, AttributeKind::fs>;
 using IntAttr = ScalarAttributeValue<int64_t, AttributeKind::i>;
 using IntsAttr = VectorAttributeValue<int64_t, AttributeKind::is>;
-using StringAttr = ScalarAttributeValue<TString, AttributeKind::s>;
-using StringsAttr = VectorAttributeValue<TString, AttributeKind::ss>;
+using StringAttr = ScalarAttributeValue<std::string, AttributeKind::s>;
+using StringsAttr = VectorAttributeValue<std::string, AttributeKind::ss>;
 using TensorAttr = ScalarAttributeValue<Tensor, AttributeKind::t>;
 using TensorsAttr = VectorAttributeValue<Tensor, AttributeKind::ts>;
 using GraphAttr = ScalarAttributeValue<std::shared_ptr<Graph>, AttributeKind::g>;
@@ -302,7 +302,7 @@ struct Value final {
   size_t stage_ = 0; // 0-forward, 1-backward, 2-double-backward,...
   use_list uses_in_current_graph_;
   bool has_unique_name_;
-  TString unique_name_;
+  std::string unique_name_;
   int32_t elem_type_;
   bool has_sizes_;
   std::vector<Dimension> sizes_;
@@ -337,12 +337,12 @@ struct Value final {
   bool has_unique_name() const {
     return has_unique_name_;
   }
-  TString uniqueName() const {
+  std::string uniqueName() const {
     if (has_unique_name())
       return unique_name_;
     return ONNX_NAMESPACE::to_string(unique());
   }
-  Value* setUniqueName(const TString& name, bool rename_subgraph_captured_nodes = true);
+  Value* setUniqueName(const std::string& name, bool rename_subgraph_captured_nodes = true);
   Value* setStage(size_t s) {
     stage_ = s;
     return this;
@@ -423,11 +423,11 @@ struct Node : public Attributes<Node> {
   Graph* graph_;
   size_t stage_;
   bool has_name_;
-  TString name_;
+  std::string name_;
   bool has_domain_;
-  TString domain_;
+  std::string domain_;
   bool has_doc_string_;
-  TString doc_string_;
+  std::string doc_string_;
 
  protected:
   Node(Graph* graph_, NodeKind kind_); // defined after graph
@@ -436,30 +436,30 @@ struct Node : public Attributes<Node> {
   bool has_name() const {
     return has_name_;
   }
-  const TString& name() const {
+  const std::string& name() const {
     return name_;
   }
-  void setName(TString name) {
+  void setName(std::string name) {
     has_name_ = true;
     name_ = std::move(name);
   }
   bool has_domain() const {
     return has_domain_;
   }
-  const TString& domain() const {
+  const std::string& domain() const {
     return domain_;
   }
-  void setDomain(TString domain) {
+  void setDomain(std::string domain) {
     has_domain_ = true;
     domain_ = std::move(domain);
   }
   bool has_doc_string() const {
     return has_doc_string_;
   }
-  const TString& docString() const {
+  const std::string& docString() const {
     return doc_string_;
   }
-  void setDocString(TString doc_string) {
+  void setDocString(std::string doc_string) {
     has_doc_string_ = true;
     doc_string_ = std::move(doc_string);
   }
@@ -805,7 +805,7 @@ struct Node : public Attributes<Node> {
 // overhead, resulting in a simpler and more readable workflow.
 class OpSetID final {
  private:
-  TString domain_;
+  std::string domain_;
   int64_t version_;
 
  public:
@@ -814,17 +814,17 @@ class OpSetID final {
   // Default Domain Constructor
   explicit OpSetID(const int64_t version) : domain_(""), version_(version) {}
 
-  explicit OpSetID(const TString& domain, int64_t version) : domain_(domain), version_(version) {}
+  explicit OpSetID(const std::string& domain, int64_t version) : domain_(domain), version_(version) {}
 
   // target must be in the form "<domain>&<version>"
-  TString toString() const {
+  std::string toString() const {
     return domain_ + "$" + ONNX_NAMESPACE::to_string(version_);
   }
 
   // target must be in the form "<domain>&<version>"
-  static OpSetID fromString(const TString& target) {
+  static OpSetID fromString(const std::string& target) {
     ONNX_TRY {
-      TString new_domain = target.substr(0, target.find("$"));
+      std::string new_domain = target.substr(0, target.find("$"));
       int new_version = ONNX_NAMESPACE::stoi(target.substr(target.find("$") + 1, target.length()).c_str());
       return OpSetID(new_domain, new_version);
     }
@@ -841,7 +841,7 @@ class OpSetID final {
     return OpSetID("", 0);
   }
 
-  const TString& domain() const {
+  const std::string& domain() const {
     return domain_;
   }
 
@@ -884,16 +884,16 @@ struct Graph final {
   Node* const initializer_node_;
 
   std::vector<Tensor> initializers_;
-  std::vector<TString> initializer_names_;
+  std::vector<std::string> initializer_names_;
 
   bool has_name_;
-  TString name_;
+  std::string name_;
   bool has_doc_string_;
-  TString doc_string_;
+  std::string doc_string_;
 
   std::vector<OpSetID> opset_versions_;
 
-  bool isNameUnique(const TString& name) const {
+  bool isNameUnique(const std::string& name) const {
     if (std::find(initializer_names_.cbegin(), initializer_names_.cend(), name) != initializer_names_.cend()) {
       return false;
     }
@@ -938,10 +938,10 @@ struct Graph final {
   bool has_doc_string() const {
     return has_doc_string_;
   }
-  const TString& docString() {
+  const std::string& docString() {
     return doc_string_;
   }
-  void setDocString(TString doc_string) {
+  void setDocString(std::string doc_string) {
     has_doc_string_ = true;
     doc_string_ = std::move(doc_string);
   }
@@ -966,7 +966,7 @@ struct Graph final {
     return init_value;
   }
 
-  void eraseInitializer(const TString& name) {
+  void eraseInitializer(const std::string& name) {
     initializers_.erase(
         std::remove_if(
             initializers_.begin(),
@@ -989,10 +989,10 @@ struct Graph final {
   const std::vector<Tensor>& initializers() const {
     return initializers_;
   }
-  const std::vector<TString>& initializer_names() const {
+  const std::vector<std::string>& initializer_names() const {
     return initializer_names_;
   }
-  std::vector<Tensor>::const_iterator getInitializer(const TString& name) const {
+  std::vector<Tensor>::const_iterator getInitializer(const std::string& name) const {
     for (auto it = initializers_.cbegin(); it != initializers_.cend(); ++it) {
       if (name == it->name()) {
         return it;
@@ -1028,7 +1028,7 @@ struct Graph final {
   }
 
   size_t getNextUnique() {
-    TString next_unique_name = ONNX_NAMESPACE::to_string(++next_unique_);
+    std::string next_unique_name = ONNX_NAMESPACE::to_string(++next_unique_);
     while (!isNameUnique(next_unique_name)) {
       next_unique_name = ONNX_NAMESPACE::to_string(++next_unique_);
     }
@@ -1125,7 +1125,7 @@ struct Graph final {
   // Adds to graph initializer list, initializer names list, and as a graph input
   // Also syncs the initializer name, tensor name, and value name
   // Create an initializer whose value is stored in input
-  Value* addInitializerAndInput(const Tensor& initializer, const TString& name) {
+  Value* addInitializerAndInput(const Tensor& initializer, const std::string& name) {
     Tensor initializerCopy = initializer;
     std::vector<Dimension> dim_sizes{initializerCopy.sizes().cbegin(), initializerCopy.sizes().cend()};
     Value* new_init = addInput();
@@ -1157,7 +1157,7 @@ struct Graph final {
       delete v;
   }
 
-  TString toString() const {
+  std::string toString() const {
     std::ostringstream oss;
     oss << *this;
     return oss.str();
@@ -1167,11 +1167,11 @@ struct Graph final {
     return has_name_;
   }
 
-  const TString& name() const {
+  const std::string& name() const {
     return name_;
   }
 
-  void setName(TString name) {
+  void setName(std::string name) {
     has_name_ = true;
     name_ = std::move(name);
   }
@@ -1260,7 +1260,7 @@ inline const Graph* Value::owningGraph() const {
 // should also be updated.
 // Initializer names are also storaged in graph.initializer_names_, it should be
 // updated too.
-inline Value* Value::setUniqueName(const TString& name, bool update_related_names) {
+inline Value* Value::setUniqueName(const std::string& name, bool update_related_names) {
   if (has_unique_name() && update_related_names) {
     auto* graph = owningGraph();
     auto old_name = unique_name_;

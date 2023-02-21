@@ -44,7 +44,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "default_string",
             "A string to use when an input integer value is not found in the map.<br>One and only one of the 'default_*' attributes must be defined.",
             AttributeProto::STRING,
-            TString("_Unused"))
+            std::string("_Unused"))
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
           auto input_elem_type = ctx.getInputType(0)->tensor_type().elem_type();
           auto output_elem_type = ctx.getOutputType(0)->mutable_tensor_type();
@@ -130,14 +130,14 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "post_transform",
             "Indicates the transform to apply to the score. <br> One of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT.'",
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .Attr(
             "base_values",
             "Base values for classification, added to final class score; the size must be the same as the classes or can be left unassigned (assumed 0)",
             AttributeProto::FLOATS,
             OPTIONAL_VALUE)
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
-          std::vector<TString> label_strs;
+          std::vector<std::string> label_strs;
           auto result = getRepeatedAttribute(ctx, "classlabels_strings", label_strs);
           bool using_strings = (result && !label_strs.empty());
           auto output_elem_type = ctx.getOutputType(0)->mutable_tensor_type();
@@ -210,12 +210,12 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
             "post_transform",
             "Indicates the transform to apply to the score. <br>One of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT'",
             AttributeProto::STRING,
-            TString("NONE"))
+            std::string("NONE"))
         .Attr(
             "aggregate_function",
             "Defines how to aggregate leaf values within a target. <br>One of 'AVERAGE,' 'SUM,' 'MIN,' 'MAX.'",
             AttributeProto::STRING,
-            TString("SUM"))
+            std::string("SUM"))
         .Attr(
             "base_values",
             "Base values for classification, added to final class score; the size must be the same as the classes or can be left unassigned (assumed 0)",

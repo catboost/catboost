@@ -19,6 +19,15 @@ namespace ONNX_NAMESPACE {
     return t;                                       \
   }
 
+#define DEFINE_TO_TENSOR_STRING(type, enumType, field) \
+  template <>                                       \
+  TensorProto ToTensor<type>(const type& value) {   \
+    TensorProto t;                                  \
+    t.set_data_type(enumType);                      \
+    t.add_##field##_data(TString(value));                    \
+    return t;                                       \
+  }
+
 #define DEFINE_TO_TENSOR_LIST(type, enumType, field)            \
   template <>                                                   \
   TensorProto ToTensor<type>(const std::vector<type>& values) { \
@@ -27,6 +36,18 @@ namespace ONNX_NAMESPACE {
     t.set_data_type(enumType);                                  \
     for (const type& val : values) {                            \
       t.add_##field##_data(val);                                \
+    }                                                           \
+    return t;                                                   \
+  }
+
+#define DEFINE_TO_TENSOR_LIST_STRING(type, enumType, field)            \
+  template <>                                                   \
+  TensorProto ToTensor<type>(const std::vector<type>& values) { \
+    TensorProto t;                                              \
+    t.clear_##field##_data();                                   \
+    t.set_data_type(enumType);                                  \
+    for (const type& val : values) {                            \
+      t.add_##field##_data(TString{val});                                \
     }                                                           \
     return t;                                                   \
   }
@@ -78,7 +99,7 @@ namespace ONNX_NAMESPACE {
     }                                                                                                              \
     /* The given tensor does have raw_data itself so parse it by given type */                                     \
     /* make copy as we may have to reverse bytes */                                                                \
-    TString raw_data = tensor_proto->raw_data();                                                               \
+    std::string raw_data = tensor_proto->raw_data();                                                               \
     /* okay to remove const qualifier as we have already made a copy */                                            \
     char* bytes = const_cast<char*>(raw_data.c_str());                                                             \
     /* onnx is little endian serialized always-tweak byte order if needed */                                       \
@@ -115,7 +136,7 @@ DEFINE_TO_TENSOR_ONE(int32_t, TensorProto_DataType_INT32, int32)
 DEFINE_TO_TENSOR_ONE(int64_t, TensorProto_DataType_INT64, int64)
 DEFINE_TO_TENSOR_ONE(uint64_t, TensorProto_DataType_UINT64, uint64)
 DEFINE_TO_TENSOR_ONE(double, TensorProto_DataType_DOUBLE, double)
-DEFINE_TO_TENSOR_ONE(TString, TensorProto_DataType_STRING, string)
+DEFINE_TO_TENSOR_STRING(std::string, TensorProto_DataType_STRING, string)
 
 DEFINE_TO_TENSOR_LIST(float, TensorProto_DataType_FLOAT, float)
 DEFINE_TO_TENSOR_LIST(bool, TensorProto_DataType_BOOL, int32)
@@ -123,7 +144,7 @@ DEFINE_TO_TENSOR_LIST(int32_t, TensorProto_DataType_INT32, int32)
 DEFINE_TO_TENSOR_LIST(int64_t, TensorProto_DataType_INT64, int64)
 DEFINE_TO_TENSOR_LIST(uint64_t, TensorProto_DataType_UINT64, uint64)
 DEFINE_TO_TENSOR_LIST(double, TensorProto_DataType_DOUBLE, double)
-DEFINE_TO_TENSOR_LIST(TString, TensorProto_DataType_STRING, string)
+DEFINE_TO_TENSOR_LIST_STRING(std::string, TensorProto_DataType_STRING, string)
 
 DEFINE_PARSE_DATA(int32_t, int32_data, TensorProto_DataType_INT32)
 DEFINE_PARSE_DATA(int64_t, int64_data, TensorProto_DataType_INT64)

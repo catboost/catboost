@@ -26,7 +26,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Dropout,
     12,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Dropout_ver12_doc) + GenerateOptionalArgumentsDoc()))
+        .SetDoc(GET_OP_DOC_STR(std::string(Dropout_ver12_doc) + GenerateOptionalArgumentsDoc()))
         .Attr(
             "seed",
             "(Optional) Seed to the random generator, if not specified we will auto generate one.",
@@ -397,7 +397,7 @@ void convPoolShapeInference1(
 std::function<void(OpSchema&)>
 PoolOpSchemaGenerator_9(const char* name, const char* opName, const char* additionalDescription) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
  {name} consumes an input tensor X and applies {opName} pooling across
  the tensor according to kernel sizes, stride sizes, and pad lengths.
@@ -427,7 +427,7 @@ PoolOpSchemaGenerator_9(const char* name, const char* opName, const char* additi
     schema.SetDoc(doc);
     schema.Attr("kernel_shape", "The size of the kernel along each axis.", AttributeProto::INTS);
     schema.Attr("strides", "Stride along each spatial axis.", AttributeProto::INTS, OPTIONAL_VALUE);
-    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc2, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Input(
         0,
@@ -478,7 +478,7 @@ std::function<void(OpSchema&)> PoolOpSchemaGenerator_10(
     bool use_dilation,
     int opsetNum) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(
         doc = R"DOC(
  {name} consumes an input tensor X and applies {opName} pooling across
@@ -526,7 +526,7 @@ std::function<void(OpSchema&)> PoolOpSchemaGenerator_10(
             : "Stride along each spatial axis.",
         AttributeProto::INTS,
         OPTIONAL_VALUE);
-    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc2, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "ceil_mode",
@@ -895,7 +895,7 @@ ONNX_OPERATOR_SET_SCHEMA(
         .SetDoc(LpPool_ver1_doc)
         .Attr("kernel_shape", "The size of the kernel along each axis.", AttributeProto::INTS, OPTIONAL_VALUE)
         .Attr("strides", "Stride along each axis.", AttributeProto::INTS, OPTIONAL_VALUE)
-        .Attr("auto_pad", auto_pad_doc1, AttributeProto::STRING, TString("NOTSET"))
+        .Attr("auto_pad", auto_pad_doc1, AttributeProto::STRING, std::string("NOTSET"))
         .Attr("pads", pads_doc1, AttributeProto::INTS, OPTIONAL_VALUE)
         .Attr(
             "p",
@@ -928,7 +928,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 
 std::function<void(OpSchema&)> LpPoolOpSchemaGenerator_10(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
  {name} consumes an input tensor X and applies Lp pooling across
  the tensor according to kernel sizes, stride sizes, and pad lengths.
@@ -939,7 +939,7 @@ std::function<void(OpSchema&)> LpPoolOpSchemaGenerator_10(const char* name) {
     schema.SetDoc(doc);
     schema.Attr("kernel_shape", "The size of the kernel along each axis.", AttributeProto::INTS);
     schema.Attr("strides", "Stride along each spatial axis.", AttributeProto::INTS, OPTIONAL_VALUE);
-    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc2, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "p", "p value of the Lp norm used to pool over the input data.", AttributeProto::INT, static_cast<int64_t>(2));
@@ -991,7 +991,7 @@ const char* auto_pad_doc3 =
 
 std::function<void(OpSchema&)> LpPoolOpSchemaGenerator_11(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
  {name} consumes an input tensor X and applies Lp pooling across
  the tensor according to kernel sizes, stride sizes, and pad lengths.
@@ -1006,7 +1006,7 @@ std::function<void(OpSchema&)> LpPoolOpSchemaGenerator_11(const char* name) {
         "Stride along each spatial axis. If not present, the stride defaults to 1 along each spatial axis.",
         AttributeProto::INTS,
         OPTIONAL_VALUE);
-    schema.Attr("auto_pad", auto_pad_doc3, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", auto_pad_doc3, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc2, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "p", "p value of the Lp norm used to pool over the input data.", AttributeProto::INT, static_cast<int64_t>(2));
@@ -1052,7 +1052,7 @@ ONNX_OPERATOR_SET_SCHEMA(LpPool, 11, OpSchema().FillUsing(LpPoolOpSchemaGenerato
 
 std::function<void(OpSchema&)> ConvOpSchemaGenerator_10(const char* filter_desc) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 The convolution operator consumes an input tensor and {filter_desc}, and
 computes the output.)DOC";
@@ -1109,7 +1109,7 @@ computes the output.)DOC";
     schema.Attr(
         "dilations", "dilation value along each spatial axis of the filter.", AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr("strides", "Stride along each spatial axis.", AttributeProto::INTS, OPTIONAL_VALUE);
-    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc2, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "group",
@@ -1266,7 +1266,7 @@ void convTransposeShapeInference1(InferenceContext& ctx) {
 
 std::function<void(OpSchema&)> ConvTransposeOpSchemaGenerator_10(const char* filter_desc) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 The convolution transpose operator consumes an input tensor and {filter_desc},
 and computes the output.
@@ -1339,7 +1339,7 @@ output_shape can also be explicitly specified in which case pads values are auto
     schema.Attr(
         "dilations", "dilation value along each spatial axis of the filter.", AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr("strides", "Stride along each spatial axis.", AttributeProto::INTS, OPTIONAL_VALUE);
-    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, TString("NOTSET"));
+    schema.Attr("auto_pad", auto_pad_doc2, AttributeProto::STRING, std::string("NOTSET"));
     schema.Attr("pads", pads_doc2, AttributeProto::INTS, OPTIONAL_VALUE);
     schema.Attr(
         "group",
@@ -1884,7 +1884,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Dropout,
     7,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Dropout_ver7_doc) + GenerateOptionalArgumentsDoc()))
+        .SetDoc(GET_OP_DOC_STR(std::string(Dropout_ver7_doc) + GenerateOptionalArgumentsDoc()))
         .Attr("ratio", "The ratio of random dropout", AttributeProto::FLOAT, 0.5f)
         .Input(0, "data", "The input data as Tensor.", "T")
         .Output(0, "output", "The output.", "T")
@@ -1907,7 +1907,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Dropout,
     10,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Dropout_ver10_doc) + GenerateOptionalArgumentsDoc()))
+        .SetDoc(GET_OP_DOC_STR(std::string(Dropout_ver10_doc) + GenerateOptionalArgumentsDoc()))
         .Attr("ratio", "The ratio of random dropout", AttributeProto::FLOAT, 0.5f)
         .Input(0, "data", "The input data as Tensor.", "T")
         .Output(0, "output", "The output.", "T")
@@ -2144,7 +2144,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     BatchNormalization,
     7,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(BatchNormalization_ver7_doc) + GenerateOptionalArgumentsDoc()))
+        .SetDoc(GET_OP_DOC_STR(std::string(BatchNormalization_ver7_doc) + GenerateOptionalArgumentsDoc()))
         .NumOutputs({1, 5})
         .Attr(
             "spatial",

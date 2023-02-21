@@ -68,8 +68,8 @@ void DefaultVersionConverter::convert_graph(
     // might change when applying the adapter (e.g. for deprecated ops)
     while (it != g->end()) {
       cur_op = *it;
-      debug(TString("Finding schema for ") + TString(cur_op->kind().toString()));
-      const TString op_name = cur_op->kind().toString();
+      debug(std::string("Finding schema for ") + std::string(cur_op->kind().toString()));
+      const std::string op_name = cur_op->kind().toString();
       if (op_name == "ConstantFill") {
         std::cerr
             << "Warning: skipping schema search for experimental op 'ConstantFill' and keeping the op as is. "
@@ -112,8 +112,8 @@ ModelProto DefaultVersionConverter::convert_version(
     const ModelProto& mp_in,
     const OpSetID& initial_version,
     const OpSetID& target_version) const {
-  const TString& initial_domain = initial_version.domain();
-  const TString& target_domain = target_version.domain();
+  const std::string& initial_domain = initial_version.domain();
+  const std::string& target_domain = target_version.domain();
   assertDefaultDomain(initial_domain, target_domain);
 
   for (auto it = mp_in.opset_import().begin(); it != mp_in.opset_import().end(); ++it) {

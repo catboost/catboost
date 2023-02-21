@@ -290,7 +290,7 @@ ONNX_OPERATOR_SET_SCHEMA(
               // symbolic dim can be -1 or 0 at runtime. In that case simply propgating this
               // symbol can be erroneous. This should be a very rare scenario and in such a
               // case an option is to turn off data propagation during shape inference.
-              new_dim->set_dim_param(targetShapeProto.dim(i).dim_param());
+              new_dim->set_dim_param(TString{targetShapeProto.dim(i).dim_param()});
               outputProductValid = false;
             } else {
               if (!targetShapeProto.dim(i).has_dim_value()) {
@@ -327,7 +327,7 @@ ONNX_OPERATOR_SET_SCHEMA(
                       outputProduct *= input_dim_value;
                       unresolvedZeros[i] = false;
                     } else if (dataInputTensorType.shape().dim(i).has_dim_param()) {
-                      new_dim->set_dim_param(dataInputTensorType.shape().dim(i).dim_param());
+                      new_dim->set_dim_param(TString{dataInputTensorType.shape().dim(i).dim_param()});
                     }
                   }
                 } else {
@@ -957,7 +957,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             if (input_dim.has_dim_value()) {
               output_dim->set_dim_value(input_dim.dim_value());
             } else if (input_dim.has_dim_param()) {
-              output_dim->set_dim_param(input_dim.dim_param());
+              output_dim->set_dim_param(TString{input_dim.dim_param()});
             }
           }
 
@@ -1335,7 +1335,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "'max': reduction using the maximum operation."
             "'min': reduction using the minimum operation.",
             AttributeProto::STRING,
-            TString("none"))
+            std::string("none"))
         .Input(0, "data", "Tensor of rank r >= 1.", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,
@@ -1453,7 +1453,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "'max': reduction using the maximum operation."
             "'min': reduction using the minimum operation.",
             AttributeProto::STRING,
-            TString("none"))
+            std::string("none"))
         .Input(0, "data", "Tensor of rank r >= 1.", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,
@@ -2018,7 +2018,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "DCR (default) for depth-column-row order re-arrangement. Use CRD for column-row-depth order.",
             AttributeProto::STRING,
-            TString("DCR"))
+            std::string("DCR"))
         .SetDoc(DepthToSpace_ver13_doc)
         .Input(
             0,
@@ -2170,7 +2170,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Two interpolation modes: nearest (default), and linear (including bilinear, trilinear, etc)",
             AttributeProto::STRING,
-            TString("nearest"))
+            std::string("nearest"))
         .Input(0, "X", "N-D tensor", "T", OpSchema::Single)
         .Input(
             1,
@@ -2244,7 +2244,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "The \"linear\" mode includes linear interpolation for 1D tensor and N-linear interpolation for N-D tensor (for example, bilinear interpolation for 2D tensor). "
             "The \"cubic\" mode includes cubic interpolation for 1D tensor and N-cubic interpolation for N-D tensor (for example, bicubic interpolation for 2D tensor).",
             AttributeProto::STRING,
-            TString("nearest"))
+            std::string("nearest"))
         .Attr(
             "cubic_coeff_a",
             "The coefficient 'a' used in cubic interpolation. Two common choice are -0.5 (in some cases of TensorFlow) and -0.75"
@@ -2262,12 +2262,12 @@ ONNX_OPERATOR_SET_SCHEMA(
             "coordinate_transformation_mode",
             Resize_attr_coordinate_transformation_mode_doc,
             AttributeProto::STRING,
-            TString("half_pixel"))
+            std::string("half_pixel"))
         .Attr(
             "nearest_mode",
             "Four modes: \"round_prefer_floor\" (default, as known as round half down), \"round_prefer_ceil\" (as known as round half up), \"floor\", \"ceil\". Only used by nearest interpolation. It indicates how to get \"nearest\" pixel in input tensor from x_original, so this attribute is valid only if \"mode\" is \"nearest\".",
             AttributeProto::STRING,
-            TString("round_prefer_floor"))
+            std::string("round_prefer_floor"))
         .Attr(
             "extrapolation_value",
             "When coordinate_transformation_mode is \"tf_crop_and_resize\" and x_original is outside the range [0, length_original - 1], this value is used as the corresponding output value. Default is 0.0f.",
@@ -2292,7 +2292,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "keep_aspect_ratio_policy",
             Resize_attr_keep_aspect_ratio_policy_doc,
             AttributeProto::STRING,
-            TString("stretch"))
+            std::string("stretch"))
         .Input(0, "X", "N-D tensor", "T1", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,
@@ -2363,7 +2363,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Three interpolation modes: bilinear (default), nearest and bicubic.",
             AttributeProto::STRING,
-            TString("bilinear"))
+            std::string("bilinear"))
         .Attr(
             "padding_mode",
             "Support padding modes for outside grid values: `zeros`(default), `border`, `reflection`. "
@@ -2374,7 +2374,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "For location far away from the border, it will keep being reflected until becoming in bound. "
             "If pixel location x = -3.5 reflects by border -1 and becomes x' = 1.5, then reflects by border 1 and becomes x'' = 0.5.",
             AttributeProto::STRING,
-            TString("zeros"))
+            std::string("zeros"))
         .Attr(
             "align_corners",
             "If align_corners=1, the extrema (-1 and 1) are considered as referring to the center points of the input's corner pixels. "
@@ -2675,13 +2675,13 @@ ONNX_OPERATOR_SET_SCHEMA(
                 if (indices_shape.dim(i).has_dim_value()) {
                   dim->set_dim_value(indices_shape.dim(i).dim_value());
                 } else if (indices_shape.dim(i).has_dim_param()) {
-                  dim->set_dim_param(indices_shape.dim(i).dim_param());
+                  dim->set_dim_param(TString{indices_shape.dim(i).dim_param()});
                 }
               } else if (i > axis) {
                 if (indices_shape.dim(i - 1).has_dim_value()) {
                   dim->set_dim_value(indices_shape.dim(i - 1).dim_value());
                 } else if (indices_shape.dim(i - 1).has_dim_param()) {
-                  dim->set_dim_param(indices_shape.dim(i - 1).dim_param());
+                  dim->set_dim_param(TString{indices_shape.dim(i - 1).dim_param()});
                 }
               }
             }
@@ -2756,8 +2756,8 @@ ONNX_OPERATOR_SET_SCHEMA(
     16,
     OpSchema()
         .SetDoc(
-            GET_OP_DOC_STR(TString(Where_ver16_doc) + GenerateBroadcastingDocMul()) +
-            TString(Where_ver16_history))
+            GET_OP_DOC_STR(std::string(Where_ver16_doc) + GenerateBroadcastingDocMul()) +
+            std::string(Where_ver16_history))
         .Input(
             0,
             "condition",
@@ -3382,7 +3382,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Supported modes: `constant`(default), `reflect`, `edge`",
             AttributeProto::STRING,
-            TString("constant"))
+            std::string("constant"))
         .SetDoc(Pad_ver18_doc)
         .Input(0, "data", "Input tensor.", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
@@ -3699,7 +3699,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             if (input_dim.has_dim_value()) {
               out_dims[i]->set_dim_value(input_dim.dim_value());
             } else if (input_dim.has_dim_param()) {
-              out_dims[i]->set_dim_param(input_dim.dim_param());
+              out_dims[i]->set_dim_param(TString{input_dim.dim_param()});
             }
           }
           int j = 0;

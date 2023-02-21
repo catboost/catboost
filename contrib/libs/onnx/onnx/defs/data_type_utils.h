@@ -6,7 +6,7 @@
 #define ONNX_DATA_TYPE_UTILS_H
 
 #include <mutex>
-#include <util/generic/string.h>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include "onnx/common/common.h"
@@ -14,7 +14,7 @@
 
 namespace ONNX_NAMESPACE {
 // String pointer as unique TypeProto identifier.
-using DataType = const TString*;
+using DataType = const std::string*;
 
 namespace Utils {
 
@@ -38,7 +38,7 @@ class DataTypeUtils final {
  public:
   // If the DataType input is invalid, this function will throw std::invalid_argument exception.
   // If ONNX_NO_EXCEPTIONS is set it will abort.
-  static DataType ToType(const TString& type_str);
+  static DataType ToType(const std::string& type_str);
 
   // If the DataType input is invalid, this function will throw std::invalid_argument exception.
   // If ONNX_NO_EXCEPTIONS is set it will abort.
@@ -47,21 +47,21 @@ class DataTypeUtils final {
   // If the DataType input is invalid, this function will throw std::invalid_argument exception.
   // If ONNX_NO_EXCEPTIONS is set it will abort.
   static const TypeProto& ToTypeProto(const DataType& data_type);
-  static TString ToDataTypeString(int32_t tensor_data_type);
+  static std::string ToDataTypeString(int32_t tensor_data_type);
 
  private:
-  static void FromString(const TString& type_str, TypeProto& type_proto);
+  static void FromString(const std::string& type_str, TypeProto& type_proto);
 
-  static void FromDataTypeString(const TString& type_str, int32_t& tensor_data_type);
+  static void FromDataTypeString(const std::string& type_str, int32_t& tensor_data_type);
 
-  static TString ToString(const TypeProto& type_proto, const TString& left = "", const TString& right = "");
+  static std::string ToString(const TypeProto& type_proto, const std::string& left = "", const std::string& right = "");
 
   // If int32_t input is invalid, this function will throw an exception.
   // If ONNX_NO_EXCEPTIONS is set it will abort.
 
-  static bool IsValidDataTypeString(const TString& type_str);
+  static bool IsValidDataTypeString(const std::string& type_str);
 
-  static std::unordered_map<TString, TypeProto>& GetTypeStrToProtoMap();
+  static std::unordered_map<std::string, TypeProto>& GetTypeStrToProtoMap();
 
   // Returns lock used for concurrent updates to TypeStrToProtoMap.
   static std::mutex& GetTypeStrLock();

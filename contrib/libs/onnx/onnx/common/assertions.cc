@@ -12,7 +12,7 @@
 
 namespace ONNX_NAMESPACE {
 
-TString barf(const char* fmt, ...) {
+std::string barf(const char* fmt, ...) {
   char msg[2048];
   va_list args;
 
@@ -22,14 +22,14 @@ TString barf(const char* fmt, ...) {
   vsnprintf(msg, 2048, fmt, args);
   va_end(args);
 
-  return TString(msg);
+  return std::string(msg);
 }
 
-void throw_assert_error(TString& msg) {
+void throw_assert_error(std::string& msg) {
   ONNX_THROW_EX(assert_error(msg));
 }
 
-void throw_tensor_error(TString& msg) {
+void throw_tensor_error(std::string& msg) {
   ONNX_THROW_EX(tensor_error(msg));
 }
 

@@ -170,7 +170,7 @@ ONNX_OPERATOR_SET_SCHEMA(
                   unresolvedZeros[i] = false;
                 } else if (dataInputTensorType.shape().dim(i).has_dim_param()) {
                   const auto& dim_param = dataInputTensorType.shape().dim(i).dim_param();
-                  new_dim->set_dim_param(dim_param);
+                  new_dim->set_dim_param(TString{dim_param});
                 }
               }
             } else if (targetShape[i] > 0) {
@@ -289,7 +289,7 @@ ONNX_OPERATOR_SET_SCHEMA(
                   unresolvedZeros[i] = false;
                 } else if (dataInputTensorType.shape().dim(i).has_dim_param()) {
                   const auto& dim_param = dataInputTensorType.shape().dim(i).dim_param();
-                  new_dim->set_dim_param(dim_param);
+                  new_dim->set_dim_param(TString{dim_param});
                 }
               }
             } else if (targetShape[i] > 0) {
@@ -845,7 +845,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             if (input_dim.has_dim_value()) {
               output_dim->set_dim_value(input_dim.dim_value());
             } else if (input_dim.has_dim_param()) {
-              output_dim->set_dim_param(input_dim.dim_param());
+              output_dim->set_dim_param(TString{input_dim.dim_param()});
             }
           }
 
@@ -1063,7 +1063,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "'add':  reduction using the addition operation. "
             "'mul': reduction using the multiplication operation.",
             AttributeProto::STRING,
-            TString("none"))
+            std::string("none"))
         .Input(0, "data", "Tensor of rank r >= 1.", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,
@@ -1349,7 +1349,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "'add':  reduction using the addition operation. "
             "'mul': reduction using the multiplication operation.",
             AttributeProto::STRING,
-            TString("none"))
+            std::string("none"))
         .Input(0, "data", "Tensor of rank r >= 1.", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,
@@ -2007,7 +2007,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "DCR (default) for depth-column-row order re-arrangement. Use CRD for column-row-depth order.",
             AttributeProto::STRING,
-            TString("DCR"))
+            std::string("DCR"))
         .SetDoc(DepthToSpace_ver11_doc)
         .Input(
             0,
@@ -2155,7 +2155,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "The \"linear\" mode includes linear interpolation for 1D tensor and N-linear interpolation for N-D tensor (for example, bilinear interpolation for 2D tensor). "
             "The \"cubic\" mode includes cubic interpolation for 1D tensor and N-cubic interpolation for N-D tensor (for example, bicubic interpolation for 2D tensor).",
             AttributeProto::STRING,
-            TString("nearest"))
+            std::string("nearest"))
         .Attr(
             "cubic_coeff_a",
             "The coefficient 'a' used in cubic interpolation. Two common choice are -0.5 (in some cases of TensorFlow) and -0.75"
@@ -2173,12 +2173,12 @@ ONNX_OPERATOR_SET_SCHEMA(
             "coordinate_transformation_mode",
             Resize_ver13_attr_coordinate_transformation_mode_doc,
             AttributeProto::STRING,
-            TString("half_pixel"))
+            std::string("half_pixel"))
         .Attr(
             "nearest_mode",
             "Four modes: round_prefer_floor (default, as known as round half down), round_prefer_ceil (as known as round half up), floor, ceil. Only used by nearest interpolation. It indicates how to get \"nearest\" pixel in input tensor from x_original, so this attribute is valid only if \"mode\" is \"nearest\".",
             AttributeProto::STRING,
-            TString("round_prefer_floor"))
+            std::string("round_prefer_floor"))
         .Attr(
             "extrapolation_value",
             "When coordinate_transformation_mode is \"tf_crop_and_resize\" and x_original is outside the range [0, length_original - 1], this value is used as the corresponding output value. Default is 0.0f.",
@@ -2267,7 +2267,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "The \"linear\" mode includes linear interpolation for 1D tensor and N-linear interpolation for N-D tensor (for example, bilinear interpolation for 2D tensor). "
             "The \"cubic\" mode includes cubic interpolation for 1D tensor and N-cubic interpolation for N-D tensor (for example, bicubic interpolation for 2D tensor).",
             AttributeProto::STRING,
-            TString("nearest"))
+            std::string("nearest"))
         .Attr(
             "cubic_coeff_a",
             "The coefficient 'a' used in cubic interpolation. Two common choice are -0.5 (in some cases of TensorFlow) and -0.75"
@@ -2285,12 +2285,12 @@ ONNX_OPERATOR_SET_SCHEMA(
             "coordinate_transformation_mode",
             Resize_attr_coordinate_transformation_mode_doc,
             AttributeProto::STRING,
-            TString("half_pixel"))
+            std::string("half_pixel"))
         .Attr(
             "nearest_mode",
             "Four modes: round_prefer_floor (default, as known as round half down), round_prefer_ceil (as known as round half up), floor, ceil. Only used by nearest interpolation. It indicates how to get \"nearest\" pixel in input tensor from x_original, so this attribute is valid only if \"mode\" is \"nearest\".",
             AttributeProto::STRING,
-            TString("round_prefer_floor"))
+            std::string("round_prefer_floor"))
         .Attr(
             "extrapolation_value",
             "When coordinate_transformation_mode is \"tf_crop_and_resize\" and x_original is outside the range [0, length_original - 1], this value is used as the corresponding output value. Default is 0.0f.",
@@ -2640,7 +2640,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Supported modes: `constant`(default), `reflect`, `edge`",
             AttributeProto::STRING,
-            TString("constant"))
+            std::string("constant"))
         .SetDoc(Pad_ver11_doc)
         .Input(0, "data", "Input tensor.", "T")
         .Input(
@@ -2954,7 +2954,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "added at the beginning of axis `i` and xi_end, the number of pixels added at "
             "the end of axis `i`.",
             AttributeProto::INTS)
-        .Attr("mode", "Three modes: constant(default), reflect, edge", AttributeProto::STRING, TString("constant"))
+        .Attr("mode", "Three modes: constant(default), reflect, edge", AttributeProto::STRING, std::string("constant"))
         .Attr("value", "One float, indicates the value to be filled, default is 0", AttributeProto::FLOAT, 0.0f)
         .SetDoc(Pad_ver1_doc)
         .Input(0, "data", "Input tensor.", "T")
@@ -3051,7 +3051,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Two interpolation modes: nearest(default), bilinear",
             AttributeProto::STRING,
-            TString("nearest"))
+            std::string("nearest"))
         .Input(0, "X", "4-D tensor, [N,C,H,W]", "T")
         .Output(0, "Y", "4-D tensor after resizing, [N,C,H,W]", "T")
         .TypeConstraint(
@@ -3079,7 +3079,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Two interpolation modes: nearest (default), and linear (including bilinear, trilinear, etc)",
             AttributeProto::STRING,
-            TString("nearest"))
+            std::string("nearest"))
         .Input(0, "X", "N-D tensor", "T")
         .Output(0, "Y", "N-D tensor after resizing", "T")
         .TypeConstraint("T", OpSchema::all_tensor_types(), "Constrain input and output types to all tensor types.")
@@ -3138,7 +3138,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Two interpolation modes: nearest (default), and linear (including bilinear, trilinear, etc)",
             AttributeProto::STRING,
-            TString("nearest"))
+            std::string("nearest"))
         .Input(0, "X", "N-D tensor", "T")
         .Input(
             1,
@@ -3165,7 +3165,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Two interpolation modes: nearest (default), and linear (including bilinear, trilinear, etc)",
             AttributeProto::STRING,
-            TString("nearest"))
+            std::string("nearest"))
         .Input(0, "X", "N-D tensor", "T")
         .Input(
             1,
@@ -3431,7 +3431,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             if (input_dim.has_dim_value()) {
               output_dim->set_dim_value(input_dim.dim_value());
             } else if (input_dim.has_dim_param()) {
-              output_dim->set_dim_param(input_dim.dim_param());
+              output_dim->set_dim_param(TString{input_dim.dim_param()});
             }
           }
 
@@ -3919,13 +3919,13 @@ ONNX_OPERATOR_SET_SCHEMA(
                 if (indices_shape.dim(i).has_dim_value()) {
                   dim->set_dim_value(indices_shape.dim(i).dim_value());
                 } else if (indices_shape.dim(i).has_dim_param()) {
-                  dim->set_dim_param(indices_shape.dim(i).dim_param());
+                  dim->set_dim_param(TString{indices_shape.dim(i).dim_param()});
                 }
               } else if (i > axis) {
                 if (indices_shape.dim(i - 1).has_dim_value()) {
                   dim->set_dim_value(indices_shape.dim(i - 1).dim_value());
                 } else if (indices_shape.dim(i - 1).has_dim_param()) {
-                  dim->set_dim_param(indices_shape.dim(i - 1).dim_param());
+                  dim->set_dim_param(TString{indices_shape.dim(i - 1).dim_param()});
                 }
               }
             }
@@ -4075,7 +4075,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "added at the beginning of axis `i` and xi_end, the number of pixels added at "
             "the end of axis `i`.",
             AttributeProto::INTS)
-        .Attr("mode", "Three modes: constant(default), reflect, edge", AttributeProto::STRING, TString("constant"))
+        .Attr("mode", "Three modes: constant(default), reflect, edge", AttributeProto::STRING, std::string("constant"))
         .Attr("value", "One float, indicates the value to be filled.", AttributeProto::FLOAT, 0.0f)
         .SetDoc(Pad_ver2_doc)
         .Input(0, "data", "Input tensor.", "T")
@@ -4409,7 +4409,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "mode",
             "Supported modes: `constant`(default), `reflect`, `edge`",
             AttributeProto::STRING,
-            TString("constant"))
+            std::string("constant"))
         .SetDoc(Pad_ver13_doc)
         .Input(0, "data", "Input tensor.", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(

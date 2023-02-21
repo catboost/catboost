@@ -50,7 +50,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "The pooling method. Two modes are supported: 'avg' and 'max'. "
             "Default is 'avg'.",
             AttributeProto::STRING,
-            TString("avg"))
+            std::string("avg"))
         .Attr(
             "coordinate_transformation_mode",
             "Allowed values are 'half_pixel' and 'output_half_pixel'. "
@@ -58,7 +58,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "Use the value 'output_half_pixel' to omit the pixel shift for the input (use this for a "
             "backward-compatible behavior).",
             AttributeProto::STRING,
-            TString("half_pixel"))
+            std::string("half_pixel"))
         .Input(
             0,
             "X",

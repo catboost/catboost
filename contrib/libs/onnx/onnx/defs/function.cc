@@ -7,8 +7,8 @@
 #include "onnx/string_utils.h"
 
 namespace ONNX_NAMESPACE {
-TString InteralTensorNameGenerator(const TString& node_name, const TString& internal_name) {
-  TString new_name = "Func_" + node_name + internal_name;
+std::string InteralTensorNameGenerator(const std::string& node_name, const std::string& internal_name) {
+  std::string new_name = "Func_" + node_name + internal_name;
   return new_name;
 }
 
@@ -16,18 +16,18 @@ void FunctionExpandHelper(
     const NodeProto& node,
     const FunctionProto& func,
     GraphProto& g,
-    const TString& node_prefix) {
+    const std::string& node_prefix) {
   // Create a temporary unique node prefix for tensor names
-  TString uniq_prefix = node_prefix;
+  std::string uniq_prefix = node_prefix;
   if (uniq_prefix.empty()) {
     const void* address = static_cast<const void*>(&node);
     std::stringstream ss;
     ss << address;
     uniq_prefix = ss.str();
   }
-  TString node_name = node.has_name() ? node.name() : func.name() + uniq_prefix;
-  std::unordered_map<TString, TString> io_names_map;
-  std::unordered_map<TString, AttributeProto> attr_map;
+  std::string node_name = node.has_name() ? node.name() : func.name() + uniq_prefix;
+  std::unordered_map<std::string, std::string> io_names_map;
+  std::unordered_map<std::string, AttributeProto> attr_map;
 
   for (int idx = 0; idx < node.input_size(); ++idx) {
     if (idx >= func.input_size()) {
@@ -67,7 +67,7 @@ void FunctionExpandHelper(
 
   const OpSchemaRegistry* schema_registry = OpSchemaRegistry::Instance();
   const auto schema = schema_registry->GetSchema(node.op_type(), domain_version, node.domain());
-  std::map<TString, OpSchema::Attribute> default_attrs = schema->attributes();
+  std::map<std::string, OpSchema::Attribute> default_attrs = schema->attributes();
 
   for (const auto& pair : default_attrs) {
     const auto& attr_name = pair.first;
@@ -85,16 +85,16 @@ void FunctionExpandHelper(
     new_node->clear_attribute();
     for (auto& input : function_node.input()) {
       if (io_names_map.count(input)) {
-        new_node->add_input(io_names_map[input]);
+        new_node->add_input(TString{io_names_map[input]});
       } else {
-        new_node->add_input(InteralTensorNameGenerator(node_name, input));
+        new_node->add_input(TString{InteralTensorNameGenerator(node_name, input)});
       }
     }
     for (auto& output : function_node.output()) {
       if (io_names_map.count(output)) {
-        new_node->add_output(io_names_map[output]);
+        new_node->add_output(TString{io_names_map[output]});
       } else {
-        new_node->add_output(InteralTensorNameGenerator(node_name, output));
+        new_node->add_output(TString{InteralTensorNameGenerator(node_name, output)});
       }
     }
     for (auto& attr : function_node.attribute()) {
@@ -102,7 +102,7 @@ void FunctionExpandHelper(
         if (attr_map.count(attr.ref_attr_name())) {
           AttributeProto* new_attr = new_node->add_attribute();
           new_attr->CopyFrom(attr_map[attr.ref_attr_name()]);
-          new_attr->set_name(attr.name());
+          new_attr->set_name(TString{attr.name()});
         }
       } else {
         AttributeProto* new_attr = new_node->add_attribute();
@@ -119,13 +119,13 @@ std::vector<NodeProto> FunctionBodyHelper::BuildNodes(const std::vector<NodeDef>
     const NodeDef& node = node_defs[i];
     NodeProto& n = nodes[i];
 
-    n.set_op_type(node.op_type);
-    n.set_domain(node.domain);
+    n.set_op_type(TString{node.op_type});
+    n.set_domain(TString{node.domain});
     for (const auto& i : node.inputs) {
-      n.add_input(i);
+      n.add_input(TString{i});
     }
     for (const auto& o : node.outputs) {
-      n.add_output(o);
+      n.add_output(TString{o});
     }
     for (const auto& attr : node.attributes) {
       *(n.add_attribute()) = attr.proto;
@@ -140,13 +140,13 @@ void FunctionBodyHelper::BuildNodes(FunctionProto& functionProto, const std::vec
     const NodeDef& node = node_defs[i];
     auto* np = functionProto.add_node();
 
-    np->set_op_type(node.op_type);
-    np->set_domain(node.domain);
+    np->set_op_type(TString{node.op_type});
+    np->set_domain(TString{node.domain});
     for (const auto& inp : node.inputs) {
-      np->add_input(inp);
+      np->add_input(TString{inp});
     }
     for (const auto& o : node.outputs) {
-      np->add_output(o);
+      np->add_output(TString{o});
     }
     for (const auto& attr : node.attributes) {
       *(np->add_attribute()) = attr.proto;

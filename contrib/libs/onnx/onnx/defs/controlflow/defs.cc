@@ -8,7 +8,7 @@
 namespace ONNX_NAMESPACE {
 using SupportType = OpSchema::SupportType;
 
-static std::vector<TString> control_flow_types() {
+static std::vector<std::string> control_flow_types() {
   auto t = OpSchema::all_tensor_types_with_bfloat();
   auto s = OpSchema::all_tensor_sequence_types_with_bfloat();
   auto o = OpSchema::all_optional_types_with_bfloat();
@@ -17,7 +17,7 @@ static std::vector<TString> control_flow_types() {
   return t;
 }
 
-int handle_negative_axis_validate(const TString& attrib, int axis, int rank) {
+int handle_negative_axis_validate(const std::string& attrib, int axis, int rank) {
   if (!(-rank <= axis && axis < rank)) {
     fail_shape_inference(attrib, " axis value ", axis, " is invalid for a tensor of rank ", rank);
   }

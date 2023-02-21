@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <util/generic/string.h>
+#include <string>
 #ifdef _WIN32
 #include <windows.h>
 #include <filesystem>
@@ -26,7 +26,7 @@ constexpr const char k_preferred_path_separator = '/';
 inline std::wstring path_join(const std::wstring& origin, const std::wstring& append) {
   return (std::filesystem::path(origin) / std::filesystem::path(append)).wstring();
 }
-inline std::wstring utf8str_to_wstring(const TString& utf8str) {
+inline std::wstring utf8str_to_wstring(const std::string& utf8str) {
   if (utf8str.size() > INT_MAX) {
     fail_check("utf8str_to_wstring: string is too long for converting to wstring.");
   }
@@ -37,11 +37,11 @@ inline std::wstring utf8str_to_wstring(const TString& utf8str) {
 }
 
 #else
-TString path_join(const TString& origin, const TString& append);
+std::string path_join(const std::string& origin, const std::string& append);
 // TODO: also use std::filesystem::path for clean_relative_path after ONNX has supported C++17 for POSIX
 // Clean up relative path when there is ".." in the path, e.g.: a/b/../c -> a/c
 // It cannot work with absolute path
-TString clean_relative_path(const TString& path);
+std::string clean_relative_path(const std::string& path);
 #endif
 
 } // namespace ONNX_NAMESPACE

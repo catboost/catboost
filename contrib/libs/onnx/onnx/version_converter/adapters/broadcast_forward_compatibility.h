@@ -13,7 +13,7 @@ namespace version_conversion {
 
 class BroadcastForwardCompatibility final : public Adapter {
  public:
-  explicit BroadcastForwardCompatibility(const TString& op_name, const OpSetID& initial, const OpSetID& target)
+  explicit BroadcastForwardCompatibility(const std::string& op_name, const OpSetID& initial, const OpSetID& target)
       : Adapter(op_name, initial, target) {}
 
   void adapt_broadcast_forward_compatibility(std::shared_ptr<Graph> graph, Node* node) const {

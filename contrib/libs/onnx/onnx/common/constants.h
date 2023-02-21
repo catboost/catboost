@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <util/generic/string.h>
+#include <string>
 
 namespace ONNX_NAMESPACE {
 // For ONNX op/function registration.

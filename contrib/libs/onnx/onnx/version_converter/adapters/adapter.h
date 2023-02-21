@@ -16,14 +16,14 @@ namespace version_conversion {
 
 class Adapter {
  private:
-  TString name_;
+  std::string name_;
   OpSetID initial_version_;
   OpSetID target_version_;
 
  public:
   virtual ~Adapter() noexcept = default;
 
-  explicit Adapter(const TString& name, const OpSetID& initial_version, const OpSetID& target_version)
+  explicit Adapter(const std::string& name, const OpSetID& initial_version, const OpSetID& target_version)
       : name_(name), initial_version_(initial_version), target_version_(target_version) {}
 
   // This will almost always return its own node argument after modifying it in place.
@@ -32,7 +32,7 @@ class Adapter {
   // upsample_9_10.h
   virtual Node* adapt(std::shared_ptr<Graph> /*graph*/, Node* node) const = 0;
 
-  const TString& name() const {
+  const std::string& name() const {
     return name_;
   }
 

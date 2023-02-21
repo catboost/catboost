@@ -13,7 +13,7 @@ namespace ONNX_NAMESPACE {
 namespace version_conversion {
 
 struct ExtendSupportedTypes final : public Adapter {
-  explicit ExtendSupportedTypes(const TString& op_name, const OpSetID& initial, const OpSetID& target)
+  explicit ExtendSupportedTypes(const std::string& op_name, const OpSetID& initial, const OpSetID& target)
       : Adapter(op_name, initial, target) {}
 
   Node* create_cast_op(
@@ -21,7 +21,7 @@ struct ExtendSupportedTypes final : public Adapter {
       ArrayRef<Value*> inputs,
       const int to_type,
       const std::vector<Dimension>& output_shape,
-      const TString& name) const {
+      const std::string& name) const {
     Node* node = graph->create(kCast, inputs);
     node->i_(kto, to_type);
     node->output()->setUniqueName(name);
@@ -33,7 +33,7 @@ struct ExtendSupportedTypes final : public Adapter {
   void adapt_type_extension(std::shared_ptr<Graph> graph, Node* node) const {
     const ArrayRef<Value*>& inputs = node->inputs();
     const ArrayRef<Value*>& outputs = node->outputs();
-    const TString original_output_name = node->output()->uniqueName();
+    const std::string original_output_name = node->output()->uniqueName();
 
     const int input_type = inputs.size() > 0 ? inputs[0]->elemType() : -1;
     const int output_type = outputs[0]->elemType();

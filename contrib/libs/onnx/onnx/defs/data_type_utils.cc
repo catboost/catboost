@@ -20,11 +20,11 @@ class TypesWrapper final {
  public:
   static TypesWrapper& GetTypesWrapper();
 
-  std::unordered_set<TString>& GetAllowedDataTypes();
+  std::unordered_set<std::string>& GetAllowedDataTypes();
 
-  std::unordered_map<TString, int32_t>& TypeStrToTensorDataType();
+  std::unordered_map<std::string, int32_t>& TypeStrToTensorDataType();
 
-  std::unordered_map<int32_t, TString>& TensorDataTypeToTypeStr();
+  std::unordered_map<int32_t, std::string>& TensorDataTypeToTypeStr();
 
   ~TypesWrapper() = default;
   TypesWrapper(const TypesWrapper&) = delete;
@@ -33,9 +33,9 @@ class TypesWrapper final {
  private:
   TypesWrapper();
 
-  std::unordered_map<TString, int> type_str_to_tensor_data_type_;
-  std::unordered_map<int, TString> tensor_data_type_to_type_str_;
-  std::unordered_set<TString> allowed_data_types_;
+  std::unordered_map<std::string, int> type_str_to_tensor_data_type_;
+  std::unordered_map<int, std::string> tensor_data_type_to_type_str_;
+  std::unordered_set<std::string> allowed_data_types_;
 };
 
 // Simple class which contains pointers to external string buffer and a size.
@@ -46,7 +46,7 @@ class StringRange final {
  public:
   StringRange();
   StringRange(const char* data, size_t size);
-  StringRange(const TString& str);
+  StringRange(const std::string& str);
   StringRange(const char* data);
   const char* Data() const;
   size_t Size() const;
@@ -54,7 +54,7 @@ class StringRange final {
   char operator[](size_t idx) const;
   void Reset();
   void Reset(const char* data, size_t size);
-  void Reset(const TString& str);
+  void Reset(const std::string& str);
   bool StartsWith(const StringRange& str) const;
   bool EndsWith(const StringRange& str) const;
   bool LStrip();
@@ -84,8 +84,8 @@ class StringRange final {
   const char* end_;
 };
 
-std::unordered_map<TString, TypeProto>& DataTypeUtils::GetTypeStrToProtoMap() {
-  static std::unordered_map<TString, TypeProto> map;
+std::unordered_map<std::string, TypeProto>& DataTypeUtils::GetTypeStrToProtoMap() {
+  static std::unordered_map<std::string, TypeProto> map;
   return map;
 }
 
@@ -105,7 +105,7 @@ DataType DataTypeUtils::ToType(const TypeProto& type_proto) {
   return &(GetTypeStrToProtoMap().find(typeStr)->first);
 }
 
-DataType DataTypeUtils::ToType(const TString& type_str) {
+DataType DataTypeUtils::ToType(const std::string& type_str) {
   TypeProto type;
   FromString(type_str, type);
   return ToType(type);
@@ -120,7 +120,7 @@ const TypeProto& DataTypeUtils::ToTypeProto(const DataType& data_type) {
   return it->second;
 }
 
-TString DataTypeUtils::ToString(const TypeProto& type_proto, const TString& left, const TString& right) {
+std::string DataTypeUtils::ToString(const TypeProto& type_proto, const std::string& left, const std::string& right) {
   switch (type_proto.value_case()) {
     case TypeProto::ValueCase::kTensorType: {
       // Note: We do not distinguish tensors with zero rank (a shape consisting
@@ -134,13 +134,13 @@ TString DataTypeUtils::ToString(const TypeProto& type_proto, const TString& left
       return ToString(type_proto.optional_type().elem_type(), left + "optional(", ")" + right);
     }
     case TypeProto::ValueCase::kMapType: {
-      TString map_str = "map(" + ToDataTypeString(type_proto.map_type().key_type()) + ",";
+      std::string map_str = "map(" + ToDataTypeString(type_proto.map_type().key_type()) + ",";
       return ToString(type_proto.map_type().value_type(), left + map_str, ")" + right);
     }
 #ifdef ONNX_ML
     case TypeProto::ValueCase::kOpaqueType: {
-      static const TString empty;
-      TString result;
+      static const std::string empty;
+      std::string result;
       const auto& op_type = type_proto.opaque_type();
       result.append(left).append("opaque(");
       if (op_type.has_domain() && !op_type.domain().empty()) {
@@ -163,7 +163,7 @@ TString DataTypeUtils::ToString(const TypeProto& type_proto, const TString& left
   }
 }
 
-TString DataTypeUtils::ToDataTypeString(int32_t tensor_data_type) {
+std::string DataTypeUtils::ToDataTypeString(int32_t tensor_data_type) {
   TypesWrapper& t = TypesWrapper::GetTypesWrapper();
   auto iter = t.TensorDataTypeToTypeStr().find(tensor_data_type);
   if (t.TensorDataTypeToTypeStr().end() == iter) {
@@ -172,27 +172,27 @@ TString DataTypeUtils::ToDataTypeString(int32_t tensor_data_type) {
   return iter->second;
 }
 
-void DataTypeUtils::FromString(const TString& type_str, TypeProto& type_proto) {
+void DataTypeUtils::FromString(const std::string& type_str, TypeProto& type_proto) {
   StringRange s(type_str);
   type_proto.Clear();
   if (s.LStrip("seq")) {
     s.ParensWhitespaceStrip();
-    return FromString(TString(s.Data(), s.Size()), *type_proto.mutable_sequence_type()->mutable_elem_type());
+    return FromString(std::string(s.Data(), s.Size()), *type_proto.mutable_sequence_type()->mutable_elem_type());
   } else if (s.LStrip("optional")) {
     s.ParensWhitespaceStrip();
-    return FromString(TString(s.Data(), s.Size()), *type_proto.mutable_optional_type()->mutable_elem_type());
+    return FromString(std::string(s.Data(), s.Size()), *type_proto.mutable_optional_type()->mutable_elem_type());
   } else if (s.LStrip("map")) {
     s.ParensWhitespaceStrip();
     size_t key_size = s.Find(',');
     StringRange k(s.Data(), key_size);
-    TString key(k.Data(), k.Size());
+    std::string key(k.Data(), k.Size());
     s.LStrip(key_size);
     s.LStrip(",");
     StringRange v(s.Data(), s.Size());
     int32_t key_type;
     FromDataTypeString(key, key_type);
     type_proto.mutable_map_type()->set_key_type(key_type);
-    return FromString(TString(v.Data(), v.Size()), *type_proto.mutable_map_type()->mutable_value_type());
+    return FromString(std::string(v.Data(), v.Size()), *type_proto.mutable_map_type()->mutable_value_type());
   } else
 #ifdef ONNX_ML
       if (s.LStrip("opaque")) {
@@ -200,7 +200,7 @@ void DataTypeUtils::FromString(const TString& type_str, TypeProto& type_proto) {
     s.ParensWhitespaceStrip();
     if (!s.Empty()) {
       size_t cm = s.Find(',');
-      if (cm != TString::npos) {
+      if (cm != std::string::npos) {
         if (cm > 0) {
           opaque_type->mutable_domain()->assign(s.Data(), cm);
         }
@@ -215,17 +215,17 @@ void DataTypeUtils::FromString(const TString& type_str, TypeProto& type_proto) {
       if (s.LStrip("sparse_tensor")) {
     s.ParensWhitespaceStrip();
     int32_t e;
-    FromDataTypeString(TString(s.Data(), s.Size()), e);
+    FromDataTypeString(std::string(s.Data(), s.Size()), e);
     type_proto.mutable_sparse_tensor_type()->set_elem_type(e);
   } else if (s.LStrip("tensor")) {
     s.ParensWhitespaceStrip();
     int32_t e;
-    FromDataTypeString(TString(s.Data(), s.Size()), e);
+    FromDataTypeString(std::string(s.Data(), s.Size()), e);
     type_proto.mutable_tensor_type()->set_elem_type(e);
   } else {
     // Scalar
     int32_t e;
-    FromDataTypeString(TString(s.Data(), s.Size()), e);
+    FromDataTypeString(std::string(s.Data(), s.Size()), e);
     TypeProto::Tensor* t = type_proto.mutable_tensor_type();
     t->set_elem_type(e);
     // Call mutable_shape() to initialize a shape with no dimension.
@@ -233,13 +233,13 @@ void DataTypeUtils::FromString(const TString& type_str, TypeProto& type_proto) {
   }
 } // namespace Utils
 
-bool DataTypeUtils::IsValidDataTypeString(const TString& type_str) {
+bool DataTypeUtils::IsValidDataTypeString(const std::string& type_str) {
   TypesWrapper& t = TypesWrapper::GetTypesWrapper();
   const auto& allowedSet = t.GetAllowedDataTypes();
   return (allowedSet.find(type_str) != allowedSet.end());
 }
 
-void DataTypeUtils::FromDataTypeString(const TString& type_str, int32_t& tensor_data_type) {
+void DataTypeUtils::FromDataTypeString(const std::string& type_str, int32_t& tensor_data_type) {
   if (!IsValidDataTypeString(type_str)) {
     ONNX_THROW_EX(
         std::invalid_argument("DataTypeUtils::FromDataTypeString - Received invalid data type string " + type_str));
@@ -256,7 +256,7 @@ StringRange::StringRange(const char* p_data, size_t p_size) : data_(p_data), siz
   LAndRStrip();
 }
 
-StringRange::StringRange(const TString& p_str)
+StringRange::StringRange(const std::string& p_str)
     : data_(p_str.data()), size_(p_str.size()), start_(data_), end_(data_) {
   LAndRStrip();
 }
@@ -293,7 +293,7 @@ void StringRange::Reset(const char* data, size_t size) {
   start_ = end_ = data_;
 }
 
-void StringRange::Reset(const TString& str) {
+void StringRange::Reset(const std::string& str) {
   data_ = str.data();
   size_ = str.size();
   start_ = end_ = data_;
@@ -389,7 +389,7 @@ size_t StringRange::Find(const char ch) const {
     }
     idx++;
   }
-  return TString::npos;
+  return std::string::npos;
 }
 
 void StringRange::RestartCapture() {
@@ -406,15 +406,15 @@ TypesWrapper& TypesWrapper::GetTypesWrapper() {
   return types;
 }
 
-std::unordered_set<TString>& TypesWrapper::GetAllowedDataTypes() {
+std::unordered_set<std::string>& TypesWrapper::GetAllowedDataTypes() {
   return allowed_data_types_;
 }
 
-std::unordered_map<TString, int>& TypesWrapper::TypeStrToTensorDataType() {
+std::unordered_map<std::string, int>& TypesWrapper::TypeStrToTensorDataType() {
   return type_str_to_tensor_data_type_;
 }
 
-std::unordered_map<int, TString>& TypesWrapper::TensorDataTypeToTypeStr() {
+std::unordered_map<int, std::string>& TypesWrapper::TensorDataTypeToTypeStr() {
   return tensor_data_type_to_type_str_;
 }
 

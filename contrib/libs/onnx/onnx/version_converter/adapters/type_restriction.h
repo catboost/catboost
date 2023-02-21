@@ -14,7 +14,7 @@ namespace version_conversion {
 class TypeRestriction : public Adapter {
  public:
   explicit TypeRestriction(
-      const TString& op_name,
+      const std::string& op_name,
       const OpSetID& initial,
       const OpSetID& target,
       const std::vector<TensorProto_DataType>& unallowed_types)

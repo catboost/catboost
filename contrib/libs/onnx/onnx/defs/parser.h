@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include <iostream>
 #include <stdexcept>
-#include <util/generic/string.h>
+#include <string>
 #include <unordered_map>
 
 #include "onnx/onnx_pb.h"
@@ -44,20 +44,20 @@ using OpsetIdList = google::protobuf::RepeatedPtrField<OperatorSetIdProto>;
 template <typename Map>
 class StringIntMap {
  public:
-  static const std::unordered_map<TString, int32_t>& Instance() {
+  static const std::unordered_map<std::string, int32_t>& Instance() {
     static Map instance;
     return instance.map_;
   }
 
-  static int32_t Lookup(const TString& dtype) {
+  static int32_t Lookup(const std::string& dtype) {
     auto it = Instance().find(dtype);
     if (it != Instance().end())
       return it->second;
     return 0;
   }
 
-  static const TString& ToString(int32_t dtype) {
-    static TString undefined("undefined");
+  static const std::string& ToString(int32_t dtype) {
+    static std::string undefined("undefined");
     for (const auto& pair : Instance()) {
       if (pair.second == dtype)
         return pair.first;
@@ -66,7 +66,7 @@ class StringIntMap {
   }
 
  protected:
-  std::unordered_map<TString, int32_t> map_;
+  std::unordered_map<std::string, int32_t> map_;
 };
 
 class PrimitiveTypeNameMap : public StringIntMap<PrimitiveTypeNameMap> {
@@ -90,7 +90,7 @@ class PrimitiveTypeNameMap : public StringIntMap<PrimitiveTypeNameMap> {
     map_["bfloat16"] = 16;
   }
 
-  static bool IsTypeName(const TString& dtype) {
+  static bool IsTypeName(const std::string& dtype) {
     return Lookup(dtype) != 0;
   }
 };
@@ -148,20 +148,20 @@ class KeyWordMap {
     map_["sparse_tensor"] = KeyWord::SPARSE_TENSOR_TYPE;
   }
 
-  static const std::unordered_map<TString, KeyWord>& Instance() {
+  static const std::unordered_map<std::string, KeyWord>& Instance() {
     static KeyWordMap instance;
     return instance.map_;
   }
 
-  static KeyWord Lookup(const TString& id) {
+  static KeyWord Lookup(const std::string& id) {
     auto it = Instance().find(id);
     if (it != Instance().end())
       return it->second;
     return KeyWord::NONE;
   }
 
-  static const TString& ToString(KeyWord kw) {
-    static TString undefined("undefined");
+  static const std::string& ToString(KeyWord kw) {
+    static std::string undefined("undefined");
     for (const auto& pair : Instance()) {
       if (pair.second == kw)
         return pair.first;
@@ -170,12 +170,12 @@ class KeyWordMap {
   }
 
  private:
-  std::unordered_map<TString, KeyWord> map_;
+  std::unordered_map<std::string, KeyWord> map_;
 };
 
 class ParserBase {
  public:
-  ParserBase(const TString& str)
+  ParserBase(const std::string& str)
       : start_(str.data()), next_(str.data()), end_(str.data() + str.length()), saved_pos_(next_) {}
 
   ParserBase(const char* cstr) : start_(cstr), next_(cstr), end_(cstr + strlen(cstr)), saved_pos_(next_) {}
@@ -188,7 +188,7 @@ class ParserBase {
     next_ = saved_pos_;
   }
 
-  TString GetCurrentPos() {
+  std::string GetCurrentPos() {
     uint32_t line = 1, col = 1;
     for (const char* p = start_; p < next_; ++p) {
       if (*p == '\n') {
@@ -203,7 +203,7 @@ class ParserBase {
 
   // Return a suitable suffix of what has been parsed to provide error message context:
   // return the line containing the last non-space character preceding the error (if it exists).
-  TString GetErrorContext() {
+  std::string GetErrorContext() {
     // Special cases: empty input string, and parse-error at first character.
     const char* p = next_ < end_ ? next_ : next_ - 1;
     while ((p > start_) && isspace(*p))
@@ -214,7 +214,7 @@ class ParserBase {
     const char* context_start = (p > start_) ? (p + 1) : start_;
     for (p = context_start; (p < end_) && (*p != '\n'); ++p)
       ;
-    return TString(context_start, p - context_start);
+    return std::string(context_start, p - context_start);
   }
 
   template <typename... Args>
@@ -269,7 +269,7 @@ class ParserBase {
 
   struct Literal {
     LiteralType type;
-    TString value;
+    std::string value;
   };
 
   Status Parse(Literal& result);
@@ -279,7 +279,7 @@ class ParserBase {
     CHECK_PARSER_STATUS(Parse(literal));
     if (literal.type != LiteralType::INT_LITERAL)
       return ParseError("Integer value expected, but not found.");
-    TString s = literal.value;
+    std::string s = literal.value;
     val = std::stoll(s);
     return Status::OK();
   }
@@ -289,7 +289,7 @@ class ParserBase {
     CHECK_PARSER_STATUS(Parse(literal));
     if (literal.type != LiteralType::INT_LITERAL)
       return ParseError("Integer value expected, but not found.");
-    TString s = literal.value;
+    std::string s = literal.value;
     val = std::stoull(s);
     return Status::OK();
   }
@@ -323,7 +323,7 @@ class ParserBase {
   }
 
   // Parse a string-literal enclosed within doube-quotes.
-  Status Parse(TString& val) {
+  Status Parse(std::string& val) {
     Literal literal;
     CHECK_PARSER_STATUS(Parse(literal));
     if (literal.type != LiteralType::STRING_LITERAL)
@@ -334,7 +334,7 @@ class ParserBase {
 
   // Parse an identifier, including keywords. If none found, this will
   // return an empty-string identifier.
-  Status ParseOptionalIdentifier(TString& id) {
+  Status ParseOptionalIdentifier(std::string& id) {
     SkipWhiteSpace();
     auto from = next_;
     if ((next_ < end_) && (isalpha(*next_) || (*next_ == '_'))) {
@@ -342,18 +342,18 @@ class ParserBase {
       while ((next_ < end_) && (isalnum(*next_) || (*next_ == '_')))
         ++next_;
     }
-    id = TString(from, next_ - from);
+    id = std::string(from, next_ - from);
     return Status::OK();
   }
 
-  Status ParseIdentifier(TString& id) {
+  Status ParseIdentifier(std::string& id) {
     ParseOptionalIdentifier(id);
     if (id.empty())
       return ParseError("Identifier expected but not found.");
     return Status::OK();
   }
 
-  Status PeekIdentifier(TString& id) {
+  Status PeekIdentifier(std::string& id) {
     SavePos();
     ParseOptionalIdentifier(id);
     RestorePos();
@@ -361,7 +361,7 @@ class ParserBase {
   }
 
   Status Parse(KeyWordMap::KeyWord& keyword) {
-    TString id;
+    std::string id;
     CHECK_PARSER_STATUS(ParseIdentifier(id));
     keyword = KeyWordMap::Lookup(id);
     return Status::OK();
@@ -405,7 +405,7 @@ class OnnxParser : public ParserBase {
   }
 
  private:
-  Status Parse(TString name, GraphProto& graph);
+  Status Parse(std::string name, GraphProto& graph);
 
   Status Parse(IdList& idlist);
 

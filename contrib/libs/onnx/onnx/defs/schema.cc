@@ -39,7 +39,7 @@ DbgOperatorSetTracker& DbgOperatorSetTracker::Instance() {
 }
 #endif
 
-const TString& OpSchema::FormalParameter::GetName() const {
+const std::string& OpSchema::FormalParameter::GetName() const {
   return name_;
 }
 
@@ -51,11 +51,11 @@ DataTypeSet& OpSchema::FormalParameter::MutableTypes() {
   return type_set_;
 }
 
-const TString& OpSchema::FormalParameter::GetTypeStr() const {
+const std::string& OpSchema::FormalParameter::GetTypeStr() const {
   return type_str_;
 }
 
-const TString& OpSchema::FormalParameter::GetDescription() const {
+const std::string& OpSchema::FormalParameter::GetDescription() const {
   return description_;
 }
 
@@ -81,7 +81,7 @@ OpSchemaRegistry* OpSchemaRegistry::Instance() {
 }
 
 void OpSchema::CheckInputOutputType(struct InferenceContext& ctx) const {
-  std::unordered_map<TString, TString> type_constraints;
+  std::unordered_map<std::string, std::string> type_constraints;
   // check all input types
   for (size_t in_idx = 0; in_idx < ctx.getNumInputs(); ++in_idx) {
     // If the last input is Variadic by definition, checker still needs to check the rest of actual input's type
@@ -235,12 +235,12 @@ void OpSchema::Verify(const NodeProto& node) const {
   // An internal symbol is defined as starting with two underscores. Attributes
   // with names meeting this condition are considered implementation details
   // and should be ignored for the purpose of schema checking.
-  auto isInternalSymbol = [](const TString& sym) -> bool {
+  auto isInternalSymbol = [](const std::string& sym) -> bool {
     return sym.length() >= 2 && sym[0] == '_' && sym[1] == '_';
   };
 
   // Check attributes
-  std::unordered_set<TString> seen_attr_names{};
+  std::unordered_set<std::string> seen_attr_names{};
   for (const auto& attr_proto : node.attribute()) {
     const auto& name = attr_proto.name();
 
@@ -421,33 +421,33 @@ OpSchema& OpSchema::SetSupportLevel(SupportType support) {
 }
 
 // Functions to specify name for the operator schema.
-OpSchema& OpSchema::SetName(TString name) {
+OpSchema& OpSchema::SetName(std::string name) {
   name_ = std::move(name);
   return *this;
 }
 
 OpSchema& OpSchema::SetName(const char* name) {
-  return SetName(TString(name));
+  return SetName(std::string(name));
 }
 
 // Functions to specify code location for the operator schema.
-OpSchema& OpSchema::SetLocation(TString file, int line) {
+OpSchema& OpSchema::SetLocation(std::string file, int line) {
   file_ = std::move(file);
   line_ = line;
   return *this;
 }
 
 OpSchema& OpSchema::SetLocation(const char* file, int line) {
-  return SetLocation(TString(file), line);
+  return SetLocation(std::string(file), line);
 }
 
-OpSchema& OpSchema::SetDomain(TString domain) {
+OpSchema& OpSchema::SetDomain(std::string domain) {
   domain_ = std::move(domain);
   return *this;
 }
 
 OpSchema& OpSchema::SetDomain(const char* domain) {
-  return SetDomain(TString(domain));
+  return SetDomain(std::string(domain));
 }
 
 OpSchema& OpSchema::Attr(Attribute attr) {
@@ -456,23 +456,23 @@ OpSchema& OpSchema::Attr(Attribute attr) {
   return *this;
 }
 
-OpSchema& OpSchema::Attr(TString name, TString description, AttributeProto::AttributeType type, bool required) {
+OpSchema& OpSchema::Attr(std::string name, std::string description, AttributeProto::AttributeType type, bool required) {
   Attr(Attribute{std::move(name), std::move(description), type, required});
   return *this;
 }
 
 OpSchema& OpSchema::Attr(const char* name, const char* description, AttributeProto::AttributeType type, bool required) {
-  return Attr(TString(name), TString(description), type, required);
+  return Attr(std::string(name), std::string(description), type, required);
 }
 
 #define ATTR_SETTER_WITH_SINGLE_VALUE(type, field, attrtype)                                                           \
   OpSchema& OpSchema::Attr(                                                                                            \
-      TString name, TString description, AttributeProto::AttributeType attr_type, const type& default_value) { \
+      std::string name, std::string description, AttributeProto::AttributeType attr_type, const type& default_value) { \
     if (attrtype != attr_type) {                                                                                       \
       fail_schema("Attribute specification type mismatch.");                                                           \
     }                                                                                                                  \
     AttributeProto a;                                                                                                  \
-    a.set_name(name);                                                                                                  \
+    a.set_name(TString{name});                                                                                         \
     a.set_##field(default_value);                                                                                      \
     a.set_type(attr_type);                                                                                             \
     Attr(Attribute(std::move(name), std::move(description), std::move(a)));                                            \
@@ -480,20 +480,38 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
   }                                                                                                                    \
   OpSchema& OpSchema::Attr(                                                                                            \
       const char* name, const char* description, AttributeProto::AttributeType attr_type, const type& default_value) { \
-    return Attr(TString(name), TString(description), attr_type, default_value);                                \
+    return Attr(std::string(name), std::string(description), attr_type, default_value);                                \
+  }
+
+#define ATTR_SETTER_WITH_STRING_VALUE(type, field, attrtype)                                                           \
+  OpSchema& OpSchema::Attr(                                                                                            \
+      std::string name, std::string description, AttributeProto::AttributeType attr_type, const type& default_value) { \
+    if (attrtype != attr_type) {                                                                                       \
+      fail_schema("Attribute specification type mismatch.");                                                           \
+    }                                                                                                                  \
+    AttributeProto a;                                                                                                  \
+    a.set_name(TString{name});                                                                                         \
+    a.set_##field(TString{default_value});                                                                             \
+    a.set_type(attr_type);                                                                                             \
+    Attr(Attribute(std::move(name), std::move(description), std::move(a)));                                            \
+    return *this;                                                                                                      \
+  }                                                                                                                    \
+  OpSchema& OpSchema::Attr(                                                                                            \
+      const char* name, const char* description, AttributeProto::AttributeType attr_type, const type& default_value) { \
+    return Attr(std::string(name), std::string(description), attr_type, default_value);                                \
   }
 
 #define ATTR_SETTER_WITH_LIST_VALUE(type, field, attrtype)                  \
   OpSchema& OpSchema::Attr(                                                 \
-      TString name,                                                     \
-      TString description,                                              \
+      std::string name,                                                     \
+      std::string description,                                              \
       AttributeProto::AttributeType attr_type,                              \
       const std::vector<type>& default_value) {                             \
     if (attrtype != attr_type) {                                            \
       fail_schema("Attribute specification type mismatch.");                \
     }                                                                       \
     AttributeProto a;                                                       \
-    a.set_name(name);                                                       \
+    a.set_name(TString{name});                                              \
     a.set_type(attr_type);                                                  \
     for (const auto& v : default_value) {                                   \
       a.add_##field(v);                                                     \
@@ -504,12 +522,12 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
 
 #define ATTR_SETTER_WITH_SINGLE_COMPLEXVALUE(type, field, attrtype)                                                    \
   OpSchema& OpSchema::Attr(                                                                                            \
-      TString name, TString description, AttributeProto::AttributeType attr_type, const type& default_value) { \
+      std::string name, std::string description, AttributeProto::AttributeType attr_type, const type& default_value) { \
     if (attrtype != attr_type) {                                                                                       \
       fail_schema("Attribute specification type mismatch.");                                                           \
     }                                                                                                                  \
     AttributeProto a;                                                                                                  \
-    a.set_name(name);                                                                                                  \
+    a.set_name(TString{name});                                                                                         \
     *(a.mutable_##field()) = default_value;                                                                            \
     a.set_type(attr_type);                                                                                             \
     Attr(Attribute(std::move(name), std::move(description), a));                                                       \
@@ -518,15 +536,15 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
 
 #define ATTR_SETTER_WITH_LIST_COMPLEXVALUE(type, field, attrtype)           \
   OpSchema& OpSchema::Attr(                                                 \
-      TString name,                                                     \
-      TString description,                                              \
+      std::string name,                                                     \
+      std::string description,                                              \
       AttributeProto::AttributeType attr_type,                              \
       const std::vector<type>& default_value) {                             \
     if (attrtype != attr_type) {                                            \
       fail_schema("Attribute specification type mismatch.");                \
     }                                                                       \
     AttributeProto a;                                                       \
-    a.set_name(name);                                                       \
+    a.set_name(TString{name});                                              \
     a.set_type(attr_type);                                                  \
     for (const auto& v : default_value) {                                   \
       *(a.add_##field()) = v;                                               \
@@ -537,13 +555,13 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
 
 ATTR_SETTER_WITH_SINGLE_VALUE(int64_t, i, AttributeProto::INT)
 ATTR_SETTER_WITH_SINGLE_VALUE(float, f, AttributeProto::FLOAT)
-ATTR_SETTER_WITH_SINGLE_VALUE(TString, s, AttributeProto::STRING)
+ATTR_SETTER_WITH_STRING_VALUE(std::string, s, AttributeProto::STRING)
 ATTR_SETTER_WITH_SINGLE_COMPLEXVALUE(TensorProto, t, AttributeProto::TENSOR)
 ATTR_SETTER_WITH_SINGLE_COMPLEXVALUE(GraphProto, g, AttributeProto::GRAPH)
 ATTR_SETTER_WITH_SINGLE_COMPLEXVALUE(TypeProto, tp, AttributeProto::TYPE_PROTO)
 ATTR_SETTER_WITH_LIST_VALUE(int64_t, ints, AttributeProto::INTS)
 ATTR_SETTER_WITH_LIST_VALUE(float, floats, AttributeProto::FLOATS)
-ATTR_SETTER_WITH_LIST_COMPLEXVALUE(TString, strings, AttributeProto::STRINGS)
+ATTR_SETTER_WITH_LIST_COMPLEXVALUE(std::string, strings, AttributeProto::STRINGS)
 ATTR_SETTER_WITH_LIST_COMPLEXVALUE(TensorProto, tensors, AttributeProto::TENSORS)
 ATTR_SETTER_WITH_LIST_COMPLEXVALUE(GraphProto, graphs, AttributeProto::GRAPHS)
 ATTR_SETTER_WITH_LIST_COMPLEXVALUE(TypeProto, type_protos, AttributeProto::TYPE_PROTOS)
@@ -555,9 +573,9 @@ OpSchema& OpSchema::AllowUncheckedAttributes() {
 
 OpSchema& OpSchema::Input(
     int n,
-    TString name,
-    const TString& description,
-    TString type_str,
+    std::string name,
+    const std::string& description,
+    std::string type_str,
     OpSchema::FormalParameterOption param_option,
     bool is_homogeneous,
     int min_arity,
@@ -570,7 +588,7 @@ OpSchema& OpSchema::Input(
 #ifndef __ONNX_NO_DOC_STRINGS
       description,
 #else
-      TString(),
+      std::string(),
 #endif
       std::move(type_str),
       param_option,
@@ -591,13 +609,13 @@ OpSchema& OpSchema::Input(
     DifferentiationCategory differentiation_category) {
   return Input(
       n,
-      TString(name),
+      std::string(name),
 #ifndef __ONNX_NO_DOC_STRINGS
-      TString(description),
+      std::string(description),
 #else
-      TString(),
+      std::string(),
 #endif
-      TString(type_str),
+      std::string(type_str),
       param_option,
       is_homogeneous,
       min_arity,
@@ -606,9 +624,9 @@ OpSchema& OpSchema::Input(
 
 OpSchema& OpSchema::Output(
     int n,
-    TString name,
-    const TString& description,
-    TString type_str,
+    std::string name,
+    const std::string& description,
+    std::string type_str,
     OpSchema::FormalParameterOption param_option,
     bool is_homogeneous,
     int min_arity,
@@ -621,7 +639,7 @@ OpSchema& OpSchema::Output(
 #ifndef __ONNX_NO_DOC_STRINGS
       description,
 #else
-      TString(),
+      std::string(),
 #endif
       std::move(type_str),
       param_option,
@@ -642,13 +660,13 @@ OpSchema& OpSchema::Output(
     DifferentiationCategory differentiation_category) {
   return Output(
       n,
-      TString(name),
+      std::string(name),
 #ifndef __ONNX_NO_DOC_STRINGS
-      TString(description),
+      std::string(description),
 #else
-      TString(),
+      std::string(),
 #endif
-      TString(type_str),
+      std::string(type_str),
       param_option,
       is_homogeneous,
       min_arity,
@@ -656,7 +674,7 @@ OpSchema& OpSchema::Output(
 }
 
 OpSchema&
-OpSchema::TypeConstraint(TString type_str, std::vector<TString> constraints, TString description) {
+OpSchema::TypeConstraint(std::string type_str, std::vector<std::string> constraints, std::string description) {
   if (type_constraints_.end() != type_constraints_.find(type_str)) {
     fail_schema("Duplicate type constraint name");
   }
@@ -675,13 +693,13 @@ OpSchema& OpSchema::TypeConstraint(
     const char* type_str,
     std::initializer_list<const char*> constraints,
     const char* description) {
-  std::vector<TString> constraints_vector;
+  std::vector<std::string> constraints_vector;
   constraints_vector.reserve(constraints.size());
   for (auto iter = constraints.begin(); iter != constraints.end(); ++iter) {
     constraints_vector.push_back(*iter);
   }
 
-  return TypeConstraint(TString(type_str), constraints_vector, TString(description));
+  return TypeConstraint(std::string(type_str), constraints_vector, std::string(description));
 }
 
 void OpSchema::ParseAndSetTypes(
@@ -722,7 +740,7 @@ bool OpSchema::BuildContextDependentFunction(
       opset_version_to_function_builder_.upper_bound(requested_opset_version);
   if (opset_version_to_function_builder_.empty() || it == opset_version_to_function_builder_.begin()) {
     ONNX_THROW_EX(std::out_of_range(
-        TString("Cannot find a function builder that satisfies the requested opset version: op_type = ") +
+        std::string("Cannot find a function builder that satisfies the requested opset version: op_type = ") +
         this->name_ + ", opset_version = " + std::to_string(requested_opset_version) + "."));
   } else {
     --it;
@@ -757,7 +775,7 @@ void OpSchema::UpdateFunctionProtoOpsetImportVersion(FunctionProto& function_pro
 
   if (!opset_import_exist) {
     auto* schema_opset = function_proto.mutable_opset_import()->Add();
-    schema_opset->set_domain(domain_);
+    schema_opset->set_domain(TString{domain_});
     schema_opset->set_version(requested_opset_version);
   }
 }
@@ -849,7 +867,7 @@ bool OpSchema::ValidateReferencedOpsInFuncton(
     const FunctionProto* function,
     int requested_opset_version,
     int function_since_version,
-    std::set<TString>* updated_ops) const {
+    std::set<std::string>* updated_ops) const {
   bool all_ops_are_invalid = true;
   if (requested_opset_version == function_since_version) {
     return all_ops_are_invalid;
@@ -880,17 +898,17 @@ OpSchema& OpSchema::FillUsing(const std::function<void(OpSchema&)>& populator) {
 }
 
 void OpSchema::BuildFunction(FunctionProto& function_body) const {
-  function_body.set_name(this->name_);
-  function_body.set_doc_string(this->doc_);
-  function_body.set_domain(this->domain_);
+  function_body.set_name(TString{this->name_});
+  function_body.set_doc_string(TString{this->doc_});
+  function_body.set_domain(TString{this->domain_});
   for (auto& i : inputs_) {
-    function_body.add_input(i.GetName());
+    function_body.add_input(TString{i.GetName()});
   }
   for (auto& o : outputs_) {
-    function_body.add_output(o.GetName());
+    function_body.add_output(TString{o.GetName()});
   }
   for (auto& a : attributes_) {
-    function_body.add_attribute(a.first);
+    function_body.add_attribute(TString{a.first});
   }
 
   // In a typical onnx function where the function and all the
@@ -901,7 +919,7 @@ void OpSchema::BuildFunction(FunctionProto& function_body) const {
   // opset imports.
   if (function_body.opset_import().size() == 0) {
     auto* schema_opset = function_body.mutable_opset_import()->Add();
-    schema_opset->set_domain(domain_);
+    schema_opset->set_domain(TString{domain_});
     schema_opset->set_version(since_version_);
   }
 }
@@ -1096,11 +1114,11 @@ OpName_Domain_Version_Schema_Map& OpSchemaRegistry::map() {
   return map;
 }
 
-size_t ReplaceAll(TString& s, const char* from, const char* to) {
+size_t ReplaceAll(std::string& s, const char* from, const char* to) {
   size_t numReplaced = 0;
-  TString::size_type lenFrom = std::strlen(from);
-  TString::size_type lenTo = std::strlen(to);
-  for (TString::size_type pos = s.find(from); pos != TString::npos; pos = s.find(from, pos + lenTo)) {
+  std::string::size_type lenFrom = std::strlen(from);
+  std::string::size_type lenTo = std::strlen(to);
+  for (std::string::size_type pos = s.find(from); pos != std::string::npos; pos = s.find(from, pos + lenTo)) {
     s.replace(pos, lenFrom, to);
     numReplaced++;
   }

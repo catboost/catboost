@@ -6,7 +6,7 @@
 
 #include <memory>
 #include <ostream>
-#include <util/generic/string.h>
+#include <string>
 
 namespace ONNX_NAMESPACE {
 namespace Common {
@@ -28,7 +28,7 @@ class Status {
  public:
   Status() noexcept {}
 
-  Status(StatusCategory category, int code, const TString& msg);
+  Status(StatusCategory category, int code, const std::string& msg);
 
   Status(StatusCategory category, int code);
 
@@ -56,9 +56,9 @@ class Status {
 
   StatusCategory Category() const noexcept;
 
-  const TString& ErrorMessage() const;
+  const std::string& ErrorMessage() const;
 
-  TString ToString() const;
+  std::string ToString() const;
 
   bool operator==(const Status& other) const {
     return (this->state_ == other.state_) || (ToString() == other.ToString());
@@ -72,14 +72,14 @@ class Status {
 
  private:
   struct State {
-    State(StatusCategory cat_, int code_, TString msg_) : category(cat_), code(code_), msg(std::move(msg_)) {}
+    State(StatusCategory cat_, int code_, std::string msg_) : category(cat_), code(code_), msg(std::move(msg_)) {}
 
     StatusCategory category = StatusCategory::NONE;
     int code = 0;
-    TString msg;
+    std::string msg;
   };
 
-  static const TString& EmptyString();
+  static const std::string& EmptyString();
 
   // state_ == nullptr when if status code is OK.
   std::unique_ptr<State> state_;

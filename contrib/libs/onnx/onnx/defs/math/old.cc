@@ -12,7 +12,7 @@ namespace ONNX_NAMESPACE {
 
 std::function<void(OpSchema&)> MathDocGenerator_opset13(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Performs element-wise binary {name} (with Numpy-style broadcasting support).
 
@@ -57,7 +57,7 @@ ONNX_OPERATOR_SET_SCHEMA(Div, 13, OpSchema().FillUsing(MathDocGenerator_opset13(
 
 std::function<void(OpSchema&)> MathDocGenerator_opset_7(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Performs element-wise binary {name} (with Numpy-style broadcasting support).
 
@@ -94,7 +94,7 @@ ONNX_OPERATOR_SET_SCHEMA(Div, 7, OpSchema().FillUsing(MathDocGenerator_opset_7("
 
 std::function<void(OpSchema&)> SoftmaxFamilyDocGenerator_opset_11(const char* name, const char* description) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 The operator computes the {name} ({description}) values for each layer in the batch
  of the given input.
@@ -450,7 +450,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Pow,
     13,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Pow_ver13_doc) + GenerateBroadcastingDocMul()))
+        .SetDoc(GET_OP_DOC_STR(std::string(Pow_ver13_doc) + GenerateBroadcastingDocMul()))
         .Input(0, "X", "First operand, base of the exponent.", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,
@@ -504,7 +504,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Pow,
     12,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Pow_ver12_doc) + GenerateBroadcastingDocMul()))
+        .SetDoc(GET_OP_DOC_STR(std::string(Pow_ver12_doc) + GenerateBroadcastingDocMul()))
         .Input(0, "X", "First operand, base of the exponent.", "T")
         .Input(1, "Y", "Second operand, power of the exponent.", "T1")
         .Output(0, "Z", "Output tensor.", "T")
@@ -558,7 +558,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 // unspecified.
 std::function<void(OpSchema&)> ElementwiseMultiOpDocGenerator_opset8(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Element-wise {name} of each of the input tensors (with Numpy-style broadcasting support).
 All inputs and outputs must have the same data type.
@@ -567,7 +567,7 @@ All inputs and outputs must have the same data type.
                         ReplaceAll(doc, "{name}", name);
                         ReplaceAll(doc, "{broadcast_doc}", GenerateBroadcastingDocMul().c_str()););
     schema.SetDoc(doc);
-    schema.Input(0, "data_0", "List of tensors for " + TString(name) + ".", "T", OpSchema::Variadic);
+    schema.Input(0, "data_0", "List of tensors for " + std::string(name) + ".", "T", OpSchema::Variadic);
     schema.Output(0, name, "Output tensor.", "T");
     schema.TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
       propagateElemTypeFromInputToOutput(ctx, 0, 0);
@@ -668,7 +668,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     11,
     OpSchema()
         .SetDoc(GET_OP_DOC_STR(
-            TString(Gemm_ver11_doc) + GenerateBroadcastingDocUni("tensor C", "tensor A * B") + "\n" +
+            std::string(Gemm_ver11_doc) + GenerateBroadcastingDocUni("tensor C", "tensor A * B") + "\n" +
             GenerateOptionalArgumentsDoc()))
         .Input(
             0,
@@ -1097,7 +1097,7 @@ bool BuildContextDependentFunctionBody_opset12(
   auto input_type = ctx.getInputType(0)->tensor_type().elem_type();
   bool float_input = input_type == TensorProto_DataType_FLOAT;
   auto reduction_attr_proto = ctx.getAttribute("reduction");
-  TString reduction_attr =
+  std::string reduction_attr =
       reduction_attr_proto != nullptr && reduction_attr_proto->has_s() ? reduction_attr_proto->s() : "mean";
   std::vector<FunctionBodyHelper::NodeDef> body;
   body.push_back({{"const_zero"}, "Constant", {}, {MakeAttribute("value", ToDimensionOneTensor_old(0))}});
@@ -1268,7 +1268,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "'sum': the output will be summed. "
             "'mean': the sum of the output will be divided by the sum of applied weights.",
             AttributeProto::STRING,
-            TString("mean"))
+            std::string("mean"))
         .Attr(
             "ignore_index",
             "Specifies a target value that is ignored and does not contribute to the input gradient. It's an optional value.",
@@ -1399,7 +1399,7 @@ bool BuildContextDependentFunctionBodySCE_opset12(
     body.push_back({{"log_prob"}, "Identity", {"X_Log"}});
   }
 
-  std::vector<TString> input_tensor_names{"X_Log", "labels"};
+  std::vector<std::string> input_tensor_names{"X_Log", "labels"};
   std::vector<FunctionBodyHelper::AttributeProtoWrapper> attributes{
       MakeRefAttribute("reduction", AttributeProto::STRING)};
   // Add weights as input if needed.
@@ -1429,7 +1429,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     12,
     OpSchema()
         .SetDoc(SoftmaxCrossEntropyLoss_ver12_doc)
-        .Attr("reduction", reduction_doc_sce_opset12, AttributeProto::STRING, TString("mean"))
+        .Attr("reduction", reduction_doc_sce_opset12, AttributeProto::STRING, std::string("mean"))
         .Attr(
             "ignore_index",
             "Specifies a target value that is ignored and does not contribute to the input gradient. It's an optional value.",
@@ -1479,7 +1479,7 @@ ONNX_OPERATOR_SET_SCHEMA(
         .SetContextDependentFunctionBodyBuilder(BuildContextDependentFunctionBodySCE_opset12)
         .TypeAndShapeInferenceFunction([](InferenceContext& ctx) {
           propagateElemTypeFromInputToOutput(ctx, 0, 0);
-          TString reduction = getAttribute(ctx, "reduction", "mean");
+          std::string reduction = getAttribute(ctx, "reduction", "mean");
           if (reduction.compare("none") == 0) {
             if (hasInputShape(ctx, 1)) {
               propagateShapeFromInputToOutput(ctx, 1, 0);
@@ -1496,7 +1496,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 
 std::function<void(OpSchema&)> SoftmaxFamilyDocGenerator_opset1(const char* name, const char* description) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 The operator computes the {name} ({description}) values for each layer in the batch
  of the given input. The input is a 2-D tensor (Tensor<float>) of size
@@ -1583,7 +1583,7 @@ Attribute `broadcast=1` needs to be passed to enable broadcasting.
 
 std::function<void(OpSchema&)> MathDocGenerator_old(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Performs element-wise binary {name} (with limited broadcast support).
 {broadcast_doc})DOC";
@@ -1615,7 +1615,7 @@ Performs element-wise binary {name} (with limited broadcast support).
 
 std::function<void(OpSchema&)> MathDocGenerator_old_opset6(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Performs element-wise binary {name} (with limited broadcast support).
 {broadcast_doc})DOC";
@@ -1667,7 +1667,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Pow,
     1,
     OpSchema()
-        .SetDoc(Pow_ver1_doc + TString(kBroadcastDoc_old))
+        .SetDoc(Pow_ver1_doc + std::string(kBroadcastDoc_old))
         .Input(0, "X", "Input tensor of any shape, base of the exponent.", "T")
         .Input(
             1,
@@ -1698,7 +1698,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Pow,
     7,
     OpSchema()
-        .SetDoc(TString(Pow_ver7_doc) + GenerateBroadcastingDocMul())
+        .SetDoc(std::string(Pow_ver7_doc) + GenerateBroadcastingDocMul())
         .Input(0, "X", "First operand, base of the exponent.", "T")
         .Input(1, "Y", "Second operand, power of the exponent.", "T")
         .Output(0, "Z", "Output tensor.", "T")
@@ -2076,7 +2076,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     7,
     OpSchema()
         .SetDoc(
-            GET_OP_DOC_STR(TString(PRelu_ver7_doc) + GenerateBroadcastingDocUni("tensor slope", "input tensor X")))
+            GET_OP_DOC_STR(std::string(PRelu_ver7_doc) + GenerateBroadcastingDocUni("tensor slope", "input tensor X")))
         .Input(0, "X", "Input tensor", "T")
         .Input(
             1,
@@ -2349,7 +2349,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Gemm,
     7,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Gemm_ver7_doc) + GenerateBroadcastingDocUni("tensor C", "tensor A * B")))
+        .SetDoc(GET_OP_DOC_STR(std::string(Gemm_ver7_doc) + GenerateBroadcastingDocUni("tensor C", "tensor A * B")))
         .Input(
             0,
             "A",
@@ -2415,7 +2415,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     Gemm,
     9,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(Gemm_ver9_doc) + GenerateBroadcastingDocUni("tensor C", "tensor A * B")))
+        .SetDoc(GET_OP_DOC_STR(std::string(Gemm_ver9_doc) + GenerateBroadcastingDocUni("tensor C", "tensor A * B")))
         .Input(
             0,
             "A",
@@ -2863,7 +2863,7 @@ ONNX_OPERATOR_SET_SCHEMA(
 
 std::function<void(OpSchema&)> ElementwiseMultiOpDocGenerator_old(const char* name) {
   return [=](OpSchema& schema) {
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(doc = R"DOC(
 Element-wise {name} of each of the input tensors (with Numpy-style broadcasting support).
 All inputs and outputs must have the same data type.
@@ -2872,7 +2872,7 @@ All inputs and outputs must have the same data type.
                         ReplaceAll(doc, "{name}", name);
                         ReplaceAll(doc, "{broadcast_doc}", GenerateBroadcastingDocMul().c_str()););
     schema.SetDoc(doc);
-    schema.Input(0, "data_0", "List of tensors for " + TString(name) + ".", "T", OpSchema::Variadic);
+    schema.Input(0, "data_0", "List of tensors for " + std::string(name) + ".", "T", OpSchema::Variadic);
     schema.Output(0, name, "Output tensor.", "T");
     schema.TypeConstraint(
         "T",
@@ -2930,7 +2930,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     9,
     OpSchema()
         .SetDoc(
-            GET_OP_DOC_STR(TString(PRelu_ver9_doc) + GenerateBroadcastingDocUni("tensor slope", "input tensor X")))
+            GET_OP_DOC_STR(std::string(PRelu_ver9_doc) + GenerateBroadcastingDocUni("tensor slope", "input tensor X")))
         .Input(0, "X", "Input tensor", "T", OpSchema::Single, true, 1, OpSchema::Differentiable)
         .Input(
             1,

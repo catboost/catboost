@@ -13,7 +13,7 @@ namespace version_conversion {
 
 class AxesInputToAttribute : public Adapter {
  public:
-  explicit AxesInputToAttribute(const TString& op_name, const OpSetID& initial, const OpSetID& target)
+  explicit AxesInputToAttribute(const std::string& op_name, const OpSetID& initial, const OpSetID& target)
       : Adapter(op_name, initial, target) {}
 
   Node* adapt(std::shared_ptr<Graph> graph, Node* node) const override {
@@ -28,7 +28,7 @@ class AxesInputToAttribute : public Adapter {
       const std::vector<int64_t>& int64s = node_ptr->t(kvalue).int64s();
       if (int64s.empty()) {
         // Also handle raw data
-        TString raw_data = node_ptr->t(kvalue).raw();
+        std::string raw_data = node_ptr->t(kvalue).raw();
         ONNX_ASSERTM(
             raw_data.size() != 0 && raw_data.size() % 8 == 0,
             "Raw Data must be non-empty and size must be a multiple of 8");

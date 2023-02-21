@@ -12,7 +12,7 @@ std::function<void(OpSchema&)> RNNDocGeneratorOld(const char* /*name*/) {
         "Specify if the RNN is forward, reverse, or bidirectional. "
         "Must be one of forward (default), reverse, or bidirectional.",
         AttributeProto::STRING,
-        TString("foward"));
+        std::string("foward"));
     schema.Attr("hidden_size", "Number of neurons in the hidden layer", AttributeProto::INT, OPTIONAL_VALUE);
     schema.Attr(
         "activation_alpha",
@@ -256,7 +256,7 @@ std::function<void(OpSchema&)> RNNDocGenerator1(const char* /*name*/) {
         "Specify if the RNN is forward, reverse, or bidirectional. "
         "Must be one of forward (default), reverse, or bidirectional.",
         AttributeProto::STRING,
-        TString("forward"));
+        std::string("forward"));
     schema.Attr("hidden_size", "Number of neurons in the hidden layer", AttributeProto::INT, OPTIONAL_VALUE);
     schema.Attr(
         "activation_alpha",
@@ -404,7 +404,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "input gate. The activation function must be one of the activation "
             "functions specified above. Optional: Default `Tanh` if not specified.",
             AttributeProto::STRINGS,
-            std::vector<TString>{"Tanh", "Tanh"})
+            std::vector<std::string>{"Tanh", "Tanh"})
         .Input(
             1,
             "W",
@@ -755,7 +755,7 @@ std::function<void(OpSchema&)> RNNDocGenerator2(const char* /*name*/) {
         "Specify if the RNN is forward, reverse, or bidirectional. "
         "Must be one of forward (default), reverse, or bidirectional.",
         AttributeProto::STRING,
-        TString("forward"));
+        std::string("forward"));
     schema.Attr("hidden_size", "Number of neurons in the hidden layer", AttributeProto::INT, OPTIONAL_VALUE);
     schema.Attr(
         "activation_alpha",
@@ -897,7 +897,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "input gate. The activation function must be one of the activation "
             "functions specified above. Optional: Default `Tanh` if not specified.",
             AttributeProto::STRINGS,
-            std::vector<TString>{"Tanh", "Tanh"})
+            std::vector<std::string>{"Tanh", "Tanh"})
         .Input(
             1,
             "W",

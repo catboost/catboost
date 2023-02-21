@@ -27,7 +27,7 @@ class Reshape_5_4 final : public Adapter {
       const std::vector<int64_t>& int64s = node_ptr->t(kvalue).int64s();
       if (int64s.empty()) {
         // Also handle raw data
-        TString raw_data = node_ptr->t(kvalue).raw();
+        std::string raw_data = node_ptr->t(kvalue).raw();
         ONNX_ASSERTM(
             raw_data.size() != 0 && raw_data.size() % 8 == 0,
             "Raw Data must be non-empty and size must be a multiple of 8");

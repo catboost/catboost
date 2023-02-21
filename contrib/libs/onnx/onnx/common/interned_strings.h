@@ -7,7 +7,7 @@
 
 #pragma once
 #include <stdint.h>
-#include <util/generic/string.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -194,7 +194,7 @@ enum BuiltinSymbol {
 struct Symbol {
   Symbol() {}
   /*implicit*/ Symbol(BuiltinSymbol value) : value(value) {}
-  explicit Symbol(const TString& s);
+  explicit Symbol(const std::string& s);
   explicit Symbol(uint32_t value) : value(value) {}
 
   operator uint32_t() const {

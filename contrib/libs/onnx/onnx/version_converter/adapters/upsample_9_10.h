@@ -14,7 +14,7 @@ class Upsample_9_10 final : public Adapter {
   explicit Upsample_9_10() : Adapter("Upsample", OpSetID(9), OpSetID(10)) {}
 
   Node* adapt_upsample_9_10(std::shared_ptr<Graph> graph, Node* node) const {
-    TString mode = node->hasAttribute(kmode) ? node->s(kmode) : "nearest";
+    std::string mode = node->hasAttribute(kmode) ? node->s(kmode) : "nearest";
 
     // Replace the node with an equivalent Resize node
     Node* resize = graph->create(kResize);

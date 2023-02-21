@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include <mutex>
-#include <util/generic/string.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -24,7 +24,7 @@ struct InternedStrings {
     FORALL_BUILTIN_SYMBOLS(REGISTER_SYMBOL)
 #undef REGISTER_SYMBOL
   }
-  uint32_t symbol(const TString& s) {
+  uint32_t symbol(const std::string& s) {
     std::lock_guard<std::mutex> guard(mutex_);
     auto it = string_to_sym_.find(s);
     if (it != string_to_sym_.end())
@@ -57,8 +57,8 @@ struct InternedStrings {
     ONNX_ASSERT(it != sym_to_string_.end());
     return it->second.c_str();
   }
-  std::unordered_map<TString, uint32_t> string_to_sym_;
-  std::unordered_map<uint32_t, TString> sym_to_string_;
+  std::unordered_map<std::string, uint32_t> string_to_sym_;
+  std::unordered_map<uint32_t, std::string> sym_to_string_;
   uint32_t next_sym;
   std::mutex mutex_;
 };
@@ -72,6 +72,6 @@ const char* Symbol::toString() const {
   return globalStrings().string(*this);
 }
 
-Symbol::Symbol(const TString& s) : value(globalStrings().symbol(s)) {}
+Symbol::Symbol(const std::string& s) : value(globalStrings().symbol(s)) {}
 
 } // namespace ONNX_NAMESPACE

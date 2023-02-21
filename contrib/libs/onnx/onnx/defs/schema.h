@@ -13,7 +13,7 @@
 #include <memory>
 #include <ostream>
 #include <set>
-#include <util/generic/string.h>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -26,7 +26,7 @@
 namespace ONNX_NAMESPACE {
 
 struct FunctionBodyBuildContext {
-  virtual const AttributeProto* getAttribute(const TString& name) const = 0;
+  virtual const AttributeProto* getAttribute(const std::string& name) const = 0;
   virtual bool hasInput(int inputIndex) const = 0;
   virtual bool hasOutput(int inputIndex) const = 0;
   // getInputType(i) should return null for missing optional inputs, or if
@@ -48,7 +48,7 @@ struct FunctionBodyBuildContextImpl : public FunctionBodyBuildContext {
     }
   }
 
-  const AttributeProto* getAttribute(const TString& name) const override {
+  const AttributeProto* getAttribute(const std::string& name) const override {
     auto iter = attributesByName_.find(name);
     if (iter == attributesByName_.end()) {
       return nullptr;
@@ -81,7 +81,7 @@ struct FunctionBodyBuildContextImpl : public FunctionBodyBuildContext {
     return &input_types_[j];
   }
 
-  std::unordered_map<TString, const AttributeProto*> attributesByName_;
+  std::unordered_map<std::string, const AttributeProto*> attributesByName_;
 
   NodeProto node_proto_;
   std::vector<TypeProto> input_types_;
@@ -97,7 +97,7 @@ class SchemaError final : public std::runtime_error {
  public:
   using std::runtime_error::runtime_error;
 
-  SchemaError(const TString& message) : std::runtime_error(message) {}
+  SchemaError(const std::string& message) : std::runtime_error(message) {}
 
   const char* what() const noexcept override {
     if (!expanded_message_.empty()) {
@@ -106,12 +106,12 @@ class SchemaError final : public std::runtime_error {
     return std::runtime_error::what();
   }
 
-  void AppendContext(const TString& context) {
+  void AppendContext(const std::string& context) {
     expanded_message_ = ONNX_NAMESPACE::MakeString(std::runtime_error::what(), "\n\n==> Context: ", context);
   }
 
  private:
-  TString expanded_message_;
+  std::string expanded_message_;
 };
 
 #define fail_schema(...) ONNX_THROW_EX(ONNX_NAMESPACE::SchemaError(ONNX_NAMESPACE::MakeString(__VA_ARGS__)));
@@ -122,7 +122,7 @@ using DataTypeSet = std::unordered_set<DataType>;
 
 // Type constraint map. Key is type string. Value is data type set and
 // description.
-using TypeConstraintMap = std::unordered_map<TString, std::pair<DataTypeSet, TString>>;
+using TypeConstraintMap = std::unordered_map<std::string, std::pair<DataTypeSet, std::string>>;
 
 /**
  * @brief A class to record the schema of an op.
@@ -181,10 +181,10 @@ class OpSchema final {
     FormalParameter() = default;
 
     explicit FormalParameter(
-        TString name,
+        std::string name,
         DataTypeSet allowed_type_set,
-        TString type_str,
-        const TString& description,
+        std::string type_str,
+        const std::string& description,
         FormalParameterOption param_option = Single,
         bool is_homogeneous = true,
         int min_arity = 1,
@@ -205,9 +205,9 @@ class OpSchema final {
     }
 
     explicit FormalParameter(
-        TString name,
-        const TString& description,
-        TString type_str,
+        std::string name,
+        const std::string& description,
+        std::string type_str,
         FormalParameterOption param_option = Single,
         bool is_homogeneous = true,
         int min_arity = 1,
@@ -227,16 +227,16 @@ class OpSchema final {
     }
 
     // Get formal parameter name.
-    const TString& GetName() const;
+    const std::string& GetName() const;
 
     // Get allowed data types.
     const DataTypeSet& GetTypes() const;
 
     // Get formal parameter type string.
-    const TString& GetTypeStr() const;
+    const std::string& GetTypeStr() const;
 
     // Get formal parameter description.
-    const TString& GetDescription() const;
+    const std::string& GetDescription() const;
 
     // Get the parameter option, it could be Single, Optional or Variadic.
     FormalParameterOption GetOption() const;
@@ -256,7 +256,7 @@ class OpSchema final {
     DataTypeSet& MutableTypes();
 
     // Formal parameter name.
-    TString name_;
+    std::string name_;
 
     // A set of data types supported for <*this> formal parameter.
     // It should contain at least one element if this formal parameter is good.
@@ -265,10 +265,10 @@ class OpSchema final {
     // The <parameter type> string specified when registring an op.
     // It could be a supported data type or a type constraint key, which
     // maps to a set of supported data types.
-    TString type_str_;
+    std::string type_str_;
 
     // Formal parameter description.
-    TString description_;
+    std::string description_;
 
     // Formal parameter option.
     FormalParameterOption param_option_;
@@ -293,13 +293,13 @@ class OpSchema final {
   };
 
   OpSchema() : OpSchema("unknown", "unknown", 0) {}
-  OpSchema(TString name, TString file, int line)
+  OpSchema(std::string name, std::string file, int line)
       : name_(std::move(name)), file_(std::move(file)), line_(line), support_(SupportType::COMMON) {}
 
   /**
    * @brief Returns the file that the op schema is registered from.
    */
-  const TString& file() const {
+  const std::string& file() const {
     return file_;
   }
 
@@ -393,7 +393,7 @@ class OpSchema final {
   // This may be disabled to save memory.
   OpSchema& SetDoc(const char* doc) {
 #ifndef __ONNX_NO_DOC_STRINGS
-    SetDoc(TString(doc));
+    SetDoc(std::string(doc));
 #else
     ONNX_UNUSED_PARAMETER(doc);
 #endif
@@ -401,7 +401,7 @@ class OpSchema final {
     return *this;
   }
 
-  OpSchema& SetDoc(const TString& doc) {
+  OpSchema& SetDoc(const std::string& doc) {
 #ifndef __ONNX_NO_DOC_STRINGS
     doc_ = doc;
 #else
@@ -412,34 +412,34 @@ class OpSchema final {
 
   // Functions to specify name for the operator schema.
   OpSchema& SetName(const char* name);
-  OpSchema& SetName(TString name);
+  OpSchema& SetName(std::string name);
 
   // Functions to specify code location for the operator schema.
   OpSchema& SetLocation(const char* file, int line);
-  OpSchema& SetLocation(TString file, int line);
+  OpSchema& SetLocation(std::string file, int line);
 
   // Functions to specify domain for the operator schema.
   // Default domain value (ONNX_DOMAIN) means it's ONNX domain.
   OpSchema& SetDomain(const char* domain);
-  OpSchema& SetDomain(TString domain);
+  OpSchema& SetDomain(std::string domain);
 
   struct Attribute final {
-    Attribute(TString name_, TString description_, AttributeProto::AttributeType type_, bool required_)
+    Attribute(std::string name_, std::string description_, AttributeProto::AttributeType type_, bool required_)
         : name(std::move(name_)),
           description(std::move(description_)),
           type(type_),
           required(required_),
           default_value() {}
 
-    Attribute(TString name_, TString description_, AttributeProto default_value_)
+    Attribute(std::string name_, std::string description_, AttributeProto default_value_)
         : name(std::move(name_)),
           description(std::move(description_)),
           type(default_value_.type()),
           required(false),
           default_value(std::move(default_value_)) {}
 
-    const TString name;
-    const TString description;
+    const std::string name;
+    const std::string description;
     AttributeProto::AttributeType type;
     bool required;
     AttributeProto default_value;
@@ -450,25 +450,25 @@ class OpSchema final {
 // Register "optional" attribute with default value.
 #define ATTR_SETTER_WITH_DEFAULT_VALUE(TypeName)                                                                    \
   OpSchema& Attr(                                                                                                   \
-      TString name, TString description, AttributeProto::AttributeType type, const TypeName& defaultValue); \
+      std::string name, std::string description, AttributeProto::AttributeType type, const TypeName& defaultValue); \
   /* non-STL wrapper to reduce binary size */                                                                       \
   OpSchema& Attr(                                                                                                   \
       const char* name, const char* description, AttributeProto::AttributeType type, const TypeName& defaultValue); \
   OpSchema& Attr(                                                                                                   \
-      TString name,                                                                                             \
-      TString description,                                                                                      \
+      std::string name,                                                                                             \
+      std::string description,                                                                                      \
       AttributeProto::AttributeType type,                                                                           \
       const std::vector<TypeName>& defaultValue);
 
   ATTR_SETTER_WITH_DEFAULT_VALUE(int64_t)
   ATTR_SETTER_WITH_DEFAULT_VALUE(float)
-  ATTR_SETTER_WITH_DEFAULT_VALUE(TString)
+  ATTR_SETTER_WITH_DEFAULT_VALUE(std::string)
   ATTR_SETTER_WITH_DEFAULT_VALUE(TensorProto)
   ATTR_SETTER_WITH_DEFAULT_VALUE(GraphProto)
   ATTR_SETTER_WITH_DEFAULT_VALUE(TypeProto)
 
   // Register "required" attribute without default value.
-  OpSchema& Attr(TString name, TString description, AttributeProto::AttributeType type, bool required = true);
+  OpSchema& Attr(std::string name, std::string description, AttributeProto::AttributeType type, bool required = true);
 
   // Non-STL wrapper to reduce binary size
   OpSchema& Attr(const char* name, const char* description, AttributeProto::AttributeType type, bool required = true);
@@ -478,20 +478,20 @@ class OpSchema final {
   // Type constraint.
   struct TypeConstraintParam final {
     TypeConstraintParam(
-        TString type_param_str_,
-        std::vector<TString> allowed_type_strs_,
-        TString description_)
+        std::string type_param_str_,
+        std::vector<std::string> allowed_type_strs_,
+        std::string description_)
         : type_param_str(std::move(type_param_str_)),
           allowed_type_strs(std::move(allowed_type_strs_)),
           description(std::move(description_)) {}
 
     // Type parameter string, for example, "T", "T1", etc.
-    TString type_param_str;
+    std::string type_param_str;
     // Allowed type strings for <*this> type parameter, for example,
     // "tensor(float)".
-    std::vector<TString> allowed_type_strs;
+    std::vector<std::string> allowed_type_strs;
     // Type parameter description.
-    TString description;
+    std::string description;
   };
 
   // Grammar for type strings used in Input(), Output().
@@ -522,9 +522,9 @@ class OpSchema final {
   // optional inputs.
   OpSchema& Input(
       int n,
-      TString name,
-      const TString& description,
-      TString type_str,
+      std::string name,
+      const std::string& description,
+      std::string type_str,
       FormalParameterOption param_option = Single,
       bool is_homogeneous = true,
       int min_arity = 1,
@@ -543,9 +543,9 @@ class OpSchema final {
 
   OpSchema& Output(
       int n,
-      TString name,
-      const TString& description,
-      TString type_str,
+      std::string name,
+      const std::string& description,
+      std::string type_str,
       FormalParameterOption param_option = Single,
       bool is_homogeneous = true,
       int min_arity = 1,
@@ -562,7 +562,7 @@ class OpSchema final {
       int min_arity = 1,
       DifferentiationCategory differentiation_category = Unknown);
 
-  OpSchema& TypeConstraint(TString type_str, std::vector<TString> constraints, TString description);
+  OpSchema& TypeConstraint(std::string type_str, std::vector<std::string> constraints, std::string description);
 
   // Non-STL wrapper to reduce binary size
   OpSchema&
@@ -571,8 +571,8 @@ class OpSchema final {
   // Convenience members for types
 
   // All high-precision numeric types.
-  static const std::vector<TString>& numeric_types_for_math_reduction_with_bfloat() {
-    static const std::vector<TString> numeric_types_for_math_reduction_with_bfloat = {
+  static const std::vector<std::string>& numeric_types_for_math_reduction_with_bfloat() {
+    static const std::vector<std::string> numeric_types_for_math_reduction_with_bfloat = {
         "tensor(uint32)",
         "tensor(uint64)",
         "tensor(int32)",
@@ -584,8 +584,8 @@ class OpSchema final {
     return numeric_types_for_math_reduction_with_bfloat;
   }
 
-  static const std::vector<TString>& numeric_types_for_math_reduction() {
-    static const std::vector<TString> numeric_types_for_math_reduction = {
+  static const std::vector<std::string>& numeric_types_for_math_reduction() {
+    static const std::vector<std::string> numeric_types_for_math_reduction = {
         "tensor(uint32)",
         "tensor(uint64)",
         "tensor(int32)",
@@ -596,8 +596,8 @@ class OpSchema final {
     return numeric_types_for_math_reduction;
   }
 
-  static const std::vector<TString>& all_numeric_types_with_bfloat() {
-    static const std::vector<TString> all_numeric_types_with_bfloat = {
+  static const std::vector<std::string>& all_numeric_types_with_bfloat() {
+    static const std::vector<std::string> all_numeric_types_with_bfloat = {
         "tensor(uint8)",
         "tensor(uint16)",
         "tensor(uint32)",
@@ -613,8 +613,8 @@ class OpSchema final {
     return all_numeric_types_with_bfloat;
   }
 
-  static const std::vector<TString>& all_numeric_types() {
-    static const std::vector<TString> all_numeric_types = {
+  static const std::vector<std::string>& all_numeric_types() {
+    static const std::vector<std::string> all_numeric_types = {
         "tensor(uint8)",
         "tensor(uint16)",
         "tensor(uint32)",
@@ -629,8 +629,8 @@ class OpSchema final {
     return all_numeric_types;
   }
 
-  static const std::vector<TString>& all_numeric_sequence_types() {
-    static const std::vector<TString> all_numeric_sequence_types = {
+  static const std::vector<std::string>& all_numeric_sequence_types() {
+    static const std::vector<std::string> all_numeric_sequence_types = {
         "seq(tensor(uint8))",
         "seq(tensor(uint16))",
         "seq(tensor(uint32))",
@@ -645,8 +645,8 @@ class OpSchema final {
     return all_numeric_sequence_types;
   }
 
-  static const std::vector<TString>& all_tensor_types() {
-    static const std::vector<TString> all_tensor_types = {
+  static const std::vector<std::string>& all_tensor_types() {
+    static const std::vector<std::string> all_tensor_types = {
         "tensor(uint8)",
         "tensor(uint16)",
         "tensor(uint32)",
@@ -665,8 +665,8 @@ class OpSchema final {
     return all_tensor_types;
   }
 
-  static const std::vector<TString>& all_tensor_types_with_bfloat() {
-    static const std::vector<TString> all_tensor_types_with_bfloat = {
+  static const std::vector<std::string>& all_tensor_types_with_bfloat() {
+    static const std::vector<std::string> all_tensor_types_with_bfloat = {
         "tensor(uint8)",
         "tensor(uint16)",
         "tensor(uint32)",
@@ -686,8 +686,8 @@ class OpSchema final {
     return all_tensor_types_with_bfloat;
   }
 
-  static const std::vector<TString>& all_tensor_sequence_types() {
-    static const std::vector<TString> all_tensor_sequence_types = {
+  static const std::vector<std::string>& all_tensor_sequence_types() {
+    static const std::vector<std::string> all_tensor_sequence_types = {
         "seq(tensor(uint8))",
         "seq(tensor(uint16))",
         "seq(tensor(uint32))",
@@ -706,8 +706,8 @@ class OpSchema final {
     return all_tensor_sequence_types;
   }
 
-  static const std::vector<TString>& all_tensor_sequence_types_with_bfloat() {
-    static const std::vector<TString> all_tensor_sequence_types_with_bfloat = {
+  static const std::vector<std::string>& all_tensor_sequence_types_with_bfloat() {
+    static const std::vector<std::string> all_tensor_sequence_types_with_bfloat = {
         "seq(tensor(uint8))",
         "seq(tensor(uint16))",
         "seq(tensor(uint32))",
@@ -727,8 +727,8 @@ class OpSchema final {
     return all_tensor_sequence_types_with_bfloat;
   }
 
-  static const std::vector<TString>& all_optional_types() {
-    static const std::vector<TString> all_optional_types = {
+  static const std::vector<std::string>& all_optional_types() {
+    static const std::vector<std::string> all_optional_types = {
         "optional(seq(tensor(uint8)))",  "optional(seq(tensor(uint16)))",    "optional(seq(tensor(uint32)))",
         "optional(seq(tensor(uint64)))", "optional(seq(tensor(int8)))",      "optional(seq(tensor(int16)))",
         "optional(seq(tensor(int32)))",  "optional(seq(tensor(int64)))",     "optional(seq(tensor(float16)))",
@@ -742,8 +742,8 @@ class OpSchema final {
     return all_optional_types;
   }
 
-  static const std::vector<TString>& all_optional_types_with_bfloat() {
-    static const std::vector<TString> all_optional_types = {
+  static const std::vector<std::string>& all_optional_types_with_bfloat() {
+    static const std::vector<std::string> all_optional_types = {
         "optional(seq(tensor(uint8)))",      "optional(seq(tensor(uint16)))", "optional(seq(tensor(uint32)))",
         "optional(seq(tensor(uint64)))",     "optional(seq(tensor(int8)))",   "optional(seq(tensor(int16)))",
         "optional(seq(tensor(int32)))",      "optional(seq(tensor(int64)))",  "optional(seq(tensor(bfloat16)))",
@@ -764,11 +764,11 @@ class OpSchema final {
 
   friend std::ostream& operator<<(std::ostream& out, const OpSchema& schema);
 
-  const TString& domain() const {
+  const std::string& domain() const {
     return domain_;
   }
 
-  const std::map<TString, Attribute>& attributes() const {
+  const std::map<std::string, Attribute>& attributes() const {
     return attributes_;
   }
 
@@ -786,7 +786,7 @@ class OpSchema final {
     return type_constraint_params_;
   }
 
-  const TString& Name() const {
+  const std::string& Name() const {
     return name_;
   }
 
@@ -908,15 +908,15 @@ class OpSchema final {
       const FunctionProto* function,
       int requested_opset_version,
       int function_since_version,
-      std::set<TString>* updated_ops = nullptr) const;
+      std::set<std::string>* updated_ops = nullptr) const;
   void UpdateFunctionProtoOpsetImportVersion(FunctionProto& function_proto, int opset_version) const;
 
-  TString name_;
-  TString file_;
-  TString doc_;
+  std::string name_;
+  std::string file_;
+  std::string doc_;
   // Default domain value ("") means it's ONNX domain.
-  TString domain_ = ONNX_DOMAIN;
-  std::map<TString, Attribute> attributes_{};
+  std::string domain_ = ONNX_DOMAIN;
+  std::map<std::string, Attribute> attributes_{};
   bool allows_unchecked_attributes_ = false;
   std::vector<FormalParameter> inputs_;
   std::vector<FormalParameter> outputs_;
@@ -943,14 +943,14 @@ class OpSchema final {
 // Map type to store operator schemas. The format is,
 // <OpName, <Domain, <OperatorSetVersion, OpSchema>>>.
 using OpName_Domain_Version_Schema_Map =
-    std::unordered_map<TString, std::unordered_map<TString, std::map<OperatorSetVersion, OpSchema>>>;
+    std::unordered_map<std::string, std::unordered_map<std::string, std::map<OperatorSetVersion, OpSchema>>>;
 
 class ISchemaRegistry {
  public:
   virtual ~ISchemaRegistry() = default;
 
   virtual const OpSchema*
-  GetSchema(const TString& key, const int maxInclusiveVersion, const TString& domain = ONNX_DOMAIN) const = 0;
+  GetSchema(const std::string& key, const int maxInclusiveVersion, const std::string& domain = ONNX_DOMAIN) const = 0;
 };
 
 /**
@@ -982,11 +982,11 @@ class OpSchemaRegistry final : public ISchemaRegistry {
       last_release_version_map_[AI_ONNX_PREVIEW_TRAINING_DOMAIN] = 1;
     }
 
-    const std::unordered_map<TString, std::pair<int, int>>& Map() const {
+    const std::unordered_map<std::string, std::pair<int, int>>& Map() const {
       return map_;
     }
 
-    const std::unordered_map<TString, int>& LastReleaseVersionMap() const {
+    const std::unordered_map<std::string, int>& LastReleaseVersionMap() const {
       return last_release_version_map_;
     }
 
@@ -998,7 +998,7 @@ class OpSchemaRegistry final : public ISchemaRegistry {
     // this as appropriate (that is, as relative to releases of custom-domain
     // as opposed to ONNX releases).
     void
-    AddDomainToVersion(const TString& domain, int min_version, int max_version, int last_release_version = -1) {
+    AddDomainToVersion(const std::string& domain, int min_version, int max_version, int last_release_version = -1) {
       std::lock_guard<std::mutex> lock(mutex_);
       assert(map_.end() == map_.find(domain));
       map_[domain] = std::make_pair(min_version, max_version);
@@ -1014,12 +1014,12 @@ class OpSchemaRegistry final : public ISchemaRegistry {
 
    private:
     // Key: domain. Value: <lowest version, highest version> pair.
-    std::unordered_map<TString, std::pair<int, int>> map_;
+    std::unordered_map<std::string, std::pair<int, int>> map_;
 
     // Key: domain. Value: most recent release opset version. Note that
     // the highest opset version may be ahead of the most recent release's opset
     // version.
-    std::unordered_map<TString, int> last_release_version_map_;
+    std::unordered_map<std::string, int> last_release_version_map_;
 
     std::mutex mutex_;
   };
@@ -1087,7 +1087,7 @@ class OpSchemaRegistry final : public ISchemaRegistry {
 
   // Return the latest schema for an operator in specified domain.
   // Domain with default value ONNX_DOMAIN means ONNX.
-  static const OpSchema* Schema(const TString& key, const TString& domain = ONNX_DOMAIN) {
+  static const OpSchema* Schema(const std::string& key, const std::string& domain = ONNX_DOMAIN) {
     auto& m = map();
     if (m.count(key) && m[key].count(domain)) {
       return &m[key][domain].rbegin()->second;
@@ -1100,7 +1100,7 @@ class OpSchemaRegistry final : public ISchemaRegistry {
   // <maxInclusiveVersion> in specified domain. Domain with default value
   // ONNX_DOMAIN means ONNX.
   static const OpSchema*
-  Schema(const TString& key, const int maxInclusiveVersion, const TString& domain = ONNX_DOMAIN) {
+  Schema(const std::string& key, const int maxInclusiveVersion, const std::string& domain = ONNX_DOMAIN) {
     auto& m = map();
     if (m.count(key) && m[key].count(domain)) {
       auto pos = m[key][domain].lower_bound(maxInclusiveVersion);
@@ -1124,9 +1124,9 @@ class OpSchemaRegistry final : public ISchemaRegistry {
   static OpSchemaRegistry* Instance();
 
   const OpSchema* GetSchema(
-      const TString& key,
+      const std::string& key,
       const int maxInclusiveVersion,
-      const TString& domain = ONNX_DOMAIN) const override {
+      const std::string& domain = ONNX_DOMAIN) const override {
     return Schema(key, maxInclusiveVersion, domain);
   }
   static void SetLoadedSchemaVersion(int target_version) {
@@ -1251,7 +1251,7 @@ class DbgOperatorSetTracker {
   ONNX_OPERATOR_SET_SCHEMA_CLASS_NAME(OnnxPreview, ver, name)
 
 // Helper function
-size_t ReplaceAll(TString& s, const char* from, const char* to);
+size_t ReplaceAll(std::string& s, const char* from, const char* to);
 
 #ifdef __GNUC__
 #define ONNX_UNUSED __attribute__((__unused__))
@@ -1267,9 +1267,9 @@ size_t ReplaceAll(TString& s, const char* from, const char* to);
       OpSchema(#name, __FILE__, __LINE__)
 
 // Helper function
-size_t ReplaceAll(TString& s, const char* from, const char* to);
+size_t ReplaceAll(std::string& s, const char* from, const char* to);
 
-inline TString GenerateOptionalArgumentsDoc() {
+inline std::string GenerateOptionalArgumentsDoc() {
   return "This operator has **optional** inputs/outputs. "
          "See [the doc](IR.md) for more details about the representation of "
          "optional arguments. An empty string may be used in the place of "
@@ -1278,13 +1278,13 @@ inline TString GenerateOptionalArgumentsDoc() {
          "that is present) may also be simply omitted.\n";
 }
 
-inline TString GenerateBroadcastingDocMul() {
+inline std::string GenerateBroadcastingDocMul() {
   return "This operator supports **multidirectional (i.e., Numpy-style) broadcasting**;"
          " for more details please check [the doc](Broadcasting.md).";
 }
 
-inline TString GenerateBroadcastingDocUni(const char* from, const char* to) {
-  TString ret = "This operator supports **unidirectional broadcasting** (";
+inline std::string GenerateBroadcastingDocUni(const char* from, const char* to) {
+  std::string ret = "This operator supports **unidirectional broadcasting** (";
   ret = ret + from + " should be unidirectional broadcastable to " + to +
       ");"
       " for more details please check [the doc](Broadcasting.md).";
@@ -1300,7 +1300,7 @@ inline TString GenerateBroadcastingDocUni(const char* from, const char* to) {
  * SetDoc(GET_OP_DOC_STR(doc_str))
  *
  * SetDoc(GET_OP_DOC_STR(
-            TString(BitShift_ver11_doc) + GenerateBroadcastingDocMul()))
+            std::string(BitShift_ver11_doc) + GenerateBroadcastingDocMul()))
  */
 #ifndef __ONNX_NO_DOC_STRINGS
 #define GET_OP_DOC_STR(doc_str) (doc_str)
@@ -1312,7 +1312,7 @@ inline TString GenerateBroadcastingDocUni(const char* from, const char* to) {
  * Use this macro when the documentation needs to be populated in some
  * complicated way like string substitutions, etc before calling SetDoc.
  * Sample usage guidelines:
-    TString doc;
+    std::string doc;
     POPULATE_OP_DOC_STR(
         doc = R"DOC(
 Returns the tensor resulted from performing the `{name}` logical operation

@@ -140,7 +140,7 @@ void check_tensor(const TensorProto& tensor, const CheckerContext& ctx) {
         }
         auto relative_path = file_path.lexically_normal().make_preferred().wstring();
         // Check that normalized relative path contains ".." on Windows.
-        if (relative_path.find(L"..", 0) != TString::npos) {
+        if (relative_path.find(L"..", 0) != std::string::npos) {
           fail_check(
               "Data of TensorProto ( tensor name: ",
               tensor.name(),
@@ -170,9 +170,9 @@ void check_tensor(const TensorProto& tensor, const CheckerContext& ctx) {
               ") should be a relative path, but it is an absolute path: ",
               entry.value());
         }
-        TString relative_path = clean_relative_path(entry.value());
+        std::string relative_path = clean_relative_path(entry.value());
         // Check that normalized relative path contains ".." on POSIX
-        if (relative_path.find("..", 0) != TString::npos) {
+        if (relative_path.find("..", 0) != std::string::npos) {
           fail_check(
               "Data of TensorProto ( tensor name: ",
               tensor.name(),
@@ -182,7 +182,7 @@ void check_tensor(const TensorProto& tensor, const CheckerContext& ctx) {
               entry.value(),
               "' points outside the directory");
         }
-        TString data_path = path_join(ctx.get_model_dir(), relative_path);
+        std::string data_path = path_join(ctx.get_model_dir(), relative_path);
         // use stat to check whether the file exists
         struct stat buffer;
         if (stat((data_path).c_str(), &buffer) != 0) {
@@ -595,9 +595,9 @@ void check_attribute(const AttributeProto& attr, const CheckerContext& ctx, cons
   }
 }
 
-void print_warning_if_has_experimental(const std::unordered_set<TString>& used_experimental_ops) {
+void print_warning_if_has_experimental(const std::unordered_set<std::string>& used_experimental_ops) {
   if (!used_experimental_ops.empty()) {
-    TString all_experimental_ops;
+    std::string all_experimental_ops;
     for (const auto& op : used_experimental_ops) {
       all_experimental_ops += " " + op + ",";
     }
@@ -682,7 +682,7 @@ void check_graph(const GraphProto& graph, const CheckerContext& ctx, const Lexic
     lex_ctx.add(value_info.name());
   }
 
-  std::unordered_set<std::reference_wrapper<const TString>, std::hash<TString>, std::equal_to<TString>>
+  std::unordered_set<std::reference_wrapper<const std::string>, std::hash<std::string>, std::equal_to<std::string>>
       initializer_name_checker;
 
   for (const auto& init : graph.initializer()) {
@@ -692,7 +692,7 @@ void check_graph(const GraphProto& graph, const CheckerContext& ctx, const Lexic
       fail_check("Tensor initializers must have a non-empty name");
     }
 
-    if (!initializer_name_checker.insert(std::cref(name)).second) {
+    if (!initializer_name_checker.insert(std::cref(name.ConstRef())).second) {
       fail_check(name + " initializer name is not unique");
     }
 
@@ -717,13 +717,13 @@ void check_graph(const GraphProto& graph, const CheckerContext& ctx, const Lexic
     if (name.empty()) {
       fail_check("Sparse tensor initializers must have a non-empty name");
     }
-    if (!initializer_name_checker.insert(std::cref(name)).second) {
+    if (!initializer_name_checker.insert(std::cref(name.ConstRef())).second) {
       fail_check(name + " sparse initializer name is not unique across initializers and sparse_initializers");
     }
     check_sparse_tensor(sparse_init, ctx);
     lex_ctx.add(name);
   }
-  std::unordered_set<TString> used_experimental_ops;
+  std::unordered_set<std::string> used_experimental_ops;
   for (const auto& node : graph.node()) {
     // nodes must be in topologically sorted order
     for (const auto& input : node.input()) {
@@ -782,7 +782,7 @@ void check_graph(const GraphProto& graph, const CheckerContext& ctx, const Lexic
 
 // Utilify function to get the imported version of domain from opset imports
 // Returns -1 if requested domain is not found in the opset_imports
-int get_version_for_domain(const TString& domain, const std::unordered_map<TString, int>& opset_imports) {
+int get_version_for_domain(const std::string& domain, const std::unordered_map<std::string, int>& opset_imports) {
   auto it = opset_imports.find(domain);
   if (it == opset_imports.end()) {
     return -1;
@@ -794,8 +794,8 @@ int get_version_for_domain(const TString& domain, const std::unordered_map<TStri
 void check_opset_compatibility(
     const NodeProto& node,
     const CheckerContext& ctx,
-    const std::unordered_map<TString, int>& func_opset_imports,
-    const std::unordered_map<TString, int>& model_opset_imports) {
+    const std::unordered_map<std::string, int>& func_opset_imports,
+    const std::unordered_map<std::string, int>& model_opset_imports) {
   auto func_opset_version = get_version_for_domain(node.domain(), func_opset_imports);
   auto model_opset_version = get_version_for_domain(node.domain(), model_opset_imports);
 
@@ -842,7 +842,7 @@ void check_model_local_functions(
     const LexicalScopeContext& parent_lex) {
   // make a copy of model opset imports to maintain a main copy of opset imports across the model and
   // all model local functions to verify opset compatibility
-  std::unordered_map<TString, int> model_opset_imports(ctx.get_opset_imports());
+  std::unordered_map<std::string, int> model_opset_imports(ctx.get_opset_imports());
 
   // merge the opset imports from every function in model_opset_imports
   // only add the opset import if an entry for it does not exist in model_opset_imports
@@ -874,7 +874,7 @@ void check_function(const FunctionProto& function, const CheckerContext& ctx, co
   const auto& model_opset_imports = ctx.get_opset_imports();
   CheckerContext ctx_copy = ctx;
 
-  std::unordered_map<TString, int> func_opset_imports;
+  std::unordered_map<std::string, int> func_opset_imports;
   for (auto& relied_opset : function.opset_import()) {
     func_opset_imports[relied_opset.domain()] = static_cast<int>(relied_opset.version());
   }
@@ -893,7 +893,7 @@ void check_function(const FunctionProto& function, const CheckerContext& ctx, co
     lex_ctx.add(input);
   }
 
-  std::unordered_set<TString> outputs;
+  std::unordered_set<std::string> outputs;
   for (const auto& output : function.output()) {
     auto result = outputs.insert(output);
     if (!result.second) {
@@ -901,14 +901,14 @@ void check_function(const FunctionProto& function, const CheckerContext& ctx, co
     }
   }
 
-  std::unordered_set<TString> attrs;
+  std::unordered_set<std::string> attrs;
   for (const auto& attr : function.attribute()) {
     auto result = attrs.insert(attr);
     if (!result.second) {
       fail_check("function (", function.name(), ") should not have duplicate attributes specified.");
     }
   }
-  std::unordered_set<TString> used_experimental_ops;
+  std::unordered_set<std::string> used_experimental_ops;
   for (const auto& node : function.node()) {
     // nodes must be in topologically sorted order
     for (const auto& input : node.input()) {
@@ -963,7 +963,7 @@ void check_model(const ModelProto& model, CheckerContext& ctx) {
     fail_check("Your model ir_version is higher than the checker's.");
   }
   if (model.metadata_props_size() > 1) {
-    std::unordered_set<TString> keys;
+    std::unordered_set<std::string> keys;
     for (const StringStringEntryProto& entry : model.metadata_props()) {
       auto i = keys.insert(entry.key());
       if (!i.second) {
@@ -971,9 +971,9 @@ void check_model(const ModelProto& model, CheckerContext& ctx) {
       }
     }
   }
-  std::unordered_map<TString, int> versions;
+  std::unordered_map<std::string, int> versions;
   ctx.set_ir_version(static_cast<int>(model.ir_version()));
-  std::unordered_map<TString, int> opset_imports;
+  std::unordered_map<std::string, int> opset_imports;
   for (const auto& opset_import : model.opset_import()) {
     opset_imports[opset_import.domain()] = static_cast<int>(opset_import.version());
   }
@@ -997,14 +997,14 @@ void check_model(const ModelProto& model, CheckerContext& ctx) {
   }
 }
 
-void check_model(const TString& model_path, bool full_check) {
+void check_model(const std::string& model_path, bool full_check) {
   ModelProto model;
   LoadProtoFromPath(model_path, model);
 
   CheckerContext ctx;
-  TString model_dir;
+  std::string model_dir;
   size_t pos = model_path.find_last_of("\\/");
-  if (pos != TString::npos) {
+  if (pos != std::string::npos) {
     model_dir = model_path.substr(0, pos + 1);
   }
   ctx.set_model_dir(model_dir);
@@ -1028,7 +1028,7 @@ void check_model(const ModelProto& model, bool full_check) {
   }
 }
 
-std::set<TString> experimental_ops = {
+std::set<std::string> experimental_ops = {
     "ATen",
     "Affine",
     "ConstantFill",

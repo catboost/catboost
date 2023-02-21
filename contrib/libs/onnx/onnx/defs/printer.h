@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& os, const FunctionProto& fn);
 std::ostream& operator<<(std::ostream& os, const ModelProto& model);
 
 template <typename ProtoType>
-TString ProtoToString(const ProtoType& proto) {
+std::string ProtoToString(const ProtoType& proto) {
   std::stringstream ss;
   ss << proto;
   return ss.str();

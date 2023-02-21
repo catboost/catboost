@@ -25,12 +25,12 @@ class BaseVersionConverter {
   // <to_version>: adapter}}}
  protected:
   std::unordered_map<
-      TString,
-      std::unordered_map<TString, std::unordered_map<TString, std::unique_ptr<Adapter>>>>
+      std::string,
+      std::unordered_map<std::string, std::unordered_map<std::string, std::unique_ptr<Adapter>>>>
       adapters;
 
   // Map of All Versions of format {op_name: {domain: {version: schema}}}
-  std::unordered_map<TString, std::unordered_map<TString, std::map<int64_t, const OpSchema*>>> all_schemas;
+  std::unordered_map<std::string, std::unordered_map<std::string, std::map<int64_t, const OpSchema*>>> all_schemas;
 
  public:
   BaseVersionConverter() = default;
@@ -42,9 +42,9 @@ class BaseVersionConverter {
   // a given Node from a certain version to another. It should only be called
   // when the user knows that an adapter should exist for the given context.
   const Adapter& adapter_lookup(const Node* op, const OpSetID& initial_version, const OpSetID& target_version) const {
-    const TString op_name = op->kind().toString();
-    const TString initial = initial_version.toString();
-    const TString target = target_version.toString();
+    const std::string op_name = op->kind().toString();
+    const std::string initial = initial_version.toString();
+    const std::string target = target_version.toString();
     // Find appropriate adapter in adapters map for provided initial and target versions
     // TODO: Consider abstracting elements of this that are specific to
     // DefaultConverter to separate methods here and maintain the procedure in Base Converter

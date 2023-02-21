@@ -12,7 +12,7 @@
 namespace ONNX_NAMESPACE {
 
 template <typename T>
-void LoadProtoFromPath(const TString proto_path, T& proto) {
+void LoadProtoFromPath(const std::string proto_path, T& proto) {
   std::fstream proto_stream(proto_path, std::ios::in | std::ios::binary);
   if (!proto_stream.good()) {
     fail_check("Unable to open proto file: ", proto_path, ". Please check if it is a valid proto. ");

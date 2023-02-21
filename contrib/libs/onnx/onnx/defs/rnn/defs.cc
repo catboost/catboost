@@ -79,7 +79,7 @@ std::function<void(OpSchema&)> RNNDocGenerator(const char* /*name*/) {
         "Specify if the RNN is forward, reverse, or bidirectional. "
         "Must be one of forward (default), reverse, or bidirectional.",
         AttributeProto::STRING,
-        TString("forward"));
+        std::string("forward"));
     schema.Attr(
         "layout",
         "The shape format of inputs X, initial_h and outputs Y, Y_h. "
@@ -243,14 +243,14 @@ ONNX_OPERATOR_SET_SCHEMA(
     RNN,
     14,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(RNN_ver14_doc) + GenerateOptionalArgumentsDoc()))
+        .SetDoc(GET_OP_DOC_STR(std::string(RNN_ver14_doc) + GenerateOptionalArgumentsDoc()))
         .Attr(
             "activations",
             "One (or two if bidirectional) activation function for "
             "input gate. The activation function must be one of the activation "
             "functions specified above. Optional: Default `Tanh` if not specified.",
             AttributeProto::STRINGS,
-            std::vector<TString>{"Tanh", "Tanh"})
+            std::vector<std::string>{"Tanh", "Tanh"})
         .Input(
             1,
             "W",
@@ -366,7 +366,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     GRU,
     14,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(GRU_ver14_doc) + GenerateOptionalArgumentsDoc()))
+        .SetDoc(GET_OP_DOC_STR(std::string(GRU_ver14_doc) + GenerateOptionalArgumentsDoc()))
         .Attr(
             "activations",
             "A list of 2 (or 4 if bidirectional) activation functions "
@@ -505,7 +505,7 @@ ONNX_OPERATOR_SET_SCHEMA(
     LSTM,
     14,
     OpSchema()
-        .SetDoc(GET_OP_DOC_STR(TString(LSTM_ver14_doc) + GenerateOptionalArgumentsDoc()))
+        .SetDoc(GET_OP_DOC_STR(std::string(LSTM_ver14_doc) + GenerateOptionalArgumentsDoc()))
         .Attr(
             "activations",
             "A list of 3 (or 6 if bidirectional) activation functions "

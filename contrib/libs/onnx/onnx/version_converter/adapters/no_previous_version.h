@@ -14,7 +14,7 @@ namespace version_conversion {
 
 class NoPreviousVersionAdapter final : public Adapter {
  public:
-  explicit NoPreviousVersionAdapter(const TString& op_name, const OpSetID& initial, const OpSetID& target)
+  explicit NoPreviousVersionAdapter(const std::string& op_name, const OpSetID& initial, const OpSetID& target)
       : Adapter(op_name, initial, target) {}
 
   Node* adapt(std::shared_ptr<Graph>, Node* node) const override {

@@ -33,7 +33,7 @@ class SymbolTable {
   // Adds existing symbols from a main graph or subgraph
   virtual void addFromGraph(const GraphProto& g) = 0;
   // Creates a new symbol which is not duplicate as any existing one
-  virtual TString createNew(const TString& symbol_prefix) = 0;
+  virtual std::string createNew(const std::string& symbol_prefix) = 0;
   virtual ~SymbolTable() = default;
 };
 
@@ -53,7 +53,7 @@ class InferenceError final : public std::runtime_error {
  public:
   using std::runtime_error::runtime_error;
 
-  InferenceError(const TString& message) : std::runtime_error(message) {}
+  InferenceError(const std::string& message) : std::runtime_error(message) {}
 
   const char* what() const noexcept override {
     if (!expanded_message_.empty()) {
@@ -62,12 +62,12 @@ class InferenceError final : public std::runtime_error {
     return std::runtime_error::what();
   }
 
-  void AppendContext(const TString& context) {
+  void AppendContext(const std::string& context) {
     expanded_message_ = ONNX_NAMESPACE::MakeString(std::runtime_error::what(), "\n\n==> Context: ", context);
   }
 
  private:
-  TString expanded_message_;
+  std::string expanded_message_;
 };
 
 #define fail_type_inference(...) \
@@ -77,7 +77,7 @@ class InferenceError final : public std::runtime_error {
   ONNX_THROW_EX(ONNX_NAMESPACE::InferenceError(ONNX_NAMESPACE::MakeString("[ShapeInferenceError] ", __VA_ARGS__)));
 
 struct InferenceContext {
-  virtual const AttributeProto* getAttribute(const TString& name) const = 0;
+  virtual const AttributeProto* getAttribute(const std::string& name) const = 0;
   virtual size_t getNumInputs() const = 0;
   virtual const TypeProto* getInputType(size_t index) const = 0;
   virtual bool hasInput(size_t index) const {
@@ -92,7 +92,7 @@ struct InferenceContext {
   virtual const TensorProto* getInputData(size_t index) const = 0;
   virtual size_t getNumOutputs() const = 0;
   virtual TypeProto* getOutputType(size_t index) = 0;
-  virtual GraphInferencer* getGraphAttributeInferencer(const TString& attribute_name) = 0;
+  virtual GraphInferencer* getGraphAttributeInferencer(const std::string& attribute_name) = 0;
   virtual ~InferenceContext() {}
   virtual const SparseTensorProto* getInputSparseData(size_t index) const = 0;
   // Gets the shape inputs computed by partial data propagation.
@@ -111,7 +111,7 @@ struct InferenceContext {
 // If the shape of X is statically known, then data-propagation should be able to determine
 // the value of newshape, as well as the shape of Z.
 struct DataPropagationContext {
-  virtual const AttributeProto* getAttribute(const TString& name) const = 0;
+  virtual const AttributeProto* getAttribute(const std::string& name) const = 0;
   virtual size_t getNumInputs() const = 0;
   virtual const TypeProto* getInputType(size_t index) const = 0;
   virtual size_t getNumOutputs() const = 0;
@@ -132,7 +132,7 @@ inline void dummyInferenceFunction(InferenceContext&){};
 inline void dummyDataPropagationFunction(DataPropagationContext&){};
 
 template <typename T>
-inline bool getRepeatedAttribute(InferenceContext& ctx, TString attr_name, std::vector<T>& values) {
+inline bool getRepeatedAttribute(InferenceContext& ctx, std::string attr_name, std::vector<T>& values) {
   const auto* attr = ctx.getAttribute(attr_name);
   if (attr) {
     values = RetrieveValues<T>(*attr);
@@ -142,22 +142,22 @@ inline bool getRepeatedAttribute(InferenceContext& ctx, TString attr_name, std::
   }
 }
 
-inline int64_t getAttribute(InferenceContext& ctx, const TString& attributeName, int64_t defaultValue) {
+inline int64_t getAttribute(InferenceContext& ctx, const std::string& attributeName, int64_t defaultValue) {
   auto attr_proto = ctx.getAttribute(attributeName);
   if ((nullptr != attr_proto) && attr_proto->has_i())
     return attr_proto->i();
   return defaultValue;
 }
 
-inline int64_t getAttribute(DataPropagationContext& ctx, const TString& attributeName, int64_t defaultValue) {
+inline int64_t getAttribute(DataPropagationContext& ctx, const std::string& attributeName, int64_t defaultValue) {
   auto attr_proto = ctx.getAttribute(attributeName);
   if ((nullptr != attr_proto) && attr_proto->has_i())
     return attr_proto->i();
   return defaultValue;
 }
 
-inline TString
-getAttribute(InferenceContext& ctx, const TString& attributeName, const TString& defaultValue) {
+inline std::string
+getAttribute(InferenceContext& ctx, const std::string& attributeName, const std::string& defaultValue) {
   auto attr_proto = ctx.getAttribute(attributeName);
   if ((nullptr != attr_proto) && attr_proto->has_s())
     return attr_proto->s();
@@ -434,7 +434,7 @@ inline void updateOutputElemType(InferenceContext& ctx, size_t outputIndex, int3
 // expected to have a valid value representing a TensorProto_DataType.
 inline void propagateElemTypeFromAttributeToOutput(
     InferenceContext& ctx,
-    const TString& attributeName,
+    const std::string& attributeName,
     size_t outputIndex,
     TypeProto::ValueCase expected_type,
     TensorProto_DataType default_value = TensorProto::UNDEFINED) {
@@ -460,7 +460,7 @@ inline void propagateElemTypeFromAttributeToOutput(
 
 inline void propagateElemTypeFromAttributeToOutput(
     InferenceContext& ctx,
-    const TString& attributeName,
+    const std::string& attributeName,
     size_t outputIndex,
     TensorProto_DataType default_value = TensorProto::UNDEFINED) {
   propagateElemTypeFromAttributeToOutput(ctx, attributeName, outputIndex, TypeProto::kTensorType, default_value);
@@ -538,7 +538,7 @@ TensorShapeProto getShapeInput(InferenceContext& ctx, size_t input_index, bool& 
 // expected to be a list of integers specifying a valid shape.
 inline void propagateShapeFromAttributeToOutput(
     InferenceContext& ctx,
-    const TString& attributeName,
+    const std::string& attributeName,
     size_t outputIndex,
     TypeProto::ValueCase default_type = TypeProto::kTensorType) {
   auto attr_proto = ctx.getAttribute(attributeName);
@@ -659,7 +659,7 @@ inline void mergeInDimensionInfo(
   } else if (target_dim.has_dim_param()) {
     // prefer target param over source
   } else if (source_dim.has_dim_param()) {
-    target_dim.set_dim_param(source_dim.dim_param());
+    target_dim.set_dim_param(TString{source_dim.dim_param()});
   }
 }
 
@@ -769,7 +769,7 @@ inline void unifyDim(const Dim& source_dim, Dim& target_dim) {
     // prefer target param over source
     // we cannot currently unify the dim_params
   } else if (source_dim.has_dim_param()) {
-    target_dim.set_dim_param(source_dim.dim_param());
+    target_dim.set_dim_param(TString{source_dim.dim_param()});
   }
 }
 

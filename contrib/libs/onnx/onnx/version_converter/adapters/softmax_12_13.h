@@ -13,7 +13,7 @@ namespace version_conversion {
 
 class Softmax_12_13 final : public Adapter {
  public:
-  explicit Softmax_12_13(const TString& op_name) : Adapter(op_name, OpSetID(12), OpSetID(13)) {}
+  explicit Softmax_12_13(const std::string& op_name) : Adapter(op_name, OpSetID(12), OpSetID(13)) {}
 
   void adapt_softmax_12_13(std::shared_ptr<Graph> graph, Node* node) const {
     int old_axis = node->hasAttribute(kaxis) ? node->i(kaxis) : 1;
@@ -39,7 +39,7 @@ class Softmax_12_13 final : public Adapter {
       }
 
       // Insert Reshape node after softmax
-      const TString original_output_name = node->output()->uniqueName();
+      const std::string original_output_name = node->output()->uniqueName();
       const use_list original_uses(node->output()->uses());
       node->output()->setUniqueName(original_output_name + "_intermediate");
       Node* reshape = graph->create(kReshape);

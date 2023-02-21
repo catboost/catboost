@@ -50,7 +50,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             "The pooling method. Two modes are supported: 'avg' and 'max'. "
             "Default is 'avg'.",
             AttributeProto::STRING,
-            TString("avg"))
+            std::string("avg"))
         .Input(
             0,
             "X",

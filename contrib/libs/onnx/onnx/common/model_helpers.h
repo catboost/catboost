@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <util/generic/string.h>
+#include <string>
 #include <vector>
 #include "onnx/common/status.h"
 #include "onnx/onnx-operators_pb.h"
@@ -15,11 +15,11 @@ namespace ONNX_NAMESPACE {
 // a FunctionProto. Attributes need to be
 // registered separately.
 Common::Status BuildNode(
-    const TString& name,
-    const TString& domain,
-    const TString& doc_string,
-    const TString& op_type,
-    std::vector<TString> const& inputs,
-    std::vector<TString> const& outputs,
+    const std::string& name,
+    const std::string& domain,
+    const std::string& doc_string,
+    const std::string& op_type,
+    std::vector<std::string> const& inputs,
+    std::vector<std::string> const& outputs,
     /*OUT*/ NodeProto* node);
 } // namespace ONNX_NAMESPACE

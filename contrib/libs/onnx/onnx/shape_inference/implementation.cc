@@ -15,7 +15,7 @@ namespace ONNX_NAMESPACE {
 namespace shape_inference {
 namespace {
 
-TString GetValueCaseString(const TypeProto& type) {
+std::string GetValueCaseString(const TypeProto& type) {
   switch (type.value_case()) {
     case TypeProto::ValueCase::kTensorType:
       return "tensor_type";
@@ -38,9 +38,9 @@ TString GetValueCaseString(const TypeProto& type) {
   }
 }
 
-TString GetElemTypeString(const TypeProto_Tensor& type) {
+std::string GetElemTypeString(const TypeProto_Tensor& type) {
 #ifndef ONNX_USE_LITE_PROTO
-  const TString type_str = TensorProto::DataType_Name(static_cast<TensorProto_DataType>(type.elem_type()));
+  const std::string type_str = TensorProto::DataType_Name(static_cast<TensorProto_DataType>(type.elem_type()));
   if (!type_str.empty()) {
     return type_str;
   }
@@ -48,9 +48,9 @@ TString GetElemTypeString(const TypeProto_Tensor& type) {
   return ONNX_NAMESPACE::to_string(type.elem_type());
 }
 
-TString GetElemTypeString(const TypeProto_SparseTensor& type) {
+std::string GetElemTypeString(const TypeProto_SparseTensor& type) {
 #ifndef ONNX_USE_LITE_PROTO
-  const TString type_str = TensorProto::DataType_Name(static_cast<TensorProto_DataType>(type.elem_type()));
+  const std::string type_str = TensorProto::DataType_Name(static_cast<TensorProto_DataType>(type.elem_type()));
   if (!type_str.empty()) {
     return type_str;
   }
@@ -209,7 +209,7 @@ void GenerateSymbolicShape(TensorTypeProto* inferred_type, SymbolTable& symbol_t
     // set a symbol if it doesn't have dim_value and dim_param
     auto* dim = inferred_type->mutable_shape()->mutable_dim(i);
     if (!dim->has_dim_value() && !dim->has_dim_param()) {
-      dim->set_dim_param(symbol_table.createNew("unk__"));
+      dim->set_dim_param(TString{symbol_table.createNew("unk__")});
     }
   }
 }
@@ -233,13 +233,13 @@ void MaterializeSymbolicShape(TypeProto* inferred_type, SymbolTable& symbol_tabl
   }
 }
 
-TString GetModelLocalFunctionsMapIdentifier(const TString& domain, const TString& func_name) {
+std::string GetModelLocalFunctionsMapIdentifier(const std::string& domain, const std::string& func_name) {
   return domain + ":" + func_name;
 }
 
 class ShapeInferenceImplBase {
  public:
-  void updateType(const TString& name, TypeProto* inferred_type) {
+  void updateType(const std::string& name, TypeProto* inferred_type) {
     if (inferred_type->value_case() == TypeProto::ValueCase::VALUE_NOT_SET) {
       return;
     }
@@ -258,7 +258,7 @@ class ShapeInferenceImplBase {
     } else {
       // Create a new value_info if defined type does not exist
       auto vi = g.add_value_info(); // TODO: clean this up
-      vi->set_name(name);
+      vi->set_name(TString{name});
       existing_type = vi->mutable_type();
       // For undefined output type, update both value_info and output for now
       // Update existing output with undefined type: assign inferred type to it
@@ -414,10 +414,10 @@ class ShapeInferenceImplBase {
   // TypeProto_Tensor or TypeProto_SparseTensor
   template <typename T>
   void processInitializer(
-      const TString& name,
+      const std::string& name,
       const T& tensorValue,
       TypeProto& initializer_type,
-      std::unordered_map<TString, const T*>& map) {
+      std::unordered_map<std::string, const T*>& map) {
     map[name] = &tensorValue;
     auto iter = value_types_by_name.find(name);
     // If it already exists in input, check input and initializer is sync
@@ -478,15 +478,15 @@ class ShapeInferenceImplBase {
     // with 1.7 and earlier releases. When set to 1 it will throw all exceptions.
     // TODO: Add a more granular way for exception handling.
     if (options.error_mode > 0 && !inference_errors.empty()) {
-      TString full_errors = "Shape inference error(s): ";
-      for (const TString& error : inference_errors) {
+      std::string full_errors = "Shape inference error(s): ";
+      for (const std::string& error : inference_errors) {
         full_errors += error + "\n";
       }
       fail_shape_inference(full_errors);
     }
   }
 
-  void process(const NodeProto& n, std::unordered_map<TString, const AttributeProto*> attr_map) {
+  void process(const NodeProto& n, std::unordered_map<std::string, const AttributeProto*> attr_map) {
     NodeProto copy_n(n);
     // Add attribute information into the temporary node
     copy_n.clear_attribute();
@@ -494,7 +494,7 @@ class ShapeInferenceImplBase {
       if (attr.has_ref_attr_name()) {
         if (attr_map.count(attr.ref_attr_name())) {
           auto copy_attr = *attr_map[attr.ref_attr_name()];
-          copy_attr.set_name(attr.name());
+          copy_attr.set_name(TString{attr.name()});
           copy_n.add_attribute()->CopyFrom(copy_attr);
         }
       } else {
@@ -526,7 +526,7 @@ class ShapeInferenceImplBase {
       }
     }
 
-    std::unordered_map<TString, const AttributeProto*> attr_map;
+    std::unordered_map<std::string, const AttributeProto*> attr_map;
     for (auto& attr : func_proto.attribute()) {
       if (ctx.getAttribute(attr) != nullptr) {
         attr_map[attr] = ctx.getAttribute(attr);
@@ -538,7 +538,7 @@ class ShapeInferenceImplBase {
     }
 
     for (int i = 0; i < func_proto.output_size(); ++i) {
-      const TString& output_name = func_proto.output().Get(i);
+      const std::string& output_name = func_proto.output().Get(i);
       // Skip if no type inferred for the tensor
       auto iter = value_types_by_name.find(output_name);
       if (iter != value_types_by_name.cend()) {
@@ -553,13 +553,13 @@ class ShapeInferenceImplBase {
  public:
   ShapeInferenceImplBase(
       GraphProto* g_in,
-      const std::unordered_map<TString, TypeProto*>& outer_scope_value_types_by_name_in,
-      const std::unordered_map<TString, int>& opset_imports_in,
+      const std::unordered_map<std::string, TypeProto*>& outer_scope_value_types_by_name_in,
+      const std::unordered_map<std::string, int>& opset_imports_in,
       const ShapeInferenceOptions& options_in,
       SymbolTable* symbol_table_in,
       const ModelLocalFunctionsMap& model_local_functions_map_in,
       const ISchemaRegistry* schema_registry_in = OpSchemaRegistry::Instance(),
-      std::unordered_map<TString, TensorShapeProto>* generated_shape_data_by_name_in = nullptr,
+      std::unordered_map<std::string, TensorShapeProto>* generated_shape_data_by_name_in = nullptr,
       const int ir_version_in = IR_VERSION // default the latest one
       )
       : g(*g_in),
@@ -587,42 +587,42 @@ class ShapeInferenceImplBase {
 
  private:
   GraphProto& g;
-  std::unordered_map<TString, TypeProto*> value_types_by_name;
-  const std::unordered_map<TString, int>& opset_imports;
+  std::unordered_map<std::string, TypeProto*> value_types_by_name;
+  const std::unordered_map<std::string, int>& opset_imports;
 
   const ShapeInferenceOptions& options;
   SymbolTable* symbol_table;
   const ModelLocalFunctionsMap& model_local_functions_map;
   const ISchemaRegistry* schema_registry;
-  std::unordered_map<TString, TensorShapeProto>* generated_shape_data_by_name;
+  std::unordered_map<std::string, TensorShapeProto>* generated_shape_data_by_name;
   int ir_version;
   GraphInferenceContext graph_inference_context;
 
-  std::unordered_map<TString, TypeProto*> undefined_value_types_by_name;
-  std::unordered_map<TString, const TensorProto*> input_data_by_name;
-  std::unordered_map<TString, TensorProto> input_data_by_name_holder;
-  std::unordered_map<TString, const SparseTensorProto*> input_sparse_data_by_name;
+  std::unordered_map<std::string, TypeProto*> undefined_value_types_by_name;
+  std::unordered_map<std::string, const TensorProto*> input_data_by_name;
+  std::unordered_map<std::string, TensorProto> input_data_by_name_holder;
+  std::unordered_map<std::string, const SparseTensorProto*> input_sparse_data_by_name;
 
   bool has_experimental_op = false;
   bool has_unsupported_op = false;
 
-  std::vector<TString> inference_errors;
+  std::vector<std::string> inference_errors;
 
   std::list<TypeProto> initializer_type_list;
 };
 
 static void InferShapesImpl(
     GraphProto* g,
-    const std::unordered_map<TString, TypeProto*>& outer_scope_value_types_by_name,
-    const std::unordered_map<TString, int>& opset_imports,
+    const std::unordered_map<std::string, TypeProto*>& outer_scope_value_types_by_name,
+    const std::unordered_map<std::string, int>& opset_imports,
     const ShapeInferenceOptions& options,
     SymbolTable* symbol_table,
     const ModelLocalFunctionsMap& model_local_functions_map,
     const ISchemaRegistry* schema_registry = OpSchemaRegistry::Instance(),
-    std::unordered_map<TString, TensorShapeProto>* generated_shape_data_by_name = nullptr,
+    std::unordered_map<std::string, TensorShapeProto>* generated_shape_data_by_name = nullptr,
     const int ir_version = IR_VERSION // default the latest one
 ) {
-  std::unordered_map<TString, TensorShapeProto> empty;
+  std::unordered_map<std::string, TensorShapeProto> empty;
   if (generated_shape_data_by_name == nullptr) {
     generated_shape_data_by_name = &empty;
   }
@@ -641,8 +641,8 @@ static void InferShapesImpl(
 
 // Either ModelProto or FunctionProto
 template <class T>
-std::unordered_map<TString, int> GetOpsetImportsFromProto(const T& proto) {
-  std::unordered_map<TString, int> opset_imports;
+std::unordered_map<std::string, int> GetOpsetImportsFromProto(const T& proto) {
+  std::unordered_map<std::string, int> opset_imports;
   for (const auto& opset_import : proto.opset_import()) {
     opset_imports[opset_import.domain()] = static_cast<int>(opset_import.version());
   }
@@ -651,14 +651,14 @@ std::unordered_map<TString, int> GetOpsetImportsFromProto(const T& proto) {
 
 void InferShapes(
     GraphProto* g,
-    const std::unordered_map<TString, int>& opset_imports,
+    const std::unordered_map<std::string, int>& opset_imports,
     const ISchemaRegistry* schema_registry,
     const ShapeInferenceOptions& options,
-    const std::unordered_map<TString, const FunctionProto*>& model_local_functions) {
+    const std::unordered_map<std::string, const FunctionProto*>& model_local_functions) {
   SymbolTableImpl symbol_table;
   InferShapesImpl(
       g,
-      std::unordered_map<TString, TypeProto*>(0),
+      std::unordered_map<std::string, TypeProto*>(0),
       opset_imports,
       options,
       &symbol_table,
@@ -670,7 +670,7 @@ void InferShapes(
     ModelProto& m,
     const ISchemaRegistry* schema_registry,
     const ShapeInferenceOptions& options,
-    std::unordered_map<TString, TensorShapeProto>* generated_shape_data_by_name) {
+    std::unordered_map<std::string, TensorShapeProto>* generated_shape_data_by_name) {
   auto opset_imports = GetOpsetImportsFromProto(m);
   SymbolTableImpl symbol_table;
   ModelLocalFunctionsMap model_local_functions_by_id;
@@ -680,7 +680,7 @@ void InferShapes(
   }
   InferShapesImpl(
       m.mutable_graph(),
-      std::unordered_map<TString, TypeProto*>(0),
+      std::unordered_map<std::string, TypeProto*>(0),
       opset_imports,
       options,
       &symbol_table,
@@ -691,11 +691,11 @@ void InferShapes(
 }
 
 void InferShapes(
-    const TString& model_path,
-    const TString& save_path,
+    const std::string& model_path,
+    const std::string& save_path,
     const ISchemaRegistry* schema_registry,
     const ShapeInferenceOptions& options,
-    std::unordered_map<TString, TensorShapeProto>* generated_shape_data_by_name) {
+    std::unordered_map<std::string, TensorShapeProto>* generated_shape_data_by_name) {
   ModelProto model;
   LoadProtoFromPath(model_path, model);
   InferShapes(model, schema_registry, options, generated_shape_data_by_name);
@@ -715,13 +715,13 @@ void InferShapes(
 // Infer shape for functions
 void InferShapeForFunctionNode(
     const FunctionProto& func_proto,
-    const std::unordered_map<TString, int>& func_opset_imports,
+    const std::unordered_map<std::string, int>& func_opset_imports,
     const ISchemaRegistry* schema_registry,
     InferenceContext& ctx,
     const ShapeInferenceOptions& options,
-    const std::unordered_map<TString, const FunctionProto*>& model_local_functions_map,
+    const std::unordered_map<std::string, const FunctionProto*>& model_local_functions_map,
     SymbolTable* symbol_table,
-    std::unordered_map<TString, TensorShapeProto>* generated_shape_data_by_name) {
+    std::unordered_map<std::string, TensorShapeProto>* generated_shape_data_by_name) {
   GraphProto g;
   ShapeInferenceImplBase base(
       &g,
@@ -740,9 +740,9 @@ void InferShapeForFunctionNode(
     const ISchemaRegistry* schema_registry,
     InferenceContext& ctx,
     const ShapeInferenceOptions& options,
-    const std::unordered_map<TString, const FunctionProto*>& model_local_functions_map,
+    const std::unordered_map<std::string, const FunctionProto*>& model_local_functions_map,
     SymbolTable* symbol_table,
-    std::unordered_map<TString, TensorShapeProto>* generated_shape_data_by_name) {
+    std::unordered_map<std::string, TensorShapeProto>* generated_shape_data_by_name) {
   auto opset_imports = GetOpsetImportsFromProto(function_proto);
   InferShapeForFunctionNode(
       function_proto,
@@ -760,7 +760,7 @@ std::vector<const TypeProto*> GraphInferencerImpl::doInferencing(
     const std::vector<const TensorProto*>& input_data) {
   SymbolTable* symbol_table = context_->symbol_table;
   int num_inputs = int(input_types.size());
-  std::unordered_set<TString> initializer_name_set;
+  std::unordered_set<std::string> initializer_name_set;
   for (const auto& tp : g_->initializer()) {
     initializer_name_set.insert(tp.name());
   }
@@ -836,8 +836,8 @@ std::vector<const TypeProto*> GraphInferencerImpl::doInferencing(
   return graph_output_types;
 }
 
-TString GetErrorWithNodeInfo(const NodeProto& n, std::runtime_error err) {
-  TString op_name = n.has_name() ? (", node name: " + n.name()) : "";
+std::string GetErrorWithNodeInfo(const NodeProto& n, std::runtime_error err) {
+  std::string op_name = n.has_name() ? (", node name: " + n.name()) : "";
   return "(op_type:" + n.op_type() + op_name + "): " + err.what();
 }
 
