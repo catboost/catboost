@@ -267,8 +267,6 @@ migrations:
     - statbox/nile/tests/cluster
     - statbox/statkey/agency_rewards/bunker/2021-europe-m
     - statbox/statkey/reactor/cooked_logs/visit_cooked_log/build
-    - statbox/statkey/reactor/cubes/event_money_direct/v4
-    - statbox/statkey/reactor/cubes/event_money_direct/v5
     - statbox/statkey/reactor/cubes/superapp/timespent/prepare/v3
     - statbox/statkey/reactor/monitorings/action
     - statbox/statkey/reactor/monitorings/business_dwh/pages
@@ -4082,7 +4080,6 @@ migrations:
     - alice/uniproxy/tools/clear_mds
     - alice/vins/apps/crm_bot/crm_bot
     - alice/vins_contrib/yandex-normalizer-general-0.1.1/normalizer_general/general
-    - antirobot/cbb/cbb_django/project
     - apphost/tools/nanny_tools/sync_resources
     - april/arf/scheduler/scheduler
     - april/mediaplan/mediaplan
@@ -4554,7 +4551,6 @@ migrations:
     - yt/hermes/hermes/repositories
     - yt/yt/tools/dynamic_tables/tablet_workload_balancer/lib
     - ytech/ecom_tools/amazon/scripts/amzn_sandbox_testing
-    - yweb/antimalware/alerting/lib
     - yweb/antiporno/nirvana/libs/nirvana_user_status/py/test
     - yweb/antiporno/scandal_requests/scandal_requests_extractor_dc/src
     - yweb/antispam/cid/library
@@ -6128,8 +6124,6 @@ migrations:
     - sandbox/projects/yabs/partner_share/lib/integratest
     - sandbox/projects/yabs/partner_share/tasks/apply_changes
     - sandbox/projects/yabs/prebilling_tests/executer
-    - sandbox/projects/yabs/qa/ammo_module/requestlog/adapters/yabs_specific/sandbox
-    - sandbox/projects/yabs/qa/ammo_module/requestlog/adapters/yabs_specific/standalone
     - sandbox/projects/yabs/qa/errorbooster
     - sandbox/projects/yabs/qa/sut
     - sandbox/projects/yabs/qa/sut/bases_provider
@@ -7136,7 +7130,6 @@ migrations:
     - infra/rtc/sbin/show_kernel_distribution
     - infra/rtc/walle_validator/lib
     - infra/rtc/walle_validator/tests
-    - infra/skybit/src
     - infra/swatlib
     - infra/swatlib/gevent
     - infra/walle/server/contrib/object-validator
@@ -7795,7 +7788,6 @@ migrations:
     - infra/rtc/packages/yandex-hbf-agent-monitoring/monitoring
     - infra/rtc/walle_validator/lib
     - infra/shawshank/tests
-    - infra/skybit/src
     - infra/swatlib
     - infra/swatlib/rpc
     - infra/walle/server/contrib/sepelib/yandex
@@ -9161,8 +9153,6 @@ migrations:
     - infra/host-cpu-metrics
     - infra/host-cpu-metrics/host_metrics
     - infra/porto/api_py
-    - infra/skybit
-    - infra/skybit/src
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_quota_distributor/lib
     - keyboard/dict/nirvana/config_generator/blocks
@@ -9314,7 +9304,6 @@ migrations:
     ignore:
     - F842
     prefixes:
-    - cloud/mdb/dbaas_worker/test/mocks
     - datalens/backend/app/bi_external_api/bi_external_api/converter/dash
     - datalens/backend/app/bi_external_api/bi_external_api/workbook_ops
     - media/sport/nirvana/sport_thumbnail_loader/biz/ott_sport
@@ -10164,7 +10153,6 @@ migrations:
     - education/english/services/sync/app
     - infra/cqudp/src/transport
     - infra/qyp/qdm/src/server
-    - infra/skybit/src
     - infra/skyboned/src
     - infra/walle/server/walle/views/api
     - intranet/ims/ims_connectors/connector_core
@@ -10231,7 +10219,6 @@ migrations:
     - PLW0244
     prefixes:
     - devtools/pr_checks/checker/lib
-    - infra/skybit/src
     - mail/pypg/pypg/types
     - mail/contrib/python/aiopg/aiopg
     - search/beholder/src/worker/nodes
