@@ -6,8 +6,6 @@ ELSE()
     EXPORTS_SCRIPT(catboost.exports)
 ENDIF()
 
-PYTHON2_ADDINCL()
-
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/data
