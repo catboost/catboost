@@ -121,7 +121,7 @@ def make_tarball(
 
     # compression using `compress`
     if compress == 'compress':
-        warn("'compress' will be deprecated.", PendingDeprecationWarning)
+        warn("'compress' is deprecated.", DeprecationWarning)
         # the option varies depending on the platform
         compressed_name = archive_name + compress_ext[compress]
         if sys.platform == 'win32':

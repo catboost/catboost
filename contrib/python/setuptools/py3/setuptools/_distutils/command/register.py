@@ -66,9 +66,9 @@ class register(PyPIRCCommand):
     def check_metadata(self):
         """Deprecated API."""
         warn(
-            "distutils.command.register.check_metadata is deprecated, \
-              use the check command instead",
-            PendingDeprecationWarning,
+            "distutils.command.register.check_metadata is deprecated; "
+            "use the check command instead",
+            DeprecationWarning,
         )
         check = self.distribution.get_command_obj('check')
         check.ensure_finalized()

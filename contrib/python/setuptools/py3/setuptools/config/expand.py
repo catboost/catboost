@@ -45,6 +45,8 @@ from types import ModuleType
 
 from distutils.errors import DistutilsOptionError
 
+from .._path import same_path as _same_path
+
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
     from setuptools.discovery import ConfigDiscovery  # noqa
@@ -326,25 +328,6 @@ def find_packages(
             fill_package_dir.update(construct_package_dir(pkgs, path))
 
     return packages
-
-
-def _same_path(p1: _Path, p2: _Path) -> bool:
-    """Differs from os.path.samefile because it does not require paths to exist.
-    Purely string based (no comparison between i-nodes).
-    >>> _same_path("a/b", "./a/b")
-    True
-    >>> _same_path("a/b", "a/./b")
-    True
-    >>> _same_path("a/b", "././a/b")
-    True
-    >>> _same_path("a/b", "./a/b/c/..")
-    True
-    >>> _same_path("a/b", "../a/b/c")
-    False
-    >>> _same_path("a", "a/b")
-    False
-    """
-    return os.path.normpath(p1) == os.path.normpath(p2)
 
 
 def _nest_path(parent: _Path, path: _Path) -> str:

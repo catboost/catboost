@@ -91,6 +91,16 @@ class CCompiler:
     }
     language_order = ["c++", "objc", "c"]
 
+    include_dirs = []
+    """
+    include dirs specific to this compiler class
+    """
+
+    library_dirs = []
+    """
+    library dirs specific to this compiler class
+    """
+
     def __init__(self, verbose=0, dry_run=0, force=0):
         self.dry_run = dry_run
         self.force = force
@@ -324,24 +334,7 @@ class CCompiler:
 
     def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
         """Process arguments and decide which source files to compile."""
-        if outdir is None:
-            outdir = self.output_dir
-        elif not isinstance(outdir, str):
-            raise TypeError("'output_dir' must be a string or None")
-
-        if macros is None:
-            macros = self.macros
-        elif isinstance(macros, list):
-            macros = macros + (self.macros or [])
-        else:
-            raise TypeError("'macros' (if supplied) must be a list of tuples")
-
-        if incdirs is None:
-            incdirs = self.include_dirs
-        elif isinstance(incdirs, (list, tuple)):
-            incdirs = list(incdirs) + (self.include_dirs or [])
-        else:
-            raise TypeError("'include_dirs' (if supplied) must be a list of strings")
+        outdir, macros, incdirs = self._fix_compile_args(outdir, macros, incdirs)
 
         if extra is None:
             extra = []
@@ -400,6 +393,9 @@ class CCompiler:
         else:
             raise TypeError("'include_dirs' (if supplied) must be a list of strings")
 
+        # add include dirs for class
+        include_dirs += self.__class__.include_dirs
+
         return output_dir, macros, include_dirs
 
     def _prep_compile(self, sources, output_dir, depends=None):
@@ -455,6 +451,9 @@ class CCompiler:
             library_dirs = list(library_dirs) + (self.library_dirs or [])
         else:
             raise TypeError("'library_dirs' (if supplied) must be a list of strings")
+
+        # add library dirs for class
+        library_dirs += self.__class__.library_dirs
 
         if runtime_library_dirs is None:
             runtime_library_dirs = self.runtime_library_dirs
