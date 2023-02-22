@@ -1081,7 +1081,7 @@ OpName_Domain_Version_Schema_Map& OpSchemaRegistry::map() {
       // Invoke register of experimental operators.
       RegisterOnnxPreviewOperatorSetSchema();
 
-#ifndef NDEBUG
+#if 0
       size_t dbg_registered_schema_count = GetRegisteredSchemaCount() - dbg_initial_schema_count;
       // Check enabled only if schemas for all opset versions are loaded
       if (OpSchemaRegistry::Instance()->GetLoadedSchemaVersion() == 0) {
