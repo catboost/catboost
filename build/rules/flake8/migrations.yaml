@@ -100,7 +100,6 @@ migrations:
     - infra/skyboned/src
     - infra/yp/monitoring/tmp_account_monitoring
     - infra/yp_dns_api/monitoring/alerts
-    - intranet/domenator/src/worker
     - intranet/plan/src/plan/oebs
     - intranet/plan/src/plan/services/api
     - intranet/plan/src/plan/suspicion/api
@@ -232,7 +231,6 @@ migrations:
     - sandbox/projects/market/partner_services/MarketPartnerItemServiceUpdateJob
     - sandbox/projects/megamind/release_megamind_formulas
     - sandbox/projects/music/MusicDiffTest/lib
-    - sandbox/projects/release_machine/components/configs
     - sandbox/projects/security/ReportFuzzing/ReportBuildAndFuzz
     - sandbox/projects/security/gideon/gideon-analytics/deploy-acl-parser-task
     - sandbox/projects/trust/tasks/StartTrustPerfTesting
@@ -336,7 +334,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-20124
     - yabs/server/test/ft/BSSERVER-20512
     - yabs/server/test/ft/BSSERVER-20542
-    - yabs/server/test/ft/BSSERVER-20775
     - yabs/server/test/ft/BSSERVER-21248
     - yabs/server/test/ft/BSSERVER-21283
     - yabs/server/test/ft/BSSERVER-21569
@@ -598,7 +595,6 @@ migrations:
     - devtools/ya/build
     - devtools/ya/build/genconf
     - devtools/ya/build/stat
-    - devtools/ya/handlers/dctl
     - devtools/ya/ide
     - devtools/ya/jbuild/gen/actions
     - devtools/ya/tools/ycmerge/tests
@@ -742,7 +738,6 @@ migrations:
     - logfeller/python/logfeller/infra/yt/util
     - logos/libs/precommit_validators
     - logos/projects/ads/tasks/ads_map_and_join_simulator_log_raw
-    - logos/projects/ads/tasks/join_profiles
     - mail/borador/src
     - mail/library/python/json_value/tests
     - mail/python/theatre/stages/db_stats/roles
@@ -1053,7 +1048,6 @@ migrations:
     - sandbox/projects/mssngr/rtc/RtcCreateStFeedbackTask
     - sandbox/projects/music/deployment/MusicRestoreMdb
     - sandbox/projects/quasar/datasync_uploader/lib
-    - sandbox/projects/release_machine/components/configs
     - sandbox/projects/release_machine_tasks/NeedToBackport
     - sandbox/projects/taxi/BuildLogisticDispatcher
     - sandbox/projects/tsar/upload_tsar_pytorch_to_yt
@@ -1197,17 +1191,14 @@ migrations:
     - yabs/server/test/ft/BSDEV-77691
     - yabs/server/test/ft/BSSERVER-10994
     - yabs/server/test/ft/BSSERVER-11192
-    - yabs/server/test/ft/BSSERVER-11699
     - yabs/server/test/ft/BSSERVER-11994
     - yabs/server/test/ft/BSSERVER-12495
     - yabs/server/test/ft/BSSERVER-13562
-    - yabs/server/test/ft/BSSERVER-14407
     - yabs/server/test/ft/BSSERVER-15417
     - yabs/server/test/ft/BSSERVER-15477
     - yabs/server/test/ft/BSSERVER-16016
     - yabs/server/test/ft/BSSERVER-16319
     - yabs/server/test/ft/BSSERVER-17702
-    - yabs/server/test/ft/BSSERVER-18654
     - yabs/server/test/ft/BSSERVER-18972
     - yabs/server/test/ft/BSSERVER-20512
     - yabs/server/test/ft/BSSERVER-20717
@@ -1215,7 +1206,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-2977
     - yabs/server/test/ft/BSSERVER-3108
     - yabs/server/test/ft/BSSERVER-3143
-    - yabs/server/test/ft/BSSERVER-3459
     - yabs/server/test/ft/BSSERVER-3734
     - yabs/server/test/ft/BSSERVER-5039
     - yabs/server/test/ft/BSSERVER-5360
@@ -1424,7 +1414,6 @@ migrations:
     - infra/rtc/iolimit_ticketer
     - infra/rtc_sla_tentacles/backend/lib/api/handlers
     - infra/rtc_sla_tentacles/backend/lib/harvesters/monitoring
-    - intranet/domenator/src/worker
     - intranet/plan/src/plan/duty
     - intranet/plan/src/plan/maintenance
     - intranet/plan/src/plan/oebs
@@ -2224,10 +2213,7 @@ migrations:
     - yabs/server/test/ft/BSDEV-85219
     - yabs/server/test/ft/BSDEV-85352
     - yabs/server/test/ft/BSSERVER-11693
-    - yabs/server/test/ft/BSSERVER-11699
-    - yabs/server/test/ft/BSSERVER-14407
     - yabs/server/test/ft/BSSERVER-16347
-    - yabs/server/test/ft/BSSERVER-17987
     - yabs/server/test/ft/BSSERVER-18008
     - yabs/server/test/ft/BSSERVER-18463
     - yabs/server/test/ft/BSSERVER-18561
@@ -2254,7 +2240,6 @@ migrations:
     - yabs/solo_yabscs/registry/alert/baseage
     - yabs/stat/dropstat2/pylibs/common
     - yabs/stat/dropstat2/pylibs/prepare
-    - yabs/stat/dropstat2/pylibs/prepare/tests
     - yabs/stat/solo/juggler
     - yabs/vh/cms-pgaas/lb/max_unix_time_tool
     - yabs/vh/cms-pgaas/ugc_admin_api/lib/api
@@ -3245,7 +3230,6 @@ migrations:
     - mds/s3/tests/lib
     - ml/tensorflow/tfnn/src/tfnn/ops
     - ml/tensorflow/tfnn/src/tfnn/tools
-    - ml/tensorflow/ytensorflow-2.4/ytensorflow/build
     - ml/tensorflow/ytensorflow/tests/layers
     - ml/tensorflow/ytensorflow/tests/quantization
     - mlp/mail/aspam/experiments/MLP_253
@@ -3254,7 +3238,6 @@ migrations:
     - mlp/mail/smartcompose/dev/MLP-34
     - mlp/mail/smartcompose/monitoring/flogs
     - mlp/mail/smartcompose/monitoring/users
-    - mlp/overdraft/utils/calc_metrics/calc_and_load_metrics
     - mlp/overdraft/utils/filter_cd
     - mlp/overdraft/utils/st_loop
     - mlp/overdraft/utils/tests
@@ -3598,7 +3581,6 @@ migrations:
     - sandbox/projects/oko/crawl_repositories
     - sandbox/projects/partner/utils
     - sandbox/projects/quasar/lxc_image_builds/base
-    - sandbox/projects/release_machine/components/configs
     - sandbox/projects/sortdc/BuildSortDCPackage
     - sandbox/projects/statkey/money_map/monitorings/moneymap_monitorings
     - sandbox/projects/video/VideoReleaseCategInfoStorage
@@ -6080,7 +6062,6 @@ migrations:
     - sandbox/projects/prs_ops/RunPrsOps
     - sandbox/projects/quasar/bug_reports_tickets/setrace_client
     - sandbox/projects/refresh/stand/RunRefreshInstance
-    - sandbox/projects/release_machine/components/configs/bin
     - sandbox/projects/release_machine/tasks/ReleaseMachineAutobranchCreator
     - sandbox/projects/release_machine/tasks/ReleaseMachineCrawler
     - sandbox/projects/release_machine/tasks/ReleaseMachineGarbageCollector
@@ -6503,7 +6484,6 @@ migrations:
     - yabs/server/infra/juggler-bundles/cloud/bin/yabs_unified_agent_status
     - yabs/server/infra/transport
     - yabs/server/test/ft/BSSERVER-2063
-    - yabs/server/test/ft/BSSERVER-5102
     - yabs/server/test/ft/DOOH-1070
     - yabs/server/test/ft/ads_adfox/request_context
     - yabs/server/test/pylibs/simulator
@@ -6831,7 +6811,6 @@ migrations:
     - yabs/server/cs/pylibs/janitor
     - yabs/server/test/ft/BSSERVER-16053
     - yabs/server/test/ft/BSSERVER-18475
-    - yabs/server/test/ft/BSSERVER-18654
     - yabs/server/test/ft/BSSERVER-20665
     - yabs/server/test/ft/BSSERVER-2167
     - yabs/server/test/ft/BSSERVER-3842
@@ -7551,7 +7530,6 @@ migrations:
     - ads/nirvana/online_learning/graph_launcher/test_pt
     - ads/nirvana/vw/vw_launcher/test
     - ads/pytorch/lib/online_learning/production/factor_stats
-    - ads/quality/adv_machine/scripts/factor_stat
     - ads/quality/autotargeting/bloss
     - ads/quality/bid_correction/lib
     - ads/quality/bm_scoring/pipeline/manage_pools
@@ -8429,7 +8407,6 @@ migrations:
     - geoproduct/amocrm/utils
     - geotargeting/common/crypta_ids_matching/bin
     - infra/cauth/server/master/importers/servers
-    - intranet/domenator/src/settings
     - intranet/forms/src/events/surveyme
     - intranet/idm_backend/src/idm/core/tasks
     - intranet/idm_backend/tests/models/services
@@ -8529,7 +8506,6 @@ migrations:
     - logos/projects/statkey/tasks/hypercubes/user_history/mobile/v5
     - logos/projects/statkey/tasks/hypercubes/user_history/source/search_history/v2
     - logos/projects/statkey/tasks/key_reports/desktop_retention
-    - logos/projects/statkey/tasks/tech_report/requests/icookie
     - logos/projects/statkey_py3/tasks/metamerger/tasks/merger_base_task
     - logos/projects/statkey_py3/tasks/metamerger/tools
     - logos/projects/statkey_py3/tasks/money_allocations_merger/v1
@@ -9429,7 +9405,6 @@ migrations:
     ignore:
     - PLC2401
     prefixes:
-    - cloud/support/tools/websaint/app
     - crowdsourcing/crowdtesting/graphs/process_of_priority/graphs
     - devtools/contrib/sandbox/run_go_toolchain_tests
     - maps/analyzer/services/eta_comparison/tests
@@ -9862,7 +9837,6 @@ migrations:
     - sprav/mining/partners/gis/aurora/lib
     - tracker/scripts/jira_to_tracker
     - yabs/server/test/ft/BSSERVER-3049
-    - yabs/server/test/ft/BSSERVER-3459
     - ydo/libs/apphost_source/test
     - yp/scripts/account_estimation
     - yweb/yasap/znatoki/znatoki_ctl/lib/commands
@@ -10020,7 +9994,6 @@ migrations:
     - quality/functionality/facts/ml_experiments/bert/0056_large_bert_multi_target_test_weights
     - quality/nirvana_tools/graphs/lib
     - robot/metrics/social_sbr/get_langs
-    - sandbox/projects/release_machine/components/configs
     - statbox/statkey/reactor/cubes/datacatalog/prepare_processes/v2/ut
     - taxi/antifraud/purga/score/startrek/setresults
     - taxi/eda/eda_analytics/product_dashboard
@@ -10241,7 +10214,6 @@ migrations:
     - logbroker/tools/manual/analyze_and_set_maximum_partition_speed
     - logbroker/tools/manual/collect_capacity/analyze_capacity_2020
     - logbroker/tools/manual/collect_capacity/common
-    - ml/tensorflow/ytensorflow-2.4/ytensorflow/build
     - quality/functionality/scripts/psuh/HomeWorkLib/third_party/geopy/geopy/geocoders
     - robot/quality/smelter/backend_django/channels/utils
     - robot/rthub/tools/balancer_polirol
