@@ -6,7 +6,7 @@ that uses .pypirc in the distutils.command package.
 import os
 from configparser import RawConfigParser
 
-from distutils.cmd import Command
+from .cmd import Command
 
 DEFAULT_PYPIRC = """\
 [distutils]

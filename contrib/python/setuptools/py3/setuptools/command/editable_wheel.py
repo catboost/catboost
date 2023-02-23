@@ -237,6 +237,8 @@ class editable_wheel(Command):
             cmd = dist.get_command_obj(cmd_name)
             if hasattr(cmd, "editable_mode"):
                 cmd.editable_mode = True
+            elif hasattr(cmd, "inplace"):
+                cmd.inplace = True  # backward compatibility with distutils
 
     def _collect_build_outputs(self) -> Tuple[List[str], Dict[str, str]]:
         files: List[str] = []
@@ -292,7 +294,7 @@ class editable_wheel(Command):
             msg = f"""{traceback.format_exc()}\n
             If you are seeing this warning it is very likely that a setuptools
             plugin or customization overrides the `{cmd_name}` command, without
-            tacking into consideration how editable installs run build steps
+            taking into consideration how editable installs run build steps
             starting from v64.0.0.
 
             Plugin authors and developers relying on custom build steps are encouraged
@@ -391,7 +393,7 @@ class _StaticPth:
     def __enter__(self):
         msg = f"""
         Editable install will be performed using .pth file to extend `sys.path` with:
-        {self.path_entries!r}
+        {list(map(os.fspath, self.path_entries))!r}
         """
         _logger.warning(msg + _LENIENT_WARNING)
         return self
@@ -501,7 +503,11 @@ class _TopLevelFinder:
         return self
 
     def __exit__(self, _exc_type, _exc_value, _traceback):
-        ...
+        msg = """\n
+        Please be careful with folders in your working directory with the same
+        name as your package as they may take precedence during imports.
+        """
+        warnings.warn(msg, InformationOnly)
 
 
 def _can_symlink_files(base_dir: Path) -> bool:
@@ -549,13 +555,18 @@ def _simple_layout(
     False
     >>> _simple_layout(['a', 'a.b'], {"": "src", "a.b": "_ab"}, "/tmp/myproj")
     False
+    >>> # Special cases, no packages yet:
+    >>> _simple_layout([], {"": "src"}, "/tmp/myproj")
+    True
+    >>> _simple_layout([], {"a": "_a", "": "src"}, "/tmp/myproj")
+    False
     """
     layout = {
         pkg: find_package_path(pkg, package_dir, project_dir)
         for pkg in packages
     }
     if not layout:
-        return False
+        return set(package_dir) in ({}, {""})
     parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
     return all(
         _normalize_path(Path(parent, *key.split('.'))) == _normalize_path(value)
@@ -682,9 +693,13 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
     False
     >>> _is_nested("a.b", "path/a/b", "c", "path/c")
     False
+    >>> _is_nested("a.a", "path/a/a", "a", "path/a")
+    True
+    >>> _is_nested("b.a", "path/b/a", "a", "path/a")
+    False
     """
     norm_pkg_path = _normalize_path(pkg_path)
-    rest = pkg.replace(parent, "").strip(".").split(".")
+    rest = pkg.replace(parent, "", 1).strip(".").split(".")
     return (
         pkg.startswith(parent)
         and norm_pkg_path == _normalize_path(Path(parent_path, *rest))
@@ -752,8 +767,8 @@ class _EditableFinder:  # MetaPathFinder
     @classmethod
     def find_spec(cls, fullname, path=None, target=None):
         for pkg, pkg_path in reversed(list(MAPPING.items())):
-            if fullname.startswith(pkg):
-                rest = fullname.replace(pkg, "").strip(".").split(".")
+            if fullname == pkg or fullname.startswith(f"{{pkg}}."):
+                rest = fullname.replace(pkg, "", 1).strip(".").split(".")
                 return cls._find_spec(fullname, Path(pkg_path, *rest))
 
         return None

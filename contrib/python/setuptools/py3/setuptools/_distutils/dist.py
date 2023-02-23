@@ -7,6 +7,9 @@ being built/installed/distributed.
 import sys
 import os
 import re
+import pathlib
+import contextlib
+import logging
 from email import message_from_file
 
 try:
@@ -14,16 +17,16 @@ try:
 except ImportError:
     warnings = None
 
-from distutils.errors import (
+from .errors import (
     DistutilsOptionError,
     DistutilsModuleError,
     DistutilsArgError,
     DistutilsClassError,
 )
-from distutils.fancy_getopt import FancyGetopt, translate_longopt
-from distutils.util import check_environ, strtobool, rfc822_escape
-from distutils import log
-from distutils.debug import DEBUG
+from .fancy_getopt import FancyGetopt, translate_longopt
+from .util import check_environ, strtobool, rfc822_escape
+from ._log import log
+from .debug import DEBUG
 
 # Regex to define acceptable Distutils command names.  This is not *quite*
 # the same as a Python NAME -- I don't allow leading underscores.  The fact
@@ -42,7 +45,7 @@ def _ensure_list(value, fieldname):
         typename = type(value).__name__
         msg = "Warning: '{fieldname}' should be a list, got type '{typename}'"
         msg = msg.format(**locals())
-        log.log(log.WARN, msg)
+        log.warning(msg)
         value = list(value)
     return value
 
@@ -322,47 +325,40 @@ Common commands: (see '--help-commands' for more)
         should be parsed.  The filenames returned are guaranteed to exist
         (modulo nasty race conditions).
 
-        There are three possible config files: distutils.cfg in the
-        Distutils installation directory (ie. where the top-level
-        Distutils __inst__.py file lives), a file in the user's home
-        directory named .pydistutils.cfg on Unix and pydistutils.cfg
-        on Windows/Mac; and setup.cfg in the current directory.
-
-        The file in the user's home directory can be disabled with the
-        --no-user-cfg option.
+        There are multiple possible config files:
+        - distutils.cfg in the Distutils installation directory (i.e.
+          where the top-level Distutils __inst__.py file lives)
+        - a file in the user's home directory named .pydistutils.cfg
+          on Unix and pydistutils.cfg on Windows/Mac; may be disabled
+          with the ``--no-user-cfg`` option
+        - setup.cfg in the current directory
+        - a file named by an environment variable
         """
-        files = []
         check_environ()
-
-        # Where to look for the system-wide Distutils config file
-        sys_dir = os.path.dirname(sys.modules['distutils'].__file__)
-
-        # Look for the system config file
-        sys_file = os.path.join(sys_dir, "distutils.cfg")
-        if os.path.isfile(sys_file):
-            files.append(sys_file)
-
-        # What to call the per-user config file
-        if os.name == 'posix':
-            user_filename = ".pydistutils.cfg"
-        else:
-            user_filename = "pydistutils.cfg"
-
-        # And look for the user config file
-        if self.want_user_cfg:
-            user_file = os.path.join(os.path.expanduser('~'), user_filename)
-            if os.path.isfile(user_file):
-                files.append(user_file)
-
-        # All platforms support local setup.cfg
-        local_file = "setup.cfg"
-        if os.path.isfile(local_file):
-            files.append(local_file)
+        files = [str(path) for path in self._gen_paths() if os.path.isfile(path)]
 
         if DEBUG:
             self.announce("using config files: %s" % ', '.join(files))
 
         return files
+
+    def _gen_paths(self):
+        # The system-wide Distutils config file
+        sys_dir = pathlib.Path(sys.modules['distutils'].__file__).parent
+        yield sys_dir / "distutils.cfg"
+
+        # The per-user config file
+        prefix = '.' * (os.name == 'posix')
+        filename = prefix + 'pydistutils.cfg'
+        if self.want_user_cfg:
+            yield pathlib.Path('~').expanduser() / filename
+
+        # All platforms support local setup.cfg
+        yield pathlib.Path('setup.cfg')
+
+        # Additional config indicated in the environment
+        with contextlib.suppress(TypeError):
+            yield pathlib.Path(os.getenv("DIST_EXTRA_CONFIG"))
 
     def parse_config_files(self, filenames=None):  # noqa: C901
         from configparser import ConfigParser
@@ -470,7 +466,7 @@ Common commands: (see '--help-commands' for more)
         parser.set_aliases({'licence': 'license'})
         args = parser.getopt(args=self.script_args, object=self)
         option_order = parser.get_option_order()
-        log.set_verbosity(self.verbose)
+        logging.getLogger().setLevel(logging.WARN - 10 * self.verbose)
 
         # for display options we return immediately
         if self.handle_display_options(option_order):
@@ -961,7 +957,7 @@ Common commands: (see '--help-commands' for more)
 
     # -- Methods that operate on the Distribution ----------------------
 
-    def announce(self, msg, level=log.INFO):
+    def announce(self, msg, level=logging.INFO):
         log.log(level, msg)
 
     def run_commands(self):

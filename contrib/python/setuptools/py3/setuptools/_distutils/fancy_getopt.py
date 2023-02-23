@@ -12,7 +12,7 @@ import sys
 import string
 import re
 import getopt
-from distutils.errors import DistutilsGetoptError, DistutilsArgError
+from .errors import DistutilsGetoptError, DistutilsArgError
 
 # Much like command_re in distutils.core, this is close to but not quite
 # the same as a Python NAME -- except, in the spirit of most GNU

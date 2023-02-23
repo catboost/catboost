@@ -9,9 +9,9 @@ import re
 import fnmatch
 import functools
 
-from distutils.util import convert_path
-from distutils.errors import DistutilsTemplateError, DistutilsInternalError
-from distutils import log
+from .util import convert_path
+from .errors import DistutilsTemplateError, DistutilsInternalError
+from ._log import log
 
 
 class FileList:
@@ -120,13 +120,13 @@ class FileList:
             self.debug_print("include " + ' '.join(patterns))
             for pattern in patterns:
                 if not self.include_pattern(pattern, anchor=1):
-                    log.warn("warning: no files found matching '%s'", pattern)
+                    log.warning("warning: no files found matching '%s'", pattern)
 
         elif action == 'exclude':
             self.debug_print("exclude " + ' '.join(patterns))
             for pattern in patterns:
                 if not self.exclude_pattern(pattern, anchor=1):
-                    log.warn(
+                    log.warning(
                         (
                             "warning: no previously-included files "
                             "found matching '%s'"
@@ -138,7 +138,7 @@ class FileList:
             self.debug_print("global-include " + ' '.join(patterns))
             for pattern in patterns:
                 if not self.include_pattern(pattern, anchor=0):
-                    log.warn(
+                    log.warning(
                         (
                             "warning: no files found matching '%s' "
                             "anywhere in distribution"
@@ -150,7 +150,7 @@ class FileList:
             self.debug_print("global-exclude " + ' '.join(patterns))
             for pattern in patterns:
                 if not self.exclude_pattern(pattern, anchor=0):
-                    log.warn(
+                    log.warning(
                         (
                             "warning: no previously-included files matching "
                             "'%s' found anywhere in distribution"
@@ -165,13 +165,13 @@ class FileList:
                     msg = (
                         "warning: no files found matching '%s' " "under directory '%s'"
                     )
-                    log.warn(msg, pattern, dir)
+                    log.warning(msg, pattern, dir)
 
         elif action == 'recursive-exclude':
             self.debug_print("recursive-exclude {} {}".format(dir, ' '.join(patterns)))
             for pattern in patterns:
                 if not self.exclude_pattern(pattern, prefix=dir):
-                    log.warn(
+                    log.warning(
                         (
                             "warning: no previously-included files matching "
                             "'%s' found under directory '%s'"
@@ -183,12 +183,12 @@ class FileList:
         elif action == 'graft':
             self.debug_print("graft " + dir_pattern)
             if not self.include_pattern(None, prefix=dir_pattern):
-                log.warn("warning: no directories found matching '%s'", dir_pattern)
+                log.warning("warning: no directories found matching '%s'", dir_pattern)
 
         elif action == 'prune':
             self.debug_print("prune " + dir_pattern)
             if not self.exclude_pattern(None, prefix=dir_pattern):
-                log.warn(
+                log.warning(
                     ("no previously-included directories found " "matching '%s'"),
                     dir_pattern,
                 )

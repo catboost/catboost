@@ -13,17 +13,27 @@ for the Borland C++ compiler.
 
 
 import os
-from distutils.errors import (
+import warnings
+
+from .errors import (
     DistutilsExecError,
     CompileError,
     LibError,
     LinkError,
     UnknownFileError,
 )
-from distutils.ccompiler import CCompiler, gen_preprocess_options
-from distutils.file_util import write_file
-from distutils.dep_util import newer
-from distutils import log
+from .ccompiler import CCompiler, gen_preprocess_options
+from .file_util import write_file
+from .dep_util import newer
+from ._log import log
+
+
+warnings.warn(
+    "bcppcompiler is deprecated and slated to be removed "
+    "in the future. Please discontinue use or file an issue "
+    "with pypa/distutils describing your use case.",
+    DeprecationWarning,
+)
 
 
 class BCPPCompiler(CCompiler):
@@ -200,7 +210,7 @@ class BCPPCompiler(CCompiler):
         )
 
         if runtime_library_dirs:
-            log.warn(
+            log.warning(
                 "I don't know what to do with 'runtime_library_dirs': %s",
                 str(runtime_library_dirs),
             )

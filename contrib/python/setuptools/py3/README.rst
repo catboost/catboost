@@ -1,15 +1,7 @@
-.. image:: https://raw.githubusercontent.com/pypa/setuptools/main/docs/images/banner-640x320.svg
-   :align: center
-
-|
-
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
-   :target: `PyPI link`_
+   :target: https://pypi.org/project/setuptools
 
 .. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
-   :target: `PyPI link`_
-
-.. _PyPI link: https://pypi.org/project/setuptools
 
 .. image:: https://github.com/pypa/setuptools/workflows/tests/badge.svg
    :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
@@ -22,7 +14,7 @@
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
     :target: https://setuptools.pypa.io
 
-.. image:: https://img.shields.io/badge/skeleton-2022-informational
+.. image:: https://img.shields.io/badge/skeleton-2023-informational
    :target: https://blog.jaraco.com/skeleton
 
 .. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white

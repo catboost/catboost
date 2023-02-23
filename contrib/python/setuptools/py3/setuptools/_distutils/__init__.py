@@ -1,17 +1,7 @@
-"""distutils
-
-The main package for the Python Module Distribution Utilities.  Normally
-used from a setup script as
-
-   from distutils.core import setup
-
-   setup (...)
-"""
-
 import sys
 import importlib
 
-__version__ = sys.version[: sys.version.index(' ')]
+__version__, _, _ = sys.version.partition(' ')
 
 
 try:

@@ -21,6 +21,7 @@ import ast
 import importlib
 import io
 import os
+import pathlib
 import sys
 import warnings
 from glob import iglob
@@ -41,6 +42,7 @@ from typing import (
     Union,
     cast
 )
+from pathlib import Path
 from types import ModuleType
 
 from distutils.errors import DistutilsOptionError
@@ -62,9 +64,7 @@ class StaticModule:
     """Proxy to a module object that avoids executing arbitrary code."""
 
     def __init__(self, name: str, spec: ModuleSpec):
-        with open(spec.origin) as strm:  # type: ignore
-            src = strm.read()
-        module = ast.parse(src)
+        module = ast.parse(pathlib.Path(spec.origin).read_bytes())
         vars(self).update(locals())
         del self.self
 
@@ -150,7 +150,7 @@ def _read_file(filepath: Union[bytes, _Path]) -> str:
 
 
 def _assert_local(filepath: _Path, root_dir: str):
-    if not os.path.abspath(filepath).startswith(root_dir):
+    if Path(os.path.abspath(root_dir)) not in Path(os.path.abspath(filepath)).parents:
         msg = f"Cannot access {filepath!r} (or anything outside {root_dir!r})"
         raise DistutilsOptionError(msg)
 

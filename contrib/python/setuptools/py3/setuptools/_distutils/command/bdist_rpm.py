@@ -7,17 +7,17 @@ import subprocess
 import sys
 import os
 
-from distutils.core import Command
-from distutils.debug import DEBUG
-from distutils.file_util import write_file
-from distutils.errors import (
+from ..core import Command
+from ..debug import DEBUG
+from ..file_util import write_file
+from ..errors import (
     DistutilsOptionError,
     DistutilsPlatformError,
     DistutilsFileError,
     DistutilsExecError,
 )
-from distutils.sysconfig import get_python_version
-from distutils import log
+from ..sysconfig import get_python_version
+from distutils._log import log
 
 
 class bdist_rpm(Command):

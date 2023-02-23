@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 __all__ = ['Distribution']
 
 import io
@@ -1195,19 +1194,11 @@ class Distribution(_Distribution):
 
         # Print metadata in UTF-8 no matter the platform
         encoding = sys.stdout.encoding
-        errors = sys.stdout.errors
-        newline = sys.platform != 'win32' and '\n' or None
-        line_buffering = sys.stdout.line_buffering
-
-        sys.stdout = io.TextIOWrapper(
-            sys.stdout.detach(), 'utf-8', errors, newline, line_buffering
-        )
+        sys.stdout.reconfigure(encoding='utf-8')
         try:
             return _Distribution.handle_display_options(self, option_order)
         finally:
-            sys.stdout = io.TextIOWrapper(
-                sys.stdout.detach(), encoding, errors, newline, line_buffering
-            )
+            sys.stdout.reconfigure(encoding=encoding)
 
     def run_command(self, command):
         self.set_defaults()

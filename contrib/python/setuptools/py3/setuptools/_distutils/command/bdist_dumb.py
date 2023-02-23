@@ -5,12 +5,12 @@ distribution -- i.e., just an archive to be unpacked under $prefix or
 $exec_prefix)."""
 
 import os
-from distutils.core import Command
-from distutils.util import get_platform
-from distutils.dir_util import remove_tree, ensure_relative
-from distutils.errors import DistutilsPlatformError
-from distutils.sysconfig import get_python_version
-from distutils import log
+from ..core import Command
+from ..util import get_platform
+from ..dir_util import remove_tree, ensure_relative
+from ..errors import DistutilsPlatformError
+from ..sysconfig import get_python_version
+from distutils._log import log
 
 
 class bdist_dumb(Command):

@@ -9,8 +9,9 @@ import os
 import sys
 import re
 
-from distutils.cmd import Command
-from distutils import log, dir_util
+from ..cmd import Command
+from .. import dir_util
+from .._log import log
 
 
 class install_egg_info(Command):

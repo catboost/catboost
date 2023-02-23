@@ -4,8 +4,8 @@ Implements the Distutils 'check' command.
 """
 import contextlib
 
-from distutils.core import Command
-from distutils.errors import DistutilsSetupError
+from ..core import Command
+from ..errors import DistutilsSetupError
 
 with contextlib.suppress(ImportError):
     import docutils.utils

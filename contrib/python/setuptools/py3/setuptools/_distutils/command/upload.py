@@ -8,13 +8,13 @@ index).
 import os
 import io
 import hashlib
+import logging
 from base64 import standard_b64encode
 from urllib.request import urlopen, Request, HTTPError
 from urllib.parse import urlparse
-from distutils.errors import DistutilsError, DistutilsOptionError
-from distutils.core import PyPIRCCommand
-from distutils.spawn import spawn
-from distutils import log
+from ..errors import DistutilsError, DistutilsOptionError
+from ..core import PyPIRCCommand
+from ..spawn import spawn
 
 
 # PyPI Warehouse supports MD5, SHA256, and Blake2 (blake2-256)
@@ -171,7 +171,7 @@ class upload(PyPIRCCommand):
         body = body.getvalue()
 
         msg = "Submitting {} to {}".format(filename, self.repository)
-        self.announce(msg, log.INFO)
+        self.announce(msg, logging.INFO)
 
         # build the Request
         headers = {
@@ -190,16 +190,18 @@ class upload(PyPIRCCommand):
             status = e.code
             reason = e.msg
         except OSError as e:
-            self.announce(str(e), log.ERROR)
+            self.announce(str(e), logging.ERROR)
             raise
 
         if status == 200:
-            self.announce('Server response ({}): {}'.format(status, reason), log.INFO)
+            self.announce(
+                'Server response ({}): {}'.format(status, reason), logging.INFO
+            )
             if self.show_response:
                 text = self._read_pypi_response(result)
                 msg = '\n'.join(('-' * 75, text, '-' * 75))
-                self.announce(msg, log.INFO)
+                self.announce(msg, logging.INFO)
         else:
             msg = 'Upload failed ({}): {}'.format(status, reason)
-            self.announce(msg, log.ERROR)
+            self.announce(msg, logging.ERROR)
             raise DistutilsError(msg)

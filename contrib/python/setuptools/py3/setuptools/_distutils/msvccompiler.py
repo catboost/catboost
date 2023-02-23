@@ -10,15 +10,16 @@ for the Microsoft Visual Studio.
 
 import sys
 import os
-from distutils.errors import (
+import warnings
+from .errors import (
     DistutilsExecError,
     DistutilsPlatformError,
     CompileError,
     LibError,
     LinkError,
 )
-from distutils.ccompiler import CCompiler, gen_lib_options
-from distutils import log
+from .ccompiler import CCompiler, gen_lib_options
+from ._log import log
 
 _can_read_reg = False
 try:
@@ -60,6 +61,14 @@ if _can_read_reg:
         hkey_mod.HKEY_LOCAL_MACHINE,
         hkey_mod.HKEY_CLASSES_ROOT,
     )
+
+
+warnings.warn(
+    "msvccompiler is deprecated and slated to be removed "
+    "in the future. Please discontinue use or file an issue "
+    "with pypa/distutils describing your use case.",
+    DeprecationWarning,
+)
 
 
 def read_keys(base, key):

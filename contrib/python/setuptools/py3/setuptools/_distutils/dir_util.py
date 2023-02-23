@@ -4,8 +4,8 @@ Utility functions for manipulating directories and directory trees."""
 
 import os
 import errno
-from distutils.errors import DistutilsInternalError, DistutilsFileError
-from distutils import log
+from .errors import DistutilsInternalError, DistutilsFileError
+from ._log import log
 
 # cache for by mkpath() -- in addition to cheapening redundant calls,
 # eliminates redundant "creating /foo/bar/baz" messages in dry-run mode
@@ -229,7 +229,7 @@ def remove_tree(directory, verbose=1, dry_run=0):
             if abspath in _path_created:
                 del _path_created[abspath]
         except OSError as exc:
-            log.warn("error removing %s: %s", directory, exc)
+            log.warning("error removing %s: %s", directory, exc)
 
 
 def ensure_relative(path):

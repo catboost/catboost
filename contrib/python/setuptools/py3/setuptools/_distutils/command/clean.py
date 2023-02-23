@@ -5,9 +5,9 @@ Implements the Distutils 'clean' command."""
 # contributed by Bastian Kleineidam <calvin@cs.uni-sb.de>, added 2000-03-18
 
 import os
-from distutils.core import Command
-from distutils.dir_util import remove_tree
-from distutils import log
+from ..core import Command
+from ..dir_util import remove_tree
+from distutils._log import log
 
 
 class clean(Command):
@@ -64,7 +64,7 @@ class clean(Command):
                 if os.path.exists(directory):
                     remove_tree(directory, dry_run=self.dry_run)
                 else:
-                    log.warn("'%s' does not exist -- can't clean it", directory)
+                    log.warning("'%s' does not exist -- can't clean it", directory)
 
         # just for the heck of it, try to remove the base build directory:
         # we might have emptied it right now, but if not we don't care

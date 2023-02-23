@@ -13,10 +13,10 @@ except ImportError:
     zipfile = None
 
 
-from distutils.errors import DistutilsExecError
-from distutils.spawn import spawn
-from distutils.dir_util import mkpath
-from distutils import log
+from .errors import DistutilsExecError
+from .spawn import spawn
+from .dir_util import mkpath
+from ._log import log
 
 try:
     from pwd import getpwnam

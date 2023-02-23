@@ -4,8 +4,8 @@ Utility functions for operating on single files.
 """
 
 import os
-from distutils.errors import DistutilsFileError
-from distutils import log
+from .errors import DistutilsFileError
+from ._log import log
 
 # for generating verbose output in 'copy_file()'
 _copy_action = {None: 'copying', 'hard': 'hard linking', 'sym': 'symbolically linking'}

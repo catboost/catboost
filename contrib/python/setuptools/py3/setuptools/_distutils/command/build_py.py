@@ -7,10 +7,10 @@ import importlib.util
 import sys
 import glob
 
-from distutils.core import Command
-from distutils.errors import DistutilsOptionError, DistutilsFileError
-from distutils.util import convert_path
-from distutils import log
+from ..core import Command
+from ..errors import DistutilsOptionError, DistutilsFileError
+from ..util import convert_path
+from distutils._log import log
 
 
 class build_py(Command):
@@ -212,7 +212,7 @@ class build_py(Command):
 
     def check_module(self, module, module_file):
         if not os.path.isfile(module_file):
-            log.warn("file %s (for module %s) not found", module_file, module)
+            log.warning("file %s (for module %s) not found", module_file, module)
             return False
         else:
             return True
@@ -384,7 +384,7 @@ class build_py(Command):
             self.warn('byte-compiling is disabled, skipping.')
             return
 
-        from distutils.util import byte_compile
+        from ..util import byte_compile
 
         prefix = self.build_lib
         if prefix[-1] != os.sep:

@@ -295,7 +295,11 @@ class egg_info(InfoCommon, Command):
 
     def run(self):
         self.mkpath(self.egg_info)
-        os.utime(self.egg_info, None)
+        try:
+            os.utime(self.egg_info, None)
+        except OSError as e:
+            msg = f"Cannot update time stamp of directory '{self.egg_info}'"
+            raise distutils.errors.DistutilsFileError(msg) from e
         for ep in metadata.entry_points(group='egg_info.writers'):
             writer = ep.load()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))

@@ -6,19 +6,20 @@ for the Distutils compiler abstraction model."""
 import sys
 import os
 import re
-from distutils.errors import (
+
+from .errors import (
     CompileError,
     LinkError,
     UnknownFileError,
     DistutilsPlatformError,
     DistutilsModuleError,
 )
-from distutils.spawn import spawn
-from distutils.file_util import move_file
-from distutils.dir_util import mkpath
-from distutils.dep_util import newer_group
-from distutils.util import split_quoted, execute
-from distutils import log
+from .spawn import spawn
+from .file_util import move_file
+from .dir_util import mkpath
+from .dep_util import newer_group
+from .util import split_quoted, execute
+from ._log import log
 
 
 class CCompiler:
@@ -922,19 +923,39 @@ int main (int argc, char **argv) {
     def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
         if output_dir is None:
             output_dir = ''
-        obj_names = []
-        for src_name in source_filenames:
-            base, ext = os.path.splitext(src_name)
-            base = os.path.splitdrive(base)[1]  # Chop off the drive
-            base = base[os.path.isabs(base) :]  # If abs, chop off leading /
-            if ext not in self.src_extensions:
-                raise UnknownFileError(
-                    "unknown file type '{}' (from '{}')".format(ext, src_name)
-                )
-            if strip_dir:
-                base = os.path.basename(base)
-            obj_names.append(os.path.join(output_dir, base + self.obj_extension))
-        return obj_names
+        return list(
+            self._make_out_path(output_dir, strip_dir, src_name)
+            for src_name in source_filenames
+        )
+
+    @property
+    def out_extensions(self):
+        return dict.fromkeys(self.src_extensions, self.obj_extension)
+
+    def _make_out_path(self, output_dir, strip_dir, src_name):
+        base, ext = os.path.splitext(src_name)
+        base = self._make_relative(base)
+        try:
+            new_ext = self.out_extensions[ext]
+        except LookupError:
+            raise UnknownFileError(
+                "unknown file type '{}' (from '{}')".format(ext, src_name)
+            )
+        if strip_dir:
+            base = os.path.basename(base)
+        return os.path.join(output_dir, base + new_ext)
+
+    @staticmethod
+    def _make_relative(base):
+        """
+        In order to ensure that a filename always honors the
+        indicated output_dir, make sure it's relative.
+        Ref python/cpython#37775.
+        """
+        # Chop off the drive
+        no_drive = os.path.splitdrive(base)[1]
+        # If abs, chop off leading /
+        return no_drive[os.path.isabs(no_drive) :]
 
     def shared_object_filename(self, basename, strip_dir=0, output_dir=''):
         assert output_dir is not None

@@ -1,11 +1,12 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 64.0.3
+Version: 65.7.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
 Author-email: distutils-sig@python.org
 Project-URL: Documentation, https://setuptools.pypa.io/
+Project-URL: Changelog, https://setuptools.pypa.io/en/stable/history.html
 Keywords: CPAN PyPI distutils eggs package management
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
@@ -20,27 +21,26 @@ Requires-Python: >=3.7
 License-File: LICENSE
 Provides-Extra: certs
 Provides-Extra: docs
-Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: sphinx (>=3.5) ; extra == 'docs'
 Requires-Dist: jaraco.packaging (>=9) ; extra == 'docs'
 Requires-Dist: rst.linker (>=1.9) ; extra == 'docs'
+Requires-Dist: furo ; extra == 'docs'
+Requires-Dist: sphinx-lint ; extra == 'docs'
 Requires-Dist: jaraco.tidelift (>=1.4) ; extra == 'docs'
-Requires-Dist: sphinx-notfound-page (==0.8.3) ; extra == 'docs'
-Requires-Dist: sphinx-hoverxref (<2) ; extra == 'docs'
 Requires-Dist: pygments-github-lexers (==0.0.5) ; extra == 'docs'
 Requires-Dist: sphinx-favicon ; extra == 'docs'
 Requires-Dist: sphinx-inline-tabs ; extra == 'docs'
 Requires-Dist: sphinx-reredirects ; extra == 'docs'
 Requires-Dist: sphinxcontrib-towncrier ; extra == 'docs'
-Requires-Dist: furo ; extra == 'docs'
+Requires-Dist: sphinx-notfound-page (==0.8.3) ; extra == 'docs'
+Requires-Dist: sphinx-hoverxref (<2) ; extra == 'docs'
 Provides-Extra: ssl
 Provides-Extra: testing
 Requires-Dist: pytest (>=6) ; extra == 'testing'
 Requires-Dist: pytest-checkdocs (>=2.4) ; extra == 'testing'
-Requires-Dist: pytest-flake8 ; extra == 'testing'
 Requires-Dist: flake8 (<5) ; extra == 'testing'
 Requires-Dist: pytest-enabler (>=1.3) ; extra == 'testing'
 Requires-Dist: pytest-perf ; extra == 'testing'
-Requires-Dist: mock ; extra == 'testing'
 Requires-Dist: flake8-2020 ; extra == 'testing'
 Requires-Dist: virtualenv (>=13.0.0) ; extra == 'testing'
 Requires-Dist: wheel ; extra == 'testing'
@@ -53,6 +53,7 @@ Requires-Dist: filelock (>=3.4.0) ; extra == 'testing'
 Requires-Dist: pip-run (>=8.8) ; extra == 'testing'
 Requires-Dist: ini2toml[lite] (>=0.9) ; extra == 'testing'
 Requires-Dist: tomli-w (>=1.0.0) ; extra == 'testing'
+Requires-Dist: pytest-timeout ; extra == 'testing'
 Provides-Extra: testing-integration
 Requires-Dist: pytest ; extra == 'testing-integration'
 Requires-Dist: pytest-xdist ; extra == 'testing-integration'
@@ -67,19 +68,12 @@ Requires-Dist: filelock (>=3.4.0) ; extra == 'testing-integration'
 Requires-Dist: pytest-black (>=0.3.7) ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-cov ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-mypy (>=0.9.1) ; (platform_python_implementation != "PyPy") and extra == 'testing'
-
-.. image:: https://raw.githubusercontent.com/pypa/setuptools/main/docs/images/banner-640x320.svg
-   :align: center
-
-|
+Requires-Dist: pytest-flake8 ; (python_version < "3.12") and extra == 'testing'
 
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
-   :target: `PyPI link`_
+   :target: https://pypi.org/project/setuptools
 
 .. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
-   :target: `PyPI link`_
-
-.. _PyPI link: https://pypi.org/project/setuptools
 
 .. image:: https://github.com/pypa/setuptools/workflows/tests/badge.svg
    :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
@@ -92,7 +86,7 @@ Requires-Dist: pytest-mypy (>=0.9.1) ; (platform_python_implementation != "PyPy"
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
     :target: https://setuptools.pypa.io
 
-.. image:: https://img.shields.io/badge/skeleton-2022-informational
+.. image:: https://img.shields.io/badge/skeleton-2023-informational
    :target: https://blog.jaraco.com/skeleton
 
 .. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white

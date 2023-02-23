@@ -28,7 +28,7 @@ class build_clib(orig.build_clib):
                     "in 'libraries' option (library '%s'), "
                     "'sources' must be present and must be "
                     "a list of source filenames" % lib_name)
-            sources = list(sources)
+            sources = sorted(list(sources))
 
             log.info("building '%s' library", lib_name)
 

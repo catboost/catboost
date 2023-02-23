@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """upload_docs
 
 Implements a Distutils 'upload_docs' subcommand (upload documentation to

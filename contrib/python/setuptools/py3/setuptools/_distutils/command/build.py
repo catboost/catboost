@@ -4,13 +4,13 @@ Implements the Distutils 'build' command."""
 
 import sys
 import os
-from distutils.core import Command
-from distutils.errors import DistutilsOptionError
-from distutils.util import get_platform
+from ..core import Command
+from ..errors import DistutilsOptionError
+from ..util import get_platform
 
 
 def show_compilers():
-    from distutils.ccompiler import show_compilers
+    from ..ccompiler import show_compilers
 
     show_compilers()
 

@@ -1,7 +1,7 @@
 """Module for parsing and testing package version predicate strings.
 """
 import re
-import distutils.version
+from . import version
 import operator
 
 
@@ -22,8 +22,8 @@ def splitUp(pred):
     if not res:
         raise ValueError("bad package restriction syntax: %r" % pred)
     comp, verStr = res.groups()
-    with distutils.version.suppress_known_deprecation():
-        other = distutils.version.StrictVersion(verStr)
+    with version.suppress_known_deprecation():
+        other = version.StrictVersion(verStr)
     return (comp, other)
 
 
@@ -170,6 +170,6 @@ def split_provision(value):
         raise ValueError("illegal provides specification: %r" % value)
     ver = m.group(2) or None
     if ver:
-        with distutils.version.suppress_known_deprecation():
-            ver = distutils.version.StrictVersion(ver)
+        with version.suppress_known_deprecation():
+            ver = version.StrictVersion(ver)
     return m.group(1), ver

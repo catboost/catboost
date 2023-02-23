@@ -10,9 +10,9 @@ import sys
 import os
 import subprocess
 
-from distutils.errors import DistutilsExecError
-from distutils.debug import DEBUG
-from distutils import log
+from .errors import DistutilsExecError
+from .debug import DEBUG
+from ._log import log
 
 
 def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):  # noqa: C901

@@ -13,6 +13,7 @@ import os
 import re
 import sys
 import sysconfig
+import pathlib
 
 from .errors import DistutilsPlatformError
 from . import py39compat
@@ -40,14 +41,13 @@ else:
         project_base = os.getcwd()
 
 
-# python_build: (Boolean) if true, we're either building Python or
-# building an extension with an un-installed Python, so we use
-# different (hard-wired) directories.
 def _is_python_source_dir(d):
-    for fn in ("Setup", "Setup.local"):
-        if os.path.isfile(os.path.join(d, "Modules", fn)):
-            return True
-    return False
+    """
+    Return True if the target directory appears to point to an
+    un-installed Python.
+    """
+    modules = pathlib.Path(d).joinpath('Modules')
+    return any(modules.joinpath(fn).is_file() for fn in ('Setup', 'Setup.local'))
 
 
 _sys_home = getattr(sys, '_home', None)
@@ -164,10 +164,19 @@ def _get_python_inc_from_config(plat_specific, spec_prefix):
     the host
     platform Python installation, while the current Python
     executable is from the build platform installation.
+
+    >>> monkeypatch = getfixture('monkeypatch')
+    >>> gpifc = _get_python_inc_from_config
+    >>> monkeypatch.setitem(gpifc.__globals__, 'get_config_var', str.lower)
+    >>> gpifc(False, '/usr/bin/')
+    >>> gpifc(False, '')
+    >>> gpifc(False, None)
+    'includepy'
+    >>> gpifc(True, None)
+    'confincludepy'
     """
-    if not spec_prefix:
-        return
-    return get_config_var('CONF' * plat_specific + 'INCLUDEPY')
+    if spec_prefix is None:
+        return get_config_var('CONF' * plat_specific + 'INCLUDEPY')
 
 
 def _get_python_inc_posix_prefix(prefix):
@@ -528,13 +537,7 @@ def get_config_vars(*args):
         _config_vars = sysconfig.get_config_vars().copy()
         py39compat.add_ext_suffix(_config_vars)
 
-    if args:
-        vals = []
-        for name in args:
-            vals.append(_config_vars.get(name))
-        return vals
-    else:
-        return _config_vars
+    return [_config_vars.get(name) for name in args] if args else _config_vars
 
 
 def get_config_var(name):

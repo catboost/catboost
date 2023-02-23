@@ -15,14 +15,14 @@ module."""
 # cut 'n paste.  Sigh.
 
 import os
-from distutils.core import Command
-from distutils.errors import DistutilsSetupError
-from distutils.sysconfig import customize_compiler
-from distutils import log
+from ..core import Command
+from ..errors import DistutilsSetupError
+from ..sysconfig import customize_compiler
+from distutils._log import log
 
 
 def show_compilers():
-    from distutils.ccompiler import show_compilers
+    from ..ccompiler import show_compilers
 
     show_compilers()
 
@@ -92,7 +92,7 @@ class build_clib(Command):
             return
 
         # Yech -- this is cut 'n pasted from build_ext.py!
-        from distutils.ccompiler import new_compiler
+        from ..ccompiler import new_compiler
 
         self.compiler = new_compiler(
             compiler=self.compiler, dry_run=self.dry_run, force=self.force

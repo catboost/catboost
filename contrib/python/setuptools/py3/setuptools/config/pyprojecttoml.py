@@ -112,7 +112,7 @@ def read_configuration(
     # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
     # therefore setting a default here is backwards compatible.
     orig_setuptools_table = setuptools_table.copy()
-    if dist and getattr(dist, "include_package_data") is not None:
+    if dist and getattr(dist, "include_package_data", None) is not None:
         setuptools_table.setdefault("include-package-data", dist.include_package_data)
     else:
         setuptools_table.setdefault("include-package-data", True)
@@ -234,8 +234,8 @@ class _ConfigExpander:
 
         # A distribution object is required for discovering the correct package_dir
         dist = self._ensure_dist()
-
-        with _EnsurePackagesDiscovered(dist, self.setuptools_cfg) as ensure_discovered:
+        ctx = _EnsurePackagesDiscovered(dist, self.project_cfg, self.setuptools_cfg)
+        with ctx as ensure_discovered:
             package_dir = ensure_discovered.package_dir
             self._expand_data_files()
             self._expand_cmdclass(package_dir)
@@ -428,8 +428,11 @@ def _ignore_errors(ignore_option_errors: bool):
 
 
 class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
-    def __init__(self, distribution: "Distribution", setuptools_cfg: dict):
+    def __init__(
+        self, distribution: "Distribution", project_cfg: dict, setuptools_cfg: dict
+    ):
         super().__init__(distribution)
+        self._project_cfg = project_cfg
         self._setuptools_cfg = setuptools_cfg
 
     def __enter__(self):
@@ -443,8 +446,10 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
 
         dist.set_defaults._ignore_ext_modules()  # pyproject.toml-specific behaviour
 
-        # Set `py_modules` and `packages` in dist to short-circuit auto-discovery,
-        # but avoid overwriting empty lists purposefully set by users.
+        # Set `name`, `py_modules` and `packages` in dist to short-circuit
+        # auto-discovery, but avoid overwriting empty lists purposefully set by users.
+        if dist.metadata.name is None:
+            dist.metadata.name = self._project_cfg.get("name")
         if dist.py_modules is None:
             dist.py_modules = cfg.get("py-modules")
         if dist.packages is None:

@@ -20,7 +20,6 @@ __all__ = [  # noqa: F822
     'bdist',
     'bdist_dumb',
     'bdist_rpm',
-    'bdist_wininst',
     'check',
     'upload',
 ]

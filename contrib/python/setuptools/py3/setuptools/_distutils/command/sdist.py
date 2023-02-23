@@ -7,23 +7,23 @@ import sys
 from glob import glob
 from warnings import warn
 
-from distutils.core import Command
+from ..core import Command
 from distutils import dir_util
 from distutils import file_util
 from distutils import archive_util
-from distutils.text_file import TextFile
-from distutils.filelist import FileList
-from distutils import log
-from distutils.util import convert_path
-from distutils.errors import DistutilsOptionError, DistutilsTemplateError
+from ..text_file import TextFile
+from ..filelist import FileList
+from distutils._log import log
+from ..util import convert_path
+from ..errors import DistutilsOptionError, DistutilsTemplateError
 
 
 def show_formats():
     """Print all possible values for the 'formats' option (used by
     the "--help-formats" command-line option).
     """
-    from distutils.fancy_getopt import FancyGetopt
-    from distutils.archive_util import ARCHIVE_FORMATS
+    from ..fancy_getopt import FancyGetopt
+    from ..archive_util import ARCHIVE_FORMATS
 
     formats = []
     for format in ARCHIVE_FORMATS.keys():
@@ -481,12 +481,12 @@ class sdist(Command):
             msg = "copying files to %s..." % base_dir
 
         if not files:
-            log.warn("no files to distribute -- empty manifest?")
+            log.warning("no files to distribute -- empty manifest?")
         else:
             log.info(msg)
         for file in files:
             if not os.path.isfile(file):
-                log.warn("'%s' not a regular file -- skipping", file)
+                log.warning("'%s' not a regular file -- skipping", file)
             else:
                 dest = os.path.join(base_dir, file)
                 self.copy_file(file, dest, link=link)

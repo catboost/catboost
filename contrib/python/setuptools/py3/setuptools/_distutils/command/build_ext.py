@@ -8,8 +8,8 @@ import contextlib
 import os
 import re
 import sys
-from distutils.core import Command
-from distutils.errors import (
+from ..core import Command
+from ..errors import (
     DistutilsOptionError,
     DistutilsSetupError,
     CCompilerError,
@@ -17,12 +17,12 @@ from distutils.errors import (
     CompileError,
     DistutilsPlatformError,
 )
-from distutils.sysconfig import customize_compiler, get_python_version
-from distutils.sysconfig import get_config_h_filename
-from distutils.dep_util import newer_group
-from distutils.extension import Extension
-from distutils.util import get_platform
-from distutils import log
+from ..sysconfig import customize_compiler, get_python_version
+from ..sysconfig import get_config_h_filename
+from ..dep_util import newer_group
+from ..extension import Extension
+from ..util import get_platform
+from distutils._log import log
 from . import py37compat
 
 from site import USER_BASE
@@ -33,7 +33,7 @@ extension_name_re = re.compile(r'^[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]
 
 
 def show_compilers():
-    from distutils.ccompiler import show_compilers
+    from ..ccompiler import show_compilers
 
     show_compilers()
 
@@ -280,7 +280,7 @@ class build_ext(Command):
                 raise DistutilsOptionError("parallel should be an integer")
 
     def run(self):  # noqa: C901
-        from distutils.ccompiler import new_compiler
+        from ..ccompiler import new_compiler
 
         # 'self.extensions', as supplied by setup.py, is a list of
         # Extension instances.  See the documentation for Extension (in
@@ -373,7 +373,7 @@ class build_ext(Command):
 
             ext_name, build_info = ext
 
-            log.warn(
+            log.warning(
                 "old-style (ext_name, build_info) tuple found in "
                 "ext_modules for extension '%s' "
                 "-- please convert to Extension instance",
@@ -413,7 +413,9 @@ class build_ext(Command):
             # Medium-easy stuff: same syntax/semantics, different names.
             ext.runtime_library_dirs = build_info.get('rpath')
             if 'def_file' in build_info:
-                log.warn("'def_file' element of build info dict " "no longer supported")
+                log.warning(
+                    "'def_file' element of build info dict " "no longer supported"
+                )
 
             # Non-trivial stuff: 'macros' split into 'define_macros'
             # and 'undef_macros'.
@@ -597,7 +599,7 @@ class build_ext(Command):
         # the temp dir.
 
         if self.swig_cpp:
-            log.warn("--swig-cpp is deprecated - use --swig-opts=-c++")
+            log.warning("--swig-cpp is deprecated - use --swig-opts=-c++")
 
         if (
             self.swig_cpp
@@ -704,7 +706,7 @@ class build_ext(Command):
         of the file from which it will be loaded (eg. "foo/bar.so", or
         "foo\bar.pyd").
         """
-        from distutils.sysconfig import get_config_var
+        from ..sysconfig import get_config_var
 
         ext_path = ext_name.split('.')
         ext_suffix = get_config_var('EXT_SUFFIX')
@@ -742,7 +744,7 @@ class build_ext(Command):
         # to need it mentioned explicitly, though, so that's what we do.
         # Append '_d' to the python import library on debug builds.
         if sys.platform == "win32":
-            from distutils._msvccompiler import MSVCCompiler
+            from .._msvccompiler import MSVCCompiler
 
             if not isinstance(self.compiler, MSVCCompiler):
                 template = "python%d%d"
@@ -764,7 +766,7 @@ class build_ext(Command):
             # On Cygwin (and if required, other POSIX-like platforms based on
             # Windows like MinGW) it is simply necessary that all symbols in
             # shared libraries are resolved at link time.
-            from distutils.sysconfig import get_config_var
+            from ..sysconfig import get_config_var
 
             link_libpython = False
             if get_config_var('Py_ENABLE_SHARED'):

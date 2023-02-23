@@ -10,8 +10,8 @@ import os
 import sys
 import tokenize
 
-from distutils.debug import DEBUG
-from distutils.errors import (
+from .debug import DEBUG
+from .errors import (
     DistutilsSetupError,
     DistutilsError,
     CCompilerError,
@@ -19,10 +19,10 @@ from distutils.errors import (
 )
 
 # Mainly import these so setup scripts can "from distutils.core import" them.
-from distutils.dist import Distribution
-from distutils.cmd import Command
-from distutils.config import PyPIRCCommand
-from distutils.extension import Extension
+from .dist import Distribution
+from .cmd import Command
+from .config import PyPIRCCommand
+from .extension import Extension
 
 
 __all__ = ['Distribution', 'Command', 'PyPIRCCommand', 'Extension', 'setup']

@@ -11,10 +11,12 @@ import string
 import subprocess
 import sys
 import sysconfig
-from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
-from distutils.dep_util import newer
-from distutils.spawn import spawn
-from distutils import log
+import functools
+
+from .errors import DistutilsPlatformError, DistutilsByteCompileError
+from .dep_util import newer
+from .spawn import spawn
+from ._log import log
 
 
 def get_host_platform():
@@ -170,9 +172,7 @@ def change_root(new_root, pathname):
     raise DistutilsPlatformError(f"nothing known about platform '{os.name}'")
 
 
-_environ_checked = 0
-
-
+@functools.lru_cache()
 def check_environ():
     """Ensure that 'os.environ' has all the environment variables we
     guarantee that users can use in config files, command-line options,
@@ -181,10 +181,6 @@ def check_environ():
       PLAT - description of the current platform, including hardware
              and OS (see 'get_platform()')
     """
-    global _environ_checked
-    if _environ_checked:
-        return
-
     if os.name == 'posix' and 'HOME' not in os.environ:
         try:
             import pwd
@@ -197,8 +193,6 @@ def check_environ():
 
     if 'PLAT' not in os.environ:
         os.environ['PLAT'] = get_platform()
-
-    _environ_checked = 1
 
 
 def subst_vars(s, local_vars):

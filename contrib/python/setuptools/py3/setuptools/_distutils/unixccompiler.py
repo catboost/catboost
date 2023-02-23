@@ -19,11 +19,11 @@ import re
 import shlex
 import itertools
 
-from distutils import sysconfig
-from distutils.dep_util import newer
-from distutils.ccompiler import CCompiler, gen_preprocess_options, gen_lib_options
-from distutils.errors import DistutilsExecError, CompileError, LibError, LinkError
-from distutils import log
+from . import sysconfig
+from .dep_util import newer
+from .ccompiler import CCompiler, gen_preprocess_options, gen_lib_options
+from .errors import DistutilsExecError, CompileError, LibError, LinkError
+from ._log import log
 from ._macos_compat import compiler_fixup
 
 # XXX Things not currently handled:

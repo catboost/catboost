@@ -48,8 +48,8 @@ class SubCommand(Protocol):
           Subcommands **SHOULD** take advantage of ``editable_mode=True`` to adequate
           its behaviour or perform optimisations.
 
-          For example, if a subcommand don't need to generate any extra file and
-          everything it does is to copy a source file into the build directory,
+          For example, if a subcommand doesn't need to generate an extra file and
+          all it does is to copy a source file into the build directory,
           ``run()`` **SHOULD** simply "early return".
 
           Similarly, if the subcommand creates files that would be placed alongside

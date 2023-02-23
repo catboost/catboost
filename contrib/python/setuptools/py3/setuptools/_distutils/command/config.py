@@ -12,10 +12,10 @@ this header file lives".
 import os
 import re
 
-from distutils.core import Command
-from distutils.errors import DistutilsExecError
-from distutils.sysconfig import customize_compiler
-from distutils import log
+from ..core import Command
+from ..errors import DistutilsExecError
+from ..sysconfig import customize_compiler
+from distutils._log import log
 
 LANG_EXT = {"c": ".c", "c++": ".cxx"}
 
@@ -87,7 +87,7 @@ class config(Command):
         """
         # We do this late, and only on-demand, because this is an expensive
         # import.
-        from distutils.ccompiler import CCompiler, new_compiler
+        from ..ccompiler import CCompiler, new_compiler
 
         if not isinstance(self.compiler, CCompiler):
             self.compiler = new_compiler(
@@ -174,7 +174,7 @@ class config(Command):
         preprocessor succeeded, false if there were any errors.
         ('body' probably isn't of much use, but what the heck.)
         """
-        from distutils.ccompiler import CompileError
+        from ..ccompiler import CompileError
 
         self._check_compiler()
         ok = True
@@ -217,7 +217,7 @@ class config(Command):
         """Try to compile a source file built from 'body' and 'headers'.
         Return true on success, false otherwise.
         """
-        from distutils.ccompiler import CompileError
+        from ..ccompiler import CompileError
 
         self._check_compiler()
         try:
@@ -243,7 +243,7 @@ class config(Command):
         'headers', to executable form.  Return true on success, false
         otherwise.
         """
-        from distutils.ccompiler import CompileError, LinkError
+        from ..ccompiler import CompileError, LinkError
 
         self._check_compiler()
         try:
@@ -269,7 +269,7 @@ class config(Command):
         built from 'body' and 'headers'.  Return true on success, false
         otherwise.
         """
-        from distutils.ccompiler import CompileError, LinkError
+        from ..ccompiler import CompileError, LinkError
 
         self._check_compiler()
         try:

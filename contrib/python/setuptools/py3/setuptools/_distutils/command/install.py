@@ -8,14 +8,14 @@ import contextlib
 import sysconfig
 import itertools
 
-from distutils import log
-from distutils.core import Command
-from distutils.debug import DEBUG
-from distutils.sysconfig import get_config_vars
-from distutils.file_util import write_file
-from distutils.util import convert_path, subst_vars, change_root
-from distutils.util import get_platform
-from distutils.errors import DistutilsOptionError, DistutilsPlatformError
+from distutils._log import log
+from ..core import Command
+from ..debug import DEBUG
+from ..sysconfig import get_config_vars
+from ..file_util import write_file
+from ..util import convert_path, subst_vars, change_root
+from ..util import get_platform
+from ..errors import DistutilsOptionError, DistutilsPlatformError
 from . import _framework_compat as fw
 from .. import _collections
 
@@ -515,7 +515,7 @@ class install(Command):
         """Dumps the list of user options."""
         if not DEBUG:
             return
-        from distutils.fancy_getopt import longopt_xlate
+        from ..fancy_getopt import longopt_xlate
 
         log.debug(msg + ":")
         for opt in self.user_options:
@@ -644,7 +644,7 @@ class install(Command):
             self.extra_path = self.distribution.extra_path
 
         if self.extra_path is not None:
-            log.warn(
+            log.warning(
                 "Distribution option extra_path is deprecated. "
                 "See issue27919 for details."
             )

@@ -7,12 +7,13 @@ Implements the Distutils 'register' command (register with the repository).
 
 import getpass
 import io
+import logging
 import urllib.parse
 import urllib.request
 from warnings import warn
 
-from distutils.core import PyPIRCCommand
-from distutils import log
+from ..core import PyPIRCCommand
+from distutils._log import log
 
 
 class register(PyPIRCCommand):
@@ -153,7 +154,7 @@ We need to know who you are, so please choose either:
  3. have the server generate a new password for you (and email it to you), or
  4. quit
 Your selection [default 1]: ''',
-                log.INFO,
+                logging.INFO,
             )
             choice = input()
             if not choice:
@@ -174,7 +175,7 @@ Your selection [default 1]: ''',
             auth.add_password(self.realm, host, username, password)
             # send the info to the server and report the result
             code, result = self.post_to_server(self.build_post_data('submit'), auth)
-            self.announce('Server response ({}): {}'.format(code, result), log.INFO)
+            self.announce('Server response ({}): {}'.format(code, result), logging.INFO)
 
             # possibly save the login
             if code == 200:
@@ -188,11 +189,11 @@ Your selection [default 1]: ''',
                             'I can store your PyPI login so future '
                             'submissions will be faster.'
                         ),
-                        log.INFO,
+                        logging.INFO,
                     )
                     self.announce(
                         '(the login will be stored in %s)' % self._get_rc_file(),
-                        log.INFO,
+                        logging.INFO,
                     )
                     choice = 'X'
                     while choice.lower() not in 'yn':
@@ -265,7 +266,8 @@ Your selection [default 1]: ''',
         '''Post a query to the server, and return a string response.'''
         if 'name' in data:
             self.announce(
-                'Registering {} to {}'.format(data['name'], self.repository), log.INFO
+                'Registering {} to {}'.format(data['name'], self.repository),
+                logging.INFO,
             )
         # Build up the MIME payload for the urllib2 POST data
         boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
@@ -315,5 +317,5 @@ Your selection [default 1]: ''',
             result = 200, 'OK'
         if self.show_response:
             msg = '\n'.join(('-' * 75, data, '-' * 75))
-            self.announce(msg, log.INFO)
+            self.announce(msg, logging.INFO)
         return result

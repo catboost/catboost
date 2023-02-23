@@ -7,9 +7,11 @@ in the distutils.command package.
 import sys
 import os
 import re
-from distutils.errors import DistutilsOptionError
-from distutils import util, dir_util, file_util, archive_util, dep_util
-from distutils import log
+import logging
+
+from .errors import DistutilsOptionError
+from . import util, dir_util, file_util, archive_util, dep_util
+from ._log import log
 
 
 class Command:
@@ -156,14 +158,14 @@ class Command:
 
         if header is None:
             header = "command options for '%s':" % self.get_command_name()
-        self.announce(indent + header, level=log.INFO)
+        self.announce(indent + header, level=logging.INFO)
         indent = indent + "  "
         for (option, _, _) in self.user_options:
             option = option.translate(longopt_xlate)
             if option[-1] == "=":
                 option = option[:-1]
             value = getattr(self, option)
-            self.announce(indent + "{} = {}".format(option, value), level=log.INFO)
+            self.announce(indent + "{} = {}".format(option, value), level=logging.INFO)
 
     def run(self):
         """A command's raison d'etre: carry out the action it exists to
@@ -179,10 +181,7 @@ class Command:
             "abstract method -- subclass %s must override" % self.__class__
         )
 
-    def announce(self, msg, level=1):
-        """If the current verbosity level is of greater than or equal to
-        'level' print 'msg' to stdout.
-        """
+    def announce(self, msg, level=logging.DEBUG):
         log.log(level, msg)
 
     def debug_print(self, msg):
@@ -334,7 +333,7 @@ class Command:
     # -- External world manipulation -----------------------------------
 
     def warn(self, msg):
-        log.warn("warning: %s: %s\n", self.get_command_name(), msg)
+        log.warning("warning: %s: %s\n", self.get_command_name(), msg)
 
     def execute(self, func, args, msg=None, level=1):
         util.execute(func, args, msg, dry_run=self.dry_run)

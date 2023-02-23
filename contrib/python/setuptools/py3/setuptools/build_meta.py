@@ -40,6 +40,7 @@ from typing import Dict, Iterator, List, Optional, Union
 
 import setuptools
 import distutils
+from . import errors
 from ._path import same_path
 from ._reqs import parse_strings
 from ._deprecation_warning import SetuptoolsDeprecationWarning
@@ -346,15 +347,22 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         Returns the basename of the info directory, e.g. `proj-0.0.0.dist-info`.
         """
-        candidates = list(Path(metadata_directory).glob(f"**/*{suffix}/"))
-        assert len(candidates) == 1, f"Exactly one {suffix} should have been produced"
-        info_dir = candidates[0]
-
+        info_dir = self._find_info_directory(metadata_directory, suffix)
         if not same_path(info_dir.parent, metadata_directory):
             shutil.move(str(info_dir), metadata_directory)
             # PEP 517 allow other files and dirs to exist in metadata_directory
-
         return info_dir.name
+
+    def _find_info_directory(self, metadata_directory: str, suffix: str) -> Path:
+        for parent, dirs, _ in os.walk(metadata_directory):
+            candidates = [f for f in dirs if f.endswith(suffix)]
+
+            if len(candidates) != 0 or len(dirs) != 1:
+                assert len(candidates) == 1, f"Multiple {suffix} directories found"
+                return Path(parent, candidates[0])
+
+        msg = f"No {suffix} directory found in {metadata_directory}"
+        raise errors.InternalError(msg)
 
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
@@ -377,7 +385,8 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
+        temp_opts = {"prefix": ".tmp-", "dir": result_directory}
+        with tempfile.TemporaryDirectory(**temp_opts) as tmp_dist_dir:
             sys.argv = [
                 *sys.argv[:1],
                 *self._global_args(config_settings),
@@ -429,9 +438,10 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             info_dir = self._get_dist_info_dir(metadata_directory)
             opts = ["--dist-info-dir", info_dir] if info_dir else []
             cmd = ["editable_wheel", *opts, *self._editable_args(config_settings)]
-            return self._build_with_temp_dir(
-                cmd, ".whl", wheel_directory, config_settings
-            )
+            with suppress_known_deprecation():
+                return self._build_with_temp_dir(
+                    cmd, ".whl", wheel_directory, config_settings
+                )
 
         def get_requires_for_build_editable(self, config_settings=None):
             return self.get_requires_for_build_wheel(config_settings)

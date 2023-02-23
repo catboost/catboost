@@ -6,99 +6,62 @@ the Mingw32CCompiler class which handles the mingw32 port of GCC (same as
 cygwin in no-cygwin mode).
 """
 
-# problems:
-#
-# * if you use a msvc compiled python version (1.5.2)
-#   1. you have to insert a __GNUC__ section in its config.h
-#   2. you have to generate an import library for its dll
-#      - create a def-file for python??.dll
-#      - create an import library using
-#             dlltool --dllname python15.dll --def python15.def \
-#                       --output-lib libpython15.a
-#
-#   see also http://starship.python.net/crew/kernr/mingw32/Notes.html
-#
-# * We put export_symbols in a def-file, and don't use
-#   --export-all-symbols because it doesn't worked reliable in some
-#   tested configurations. And because other windows compilers also
-#   need their symbols specified this no serious problem.
-#
-# tested configurations:
-#
-# * cygwin gcc 2.91.57/ld 2.9.4/dllwrap 0.2.4 works
-#   (after patching python's config.h and for C++ some other include files)
-#   see also http://starship.python.net/crew/kernr/mingw32/Notes.html
-# * mingw32 gcc 2.95.2/ld 2.9.4/dllwrap 0.2.4 works
-#   (ld doesn't support -shared, so we use dllwrap)
-# * cygwin gcc 2.95.2/ld 2.10.90/dllwrap 2.10.90 works now
-#   - its dllwrap doesn't work, there is a bug in binutils 2.10.90
-#     see also http://sources.redhat.com/ml/cygwin/2000-06/msg01274.html
-#   - using gcc -mdll instead dllwrap doesn't work without -static because
-#     it tries to link against dlls instead their import libraries. (If
-#     it finds the dll first.)
-#     By specifying -static we force ld to link against the import libraries,
-#     this is windows standard and there are normally not the necessary symbols
-#     in the dlls.
-#   *** only the version of June 2000 shows these problems
-# * cygwin gcc 3.2/ld 2.13.90 works
-#   (ld supports -shared)
-# * mingw gcc 3.2/ld 2.13 works
-#   (ld supports -shared)
-# * llvm-mingw with Clang 11 works
-#   (lld supports -shared)
-
 import os
+import re
 import sys
 import copy
 import shlex
 import warnings
 from subprocess import check_output
 
-from distutils.unixccompiler import UnixCCompiler
-from distutils.file_util import write_file
-from distutils.errors import (
+from .unixccompiler import UnixCCompiler
+from .file_util import write_file
+from .errors import (
     DistutilsExecError,
     DistutilsPlatformError,
     CCompilerError,
     CompileError,
-    UnknownFileError,
 )
-from distutils.version import LooseVersion, suppress_known_deprecation
+from .version import LooseVersion, suppress_known_deprecation
+from ._collections import RangeMap
+
+
+_msvcr_lookup = RangeMap.left(
+    {
+        # MSVC 7.0
+        1300: ['msvcr70'],
+        # MSVC 7.1
+        1310: ['msvcr71'],
+        # VS2005 / MSVC 8.0
+        1400: ['msvcr80'],
+        # VS2008 / MSVC 9.0
+        1500: ['msvcr90'],
+        # VS2010 / MSVC 10.0
+        1600: ['msvcr100'],
+        # VS2012 / MSVC 11.0
+        1700: ['msvcr110'],
+        # VS2013 / MSVC 12.0
+        1800: ['msvcr120'],
+        # VS2015 / MSVC 14.0
+        1900: ['ucrt', 'vcruntime140'],
+        2000: RangeMap.undefined_value,
+    },
+)
 
 
 def get_msvcr():
     """Include the appropriate MSVC runtime library if Python was built
     with MSVC 7.0 or later.
     """
-    msc_pos = sys.version.find('MSC v.')
-    if msc_pos != -1:
-        msc_ver = sys.version[msc_pos + 6 : msc_pos + 10]
-        if msc_ver == '1300':
-            # MSVC 7.0
-            return ['msvcr70']
-        elif msc_ver == '1310':
-            # MSVC 7.1
-            return ['msvcr71']
-        elif msc_ver == '1400':
-            # VS2005 / MSVC 8.0
-            return ['msvcr80']
-        elif msc_ver == '1500':
-            # VS2008 / MSVC 9.0
-            return ['msvcr90']
-        elif msc_ver == '1600':
-            # VS2010 / MSVC 10.0
-            return ['msvcr100']
-        elif msc_ver == '1700':
-            # VS2012 / MSVC 11.0
-            return ['msvcr110']
-        elif msc_ver == '1800':
-            # VS2013 / MSVC 12.0
-            return ['msvcr120']
-        elif 1900 <= int(msc_ver) < 2000:
-            # VS2015 / MSVC 14.0
-            return ['ucrt', 'vcruntime140']
-        else:
-            raise ValueError("Unknown MS Compiler version %s " % msc_ver)
+    match = re.search(r'MSC v\.(\d{4})', sys.version)
+    try:
+        msc_ver = int(match.group(1))
+    except AttributeError:
+        return
+    try:
+        return _msvcr_lookup[msc_ver]
+    except KeyError:
+        raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
 
 _runtime_library_dirs_msg = (
@@ -283,28 +246,20 @@ class CygwinCCompiler(UnixCCompiler):
 
     # -- Miscellaneous methods -----------------------------------------
 
-    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
-        """Adds supports for rc and res files."""
-        if output_dir is None:
-            output_dir = ''
-        obj_names = []
-        for src_name in source_filenames:
-            # use normcase to make sure '.rc' is really '.rc' and not '.RC'
-            base, ext = os.path.splitext(os.path.normcase(src_name))
-            if ext not in (self.src_extensions + ['.rc', '.res']):
-                raise UnknownFileError(
-                    "unknown file type '{}' (from '{}')".format(ext, src_name)
-                )
-            if strip_dir:
-                base = os.path.basename(base)
-            if ext in ('.res', '.rc'):
-                # these need to be compiled to object files
-                obj_names.append(
-                    os.path.join(output_dir, base + ext + self.obj_extension)
-                )
-            else:
-                obj_names.append(os.path.join(output_dir, base + self.obj_extension))
-        return obj_names
+    def _make_out_path(self, output_dir, strip_dir, src_name):
+        # use normcase to make sure '.rc' is really '.rc' and not '.RC'
+        norm_src_name = os.path.normcase(src_name)
+        return super()._make_out_path(output_dir, strip_dir, norm_src_name)
+
+    @property
+    def out_extensions(self):
+        """
+        Add support for rc and res files.
+        """
+        return {
+            **super().out_extensions,
+            **{ext: ext + self.obj_extension for ext in ('.res', '.rc')},
+        }
 
 
 # the same as cygwin plus some additional parameters
@@ -329,17 +284,6 @@ class Mingw32CCompiler(CygwinCCompiler):
             linker_exe='%s' % self.cc,
             linker_so='{} {}'.format(self.linker_dll, shared_option),
         )
-
-        # Maybe we should also append -mthreads, but then the finished
-        # dlls need another dll (mingwm10.dll see Mingw32 docs)
-        # (-mthreads: Support thread-safe exception handling on `Mingw32')
-
-        # no additional libraries needed
-        self.dll_libraries = []
-
-        # Include the appropriate MSVC runtime library if Python was built
-        # with MSVC 7.0 or later.
-        self.dll_libraries = get_msvcr()
 
     def runtime_library_dir_option(self, dir):
         raise DistutilsPlatformError(_runtime_library_dirs_msg)
