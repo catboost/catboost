@@ -267,8 +267,6 @@ migrations:
     - statbox/statkey/reactor/cooked_logs/visit_cooked_log/build
     - statbox/statkey/reactor/cubes/superapp/timespent/prepare/v3
     - statbox/statkey/reactor/monitorings/action
-    - statbox/statkey/reactor/monitorings/business_dwh/pages
-    - statbox/statkey/reactor/monitorings/business_dwh/product_consistency_check
     - statbox/statkey/reactor/monitorings/superapp/timespent
     - statbox/statkey/reactor/tools/anomaly_detector/tests/unit/fixtures
     - taxi/antifraud/approver/mover
@@ -635,7 +633,6 @@ migrations:
     - dj/tools/quality_stand/operations/als/unpack_config
     - dj/tools/resource_loaders/resource_yt_loader
     - education/english/services/every/app/tasks
-    - education/english/services/scheduler_api/app/speaking_sessions
     - education/schoolbook/services/studies/it/test_endpoints/test_study
     - education/schoolbook/services/studies/it/test_endpoints/test_study_content
     - education/services/checking_system/marker_checker/it/api/v1
@@ -1873,7 +1870,6 @@ migrations:
     - k50/infra/services/solo_fe/registry/yasm
     - keyboard/analytics/metrics/lib/user_settings
     - keyboard/analytics/metrics/lib/verticals
-    - keyboard/suggest/nnlm/nirvana
     - kikimr/ci/tasklets/update_hostgroup/impl
     - kikimr/tools/smoke/modules/legacy/logbroker_front
     - library/python/monlib/examples/push_to_agent
@@ -1984,7 +1980,6 @@ migrations:
     - oebs/bi/lib/lb
     - oebs/lib/bi_utils/bi_utils/utils
     - offline_data/call_center/nirvana/send_sms
-    - passport/backend/core/serializers/eav/tests
     - passport/backend/logbroker_client/challenge_pushes/tests
     - quality/ab_testing/scripts/ems/ems/metrics/controllers
     - quality/antifraud/scripts/dev/fury_local
@@ -3075,7 +3070,6 @@ migrations:
     - keyboard/analytics/toloka/scripts/clean_toloka
     - keyboard/dict/lm_prune
     - keyboard/dict/synthetic_ngrams/synthetic_ngrams_builder
-    - keyboard/suggest/nnlm/nirvana
     - kikimr/juggler/bundles/kikhouse_bundle
     - kikimr/library/ci/teamcity_core/core
     - kikimr/tools/pq_backup
@@ -3544,7 +3538,6 @@ migrations:
     - robot/samovar/tools/crawl_by_request
     - robot/selectionrank/sr_rules_comparator_util/plot_on_positives
     - robot/selectionrank/sr_rules_comparator_util/yt_rule_distribution
-    - robot/smelter/quality/metrics/crawled_by_robot/count_metric
     - robot/smelter/quality/nirvana/sbr_google/make_querries
     - robot/zora/tools/nat64_translator
     - robot/zora/tools/pdfetch_psychokiller
@@ -5336,7 +5329,6 @@ migrations:
     - keyboard/dict/prepare_dict
     - keyboard/dict/synthetic_ngrams/make
     - keyboard/dict/train_tap_model_ranker
-    - keyboard/suggest/nnlm/nirvana
     - keyboard/suggest/nnlm/python/nnlm/models
     - kikimr/ci/tasklets/teamcity/impl
     - kikimr/tools/deploy_plugins
@@ -7131,7 +7123,6 @@ migrations:
     - keyboard/dict/fuzzing
     - keyboard/dict/lm_diff
     - keyboard/dict/synthetic_ngrams/make
-    - keyboard/suggest/nnlm/nirvana
     - keyboard/suggest/nnlm/python/nnlm
     - keyboard/suggest/nnlm/python/nnlm/data
     - kikimr/ci/libraries/utils
@@ -10276,7 +10267,6 @@ migrations:
     ignore:
     - PLW0711
     prefixes:
-    - cloud/filestore/tests/multiclient-rw-test/runner
     - cv/imageproc/ocr/tools/page_layout/datasets_processing/manuscript_blocks_dataset_converter
   PLW1309:
     ignore:
