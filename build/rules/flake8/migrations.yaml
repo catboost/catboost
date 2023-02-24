@@ -108,9 +108,7 @@ migrations:
     - inventori/pylibs/tasks/etl
     - ipreg/python/ipreg-office2region
     - kinopoisk/tasklets/DeployWithChangeWeight/impl
-    - library/python/crowd-kit/crowdkit/aggregation/classification
     - library/python/monitoring/solo/helpers/yt
-    - library/python/toloka_client/examples/1.computer_vision/image_clustering/crowd_clustering_aggregation
     - load/projects/tank_finder/tests
     - load/projects/tankapi_server/tankapi
     - load/projects/tankapi_server/tankapi/tests
@@ -713,12 +711,8 @@ migrations:
     - kikimr/yf/tests/ydb
     - lbs/base_building/build_clusters_gsm
     - lbs/viewer
-    - library/python/crowd-kit/crowdkit/aggregation/classification
-    - library/python/crowd-kit/crowdkit/aggregation/image_segmentation
     - library/python/monitoring/solo/helpers/yt
     - library/python/ssh_client
-    - library/python/toloka-kit/tests
-    - library/python/toloka_client/examples/1.computer_vision/image_clustering/crowd_clustering_aggregation
     - load/projects/firestarter/src
     - load/projects/firestarter/tests
     - load/projects/tankapi_cmd/src
@@ -821,7 +815,6 @@ migrations:
     - market/pinger-report/lib
     - market/pylibrary/database/tests
     - market/pylibrary/hammer/tests
-    - market/report/runtime_cloud/report_config
     - market/sre/conf/config-monitoring-market/bin/check_hbf
     - market/sre/services/cema/lib/classes
     - market/sre/services/mindexer-clt-api/mindexer_clt_api
@@ -1425,7 +1418,6 @@ migrations:
     - keyboard/swipe/tools/visualization
     - kikimr/ci/libraries/tasks
     - kikimr/library/ci/teamcity_core/core
-    - library/python/toloka-kit/tests
     - load/projects/tasklets/shooting/py_impl
     - logbroker/tools/manual/get_data_from_logs/common
     - logfeller/python/logfeller/infra/release/nirvactor
@@ -1873,7 +1865,6 @@ migrations:
     - kikimr/ci/tasklets/update_hostgroup/impl
     - kikimr/tools/smoke/modules/legacy/logbroker_front
     - library/python/monlib/examples/push_to_agent
-    - library/python/toloka-kit/src/client
     - load/projects/tankapi_cmd/src
     - locdoc/tg_bots/commdesign_bot/handlers
     - logbroker/public/client/lib
@@ -2330,7 +2321,6 @@ migrations:
     - ads/quality/adv_machine/scripts/priemka_dump_utils/lib/prepare_responses
     - alice/gamma/skills/echo_python
     - alice/gamma/skills/guess_animal_game/game
-    - alice/hollywood/library/scenarios/goods/it2
     - alice/tests/library/uniclient
     - alice/uniproxy/library/backends_asr/ut
     - alice/uniproxy/library/backends_tts
@@ -3088,7 +3078,6 @@ migrations:
     - library/python/awssdk-extensions/example
     - library/python/django/example/django_rest_api/polls
     - library/python/hnsw/hnsw
-    - library/python/toloka-kit/src/client/project/template_builder
     - library/recipes/docker_compose_healthcheck
     - library/recipes/kafka/lib
     - load/projects/tank_finder
@@ -4223,7 +4212,6 @@ migrations:
     - library/python/nirvana_api
     - library/python/nirvana_api/tests/manual
     - library/python/ssh_sign
-    - library/python/toloka-kit/src/client
     - load/projects/netort/netort/data_manager/clients/tests
     - logbroker/juggler/helper
     - logbroker/public/client/lib
@@ -7135,7 +7123,6 @@ migrations:
     - lbs/research/LBS448_anonymize_signals/scramble_signals_table
     - lbs/tools/generate_ammo_from_api_logs
     - lbs/viewer
-    - library/python/crowd-kit/crowdkit/aggregation/image_segmentation
     - library/python/fs/test
     - library/python/resource
     - library/python/retry/tests
@@ -7783,13 +7770,11 @@ migrations:
     - library/python/bstr
     - library/python/cpp_test
     - library/python/cqueue
-    - library/python/crowd-kit/crowdkit/aggregation/classification
     - library/python/filelock/ut/lib
     - library/python/python-blackboxer/blackboxer
     - library/python/runtime_py3/test
     - library/python/testing/import_test
     - library/python/testing/yatest_common/yatest/common
-    - library/python/toloka_client/examples/1.computer_vision/image_clustering/crowd_clustering_aggregation
     - library/python/ylock/tests
     - load/projects/tankapi_server/tankapi
     - logbroker/tools/manual/dynconfig_tool
@@ -8574,7 +8559,7 @@ migrations:
     - smb/common/pgswim/lib/engine
     - smb/common/testing_utils
     - stability/lib/python/yp_lite/src
-    - tasklet/services/ci
+    - tasklet/v1/services/ci
     - tasklet/v1/runtime/context
     - travel/avia/api_gateway/application
     - travel/avia/api_gateway/application/fetcher
@@ -9028,7 +9013,7 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - logos/libs/core
     - logos/projects/ads/tasks/tsar_pytorch_bko_pclick
-    - tasklet/services/ci
+    - tasklet/v1/services/ci
     - travel/rasp/library/python/api_clients/movista
   F841:
     ignore:
@@ -10170,7 +10155,6 @@ migrations:
     - crypta/lib/python/rtmr/test_framework
     - distribution_interface/backend/backend/multistate
     - intranet/wiki/src/wiki/utils/wfaas
-    - library/python/toloka-kit/src/client/primitives
     - maps/garden/sdk/sandbox
     - maps/infra/ecstatic/common/experimental_worker/lib
     - quality/neural_net/bert/bert/utils/hooks
@@ -10250,7 +10234,6 @@ migrations:
     ignore:
     - PLW0642
     prefixes:
-    - library/python/toloka-kit/src/client
     - search/mon/tasklets/goals_trainings_metrics_addition/src
     - statbox/qb2_core/qb2/utils/datetime
     - travel/rasp/bus/api/connectors/entities
@@ -10322,7 +10305,6 @@ migrations:
     prefixes:
     - education/lib/events_processor/example
     - education/services/enigma/app/controllers/stands
-    - library/python/toloka-kit/src/streaming
     - sdg/internal_auth/admin/lib/idm/services
     - sdg/internal_auth/admin/lib/roles/services
     - sdg/internal_auth/admin/lib/social/services
