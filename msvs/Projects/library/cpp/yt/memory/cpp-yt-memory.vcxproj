@@ -109,6 +109,8 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\serialize-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\serialize.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\shared_range.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\tagged_ptr-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\tagged_ptr.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

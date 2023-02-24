@@ -50,12 +50,12 @@ TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(std::nullptr_t)
 template <class T>
 TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
 {
-    void* ptr = Ptr_.load();
+    auto ptr = Ptr_.load();
     while (true) {
-        auto [localRefs, obj] = UnpackPointer<T>(ptr);
+        auto [obj, localRefs] = TTaggedPtr<T>::Unpack(ptr);
 
         if (!obj) {
-            return TIntrusivePtr<T>();
+            return {};
         }
 
         YT_VERIFY(localRefs < ReservedRefCount);
@@ -70,20 +70,20 @@ TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
         }
 
         // Can not Ref(obj) here because it can be destroyed.
-        if (Ptr_.compare_exchange_weak(ptr, PackPointer(obj, newLocalRefs))) {
+        if (Ptr_.compare_exchange_weak(ptr, TTaggedPtr(obj, newLocalRefs).Pack())) {
             if (Y_UNLIKELY(newLocalRefs > ReservedRefCount / 2)) {
                 Ref(obj, ReservedRefCount / 2);
 
                 // Decrease local ref count.
                 while (true) {
-                    auto [localRefs, currentObj] = UnpackPointer<T>(ptr);
+                    auto [currentObj, localRefs] = TTaggedPtr<T>::Unpack(ptr);
 
                     if (currentObj != obj || localRefs <= ReservedRefCount / 2) {
                         Unref(obj, ReservedRefCount / 2);
                         break;
                     }
 
-                    if (Ptr_.compare_exchange_weak(ptr, PackPointer(obj, localRefs - ReservedRefCount / 2))) {
+                    if (Ptr_.compare_exchange_weak(ptr, TTaggedPtr(obj, localRefs - ReservedRefCount / 2).Pack())) {
                         break;
                     }
                 }
@@ -97,7 +97,7 @@ TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
 template <class T>
 TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Exchange(TIntrusivePtr<T> other)
 {
-    auto [localRefs, obj] = UnpackPointer<T>(Ptr_.exchange(AcquireObject(other.Release(), true)));
+    auto [obj, localRefs] = TTaggedPtr<T>::Unpack(Ptr_.exchange(AcquireObject(other.Release(), true)));
     DoRelease(obj, localRefs + 1);
     return TIntrusivePtr<T>(obj, false);
 }
@@ -111,13 +111,13 @@ void TAtomicIntrusivePtr<T>::Store(TIntrusivePtr<T> other)
 template <class T>
 void TAtomicIntrusivePtr<T>::Reset()
 {
-    ReleaseObject(Ptr_.exchange(nullptr));
+    ReleaseObject(Ptr_.exchange(0));
 }
 
 template <class T>
 bool TAtomicIntrusivePtr<T>::CompareAndSwap(void*& comparePtr, T* target)
 {
-    auto targetPtr = AcquireObject(target, false);
+    auto* targetPtr = AcquireObject(target, false);
 
     auto currentPtr = Ptr_.load();
     if (UnpackPointer<T>(currentPtr).Ptr == comparePtr && Ptr_.compare_exchange_strong(currentPtr, targetPtr)) {
@@ -138,12 +138,12 @@ bool TAtomicIntrusivePtr<T>::CompareAndSwap(void*& comparePtr, TIntrusivePtr<T> 
     auto targetPtr = AcquireObject(target.Release(), true);
 
     auto currentPtr = Ptr_.load();
-    if (UnpackPointer<T>(currentPtr).Ptr == comparePtr && Ptr_.compare_exchange_strong(currentPtr, targetPtr)) {
+    if (TTaggedPtr<T>::Unpack(currentPtr).Ptr == comparePtr && Ptr_.compare_exchange_strong(currentPtr, targetPtr)) {
         ReleaseObject(currentPtr);
         return true;
     }
 
-    comparePtr = UnpackPointer<T>(currentPtr).Ptr;
+    comparePtr = TTaggedPtr<T>::Unpack(currentPtr).Ptr;
 
     ReleaseObject(targetPtr);
     return false;
@@ -152,7 +152,7 @@ bool TAtomicIntrusivePtr<T>::CompareAndSwap(void*& comparePtr, TIntrusivePtr<T> 
 template <class T>
 void* TAtomicIntrusivePtr<T>::Get() const
 {
-    return UnpackPointer<void>(Ptr_.load()).Ptr;
+    return TTaggedPtr<void>::Unpack(Ptr_.load()).Ptr;
 }
 
 template <class T>
@@ -162,19 +162,19 @@ TAtomicIntrusivePtr<T>::operator bool() const
 }
 
 template <class T>
-void* TAtomicIntrusivePtr<T>::AcquireObject(T* obj, bool consumeRef)
+TPackedPtr TAtomicIntrusivePtr<T>::AcquireObject(T* obj, bool consumeRef)
 {
     if (obj) {
         Ref(obj, static_cast<int>(ReservedRefCount - consumeRef));
     }
 
-    return PackPointer(obj, 0);
+    return TTaggedPtr(obj).Pack();
 }
 
 template <class T>
-void TAtomicIntrusivePtr<T>::ReleaseObject(void* packedPtr)
+void TAtomicIntrusivePtr<T>::ReleaseObject(TPackedPtr packedPtr)
 {
-    auto [localRefs, obj] = UnpackPointer<T>(packedPtr);
+    auto [obj, localRefs] = TTaggedPtr<T>::Unpack(packedPtr);
     DoRelease(obj, localRefs);
 }
 

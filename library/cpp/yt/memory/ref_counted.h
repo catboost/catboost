@@ -31,31 +31,6 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class = void>
-struct TFreeMemory
-{
-    static void Do(void* ptr)
-    {
-#ifdef _win_
-        ::_aligned_free(ptr);
-#else
-        ::free(ptr);
-#endif
-    }
-};
-
-template <class T>
-struct TFreeMemory<T, std::void_t<typename T::TAllocator>>
-{
-    static void Do(void* ptr)
-    {
-        using TAllocator = typename T::TAllocator;
-        TAllocator::Free(ptr);
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
 class TRefCounter
 {
 public:
@@ -101,8 +76,6 @@ template <class T>
 void DeallocateRefCounted(const T* obj);
 
 ////////////////////////////////////////////////////////////////////////////////
-
-// API
 
 template <class T>
 void Ref(T* obj, int n = 1);
