@@ -169,39 +169,35 @@ def distros_for_filename(filename, metadata=None):
 def interpret_distro_name(
     location, basename, metadata, py_version=None, precedence=SOURCE_DIST, platform=None
 ):
-    """Generate alternative interpretations of a source distro name
+    """Generate the interpretation of a source distro name
 
     Note: if `location` is a filesystem filename, you should call
     ``pkg_resources.normalize_path()`` on it before passing it to this
     routine!
     """
-    # Generate alternative interpretations of a source distro name
-    # Because some packages are ambiguous as to name/versions split
-    # e.g. "adns-python-1.1.0", "egenix-mx-commercial", etc.
-    # So, we generate each possible interpretation (e.g. "adns, python-1.1.0"
-    # "adns-python, 1.1.0", and "adns-python-1.1.0, no version").  In practice,
-    # the spurious interpretations should be ignored, because in the event
-    # there's also an "adns" package, the spurious "python-1.1.0" version will
-    # compare lower than any numeric version number, and is therefore unlikely
-    # to match a request for it.  It's still a potential problem, though, and
-    # in the long run PyPI and the distutils should go for "safe" names and
-    # versions in distribution archive names (sdist and bdist).
 
     parts = basename.split('-')
     if not py_version and any(re.match(r'py\d\.\d$', p) for p in parts[2:]):
         # it is a bdist_dumb, not an sdist -- bail out
         return
 
-    for p in range(1, len(parts) + 1):
-        yield Distribution(
-            location,
-            metadata,
-            '-'.join(parts[:p]),
-            '-'.join(parts[p:]),
-            py_version=py_version,
-            precedence=precedence,
-            platform=platform,
-        )
+    # find the pivot (p) that splits the name from the version.
+    # infer the version as the first item that has a digit.
+    for p in range(len(parts)):
+        if parts[p][:1].isdigit():
+            break
+    else:
+        p = len(parts)
+
+    yield Distribution(
+        location,
+        metadata,
+        '-'.join(parts[:p]),
+        '-'.join(parts[p:]),
+        py_version=py_version,
+        precedence=precedence,
+        platform=platform
+    )
 
 
 def unique_values(func):

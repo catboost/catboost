@@ -77,7 +77,28 @@ def _install_setup_requires(attrs):
     # Honor setup.cfg's options.
     dist.parse_config_files(ignore_option_errors=True)
     if dist.setup_requires:
+        _fetch_build_eggs(dist)
+
+
+def _fetch_build_eggs(dist):
+    try:
         dist.fetch_build_eggs(dist.setup_requires)
+    except Exception as ex:
+        msg = """
+        It is possible a package already installed in your system
+        contains an version that is invalid according to PEP 440.
+        You can try `pip install --use-pep517` as a workaround for this problem,
+        or rely on a new virtual environment.
+
+        If the problem refers to a package that is not installed yet,
+        please contact that package's maintainers or distributors.
+        """
+        if "InvalidVersion" in ex.__class__.__name__:
+            if hasattr(ex, "add_note"):
+                ex.add_note(msg)  # PEP 678
+            else:
+                dist.announce(f"\n{msg}\n")
+        raise
 
 
 def setup(**attrs):

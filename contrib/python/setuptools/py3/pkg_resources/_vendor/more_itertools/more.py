@@ -3,7 +3,7 @@ import warnings
 from collections import Counter, defaultdict, deque, abc
 from collections.abc import Sequence
 from functools import partial, reduce, wraps
-from heapq import merge, heapify, heapreplace, heappop
+from heapq import heapify, heapreplace, heappop
 from itertools import (
     chain,
     compress,
@@ -26,12 +26,16 @@ from sys import hexversion, maxsize
 from time import monotonic
 
 from .recipes import (
+    _marker,
+    _zip_equal,
+    UnequalIterablesError,
     consume,
     flatten,
     pairwise,
     powerset,
     take,
     unique_everseen,
+    all_equal,
 )
 
 __all__ = [
@@ -48,9 +52,9 @@ __all__ = [
     'chunked_even',
     'circular_shifts',
     'collapse',
-    'collate',
     'combination_index',
     'consecutive_groups',
+    'constrained_batches',
     'consumer',
     'count_cycle',
     'countable',
@@ -66,6 +70,7 @@ __all__ = [
     'first',
     'groupby_transform',
     'ichunked',
+    'iequals',
     'ilen',
     'interleave',
     'interleave_evenly',
@@ -76,6 +81,7 @@ __all__ = [
     'iterate',
     'last',
     'locate',
+    'longest_common_prefix',
     'lstrip',
     'make_decorator',
     'map_except',
@@ -130,9 +136,6 @@ __all__ = [
     'zip_equal',
     'zip_offset',
 ]
-
-
-_marker = object()
 
 
 def chunked(iterable, n, strict=False):
@@ -407,44 +410,6 @@ class peekable:
             self._cache.extend(islice(self._it, index + 1 - cache_len))
 
         return self._cache[index]
-
-
-def collate(*iterables, **kwargs):
-    """Return a sorted merge of the items from each of several already-sorted
-    *iterables*.
-
-        >>> list(collate('ACDZ', 'AZ', 'JKL'))
-        ['A', 'A', 'C', 'D', 'J', 'K', 'L', 'Z', 'Z']
-
-    Works lazily, keeping only the next value from each iterable in memory. Use
-    :func:`collate` to, for example, perform a n-way mergesort of items that
-    don't fit in memory.
-
-    If a *key* function is specified, the iterables will be sorted according
-    to its result:
-
-        >>> key = lambda s: int(s)  # Sort by numeric value, not by string
-        >>> list(collate(['1', '10'], ['2', '11'], key=key))
-        ['1', '2', '10', '11']
-
-
-    If the *iterables* are sorted in descending order, set *reverse* to
-    ``True``:
-
-        >>> list(collate([5, 3, 1], [4, 2, 0], reverse=True))
-        [5, 4, 3, 2, 1, 0]
-
-    If the elements of the passed-in iterables are out of order, you might get
-    unexpected results.
-
-    On Python 3.5+, this function is an alias for :func:`heapq.merge`.
-
-    """
-    warnings.warn(
-        "collate is no longer part of more_itertools, use heapq.merge",
-        DeprecationWarning,
-    )
-    return merge(*iterables, **kwargs)
 
 
 def consumer(func):
@@ -872,7 +837,9 @@ def windowed(seq, n, fillvalue=None, step=1):
             yield tuple(window)
 
     size = len(window)
-    if size < n:
+    if size == 0:
+        return
+    elif size < n:
         yield tuple(chain(window, repeat(fillvalue, n - size)))
     elif 0 < i < min(step, n):
         window += (fillvalue,) * i
@@ -1645,45 +1612,6 @@ def stagger(iterable, offsets=(-1, 0, 1), longest=False, fillvalue=None):
     )
 
 
-class UnequalIterablesError(ValueError):
-    def __init__(self, details=None):
-        msg = 'Iterables have different lengths'
-        if details is not None:
-            msg += (': index 0 has length {}; index {} has length {}').format(
-                *details
-            )
-
-        super().__init__(msg)
-
-
-def _zip_equal_generator(iterables):
-    for combo in zip_longest(*iterables, fillvalue=_marker):
-        for val in combo:
-            if val is _marker:
-                raise UnequalIterablesError()
-        yield combo
-
-
-def _zip_equal(*iterables):
-    # Check whether the iterables are all the same size.
-    try:
-        first_size = len(iterables[0])
-        for i, it in enumerate(iterables[1:], 1):
-            size = len(it)
-            if size != first_size:
-                break
-        else:
-            # If we didn't break out, we can use the built-in zip.
-            return zip(*iterables)
-
-        # If we did break out, there was a mismatch.
-        raise UnequalIterablesError(details=(first_size, i, size))
-    # If any one of the iterables didn't have a length, start reading
-    # them until one runs out.
-    except TypeError:
-        return _zip_equal_generator(iterables)
-
-
 def zip_equal(*iterables):
     """``zip`` the input *iterables* together, but raise
     ``UnequalIterablesError`` if they aren't all the same length.
@@ -1825,7 +1753,7 @@ def unzip(iterable):
     of the zipped *iterable*.
 
     The ``i``-th iterable contains the ``i``-th element from each element
-    of the zipped iterable. The first element is used to to determine the
+    of the zipped iterable. The first element is used to determine the
     length of the remaining elements.
 
         >>> iterable = [('a', 1), ('b', 2), ('c', 3), ('d', 4)]
@@ -2375,6 +2303,16 @@ def locate(iterable, pred=bool, window_size=None):
     return compress(count(), starmap(pred, it))
 
 
+def longest_common_prefix(iterables):
+    """Yield elements of the longest common prefix amongst given *iterables*.
+
+    >>> ''.join(longest_common_prefix(['abcd', 'abc', 'abf']))
+    'ab'
+
+    """
+    return (c[0] for c in takewhile(all_equal, zip(*iterables)))
+
+
 def lstrip(iterable, pred):
     """Yield the items from *iterable*, but strip any from the beginning
     for which *pred* returns ``True``.
@@ -2683,7 +2621,7 @@ def difference(iterable, func=sub, *, initial=None):
     if initial is not None:
         first = []
 
-    return chain(first, starmap(func, zip(b, a)))
+    return chain(first, map(func, b, a))
 
 
 class SequenceView(Sequence):
@@ -3326,6 +3264,27 @@ def only(iterable, default=None, too_long=None):
     return first_value
 
 
+class _IChunk:
+    def __init__(self, iterable, n):
+        self._it = islice(iterable, n)
+        self._cache = deque()
+
+    def fill_cache(self):
+        self._cache.extend(self._it)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            return next(self._it)
+        except StopIteration:
+            if self._cache:
+                return self._cache.popleft()
+            else:
+                raise
+
+
 def ichunked(iterable, n):
     """Break *iterable* into sub-iterables with *n* elements each.
     :func:`ichunked` is like :func:`chunked`, but it yields iterables
@@ -3347,20 +3306,39 @@ def ichunked(iterable, n):
     [8, 9, 10, 11]
 
     """
-    source = iter(iterable)
-
+    source = peekable(iter(iterable))
+    ichunk_marker = object()
     while True:
         # Check to see whether we're at the end of the source iterable
-        item = next(source, _marker)
-        if item is _marker:
+        item = source.peek(ichunk_marker)
+        if item is ichunk_marker:
             return
 
-        # Clone the source and yield an n-length slice
-        source, it = tee(chain([item], source))
-        yield islice(it, n)
+        chunk = _IChunk(source, n)
+        yield chunk
 
-        # Advance the source iterable
-        consume(source, n)
+        # Advance the source iterable and fill previous chunk's cache
+        chunk.fill_cache()
+
+
+def iequals(*iterables):
+    """Return ``True`` if all given *iterables* are equal to each other,
+    which means that they contain the same elements in the same order.
+
+    The function is useful for comparing iterables of different data types
+    or iterables that do not support equality checks.
+
+    >>> iequals("abc", ['a', 'b', 'c'], ('a', 'b', 'c'), iter("abc"))
+    True
+
+    >>> iequals("abc", "acb")
+    False
+
+    Not to be confused with :func:`all_equals`, which checks whether all
+    elements of iterable are equal to each other.
+
+    """
+    return all(map(all_equal, zip_longest(*iterables, fillvalue=object())))
 
 
 def distinct_combinations(iterable, r):
@@ -3655,7 +3633,9 @@ class callback_iter:
         self._aborted = False
         self._future = None
         self._wait_seconds = wait_seconds
-        self._executor = __import__("concurrent.futures").futures.ThreadPoolExecutor(max_workers=1)
+        # Lazily import concurrent.future
+        self._executor = __import__(
+        ).futures.__import__("concurrent.futures").futures.ThreadPoolExecutor(max_workers=1)
         self._iterator = self._reader()
 
     def __enter__(self):
@@ -3960,7 +3940,7 @@ def combination_index(element, iterable):
 
     n, _ = last(pool, default=(n, None))
 
-    # Python versiosn below 3.8 don't have math.comb
+    # Python versions below 3.8 don't have math.comb
     index = 1
     for i, j in enumerate(reversed(indexes), start=1):
         j = n - j
@@ -4113,7 +4093,7 @@ def zip_broadcast(*objects, scalar_types=(str, bytes), strict=False):
 
     If the *strict* keyword argument is ``True``, then
     ``UnequalIterablesError`` will be raised if any of the iterables have
-    different lengthss.
+    different lengths.
     """
 
     def is_scalar(obj):
@@ -4314,3 +4294,53 @@ def minmax(iterable_or_value, *others, key=None, default=_marker):
                 hi, hi_key = y, y_key
 
     return lo, hi
+
+
+def constrained_batches(
+    iterable, max_size, max_count=None, get_len=len, strict=True
+):
+    """Yield batches of items from *iterable* with a combined size limited by
+    *max_size*.
+
+    >>> iterable = [b'12345', b'123', b'12345678', b'1', b'1', b'12', b'1']
+    >>> list(constrained_batches(iterable, 10))
+    [(b'12345', b'123'), (b'12345678', b'1', b'1'), (b'12', b'1')]
+
+    If a *max_count* is supplied, the number of items per batch is also
+    limited:
+
+    >>> iterable = [b'12345', b'123', b'12345678', b'1', b'1', b'12', b'1']
+    >>> list(constrained_batches(iterable, 10, max_count = 2))
+    [(b'12345', b'123'), (b'12345678', b'1'), (b'1', b'12'), (b'1',)]
+
+    If a *get_len* function is supplied, use that instead of :func:`len` to
+    determine item size.
+
+    If *strict* is ``True``, raise ``ValueError`` if any single item is bigger
+    than *max_size*. Otherwise, allow single items to exceed *max_size*.
+    """
+    if max_size <= 0:
+        raise ValueError('maximum size must be greater than zero')
+
+    batch = []
+    batch_size = 0
+    batch_count = 0
+    for item in iterable:
+        item_len = get_len(item)
+        if strict and item_len > max_size:
+            raise ValueError('item size exceeds maximum size')
+
+        reached_count = batch_count == max_count
+        reached_size = item_len + batch_size > max_size
+        if batch_count and (reached_size or reached_count):
+            yield tuple(batch)
+            batch.clear()
+            batch_size = 0
+            batch_count = 0
+
+        batch.append(item)
+        batch_size += item_len
+        batch_count += 1
+
+    if batch:
+        yield tuple(batch)

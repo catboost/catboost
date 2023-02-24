@@ -155,7 +155,7 @@ class InfoCommon:
         if self.tag_build:
             version += self.tag_build
         if self.tag_date:
-            version += time.strftime("-%Y%m%d")
+            version += time.strftime("%Y%m%d")
         return version
     vtags = property(tags)
 
@@ -565,6 +565,7 @@ class manifest_maker(sdist):
         if os.path.exists(self.template):
             self.read_template()
         self.add_license_files()
+        self._add_referenced_files()
         self.prune_file_list()
         self.filelist.sort()
         self.filelist.remove_duplicates()
@@ -619,8 +620,15 @@ class manifest_maker(sdist):
         license_files = self.distribution.metadata.license_files or []
         for lf in license_files:
             log.info("adding license file '%s'", lf)
-            pass
         self.filelist.extend(license_files)
+
+    def _add_referenced_files(self):
+        """Add files referenced by the config (e.g. `file:` directive) to filelist"""
+        referenced = getattr(self.distribution, '_referenced_files', [])
+        # ^-- fallback if dist comes from distutils or is a custom class
+        for rf in referenced:
+            log.debug("adding file referenced by config '%s'", rf)
+        self.filelist.extend(referenced)
 
     def prune_file_list(self):
         build = self.get_finalized_command('build')

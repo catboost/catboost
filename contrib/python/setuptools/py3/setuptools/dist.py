@@ -17,7 +17,7 @@ from distutils.fancy_getopt import translate_longopt
 from glob import iglob
 import itertools
 import textwrap
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, Set, TYPE_CHECKING
 from pathlib import Path
 
 from collections import defaultdict
@@ -480,6 +480,11 @@ class Distribution(_Distribution):
                 if k not in self._DISTUTILS_UNSUPPORTED_METADATA
             },
         )
+
+        # Private API (setuptools-use only, not restricted to Distribution)
+        # Stores files that are referenced by the configuration and need to be in the
+        # sdist (e.g. `version = file: VERSION.txt`)
+        self._referenced_files: Set[str] = set()
 
         # Save the original dependencies before they are processed into the egg format
         self._orig_extras_require = {}

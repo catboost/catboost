@@ -16,7 +16,7 @@ from functools import partial, reduce
 from itertools import chain
 from types import MappingProxyType
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple,
-                    Type, Union)
+                    Type, Union, cast)
 
 from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 
@@ -142,15 +142,21 @@ def _long_description(dist: "Distribution", val: _DictOrStr, root_dir: _Path):
     from setuptools.config import expand
 
     if isinstance(val, str):
-        text = expand.read_files(val, root_dir)
+        file: Union[str, list] = val
+        text = expand.read_files(file, root_dir)
         ctype = _guess_content_type(val)
     else:
-        text = val.get("text") or expand.read_files(val.get("file", []), root_dir)
+        file = val.get("file") or []
+        text = val.get("text") or expand.read_files(file, root_dir)
         ctype = val["content-type"]
 
     _set_config(dist, "long_description", text)
+
     if ctype:
         _set_config(dist, "long_description_content_type", ctype)
+
+    if file:
+        dist._referenced_files.add(cast(str, file))
 
 
 def _license(dist: "Distribution", val: dict, root_dir: _Path):
@@ -158,6 +164,7 @@ def _license(dist: "Distribution", val: dict, root_dir: _Path):
 
     if "file" in val:
         _set_config(dist, "license", expand.read_files([val["file"]], root_dir))
+        dist._referenced_files.add(val["file"])
     else:
         _set_config(dist, "license", val["text"])
 

@@ -8,7 +8,7 @@ import os
 import warnings
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Union
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Set, Union
 
 from setuptools.errors import FileError, OptionError
 
@@ -84,8 +84,8 @@ def read_configuration(
 
     :param Distribution|None: Distribution object to which the configuration refers.
         If not given a dummy object will be created and discarded after the
-        configuration is read. This is used for auto-discovery of packages in the case
-        a dynamic configuration (e.g. ``attr`` or ``cmdclass``) is expanded.
+        configuration is read. This is used for auto-discovery of packages and in the
+        case a dynamic configuration (e.g. ``attr`` or ``cmdclass``) is expanded.
         When ``expand=False`` this object is simply ignored.
 
     :rtype: dict
@@ -211,6 +211,7 @@ class _ConfigExpander:
         self.dynamic_cfg = self.setuptools_cfg.get("dynamic", {})
         self.ignore_option_errors = ignore_option_errors
         self._dist = dist
+        self._referenced_files: Set[str] = set()
 
     def _ensure_dist(self) -> "Distribution":
         from setuptools.dist import Distribution
@@ -241,6 +242,7 @@ class _ConfigExpander:
             self._expand_cmdclass(package_dir)
             self._expand_all_dynamic(dist, package_dir)
 
+        dist._referenced_files.update(self._referenced_files)
         return self.config
 
     def _expand_packages(self):
@@ -307,9 +309,12 @@ class _ConfigExpander:
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
     ):
+        from setuptools.extern.more_itertools import always_iterable  # type: ignore
+
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir
             if "file" in directive:
+                self._referenced_files.update(always_iterable(directive["file"]))
                 return _expand.read_files(directive["file"], root_dir)
             if "attr" in directive:
                 return _expand.read_attr(directive["attr"], package_dir, root_dir)
