@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.9.0
+Version: 8.10.0
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -60,7 +60,7 @@ Requires-Dist: ipyparallel ; extra == 'all'
 Requires-Dist: qtconsole ; extra == 'all'
 Requires-Dist: curio ; extra == 'all'
 Requires-Dist: matplotlib (!=3.2.0) ; extra == 'all'
-Requires-Dist: numpy (>=1.20) ; extra == 'all'
+Requires-Dist: numpy (>=1.21) ; extra == 'all'
 Requires-Dist: pandas ; extra == 'all'
 Requires-Dist: trio ; extra == 'all'
 Provides-Extra: black
@@ -103,7 +103,7 @@ Requires-Dist: testpath ; extra == 'test_extra'
 Requires-Dist: curio ; extra == 'test_extra'
 Requires-Dist: matplotlib (!=3.2.0) ; extra == 'test_extra'
 Requires-Dist: nbformat ; extra == 'test_extra'
-Requires-Dist: numpy (>=1.20) ; extra == 'test_extra'
+Requires-Dist: numpy (>=1.21) ; extra == 'test_extra'
 Requires-Dist: pandas ; extra == 'test_extra'
 Requires-Dist: trio ; extra == 'test_extra'
 
