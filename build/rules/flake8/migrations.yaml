@@ -1428,7 +1428,6 @@ migrations:
     - logos/projects/statkey_py3/tasks/metrika_coverage
     - mail/ohio/ohio/storage/mappers
     - mail/transfer/ora2pg
-    - mapreduce/yt/examples/typed-python-tutorial/spec_builder
     - maps/analytics/metrics/routes
     - maps/automotive/tools/statistics_auto/pylib/import_metrics
     - maps/doc/proto/yandex/maps/proto/bizdir/sps/tests
@@ -3121,7 +3120,6 @@ migrations:
     - mail/tools/sql_execute_per_shard/bin/exec
     - mail/transfer/ora2pg/tools/test
     - mail/transfer/tests/integration_corp
-    - mapreduce/yt/tools/proto_migration/generator
     - maps/adv/analytics/scripts/post_view
     - maps/analytics/legacy/nile/statadhoc-11946-spuv2
     - maps/analytics/legacy/nile/statadhoc-12253-map-reqans-log-monitoring-report
@@ -7806,7 +7804,6 @@ migrations:
     - mail/transfer/ora2pg
     - mail/transfer/ora2pg/tests
     - mail/transfer/ora2pg/tools
-    - mapreduce/yt/tools/proto_migration/generator
     - mapreduce/yt/unwrapper/ut
     - maps/analytics/legacy/nile/statadhoc-13066-events-experiments-report
     - maps/analyzer/pylibs/cachely/tests
@@ -10672,7 +10669,6 @@ migrations:
     - mail/contrib/tatsu/test/grammar
     - mail/python/theatre/app
     - mail/tools/ews_call/ews_call
-    - mapreduce/yt/tools/du-yt
     - maps/automotive/proxy/config_generator
     - maps/automotive/remote_access/autotests/tests/data_types
     - maps/b2bgeo/mvrp_solver/backend/tests_lib
