@@ -184,6 +184,7 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\include\zstd.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\bits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\bitstream.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\compiler.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\cpu.h"/>
