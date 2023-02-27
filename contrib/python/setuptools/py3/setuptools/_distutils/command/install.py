@@ -180,7 +180,6 @@ def _pypy_hack(name):
 
 
 class install(Command):
-
     description = "install everything from build directory"
 
     user_options = [
@@ -609,7 +608,7 @@ class install(Command):
         for attr in attrs:
             val = getattr(self, attr)
             if val is not None:
-                if os.name == 'posix' or os.name == 'nt':
+                if os.name in ('posix', 'nt'):
                     val = os.path.expanduser(val)
                 val = subst_vars(val, self.config_vars)
                 setattr(self, attr, val)

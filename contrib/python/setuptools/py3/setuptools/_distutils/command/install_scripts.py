@@ -12,7 +12,6 @@ from stat import ST_MODE
 
 
 class install_scripts(Command):
-
     description = "install scripts (Python or otherwise)"
 
     user_options = [

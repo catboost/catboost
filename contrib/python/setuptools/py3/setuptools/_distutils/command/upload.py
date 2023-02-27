@@ -27,7 +27,6 @@ _FILE_CONTENT_DIGESTS = {
 
 
 class upload(PyPIRCCommand):
-
     description = "upload binary package to PyPI"
 
     user_options = PyPIRCCommand.user_options + [

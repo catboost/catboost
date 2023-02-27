@@ -64,7 +64,6 @@ class BCPPCompiler(CCompiler):
     exe_extension = '.exe'
 
     def __init__(self, verbose=0, dry_run=0, force=0):
-
         super().__init__(verbose, dry_run, force)
 
         # These executables are assumed to all be in the path.
@@ -98,7 +97,6 @@ class BCPPCompiler(CCompiler):
         extra_postargs=None,
         depends=None,
     ):
-
         macros, objects, extra_postargs, pp_opts, build = self._setup_compile(
             output_dir, macros, include_dirs, sources, depends, extra_postargs
         )
@@ -167,7 +165,6 @@ class BCPPCompiler(CCompiler):
     def create_static_lib(
         self, objects, output_libname, output_dir=None, debug=0, target_lang=None
     ):
-
         (objects, output_dir) = self._fix_object_args(objects, output_dir)
         output_filename = self.library_filename(output_libname, output_dir=output_dir)
 
@@ -200,7 +197,6 @@ class BCPPCompiler(CCompiler):
         build_temp=None,
         target_lang=None,
     ):
-
         # XXX this ignores 'build_temp'!  should follow the lead of
         # msvccompiler.py
 
@@ -219,7 +215,6 @@ class BCPPCompiler(CCompiler):
             output_filename = os.path.join(output_dir, output_filename)
 
         if self._need_link(objects, output_filename):
-
             # Figure out linker args based on type of target.
             if target_desc == CCompiler.EXECUTABLE:
                 startup_obj = 'c0w32'
@@ -294,8 +289,7 @@ class BCPPCompiler(CCompiler):
                     ld_args.append(libfile)
 
             # some default libraries
-            ld_args.append('import32')
-            ld_args.append('cw32mt')
+            ld_args.extend(('import32', 'cw32mt'))
 
             # def file for export symbols
             ld_args.extend([',', def_file])
@@ -381,7 +375,6 @@ class BCPPCompiler(CCompiler):
         extra_preargs=None,
         extra_postargs=None,
     ):
-
         (_, macros, include_dirs) = self._fix_compile_args(None, macros, include_dirs)
         pp_opts = gen_preprocess_options(macros, include_dirs)
         pp_args = ['cpp32.exe'] + pp_opts

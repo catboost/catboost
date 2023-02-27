@@ -14,7 +14,6 @@ from distutils._log import log
 
 
 class bdist_dumb(Command):
-
     description = "create a \"dumb\" built distribution"
 
     user_options = [

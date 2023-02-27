@@ -228,7 +228,7 @@ def _subst_compat(s):
         import warnings
 
         warnings.warn(
-            "shell/Perl-style substitions are deprecated",
+            "shell/Perl-style substitutions are deprecated",
             DeprecationWarning,
         )
     return repl

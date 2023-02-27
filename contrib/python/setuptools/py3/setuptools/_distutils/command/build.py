@@ -16,7 +16,6 @@ def show_compilers():
 
 
 class build(Command):
-
     description = "build everything needed to install"
 
     user_options = [

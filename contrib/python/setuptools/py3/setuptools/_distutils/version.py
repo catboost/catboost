@@ -169,7 +169,6 @@ class StrictVersion(Version):
             self.prerelease = None
 
     def __str__(self):
-
         if self.version[2] == 0:
             vstring = '.'.join(map(str, self.version[0:2]))
         else:

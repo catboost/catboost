@@ -157,9 +157,3 @@ def patch_for_msvc_specialized_compiler():
         patch_func(*msvc14('_get_vc_env'))
     except ImportError:
         pass
-
-    try:
-        # Patch distutils._msvccompiler.gen_lib_options for Numpy
-        patch_func(*msvc14('gen_lib_options'))
-    except ImportError:
-        pass

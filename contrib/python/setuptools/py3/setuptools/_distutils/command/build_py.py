@@ -14,7 +14,6 @@ from distutils._log import log
 
 
 class build_py(Command):
-
     description = "\"build\" pure Python modules (copy to build directory)"
 
     user_options = [
@@ -310,7 +309,7 @@ class build_py(Command):
     def get_outputs(self, include_bytecode=1):
         modules = self.find_all_modules()
         outputs = []
-        for (package, module, module_file) in modules:
+        for package, module, module_file in modules:
             package = package.split('.')
             filename = self.get_module_outfile(self.build_lib, package, module)
             outputs.append(filename)
@@ -352,7 +351,7 @@ class build_py(Command):
 
     def build_modules(self):
         modules = self.find_modules()
-        for (package, module, module_file) in modules:
+        for package, module, module_file in modules:
             # Now "build" the module -- ie. copy the source file to
             # self.build_lib (the build directory for Python source).
             # (Actually, it gets copied to the directory for this package
@@ -375,7 +374,7 @@ class build_py(Command):
 
             # Now loop over the modules we found, "building" each one (just
             # copy it to self.build_lib).
-            for (package_, module, module_file) in modules:
+            for package_, module, module_file in modules:
                 assert package == package_
                 self.build_module(module, module_file, package)
 

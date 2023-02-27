@@ -113,7 +113,7 @@ class FancyGetopt:
 
     def _check_alias_dict(self, aliases, what):
         assert isinstance(aliases, dict)
-        for (alias, opt) in aliases.items():
+        for alias, opt in aliases.items():
             if alias not in self.option_index:
                 raise DistutilsGetoptError(
                     ("invalid %s '%s': " "option '%s' not defined")

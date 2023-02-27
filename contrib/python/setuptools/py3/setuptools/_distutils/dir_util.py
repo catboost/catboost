@@ -227,7 +227,7 @@ def remove_tree(directory, verbose=1, dry_run=0):
             # remove dir from cache if it's already there
             abspath = os.path.abspath(cmd[1])
             if abspath in _path_created:
-                del _path_created[abspath]
+                _path_created.pop(abspath)
         except OSError as exc:
             log.warning("error removing %s: %s", directory, exc)
 

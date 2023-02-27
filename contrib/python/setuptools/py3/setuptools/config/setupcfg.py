@@ -16,6 +16,7 @@ from typing import (TYPE_CHECKING, Callable, Any, Dict, Generic, Iterable, List,
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.requirements import Requirement, InvalidRequirement
+from setuptools.extern.packaging.markers import default_environment as marker_env
 from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
 from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
@@ -199,17 +200,21 @@ def _warn_accidental_env_marker_misconfig(label: str, orig_value: str, parsed: l
     if "\n" in orig_value or len(parsed) != 2:
         return
 
-    with contextlib.suppress(InvalidRequirement):
-        original_requirements_str = ";".join(parsed)
-        req = Requirement(original_requirements_str)
-        if req.marker is not None:
-            msg = (
-                f"One of the parsed requirements in `{label}` "
-                f"looks like a valid environment marker: '{parsed[1]}'\n"
-                "Make sure that the config is correct and check "
-                "https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#opt-2"  # noqa: E501
-            )
-            warnings.warn(msg, UserWarning)
+    markers = marker_env().keys()
+    msg = (
+        f"One of the parsed requirements in `{label}` "
+        f"looks like a valid environment marker: '{parsed[1]}'\n"
+        "Make sure that the config is correct and check "
+        "https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#opt-2"  # noqa: E501
+    )
+
+    try:
+        req = Requirement(parsed[1])
+        if req.name in markers:
+            warnings.warn(msg)
+    except InvalidRequirement as ex:
+        if any(parsed[1].startswith(marker) for marker in markers):
+            raise InvalidRequirement(msg) from ex
 
 
 class ConfigHandler(Generic[Target]):

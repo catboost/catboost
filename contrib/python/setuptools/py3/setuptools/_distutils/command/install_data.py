@@ -11,7 +11,6 @@ from ..util import change_root, convert_path
 
 
 class install_data(Command):
-
     description = "install data files"
 
     user_options = [

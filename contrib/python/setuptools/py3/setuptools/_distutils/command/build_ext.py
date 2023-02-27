@@ -39,7 +39,6 @@ def show_compilers():
 
 
 class build_ext(Command):
-
     description = "build C/C++ extensions (compile/link to build directory)"
 
     # XXX thoughts on how to deal with complex command-line options like
@@ -328,7 +327,7 @@ class build_ext(Command):
             self.compiler.set_include_dirs(self.include_dirs)
         if self.define is not None:
             # 'define' option is a list of (name,value) tuples
-            for (name, value) in self.define:
+            for name, value in self.define:
                 self.compiler.define_macro(name, value)
         if self.undef is not None:
             for macro in self.undef:
@@ -721,7 +720,7 @@ class build_ext(Command):
         name = ext.name.split('.')[-1]
         try:
             # Unicode module name support as defined in PEP-489
-            # https://www.python.org/dev/peps/pep-0489/#export-hook-name
+            # https://peps.python.org/pep-0489/#export-hook-name
             name.encode('ascii')
         except UnicodeEncodeError:
             suffix = 'U_' + name.encode('punycode').replace(b'-', b'_').decode('ascii')

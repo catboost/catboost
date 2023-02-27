@@ -33,7 +33,6 @@ class ListCompat(dict):
 
 
 class bdist(Command):
-
     description = "create a built (binary) distribution"
 
     user_options = [

@@ -160,7 +160,7 @@ class Command:
             header = "command options for '%s':" % self.get_command_name()
         self.announce(indent + header, level=logging.INFO)
         indent = indent + "  "
-        for (option, _, _) in self.user_options:
+        for option, _, _ in self.user_options:
             option = option.translate(longopt_xlate)
             if option[-1] == "=":
                 option = option[:-1]
@@ -291,7 +291,7 @@ class Command:
         # Option_pairs: list of (src_option, dst_option) tuples
         src_cmd_obj = self.distribution.get_command_obj(src_cmd)
         src_cmd_obj.ensure_finalized()
-        for (src_option, dst_option) in option_pairs:
+        for src_option, dst_option in option_pairs:
             if getattr(self, dst_option) is None:
                 setattr(self, dst_option, getattr(src_cmd_obj, src_option))
 
@@ -325,7 +325,7 @@ class Command:
         run for the current distribution.  Return a list of command names.
         """
         commands = []
-        for (cmd_name, method) in self.sub_commands:
+        for cmd_name, method in self.sub_commands:
             if method is None or method(self):
                 commands.append(cmd_name)
         return commands

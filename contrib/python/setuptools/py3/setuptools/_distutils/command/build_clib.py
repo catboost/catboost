@@ -28,7 +28,6 @@ def show_compilers():
 
 
 class build_clib(Command):
-
     description = "build C/C++ libraries used by Python extensions"
 
     user_options = [
@@ -103,7 +102,7 @@ class build_clib(Command):
             self.compiler.set_include_dirs(self.include_dirs)
         if self.define is not None:
             # 'define' option is a list of (name,value) tuples
-            for (name, value) in self.define:
+            for name, value in self.define:
                 self.compiler.define_macro(name, value)
         if self.undef is not None:
             for macro in self.undef:
@@ -155,14 +154,14 @@ class build_clib(Command):
             return None
 
         lib_names = []
-        for (lib_name, build_info) in self.libraries:
+        for lib_name, build_info in self.libraries:
             lib_names.append(lib_name)
         return lib_names
 
     def get_source_files(self):
         self.check_library_list(self.libraries)
         filenames = []
-        for (lib_name, build_info) in self.libraries:
+        for lib_name, build_info in self.libraries:
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):
                 raise DistutilsSetupError(
@@ -175,7 +174,7 @@ class build_clib(Command):
         return filenames
 
     def build_libraries(self, libraries):
-        for (lib_name, build_info) in libraries:
+        for lib_name, build_info in libraries:
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):
                 raise DistutilsSetupError(

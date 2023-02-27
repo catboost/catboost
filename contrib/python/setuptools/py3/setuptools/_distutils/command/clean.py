@@ -11,7 +11,6 @@ from distutils._log import log
 
 
 class clean(Command):
-
     description = "clean up temporary files from 'build' command"
     user_options = [
         ('build-base=', 'b', "base build directory (default: 'build.build-base')"),

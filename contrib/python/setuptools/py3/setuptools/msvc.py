@@ -15,16 +15,12 @@ import json
 from io import open
 from os import listdir, pathsep
 from os.path import join, isfile, isdir, dirname
-import sys
 import contextlib
 import platform
 import itertools
 import subprocess
 import distutils.errors
-from setuptools.extern.packaging.version import LegacyVersion
 from setuptools.extern.more_itertools import unique_everseen
-
-from .monkey import get_unpatched
 
 if platform.system() == 'Windows':
     import winreg
@@ -215,19 +211,6 @@ def msvc14_get_vc_env(plat_spec):
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
-
-
-def msvc14_gen_lib_options(*args, **kwargs):
-    """
-    Patched "distutils._msvccompiler.gen_lib_options" for fix
-    compatibility between "numpy.distutils" and "distutils._msvccompiler"
-    (for Numpy < 1.11.2)
-    """
-    if "numpy.distutils" in sys.modules:
-        import numpy as np
-        if LegacyVersion(np.__version__) < LegacyVersion('1.11.2'):
-            return np.distutils.ccompiler.gen_lib_options(*args, **kwargs)
-    return get_unpatched(msvc14_gen_lib_options)(*args, **kwargs)
 
 
 def _augment_exception(exc, version, arch=''):

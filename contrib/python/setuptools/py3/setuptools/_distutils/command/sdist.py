@@ -33,7 +33,6 @@ def show_formats():
 
 
 class sdist(Command):
-
     description = "create a source distribution (tarball, zip file, etc.)"
 
     def checking_metadata(self):
@@ -235,7 +234,7 @@ class sdist(Command):
         """Add all the default files to self.filelist:
           - README or README.txt
           - setup.py
-          - test/test*.py
+          - tests/test*.py and test/test*.py
           - all pure Python modules mentioned in setup script
           - all files pointed by package_data (build_py)
           - all files defined in data_files.
@@ -293,7 +292,7 @@ class sdist(Command):
                     self.warn("standard file '%s' not found" % fn)
 
     def _add_defaults_optional(self):
-        optional = ['test/test*.py', 'setup.cfg']
+        optional = ['tests/test*.py', 'test/test*.py', 'setup.cfg']
         for pattern in optional:
             files = filter(os.path.isfile, glob(pattern))
             self.filelist.extend(files)

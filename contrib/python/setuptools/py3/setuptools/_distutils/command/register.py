@@ -17,7 +17,6 @@ from distutils._log import log
 
 
 class register(PyPIRCCommand):
-
     description = "register the distribution with the Python package index"
     user_options = PyPIRCCommand.user_options + [
         ('list-classifiers', None, 'list the valid Trove classifiers'),

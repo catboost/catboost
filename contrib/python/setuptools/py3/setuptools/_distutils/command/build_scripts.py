@@ -22,7 +22,6 @@ first_line_re = shebang_pattern
 
 
 class build_scripts(Command):
-
     description = "\"build\" scripts (copy and fixup #! line)"
 
     user_options = [

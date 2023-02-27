@@ -237,9 +237,9 @@ Common commands: (see '--help-commands' for more)
             options = attrs.get('options')
             if options is not None:
                 del attrs['options']
-                for (command, cmd_options) in options.items():
+                for command, cmd_options in options.items():
                     opt_dict = self.get_option_dict(command)
-                    for (opt, val) in cmd_options.items():
+                    for opt, val in cmd_options.items():
                         opt_dict[opt] = ("setup script", val)
 
             if 'licence' in attrs:
@@ -253,7 +253,7 @@ Common commands: (see '--help-commands' for more)
 
             # Now work on the rest of the attributes.  Any attribute that's
             # not already defined is invalid!
-            for (key, val) in attrs.items():
+            for key, val in attrs.items():
                 if hasattr(self.metadata, "set_" + key):
                     getattr(self.metadata, "set_" + key)(val)
                 elif hasattr(self.metadata, key):
@@ -414,7 +414,7 @@ Common commands: (see '--help-commands' for more)
         # to set Distribution options.
 
         if 'global' in self.command_options:
-            for (opt, (src, val)) in self.command_options['global'].items():
+            for opt, (src, val) in self.command_options['global'].items():
                 alias = self.negative_opt.get(opt)
                 try:
                     if alias:
@@ -585,7 +585,7 @@ Common commands: (see '--help-commands' for more)
             cmd_class.help_options, list
         ):
             help_option_found = 0
-            for (help_option, short, desc, func) in cmd_class.help_options:
+            for help_option, short, desc, func in cmd_class.help_options:
                 if hasattr(opts, parser.get_attr_name(help_option)):
                     help_option_found = 1
                     if callable(func):
@@ -603,7 +603,7 @@ Common commands: (see '--help-commands' for more)
         # Put the options from the command-line into their official
         # holding pen, the 'command_options' dictionary.
         opt_dict = self.get_option_dict(command)
-        for (name, value) in vars(opts).items():
+        for name, value in vars(opts).items():
             opt_dict[name] = ("command line", value)
 
         return args
@@ -696,11 +696,11 @@ Common commands: (see '--help-commands' for more)
         for option in self.display_options:
             is_display_option[option[0]] = 1
 
-        for (opt, val) in option_order:
+        for opt, val in option_order:
             if val and is_display_option.get(opt):
                 opt = translate_longopt(opt)
                 value = getattr(self.metadata, "get_" + opt)()
-                if opt in ['keywords', 'platforms']:
+                if opt in ('keywords', 'platforms'):
                     print(','.join(value))
                 elif opt in ('classifiers', 'provides', 'requires', 'obsoletes'):
                     print('\n'.join(value))
@@ -887,7 +887,7 @@ Common commands: (see '--help-commands' for more)
 
         if DEBUG:
             self.announce("  setting options for '%s' command:" % command_name)
-        for (option, (source, value)) in option_dict.items():
+        for option, (source, value) in option_dict.items():
             if DEBUG:
                 self.announce("    {} = {} (from {})".format(option, value, source))
             try:

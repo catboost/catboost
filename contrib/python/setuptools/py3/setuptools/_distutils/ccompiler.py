@@ -6,6 +6,7 @@ for the Distutils compiler abstraction model."""
 import sys
 import os
 import re
+import warnings
 
 from .errors import (
     CompileError,
@@ -388,7 +389,7 @@ class CCompiler:
             raise TypeError("'macros' (if supplied) must be a list of tuples")
 
         if include_dirs is None:
-            include_dirs = self.include_dirs
+            include_dirs = list(self.include_dirs)
         elif isinstance(include_dirs, (list, tuple)):
             include_dirs = list(include_dirs) + (self.include_dirs or [])
         else:
@@ -824,9 +825,19 @@ class CCompiler:
         libraries=None,
         library_dirs=None,
     ):
-        """Return a boolean indicating whether funcname is supported on
-        the current platform.  The optional arguments can be used to
-        augment the compilation environment.
+        """Return a boolean indicating whether funcname is provided as
+        a symbol on the current platform.  The optional arguments can
+        be used to augment the compilation environment.
+
+        The libraries argument is a list of flags to be passed to the
+        linker to make additional symbol definitions available for
+        linking.
+
+        The includes and include_dirs arguments are deprecated.
+        Usually, supplying include files with function declarations
+        will cause function detection to fail even in cases where the
+        symbol is available for linking.
+
         """
         # this can't be included at module scope because it tries to
         # import math which might not be available at that point - maybe
@@ -835,8 +846,12 @@ class CCompiler:
 
         if includes is None:
             includes = []
+        else:
+            warnings.warn("includes is deprecated", DeprecationWarning)
         if include_dirs is None:
             include_dirs = []
+        else:
+            warnings.warn("include_dirs is deprecated", DeprecationWarning)
         if libraries is None:
             libraries = []
         if library_dirs is None:
@@ -845,7 +860,24 @@ class CCompiler:
         f = os.fdopen(fd, "w")
         try:
             for incl in includes:
-                f.write("""#include "%s"\n""" % incl)
+                f.write("""#include %s\n""" % incl)
+            if not includes:
+                # Use "char func(void);" as the prototype to follow
+                # what autoconf does.  This prototype does not match
+                # any well-known function the compiler might recognize
+                # as a builtin, so this ends up as a true link test.
+                # Without a fake prototype, the test would need to
+                # know the exact argument types, and the has_function
+                # interface does not provide that level of information.
+                f.write(
+                    """\
+#ifdef __cplusplus
+extern "C"
+#endif
+char %s(void);
+"""
+                    % funcname
+                )
             f.write(
                 """\
 int main (int argc, char **argv) {
@@ -871,7 +903,9 @@ int main (int argc, char **argv) {
         except (LinkError, TypeError):
             return False
         else:
-            os.remove(os.path.join(self.output_dir or '', "a.out"))
+            os.remove(
+                self.executable_filename("a.out", output_dir=self.output_dir or '')
+            )
         finally:
             for fn in objects:
                 os.remove(fn)

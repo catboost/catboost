@@ -180,7 +180,6 @@ class TextFile:
                 line = None
 
             if self.strip_comments and line:
-
                 # Look for the first "#" in the line.  If none, never
                 # mind.  If we find one and it's the first character, or
                 # is not preceded by "\", then it starts a comment --
@@ -255,7 +254,7 @@ class TextFile:
 
             # blank line (whether we rstrip'ed or not)? skip to next line
             # if appropriate
-            if (line == '' or line == '\n') and self.skip_blanks:
+            if line in ('', '\n') and self.skip_blanks:
                 continue
 
             if self.join_lines:

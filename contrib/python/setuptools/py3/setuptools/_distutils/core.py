@@ -132,7 +132,7 @@ def setup(**attrs):  # noqa: C901
     # our Distribution (see below).
     klass = attrs.get('distclass')
     if klass:
-        del attrs['distclass']
+        attrs.pop('distclass')
     else:
         klass = Distribution
 

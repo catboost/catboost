@@ -391,7 +391,7 @@ class MSVCCompiler(CCompiler):
             # to cross compile, you use 'x86_amd64'.
             # On AMD64, 'vcvars32.bat amd64' is a native build env; to cross
             # compile use 'x86' (ie, it runs the x86 compiler directly)
-            if plat_name == get_platform() or plat_name == 'win32':
+            if plat_name in (get_platform(), 'win32'):
                 # native build or cross-compile to win32
                 plat_spec = PLAT_TO_VCVARS[plat_name]
             else:
@@ -499,7 +499,6 @@ class MSVCCompiler(CCompiler):
         extra_postargs=None,
         depends=None,
     ):
-
         if not self.initialized:
             self.initialize()
         compile_info = self._setup_compile(
@@ -586,7 +585,6 @@ class MSVCCompiler(CCompiler):
     def create_static_lib(
         self, objects, output_libname, output_dir=None, debug=0, target_lang=None
     ):
-
         if not self.initialized:
             self.initialize()
         (objects, output_dir) = self._fix_object_args(objects, output_dir)
@@ -619,7 +617,6 @@ class MSVCCompiler(CCompiler):
         build_temp=None,
         target_lang=None,
     ):
-
         if not self.initialized:
             self.initialize()
         (objects, output_dir) = self._fix_object_args(objects, output_dir)

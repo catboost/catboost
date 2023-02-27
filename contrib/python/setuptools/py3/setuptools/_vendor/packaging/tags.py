@@ -4,6 +4,7 @@
 
 import logging
 import platform
+import subprocess
 import sys
 import sysconfig
 from importlib.machinery import EXTENSION_SUFFIXES
@@ -36,7 +37,7 @@ INTERPRETER_SHORT_NAMES: Dict[str, str] = {
 }
 
 
-_32_BIT_INTERPRETER = sys.maxsize <= 2 ** 32
+_32_BIT_INTERPRETER = sys.maxsize <= 2**32
 
 
 class Tag:
@@ -224,10 +225,45 @@ def cpython_tags(
                 yield Tag(interpreter, "abi3", platform_)
 
 
-def _generic_abi() -> Iterator[str]:
-    abi = sysconfig.get_config_var("SOABI")
-    if abi:
-        yield _normalize_string(abi)
+def _generic_abi() -> List[str]:
+    """
+    Return the ABI tag based on EXT_SUFFIX.
+    """
+    # The following are examples of `EXT_SUFFIX`.
+    # We want to keep the parts which are related to the ABI and remove the
+    # parts which are related to the platform:
+    # - linux:   '.cpython-310-x86_64-linux-gnu.so' => cp310
+    # - mac:     '.cpython-310-darwin.so'           => cp310
+    # - win:     '.cp310-win_amd64.pyd'             => cp310
+    # - win:     '.pyd'                             => cp37 (uses _cpython_abis())
+    # - pypy:    '.pypy38-pp73-x86_64-linux-gnu.so' => pypy38_pp73
+    # - graalpy: '.graalpy-38-native-x86_64-darwin.dylib'
+    #                                               => graalpy_38_native
+
+    ext_suffix = _get_config_var("EXT_SUFFIX", warn=True)
+    if not isinstance(ext_suffix, str) or ext_suffix[0] != ".":
+        raise SystemError("invalid sysconfig.get_config_var('EXT_SUFFIX')")
+    parts = ext_suffix.split(".")
+    if len(parts) < 3:
+        # CPython3.7 and earlier uses ".pyd" on Windows.
+        return _cpython_abis(sys.version_info[:2])
+    soabi = parts[1]
+    if soabi.startswith("cpython"):
+        # non-windows
+        abi = "cp" + soabi.split("-")[1]
+    elif soabi.startswith("cp"):
+        # windows
+        abi = soabi.split("-")[0]
+    elif soabi.startswith("pypy"):
+        abi = "-".join(soabi.split("-")[:2])
+    elif soabi.startswith("graalpy"):
+        abi = "-".join(soabi.split("-")[:3])
+    elif soabi:
+        # pyston, ironpython, others?
+        abi = soabi
+    else:
+        return []
+    return [_normalize_string(abi)]
 
 
 def generic_tags(
@@ -251,8 +287,9 @@ def generic_tags(
         interpreter = "".join([interp_name, interp_version])
     if abis is None:
         abis = _generic_abi()
+    else:
+        abis = list(abis)
     platforms = list(platforms or platform_tags())
-    abis = list(abis)
     if "none" not in abis:
         abis.append("none")
     for abi in abis:
@@ -356,6 +393,22 @@ def mac_platforms(
     version_str, _, cpu_arch = platform.mac_ver()
     if version is None:
         version = cast("MacVersion", tuple(map(int, version_str.split(".")[:2])))
+        if version == (10, 16):
+            # When built against an older macOS SDK, Python will report macOS 10.16
+            # instead of the real version.
+            version_str = subprocess.run(
+                [
+                    sys.executable,
+                    "-sS",
+                    "-c",
+                    "import platform; print(platform.mac_ver()[0])",
+                ],
+                check=True,
+                env={"SYSTEM_VERSION_COMPAT": "0"},
+                stdout=subprocess.PIPE,
+                universal_newlines=True,
+            ).stdout
+            version = cast("MacVersion", tuple(map(int, version_str.split(".")[:2])))
     else:
         version = version
     if arch is None:
@@ -446,6 +499,9 @@ def platform_tags() -> Iterator[str]:
 def interpreter_name() -> str:
     """
     Returns the name of the running interpreter.
+
+    Some implementations have a reserved, two-letter abbreviation which will
+    be returned when appropriate.
     """
     name = sys.implementation.name
     return INTERPRETER_SHORT_NAMES.get(name) or name
@@ -482,6 +538,9 @@ def sys_tags(*, warn: bool = False) -> Iterator[Tag]:
         yield from generic_tags()
 
     if interp_name == "pp":
-        yield from compatible_tags(interpreter="pp3")
+        interp = "pp3"
+    elif interp_name == "cp":
+        interp = "cp" + interpreter_version(warn=warn)
     else:
-        yield from compatible_tags()
+        interp = None
+    yield from compatible_tags(interpreter=interp)

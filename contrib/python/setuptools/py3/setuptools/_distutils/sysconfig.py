@@ -130,12 +130,20 @@ def get_python_inc(plat_specific=0, prefix=None):
     return getter(resolved_prefix, prefix, plat_specific)
 
 
+@pass_none
+def _extant(path):
+    """
+    Replace path with None if it doesn't exist.
+    """
+    return path if os.path.exists(path) else None
+
+
 def _get_python_inc_posix(prefix, spec_prefix, plat_specific):
     if IS_PYPY and sys.version_info < (3, 8):
         return os.path.join(prefix, 'include')
     return (
         _get_python_inc_posix_python(plat_specific)
-        or _get_python_inc_from_config(plat_specific, spec_prefix)
+        or _extant(_get_python_inc_from_config(plat_specific, spec_prefix))
         or _get_python_inc_posix_prefix(prefix)
     )
 
@@ -474,7 +482,6 @@ def parse_makefile(fn, g=None):  # noqa: C901
                         del notdone[name]
 
                         if name.startswith('PY_') and name[3:] in renamed_variables:
-
                             name = name[3:]
                             if name not in done:
                                 done[name] = value

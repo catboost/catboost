@@ -185,7 +185,7 @@ class RangeMap(dict):
         return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
     # some special values for the RangeMap
-    undefined_value = type(str('RangeValueUndefined'), (), {})()
+    undefined_value = type('RangeValueUndefined', (), {})()
 
     class Item(int):
         "RangeMap Item"

@@ -43,7 +43,7 @@ _msvcr_lookup = RangeMap.left(
         # VS2013 / MSVC 12.0
         1800: ['msvcr120'],
         # VS2015 / MSVC 14.0
-        1900: ['ucrt', 'vcruntime140'],
+        1900: ['vcruntime140'],
         2000: RangeMap.undefined_value,
     },
 )
@@ -84,7 +84,6 @@ class CygwinCCompiler(UnixCCompiler):
     exe_extension = ".exe"
 
     def __init__(self, verbose=0, dry_run=0, force=0):
-
         super().__init__(verbose, dry_run, force)
 
         status, details = check_config_h()
@@ -118,7 +117,7 @@ class CygwinCCompiler(UnixCCompiler):
 
     @property
     def gcc_version(self):
-        # Older numpy dependend on this existing to check for ancient
+        # Older numpy depended on this existing to check for ancient
         # gcc versions. This doesn't make much sense with clang etc so
         # just hardcode to something recent.
         # https://github.com/numpy/numpy/pull/20333
@@ -133,7 +132,7 @@ class CygwinCCompiler(UnixCCompiler):
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         """Compiles the source by spawning GCC and windres if needed."""
-        if ext == '.rc' or ext == '.res':
+        if ext in ('.rc', '.res'):
             # gcc needs '.res' and '.rc' compiled to object files !!!
             try:
                 self.spawn(["windres", "-i", src, "-o", obj])
@@ -269,7 +268,6 @@ class Mingw32CCompiler(CygwinCCompiler):
     compiler_type = 'mingw32'
 
     def __init__(self, verbose=0, dry_run=0, force=0):
-
         super().__init__(verbose, dry_run, force)
 
         shared_option = "-shared"

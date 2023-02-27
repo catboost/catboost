@@ -339,7 +339,6 @@ class MSVCCompiler(CCompiler):
         extra_postargs=None,
         depends=None,
     ):
-
         if not self.initialized:
             self.initialize()
         compile_info = self._setup_compile(
@@ -413,8 +412,7 @@ class MSVCCompiler(CCompiler):
             args = [self.cc] + compile_opts + pp_opts
             if add_cpp_opts:
                 args.append('/EHsc')
-            args.append(input_opt)
-            args.append("/Fo" + obj)
+            args.extend((input_opt, "/Fo" + obj))
             args.extend(extra_postargs)
 
             try:
@@ -427,7 +425,6 @@ class MSVCCompiler(CCompiler):
     def create_static_lib(
         self, objects, output_libname, output_dir=None, debug=0, target_lang=None
     ):
-
         if not self.initialized:
             self.initialize()
         objects, output_dir = self._fix_object_args(objects, output_dir)
@@ -461,7 +458,6 @@ class MSVCCompiler(CCompiler):
         build_temp=None,
         target_lang=None,
     ):
-
         if not self.initialized:
             self.initialize()
         objects, output_dir = self._fix_object_args(objects, output_dir)

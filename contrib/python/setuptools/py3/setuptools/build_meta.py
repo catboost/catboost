@@ -326,7 +326,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
     def run_setup(self, setup_script='setup.py'):
         # Note that we can reuse our build directory between calls
         # Correctness comes first, then optimization later
-        __file__ = setup_script
+        __file__ = os.path.abspath(setup_script)
         __name__ = '__main__'
 
         with _open_setup_script(__file__) as f:

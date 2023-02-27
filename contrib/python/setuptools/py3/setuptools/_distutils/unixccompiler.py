@@ -103,7 +103,6 @@ def _linker_params(linker_cmd, compiler_cmd):
 
 
 class UnixCCompiler(CCompiler):
-
     compiler_type = 'unix'
 
     # These are used by CCompiler in two places: the constructor sets

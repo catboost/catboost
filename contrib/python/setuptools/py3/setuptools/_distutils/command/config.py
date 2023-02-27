@@ -21,7 +21,6 @@ LANG_EXT = {"c": ".c", "c++": ".cxx"}
 
 
 class config(Command):
-
     description = "prepare to build"
 
     user_options = [

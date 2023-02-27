@@ -72,7 +72,6 @@ class VendorImporter:
 
 names = (
     'packaging',
-    'pyparsing',
     'platformdirs',
     'jaraco',
     'importlib_resources',
