@@ -2598,7 +2598,6 @@ migrations:
     - yql/tests/custom
     - yt/cron/duty
     - yt/cron/node_user_tag_installer
-    - yt/yt/tests/integration/dynamic_tables
     - yweb/antiporno/reasks_reduction/metrics
     - yweb/antiporno/toloka/toloka_manager/utils/lib
     - yweb/antispam/clean_web/backends/fast_only

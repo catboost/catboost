@@ -87,7 +87,7 @@ class TestCaseProperty:  # pragma: no cover
         raise AttributeError("Cannot delete TestCase")
 
 
-def run_state_machine_as_test(state_machine_factory, *, settings=None):
+def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_steps=0):
     """Run a state machine definition as a test, either silently doing nothing
     or printing a minimal breaking program and raising an exception.
 
@@ -102,6 +102,11 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None):
         except AttributeError:
             settings = Settings(deadline=None, suppress_health_check=HealthCheck.all())
     check_type(Settings, settings, "settings")
+    check_type(int, _min_steps, "_min_steps")
+    if _min_steps < 0:
+        # Because settings can vary via e.g. profiles, settings.stateful_step_count
+        # overrides this argument and we don't bother cross-validating.
+        raise InvalidArgument(f"_min_steps={_min_steps} must be non-negative.")
 
     @settings
     @given(st.data())
@@ -129,24 +134,13 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None):
                 # 2 ** -16 during normal operation but force a stop when we've
                 # generated enough steps.
                 cd.start_example(STATE_MACHINE_RUN_LABEL)
-                if steps_run == 0:
-                    cd.draw_bits(16, forced=1)
-                elif steps_run >= max_steps:
-                    cd.draw_bits(16, forced=0)
+                must_stop = None
+                if steps_run >= max_steps:
+                    must_stop = True
+                elif steps_run <= _min_steps:
+                    must_stop = False
+                if cu.biased_coin(cd, 2**-16, forced=must_stop):
                     break
-                else:
-                    # All we really care about is whether this value is zero
-                    # or non-zero, so if it's > 1 we discard it and insert a
-                    # replacement value after
-                    cd.start_example(SHOULD_CONTINUE_LABEL)
-                    should_continue_value = cd.draw_bits(16)
-                    if should_continue_value > 1:
-                        cd.stop_example(discard=True)
-                        cd.draw_bits(16, forced=int(bool(should_continue_value)))
-                    else:
-                        cd.stop_example()
-                        if should_continue_value == 0:
-                            break
                 steps_run += 1
 
                 # Choose a rule to run, preferring an initialize rule if there are

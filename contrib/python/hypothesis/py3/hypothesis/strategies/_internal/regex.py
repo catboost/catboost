@@ -15,8 +15,8 @@ try:  # pragma: no cover
     import re._constants as sre
     import re._parser as sre_parse
 except ImportError:  # Python < 3.11
-    import sre_constants as sre  # type: ignore
-    import sre_parse  # type: ignore
+    import sre_constants as sre
+    import sre_parse
 
 from hypothesis import reject, strategies as st
 from hypothesis.internal.charmap import as_general_categories, categories

@@ -207,7 +207,7 @@ def biased_coin(
         # The logic here is a bit complicated and special cased to make it
         # play better with the shrinker.
 
-        # We imagine partitioning the real interval [0, 1] into 256 equal parts
+        # We imagine partitioning the real interval [0, 1] into 2**n equal parts
         # and looking at each part and whether its interior is wholly <= p
         # or wholly >= p. At most one part can be neither.
 
@@ -251,9 +251,9 @@ def biased_coin(
             else:
                 i = data.draw_bits(bits, forced=int(forced))
 
-            # We always label the region that causes us to repeat the loop as
-            # 255 so that shrinking this byte never causes us to need to draw
-            # more data.
+            # We always choose the region that causes us to repeat the loop as
+            # the maximum value, so that shrinking the drawn bits never causes
+            # us to need to draw more data.
             if partial and i == size - 1:
                 p = remainder
                 continue
