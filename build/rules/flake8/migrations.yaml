@@ -810,7 +810,6 @@ migrations:
     - market/idx/datacamp/dev/synthetic/stress_test
     - market/library/shiny/external/s3/beam
     - market/mobile/beru/performance-diagnostic/lib/blueprints
-    - market/mobile/beru/remote_configurator/tests
     - market/opsmode/delivery_report_parser/src/transforming
     - market/pinger-report/lib
     - market/pylibrary/database/tests
@@ -3198,7 +3197,6 @@ migrations:
     - market/report/runtime_cloud/solomon_agent/tests
     - market/search/services_for_goods/mt
     - market/solo_monitorings/marketpromo/clickphite
-    - market/sre/services/cema-proxy/lib
     - market/sre/services/tablo-idm-licenser/lib
     - market/sre/tools/demo/demo
     - market/sre/tools/etcd/prometheus_graphite_bridge/prometheus_graphite_bridge
@@ -4845,7 +4843,6 @@ migrations:
     - browser/backend/ci/tasklets/run_teamcity_build/impl
     - browser/infra/library/killall/killall
     - browser/infra/library/yandex_avd_tools/tests
-    - captcha/server/test
     - ci/tasklet/registry/common/monitoring/juggler_watch/impl
     - cloud/billing/ci/tasklets/teamcity/impl
     - cloud/blockstore/public/sdk/python/client
@@ -8302,7 +8299,6 @@ migrations:
     - ads/emily/storage/libs/transports/tensor
     - ads/emily/storage/libs/transports/tensor/ut/lib
     - ads/emily/storage/models/client
-    - ads/emily/storage/models/client/mt
     - ads/emily/storage/models/tsars/lib
     - ads/emily/storage/scripts/get_prod_models
     - ads/emily/storage/scripts/last_version_status
@@ -9119,7 +9115,6 @@ migrations:
     - maps/automotive/tools/statistics_auto/pylib/track_match_finder
     - maps_adv/common/shared_mock/tests
     - market/mobile_validator/mt/env
-    - market/sre/services/cema-proxy/lib
     - market/sre/services/cema/lib
     - market/sre/services/cema/lib/classes
     - milab/lib/i2tclient/python
