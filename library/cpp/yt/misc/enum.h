@@ -69,32 +69,6 @@ struct TEnumTraits<T, true>
 
     // For bit enums only.
     static std::vector<TType> Decompose(TType value);
-
-    // LLVM SmallDenseMap interop.
-    // This should only be used for enums whose underlying type has big enough range
-    // (see getEmptyKey and getTombstoneKey functions).
-    struct TDenseMapInfo
-    {
-        static inline TType getEmptyKey()
-        {
-            return static_cast<TType>(-1);
-        }
-
-        static inline TType getTombstoneKey()
-        {
-            return static_cast<TType>(-2);
-        }
-
-        static unsigned getHashValue(const TType& key)
-        {
-            return static_cast<unsigned>(key) * 37U;
-        }
-
-        static bool isEqual(const TType& lhs, const TType& rhs)
-        {
-            return lhs == rhs;
-        }
-    };
 };
 
 ////////////////////////////////////////////////////////////////////////////////
