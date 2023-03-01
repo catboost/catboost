@@ -236,6 +236,11 @@ class IntervalIndex(ExtensionIndex):
         _interval_shared_docs["from_breaks"]
         % {
             "klass": "IntervalIndex",
+            "name": textwrap.dedent(
+                """
+             name : str, optional
+                  Name of the resulting IntervalIndex."""
+            ),
             "examples": textwrap.dedent(
                 """\
         Examples
@@ -266,6 +271,11 @@ class IntervalIndex(ExtensionIndex):
         _interval_shared_docs["from_arrays"]
         % {
             "klass": "IntervalIndex",
+            "name": textwrap.dedent(
+                """
+             name : str, optional
+                  Name of the resulting IntervalIndex."""
+            ),
             "examples": textwrap.dedent(
                 """\
         Examples
@@ -297,6 +307,11 @@ class IntervalIndex(ExtensionIndex):
         _interval_shared_docs["from_tuples"]
         % {
             "klass": "IntervalIndex",
+            "name": textwrap.dedent(
+                """
+             name : str, optional
+                  Name of the resulting IntervalIndex."""
+            ),
             "examples": textwrap.dedent(
                 """\
         Examples
@@ -764,7 +779,7 @@ class IntervalIndex(ExtensionIndex):
         "cannot handle overlapping indices; use IntervalIndex.get_indexer_non_unique"
     )
 
-    def _convert_slice_indexer(self, key: slice, kind: str, is_frame: bool = False):
+    def _convert_slice_indexer(self, key: slice, kind: str):
         if not (key.step is None or key.step == 1):
             # GH#31658 if label-based, we require step == 1,
             #  if positional, we disallow float start/stop
@@ -776,7 +791,7 @@ class IntervalIndex(ExtensionIndex):
                     # i.e. this cannot be interpreted as a positional slice
                     raise ValueError(msg)
 
-        return super()._convert_slice_indexer(key, kind, is_frame=is_frame)
+        return super()._convert_slice_indexer(key, kind)
 
     @cache_readonly
     def _should_fallback_to_positional(self) -> bool:

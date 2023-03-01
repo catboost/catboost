@@ -1,13 +1,13 @@
 Metadata-Version: 2.1
 Name: pandas
-Version: 1.5.2
+Version: 1.5.3
 Summary: Powerful data structures for data analysis, time series, and statistics
 Home-page: https://pandas.pydata.org
 Author: The Pandas Development Team
 Author-email: pandas-dev@python.org
 License: BSD-3-Clause
 Project-URL: Bug Tracker, https://github.com/pandas-dev/pandas/issues
-Project-URL: Documentation, https://pandas.pydata.org/pandas-docs/stable
+Project-URL: Documentation, https://pandas.pydata.org/docs/
 Project-URL: Source Code, https://github.com/pandas-dev/pandas
 Platform: any
 Classifier: Development Status :: 5 - Production/Stable

@@ -2026,7 +2026,7 @@ class _iLocIndexer(_LocationIndexer):
                     "array. To retain the old behavior, use either "
                     "`df[df.columns[i]] = newvals` or, if columns are non-unique, "
                     "`df.isetitem(i, newvals)`",
-                    FutureWarning,
+                    DeprecationWarning,
                     stacklevel=find_stack_level(),
                 )
                 # TODO: how to get future behavior?
@@ -2491,7 +2491,7 @@ def convert_to_index_sliceable(obj: DataFrame, key):
     """
     idx = obj.index
     if isinstance(key, slice):
-        return idx._convert_slice_indexer(key, kind="getitem", is_frame=True)
+        return idx._convert_slice_indexer(key, kind="getitem")
 
     elif isinstance(key, str):
 
