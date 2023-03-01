@@ -126,9 +126,7 @@ migrations:
     - mail/transfer/tests/integration/steps
     - mail/transfer/tests/integration_corp/steps
     - maps/analytics/datasets/routes/mobile-maps
-    - maps/analytics/legacy/clickhouse/statadhoc-10960-audience-web-maps-web-metro-report
     - maps/analytics/legacy/nile/statadhoc-10453-geosearch-type-source-geography-report
-    - maps/analytics/legacy/nile/statadhoc-12591-retention-geo-fiches/prepare
     - maps/analytics/legacy/nile/statadhoc-13040-ctr-blocks-report
     - maps/analytics/legacy/nile/statadhoc-13066-events-experiments-report
     - maps/analyzer/sandbox/masstransit/export_eda_courier_deviceid/lib
@@ -753,7 +751,6 @@ migrations:
     - maps/adv/analytics/regular/sov_and_brand_dynamics
     - maps/adv/analytics/regular/top_spenders_tier1
     - maps/analytics/datasets/routes/mobile-maps
-    - maps/analytics/legacy/nile/statadhoc-12591-retention-geo-fiches/daily-publish
     - maps/automotive/tools/key_resetter/bin
     - maps/automotive/tools/statistics_auto/bin/build_tracks
     - maps/automotive/tools/statistics_auto/pylib/calc_hu_offline
@@ -797,7 +794,6 @@ migrations:
     - maps/wikimap/mapspro/libs/python/pymod/yandex/maps/wiki/tasks
     - maps/wikimap/mapspro/libs/python/tests/revision
     - maps/wikimap/mapspro/services/tasks/fastcgi/lib
-    - maps/wikimap/mapspro/services/tasks/fastcgi/modules/vrevisions_refresh
     - maps/wikimap/stat/kpi/valuable_edits/report/tests
     - market/access/puller/beam
     - market/assortment/ecom_log/lib/extract_source
@@ -1447,8 +1443,6 @@ migrations:
     - maps/wikimap/feedback/pushes/filter_pushes/bin
     - maps/wikimap/jams_arm2/dev/miror/import_db
     - maps/wikimap/mapspro/services/tasks/fastcgi/lib
-    - maps/wikimap/mapspro/services/tasks/fastcgi/modules/diffalert
-    - maps/wikimap/mapspro/services/tasks/fastcgi/modules/validation
     - maps/wikimap/stat/kpi/valuable_edits/report/lib
     - market/dynamic_pricing/parsing/full_url_list/update_full_url_list
     - market/dynamic_pricing/tools/offline_modeling
@@ -1748,7 +1742,6 @@ migrations:
     - cv/imageproc/ocr/tools/nirvana/realtime_sbs/generate_acceptance
     - cv/imageproc/ocr/tools/toloka_labeling/common
     - cv/short2long/training/yt_load_highlights
-    - datalens/backend/lib/bi_core/bi_core/api_commons
     - devtools/autocheck/partition_metod/uids_by_root_target
     - devtools/project-insights/analytics/aggr_main_steps
     - devtools/project-insights/analytics/aggr_pr_files
@@ -1884,7 +1877,6 @@ migrations:
     - mail/transfer/ora2pg/tests
     - mail/transfer/tests/integration_corp/steps
     - maps/analytics/legacy/nile/statadhoc-10079-bebr-audience-report
-    - maps/analytics/legacy/nile/statadhoc-12887-maps-load-times-exps-v4-report
     - maps/analytics/lib/geotools/dates
     - maps/automotive/libs/large_tests/fake_env
     - maps/b2bgeo/libs/py_gozora
@@ -2380,7 +2372,6 @@ migrations:
     - dj/lib/deprecated_config_compiler/builtins
     - dj/lib/viewer/server
     - dj/services/chz/nirvana/tools/sources_modifier/sources/ut
-    - drive/devops/cli
     - education/schoolbook/services/solver/it/fixtures
     - entity/analytics/tools/ner2/wiki_enrich_with_ontoids/bin
     - extsearch/audio/deepdive/graphs/apply_predictions
@@ -2448,7 +2439,6 @@ migrations:
     - maps/statistics/hypgen/masstransit_hypothesis/libs/draw_on_map
     - maps/tools/naviguide/tools/optimize_config/bin
     - maps/wikimap/mapspro/libs/python/pymod/yandex/maps/wiki
-    - maps/wikimap/mapspro/services/tasks/fastcgi/modules/diffalert
     - maps/wikimap/stat/tasks_payment/tasks_logging/outsource/lib
     - market/bootcamp/deep_dive_2021/trmigor/converter/test
     - market/dynamic_pricing/pricing/deadstock_sales/almost_deadstock
@@ -2685,7 +2675,6 @@ migrations:
     - ads/nirvana/wormhole/dmlc_launcher
     - ads/pytorch/lib/online_learning/production/processors/deploy_v2_processor
     - ads/quality/adv_machine/scripts/download_shards
-    - ads/quality/adv_machine/scripts/generate_dashboards
     - ads/quality/adv_machine/scripts/instancectl/updater
     - ads/quality/adv_machine/scripts/patch_resource
     - ads/quality/adv_machine/scripts/preprocess_autotargetting_pool
@@ -2912,7 +2901,6 @@ migrations:
     - dj/unity/projects/spy_log_actions/run
     - dj/unity/projects/watch_log_actions/run
     - douber/apphost_service/ut
-    - drive/devops/cli
     - edadeal/analytics/scripts/Funnels/FunnelsLib/FunnelsLib
     - education/schoolbook/analytics/ml/nirvana_ops/repetition
     - education/schoolbook/services/hubble/src
@@ -3119,9 +3107,6 @@ migrations:
     - mail/transfer/ora2pg/tools/test
     - mail/transfer/tests/integration_corp
     - maps/adv/analytics/scripts/post_view
-    - maps/analytics/legacy/nile/statadhoc-11946-spuv2
-    - maps/analytics/legacy/nile/statadhoc-12253-map-reqans-log-monitoring-report
-    - maps/analytics/legacy/nile/statadhoc-12591-retention-geo-fiches/daily-publish
     - maps/analytics/legacy/nirvana/utils/imap/attachments
     - maps/analytics/legacy/nirvana/utils/megafon_report_proc
     - maps/analytics/legacy/nirvana/utils/xlsx_to_tsv
@@ -4224,7 +4209,6 @@ migrations:
     - mail/transfer/ora2pg/tests
     - mail/transfer/ora2pg/tools
     - mail/ymod_queuedb/tests/integration
-    - maps/analytics/legacy/clickhouse/statadhoc-11869-audience-platform-geography-generic-events-report
     - maps/streetview/backoffice/tools/yt_image_uploader
     - maps/wikimap/mapspro/services/mrc/eye/experiments/signs_map/car_mask
     - maps/wikimap/mapspro/services/mrc/eye/experiments/signs_map/matcher/match
@@ -4889,7 +4873,6 @@ migrations:
     - crypta/lib/python/bt/workflow/test
     - crypta/lib/python/swagger
     - crypta/lib/python/worker_utils
-    - crypta/lib/python/yql_runner/tests
     - crypta/lib/python/yt/http_mapper
     - crypta/profile/lib/bb_helpers
     - crypta/profile/runners/matching/lib
@@ -5850,7 +5833,6 @@ migrations:
     - robot/lemur/scripts/common
     - robot/library/python/testenv
     - robot/library/yuppie/modules
-    - robot/mercury/cmpy/jupiter_import
     - robot/metrics/fresh_sbr/mk_fresh_serp
     - robot/metrics/social_sbr/fetch_tiktok
     - robot/mirror/cmpy/compare
@@ -5879,9 +5861,6 @@ migrations:
     - rtmapreduce/tools/release_tracker/providers/k8s
     - saas/library/python/abc
     - saas/library/python/ferryman
-    - saas/tools/devops/canary/reader
-    - saas/tools/devops/canary/reader/core
-    - saas/tools/devops/canary/writer
     - saas/tools/devops/deploy_release
     - saas/tools/devops/duty/duty_stat
     - saas/tools/devops/duty/find_old_releases
@@ -5978,7 +5957,6 @@ migrations:
     - sandbox/projects/browser/common/contextmanagers
     - sandbox/projects/browser/perf/perf_server
     - sandbox/projects/browser_mobile/abro/BrowserAndroidBuildTask
-    - sandbox/projects/catboost/run_perf_test_on_two_binaries
     - sandbox/projects/clickhouse/BaseOnCommitTask
     - sandbox/projects/clickhouse/ClickhouseKeeperJepsen
     - sandbox/projects/clickhouse/ClickhousePullRequestTrigger
@@ -9005,7 +8983,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - logos/libs/core
     - logos/projects/ads/tasks/tsar_pytorch_bko_pclick
-    - tasklet/v1/services/ci
     - travel/rasp/library/python/api_clients/movista
   F841:
     ignore:
@@ -12396,7 +12373,6 @@ migrations:
     - health/yamd/libs/data_layer/tests
     - infra/nanny/instancectl/tests/func
     - infra/nanny/instancectl/tests/func_legacy
-    - infra/nanny/instancectl/tests/unit
     - infra/nanny/sepelib/tests
     - infra/qyp/vmctl/tests
     - infra/wall-e/checks/tests
