@@ -5,7 +5,6 @@ from setuptools import Command
 from setuptools import namespaces
 from setuptools.archive_util import unpack_archive
 from .._path import ensure_directory
-import pkg_resources
 
 
 class install_egg_info(namespaces.Installer, Command):
@@ -24,9 +23,7 @@ class install_egg_info(namespaces.Installer, Command):
         self.set_undefined_options('install_lib',
                                    ('install_dir', 'install_dir'))
         ei_cmd = self.get_finalized_command("egg_info")
-        basename = pkg_resources.Distribution(
-            None, None, ei_cmd.egg_name, ei_cmd.egg_version
-        ).egg_name() + '.egg-info'
+        basename = f"{ei_cmd._get_egg_basename()}.egg-info"
         self.source = ei_cmd.egg_info
         self.target = os.path.join(self.install_dir, basename)
         self.outputs = []

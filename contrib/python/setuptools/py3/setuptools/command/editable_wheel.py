@@ -12,7 +12,6 @@ Create a wheel that, when installed, will make the source package 'editable'
 
 import logging
 import os
-import re
 import shutil
 import sys
 import traceback
@@ -36,10 +35,17 @@ from typing import (
     Union,
 )
 
-from setuptools import Command, SetuptoolsDeprecationWarning, errors, namespaces
-from setuptools.command.build_py import build_py as build_py_cls
-from setuptools.discovery import find_package_path
-from setuptools.dist import Distribution
+from .. import (
+    Command,
+    SetuptoolsDeprecationWarning,
+    _normalization,
+    _path,
+    errors,
+    namespaces,
+)
+from ..discovery import find_package_path
+from ..dist import Distribution
+from .build_py import build_py as build_py_cls
 
 if TYPE_CHECKING:
     from wheel.wheelfile import WheelFile  # noqa
@@ -104,10 +110,11 @@ Options like `package-data`, `include/exclude-package-data` or
 
 class editable_wheel(Command):
     """Build 'editable' wheel for development.
-    (This command is reserved for internal use of setuptools).
+    This command is private and reserved for internal use of setuptools,
+    users should rely on ``setuptools.build_meta`` APIs.
     """
 
-    description = "create a PEP 660 'editable' wheel"
+    description = "DO NOT CALL DIRECTLY, INTERNAL ONLY: create PEP 660 editable wheel"
 
     user_options = [
         ("dist-dir=", "d", "directory to put final built distributions in"),
@@ -138,20 +145,11 @@ class editable_wheel(Command):
             bdist_wheel.write_wheelfile(self.dist_info_dir)
 
             self._create_wheel_file(bdist_wheel)
-        except Exception as ex:
+        except Exception:
             traceback.print_exc()
-            msg = """
-            Support for editable installs via PEP 660 was recently introduced
-            in `setuptools`. If you are seeing this error, please report to:
-
-            https://github.com/pypa/setuptools/issues
-
-            Meanwhile you can try the legacy behavior by setting an
-            environment variable and trying to install again:
-
-            SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
-            """
-            raise errors.InternalError(cleandoc(msg)) from ex
+            project = self.distribution.name or self.distribution.get_name()
+            _DebuggingTips.warn(project)
+            raise
 
     def _ensure_dist_info(self):
         if self.dist_info_dir is None:
@@ -490,7 +488,7 @@ class _TopLevelFinder:
         ))
 
         name = f"__editable__.{self.name}.finder"
-        finder = _make_identifier(name)
+        finder = _normalization.safe_identifier(name)
         content = bytes(_finder_template(name, roots, namespaces_), "utf-8")
         wheel.writestr(f"{finder}.py", content)
 
@@ -569,7 +567,7 @@ def _simple_layout(
         return set(package_dir) in ({}, {""})
     parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
     return all(
-        _normalize_path(Path(parent, *key.split('.'))) == _normalize_path(value)
+        _path.same_path(Path(parent, *key.split('.')), value)
         for key, value in layout.items()
     )
 
@@ -698,19 +696,12 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
     >>> _is_nested("b.a", "path/b/a", "a", "path/a")
     False
     """
-    norm_pkg_path = _normalize_path(pkg_path)
+    norm_pkg_path = _path.normpath(pkg_path)
     rest = pkg.replace(parent, "", 1).strip(".").split(".")
     return (
         pkg.startswith(parent)
-        and norm_pkg_path == _normalize_path(Path(parent_path, *rest))
+        and norm_pkg_path == _path.normpath(Path(parent_path, *rest))
     )
-
-
-def _normalize_path(filename: _Path) -> str:
-    """Normalize a file/dir name for comparison purposes"""
-    # See pkg_resources.normalize_path
-    file = os.path.abspath(filename) if sys.platform == 'cygwin' else filename
-    return os.path.normcase(os.path.realpath(os.path.normpath(file)))
 
 
 def _empty_dir(dir_: _P) -> _P:
@@ -718,18 +709,6 @@ def _empty_dir(dir_: _P) -> _P:
     shutil.rmtree(dir_, ignore_errors=True)
     os.makedirs(dir_)
     return dir_
-
-
-def _make_identifier(name: str) -> str:
-    """Make a string safe to be used as Python identifier.
-    >>> _make_identifier("12abc")
-    '_12abc'
-    >>> _make_identifier("__editable__.myns.pkg-78.9.3_local")
-    '__editable___myns_pkg_78_9_3_local'
-    """
-    safe = re.sub(r'\W|^(?=\d)', '_', name)
-    assert safe.isidentifier()
-    return safe
 
 
 class _NamespaceInstaller(namespaces.Installer):
@@ -842,3 +821,36 @@ class InformationOnly(UserWarning):
 
 class LinksNotSupported(errors.FileError):
     """File system does not seem to support either symlinks or hard links."""
+
+
+class _DebuggingTips(InformationOnly):
+    @classmethod
+    def warn(cls, project: str):
+        msg = f"""An error happened while installing {project!r} in editable mode.
+
+        ************************************************************************
+        The following steps are recommended to help debugging this problem:
+
+        - Try to install the project normally, without using the editable mode.
+          Does the error still persists?
+          (If it does, try fixing the problem before attempting the editable mode).
+        - If you are using binary extensions, make sure you have all OS-level
+          dependencies installed (e.g. compilers, toolchains, binary libraries, ...).
+        - Try the latest version of setuptools (maybe the error was already fixed).
+        - If you (or your project dependencies) are using any setuptools extension
+          or customization, make sure they support the editable mode.
+
+        After following the steps above, if the problem still persist and
+        you think this is related to how setuptools handles editable installations,
+        please submit a reproducible example
+        (see https://stackoverflow.com/help/minimal-reproducible-example) to:
+
+            https://github.com/pypa/setuptools/issues
+
+        More information about editable installs can be found in the docs:
+
+            https://setuptools.pypa.io/en/latest/userguide/development_mode.html
+        ************************************************************************
+        """
+        # We cannot use `add_notes` since pip hides PEP 678 notes
+        warnings.warn(msg, cls, stacklevel=2)

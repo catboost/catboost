@@ -17,6 +17,7 @@ from distutils.fancy_getopt import translate_longopt
 from glob import iglob
 import itertools
 import textwrap
+from contextlib import suppress
 from typing import List, Optional, Set, TYPE_CHECKING
 from pathlib import Path
 
@@ -32,7 +33,7 @@ from setuptools.extern.more_itertools import unique_everseen, partition
 
 from ._importlib import metadata
 
-from . import SetuptoolsDeprecationWarning
+from . import SetuptoolsDeprecationWarning, _normalization
 
 import setuptools
 import setuptools.command
@@ -41,7 +42,6 @@ from setuptools.monkey import get_unpatched
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.discovery import ConfigDiscovery
 
-import pkg_resources
 from setuptools.extern.packaging import version
 from . import _reqs
 from . import _entry_points
@@ -280,7 +280,9 @@ def check_nsp(dist, attr, value):
             )
         msg = (
             "The namespace_packages parameter is deprecated, "
-            "consider using implicit namespaces instead (PEP 420)."
+            "consider using implicit namespaces instead (PEP 420). "
+            "See https://setuptools.pypa.io/en/latest/references/"
+            "keywords.html#keyword-namespace-packages"
         )
         warnings.warn(msg, SetuptoolsDeprecationWarning)
 
@@ -299,9 +301,19 @@ def check_extras(dist, attr, value):
 
 def _check_extra(extra, reqs):
     name, sep, marker = extra.partition(':')
-    if marker and pkg_resources.invalid_marker(marker):
-        raise DistutilsSetupError("Invalid environment marker: " + marker)
+    try:
+        _check_marker(marker)
+    except packaging.markers.InvalidMarker:
+        msg = f"Invalid environment marker: {marker} ({extra!r})"
+        raise DistutilsSetupError(msg) from None
     list(_reqs.parse(reqs))
+
+
+def _check_marker(marker):
+    if not marker:
+        return
+    m = packaging.markers.Marker(marker)
+    m.evaluate()
 
 
 def assert_bool(dist, attr, value):
@@ -453,11 +465,12 @@ class Distribution(_Distribution):
         #
         if not attrs or 'name' not in attrs or 'version' not in attrs:
             return
-        key = pkg_resources.safe_name(str(attrs['name'])).lower()
-        dist = pkg_resources.working_set.by_key.get(key)
-        if dist is not None and not dist.has_metadata('PKG-INFO'):
-            dist._version = pkg_resources.safe_version(str(attrs['version']))
-            self._patched_dist = dist
+        name = _normalization.safe_name(str(attrs['name'])).lower()
+        with suppress(metadata.PackageNotFoundError):
+            dist = metadata.distribution(name)
+            if dist is not None and not dist.read_text('PKG-INFO'):
+                dist._version = _normalization.safe_version(str(attrs['version']))
+                self._patched_dist = dist
 
     def __init__(self, attrs=None):
         have_package_data = hasattr(self, "package_data")
@@ -876,14 +889,9 @@ class Distribution(_Distribution):
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
-        resolved_dists = pkg_resources.working_set.resolve(
-            _reqs.parse(requires),
-            installer=self.fetch_build_egg,
-            replace_conflicting=True,
-        )
-        for dist in resolved_dists:
-            pkg_resources.working_set.add(dist, replace=True)
-        return resolved_dists
+        from setuptools.installer import _fetch_build_eggs
+
+        return _fetch_build_eggs(self, requires)
 
     def finalize_options(self):
         """

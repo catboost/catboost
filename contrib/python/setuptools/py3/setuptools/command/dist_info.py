@@ -4,23 +4,25 @@ As defined in the wheel specification
 """
 
 import os
-import re
 import shutil
 import sys
 import warnings
 from contextlib import contextmanager
-from inspect import cleandoc
+from distutils import log
+from distutils.core import Command
 from pathlib import Path
 
-from distutils.core import Command
-from distutils import log
-from setuptools.extern import packaging
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+from .. import _normalization
+from .._deprecation_warning import SetuptoolsDeprecationWarning
 
 
 class dist_info(Command):
+    """
+    This command is private and reserved for internal use of setuptools,
+    users should rely on ``setuptools.build_meta`` APIs.
+    """
 
-    description = 'create a .dist-info directory'
+    description = "DO NOT CALL DIRECTLY, INTERNAL ONLY: create .dist-info directory"
 
     user_options = [
         ('egg-base=', 'e', "directory containing .egg-info directories"
@@ -72,8 +74,8 @@ class dist_info(Command):
         egg_info.finalize_options()
         self.egg_info = egg_info
 
-        name = _safe(dist.get_name())
-        version = _version(dist.get_version())
+        name = _normalization.safer_name(dist.get_name())
+        version = _normalization.safer_best_effort_version(dist.get_version())
         self.name = f"{name}-{version}"
         self.dist_info_dir = os.path.join(self.output_dir, f"{self.name}.dist-info")
 
@@ -103,32 +105,6 @@ class dist_info(Command):
         # TODO: if bdist_wheel if merged into setuptools, just add "keep_egg_info" there
         with self._maybe_bkp_dir(egg_info_dir, self.keep_egg_info):
             bdist_wheel.egg2dist(egg_info_dir, self.dist_info_dir)
-
-
-def _safe(component: str) -> str:
-    """Escape a component used to form a wheel name according to PEP 491"""
-    return re.sub(r"[^\w\d.]+", "_", component)
-
-
-def _version(version: str) -> str:
-    """Convert an arbitrary string to a version string."""
-    v = version.replace(' ', '.')
-    try:
-        return str(packaging.version.Version(v)).replace("-", "_")
-    except packaging.version.InvalidVersion:
-        msg = f"""Invalid version: {version!r}.
-        !!\n\n
-        ###################
-        # Invalid version #
-        ###################
-        {version!r} is not valid according to PEP 440.\n
-        Please make sure specify a valid version for your package.
-        Also note that future releases of setuptools may halt the build process
-        if an invalid version is given.
-        \n\n!!
-        """
-        warnings.warn(cleandoc(msg))
-        return _safe(v).strip("_")
 
 
 def _rm(dir_name, **opts):

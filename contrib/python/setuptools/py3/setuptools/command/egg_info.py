@@ -18,22 +18,22 @@ import time
 import collections
 
 from .._importlib import metadata
-from .. import _entry_points
+from .. import _entry_points, _normalization
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
-from pkg_resources import (
-    Requirement, safe_name, parse_version,
-    safe_version, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
 from setuptools.extern.jaraco.text import yield_lines
 from setuptools import SetuptoolsDeprecationWarning
+
+
+PY_MAJOR = '{}.{}'.format(*sys.version_info)
 
 
 def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
@@ -125,10 +125,11 @@ class InfoCommon:
 
     @property
     def name(self):
-        return safe_name(self.distribution.get_name())
+        return _normalization.safe_name(self.distribution.get_name())
 
     def tagged_version(self):
-        return safe_version(self._maybe_tag(self.distribution.get_version()))
+        tagged = self._maybe_tag(self.distribution.get_version())
+        return _normalization.best_effort_version(tagged)
 
     def _maybe_tag(self, version):
         """
@@ -148,7 +149,7 @@ class InfoCommon:
     def _safe_tags(self) -> str:
         # To implement this we can rely on `safe_version` pretending to be version 0
         # followed by tags. Then we simply discard the starting 0 (fake version number)
-        return safe_version(f"0{self.vtags}")[1:]
+        return _normalization.best_effort_version(f"0{self.vtags}")[1:]
 
     def tags(self) -> str:
         version = ''
@@ -216,12 +217,12 @@ class egg_info(InfoCommon, Command):
         # repercussions.
         self.egg_name = self.name
         self.egg_version = self.tagged_version()
-        parsed_version = parse_version(self.egg_version)
+        parsed_version = packaging.version.Version(self.egg_version)
 
         try:
             is_version = isinstance(parsed_version, packaging.version.Version)
             spec = "%s==%s" if is_version else "%s===%s"
-            Requirement(spec % (self.egg_name, self.egg_version))
+            packaging.requirements.Requirement(spec % (self.egg_name, self.egg_version))
         except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
@@ -233,7 +234,7 @@ class egg_info(InfoCommon, Command):
             self.egg_base = (dirs or {}).get('', os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = to_filename(self.egg_name) + '.egg-info'
+        self.egg_info = _normalization.filename_component(self.egg_name) + '.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
         if '-' in self.egg_name:
@@ -249,10 +250,15 @@ class egg_info(InfoCommon, Command):
         # to the version info
         #
         pd = self.distribution._patched_dist
-        if pd is not None and pd.key == self.egg_name.lower():
+        key = getattr(pd, "key", None) or getattr(pd, "name", None)
+        if pd is not None and key == self.egg_name.lower():
             pd._version = self.egg_version
-            pd._parsed_version = parse_version(self.egg_version)
+            pd._parsed_version = packaging.version.Version(self.egg_version)
             self.distribution._patched_dist = None
+
+    def _get_egg_basename(self, py_version=PY_MAJOR, platform=None):
+        """Compute filename of the output egg. Private API."""
+        return _egg_basename(self.egg_name, self.egg_version, py_version, platform)
 
     def write_or_delete_file(self, what, filename, data, force=False):
         """Write `data` to `filename` or delete if empty
@@ -769,6 +775,16 @@ def get_pkg_info_revision():
                 if match:
                     return int(match.group(1))
     return 0
+
+
+def _egg_basename(egg_name, egg_version, py_version=None, platform=None):
+    """Compute filename of the output egg. Private API."""
+    name = _normalization.filename_component(egg_name)
+    version = _normalization.filename_component(egg_version)
+    egg = f"{name}-{version}-py{py_version or PY_MAJOR}"
+    if platform:
+        egg += f"-{platform}"
+    return egg
 
 
 class EggInfoDeprecationWarning(SetuptoolsDeprecationWarning):

@@ -6,9 +6,10 @@ import tempfile
 import warnings
 from distutils import log
 from distutils.errors import DistutilsError
+from functools import partial
 
-import pkg_resources
-from setuptools.wheel import Wheel
+from . import _reqs
+from .wheel import Wheel
 from ._deprecation_warning import SetuptoolsDeprecationWarning
 
 
@@ -20,20 +21,34 @@ def _fixup_find_links(find_links):
     return find_links
 
 
-def fetch_build_egg(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
+def fetch_build_egg(dist, req):
     """Fetch an egg needed for building.
 
     Use pip/wheel to fetch/build a wheel."""
-    warnings.warn(
-        "setuptools.installer is deprecated. Requirements should "
-        "be satisfied by a PEP 517 installer.",
-        SetuptoolsDeprecationWarning,
+    _DeprecatedInstaller.warn(stacklevel=2)
+    _warn_wheel_not_available(dist)
+    return _fetch_build_egg_no_warn(dist, req)
+
+
+def _fetch_build_eggs(dist, requires):
+    import pkg_resources  # Delay import to avoid unnecessary side-effects
+
+    _DeprecatedInstaller.warn(stacklevel=3)
+    _warn_wheel_not_available(dist)
+
+    resolved_dists = pkg_resources.working_set.resolve(
+        _reqs.parse(requires, pkg_resources.Requirement),  # required for compatibility
+        installer=partial(_fetch_build_egg_no_warn, dist),  # avoid warning twice
+        replace_conflicting=True,
     )
-    # Warn if wheel is not available
-    try:
-        pkg_resources.get_distribution('wheel')
-    except pkg_resources.DistributionNotFound:
-        dist.announce('WARNING: The wheel package is not available.', log.WARN)
+    for dist in resolved_dists:
+        pkg_resources.working_set.add(dist, replace=True)
+    return resolved_dists
+
+
+def _fetch_build_egg_no_warn(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
+    import pkg_resources  # Delay import to avoid unnecessary side-effects
+
     # Ignore environment markers; if supplied, it is required.
     req = strip_marker(req)
     # Take easy_install options into account, but do not override relevant
@@ -98,7 +113,30 @@ def strip_marker(req):
     calling pip with something like `babel; extra == "i18n"`, which
     would always be ignored.
     """
+    import pkg_resources  # Delay import to avoid unnecessary side-effects
+
     # create a copy to avoid mutating the input
     req = pkg_resources.Requirement.parse(str(req))
     req.marker = None
     return req
+
+
+def _warn_wheel_not_available(dist):
+    import pkg_resources  # Delay import to avoid unnecessary side-effects
+
+    try:
+        pkg_resources.get_distribution('wheel')
+    except pkg_resources.DistributionNotFound:
+        dist.announce('WARNING: The wheel package is not available.', log.WARN)
+
+
+class _DeprecatedInstaller(SetuptoolsDeprecationWarning):
+    @classmethod
+    def warn(cls, stacklevel=1):
+        warnings.warn(
+            "setuptools.installer and fetch_build_eggs are deprecated. "
+            "Requirements should be satisfied by a PEP 517 installer. "
+            "If you are using pip, you can try `pip install --use-pep517`.",
+            cls,
+            stacklevel=stacklevel+1
+        )

@@ -4,7 +4,6 @@ from distutils.errors import DistutilsModuleError
 import os
 import sys
 
-from pkg_resources import Distribution, PathMetadata
 from .._path import ensure_directory
 
 
@@ -16,8 +15,6 @@ class install_scripts(orig.install_scripts):
         self.no_ep = False
 
     def run(self):
-        import setuptools.command.easy_install as ei
-
         self.run_command("egg_info")
         if self.distribution.scripts:
             orig.install_scripts.run(self)  # run first to set up self.outfiles
@@ -26,6 +23,12 @@ class install_scripts(orig.install_scripts):
         if self.no_ep:
             # don't install entry point scripts into .egg file!
             return
+        self._install_ep_scripts()
+
+    def _install_ep_scripts(self):
+        # Delay import side-effects
+        from pkg_resources import Distribution, PathMetadata
+        from . import easy_install as ei
 
         ei_cmd = self.get_finalized_command("egg_info")
         dist = Distribution(
