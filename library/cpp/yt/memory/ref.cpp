@@ -29,7 +29,11 @@ public:
         : Blob_(std::move(blob))
     { }
 
-    // NB: TBlob's capacity is dynamic; cannot provide GetTotalByteSize implementation.
+    // TSharedRangeHolder overrides.
+    std::optional<size_t> GetTotalByteSize() const override
+    {
+        return Blob_.Capacity();
+    }
 
 private:
     const TBlob Blob_;
