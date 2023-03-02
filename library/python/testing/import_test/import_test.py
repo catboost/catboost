@@ -28,9 +28,12 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
     "from import_test import test_imports" to your python test source file.
     """
 
-    str_ = lambda s: s
     if not isinstance(b'', str):
-        str_ = lambda s: s.decode('UTF-8')
+        def str_(s):
+            return s.decode('UTF-8')
+    else:
+        def str_(s):
+            return s
 
     exceptions = list(no_check)
     for key, _ in __res.iter_keys(b'py/no_check_imports/'):
@@ -48,7 +51,8 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
     failed = []
     import_times = {}
 
-    norm = lambda s: s[:-9] if s.endswith('.__init__') else s
+    def norm(s):
+        return (s[:-9] if s.endswith('.__init__') else s)
 
     modules = sys.extra_modules | set(extra)
     modules = sorted(modules, key=norm)
@@ -68,8 +72,8 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
         def print_backtrace_marked(e):
             tb_exc = traceback.format_exception(*e)
             for item in tb_exc:
-                for l in item.splitlines():
-                    print('FAIL:', l, file=sys.stderr)
+                for line in item.splitlines():
+                    print('FAIL:', line, file=sys.stderr)
 
         try:
             print('TRY', module)
@@ -93,7 +97,7 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
             print_backtrace_marked(sys.exc_info())
             failed.append('{}: {}'.format(module, e))
 
-        except:
+        except BaseException:
             e = sys.exc_info()
             print('FAIL:', module, e, file=sys.stderr)
             print_backtrace_marked(e)
@@ -148,5 +152,5 @@ def main():
 
     try:
         check_imports(no_check=skip_names, py_main=py_main_module)
-    except:
+    except Exception:
         sys.exit(1)
