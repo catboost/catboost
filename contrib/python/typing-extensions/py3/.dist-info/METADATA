@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: typing_extensions
-Version: 4.4.0
+Version: 4.5.0
 Summary: Backported and Experimental Type Hints for Python 3.7+
 Keywords: annotations,backport,checker,checking,function,hinting,hints,type,typechecking,typehinting,typehints,typing
 Author-email: "Guido van Rossum, Jukka Lehtosalo, Łukasz Langa, Michael Lee" <levkivskyi@gmail.com>
@@ -17,6 +17,7 @@ Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Software Development
 Project-URL: Bug Tracker, https://github.com/python/typing_extensions/issues
 Project-URL: Changes, https://github.com/python/typing_extensions/blob/main/CHANGELOG.md
@@ -62,48 +63,49 @@ This module currently contains the following:
 
 - Experimental features
 
-  - `override` (see PEP 698)
-  - The `default=` argument to `TypeVar`, `ParamSpec`, and `TypeVarTuple` (see PEP 696)
-  - The `infer_variance=` argument to `TypeVar` (see PEP 695)
+  - `override` (see [PEP 698](https://peps.python.org/pep-0698/))
+  - The `default=` argument to `TypeVar`, `ParamSpec`, and `TypeVarTuple` (see [PEP 696](https://peps.python.org/pep-0696/))
+  - The `infer_variance=` argument to `TypeVar` (see [PEP 695](https://peps.python.org/pep-0695/))
+  - The `@deprecated` decorator (see [PEP 702](https://peps.python.org/pep-0702/))
 
 - In `typing` since Python 3.11
 
   - `assert_never`
   - `assert_type`
   - `clear_overloads`
-  - `@dataclass_transform()` (see PEP 681)
+  - `@dataclass_transform()` (see [PEP 681](https://peps.python.org/pep-0681/))
   - `get_overloads`
-  - `LiteralString` (see PEP 675)
+  - `LiteralString` (see [PEP 675](https://peps.python.org/pep-0675/))
   - `Never`
-  - `NotRequired` (see PEP 655)
+  - `NotRequired` (see [PEP 655](https://peps.python.org/pep-0655/))
   - `reveal_type`
-  - `Required` (see PEP 655)
-  - `Self` (see PEP 673)
-  - `TypeVarTuple` (see PEP 646; the `typing_extensions` version supports the `default=` argument from PEP 696)
-  - `Unpack` (see PEP 646)
+  - `Required` (see [PEP 655](https://peps.python.org/pep-0655/))
+  - `Self` (see [PEP 673](https://peps.python.org/pep-0673/))
+  - `TypeVarTuple` (see [PEP 646](https://peps.python.org/pep-0646/); the `typing_extensions` version supports the `default=` argument from [PEP 696](https://peps.python.org/pep-0696/))
+  - `Unpack` (see [PEP 646](https://peps.python.org/pep-0646/))
 
 - In `typing` since Python 3.10
 
-  - `Concatenate` (see PEP 612)
-  - `ParamSpec` (see PEP 612; the `typing_extensions` version supports the `default=` argument from PEP 696)
-  - `ParamSpecArgs` (see PEP 612)
-  - `ParamSpecKwargs` (see PEP 612)
-  - `TypeAlias` (see PEP 613)
-  - `TypeGuard` (see PEP 647)
+  - `Concatenate` (see [PEP 612](https://peps.python.org/pep-0612/))
+  - `ParamSpec` (see [PEP 612](https://peps.python.org/pep-0612/); the `typing_extensions` version supports the `default=` argument from [PEP 696](https://peps.python.org/pep-0696/))
+  - `ParamSpecArgs` (see [PEP 612](https://peps.python.org/pep-0612/))
+  - `ParamSpecKwargs` (see [PEP 612](https://peps.python.org/pep-0612/))
+  - `TypeAlias` (see [PEP 613](https://peps.python.org/pep-0613/))
+  - `TypeGuard` (see [PEP 647](https://peps.python.org/pep-0647/))
   - `is_typeddict`
 
 - In `typing` since Python 3.9
 
-  - `Annotated` (see PEP 593)
+  - `Annotated` (see [PEP 593](https://peps.python.org/pep-0593/))
 
 - In `typing` since Python 3.8
 
-  - `final` (see PEP 591)
-  - `Final` (see PEP 591)
-  - `Literal` (see PEP 586)
-  - `Protocol` (see PEP 544)
-  - `runtime_checkable` (see PEP 544)
-  - `TypedDict` (see PEP 589)
+  - `final` (see [PEP 591](https://peps.python.org/pep-0591/))
+  - `Final` (see [PEP 591](https://peps.python.org/pep-0591/))
+  - `Literal` (see [PEP 586](https://peps.python.org/pep-0586/))
+  - `Protocol` (see [PEP 544](https://peps.python.org/pep-0544/))
+  - `runtime_checkable` (see [PEP 544](https://peps.python.org/pep-0544/))
+  - `TypedDict` (see [PEP 589](https://peps.python.org/pep-0589/))
   - `get_origin` (`typing_extensions` provides this function only in Python 3.7+)
   - `get_args` (`typing_extensions` provides this function only in Python 3.7+)
 
@@ -119,7 +121,7 @@ This module currently contains the following:
   - `AsyncIterator`
   - `Awaitable`
   - `ChainMap`
-  - `ClassVar` (see PEP 526)
+  - `ClassVar` (see [PEP 526](https://peps.python.org/pep-0526/))
   - `ContextManager`
   - `Coroutine`
   - `Counter`
@@ -138,7 +140,7 @@ This module currently contains the following:
 
   - `Any` (supports inheritance since Python 3.11)
   - `NamedTuple` (supports multiple inheritance with `Generic` since Python 3.11)
-  - `TypeVar` (see PEPs 695 and 696)
+  - `TypeVar` (see PEPs [695](https://peps.python.org/pep-0695/) and [696](https://peps.python.org/pep-0696/))
 
 # Other Notes and Limitations
 
@@ -163,7 +165,7 @@ Certain objects were changed after they were added to `typing`, and
 - Since Python 3.11, it has been possible to inherit from `Any` at
   runtime. `typing_extensions.Any` also provides this capability.
 - `TypeVar` gains two additional parameters, `default=` and `infer_variance=`,
-  in the draft PEPs 695 and 696, which are being considered for inclusion
+  in the draft PEPs [695](https://peps.python.org/pep-0695/) and [696](https://peps.python.org/pep-0696/), which are being considered for inclusion
   in Python 3.12.
 
 There are a few types whose interface was modified between different
@@ -177,7 +179,7 @@ Certain types have incorrect runtime behavior due to limitations of older
 versions of the typing module:
 
 - `ParamSpec` and `Concatenate` will not work with `get_args` and
-  `get_origin`. Certain PEP 612 special cases in user-defined
+  `get_origin`. Certain [PEP 612](https://peps.python.org/pep-0612/) special cases in user-defined
   `Generic`s are also not available.
 
 These types are only guaranteed to work for static type checking.
@@ -186,4 +188,3 @@ These types are only guaranteed to work for static type checking.
 
 To run tests, navigate into the appropriate source directory and run
 `test_typing_extensions.py`.
-
