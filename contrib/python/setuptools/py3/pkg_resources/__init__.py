@@ -2289,6 +2289,7 @@ def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
 
     msg = (
+        f"Deprecated call to `pkg_resources.declare_namespace({packageName!r})`.\n"
         "Implementing implicit namespace packages (as specified in PEP 420) "
         "is preferred to `pkg_resources.declare_namespace`. "
         "See https://setuptools.pypa.io/en/latest/references/"
