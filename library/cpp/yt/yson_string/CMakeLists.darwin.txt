@@ -8,6 +8,9 @@
 
 
 add_library(cpp-yt-yson_string)
+target_compile_options(cpp-yt-yson_string PRIVATE
+  -Wdeprecated-this-capture
+)
 target_link_libraries(cpp-yt-yson_string PUBLIC
   contrib-libs-cxxsupp
   yutil

@@ -8,6 +8,9 @@
 
 
 add_library(cpp-yt-misc)
+target_compile_options(cpp-yt-misc PRIVATE
+  -Wdeprecated-this-capture
+)
 target_link_libraries(cpp-yt-misc PUBLIC
   contrib-libs-cxxsupp
   yutil

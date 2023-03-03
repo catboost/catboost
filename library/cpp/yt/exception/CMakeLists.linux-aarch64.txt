@@ -8,6 +8,9 @@
 
 
 add_library(cpp-yt-exception)
+target_compile_options(cpp-yt-exception PRIVATE
+  -Wdeprecated-this-capture
+)
 target_link_libraries(cpp-yt-exception PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
