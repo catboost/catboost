@@ -95,7 +95,6 @@ migrations:
     - infra/netmon/utils/check_hosts_in_switch
     - infra/rtc/iolimit_ticketer
     - infra/rtc/nodeinfo/lib/tests
-    - infra/rtc/walle_validator/tests
     - infra/shawshank/tests
     - infra/skyboned/src
     - infra/yp/monitoring/tmp_account_monitoring
@@ -138,7 +137,6 @@ migrations:
     - maps/mobile/server/proxy/config/mrc/tests
     - maps/photos/backoffice/tools/toloka/toloka_pipeline
     - maps/poi/notification/tests
-    - maps/poi/personalized_poi/builder/lib/ut
     - maps/sprav/pedestrians/generate_feeds/statistics/lib
     - maps/statistics/external/export_accidents
     - maps/statistics/hypgen/masstransit_hypothesis/libs/draw_on_map
@@ -370,12 +368,10 @@ migrations:
     - yt/cron/set_racks/tests
     - yt/cron/yp_ipv4_manager
     - yt/microservices/access_log_viewer/lib
-    - yweb/antispam/clean_web/lib/tests/medium/module
     - yweb/antispam/clean_web/tools/async_pipeline/read_graph
     - yweb/antispam/mascot/scripts/code_generators/cpp/parser_reset
     - yweb/antispam/mascot/scripts/code_generators/proto/common_database
     - yweb/antispam/mascot/scripts/code_generators/proto/exports
-    - yweb/freshness/scripts/sport_wizard
     - yweb/news/common/python/site_attributes/ut
     - yweb/news/runtime_scripts/runner
     - yweb/robot/limbo/imports
@@ -481,7 +477,6 @@ migrations:
     - alice/megamind/mit/library/generator
     - alice/megamind/mit/library/graphs_util
     - alice/megamind/mit/library/stubber
-    - alice/quality/build_target
     - alice/uniproxy/library/backends_common
     - alice/vins/apps/personal_assistant/personal_assistant
     - alice/vins/core/vins_core/nlu
@@ -686,7 +681,6 @@ migrations:
     - infra/qyp/vmctl/src
     - infra/rtc/certman
     - infra/rtc/iolimit_ticketer
-    - infra/rtc/walle_validator/tests
     - infra/skyboned/go/test
     - infra/yasm/gateway/lib/handlers
     - infra/yasm/yasmapi
@@ -733,12 +727,9 @@ migrations:
     - mail/sheltie/tests/unit/python
     - mail/tools/dbaas/bin/migrate_shards
     - mail/tools/infra
-    - maps/adv/analytics/regular/avg_check_tier_1
-    - maps/adv/analytics/regular/billing_compare_cabinet_report
     - maps/adv/analytics/regular/campaign_cube
     - maps/adv/analytics/regular/campaigns_info_tier1
     - maps/adv/analytics/regular/churn_of_clients_and_money
-    - maps/adv/analytics/regular/dash_uniq_devices
     - maps/adv/analytics/regular/event_money_for_dwh
     - maps/adv/analytics/regular/geodisplay_clients_flatten
     - maps/adv/analytics/regular/heatmaps_capacity
@@ -748,8 +739,6 @@ migrations:
     - maps/adv/analytics/regular/lost_profit_by_campaigns
     - maps/adv/analytics/regular/monitoring_rows_count
     - maps/adv/analytics/regular/prolongation_of_clients
-    - maps/adv/analytics/regular/sov_and_brand_dynamics
-    - maps/adv/analytics/regular/top_spenders_tier1
     - maps/analytics/datasets/routes/mobile-maps
     - maps/automotive/tools/key_resetter/bin
     - maps/automotive/tools/statistics_auto/bin/build_tracks
@@ -767,8 +756,6 @@ migrations:
     - maps/geoq/experiments/check_poi_rendering
     - maps/geoq/hypotheses/entrance/lib
     - maps/goods/tools/avatars_cleaner/bin
-    - maps/infra/duty/generator/tool
-    - maps/infra/ecstatic/common/worker/lib
     - maps/infra/ecstatic/tool/ut
     - maps/masstransit/tools/gtfs_utils/converter/lib
     - maps/masstransit/tools/gtfs_utils/converter/tests
@@ -1648,7 +1635,6 @@ migrations:
     - yweb/antispam/clean_web/router
     - yweb/antispam/clean_web/toloka
     - yweb/antispam/scripts/script_lib/test
-    - yweb/freshness/scripts/sport_wizard
     - yweb/news/news_back/api/common/controller
     - yweb/news/news_back/tools/resender_to_annotated/bin
     - yweb/video/faas/vh_wrappers/package
@@ -2054,8 +2040,6 @@ migrations:
     - sandbox/projects/avia/send_visits_to_solomon
     - sandbox/projects/avia/shared_flights/data_importer
     - sandbox/projects/avia/shared_flights/flying_time
-    - sandbox/projects/browser/autotests_qa_tools/classes/autoduty
-    - sandbox/projects/browser/metrics/common
     - sandbox/projects/devops/HardwareGencfgGroups
     - sandbox/projects/devops/UpdateGoals
     - sandbox/projects/di/build/precommit_checks
@@ -2244,7 +2228,6 @@ migrations:
     - yweb/blender/extfactors/tests
     - yweb/blender/scripts/make_wizard_ab_metrics
     - yweb/blender/special_snippets/metrics/card_by_card/process_cbc_tsv_query_results
-    - yweb/freshness/scripts/sport_wizard
     - yweb/news/news_back/api/celery/tasks/belarus_bans_parsing
     - yweb/news/nirvana/operations/ActionsFromUserSessions
     - yweb/news/nirvana/operations/offline_metrics
@@ -2590,8 +2573,6 @@ migrations:
     - yweb/antiporno/reasks_reduction/metrics
     - yweb/antiporno/toloka/toloka_manager/utils/lib
     - yweb/antispam/clean_web/backends/fast_only
-    - yweb/antispam/clean_web/backends/offline_only
-    - yweb/antispam/clean_web/lib/tests/small
     - yweb/antispam/clean_web/text_cache/lib/module
     - yweb/antispam/tmu/deploy_rules
     - yweb/antispam/ytgr/legal_loader/library
@@ -2726,7 +2707,6 @@ migrations:
     - alice/nlu/tools/tagger/apply
     - alice/nlu/tools/tagger/train
     - alice/nlu/tools/tagger/update_resources
-    - alice/quality/build_target
     - alice/tests/library/directives
     - alice/tools/launch
     - alice/uniproxy/bin/send-digest
@@ -2768,7 +2748,6 @@ migrations:
     - billing/dwh/src/dwh/grocery/targets/db_targets
     - billing/log_tariffication/py/tests/integration/core_acts
     - billing/monthclosing/operations/monograph_builder/lib
-    - browser/infra/library/yandex_avd_tools/avd_tools
     - captcha/metrics/daily_markup_result_stats
     - captcha/metrics/input_with_answers_stats
     - captcha/metrics/ocr_toloka_diff
@@ -3464,7 +3443,6 @@ migrations:
     - quality/user_sessions/money_rt/yt_sync/lib/tool_for_old_hit_profiles
     - quality/user_sessions/py_amon/examples/parser_web
     - quality/user_sessions/rt/deploy
-    - quality/user_sessions/rt/packages/us-rt-config-generators/scripts
     - quality/userdata/nest
     - quality/userdata/scripts
     - quality/userdata/scripts/state_validation
@@ -3531,7 +3509,6 @@ migrations:
     - sandbox/projects/antifraud/tasks/AntifraudBuildDebianPackages
     - sandbox/projects/antirobot/BuildAntirobotDaemon
     - sandbox/projects/antirobot/MergeJsonConfigFiles
-    - sandbox/projects/browser/ab_experiments/BrowserExperimentsAbChecklist/checklists
     - sandbox/projects/devtools/Test
     - sandbox/projects/geosearch/CompareGeometasearchesParallel
     - sandbox/projects/geosuggest/GeoSuggestBuildSearchGroups
@@ -3870,7 +3847,6 @@ migrations:
     - yweb/antispam/mascot/features/features_for_ranks
     - yweb/antispam/mascot/scripts/proxima_kernel
     - yweb/antispam/mascot/scripts/proxima_kernel/corr
-    - yweb/antispam/metrics/badclicks/common
     - yweb/antispam/phishing/spy_host_fraud/common
     - yweb/antispam/phishing/spy_host_fraud/merger
     - yweb/antispam/python/utils/test/flag_attrs_py2
@@ -4376,7 +4352,6 @@ migrations:
     - search/morty/src/rviewer/db
     - search/morty/src/services
     - search/plutonium/admin/lib/tests
-    - search/plutonium/tools/test_runtime
     - search/pumpkin/yalite_service/app
     - search/pumpkin/yalite_service/libyalite/actions
     - search/pumpkin/yalite_service/libyalite/common
@@ -4825,8 +4800,6 @@ migrations:
     - billing/tools/telebot/yshanka
     - bindings/python/easyparser/tests
     - browser/backend/ci/tasklets/run_teamcity_build/impl
-    - browser/infra/library/killall/killall
-    - browser/infra/library/yandex_avd_tools/tests
     - ci/tasklet/registry/common/monitoring/juggler_watch/impl
     - cloud/billing/ci/tasklets/teamcity/impl
     - cloud/blockstore/public/sdk/python/client
@@ -5044,7 +5017,6 @@ migrations:
     - entity/ugc/nirvana/ugcdb/sprav_ratings/lib
     - entity/ugc/nirvana/ugcdb/uploader/lib/ut
     - entity/ugc/quality/user_top
-    - entity/ugc/robot/tools/achivery/lib
     - entity/ugc/robot/tools/orgvisits_loader/lib
     - entity/ugc/robot/tools/reviews_to_saas/lib
     - entity/ugc/robot/tools/ugcdb_to_updates
@@ -5256,7 +5228,6 @@ migrations:
     - infra/rtc/iolimit_ticketer
     - infra/rtc/juggler/bundle/checks/portod_tasks
     - infra/rtc/jyggalag/clients
-    - infra/rtc/walle_validator/cli
     - infra/rtc_sla_tentacles/backend/lib/debug
     - infra/shawshank/lib
     - infra/skyboned/src
@@ -5312,7 +5283,6 @@ migrations:
     - library/python/runtime
     - library/python/runtime_py3
     - library/python/ssh_client
-    - library/python/testing/import_test
     - library/python/testing/pyremock/lib/matchers
     - library/python/testing/yatest_common/yatest/common
     - library/python/zipatch
@@ -5948,14 +5918,8 @@ migrations:
     - sandbox/projects/bitbucket/GBGAdaptor
     - sandbox/projects/broadmatching/convert_external_candidates
     - sandbox/projects/browser/autotests
-    - sandbox/projects/browser/autotests_qa_tools/classes
-    - sandbox/projects/browser/autotests_qa_tools/classes/regression_manager
     - sandbox/projects/browser/autotests_qa_tools/common
     - sandbox/projects/browser/autotests_qa_tools/sb_test
-    - sandbox/projects/browser/common
-    - sandbox/projects/browser/common/bitbucket
-    - sandbox/projects/browser/common/contextmanagers
-    - sandbox/projects/browser/perf/perf_server
     - sandbox/projects/browser_mobile/abro/BrowserAndroidBuildTask
     - sandbox/projects/clickhouse/BaseOnCommitTask
     - sandbox/projects/clickhouse/ClickhouseKeeperJepsen
@@ -6203,7 +6167,6 @@ migrations:
     - sprav/mining/bs/scripts/postprocess
     - sprav/mining/bs/tools/country_detector
     - sprav/mining/bs/tools/extract_social_data
-    - sprav/mining/partners/gis/lib
     - sprav/misc/python/mining
     - sprav/tycoon/nirvana/pushes/check_freshness_permalinks
     - statbox/business_dwh/oklo/jobs/costs/staff_data
@@ -6626,7 +6589,6 @@ migrations:
     - yweb/antispam/mascot/scripts/tcinet
     - yweb/antispam/mascot/scripts/yt_daml
     - yweb/antispam/mascot/sources
-    - yweb/antispam/metrics/badclicks/common
     - yweb/antispam/monitoring/scripts
     - yweb/antispam/phishing/mask_transfer/server
     - yweb/antispam/phishing/spy_host_fraud/common
@@ -6669,7 +6631,6 @@ migrations:
     - yweb/freshness/scripts/news_wizard/newsmakers_factor/news_wizard_shows_rate
     - yweb/freshness/scripts/sport_pushes
     - yweb/freshness/scripts/sport_wizard
-    - yweb/freshness/scripts/sport_wizard/special_event_data
     - yweb/freshness/scripts/trends
     - yweb/freshness/scripts/trends/hotbot
     - yweb/freshness/scripts/trends/lib
@@ -6822,7 +6783,6 @@ migrations:
     - yweb/antispam/cid/library
     - yweb/antispam/clean_web/lib
     - yweb/antispam/mascot/library/test
-    - yweb/antispam/metrics/badclicks/test
     - yweb/antispam/scripts/script_lib/test
     - yweb/antispam/tmu/deploy_rules
     - yweb/antispam/viewers/trafgraph
@@ -7059,7 +7019,6 @@ migrations:
     - infra/netmon/utils/check_hosts_in_switch
     - infra/qyp/account_manager/src
     - infra/rtc/sbin/show_kernel_distribution
-    - infra/rtc/walle_validator/lib
     - infra/rtc/walle_validator/tests
     - infra/swatlib
     - infra/swatlib/gevent
@@ -7098,7 +7057,6 @@ migrations:
     - library/python/fs/test
     - library/python/resource
     - library/python/retry/tests
-    - library/python/testing/import_test
     - library/python/testing/yatest_common/yatest/common
     - logfeller/python/logfeller/infra/config
     - logos/libs/docy
@@ -7268,7 +7226,6 @@ migrations:
     - sandbox/projects/jupyter_cloud/salt/lib
     - sandbox/projects/market/recom/cms/Monitoring
     - sandbox/projects/quasar/check_release_status/lib/validate
-    - sandbox/projects/release_machine/components/job_graph/stages
     - sandbox/projects/statkey/money_map/monitorings/moneymap_monitorings
     - sandbox/projects/taxi_crm_masshire/import_recruiters
     - sandbox/projects/trendbox_ci/beta/tasks/trendbox_ci_job
@@ -7327,7 +7284,6 @@ migrations:
     - sprav/mining/botanik_miner
     - sprav/mining/bs/scripts/postprocess
     - sprav/mining/facebook/translate
-    - sprav/mining/partners/gis/lib
     - sprav/mining/quarantine/feature_grep
     - sprav/misc/python/mining
     - statbox/nile/nile/drivers/yql
@@ -7424,8 +7380,6 @@ migrations:
     - quality/user_sessions/money_rt/registry/helpers
     - quasar/manifest_scripts/sync_tool
     - sandbox/projects/devtools/YaTestParent2
-    - sandbox/projects/release_machine/components/config_core/jg/cube/lib
-    - sandbox/projects/release_machine/components/config_core/jg/preset
     - sandbox/projects/release_machine/components/configs/fintech
     - sandbox/projects/release_machine/components/configs/irt
     - sandbox/projects/statinfra/statinfra_task
@@ -7541,7 +7495,6 @@ migrations:
     - billing/hot/calculators/taxi/calculator/core
     - billing/library/python/calculator/services
     - billing/userapikeys/userapikeys
-    - browser/infra/library/sanitized_report_parsers/sanitized_report_parsers/processors
     - build
     - build/plugins
     - catboost/yandex_specific/python-package/ut_no_windows/medium
@@ -7625,7 +7578,6 @@ migrations:
     - dict/mt/g2p/convert
     - dict/mt/g2p/eval/tests
     - dict/mt/make/db/content
-    - dict/mt/make/modules/corpus_generation/aligner
     - dict/mt/make/modules/filter/tests
     - dict/mt/make/modules/util/tests
     - dict/mt/make/modules/voc/tests_yql
@@ -7714,7 +7666,6 @@ migrations:
     - infra/rtc/juggler/bundle/checks/walle_hotfix
     - infra/rtc/nodeinfo/lib/modules
     - infra/rtc/packages/yandex-hbf-agent-monitoring/monitoring
-    - infra/rtc/walle_validator/lib
     - infra/shawshank/tests
     - infra/swatlib
     - infra/swatlib/rpc
@@ -7745,7 +7696,6 @@ migrations:
     - library/python/filelock/ut/lib
     - library/python/python-blackboxer/blackboxer
     - library/python/runtime_py3/test
-    - library/python/testing/import_test
     - library/python/testing/yatest_common/yatest/common
     - library/python/ylock/tests
     - load/projects/tankapi_server/tankapi
@@ -7785,7 +7735,6 @@ migrations:
     - maps/analyzer/pylibs/test_tools/tests
     - maps/analyzer/sandbox/jams_level_prediction/prepare_history_storage/lib
     - maps/analyzer/sandbox/masstransit/train_model/lib
-    - maps/analyzer/sandbox/prepare_matched_data/lib
     - maps/analyzer/services/jams_external/pylib/tie_graph
     - maps/analyzer/tools/mark_charts/bin
     - maps/automotive/parking/tools/qa/stat_parking_detector
@@ -8462,7 +8411,6 @@ migrations:
     - logos/tools/mkdocs/plugin
     - logos/tools/mkdocs/plugin/lib
     - logos/tools/mkdocs/plugin/lib/plugins/tsar
-    - logos/tools/solomon/alerts
     - logos/web/yagraph/Backend/app/db
     - mail/transfer/ora2pg
     - market/idx/datacamp/parser/lib/parser_engine
@@ -8496,10 +8444,7 @@ migrations:
     - sandbox/projects/music/deployment/helpers
     - sandbox/projects/quasar/check_release_status/lib
     - sandbox/projects/quasar/check_release_status/lib/validate
-    - sandbox/projects/release_machine/components/components_info
-    - sandbox/projects/release_machine/components/config_core/jg/preset
     - sandbox/projects/release_machine/components/configs
-    - sandbox/projects/release_machine/components/job_graph/stages
     - sandbox/projects/release_machine/helpers/deploy
     - sandbox/projects/release_machine/helpers/responsibility_helper
     - sandbox/projects/release_machine/table_formatter
@@ -9451,7 +9396,6 @@ migrations:
     - ml/tensorflow/models/general_feature_extractor/data_providers
     - passport/backend/utils
     - rt-research/broadmatching/scripts/pylib/yt_mappers
-    - sandbox/projects/release_machine/components
     - security/network_holes_policy_engine/models/ports
     - statbox/nile/nile/drivers/common
     - statbox/nile/nile/drivers/yql
@@ -9542,7 +9486,6 @@ migrations:
     - quality/functionality/rtx/rbo/scripts/create_rbo
     - quasar/quasmodrom/src/core
     - robot/library/python/sandbox
-    - sandbox/projects/release_machine/components/job_graph/utils
     - smb/common/http_client/lib
     - travel/cpa/lib
     - voicetech/spotter/voicetable/lib/audio
@@ -9740,7 +9683,6 @@ migrations:
     prefixes:
     - adfox/amacs/tests/functional/utils
     - ads/yacontext/lib/settings/tests/small
-    - billing/yandex_pay/tools/juggler/checks
     - dict/mt/make/modules/tfnn
     - dj/services/market/configs_generator/recommender/components
     - logbroker/tools/cluster_migration/get_max_retention
@@ -9778,7 +9720,6 @@ migrations:
     - sandbox/projects/Statbox/StatboxDebuilder
     - search/mon/bot/bot/modules
     - search/tools/woland/lib
-    - sprav/mining/partners/gis/aurora/lib
     - tracker/scripts/jira_to_tracker
     - yabs/server/test/ft/BSSERVER-3049
     - ydo/libs/apphost_source/test
@@ -9948,7 +9889,6 @@ migrations:
     - voicetech/infra/tools/library/websocket_tts
     - yabs/qa/oneshots/cberg/new_keywords_eda_plus_crypta
     - yabs/sbyt/ytstatcollector/direct/tests/direct_grid
-    - yabs/sbyt/ytstatcollector/log_generators/tests
     - yabs/server/test/ft/BSSERVER-16637
     - yabs/server/test/ft/BSSERVER-19282
     - yabs/server/test/ft/BSSERVER-19930
@@ -9962,8 +9902,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - ads/yacontext/lib/pymain
     - billing/monthclosing/operations/monograph_builder/lib
-    - browser/infra/library/get_deps/get_deps
-    - browser/infra/library/mobile_browser_validators/mobile_browser_validators
     - catboost/libs/model/model_export/ut
     - catboost/yandex_specific/pytest_conda
     - cloud/dwh/nirvana/operations/exec_python_script
@@ -10124,7 +10062,6 @@ migrations:
     - distribution_interface/backend/backend/multistate
     - intranet/wiki/src/wiki/utils/wfaas
     - maps/garden/sdk/sandbox
-    - maps/infra/ecstatic/common/experimental_worker/lib
     - quality/neural_net/bert/bert/utils/hooks
     - search/tools/fast_data_deployment/lib
     - smarttv/droideka/proxy/serializers
@@ -11074,8 +11011,6 @@ migrations:
     - ads/nirvana/upgrade_operation
     - ads/targeting/bsmr-scripts/py-modules
     - ads/targeting/python-objstore/py-modules
-    - ads/quality/adv_machine/scripts/quorum_optimizer/beam_search
-    - ads/quality/adv_machine/scripts/quorum_optimizer/lib
     - ads/quality/adv_machine/scripts/select_type_utils
     - ads/quality/apc/bm
     - ads/quality/bid_correction/v2/lib
@@ -11652,7 +11587,6 @@ migrations:
     - sandbox/projects/AntirobotCollectFeatures
     - sandbox/projects/AutocheckDiff
     - sandbox/projects/BackupMongo
-    - sandbox/projects/BackupMongoManyDatabases
     - sandbox/projects/BnoNewsBuild
     - sandbox/projects/BnoRecipesBuild
     - sandbox/projects/Bolver
@@ -12379,7 +12313,6 @@ migrations:
     - intranet/hidereferer/tests
     - intranet/magiclinks/tests
     - intranet/yandex_directory/tests
-    - juggler/libjuggler/tests
     - kernel/title_ranges/test_title_ranges/tests
     - library/cpp/codecs/static/tools/tests
     - library/cpp/deprecated/solartrie/test/tests
