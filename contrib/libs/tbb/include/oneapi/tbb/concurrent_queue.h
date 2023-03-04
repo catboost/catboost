@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -148,10 +148,7 @@ public:
 
     // Clear the queue. not thread-safe.
     void clear() {
-        while (!empty()) {
-            T value;
-            try_pop(value);
-        }
+        my_queue_representation->clear(my_allocator);
     }
 
     // Return allocator object
@@ -375,12 +372,12 @@ public:
     }
 
     // Attempt to dequeue an item from head of queue.
-    /** Does not wait for item to become available.
-        Returns true if successful; false otherwise. */
-    bool pop( T& result ) {
-        return internal_pop(&result);
+    void pop( T& result ) {
+        internal_pop(&result);
     }
 
+    /** Does not wait for item to become available.
+        Returns true if successful; false otherwise. */
     bool try_pop( T& result ) {
         return internal_pop_if_present(&result);
     }
@@ -410,10 +407,7 @@ public:
 
     // Clear the queue. not thread-safe.
     void clear() {
-        while (!empty()) {
-            T value;
-            try_pop(value);
-        }
+        my_queue_representation->clear(my_allocator);
     }
 
     // Return allocator object
@@ -482,7 +476,7 @@ private:
         return true;
     }
 
-    bool internal_pop( void* dst ) {
+    void internal_pop( void* dst ) {
         std::ptrdiff_t target;
         // This loop is a single pop operation; abort_counter should not be re-read inside
         unsigned old_abort_counter = my_abort_counter.load(std::memory_order_relaxed);
@@ -508,7 +502,6 @@ private:
         } while (!my_queue_representation->choose(target).pop(dst, target, *my_queue_representation, my_allocator));
 
         r1::notify_bounded_queue_monitor(my_monitors, cbq_slots_avail_tag, target);
-        return true;
     }
 
     bool internal_pop_if_present( void* dst ) {
