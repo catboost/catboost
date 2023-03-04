@@ -328,7 +328,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-20542
     - yabs/server/test/ft/BSSERVER-21248
     - yabs/server/test/ft/BSSERVER-21283
-    - yabs/server/test/ft/BSSERVER-21569
     - yabs/server/test/ft/BSSERVER-21794
     - yabs/server/test/ft/BSSERVER-2189
     - yabs/server/test/ft/BSSERVER-22115/test_disable_sub_designs
@@ -737,7 +736,6 @@ migrations:
     - maps/adv/analytics/regular/income_forecast
     - maps/adv/analytics/regular/lost_money_by_day
     - maps/adv/analytics/regular/lost_profit_by_campaigns
-    - maps/adv/analytics/regular/monitoring_rows_count
     - maps/adv/analytics/regular/prolongation_of_clients
     - maps/analytics/datasets/routes/mobile-maps
     - maps/automotive/tools/key_resetter/bin
@@ -784,7 +782,6 @@ migrations:
     - maps/wikimap/stat/kpi/valuable_edits/report/tests
     - market/access/puller/beam
     - market/assortment/ecom_log/lib/extract_source
-    - market/dynamic_pricing/pricing/dynamic_pricing/autostrategy_v2/predict
     - market/dynamic_pricing/pricing/dynamic_pricing/prepare_stats
     - market/forecast/ff_gross_forecast/tasks
     - market/greenlinks/lib
@@ -1898,7 +1895,6 @@ migrations:
     - market/click_n_collect/tools/yt_tables_deployer/library
     - market/dynamic_pricing/parsing/tools/exception_list/bin
     - market/dynamic_pricing/pricing/common/data_preparation
-    - market/dynamic_pricing/pricing/dynamic_pricing/autostrategy_v2/predict
     - market/dynamic_pricing/pricing/manual_pricing
     - market/dynamic_pricing/tools/offline_modeling
     - market/forecast/demand_ml_forecast_validation/lib/data_preparation
@@ -2527,7 +2523,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-10993
     - yabs/server/test/ft/BSSERVER-12402
     - yabs/server/test/ft/BSSERVER-13533
-    - yabs/server/test/ft/BSSERVER-14112
     - yabs/server/test/ft/BSSERVER-16749
     - yabs/server/test/ft/BSSERVER-17351
     - yabs/server/test/ft/BSSERVER-17688
@@ -3145,7 +3140,6 @@ migrations:
     - market/assortment/ecom_log
     - market/billing/infra/mb-sql/bin
     - market/checkout/utils
-    - market/dynamic_pricing/pricing/dynamic_pricing/autostrategy_v2/predict/bin
     - market/forecast/demand_baseline_train/lib
     - market/forecast/demand_ml_forecast_validation/lib/data_preparation
     - market/infra/itreg/softreg
@@ -5214,8 +5208,6 @@ migrations:
     - infra/oops-agent/src/lib
     - infra/oops-agent/src/lib/agent
     - infra/oops-agent/src/lib/modules
-    - infra/porto/api_py
-    - infra/porto/api_py/test
     - infra/psiagent2/src/utils
     - infra/qemu/lib/qemutool/qemutool/guest
     - infra/qemu/vmexec
@@ -6144,7 +6136,6 @@ migrations:
     - search/wizard/entitysearch/tools/es_hook_notifier/lib
     - search/wizard/entitysearch/tools/shooter_for_zeliboba
     - search/zephyr/client
-    - security/gideon/pam_gideon/ut
     - serp/lenour/tasklets/lenour_set_snapshot_state/impl
     - serp/lenour/test
     - skynet/api/copier
@@ -7654,8 +7645,6 @@ migrations:
     - infra/netmon/agent/agent
     - infra/netmon/build_topology/lib
     - infra/oops-agent/src/lib/modules
-    - infra/porto/api_py
-    - infra/porto/api_py/test
     - infra/psiagent2/lite
     - infra/psiagent2/src
     - infra/qemu/lib/qemutool/qemutool/guest
@@ -9018,7 +9007,6 @@ migrations:
     - infra/dist/dmover/tests
     - infra/host-cpu-metrics
     - infra/host-cpu-metrics/host_metrics
-    - infra/porto/api_py
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_quota_distributor/lib
     - keyboard/dict/nirvana/config_generator/blocks
@@ -9856,7 +9844,6 @@ migrations:
     - cv/imageproc/ocr/tools/statistic/auto_tests/nirvana/vh3/resources
     - devtools/ya/test/fat_test
     - dict/mt/make/db/content
-    - dj/services/market/configs_generator/recommender/programs/blue_attractive_models
     - extsearch/audio/deepdive/common
     - infra/service_controller/tests
     - keyboard/grid/tap_model/python/tap_model
@@ -10237,7 +10224,6 @@ migrations:
     prefixes:
     - adfox/amacs/tests/functional/utils
     - april/web/bas/qa
-    - dict/mt/video/ci/vt_e2e/impl
     - extsearch/video/functionality/fastdelivery/NewCombineVhsRequests/NewCombineVhsFilms
     - maps/b2bgeo/libs/py_sqlalchemy_utils
     - maps/garden/modules/ymapsdf/lib/ymapsdf_tester
@@ -10551,7 +10537,6 @@ migrations:
     - infra/heartbeat/src/daemon
     - infra/kernel/tools/coroner
     - infra/netconfig/utils/pinger/lib
-    - infra/porto/api_py
     - infra/qyp/vmctl/src
     - infra/reconf_juggler/tools/jdiff/tests
     - infra/rtc/janitor
