@@ -18,6 +18,7 @@ target_link_libraries(contrib-restricted-abseil-cpp INTERFACE
   abseil-cpp-absl-flags
   abseil-cpp-absl-functional
   abseil-cpp-absl-hash
+  abseil-cpp-absl-log
   abseil-cpp-absl-memory
   abseil-cpp-absl-meta
   abseil-cpp-absl-numeric

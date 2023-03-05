@@ -330,8 +330,7 @@ class CordBuffer {
 
     // Returns the available area of the internal SSO data
     absl::Span<char> short_available() {
-      assert(is_short());
-      const size_t length = (short_rep.raw_size >> 1);
+      const size_t length = short_length();
       return absl::Span<char>(short_rep.data + length,
                               kInlineCapacity - length);
     }
@@ -347,7 +346,7 @@ class CordBuffer {
     // Returns the length of the internal SSO data.
     size_t short_length() const {
       assert(is_short());
-      return short_rep.raw_size >> 1;
+      return static_cast<size_t>(short_rep.raw_size >> 1);
     }
 
     // Sets the length of the internal SSO data.
@@ -412,8 +411,12 @@ class CordBuffer {
 
   // Power2 functions
   static bool IsPow2(size_t size) { return absl::has_single_bit(size); }
-  static size_t Log2Floor(size_t size) { return absl::bit_width(size) - 1; }
-  static size_t Log2Ceil(size_t size) { return absl::bit_width(size - 1); }
+  static size_t Log2Floor(size_t size) {
+    return static_cast<size_t>(absl::bit_width(size) - 1);
+  }
+  static size_t Log2Ceil(size_t size) {
+    return static_cast<size_t>(absl::bit_width(size - 1));
+  }
 
   // Implementation of `CreateWithCustomLimit()`.
   // This implementation allows for future memory allocation hints to
