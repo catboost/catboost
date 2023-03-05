@@ -141,7 +141,7 @@ namespace NCB {
         for (TStringBuf part: StringSplitter(token).Split(delimiter)) {
             float value;
             CB_ENSURE(
-                TryParseFloatFeatureValue(part, &value),
+                TryFloatFromString(part, /*parseNonFinite*/true, &value),
                 "Sub-field #" << fieldIdx << " of numeric vector for feature " << featureId
                 << " cannot be parsed as float. Check data contents or column description"
             );
@@ -215,8 +215,9 @@ namespace NCB {
                             }
                             case EColumn::Num: {
                                 if (!FeatureIgnored[featureId]) {
-                                    if (!TryParseFloatFeatureValue(
+                                    if (!TryFloatFromString(
                                             token,
+                                            /*parseNonFinite*/true,
                                             &floatFeatures[featuresLayout.GetInternalFeatureIdx(featureId)]
                                          ))
                                     {

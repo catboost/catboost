@@ -7,6 +7,8 @@
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
+#include <library/cpp/containers/flat_hash/flat_hash.h>
+
 #include <util/charset/unidata.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/ptr.h>
@@ -401,16 +403,66 @@ namespace NCB {
         }
     }
 
-    bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value) {
-        if (!TryFromString<float>(stringValue, *value)) {
-            if (IsMissingValue(stringValue)) {
-                *value = std::numeric_limits<float>::quiet_NaN();
-            } else {
+    namespace {
+        struct TStupidStringHash {
+            size_t operator()(TStringBuf str) {
+                Y_ASSERT(str.size() == 3);
+                return IntHash(str[0] + (str[2] << 8));
+            }
+        };
+
+        bool TryFloatFromStringFast(TStringBuf token, float& value) {
+            if (token.empty()) {
                 return false;
             }
+            static const NFH::TFlatHashMap<TStringBuf, float, TStupidStringHash> wellKnown = {
+                { TStringBuf("0.0"), 0.0f},
+                { TStringBuf("1.0"), 1.0f},
+                { TStringBuf("2.0"), 2.0f},
+                { TStringBuf("3.0"), 3.0f},
+                { TStringBuf("4.0"), 4.0f},
+                { TStringBuf("5.0"), 5.0f},
+                { TStringBuf("6.0"), 6.0f},
+                { TStringBuf("7.0"), 7.0f},
+                { TStringBuf("8.0"), 8.0f},
+                { TStringBuf("9.0"), 9.0f}
+            };
+            if (token.size() == 1 && token[0] >= '0' && token[0] <= '9') {
+                value = float(token[0] - '0');
+                return true;
+            } else if (token.size() == 3) {
+                if ( auto i = wellKnown.find(token); i != wellKnown.end()) {
+                    value = i->second;
+                    return true;
+                }
+            } else if (token[0] == '-' && token.size() == 4) {
+                if ( auto i = wellKnown.find(token.substr(1)); i != wellKnown.end()) {
+                    value = -i->second;
+                    return true;
+                }
+            }
+            return TryFromString<float>(token, value);
         }
-        if (*value == 0.0f) {
-            *value = 0.0f; // remove negative zeros
+    }
+
+    bool TryFloatFromString(TStringBuf token, bool parseNonFinite, float* value) {
+        if (TryFloatFromStringFast(token, *value)) {
+            if (*value == 0.0f) {
+                *value = 0.0f; // remove negative zeros
+            }
+            return true;
+        }
+        if (!parseNonFinite) {
+            return false;
+        }
+        if (IsMissingValue(token)) {
+            *value = std::numeric_limits<float>::quiet_NaN();
+        } else if (TCIEqualTo<TStringBuf>()(token, "inf") || TCIEqualTo<TStringBuf>()(token, "infinity")) {
+            *value = std::numeric_limits<float>::infinity();
+        } else if (TCIEqualTo<TStringBuf>()(token, "-inf") || TCIEqualTo<TStringBuf>()(token, "-infinity")) {
+            *value = -std::numeric_limits<float>::infinity();
+        } else {
+            return false;
         }
         return true;
     }

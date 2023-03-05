@@ -265,7 +265,7 @@ namespace NCB {
                                 floatFeatureIndices.push_back(*floatFeatureIdx);
                                 floatFeatureValues.yresize(floatFeatureIndices.size());
 
-                                if (!TryParseFloatFeatureValue(right, &floatFeatureValues.back())) {
+                                if (!TryFloatFromString(right, /*parseNonFinite*/true, &floatFeatureValues.back())) {
                                     CB_ENSURE(
                                         false,
                                         "Feature value \"" << right << "\" cannot be parsed as float."

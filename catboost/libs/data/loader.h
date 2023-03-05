@@ -312,7 +312,7 @@ namespace NCB {
      */
     bool IsMissingValue(const TStringBuf& s);
 
-    bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value);
+    bool TryFloatFromString(TStringBuf token, bool parseNonFinite, float* value);
 }
 
 template <>
