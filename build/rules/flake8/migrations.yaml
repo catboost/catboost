@@ -10157,7 +10157,6 @@ migrations:
     - comdep_analytics/comdep_recsys/etl_core/utils
     - crowdsourcing/elc/CwasBot/utils/api
     - crowdsourcing/elc/CwasBot/utils/misc
-    - education/english/services/rest/app/progress
     - infra/dostavlyator/lib/upravlyator
     - kikimr/ci/tasklets/update_hostgroup/impl
     - kikimr/ci/tasklets/update_resource/impl
