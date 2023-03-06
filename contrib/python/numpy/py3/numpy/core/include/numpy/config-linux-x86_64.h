@@ -42,11 +42,9 @@
 #define HAVE_BACKTRACE 1
 */
 #define HAVE_MADVISE 1
-#if !defined(__aarch64__) && !defined(__powerpc__)
 #define HAVE_XMMINTRIN_H 1
 #define HAVE_EMMINTRIN_H 1
 #define HAVE_IMMINTRIN_H 1
-#endif
 #define HAVE_FEATURES_H 1
 #define HAVE_DLFCN_H 1
 #define HAVE_EXECINFO_H 1
@@ -77,7 +75,6 @@
 #define HAVE_ATTRIBUTE_OPTIMIZE_OPT_3 1
 #define HAVE_ATTRIBUTE_OPTIMIZE_OPT_2 1
 #define HAVE_ATTRIBUTE_NONNULL 1
-#if defined(_x86_64_)
 #define HAVE_ATTRIBUTE_TARGET_AVX 1
 #define HAVE_ATTRIBUTE_TARGET_AVX2 1
 #define HAVE_ATTRIBUTE_TARGET_AVX512F 1
@@ -85,7 +82,6 @@
 #define HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS 1
 #define HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS 1
 #define HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS 1
-#endif
 #define HAVE___THREAD 1
 #define HAVE_SINF 1
 #define HAVE_COSF 1
@@ -230,11 +226,8 @@
 #define HAVE_CTANHL 1
 #define NPY_RESTRICT restrict
 #define NPY_RELAXED_STRIDES_DEBUG 0
-#if defined(_x86_64_)
 #define HAVE_LDOUBLE_INTEL_EXTENDED_16_BYTES_LE 1
-#elif defined(_arm64_) || defined(__PPC64__)
-#define HAVE_LDOUBLE_IEEE_QUAD_LE 1
-#endif
+
 #ifndef __cplusplus
 /* #undef inline */
 #endif
