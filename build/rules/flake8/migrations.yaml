@@ -2603,7 +2603,6 @@ migrations:
     - adfox/pdb3/pdb_import
     - adfox/qa/shm/atlas_to_database/bin
     - ads/autobudget/ml_pipeline/scripts/validate_pool_cd_file/lib
-    - ads/bigkv/search/preprocessing/torch_2
     - ads/daily_duty/scripts/compare_shard_model_sizes
     - ads/emily/mvp/backend_agnostik/example
     - ads/factor_check/tools/missed_logs
