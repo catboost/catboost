@@ -93,6 +93,8 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\preprocessor-gen.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\preprocessor.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\source_location.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\strong_typedef-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\strong_typedef.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\variant-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\variant.h"/>
   </ItemGroup>

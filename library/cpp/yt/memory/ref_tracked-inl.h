@@ -11,7 +11,7 @@ namespace NYT {
 template <class T>
 TRefCountedTypeKey GetRefCountedTypeKey()
 {
-    return &typeid(T);
+    return TRefCountedTypeKey(&typeid(T));
 }
 
 template <class T>
@@ -43,6 +43,40 @@ Y_FORCE_INLINE TRefCountedTypeCookie GetRefCountedTypeCookieWithLocation(const T
     }
     return cookieValue;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef YT_ENABLE_REF_COUNTED_TRACKING
+
+template <class T>
+TRefTracked<T>::TRefTracked()
+{
+    auto cookie = GetRefCountedTypeCookie<T>();
+    TRefCountedTrackerFacade::AllocateInstance(cookie);
+}
+
+template <class T>
+TRefTracked<T>::TRefTracked(const TRefTracked&)
+{
+    auto cookie = GetRefCountedTypeCookie<T>();
+    TRefCountedTrackerFacade::AllocateInstance(cookie);
+}
+
+template <class T>
+TRefTracked<T>::TRefTracked(TRefTracked&&)
+{
+    auto cookie = GetRefCountedTypeCookie<T>();
+    TRefCountedTrackerFacade::AllocateInstance(cookie);
+}
+
+template <class T>
+TRefTracked<T>::~TRefTracked()
+{
+    auto cookie = GetRefCountedTypeCookie<T>();
+    TRefCountedTrackerFacade::FreeInstance(cookie);
+}
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 
