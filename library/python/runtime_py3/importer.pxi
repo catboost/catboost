@@ -561,11 +561,32 @@ def executable_path_hook(path):
     raise ImportError(path)
 
 
+def get_path0():
+    """
+    An incomplete and simplified version of _PyPathConfig_ComputeSysPath0.
+    We need this to somewhat properly emulate the behaviour of a normal python interpreter
+    when using ya ide venv.
+
+    """
+    if not sys.argv:
+        return
+    argv0 = sys.argv[0]
+
+    have_module_arg = argv0 == '-m'
+
+    if have_module_arg:
+        return _os.getcwd()
+
+
 if YA_IDE_VENV:
     sys.meta_path.append(importer)
     sys.meta_path.append(BuiltinSubmoduleImporter)
     if executable not in sys.path:
         sys.path.append(executable)
+    path0 = get_path0()
+    if path0 is not None:
+        sys.path.insert(0, path0)
+
     sys.path_hooks.append(executable_path_hook)
 else:
     sys.meta_path.insert(0, BuiltinSubmoduleImporter)
