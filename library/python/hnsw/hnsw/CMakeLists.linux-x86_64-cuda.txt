@@ -28,6 +28,18 @@ target_link_libraries(_hnsw PUBLIC
   cpp-online_hnsw-base
   cpp-online_hnsw-dense_vectors
 )
+target_link_options(_hnsw PRIVATE
+  -ldl
+  -lrt
+  -Wl,--no-as-needed
+  -fPIC
+  -Wl,-z,notext
+  -Wl,-Bsymbolic
+  -fPIC
+  -lpthread
+  -lrt
+  -ldl
+)
 target_sources(_hnsw PRIVATE
   ${CMAKE_SOURCE_DIR}/library/python/hnsw/hnsw/helpers.cpp
 )

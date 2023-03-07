@@ -16,6 +16,14 @@ target_link_libraries(catboostmodel PUBLIC
   catboost-libs-data
   catboost-libs-model
 )
+target_link_options(catboostmodel PRIVATE
+  -Wl,-no_deduplicate
+  -Wl,-sdk_version,11.0
+  -fPIC
+  -undefined
+  dynamic_lookup
+  -fPIC
+)
 target_sources(catboostmodel PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/model_interface/c_api.cpp
 )

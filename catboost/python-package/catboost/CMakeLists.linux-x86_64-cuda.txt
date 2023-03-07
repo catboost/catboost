@@ -53,6 +53,21 @@ target_link_libraries(_catboost PUBLIC
   catboost-cuda-train_lib
   libs-model-cuda
 )
+target_link_options(_catboost PRIVATE
+  -ldl
+  -lrt
+  -Wl,--no-as-needed
+  -fPIC
+  -Wl,-z,notext
+  -Wl,-Bsymbolic
+  -fPIC
+  -lpthread
+  -lrt
+  -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
+)
 target_sources(_catboost PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp
   ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp

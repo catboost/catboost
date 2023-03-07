@@ -32,6 +32,20 @@ target_link_libraries(catboostr PUBLIC
   catboost-cuda-train_lib
   libs-model-cuda
 )
+target_link_options(catboostr PRIVATE
+  -ldl
+  -lrt
+  -Wl,--no-as-needed
+  -fPIC
+  -Wl,-z,notext
+  -fPIC
+  -lpthread
+  -lrt
+  -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
+)
 target_sources(catboostr PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp
   ${CMAKE_SOURCE_DIR}/catboost/R-package/src/init.c

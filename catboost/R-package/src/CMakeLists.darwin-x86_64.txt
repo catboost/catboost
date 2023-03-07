@@ -29,6 +29,16 @@ target_link_libraries(catboostr PUBLIC
   private-libs-init
   private-libs-options
 )
+target_link_options(catboostr PRIVATE
+  -Wl,-no_deduplicate
+  -Wl,-sdk_version,10.15
+  -fPIC
+  -undefined
+  dynamic_lookup
+  -flat_namespace
+  -dynamiclib
+  -fPIC
+)
 target_sources(catboostr PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp
   ${CMAKE_SOURCE_DIR}/catboost/R-package/src/init.c

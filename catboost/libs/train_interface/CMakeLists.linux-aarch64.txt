@@ -34,6 +34,17 @@ target_link_libraries(catboost_train_interface PUBLIC
   library-cpp-json
   library-cpp-logger
 )
+target_link_options(catboost_train_interface PRIVATE
+  -ldl
+  -lrt
+  -Wl,--no-as-needed
+  -fPIC
+  -Wl,-z,notext
+  -fPIC
+  -lpthread
+  -lrt
+  -ldl
+)
 target_sources(catboost_train_interface PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp
 )

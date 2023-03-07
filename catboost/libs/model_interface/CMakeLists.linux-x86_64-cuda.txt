@@ -18,6 +18,20 @@ target_link_libraries(catboostmodel PUBLIC
   catboost-libs-model
   libs-model-cuda
 )
+target_link_options(catboostmodel PRIVATE
+  -ldl
+  -lrt
+  -Wl,--no-as-needed
+  -fPIC
+  -Wl,-z,notext
+  -fPIC
+  -lpthread
+  -lrt
+  -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
+)
 target_sources(catboostmodel PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/model_interface/c_api.cpp
 )
