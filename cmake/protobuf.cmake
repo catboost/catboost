@@ -1,3 +1,5 @@
+include(common)
+
 function(target_proto_plugin Tgt Name PluginTarget)
   set_property(TARGET ${Tgt} APPEND PROPERTY
     PROTOC_OPTS --${Name}_out=${CMAKE_BINARY_DIR}/$<TARGET_PROPERTY:${Tgt},PROTO_NAMESPACE> --plugin=protoc-gen-${Name}=$<TARGET_FILE:${PluginTarget}>
@@ -20,6 +22,9 @@ function(target_proto_outs Tgt)
 endfunction()
 
 function(target_proto_messages Tgt Scope)
+  get_built_tool_path(protoc_bin protoc_dependency contrib/tools/protoc/bin protoc)
+  get_built_tool_path(cpp_styleguide_bin cpp_styleguide_dependency contrib/tools/protoc/plugins/cpp_styleguide cpp_styleguide)
+
   get_property(ProtocExtraOutsSuf TARGET ${Tgt} PROPERTY PROTOC_EXTRA_OUTS)
   foreach(proto ${ARGN})
     if(proto MATCHES ${CMAKE_BINARY_DIR})
@@ -37,18 +42,18 @@ function(target_proto_messages Tgt Scope)
           ${OutputDir}/${OutputBase}.pb.cc
           ${OutputDir}/${OutputBase}.pb.h
           ${ProtocExtraOuts}
-        COMMAND ${TOOLS_ROOT}/contrib/tools/protoc/bin/protoc
+        COMMAND ${protoc_bin}
           ${COMMON_PROTOC_FLAGS}
           "-I$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},PROTO_ADDINCL>>,;-I>"
           "$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},PROTO_OUTS>>,;>"
-          --plugin=protoc-gen-cpp_styleguide=${TOOLS_ROOT}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide
+          --plugin=protoc-gen-cpp_styleguide=${cpp_styleguide_bin}
           "$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},PROTOC_OPTS>>,;>"
           ${protoRel}
         DEPENDS
           ${proto}
           $<TARGET_PROPERTY:${Tgt},PROTOC_DEPS>
-          ${TOOLS_ROOT}/contrib/tools/protoc/bin/protoc
-          ${TOOLS_ROOT}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide
+          ${protoc_dependency}
+          ${cpp_styleguide_dependency}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMAND_EXPAND_LISTS
     )

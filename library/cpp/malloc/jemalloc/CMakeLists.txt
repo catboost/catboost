@@ -7,7 +7,7 @@
 
 
 if (APPLE AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-  include(CMakeLists.darwin.txt)
+  include(CMakeLists.darwin-x86_64.txt)
 elseif (APPLE AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
   include(CMakeLists.darwin-arm64.txt)
 elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")

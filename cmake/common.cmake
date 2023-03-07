@@ -4,9 +4,26 @@ find_package(Python3 REQUIRED)
 
 add_compile_definitions(CATBOOST_OPENSOURCE=yes)
 
+# assumes ToolName is always both the binary and the target name
+function(get_built_tool_path OutBinPath OutDependency SrcPath ToolName)
+  if (MSVC)
+    set(BinPath "${TOOLS_ROOT}/${SrcPath}/\$(Configuration)/${ToolName}${CMAKE_EXECUTABLE_SUFFIX}")
+  else()
+    set(BinPath "${TOOLS_ROOT}/${SrcPath}/${ToolName}${CMAKE_EXECUTABLE_SUFFIX}")
+  endif()
+  set(${OutBinPath} ${BinPath} PARENT_SCOPE)
+  if (CMAKE_CROSSCOMPILING)
+    set(${OutDependency} ${BinPath} PARENT_SCOPE)
+  else()
+    set(${OutDependency} ${ToolName} PARENT_SCOPE)
+  endif()
+endfunction()
+
+
 function(target_ragel_lexers TgtName Key Src)
-  SET(RAGEL_BIN ${CMAKE_BINARY_DIR}/bin/ragel)
+  SET(RAGEL_BIN ${CMAKE_BINARY_DIR}/bin/ragel${CMAKE_EXECUTABLE_SUFFIX})
   get_filename_component(OutPath ${Src} NAME_WLE)
+  get_filename_component(SrcDirPath ${Src} DIRECTORY)
   get_filename_component(OutputExt ${OutPath} EXT)
   if (OutputExt STREQUAL "")
     string(APPEND OutPath .rl6.cpp)
@@ -15,12 +32,13 @@ function(target_ragel_lexers TgtName Key Src)
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${OutPath}
     COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py -- ${RAGEL_BIN} ${RAGEL_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
     DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py ${Src}
+    WORKING_DIRECTORY ${SrcDirPath}
   )
   target_sources(${TgtName} ${Key} ${CMAKE_CURRENT_BINARY_DIR}/${OutPath})
 endfunction()
 
 function(target_yasm_source TgtName Key Src)
-  SET(YASM_BIN ${CMAKE_BINARY_DIR}/bin/yasm)
+  SET(YASM_BIN ${CMAKE_BINARY_DIR}/bin/yasm${CMAKE_EXECUTABLE_SUFFIX})
   get_filename_component(OutPath ${Src} NAME_WLE)
   string(APPEND OutPath .o)
   add_custom_command(
@@ -93,36 +111,39 @@ function(generate_enum_serilization Tgt Input)
     "${multival_args}"
     ${ARGN}
   )
+
+  get_built_tool_path(enum_parser_bin enum_parser_dependency tools/enum_parser/enum_parser enum_parser)
+
   get_filename_component(BaseName ${Input} NAME)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
     COMMAND
-      ${TOOLS_ROOT}/tools/enum_parser/enum_parser/enum_parser
+      ${enum_parser_bin}
       ${Input}
       --include-path ${ENUM_SERIALIZATION_ARGS_INCLUDE_HEADERS}
       --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
-    DEPENDS ${Input} ${TOOLS_ROOT}/tools/enum_parser/enum_parser/enum_parser
+    DEPENDS ${Input} ${enum_parser_dependency}
   )
   target_sources(${Tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp)
 endfunction()
 
 function(add_global_library_for TgtName MainName)
-  add_library(${TgtName} STATIC ${ARGN})
-  add_library(${TgtName}.wholearchive INTERFACE)
-  add_dependencies(${TgtName}.wholearchive ${TgtName})
-  add_dependencies(${TgtName} ${MainName})
   if (MSVC)
-    target_link_options(${TgtName}.wholearchive INTERFACE "SHELL:/WHOLEARCHIVE:$<TARGET_FILE:${TgtName}>")
-  elseif(APPLE)
-    target_link_options(${TgtName}.wholearchive INTERFACE "SHELL:-Wl,-force_load,$<TARGET_FILE:${TgtName}>")
+    add_library(${TgtName} OBJECT ${ARGN})
+    add_dependencies(${TgtName} ${MainName}) # needed because object library can use some extra generated files in MainName
+    target_link_libraries(${MainName} INTERFACE ${TgtName} "$<TARGET_OBJECTS:${TgtName}>")
   else()
-    target_link_options(${TgtName}.wholearchive INTERFACE "SHELL:-Wl,--whole-archive $<TARGET_FILE:${TgtName}> -Wl,--no-whole-archive")
+    add_library(${TgtName} STATIC ${ARGN})
+    add_library(${TgtName}.wholearchive INTERFACE)
+    add_dependencies(${TgtName}.wholearchive ${TgtName})
+    add_dependencies(${TgtName} ${MainName})
+    if(APPLE)
+      target_link_options(${TgtName}.wholearchive INTERFACE "SHELL:-Wl,-force_load,$<TARGET_FILE:${TgtName}>")
+    else()
+      target_link_options(${TgtName}.wholearchive INTERFACE "SHELL:-Wl,--whole-archive $<TARGET_FILE:${TgtName}> -Wl,--no-whole-archive")
+    endif()
+    target_link_libraries(${MainName} INTERFACE ${TgtName}.wholearchive)
   endif()
-  target_link_libraries(${MainName} INTERFACE ${TgtName}.wholearchive)
-endfunction()
-
-function(target_link_flags)
-  target_link_libraries(${ARGN})
 endfunction()
 
 function(copy_file From To)
@@ -164,10 +185,13 @@ function(resources Tgt Output)
     list(APPEND ResourcesList ${Input})
     list(APPEND ResourcesList ${Key})
   endforeach()
+
+  get_built_tool_path(rescompiler_bin rescompiler_dependency tools/rescompiler/bin rescompiler)
+
   add_custom_command(
     OUTPUT ${Output}
-    COMMAND ${TOOLS_ROOT}/tools/rescompiler/bin/rescompiler ${Output} ${ResourcesList}
-    DEPENDS ${RESOURCE_ARGS_INPUTS} ${TOOLS_ROOT}/tools/rescompiler/bin/rescompiler
+    COMMAND ${rescompiler_bin} ${Output} ${ResourcesList}
+    DEPENDS ${RESOURCE_ARGS_INPUTS} ${rescompiler_dependency}
   )
 endfunction()
 
@@ -176,7 +200,7 @@ function(use_export_script Target ExportFile)
   set(OutPath ${CMAKE_CURRENT_BINARY_DIR}/gen_${OutName})
 
   if (MSVC)
-    target_link_flags(${Target} PRIVATE /DEF:${OutPath})
+    target_link_options(${Target} PRIVATE /DEF:${OutPath})
     set(EXPORT_SCRIPT_FLAVOR msvc)
   elseif(APPLE)
     execute_process(
@@ -189,11 +213,11 @@ function(use_export_script Target ExportFile)
       message(FATAL_ERROR "Failed to parse export symbols from ${ExportFile}:\n${_SCRIPT_STDERR}")
       return()
     endif()
-    target_link_flags(${Target} PRIVATE ${_SCRIPT_FLAGS})
+    target_link_options(${Target} PRIVATE ${_SCRIPT_FLAGS})
     return()
   else()
     set(EXPORT_SCRIPT_FLAVOR gnu)
-    target_link_flags(${Target} PRIVATE -Wl,--gc-sections -rdynamic -Wl,--version-script=${OutPath})
+    target_link_options(${Target} PRIVATE -Wl,--gc-sections -rdynamic -Wl,--version-script=${OutPath})
   endif()
 
   add_custom_command(
@@ -246,7 +270,7 @@ function(set_yunittest_property)
     ${ARGN}
   )
   get_property(SPLIT_FACTOR TARGET ${YUNITTEST_ARGS_TEST} PROPERTY SPLIT_FACTOR)
-  
+
   if (${SPLIT_FACTOR} EQUAL 1)
     set_property(TEST ${YUNITTEST_ARGS_TEST} PROPERTY ${YUNITTEST_ARGS_PROPERTY} ${YUNITTEST_ARGS_UNPARSED_ARGUMENTS})
   	return()

@@ -1,4 +1,4 @@
-set(SWIG_EXECUTABLE ${CMAKE_BINARY_DIR}/bin/swig)
+set(SWIG_EXECUTABLE ${CMAKE_BINARY_DIR}/bin/swig${CMAKE_EXECUTABLE_SUFFIX})
 set(SWIG_SOURCE_FILE_EXTENSIONS .swg)
 
 function(add_swig_jni_library TgtName)

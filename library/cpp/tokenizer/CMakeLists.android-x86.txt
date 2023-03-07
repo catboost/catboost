@@ -6,6 +6,18 @@
 # original buildsystem will not be accepted.
 
 
+get_built_tool_path(
+  TOOL_archiver_bin
+  TOOL_archiver_dependency
+  tools/archiver
+  archiver
+)
+get_built_tool_path(
+  TOOL_triecompiler_bin
+  TOOL_triecompiler_dependency
+  tools/triecompiler
+  triecompiler
+)
 
 add_library(library-cpp-tokenizer)
 target_compile_options(library-cpp-tokenizer PRIVATE
@@ -33,10 +45,10 @@ add_custom_command(
   OUTPUT
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
   DEPENDS
-  ${TOOLS_ROOT}/tools/archiver/archiver
+  ${TOOL_archiver_bin}
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
   COMMAND
-  ${TOOLS_ROOT}/tools/archiver/archiver
+  ${TOOL_archiver_bin}
   -q
   -p
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie:
@@ -48,11 +60,11 @@ add_custom_command(
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
   DEPENDS
   ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/special_tokens.txt
-  ${TOOLS_ROOT}/tools/triecompiler/triecompiler
+  ${TOOL_triecompiler_bin}
   WORKING_DIRECTORY
   ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer
   COMMAND
-  ${TOOLS_ROOT}/tools/triecompiler/triecompiler
+  ${TOOL_triecompiler_bin}
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
   -0
   -i
@@ -75,3 +87,9 @@ target_rodata_sources(library-cpp-tokenizer
   PRIVATE
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
 )
+if(NOT CMAKE_CROSSCOMPILING)
+  add_dependencies(library-cpp-tokenizer
+    archiver
+    triecompiler
+)
+endif()

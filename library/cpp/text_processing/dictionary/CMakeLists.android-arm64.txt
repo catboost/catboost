@@ -7,6 +7,12 @@
 
 
 add_subdirectory(idl)
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
 
 add_library(cpp-text_processing-dictionary)
 target_link_libraries(cpp-text_processing-dictionary PUBLIC
