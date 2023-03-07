@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+find_package(CUDAToolkit REQUIRED)
 add_subdirectory(ut)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -22,6 +23,7 @@ target_link_libraries(catboost-cuda-ctrs PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  CUDA::toolkit
   catboost-cuda-cuda_lib
   private-libs-ctr_description
   catboost-cuda-cuda_util
@@ -68,6 +70,7 @@ target_link_libraries(catboost-cuda-ctrs.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  CUDA::toolkit
   catboost-cuda-cuda_lib
   private-libs-ctr_description
   catboost-cuda-cuda_util

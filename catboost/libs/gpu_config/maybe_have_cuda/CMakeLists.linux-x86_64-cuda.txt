@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+find_package(CUDAToolkit REQUIRED)
 
 add_library(libs-gpu_config-maybe_have_cuda)
 target_link_libraries(libs-gpu_config-maybe_have_cuda PUBLIC
@@ -14,6 +15,7 @@ target_link_libraries(libs-gpu_config-maybe_have_cuda PUBLIC
   yutil
   catboost-libs-logging
   libs-gpu_config-interface
+  CUDA::toolkit
 )
 target_sources(libs-gpu_config-maybe_have_cuda PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/gpu_config/maybe_have_cuda/get_gpu_device_count_cuda.cpp

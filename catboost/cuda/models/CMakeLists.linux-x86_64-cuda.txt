@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+find_package(CUDAToolkit REQUIRED)
 
 add_library(models)
 target_cuda_sources(models PRIVATE
@@ -18,6 +19,7 @@ target_link_libraries(models PUBLIC
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
   catboost-cuda-gpu_data
+  CUDA::toolkit
 )
 target_sources(models PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/models/add_oblivious_tree_model_doc_parallel.cpp
@@ -58,6 +60,7 @@ target_link_libraries(models.global PUBLIC
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
   catboost-cuda-gpu_data
+  CUDA::toolkit
 )
 target_sources(models.global PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/models/add_bin_values.cpp

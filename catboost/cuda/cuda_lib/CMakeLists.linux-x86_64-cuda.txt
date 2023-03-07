@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+find_package(CUDAToolkit REQUIRED)
 add_subdirectory(ut)
 
 add_library(catboost-cuda-cuda_lib)
@@ -25,6 +26,7 @@ target_link_libraries(catboost-cuda-cuda_lib PUBLIC
   cpp-threading-local_executor
   cpp-threading-name_guard
   cpp-deprecated-atomic
+  CUDA::toolkit
 )
 target_sources(catboost-cuda-cuda_lib PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cache.cpp
@@ -95,6 +97,7 @@ target_link_libraries(catboost-cuda-cuda_lib.global PUBLIC
   cpp-threading-local_executor
   cpp-threading-name_guard
   cpp-deprecated-atomic
+  CUDA::toolkit
 )
 target_sources(catboost-cuda-cuda_lib.global PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/cuda_buffer_helpers/reduce_scatter.cpp

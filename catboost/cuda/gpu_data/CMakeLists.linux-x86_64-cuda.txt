@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+find_package(CUDAToolkit REQUIRED)
 add_subdirectory(ut)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -36,6 +37,7 @@ target_link_libraries(catboost-cuda-gpu_data PUBLIC
   private-libs-quantization
   private-libs-quantized_pool
   tools-enum_parser-enum_serialization_runtime
+  CUDA::toolkit
 )
 target_sources(catboost-cuda-gpu_data PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/batch_binarized_ctr_calcer.cpp
@@ -104,6 +106,7 @@ target_link_libraries(catboost-cuda-gpu_data.global PUBLIC
   private-libs-quantization
   private-libs-quantized_pool
   tools-enum_parser-enum_serialization_runtime
+  CUDA::toolkit
 )
 target_sources(catboost-cuda-gpu_data.global PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/gpu_data/kernels.cpp

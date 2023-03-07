@@ -6,12 +6,14 @@
 # original buildsystem will not be accepted.
 
 
+find_package(CUDAToolkit REQUIRED)
 
 add_library(cpp-cuda-exception)
 target_link_libraries(cpp-cuda-exception PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  CUDA::toolkit
 )
 target_sources(cpp-cuda-exception PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/cuda/exception/exception.cpp

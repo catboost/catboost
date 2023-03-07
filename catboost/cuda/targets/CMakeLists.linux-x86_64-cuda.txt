@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+find_package(CUDAToolkit REQUIRED)
 add_subdirectory(bin)
 add_subdirectory(ut)
 
@@ -34,6 +35,7 @@ target_link_libraries(catboost-cuda-targets PUBLIC
   catboost-libs-metrics
   private-libs-options
   cpp-threading-local_executor
+  CUDA::toolkit
 )
 target_sources(catboost-cuda-targets PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/auc.cpp
@@ -84,6 +86,7 @@ target_link_libraries(catboost-cuda-targets.global PUBLIC
   catboost-libs-metrics
   private-libs-options
   cpp-threading-local_executor
+  CUDA::toolkit
 )
 target_sources(catboost-cuda-targets.global PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/dcg.cpp

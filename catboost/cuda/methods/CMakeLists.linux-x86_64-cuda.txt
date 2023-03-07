@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+find_package(CUDAToolkit REQUIRED)
 add_subdirectory(ut)
 
 add_library(catboost-cuda-methods)
@@ -66,6 +67,7 @@ target_link_libraries(catboost-cuda-methods PUBLIC
   catboost-libs-metrics
   catboost-libs-overfitting_detector
   cpp-threading-local_executor
+  CUDA::toolkit
 )
 target_sources(catboost-cuda-methods PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/greedy_subsets_searcher/split_points.cpp
@@ -148,6 +150,7 @@ target_link_libraries(catboost-cuda-methods.global PUBLIC
   catboost-libs-metrics
   catboost-libs-overfitting_detector
   cpp-threading-local_executor
+  CUDA::toolkit
 )
 target_sources(catboost-cuda-methods.global PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/pointwise_kernels.cpp
