@@ -316,7 +316,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-15483
     - yabs/server/test/ft/BSSERVER-15755
     - yabs/server/test/ft/BSSERVER-15830
-    - yabs/server/test/ft/BSSERVER-16016
     - yabs/server/test/ft/BSSERVER-1649
     - yabs/server/test/ft/BSSERVER-17885
     - yabs/server/test/ft/BSSERVER-17985
@@ -1165,7 +1164,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-13562
     - yabs/server/test/ft/BSSERVER-15417
     - yabs/server/test/ft/BSSERVER-15477
-    - yabs/server/test/ft/BSSERVER-16016
     - yabs/server/test/ft/BSSERVER-16319
     - yabs/server/test/ft/BSSERVER-17702
     - yabs/server/test/ft/BSSERVER-18972
@@ -1496,7 +1494,6 @@ migrations:
     - rtmapreduce/config/user_tasks
     - saas/library/python/lunapark
     - sandbox/projects/avia/send_visits_to_solomon
-    - sandbox/projects/browser/autotests_qa_tools/sb_test
     - sandbox/projects/images/daemons/ImagesCompareRimpatchdaemonResponses
     - sandbox/projects/market/mobile/FuckupAlertsNotifier
     - sandbox/projects/mssngr/runtime/MssngrRouterLoadTest
@@ -1522,7 +1519,6 @@ migrations:
     - search/mon/bot/bot/modules
     - search/mon/bot/bot/modules/protocols
     - search/mon/curators_helper
-    - search/mon/uchenki/app/controllers/api
     - search/mon/uchenki/lib/jobs
     - search/mon/warden/src/services/reducers
     - search/mon/warden/src/workers
@@ -5908,10 +5904,6 @@ migrations:
     - sandbox/projects/bi_mstr/BiMstrUpdateDockerFromGit
     - sandbox/projects/bitbucket/GBGAdaptor
     - sandbox/projects/broadmatching/convert_external_candidates
-    - sandbox/projects/browser/autotests
-    - sandbox/projects/browser/autotests_qa_tools/common
-    - sandbox/projects/browser/autotests_qa_tools/sb_test
-    - sandbox/projects/browser_mobile/abro/BrowserAndroidBuildTask
     - sandbox/projects/clickhouse/BaseOnCommitTask
     - sandbox/projects/clickhouse/ClickhouseKeeperJepsen
     - sandbox/projects/clickhouse/ClickhousePullRequestTrigger
@@ -8440,7 +8432,6 @@ migrations:
     - search/mon/bot/bot/modules/protocols
     - search/mon/bot/bot/modules/protocols/chats
     - search/mon/tickenator_on_db/src/services
-    - search/mon/uchenki/app/controllers/api
     - search/mon/uchenki/lib/clients
     - search/mon/uchenki/lib/jobs
     - search/priemka/yappy/src/model/lineage2_service
