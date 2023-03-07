@@ -6,6 +6,14 @@
 # original buildsystem will not be accepted.
 
 
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID AND NOT HAVE_CUDA)
+  set(FAT_OBJECT_SUFFIX .o)
+  set(FAT_OBJECT_PREFIX lib)
+  set(YASM_FLAGS -f elf64 -D UNIX -D _x86_64_ -D_YASM_ -g dwarf2)
+  set(FBS_CPP_FLAGS --no-warnings --cpp --keep-prefix --gen-mutable --schema -b --yandex-maps-iter --gen-object-api --filename-suffix .fbs)
+  set(RAGEL_FLAGS -L -I ${CMAKE_SOURCE_DIR}/)
+endif()
+
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID AND HAVE_CUDA)
   set(FAT_OBJECT_SUFFIX .o)
   set(FAT_OBJECT_PREFIX lib)
