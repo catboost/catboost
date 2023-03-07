@@ -860,7 +860,7 @@ class CCompiler:
         f = os.fdopen(fd, "w")
         try:
             for incl in includes:
-                f.write("""#include %s\n""" % incl)
+                f.write("""#include "%s"\n""" % incl)
             if not includes:
                 # Use "char func(void);" as the prototype to follow
                 # what autoconf does.  This prototype does not match
