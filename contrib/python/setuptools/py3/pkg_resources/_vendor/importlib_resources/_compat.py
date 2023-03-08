@@ -1,9 +1,12 @@
 # flake8: noqa
 
 import abc
+import os
 import sys
 import pathlib
 from contextlib import suppress
+from typing import Union
+
 
 if sys.version_info >= (3, 10):
     from zipfile import Path as ZipPath  # type: ignore
@@ -96,3 +99,10 @@ def wrap_spec(package):
     from . import _adapters
 
     return _adapters.SpecLoaderAdapter(package.__spec__, TraversableResourcesLoader)
+
+
+if sys.version_info >= (3, 9):
+    StrPath = Union[str, os.PathLike[str]]
+else:
+    # PathLike is only subscriptable at runtime in 3.9+
+    StrPath = Union[str, "os.PathLike[str]"]

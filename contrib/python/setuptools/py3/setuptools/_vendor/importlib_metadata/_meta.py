@@ -30,18 +30,19 @@ class PackageMetadata(Protocol):
         """
 
 
-class SimplePath(Protocol):
+class SimplePath(Protocol[_T]):
     """
     A minimal subset of pathlib.Path required by PathDistribution.
     """
 
-    def joinpath(self) -> 'SimplePath':
+    def joinpath(self) -> _T:
         ...  # pragma: no cover
 
-    def __truediv__(self) -> 'SimplePath':
+    def __truediv__(self, other: Union[str, _T]) -> _T:
         ...  # pragma: no cover
 
-    def parent(self) -> 'SimplePath':
+    @property
+    def parent(self) -> _T:
         ...  # pragma: no cover
 
     def read_text(self) -> str:

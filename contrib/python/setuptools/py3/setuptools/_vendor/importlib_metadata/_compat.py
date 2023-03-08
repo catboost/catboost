@@ -8,6 +8,7 @@ __all__ = ['install', 'NullFinder', 'Protocol']
 try:
     from typing import Protocol
 except ImportError:  # pragma: no cover
+    # Python 3.7 compatibility
     from ..typing_extensions import Protocol  # type: ignore
 
 
