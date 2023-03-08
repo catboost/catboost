@@ -9646,7 +9646,6 @@ migrations:
     - quality/neural_net/bert/tools/autobert/autobert_2/library/utils
     - quality/neural_net/bert/tools/autobert/lib
     - robot/metrics/translated_search/join_statuses
-    - rt-research/bannerland/lib/archive_workers
     - search/plutonium/deploy/instance_syncer
     - yabs/server/test/ft/BSSERVER-11310
     - yabs/server/test/ft/BSSERVER-13708
@@ -9908,7 +9907,6 @@ migrations:
     - talents/recommender/config_compiler
     - voicetech/bio/pybio
     - yt/python/yt/wrapper
-    - yweb/antispam/clean_web/analytics/tools/yt_metrics
     - yweb/yasap/answers/answers/resources
     - yweb/yasap/answers/answers/schemas
     - yweb/yasap/answers/answers_fast/lib/load_tree
