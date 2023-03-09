@@ -8,6 +8,10 @@
 
 if (APPLE AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
   include(CMakeLists.darwin-arm64.txt)
+elseif (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND NOT HAVE_CUDA)
+  include(CMakeLists.windows-x86_64.txt)
+elseif (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND HAVE_CUDA)
+  include(CMakeLists.windows-x86_64-cuda.txt)
 elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
   include(CMakeLists.android-arm.txt)
 elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
