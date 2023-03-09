@@ -109,6 +109,8 @@ if (HAVE_CUDA)
   endif()
   string(APPEND CMAKE_CUDA_FLAGS " --compiler-options ${NVCC_STD}")
 
+  string(APPEND CMAKE_CUDA_FLAGS " -DTHRUST_IGNORE_CUB_VERSION_CHECK")
+
   if(MSVC)
     # default CMake flags differ from our configuration
     set(CMAKE_CUDA_FLAGS_DEBUG "--compiler-options /Ob0,/Od,/D_DEBUG")
@@ -128,10 +130,6 @@ if (HAVE_CUDA)
   endif()
 
   enable_language(CUDA)
-
-  link_directories(${CUDAToolkit_LIBRARY_DIR})
-  include_directories(SYSTEM ${CUDAToolkit_INCLUDE_DIRS})
-  add_compile_definitions(THRUST_IGNORE_CUB_VERSION_CHECK)
 
   function(target_cuda_flags Tgt)
     set_property(TARGET ${Tgt} APPEND PROPERTY

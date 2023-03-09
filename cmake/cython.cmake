@@ -11,7 +11,7 @@ function(target_cython_options Tgt)
 endfunction()
 
 macro(set_python_type_for_cython Type)
-  if (${Type} EQUAL PY3)
+  if (${Type} STREQUAL PY3)
     find_package(Python3 REQUIRED)
     set(PYTHON Python3::Interpreter)
   else()
