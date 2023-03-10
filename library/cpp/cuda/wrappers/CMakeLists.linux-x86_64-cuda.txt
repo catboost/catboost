@@ -34,7 +34,6 @@ target_sources(cpp-cuda-wrappers PRIVATE
 )
 target_cuda_cflags(cpp-cuda-wrappers)
 target_cuda_flags(cpp-cuda-wrappers
-  --expt-relaxed-constexpr
   -gencode
   arch=compute_35,code=sm_35
   -gencode

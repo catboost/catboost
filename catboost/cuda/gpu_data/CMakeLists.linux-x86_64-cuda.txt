@@ -68,7 +68,6 @@ generate_enum_serilization(catboost-cuda-gpu_data
 )
 target_cuda_cflags(catboost-cuda-gpu_data)
 target_cuda_flags(catboost-cuda-gpu_data
-  --expt-relaxed-constexpr
   -gencode
   arch=compute_35,code=sm_35
   -gencode

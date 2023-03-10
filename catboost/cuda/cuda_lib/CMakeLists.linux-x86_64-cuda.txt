@@ -63,7 +63,6 @@ target_sources(catboost-cuda-cuda_lib PRIVATE
 )
 target_cuda_cflags(catboost-cuda-cuda_lib)
 target_cuda_flags(catboost-cuda-cuda_lib
-  --expt-relaxed-constexpr
   -gencode
   arch=compute_35,code=sm_35
   -gencode

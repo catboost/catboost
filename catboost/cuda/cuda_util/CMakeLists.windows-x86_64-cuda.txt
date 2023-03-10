@@ -49,7 +49,6 @@ target_link_libraries(catboost-cuda-cuda_util PUBLIC
 )
 target_cuda_cflags(catboost-cuda-cuda_util)
 target_cuda_flags(catboost-cuda-cuda_util
-  --expt-relaxed-constexpr
   -gencode
   arch=compute_35,code=sm_35
   -gencode

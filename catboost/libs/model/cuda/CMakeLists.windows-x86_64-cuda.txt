@@ -21,7 +21,6 @@ target_link_libraries(libs-model-cuda PUBLIC
 )
 target_cuda_cflags(libs-model-cuda)
 target_cuda_flags(libs-model-cuda
-  --expt-relaxed-constexpr
   -gencode
   arch=compute_35,code=sm_35
   -gencode
