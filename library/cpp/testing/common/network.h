@@ -33,10 +33,15 @@ namespace NTesting {
     [[nodiscard]] TPortHolder GetFreePort();
 
     namespace NLegacy {
-        // Do not use this method, it needs only for TPortManager from unittests.
+        // Do not use these methods made for Unittest TPortManager backward compatibility.
         // Returns continuous sequence of the specified number of ports.
         [[nodiscard]] TVector<TPortHolder> GetFreePortsRange(size_t count);
+        //@brief Returns port from parameter if NO_RANDOM_PORTS env var is set, otherwise first free port
+        [[nodiscard]] TPortHolder GetPort(ui16 port);
     }
+
+    //@brief Reinitialize singleton from environment vars for tests
+    void InitPortManagerFromEnv();
 
     //@brief helper class for inheritance
     struct TFreePortOwner {
