@@ -37,6 +37,11 @@ DEFINE_AMBIGUOUS_ENUM_WITH_UNDERLYING_TYPE(EMultipleNames, int,
     ((D2)(100))
 );
 
+DEFINE_ENUM(ECustomString,
+    ((A) (1) ("1_a"))
+    ((B) (2) ("1_b"))
+);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, size_t N>
@@ -241,6 +246,15 @@ TEST(TEnumTest, MultipleNames)
     EXPECT_EQ("C",  ToString(EMultipleNames::C));
     EXPECT_EQ("D1", ToString(EMultipleNames::D1));
     EXPECT_EQ("D1", ToString(EMultipleNames::D2));
+}
+
+TEST(TEnumTest, CustomString)
+{
+    EXPECT_EQ(ECustomString::A, TEnumTraits<ECustomString>::FromString("1_a"));
+    EXPECT_EQ(ECustomString::B, TEnumTraits<ECustomString>::FromString("1_b"));
+
+    EXPECT_EQ("1_a", ToString(ECustomString::A));
+    EXPECT_EQ("1_b", ToString(ECustomString::B));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

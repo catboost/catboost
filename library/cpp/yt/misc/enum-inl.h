@@ -140,6 +140,22 @@ static constexpr bool AreValuesDistinct(const TValues& values)
     )(item)
 
 #define ENUM__GET_DOMAIN_NAMES_ITEM_SEQ(seq) \
+    PP_IF( \
+       ENUM__ITEM_SEQ_HAS_DOMAIN_NAME(seq), \
+       ENUM__GET_DOMAIN_NAMES_ITEM_SEQ_CUSTOM, \
+       ENUM__GET_DOMAIN_NAMES_ITEM_SEQ_AUTO \
+    )(seq)
+
+#define ENUM__ITEM_SEQ_HAS_DOMAIN_NAME(seq) \
+    PP_CONCAT(ENUM__ITEM_SEQ_HAS_DOMAIN_NAME_, PP_COUNT(seq))
+
+#define ENUM__ITEM_SEQ_HAS_DOMAIN_NAME_2 PP_FALSE
+#define ENUM__ITEM_SEQ_HAS_DOMAIN_NAME_3 PP_TRUE
+
+#define ENUM__GET_DOMAIN_NAMES_ITEM_SEQ_CUSTOM(seq) \
+    TStringBuf(PP_ELEMENT(seq, 2)),
+
+#define ENUM__GET_DOMAIN_NAMES_ITEM_SEQ_AUTO(seq) \
     ENUM__GET_DOMAIN_NAMES_ITEM_ATOMIC(PP_ELEMENT(seq, 0))
 
 #define ENUM__GET_DOMAIN_NAMES_ITEM_ATOMIC(item) \
