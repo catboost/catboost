@@ -918,7 +918,6 @@ migrations:
     - saas/tools/user_if/ssm-front/backend
     - saas/tools/user_if/ssm-front/backend/forms
     - sandbox/projects/Afisha/deploy/common/AfishaPreRelease
-    - sandbox/projects/Afisha/infra/AfishaPrCleanup2
     - sandbox/projects/Afisha/infra/AfishaStPinger
     - sandbox/projects/Afisha/infra/AfishaStPinger/helpers
     - sandbox/projects/BuildConveyorDashboard
@@ -2310,7 +2309,6 @@ migrations:
     - billing/apikeys/apikeys/mapper
     - billing/dwh/src/dwh/grocery
     - billing/dwh/src/dwh/grocery/dcs/export
-    - billing/library/python/logfeller_utils
     - captcha/tools/ocr_blacklist_filter
     - catboost/yandex_specific/python-package/ut_no_windows/medium
     - cloud/blockstore/public/sdk/python/client/ut
@@ -2453,7 +2451,6 @@ migrations:
     - quality/functionality/turbo/merger/ut/medium
     - quality/functionality/turbo/merger/ut/medium/auto_ads
     - quality/market/metrics/search_empty_serps
-    - quality/mstand_metrics/market_offline
     - quality/neural_net/bert/bert/utils/distributed
     - quality/neural_net/bert/tests/basic
     - quality/relev_tools/brak/tickets_parsing
@@ -5678,7 +5675,6 @@ migrations:
     - quality/functionality/turbo/beru_sideblock_uploader
     - quality/functionality/turbo/forms/job/lib
     - quality/functionality/turbo/rss/common/python/backoffice/lib
-    - quality/functionality/turbo/rss/feed_list_builder/bin
     - quality/functionality/turbo/runtime/turbo_urls_sampler/lib
     - quality/functionality/turbo/saas_pull_process/lib
     - quality/functionality/turbo/tools/rediff
@@ -5686,7 +5682,6 @@ migrations:
     - quality/functionality/unstructured/qdsaas_uploader/lib
     - quality/logs/baobab/api/python/baobab/common
     - quality/logs/mousetrack_lib/python
-    - quality/mstand_metrics/offline_production/infra/add_owner_factors
     - quality/mstand_metrics/online_production/market/v1/util
     - quality/mstand_metrics/online_production/market/v2
     - quality/neural_net/bert/bert
@@ -6560,7 +6555,6 @@ migrations:
     - yweb/antispam/cid/phones_base/verdict_classifiers
     - yweb/antispam/cid/rivals
     - yweb/antispam/cid/snezhana
-    - yweb/antispam/clean_web/analytics/tools/batch_requests
     - yweb/antispam/clean_web/text_cache/lib
     - yweb/antispam/clean_web/tools/benchmark_bert
     - yweb/antispam/clean_web/tools/benchmark_media_checker
@@ -8380,7 +8374,6 @@ migrations:
     - logos/projects/statkey/tasks/cubes/user_sessions/v4/daily
     - logos/projects/statkey/tasks/hypercubes/user_history/mobile/v5
     - logos/projects/statkey/tasks/hypercubes/user_history/source/search_history/v2
-    - logos/projects/statkey/tasks/key_reports/desktop_retention
     - logos/projects/statkey_py3/tasks/metamerger/tasks/merger_base_task
     - logos/projects/statkey_py3/tasks/metamerger/tools
     - logos/projects/statkey_py3/tasks/money_allocations_merger/v1
@@ -9466,7 +9459,6 @@ migrations:
     - robot/library/python/sandbox
     - smb/common/http_client/lib
     - travel/cpa/lib
-    - voicetech/spotter/voicetable/lib/audio
     - weather/workers/wrf/utils
     - yabs/infra/monitorings/yabs_monitorings/baseage_graphite
     - yabs/server/test/qabs_bsserver_pytest/bs_objects
