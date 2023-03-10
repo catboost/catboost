@@ -7,11 +7,30 @@
 #include <util/generic/yexception.h>
 
 namespace NPyBind {
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 8
+    class TDeleteRawMem {
+    public:
+        template <typename T>
+        static inline void Destroy(T* t) noexcept {
+            PyMem_RawFree(t);
+        }
+    };
+
+    template <typename T>
+    using TRawMemHolder = THolder<T, TDeleteRawMem>;
+
+    static void SetProgramName(char* name) {
+        TRawMemHolder<wchar_t> wideName(Py_DecodeLocale(name, nullptr));
+        Y_ENSURE(wideName);
+        Py_SetProgramName(wideName.Get());
+    }
+#endif
+
     TEmbedding::TEmbedding(char* argv0) {
 #if PY_MAJOR_VERSION < 3
         Py_SetProgramName(argv0);
         Py_Initialize();
-#else
+#elif PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 8
         PyStatus status;
 
         PyConfig config;
@@ -32,6 +51,9 @@ namespace NPyBind {
         }
 
         PyConfig_Clear(&config);
+#elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 8
+        SetProgramName(argv0);
+        Py_Initialize();
 #endif
     }
 
