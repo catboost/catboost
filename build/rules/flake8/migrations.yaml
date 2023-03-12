@@ -112,7 +112,6 @@ migrations:
     - load/projects/tankapi_server/tankapi
     - load/projects/tankapi_server/tankapi/tests
     - locdoc/tg_bots/commdesign_bot/handlers
-    - logos/libs/clean
     - logos/projects/ads/tasks/ads_map_and_join_simulator_log_raw
     - logos/projects/ads/tasks/ads_post_join_simulator_log
     - logos/projects/ads/tasks/distribution_monitoring_bk_installs_stat_task
@@ -595,7 +594,6 @@ migrations:
     - dict/mt/g2p/asr/ytviewer
     - dict/mt/make/modules/corpus_generation/aligner/tests
     - dict/mt/make/processes/gen_pta_gender_markup/lib/tests
-    - dict/mt/make/tools/eval_mining_pipeline/eval_saligner/vh
     - dict/mt/scripts/new_polishing/bin/parse_dictionaries
     - direct/infra/mysql_manager/libs
     - direct/infra/mysql_manager/zkguard
@@ -1445,7 +1443,6 @@ migrations:
     - market/replenishment/algorithms/lib/data_preparation/integrity_checker
     - market/replenishment/algorithms/lib/data_preparation/regional_assortment
     - market/replenishment/algorithms/lib/data_preparation/simulation_cube
-    - market/replenishment/algorithms/lib/data_preparation/stock
     - market/replenishment/algorithms/lib/forecast
     - market/replenishment/algorithms/lib/task
     - market/replenishment/algorithms/lib23/data_preparation
@@ -2643,7 +2640,6 @@ migrations:
     - ads/nirvana/wormhole/dmlc_launcher
     - ads/pytorch/lib/online_learning/production/processors/deploy_v2_processor
     - ads/quality/adv_machine/scripts/download_shards
-    - ads/quality/adv_machine/scripts/instancectl/updater
     - ads/quality/adv_machine/scripts/patch_resource
     - ads/quality/adv_machine/scripts/preprocess_autotargetting_pool
     - ads/quality/adv_machine/scripts/save_base_version
@@ -6925,7 +6921,6 @@ migrations:
     - dict/mt/eval/lib/metrics/segmentation
     - dict/mt/make/libs/report
     - dict/mt/make/modules/voc
-    - dict/mt/make/tools/eval_mining_pipeline/eval_saligner/vh
     - dict/mt/pt_build/tools/yql_build
     - dict/mt/scripts/human_eval/he_mv_aggregation
     - dict/mt/tools/log_converter/rem_tool
@@ -8606,7 +8601,7 @@ migrations:
     - ads/nirvana/gensim_w2v
     - ads/nirvana/mappers/w2v_recommender
     - ads/quality/adv_machine/cm_robot/cmpy/fresh_stats
-    - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom_attempt
+    - ads/quality/adv_machine/cm_robot/cmpy/query_recommender_attempt
     - ads/quality/embedding/join_banners
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/gram_eval
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/preprocess
@@ -12201,7 +12196,6 @@ migrations:
     - advq/offline_pkz/test
     - alice/library/python/decoder/tests
     - antiadblock/cryprox/tests/functional
-    - antiadblock/postgres_local/tests
     - april/mediaplan/mediaplan/forecaster/migrations
     - bindings/java/abt/abt-native/android/tests
     - cloud/ai/speechkit/stt/tests/data/model
