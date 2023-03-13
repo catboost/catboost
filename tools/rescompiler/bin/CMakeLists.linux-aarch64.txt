@@ -12,7 +12,7 @@ target_link_libraries(rescompiler PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-jemalloc
   library-cpp-resource
 )
 target_link_options(rescompiler PRIVATE

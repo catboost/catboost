@@ -15,7 +15,7 @@ target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-jemalloc
   cpp-testing-unittest_main
   private-libs-quantization_schema
   idl-pool-proto

@@ -12,7 +12,7 @@ target_link_libraries(tensorboard_logger_example PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-jemalloc
   catboost-libs-loggers
 )
 target_link_options(tensorboard_logger_example PRIVATE

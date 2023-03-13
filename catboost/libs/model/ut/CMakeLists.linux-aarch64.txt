@@ -13,7 +13,7 @@ target_link_libraries(model_ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-jemalloc
   cpp-testing-unittest_main
   private-libs-algo
   catboost-libs-data

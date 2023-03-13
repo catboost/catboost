@@ -13,7 +13,7 @@ target_link_libraries(model_perftest PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-jemalloc
   tools-model_perftest-lib
   library-cpp-getopt
 )

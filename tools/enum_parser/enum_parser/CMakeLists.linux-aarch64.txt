@@ -12,7 +12,7 @@ target_link_libraries(enum_parser PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-jemalloc
   cpp-getopt-small
   tools-enum_parser-parse_enum
 )

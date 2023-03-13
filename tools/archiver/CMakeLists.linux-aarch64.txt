@@ -12,7 +12,7 @@ target_link_libraries(archiver PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-jemalloc
   library-cpp-archive
   cpp-digest-md5
   cpp-getopt-small

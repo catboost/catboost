@@ -13,7 +13,7 @@ target_link_libraries(catboost-private-libs-text_processing-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-jemalloc
   cpp-testing-unittest_main
   private-libs-text_processing
   text_processing-ut-lib
