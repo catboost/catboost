@@ -1051,7 +1051,7 @@ class Pool(_PoolBase):
         slicedPool = Pool(None)
         slicedPool._take_slice(self, rindex)
         return slicedPool
-    
+
     def train_eval_split(self, has_time, is_classification, eval_fraction, save_eval_pool):
         train_pool = Pool(None)
         eval_pool = Pool(None)
@@ -1279,10 +1279,10 @@ class Pool(_PoolBase):
                 thread_count,
                 quantization_params
             )
-            
+
     def _infer_feature_names(self, data_as_data_frame, embedding_features_data=None, embedding_features=None):
         non_embedding_data_feature_names = list(data_as_data_frame.columns)
-        
+
         if embedding_features_data is not None:
             if isinstance(embedding_features_data, dict):
                 embedding_feature_names = list(embedding_features_data.keys())
@@ -1295,7 +1295,7 @@ class Pool(_PoolBase):
                     raise CatBoostError('embedding_features is not specified but embedding_features_data without feature names is present')
                 if not all([isinstance(embedding_feature_id, INTEGER_TYPES) for embedding_feature_id in embedding_features]):
                     raise CatBoostError('embedding_features contain feature names but embedding_features_data without feature names is present')
-                
+
                 embedding_features_set = set(embedding_features)
 
                 feature_names = []
@@ -1306,7 +1306,7 @@ class Pool(_PoolBase):
                     else:
                         feature_names.append(non_embedding_data_feature_names[non_embedding_feature_idx])
                         non_embedding_feature_idx += 1
-                        
+
                 return feature_names
         else:
             return non_embedding_data_feature_names
@@ -1473,11 +1473,11 @@ def _get_plotly_figs(data):
     for path, dir_data in data.items():
         fig = go.Figure()
         fig['layout']['title'] = go.layout.Title(text=dir_data['name'])
-        
+
         iterations = dir_data['content']['iterations']
-        
+
         learn_graph_color = 'rgb(160,0,0)'
-        
+
         fig.add_trace(go.Scatter(
             x=[e['iteration'] for e in iterations],
             y=[e['learn'][0] for e in iterations],
@@ -1485,9 +1485,9 @@ def _get_plotly_figs(data):
             mode='lines+markers',
             name='learn'
         ))
-        
+
         test_graph_color = 'rgb(0,160,0)'
-        
+
         fig.add_trace(go.Scatter(
             x=[e['iteration'] for e in iterations],
             y=[e['test'][0] for e in iterations],
@@ -1495,14 +1495,14 @@ def _get_plotly_figs(data):
             mode='lines+markers',
             name='test'
         ))
-        
+
         fig.update_layout(
             xaxis=dict(title='iterations'),
             yaxis=dict(title='loss value')
         )
-        
+
         figs.append(fig)
-    
+
     return figs
 
 
@@ -1683,6 +1683,8 @@ class _CatBoostBase(object):
         self._init_params = init_params
         if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
             self._init_params.pop('thread_count')
+        if 'fixed_binary_splits' in self._init_params and self._init_params['fixed_binary_splits'] == None:
+            self._init_params['fixed_binary_splits'] = []
         self._object = _CatBoost()
 
     def __getstate__(self):
@@ -2873,7 +2875,7 @@ class CatBoost(_CatBoostBase):
 
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
-            
+
         plot_file : file-like or str, optional (default=None)
             If not None, save train and eval error graphs to file
 
@@ -3079,7 +3081,7 @@ class CatBoost(_CatBoostBase):
         reference_data: catboost.Pool or None
             Reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
             if type == 'ShapValues' and reference_data is not None, then Independent Tree SHAP values are calculated
-        
+
         sage_n_samples: int, optional (default=32)
             Number of outer samples used in SAGE values approximation algorithm
         sage_batch_size: int, optional (default=min(512, number of samples in dataset))
@@ -4886,7 +4888,7 @@ class CatBoostClassifier(CatBoost):
 
     text_processing : dict,
         Text processging description.
-        
+
     eval_fraction : float, [default=None]
         Fraction of the train dataset to be used as the evaluation dataset.
     """
@@ -5011,7 +5013,8 @@ class CatBoostClassifier(CatBoost):
         text_processing=None,
         embedding_features=None,
         callback=None,
-        eval_fraction=None
+        eval_fraction=None,
+        fixed_binary_splits=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -5611,7 +5614,8 @@ class CatBoostRegressor(CatBoost):
         feature_calcers=None,
         text_processing=None,
         embedding_features=None,
-        eval_fraction=None
+        eval_fraction=None,
+        fixed_binary_splits=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -5642,11 +5646,11 @@ class CatBoostRegressor(CatBoost):
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
             Use only if X is not catboost.Pool.
-            
+
         text_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Text columns indices.
             Use only if X is not catboost.Pool.
-        
+
         embedding_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool.
@@ -5687,7 +5691,7 @@ class CatBoostRegressor(CatBoost):
 
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
-            
+
         plot_file : file-like or str, optional (default=None)
             If not None, save train and eval error graphs to file (requires installed plotly)
 
@@ -6002,7 +6006,8 @@ class CatBoostRanker(CatBoost):
         feature_calcers=None,
         text_processing=None,
         embedding_features=None,
-        eval_fraction=None
+        eval_fraction=None,
+        fixed_binary_splits=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]

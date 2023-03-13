@@ -10706,3 +10706,86 @@ def test_eval_fraction_on_pool(estimator_type, with_cat_features):
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(preds))
     return local_canonical_file(preds_path)
+
+
+def test_fit_with_fixed_splits(task_type):
+    if task_type == 'CPU':
+        pytest.xfail('CatBoost does not support fixed binary splits on CPU')
+
+    params = {
+        'task_type': task_type,
+        'fixed_binary_splits': [0, 1],
+        'iterations': 2,
+        'learning_rate': 1,
+        'depth': 3,
+        'grow_policy': 'Depthwise',
+        'devices': '0'
+    }
+    model = CatBoost(params)
+    train_data = [[1, 0, 5, 6],
+                  [0, 0, 6, 7],
+                  [1, 1, 50, 60]]
+    train_labels = [0, 1, 0]
+    model.fit(train_data, train_labels)
+
+
+def test_regressor_with_fixed_splits(task_type):
+    if task_type == 'CPU':
+        pytest.xfail('CatBoostRegressor does not support fixed binary splits on CPU')
+
+    model = CatBoostRegressor(
+        task_type=task_type,
+        fixed_binary_splits=[0, 1],
+        iterations=2,
+        learning_rate=1,
+        depth=3,
+        grow_policy='Depthwise',
+        devices='0'
+    )
+    train_data = [[1, 0, 5, 6],
+                  [0, 0, 6, 7],
+                  [1, 1, 50, 60]]
+    train_labels = [0, 1, 0]
+    model.fit(train_data, train_labels)
+
+
+def test_classifier_with_fixed_splits(task_type):
+    if task_type == 'CPU':
+        pytest.xfail('CatBoostClassifier does not support fixed binary splits on CPU')
+
+    model = CatBoostClassifier(
+        task_type=task_type,
+        loss_function='Logloss',
+        fixed_binary_splits=[0, 1],
+        iterations=2,
+        learning_rate=1,
+        depth=3,
+        grow_policy='Depthwise',
+        devices='0'
+    )
+    train_data = [[1, 0, 5, 6],
+                  [0, 0, 6, 7],
+                  [1, 1, 50, 60]]
+    train_labels = [0, 1, 0]
+    model.fit(train_data, train_labels)
+
+
+def test_ranker_with_fixed_splits(task_type):
+    if task_type == 'CPU':
+        pytest.xfail('CatBoostRanker does not support fixed binary splits on CPU')
+
+    model = CatBoostRanker(
+        task_type=task_type,
+        fixed_binary_splits=[0, 1],
+        iterations=2,
+        learning_rate=1,
+        depth=3,
+        grow_policy='Depthwise',
+        devices='0'
+    )
+    train_data = [[1, 0, 5, 6],
+                  [0, 0, 6, 7],
+                  [1, 1, 50, 60]]
+    train_labels = [0, 1, 0]
+    group_id = [10, 20, 20]
+    model.fit(train_data, train_labels, group_id=group_id)
