@@ -2,7 +2,7 @@
 
 /*!
  * \file preprocesor.h
- * \brief Preprocessor metaprogramming macroses
+ * \brief Preprocessor metaprogramming macros
  */
 
 #if !defined(_MSC_VER) && !defined(__GNUC__)
@@ -10,7 +10,7 @@
 #endif
 
 /*!
- * \defgroup yt_pp Preprocessor metaprogramming macroses
+ * \defgroup yt_pp Preprocessor metaprogramming macros
  * \ingroup yt_commons
  *
  * This is collection of macro definitions for various metaprogramming tasks
@@ -130,4 +130,3 @@
 //! \endcond
 
 /*! \} */
-
