@@ -2064,7 +2064,6 @@ migrations:
     - sandbox/projects/security/gideon/gideon-analytics/dom0-rtc-prod-hosts-parser-task
     - sandbox/projects/suggest/dicts/BaseDictionary
     - sandbox/projects/telephony/TelephonyNodeTestRunner
-    - sandbox/projects/trendbox_ci/beta/tasks/trendbox_ci_job
     - sandbox/projects/user_sessions_rt/releaser
     - sandbox/projects/websearch/SearchIntegrationTestsFlaky
     - sandbox/projects/websearch/SearchIntegrationTestsWithRetries
@@ -7199,7 +7198,6 @@ migrations:
     - sandbox/projects/quasar/check_release_status/lib/validate
     - sandbox/projects/statkey/money_map/monitorings/moneymap_monitorings
     - sandbox/projects/taxi_crm_masshire/import_recruiters
-    - sandbox/projects/trendbox_ci/beta/tasks/trendbox_ci_job
     - sandbox/projects/vh/frontend/dolbilka_plan_creator
     - sandbox/projects/websearch/begemot/common/fast_build
     - sandbox/projects/yabs/SysConstLifetime/const_proto
