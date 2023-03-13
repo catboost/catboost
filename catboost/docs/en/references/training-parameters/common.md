@@ -1646,7 +1646,7 @@ A list of indices of binary features to put at the top of each tree; ignored if 
 
 **Default value**
 
- []
+ None
 
 **Supported processing units**
 

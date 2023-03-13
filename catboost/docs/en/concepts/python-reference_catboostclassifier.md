@@ -102,7 +102,8 @@ class CatBoostClassifier(iterations=None,
                          tokenizers=None,
                          dictionaries=None,
                          feature_calcers=None,
-                         text_processing=None)
+                         text_processing=None,
+                         fixed_binary_splits=None)
 ```
 
 ## {{ dl--purpose }} {#purpose}

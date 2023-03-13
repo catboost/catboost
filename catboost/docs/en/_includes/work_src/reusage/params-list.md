@@ -1230,7 +1230,7 @@ A list of indices of binary features to put at the top of each tree; ignored if 
 
 **Default value**
 
- []
+ None
 
 **{{ cli__params-table__title__processing-units-type }}**
 

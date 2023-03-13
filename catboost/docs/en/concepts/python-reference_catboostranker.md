@@ -109,7 +109,8 @@ class CatBoostRanker(iterations=None,
                      dictionaries=None,
                      feature_calcers=None,
                      text_processing=None,
-                     embedding_features=None)
+                     embedding_features=None,
+                     fixed_binary_splits=None)
 ```
 
 ## {{ dl--purpose }} {#purpose}
