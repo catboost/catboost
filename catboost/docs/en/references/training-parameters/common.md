@@ -1631,6 +1631,27 @@ Command-line: `--first-feature-use-penalties`
 
  {{ calcer_type__cpu }}
 
+## fixed_binary_splits {#fixed_binary_splits}
+
+Command-line: `--fixed-binary-splits`
+
+#### Description
+
+
+A list of indices of binary features to put at the top of each tree; ignored if `grow_policy` is `Symmetric`.
+
+**Type**
+
+{{ python-type--list }}
+
+**Default value**
+
+ []
+
+**Supported processing units**
+
+ {{ calcer_type__gpu }}
+
 ## penalties_coefficient {#penalties_coefficient}
 
 Command-line: `--penalties-coefficient`

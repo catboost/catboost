@@ -306,6 +306,12 @@ Command-line: `--first-feature-use-penalties`
 
 {% include [reusage-cli__first-feature-use-penalties__intro](../../_includes/work_src/reusage/cli__first-feature-use-penalties__intro.md) %}
 
+### [fixed_binary_splits](common.md#fixed_binary_splits)
+
+Command-line: `--fixed-binary-splits`
+
+A list of indices of binary features to put at the top of each tree.
+
 ### [penalties_coefficient](common.md#penalties_coefficient)
 
 Command-line: `--penalties-coefficient`

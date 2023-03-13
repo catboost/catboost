@@ -1221,6 +1221,21 @@ None
 
 {{ calcer_type__cpu }}
 
+## fixed_binary_splits
+
+#### Description
+
+
+A list of indices of binary features to put at the top of each tree; ignored if `grow_policy` is `Symmetric`.
+
+**Default value**
+
+ []
+
+**{{ cli__params-table__title__processing-units-type }}**
+
+ {{ calcer_type__gpu }}
+
 ### penalties_coefficient
 
 

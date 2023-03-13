@@ -1599,6 +1599,25 @@ are identical, given that the name of the feature indexed 2 is <q>Feature2</q> a
 
 {{ calcer_type__cpu }}
 
+## fixed_binary_splits
+
+**Type**
+
+{{ python-type--list }}
+
+#### Description
+
+
+A list of indices of binary features to put at the top of each tree; ignored if `grow_policy` is `Symmetric`.
+
+**Default value**
+
+ []
+
+**Supported processing units**
+
+ {{ calcer_type__gpu }}
+
 ### penalties_coefficient
 
 
