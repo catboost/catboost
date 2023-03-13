@@ -1,5 +1,10 @@
 #include "lf_allocX64.h"
 
+//__arm__ id defined in clang for 32-bit ARM architectures only
+#if defined(__arm__) && !defined(__aarch64__)
+#error This allocator does not support 32-bit architectures. Please use another allocator instead!
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 // hooks
 #if defined(USE_INTELCC) || defined(_darwin_) || defined(_freebsd_) || defined(_STLPORT_VERSION)
