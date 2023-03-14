@@ -27,14 +27,8 @@ void FormatUnknownEnumValue(
 template <class T>
 std::optional<T> TryParseEnum(TStringBuf value)
 {
-    static_assert(TEnumTraits<T>::IsEnum);
-
     auto tryFromString = [] (TStringBuf value) -> std::optional<T> {
-        T result;
-        if (auto ok = TEnumTraits<T>::FindValueByLiteral(DecodeEnumValue(value), &result)) {
-            return result;
-        }
-        return {};
+        return TEnumTraits<T>::FindValueByLiteral(DecodeEnumValue(value));
     };
 
     if constexpr (TEnumTraits<T>::IsBitEnum) {
@@ -65,28 +59,25 @@ T ParseEnum(TStringBuf value)
 template <class T>
 void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase)
 {
-    static_assert(TEnumTraits<T>::IsEnum);
-
     auto formatScalarValue = [builder, lowerCase] (T value) {
-        auto* literal = TEnumTraits<T>::FindLiteralByValue(value);
-        if (!literal) {
-            YT_VERIFY(!TEnumTraits<T>::IsBitEnum);
+        auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value);
+        if (!optionalLiteral) {
             NYT::NDetail::FormatUnknownEnumValue(
                 builder,
                 TEnumTraits<T>::GetTypeName(),
-                static_cast<typename TEnumTraits<T>::TUnderlying>(value));
+                ToUnderlying(value));
             return;
         }
 
         if (lowerCase) {
-            CamelCaseToUnderscoreCase(builder, *literal);
+            CamelCaseToUnderscoreCase(builder, *optionalLiteral);
         } else {
-            builder->AppendString(*literal);
+            builder->AppendString(*optionalLiteral);
         }
     };
 
     if constexpr (TEnumTraits<T>::IsBitEnum) {
-        if (auto* literal = TEnumTraits<T>::FindLiteralByValue(value)) {
+        if (TEnumTraits<T>::FindLiteralByValue(value)) {
             formatScalarValue(value);
             return;
         }
@@ -106,7 +97,7 @@ void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase)
 }
 
 template <class T>
-TString FormatEnum(T value, typename TEnumTraits<T>::TType*)
+TString FormatEnum(T value)
 {
     TStringBuilder builder;
     FormatEnum(&builder, value, /*lowerCase*/ true);

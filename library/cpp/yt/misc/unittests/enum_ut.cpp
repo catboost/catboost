@@ -52,7 +52,7 @@ std::vector<T> ToVector(std::array<T, N> array)
 
 TEST(TEnumTest, Domain)
 {
-    EXPECT_EQ(3, TEnumTraits<ESimple>::DomainSize);
+    EXPECT_EQ(3, TEnumTraits<ESimple>::GetDomainSize());
     std::vector<ESimple> v {
         ESimple::X,
         ESimple::Y,
@@ -101,16 +101,8 @@ TEST(TEnumTest, FromString)
 
     EXPECT_THROW(TEnumTraits<EColor>::FromString("Pink"), std::exception);
 
-    EColor color;
-    bool returnValue;
-
-    returnValue = TEnumTraits<EColor>::FindValueByLiteral("Red", &color);
-    EXPECT_EQ(EColor::Red, color);
-    EXPECT_TRUE(returnValue);
-
-    returnValue = TEnumTraits<EColor>::FindValueByLiteral("Pink", &color);
-    EXPECT_EQ(EColor::Red, color);
-    EXPECT_FALSE(returnValue);
+    EXPECT_EQ(EColor::Red, TEnumTraits<EColor>::FindValueByLiteral("Red"));
+    EXPECT_EQ(std::nullopt, TEnumTraits<EColor>::FindValueByLiteral("Pink"));
 }
 
 TEST(TEnumTest, Ordering)
@@ -182,8 +174,8 @@ TEST(TEnumTest, OrderingWithDomainValues)
 
 TEST(TEnumTest, DomainSize)
 {
-    EXPECT_EQ(3, TEnumTraits<ESimple>::DomainSize);
-    EXPECT_EQ(5, TEnumTraits<EColor>::DomainSize);
+    EXPECT_EQ(3, TEnumTraits<ESimple>::GetDomainSize());
+    EXPECT_EQ(5, TEnumTraits<EColor>::GetDomainSize());
 }
 
 TEST(TEnumTest, DomainValues)
