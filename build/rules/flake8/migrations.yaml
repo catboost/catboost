@@ -544,7 +544,6 @@ migrations:
     - crypta/lookalike/lib/python/utils/test
     - crypta/lookalike/services/calc_metrika_counter_audiences/bin/test
     - crypta/web/dating/back
-    - cv/cbir_search/daemons/cv_universal_daemon/handlers
     - cv/cbir_search/face_ban/check_faces
     - cv/cbir_search/intent_classifier/parse_intent_factors
     - cv/cbir_search/izi_travel
@@ -981,7 +980,6 @@ migrations:
     - sandbox/projects/geosearch/AddrsRatingsTest
     - sandbox/projects/geosearch/BuildAddrsBaseAdditionalResources
     - sandbox/projects/geosearch/BuildAddrsWebIndexann
-    - sandbox/projects/geosearch/snippets/AddrsSnippetsTask
     - sandbox/projects/geosuggest/BuildGeosuggestToponymsData
     - sandbox/projects/goods/MakeGoodsShardmapGencfg
     - sandbox/projects/hollywood/UpdateHollywoodReleaseTickets
@@ -1710,7 +1708,6 @@ migrations:
     - crypta/siberia/bin/custom_audience/lib/python/clustering
     - crypta/siberia/bin/custom_audience/lib/python/clustering/test/utils
     - crypta/web/redirect/src/lib/test
-    - cv/cbir_search/daemons/cv_universal_daemon
     - cv/cbir_search/smart_camera/scenarios/poetry/make_data
     - cv/cbir_search/tools/similar_pool/grep_factors_from_middle
     - cv/imageproc/ocr/tools/database_extraction/nirvana/gt_charbb_matching
@@ -5293,7 +5290,6 @@ migrations:
     - logfeller/python/logfeller/util/solomon/ut
     - logos/projects/ads/tasks/tsar_pytorch_rsya_bc/lib
     - logos/projects/money_dwh/tasks/bs_chevent_cooked_log/builder
-    - logos/projects/statkey/tasks/cubes/superapp/cooked_appmetrica_log/v1
     - logos/projects/statkey_py3/tasks/cubes/domains/metrika/utils
     - mail/borador/devpack/components
     - mail/borador/status_hook
@@ -6081,7 +6077,6 @@ migrations:
     - search/mon/warden/src/services/reducers/report
     - search/morty/src/model/supplier
     - search/morty/tests/test_generator
-    - search/morty/tests/test_scheduler
     - search/plutonium/deploy/replicactl/test
     - search/priemka/rpslimiter/tests/quota
     - search/priemka/tools/fast_shooter
@@ -6506,7 +6501,6 @@ migrations:
     - yt/admin/snapshot_processing/helpers
     - yt/admin/snapshot_processing/validate_master_snapshot
     - yt/admin/ytdyncfgen/src/parsers
-    - yt/chyt/trampoline
     - yt/cron/balance_media/lib
     - yt/cron/duty
     - yt/cron/local_clear_logs
@@ -7333,7 +7327,6 @@ migrations:
     - extsearch/geo/tools/similarweb_basket_prepare
     - geosuggest/tools/international_quality/vh3/similarweb_basket_prepare
     - logbroker/tools/cluster_migration/get_max_retention
-    - logos/projects/graph_for_tests/graph
     - logos/projects/statkey_py3/tasks/cubes/clicks_attribution/v2
     - maps/analyzer/pylibs/envkit
     - maps/analyzer/pylibs/models
@@ -7679,7 +7672,6 @@ migrations:
     - logos/libs/viewy/ut
     - logos/projects/ads/tasks/bmcategory_queryage_coeffs
     - logos/projects/ads/tasks/joined_profile_pytorch_log
-    - logos/projects/ads/tasks/learn_efhw_clicked_05_ns_all_exps_profile_with_catboost_vector_torch_tensor
     - logos/projects/ads/tasks/tsar_pytorch_l1
     - logos/projects/ads/tasks/tsar_pytorch_log
     - logos/projects/ads/tasks/yabar_torch_tensor
@@ -8366,7 +8358,6 @@ migrations:
     - logos/projects/statkey/tasks/cubes/mobile_expenses/v1/fraud
     - logos/projects/statkey/tasks/cubes/user_sessions/v4/daily
     - logos/projects/statkey/tasks/hypercubes/user_history/mobile/v5
-    - logos/projects/statkey/tasks/hypercubes/user_history/source/search_history/v2
     - logos/projects/statkey_py3/tasks/metamerger/tasks/merger_base_task
     - logos/projects/statkey_py3/tasks/metamerger/tools
     - logos/projects/statkey_py3/tasks/money_allocations_merger/v1
@@ -8648,8 +8639,6 @@ migrations:
     - extsearch/video/robot/crawling/player_testing/services/live_capture
     - extsearch/video/robot/crawling/player_testing/services/live_proxy
     - extsearch/video/robot/previews/hitman/lost_preview_status
-    - extsearch/ymusic/tools/crawl_test_data
-    - extsearch/ymusic/tools/generate_test_data
     - infra/kernel/test/recipe/cgleak_check/example
     - infra/yp_quota_distributor/lib
     - intranet/table_flow/tests
@@ -9051,7 +9040,6 @@ migrations:
     - sandbox/projects/geoadv
     - sandbox/projects/geoadv/ReleasePrices
     - sandbox/projects/geosearch/snippets
-    - sandbox/projects/geosearch/snippets/AddrsSnippetsTask
     - sandbox/projects/hollywood
     - sandbox/projects/hollywood/fast_data/BuildAndDeployHollywoodFastData
     - sandbox/projects/logbroker/tasks/BuildSeveralResources
@@ -9265,7 +9253,6 @@ migrations:
     - ml/zeliboba/experiments/_example7_finetune_lm10_on_task
     - search/geo/tools/basket_gathering_2022
     - search/scraper/parser_platform/parsers
-    - yabs/air/api/server/lib/managers
     - yweb/news/news_back/api/tools
   PLC2403:
     ignore:
@@ -9675,7 +9662,6 @@ migrations:
     - extsearch/unisearch/medicine/data_processing/avatars/before_avatars
     - geoproduct/amocrm/lead_autoclose
     - infra/yp_dns_api/tests
-    - logos/libs/logging
     - market/monetize/efficiency/buybox/buybox_report_parser/lib/tests
     - ml/libs/ml_data_reader/tests/seq2seq
     - payplatform/balance_support_dev/tools/email_sender/smtp_sender/lib/tests
