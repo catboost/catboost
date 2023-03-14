@@ -1448,6 +1448,10 @@ class SplitAfterTest(TestCase):
                 ('a,b,c,d', lambda c: c != ',', 2),
                 [['a'], [',', 'b'], [',', 'c', ',', 'd']],
             ),
+            (
+                ([1], lambda x: x == 1, 1),
+                [[1]],
+            ),
         ]:
             actual = list(mi.split_after(*args))
             self.assertEqual(actual, expected)
@@ -5173,4 +5177,54 @@ class ConstrainedBatchesTests(TestCase):
                 )
             ),
             [(record_3, record_5), (record_10,), (record_2,)],
+        )
+
+
+class GrayProductTests(TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            tuple(mi.gray_product(('a', 'b', 'c'), range(1, 3))),
+            (("a", 1), ("b", 1), ("c", 1), ("c", 2), ("b", 2), ("a", 2)),
+        )
+        out = mi.gray_product(('foo', 'bar'), (3, 4, 5, 6), ['quz', 'baz'])
+        self.assertEqual(next(out), ('foo', 3, 'quz'))
+        self.assertEqual(
+            list(out),
+            [
+                ('bar', 3, 'quz'),
+                ('bar', 4, 'quz'),
+                ('foo', 4, 'quz'),
+                ('foo', 5, 'quz'),
+                ('bar', 5, 'quz'),
+                ('bar', 6, 'quz'),
+                ('foo', 6, 'quz'),
+                ('foo', 6, 'baz'),
+                ('bar', 6, 'baz'),
+                ('bar', 5, 'baz'),
+                ('foo', 5, 'baz'),
+                ('foo', 4, 'baz'),
+                ('bar', 4, 'baz'),
+                ('bar', 3, 'baz'),
+                ('foo', 3, 'baz'),
+            ],
+        )
+        self.assertEqual(tuple(mi.gray_product()), ((),))
+        self.assertEqual(tuple(mi.gray_product((1, 2))), ((1,), (2,)))
+
+    def test_errors(self):
+        with self.assertRaises(ValueError):
+            list(mi.gray_product((1, 2), ()))
+        with self.assertRaises(ValueError):
+            list(mi.gray_product((1, 2), (2,)))
+
+    def test_vs_product(self):
+        iters = (
+            ("a", "b"),
+            range(3, 6),
+            [None, None],
+            {"i", "j", "k", "l"},
+            "XYZ",
+        )
+        self.assertEqual(
+            sorted(product(*iters)), sorted(mi.gray_product(*iters))
         )

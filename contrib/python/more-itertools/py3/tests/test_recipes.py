@@ -1,6 +1,7 @@
 from doctest import DocTestSuite
 from functools import reduce
 from itertools import combinations, count, permutations
+from operator import mul
 from math import factorial
 from unittest import TestCase
 
@@ -880,6 +881,35 @@ class PolynomialFromRootsTests(TestCase):
                 self.assertEqual(actual, expected)
 
 
+class IterIndexTests(TestCase):
+    def test_basic(self):
+        iterable = 'AABCADEAF'
+        for wrapper in (list, iter):
+            with self.subTest(wrapper=wrapper):
+                actual = list(mi.iter_index(wrapper(iterable), 'A'))
+                expected = [0, 1, 4, 7]
+                self.assertEqual(actual, expected)
+
+    def test_start(self):
+        for wrapper in (list, iter):
+            with self.subTest(wrapper=wrapper):
+                iterable = 'AABCADEAF'
+                i = -1
+                actual = []
+                while True:
+                    try:
+                        i = next(
+                            mi.iter_index(wrapper(iterable), 'A', start=i + 1)
+                        )
+                    except StopIteration:
+                        break
+                    else:
+                        actual.append(i)
+
+                expected = [0, 1, 4, 7]
+                self.assertEqual(actual, expected)
+
+
 class SieveTests(TestCase):
     def test_basic(self):
         self.assertEqual(
@@ -942,3 +972,72 @@ class BatchedTests(TestCase):
             with self.subTest(n=n):
                 actual = list(mi.batched(iterable, n))
                 self.assertEqual(actual, expected)
+
+
+class TransposeTests(TestCase):
+    def test_empty(self):
+        it = []
+        actual = list(mi.transpose(it))
+        expected = []
+        self.assertEqual(actual, expected)
+
+    def test_basic(self):
+        it = [(10, 11, 12), (20, 21, 22), (30, 31, 32)]
+        actual = list(mi.transpose(it))
+        expected = [(10, 20, 30), (11, 21, 31), (12, 22, 32)]
+        self.assertEqual(actual, expected)
+
+    def test_incompatible(self):
+        it = [(10, 11, 12, 13), (20, 21, 22), (30, 31, 32)]
+        actual = list(mi.transpose(it))
+        expected = [(10, 20, 30), (11, 21, 31), (12, 22, 32)]
+        self.assertEqual(actual, expected)
+
+
+class MatMulTests(TestCase):
+    def test_n_by_n(self):
+        actual = list(mi.matmul([(7, 5), (3, 5)], [[2, 5], [7, 9]]))
+        expected = [[49, 80], [41, 60]]
+        self.assertEqual(actual, expected)
+
+    def test_m_by_n(self):
+        m1 = [[2, 5], [7, 9], [3, 4]]
+        m2 = [[7, 11, 5, 4, 9], [3, 5, 2, 6, 3]]
+        actual = list(mi.matmul(m1, m2))
+        expected = [
+            [29, 47, 20, 38, 33],
+            [76, 122, 53, 82, 90],
+            [33, 53, 23, 36, 39],
+        ]
+        self.assertEqual(actual, expected)
+
+
+class FactorTests(TestCase):
+    def test_basic(self):
+        for n, expected in (
+            (0, []),
+            (1, []),
+            (2, [2]),
+            (3, [3]),
+            (4, [2, 2]),
+            (6, [2, 3]),
+            (360, [2, 2, 2, 3, 3, 5]),
+            (128_884_753_939, [128_884_753_939]),
+            (999953 * 999983, [999953, 999983]),
+            (909_909_090_909, [3, 3, 7, 13, 13, 751, 113797]),
+        ):
+            with self.subTest(n=n):
+                actual = list(mi.factor(n))
+                self.assertEqual(actual, expected)
+
+    def test_cross_check(self):
+        prod = lambda x: reduce(mul, x, 1)
+        self.assertTrue(all(prod(mi.factor(n)) == n for n in range(1, 2000)))
+        self.assertTrue(
+            all(set(mi.factor(n)) <= set(mi.sieve(n + 1)) for n in range(2000))
+        )
+        self.assertTrue(
+            all(
+                list(mi.factor(n)) == sorted(mi.factor(n)) for n in range(2000)
+            )
+        )
