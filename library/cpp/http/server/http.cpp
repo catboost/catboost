@@ -341,7 +341,7 @@ public:
         ListenStartEvent.Signal();
 
         TVector<void*> events;
-        events.resize(1);
+        events.resize(Options_.EpollMaxEvents);
 
         TInstant now = TInstant::Now();
         for (;;) {

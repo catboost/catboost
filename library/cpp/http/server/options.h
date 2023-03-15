@@ -161,6 +161,7 @@ public:
     ui32 MaxFQueueSize = 0;
     ui32 MaxConnections = 100;
     int ListenBacklog = SOMAXCONN;
+    ui32 EpollMaxEvents = 1;
     TDuration ClientTimeout;
     size_t OutputBufferSize = 0;
     ui64 MaxInputContentLength = sizeof(size_t) <= 4 ? 2_GB : 64_GB;
