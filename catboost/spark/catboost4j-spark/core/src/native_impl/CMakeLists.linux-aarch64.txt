@@ -53,9 +53,9 @@ target_link_options(catboost4j-spark-impl-cpp PRIVATE
   -lrt
   -Wl,--no-as-needed
   -fPIC
+  -Wl,--exclude-libs,ALL
   -Wl,-z,notext
   -fPIC
-  -Wl,--exclude-libs,ALL
   -lpthread
   -lrt
   -ldl
