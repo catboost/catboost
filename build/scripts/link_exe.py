@@ -55,10 +55,6 @@ def fix_sanitize_flag(cmd):
             # use toolchained sanitize libraries
             return cmd
 
-    if any(flag.startswith('-fsanitize-coverage=') for flag in cmd):
-        # use toolchained sanitize libraries as well
-        return cmd
-
     CLANG_RT = 'contrib/libs/clang14-rt/lib/'
     sanitize_flags = {
         '-fsanitize=address': CLANG_RT + 'asan',
@@ -71,6 +67,9 @@ def fix_sanitize_flag(cmd):
     used_sanitize_libs = []
     aux = []
     for flag in cmd:
+        if flag.startswith('-fsanitize-coverage='):
+            # do not link sanitizer libraries from clang
+            aux.append('-fno-sanitize-link-runtime')
         if flag in sanitize_flags and any(s.startswith(sanitize_flags[flag]) for s in cmd):
             # exclude '-fsanitize=' if appropriate library is linked explicitly
             continue
