@@ -28,12 +28,28 @@ namespace NFormatPrivate {
     template <>
     struct TLog2<1>: std::integral_constant<size_t, 0> {};
 
-    static inline void WriteChars(IOutputStream& os, char c, size_t count) {
+    template <typename T>
+    inline void StreamWrite(T& stream, const char* s, size_t size) {
+        stream.write(s, size);
+    }
+
+    template <>
+    inline void StreamWrite(IOutputStream& stream, const char* s, size_t size) {
+        stream.Write(s, size);
+    }
+
+    template <>
+    inline void StreamWrite(TStringStream& stream, const char* s, size_t size) {
+        stream.Write(s, size);
+    }
+
+    template <typename T>
+    static inline void WriteChars(T& os, char c, size_t count) {
         if (count == 0)
             return;
         TTempBuf buf(count);
         memset(buf.Data(), c, count);
-        os.Write(buf.Data(), count);
+        StreamWrite(os, buf.Data(), count);
     }
 
     template <typename T>
@@ -106,8 +122,8 @@ namespace NFormatPrivate {
     template <typename T, size_t Base>
     using TUnsignedBaseNumber = TBaseNumber<std::make_unsigned_t<std::remove_cv_t<T>>, Base>;
 
-    template <typename T, size_t Base>
-    IOutputStream& operator<<(IOutputStream& stream, const TBaseNumber<T, Base>& value) {
+    template <typename TStream, typename T, size_t Base>
+    TStream& ToStreamImpl(TStream& stream, const TBaseNumber<T, Base>& value) {
         char buf[8 * sizeof(T) + 1]; /* Add 1 for sign. */
         TStringBuf str(buf, IntToString<Base>(value.Value, buf, sizeof(buf)));
 
@@ -130,6 +146,16 @@ namespace NFormatPrivate {
 
         stream << str;
         return stream;
+    }
+
+    template <typename T, size_t Base>
+    IOutputStream& operator<<(IOutputStream& stream, const TBaseNumber<T, Base>& value) {
+        return ToStreamImpl(stream, value);
+    }
+
+    template <typename T, size_t Base>
+    std::ostream& operator<<(std::ostream& stream, const TBaseNumber<T, Base>& value) {
+        return ToStreamImpl(stream, value);
     }
 
     template <typename Char, size_t Base>
