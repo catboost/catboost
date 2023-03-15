@@ -7,16 +7,12 @@
 
 
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID AND NOT HAVE_CUDA)
-  set(FAT_OBJECT_SUFFIX .o)
-  set(FAT_OBJECT_PREFIX lib)
   set(YASM_FLAGS -f elf64 -D UNIX -D _x86_64_ -D_YASM_ -g dwarf2)
   set(FBS_CPP_FLAGS --no-warnings --cpp --keep-prefix --gen-mutable --schema -b --yandex-maps-iter --gen-object-api --filename-suffix .fbs)
   set(RAGEL_FLAGS -L -I ${CMAKE_SOURCE_DIR}/)
 endif()
 
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID AND HAVE_CUDA)
-  set(FAT_OBJECT_SUFFIX .o)
-  set(FAT_OBJECT_PREFIX lib)
   set(YASM_FLAGS -f elf64 -D UNIX -D _x86_64_ -D_YASM_ -g dwarf2)
   set(CMAKE_CUDA_STANDARD 14)
   set(FBS_CPP_FLAGS --no-warnings --cpp --keep-prefix --gen-mutable --schema -b --yandex-maps-iter --gen-object-api --filename-suffix .fbs)
@@ -24,35 +20,27 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDRO
 endif()
 
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  set(FAT_OBJECT_SUFFIX .o)
-  set(FAT_OBJECT_PREFIX lib)
   set(FBS_CPP_FLAGS --no-warnings --cpp --keep-prefix --gen-mutable --schema -b --yandex-maps-iter --gen-object-api --filename-suffix .fbs)
   set(RAGEL_FLAGS -L -I ${CMAKE_SOURCE_DIR}/)
 endif()
 
 if(APPLE AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-  set(FAT_OBJECT_SUFFIX .o)
-  set(FAT_OBJECT_PREFIX lib)
   set(YASM_FLAGS -f macho64 -D DARWIN -D UNIX -D _x86_64_ -D_YASM_)
   set(FBS_CPP_FLAGS --no-warnings --cpp --keep-prefix --gen-mutable --schema -b --yandex-maps-iter --gen-object-api --filename-suffix .fbs)
   set(RAGEL_FLAGS -L -I ${CMAKE_SOURCE_DIR}/)
 endif()
 
 if(APPLE AND CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
-  set(FAT_OBJECT_SUFFIX .o)
-  set(FAT_OBJECT_PREFIX lib)
   set(FBS_CPP_FLAGS --no-warnings --cpp --keep-prefix --gen-mutable --schema -b --yandex-maps-iter --gen-object-api --filename-suffix .fbs)
   set(RAGEL_FLAGS -L -I ${CMAKE_SOURCE_DIR}/)
 endif()
 
 if(WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND NOT HAVE_CUDA)
-  set(FAT_OBJECT_SUFFIX .global.lib)
   set(FBS_CPP_FLAGS --no-warnings --cpp --keep-prefix --gen-mutable --schema -b --yandex-maps-iter --gen-object-api --filename-suffix .fbs)
   set(RAGEL_FLAGS -L -I ${CMAKE_SOURCE_DIR}/)
 endif()
 
 if(WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND HAVE_CUDA)
-  set(FAT_OBJECT_SUFFIX .global.lib)
   set(CMAKE_CUDA_STANDARD 14)
   set(FBS_CPP_FLAGS --no-warnings --cpp --keep-prefix --gen-mutable --schema -b --yandex-maps-iter --gen-object-api --filename-suffix .fbs)
   set(RAGEL_FLAGS -L -I ${CMAKE_SOURCE_DIR}/)

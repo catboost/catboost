@@ -8,7 +8,7 @@
 
 add_subdirectory(lib)
 
-add_fat_object(catboostmodel_static)
+add_recursive_library(catboostmodel_static)
 target_link_libraries(catboostmodel_static PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
