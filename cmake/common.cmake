@@ -6,7 +6,7 @@ add_compile_definitions(CATBOOST_OPENSOURCE=yes)
 
 # assumes ToolName is always both the binary and the target name
 function(get_built_tool_path OutBinPath OutDependency SrcPath ToolName)
-  if (MSVC)
+  if (CMAKE_GENERATOR MATCHES "Visual.Studio.*")
     set(BinPath "${TOOLS_ROOT}/${SrcPath}/\$(Configuration)/${ToolName}${CMAKE_EXECUTABLE_SUFFIX}")
   else()
     set(BinPath "${TOOLS_ROOT}/${SrcPath}/${ToolName}${CMAKE_EXECUTABLE_SUFFIX}")

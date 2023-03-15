@@ -101,6 +101,13 @@ if (HAVE_CUDA)
 
   get_cuda_flags_from_cxx_flags(CMAKE_CUDA_FLAGS "${CMAKE_CXX_FLAGS}")
 
+  string(APPEND CMAKE_CUDA_FLAGS
+    # Allow __host__, __device__ annotations in lambda declaration.
+    " --expt-extended-lambda"
+    # Allow host code to invoke __device__ constexpr functions and vice versa
+    " --expt-relaxed-constexpr"
+  )
+
   set(NVCC_STD_VER 14)
   if(MSVC)
     set(NVCC_STD "/std:c++${NVCC_STD_VER}")

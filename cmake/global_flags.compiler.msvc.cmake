@@ -41,8 +41,6 @@ set(_WARNS_DISABLED
 )
 
 set (_MSVC_COMMON_C_CXX_FLAGS " \
-  /DARCADIA_ROOT=$(SolutionDir.Replace('\\','/')).. \
-  /DARCADIA_BUILD_ROOT=$(SolutionDir.Replace('\\','/'))$(Configuration) \
   /DWIN32 \
   /D_WIN32 \
   /D_WINDOWS \
@@ -67,10 +65,41 @@ set (_MSVC_COMMON_C_CXX_FLAGS " \
   /permissive- \
   /D_WIN32_WINNT=0x0601 \
   /D_MBCS \
-  /DY_UCRT_INCLUDE=\"$(UniversalCRT_IncludePath.Split(';')[0].Replace('\\','/'))\" \
-  /DY_MSVC_INCLUDE=\"$(VC_VC_IncludePath.Split(';')[0].Replace('\\','/'))\" \
   /MP \
 ")
+
+if (CMAKE_GENERATOR MATCHES "Visual.Studio.*")
+  string(APPEND _MSVC_COMMON_C_CXX_FLAGS "\
+    /DY_UCRT_INCLUDE=\"$(UniversalCRT_IncludePath.Split(';')[0].Replace('\\','/'))\" \
+    /DY_MSVC_INCLUDE=\"$(VC_VC_IncludePath.Split(';')[0].Replace('\\','/'))\" \
+  ")
+else()
+  set(UCRT_INCLUDE_FOUND false)
+  foreach(INCLUDE_PATH $ENV{INCLUDE})
+    if (INCLUDE_PATH MATCHES ".*\\\\Windows Kits\\\\[0-9]+\\\\include\\\\[0-9\\.]+\\\\ucrt$")
+      message(VERBOSE "Found Y_UCRT_INCLUDE path \"${INCLUDE_PATH}\"")
+      string(APPEND _MSVC_COMMON_C_CXX_FLAGS " /DY_UCRT_INCLUDE=\"${INCLUDE_PATH}\"")
+      set(UCRT_INCLUDE_FOUND true)
+      break()
+    endif()
+  endforeach()
+  if (NOT UCRT_INCLUDE_FOUND)
+    message(FATAL_ERROR "UniversalCRT include path not found, please add it to the standard INCLUDE environment variable (most likely by calling vcvars64.bat)")
+  endif()
+
+  set(MSVC_INCLUDE_FOUND false)
+  foreach(INCLUDE_PATH $ENV{INCLUDE})
+    if (INCLUDE_PATH MATCHES ".*VC\\\\Tools\\\\MSVC\\\\[0-9\\.]+\\\\include$")
+      message(VERBOSE "Found Y_MSVC_INCLUDE path \"${INCLUDE_PATH}\"")
+      string(APPEND _MSVC_COMMON_C_CXX_FLAGS " /DY_MSVC_INCLUDE=\"${INCLUDE_PATH}\"")
+      set(MSVC_INCLUDE_FOUND true)
+      break()
+    endif()
+  endforeach()
+  if (NOT MSVC_INCLUDE_FOUND)
+    message(FATAL_ERROR "MSVC include path not found, please add it to the standard INCLUDE environment variable (most likely by calling vcvars64.bat)")
+  endif()
+endif()
 
 foreach(WARN ${_WARNS_AS_ERROR})
   string(APPEND _MSVC_COMMON_C_CXX_FLAGS " /we${WARN}")
