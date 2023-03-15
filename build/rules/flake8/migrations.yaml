@@ -2091,7 +2091,6 @@ migrations:
     - search/mon/wabbajack/bin/configurator
     - search/mon/warden/src/workers
     - search/morty/src/services
-    - smart_devices/ci/pylibs/config_generator/graphs
     - smarttv/droideka
     - sport/new_backend/data_processing/olympic/tests
     - sprav/tycoon/nirvana/lib/tycoon_api
@@ -5159,7 +5158,6 @@ migrations:
     - infra/awacs/vendor/kazoo/kazoo
     - infra/callisto/controllers/shard
     - infra/callisto/controllers/user/img
-    - infra/capacity_planning/utils/resources/capacity/capacity_yp
     - infra/capacity_planning/utils/resources/credits
     - infra/capacity_planning/utils/resources/walle_project
     - infra/clusterstate/libraries/waitinfo
@@ -5286,7 +5284,6 @@ migrations:
     - logbroker/unified_agent/tests/integration/lib/python
     - logfeller/python/logfeller/infra/message_pool/yt_tests
     - logfeller/python/logfeller/infra/yt/util
-    - logfeller/python/logfeller/lib
     - logfeller/python/logfeller/util/solomon/ut
     - logos/projects/ads/tasks/tsar_pytorch_rsya_bc/lib
     - logos/projects/money_dwh/tasks/bs_chevent_cooked_log/builder
@@ -7219,7 +7216,6 @@ migrations:
     - search/geo/tools/task_manager/generators/building_info/tools/gasification/mosreg_api_downloader
     - search/geo/tools/task_manager/generators/providers_data/common
     - search/integration_tests/util
-    - search/mon/bot/bot/api
     - search/mon/bot/bot/modules
     - search/mon/bot/bot/modules/protocols
     - search/mon/bot/bot/modules/telegram
@@ -7664,7 +7660,6 @@ migrations:
     - logbroker/tools/manual/test_read_unzip_compress_brotli
     - logbroker/unified_agent/client/python/examples/ua_grpc_client
     - logfeller/python/logfeller/infra/config
-    - logfeller/python/logfeller/lib
     - logfeller/python/logfeller/util/misc
     - logos/libs/clients/solomon
     - logos/libs/md/parser
@@ -9435,7 +9430,6 @@ migrations:
     - plus/utils/test_utils
     - quality/functionality/rtx/counterparty/fns_sync/bin
     - quality/functionality/rtx/rbo/scripts/create_rbo
-    - quasar/quasmodrom/src/core
     - robot/library/python/sandbox
     - smb/common/http_client/lib
     - travel/cpa/lib
@@ -10185,7 +10179,6 @@ migrations:
     - extsearch/video/functionality/fastdelivery/NewCombineVhsRequests/NewCombineVhsFilms
     - maps/b2bgeo/libs/py_sqlalchemy_utils
     - maps/garden/modules/ymapsdf/lib/ymapsdf_tester
-    - maps/infra/duty/generator/lib
     - market/sre/tools/marketsre_cli/commands/nanny
     - modadvert/nirvana/clusterize/libs
     - sandbox/projects/rt_money/releaser
