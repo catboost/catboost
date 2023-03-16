@@ -294,9 +294,17 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
         return result;
     }
     THashMap<TModelCtrBase, TVector<const TCtrValueTable*>> valuesMap;
-    for (const auto& provider: providers) {
+    THashMap<TModelCtrBase, int> maxIndices;
+    for (const auto& provider : providers) {
         for (const auto& [ctrBase, ctrValueTables] : provider->CtrData.LearnCtrs) {
             valuesMap[ctrBase].push_back(&ctrValueTables);
+
+            const auto idx = ctrBase.TargetBorderClassifierIdx;
+            if (!maxIndices.contains(ctrBase)) {
+                maxIndices[ctrBase] = idx;
+            } else {
+                maxIndices[ctrBase] = Max(maxIndices[ctrBase], idx);
+            }
         }
     }
     for (const auto& [ctrBase, ctrValueTables] : valuesMap) {
@@ -304,14 +312,10 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
             result->CtrData.LearnCtrs[ctrBase] = *(ctrValueTables[0]);
             continue;
         }
-        auto& target = result->CtrData.LearnCtrs[ctrBase];
-        target.ModelCtrBase = ctrBase;
-        switch (mergePolicy)
-        {
-        case ECtrTableMergePolicy::FailIfCtrIntersects:
-            throw TCatBoostException() << "FailIfCtrIntersects policy forbids model ctr tables intersection";
-        case ECtrTableMergePolicy::LeaveMostDiversifiedTable:
-            {
+        switch (mergePolicy) {
+            case ECtrTableMergePolicy::FailIfCtrIntersects:
+                throw TCatBoostException() << "FailIfCtrIntersects policy forbids model ctr tables intersection";
+            case ECtrTableMergePolicy::LeaveMostDiversifiedTable: {
                 size_t maxCtrTableSize = 0;
                 const TCtrValueTable* maxTable = nullptr;
                 for (const auto* valueTable : ctrValueTables) {
@@ -323,13 +327,32 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
                 }
                 Y_ASSERT(maxTable != nullptr);
                 result->CtrData.LearnCtrs[ctrBase] = *maxTable;
+                break;
             }
-            break;
-        case ECtrTableMergePolicy::IntersectingCountersAverage:
-            MergeBuckets(ctrValueTables, &target);
-            break;
-        default:
-            CB_ENSURE(false, "Unexpected CTR table merge policy");
+            case ECtrTableMergePolicy::IntersectingCountersAverage: {
+                auto& target = result->CtrData.LearnCtrs[ctrBase];
+                target.ModelCtrBase = ctrBase;
+                MergeBuckets(ctrValueTables, &target);
+                break;
+            }
+            case ECtrTableMergePolicy::KeepAllTables: {
+                CB_ENSURE(
+                    !NeedTargetClassifier(ctrBase.CtrType),
+                    "KeepAllTables policy requires that ctr does not use target");
+                int borderClassifierIdx = SafeIntegerCast<int>(maxIndices[ctrBase] + 1u);
+                for (const auto& ctrTable : ctrValueTables) {
+                    auto updatedBase = ctrBase;
+                    updatedBase.TargetBorderClassifierIdx = borderClassifierIdx;
+                    ++borderClassifierIdx;
+                    auto updatedTable = *ctrTable;
+                    updatedTable.ModelCtrBase = updatedBase;
+                    CB_ENSURE(!result->CtrData.LearnCtrs.contains(updatedBase));
+                    result->CtrData.LearnCtrs[updatedBase] = std::move(updatedTable);
+                }
+                break;
+            }
+            default:
+                CB_ENSURE(false, "Unexpected CTR table merge policy");
         }
     }
     return result;

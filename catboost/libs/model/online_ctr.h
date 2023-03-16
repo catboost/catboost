@@ -171,6 +171,8 @@ struct THash<TFeatureCombination> {
 struct TModelCtrBase {
     TFeatureCombination Projection;
     ECtrType CtrType = ECtrType::Borders;
+    // index of border classifier, if NeedTargetClassifier(CtrType)
+    // index of ctr in model sum, if !NeedTargetClassifier(CtrType)
     int TargetBorderClassifierIdx = 0;
 
 public:

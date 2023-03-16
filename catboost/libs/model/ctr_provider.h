@@ -124,7 +124,8 @@ inline void CalcHashes(
 enum class ECtrTableMergePolicy {
     FailIfCtrIntersects,
     LeaveMostDiversifiedTable,
-    IntersectingCountersAverage
+    IntersectingCountersAverage,
+    KeepAllTables
 };
 
 TIntrusivePtr<ICtrProvider> MergeCtrProvidersData(
