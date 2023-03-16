@@ -1,3 +1,4 @@
+#include "junit.h"
 #include "plugin.h"
 #include "registar.h"
 #include "utmain.h"
@@ -668,6 +669,16 @@ int NUnitTest::RunMain(int argc, char** argv) {
         };
         EListType listTests = DONT_LIST;
 
+        TString oo(getenv("Y_UNITTEST_OUTPUT"));
+        if (oo.StartsWith("xml:")) {
+            TStringBuf fileName = oo;
+            fileName = fileName.SubString(4, TStringBuf::npos);
+            processor.BeQuiet();
+            NUnitTest::ShouldColorizeDiff = false;
+            processor.SetTraceProcessor(new TJUnitProcessor(TString(fileName), argv[0]));
+        }
+
+
         for (size_t i = 1; i < (size_t)argc; ++i) {
             const char* name = argv[i];
 
@@ -723,6 +734,17 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     TString param(argv[i]);
                     size_t assign = param.find('=');
                     Singleton<::NPrivate::TTestEnv>()->AddTestParam(param.substr(0, assign), param.substr(assign + 1));
+                } else if (strcmp(name, "--output") == 0) {
+                    ++i;
+                    Y_ENSURE((int)i < argc);
+                    TString param(argv[i]);
+                    if (param.StartsWith("xml:")) {
+                        TStringBuf fileName = param;
+                        fileName = fileName.SubString(4, TStringBuf::npos);
+                        processor.BeQuiet();
+                        NUnitTest::ShouldColorizeDiff = false;
+                        processor.SetTraceProcessor(new TJUnitProcessor(TString(fileName), argv[0]));
+                    }
                 } else if (TString(name).StartsWith("--")) {
                     return DoUsage(argv[0]), 1;
                 } else if (*name == '-') {
