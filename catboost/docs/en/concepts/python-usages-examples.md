@@ -142,7 +142,7 @@ train_data = Pool(
     ],
     label = [1, 0, 0, 1],
     cat_features=[3],
-    embedding_features=[0, 1]    
+    embedding_features=[0, 1]
 )
 
 eval_data = Pool(
@@ -153,7 +153,7 @@ eval_data = Pool(
     ],
     label = [0, 1, 1],
     cat_features=[3],
-    embedding_features=[0, 1]    
+    embedding_features=[0, 1]
 )
 
 model = CatBoostClassifier(iterations=10)
@@ -972,7 +972,7 @@ class UserDefinedObjective(object):
         # approxes contains current predictions for this subset,
         # targets contains target values you provided with the dataset.
         #
-        # This function should return a list of pairs (der1, der2), where
+        # This function should return a list of pairs (-der1, -der2), where
         # der1 is the first derivative of the loss function with respect
         # to the predicted value, and der2 is the second derivative.
         pass
@@ -984,7 +984,7 @@ class UserDefinedMultiClassObjective(object):
         # target - contains a single expected value
         # weight - contains weight of the object
         #
-        # This function should return a tuple (der1, der2), where
+        # This function should return a tuple (-der1, -der2), where
         # - der1 is a list-like object of first derivatives of the loss function with respect
         # to the predicted value for each dimension.
         # - der2 is a matrix of second derivatives.
