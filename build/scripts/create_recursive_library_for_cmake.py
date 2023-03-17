@@ -6,6 +6,7 @@
 
 import argparse
 import os
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -36,16 +37,11 @@ class Opts(object):
             else set()
         )
         msvc_preserved_option_prefixes = [
-            '/ERRORREPORT',
-            '/errorreport',
-            '/MACHINE:',
-            '/machine:',
-            '/NODEFAULTLIB',
-            '/nodefaultlib',
-            '/NOLOGO',
-            '/nologo',
-            '/SUBSYSTEM:',
-            '/subsystem:',
+            'errorreport',
+            'machine:',
+            'nodefaultlib',
+            'nologo',
+            'subsystem',
         ]
 
         self.preserved_options = []
@@ -55,6 +51,14 @@ class Opts(object):
         self.non_global_libs_input = []
         self.output = None
 
+        def is_external_library(path):
+            """
+            Check whether this library has been built in this CMake project or came from Conan-provided dependencies
+            (these use absolute paths).
+            If it is a library that is added from some other path (like CUDA) return True
+            """
+            return not(os.path.exists(path) or os.path.exists(os.path.join(self.parsed_args.cmake_binary_dir, path)))
+
 
         def process_input(args):
             i = 0
@@ -62,7 +66,21 @@ class Opts(object):
 
             while i < len(args):
                 arg = args[i]
-                if arg[0] == '-':
+                if is_host_system_windows and ((arg[0] == '/') or (arg[0] == '-')):
+                    arg_wo_specifier_lower = arg[1:].lower()
+                    if arg_wo_specifier_lower.startswith('out:'):
+                        self.output = arg[len('/out:'):]
+                    elif arg_wo_specifier_lower.startswith('wholearchive:'):
+                        lib_path = arg[len('/wholearchive:'):]
+                        if not is_external_library(lib_path):
+                            self.global_libs_and_objects_input.append(lib_path)
+                    else:
+                        for preserved_option_prefix in msvc_preserved_option_prefixes:
+                            if arg_wo_specifier_lower.startswith(preserved_option_prefix):
+                                self.preserved_options.append(arg)
+                                break
+                    # other flags are non-linking related and just ignored
+                elif arg[0] == '-':
                     if arg == '-o':
                         if (i+1) >= len(args):
                             raise Exception('-o flag without an argument')
@@ -73,32 +91,24 @@ class Opts(object):
                     elif arg == '-Wl,--no-whole-archive':
                         is_in_whole_archive = False
                     elif arg.startswith('-Wl,-force_load,'):
-                        self.global_libs_and_objects_input.append(arg[len('-Wl,-force_load,'):])
+                        lib_path = arg[len('-Wl,-force_load,'):]
+                        if not is_external_library(lib_path):
+                            self.global_libs_and_objects_input.append(lib_path)
                     elif arg == '-isysroot':
                         i += 1
-                    # other flags are non-linking related and just ignored
-                elif is_host_system_windows and (arg[0] == '/'):
-                    if arg.startswith('/out:') or arg.startswith('/OUT:'):
-                        self.output = arg[len('/out:'):]
-                    elif arg.startswith('/wholearchive:') or arg.startswith('/WHOLEARCHIVE:'):
-                        self.global_libs_and_objects_input.append(arg[len('/WHOLEARCHIVE:'):])
-                    else:
-                        for preserved_option_prefix in msvc_preserved_option_prefixes:
-                            if arg.startswith(preserved_option_prefix):
-                                self.preserved_options.append(arg)
-                                break
                     # other flags are non-linking related and just ignored
                 elif arg[0] == '@':
                     # response file with args
                     with open(arg[1:]) as response_file:
-                        args_in_response_file = []
-                        for l in response_file:
-                            args_in_response_file += l.split()
-                    process_input(args_in_response_file)
-                elif is_in_whole_archive or arg.endswith('.o') or arg.endswith('.obj'):
-                    self.global_libs_and_objects_input.append(arg)
-                elif arg not in std_libraries_to_exclude_from_input:
-                    self.non_global_libs_input.append(arg)
+                        parsed_args = shlex.shlex(response_file, posix=False, punctuation_chars=False)
+                        parsed_args.whitespace_split = True
+                        args_in_response_file = list(arg.strip('"') for arg in parsed_args)
+                        process_input(args_in_response_file)
+                elif not is_external_library(arg):
+                    if is_in_whole_archive or arg.endswith('.o') or arg.endswith('.obj'):
+                        self.global_libs_and_objects_input.append(arg)
+                    elif arg not in std_libraries_to_exclude_from_input:
+                        self.non_global_libs_input.append(arg)
                 i += 1
 
         process_input(other_args[2:])
@@ -150,7 +160,10 @@ class FilesCombiner(object):
                 try:
                     input_file = os.fdopen(input_file_fd, 'w')
                     for input in input_list:
-                        input_file.write('{} '.format(input))
+                        if ' ' in input:
+                            input_file.write('"{}" '.format(input))
+                        else:
+                            input_file.write('{} '.format(input))
                     input_file.flush()
                 finally:
                     os.close(input_file_fd)

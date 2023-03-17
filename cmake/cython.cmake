@@ -10,13 +10,17 @@ function(target_cython_options Tgt)
   )
 endfunction()
 
-macro(set_python_type_for_cython Type)
+macro(set_python_type_for_cython Tgt Type)
   if (${Type} STREQUAL PY3)
-    find_package(Python3 REQUIRED)
-    set(PYTHON Python3::Interpreter)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    set_property(TARGET ${Tgt} APPEND PROPERTY
+      CYTHON_PYTHON_INTERPRETER ${Python3_EXECUTABLE}
+    )
   else()
-    find_package(Python2 REQUIRED)
-    set(PYTHON Python2::Interpreter)
+    find_package(Python2 REQUIRED COMPONENTS Interpreter)
+    set_property(TARGET ${Tgt} APPEND PROPERTY
+      CYTHON_PYTHON_INTERPRETER ${Python2_EXECUTABLE}
+    )
   endif()
 endmacro()
 
@@ -26,7 +30,7 @@ function(target_cython_sources Tgt Scope)
     set(CppCythonOutput ${CMAKE_CURRENT_BINARY_DIR}/${OutputBase}.cpp)
     add_custom_command(
       OUTPUT ${CppCythonOutput}
-      COMMAND ${PYTHON} ${CMAKE_SOURCE_DIR}/contrib/tools/cython/cython.py ${Input} -o ${CppCythonOutput}
+      COMMAND $<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_PYTHON_INTERPRETER>> ${CMAKE_SOURCE_DIR}/contrib/tools/cython/cython.py ${Input} -o ${CppCythonOutput}
         "$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_OPTIONS>>,$<SEMICOLON>>"
         "-I$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_INCLUDE_DIRS>>,$<SEMICOLON>-I>"
       COMMAND_EXPAND_LISTS

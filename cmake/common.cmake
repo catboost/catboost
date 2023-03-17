@@ -127,6 +127,11 @@ function(generate_enum_serilization Tgt Input)
   target_sources(${Tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp)
 endfunction()
 
+
+if (MSVC AND (${CMAKE_VERSION} VERSION_LESS "3.21.0"))
+    message(FATAL_ERROR "Build with MSVC-compatible toolchain requires at least cmake 3.21.0 because of used TARGET_OBJECTS feature")
+endif()
+
 function(add_global_library_for TgtName MainName)
   if (MSVC)
     add_library(${TgtName} OBJECT ${ARGN})
