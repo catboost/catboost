@@ -1,13 +1,13 @@
 ---------------------------------------------------------------------------
 RuntimeError                              Traceback (most recent call last)
-File library/python/runtime_py3/test/traceback/crash.py:44, in main()
-     41 time.time = lambda: 1531996624.0  # Freeze time
-     42 sys.executable = '<traceback test>'
----> 44 one()
+File library/python/runtime_py3/test/traceback/crash.py:42, in main()
+     39 time.time = lambda: 1531996624.0  # Freeze time
+     40 sys.executable = '<traceback test>'
+---> 42 one()
 
-File library/python/runtime_py3/test/traceback/crash.py:12, in one()
-     11 def one():
----> 12     modfunc(two)
+File library/python/runtime_py3/test/traceback/crash.py:11, in one()
+     10 def one():
+---> 11     modfunc(two)
 
 File library/python/runtime_py3/test/traceback/mod/__init__.py:3, in modfunc(f=<function two>)
       1 def modfunc(f):
@@ -15,13 +15,13 @@ File library/python/runtime_py3/test/traceback/mod/__init__.py:3, in modfunc(f=<
 ----> 3     f()
         f = <function two>
 
-File library/python/runtime_py3/test/traceback/crash.py:16, in two()
-     15 def two():
----> 16     three(42)
+File library/python/runtime_py3/test/traceback/crash.py:15, in two()
+     14 def two():
+---> 15     three(42)
 
-File library/python/runtime_py3/test/traceback/crash.py:20, in three(x=42)
-     19 def three(x):
----> 20     raise RuntimeError('Kaboom! I\'m dead: {}'.format(x))
+File library/python/runtime_py3/test/traceback/crash.py:19, in three(x=42)
+     18 def three(x):
+---> 19     raise RuntimeError('Kaboom! I\'m dead: {}'.format(x))
         x = 42
 
 RuntimeError: Kaboom! I'm dead: 42

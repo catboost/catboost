@@ -1,14 +1,14 @@
 Traceback (most recent call last):
-  File "library/python/runtime_py3/test/traceback/crash.py", line 44, in main
+  File "library/python/runtime_py3/test/traceback/crash.py", line 42, in main
     one()
-  File "library/python/runtime_py3/test/traceback/crash.py", line 12, in one
+  File "library/python/runtime_py3/test/traceback/crash.py", line 11, in one
     modfunc(two)  # aaa
     ^^^^^^^^^^^^
   File "library/python/runtime_py3/test/traceback/mod/__init__.py", line 3, in modfunc
     f()  # call back to caller
     ^^^
-  File "library/python/runtime_py3/test/traceback/crash.py", line 16, in two
+  File "library/python/runtime_py3/test/traceback/crash.py", line 15, in two
     three(42)
-  File "library/python/runtime_py3/test/traceback/crash.py", line 20, in three
+  File "library/python/runtime_py3/test/traceback/crash.py", line 19, in three
     raise RuntimeError('Kaboom! I\'m dead: {}'.format(x))
 RuntimeError: Kaboom! I'm dead: 42

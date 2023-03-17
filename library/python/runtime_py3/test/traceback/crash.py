@@ -1,5 +1,4 @@
 import argparse
-import cgitb
 import sys
 import time
 
@@ -23,7 +22,6 @@ def three(x):
 def main():
     hooks = {
         'default': lambda: sys.excepthook,
-        'cgitb': lambda: cgitb.Hook(format='text'),
         'ultratb_color': lambda: ultratb.ColorTB(ostream=sys.stderr),
         'ultratb_verbose': lambda: ultratb.VerboseTB(ostream=sys.stderr),
     }
