@@ -30,6 +30,8 @@
 #include <util/system/valgrind.h>
 #include <util/system/shellcommand.h>
 
+#include <filesystem>
+
 #if defined(_win_)
 #include <fcntl.h>
 #include <io.h>
@@ -669,15 +671,8 @@ int NUnitTest::RunMain(int argc, char** argv) {
         };
         EListType listTests = DONT_LIST;
 
-        TString oo(getenv("Y_UNITTEST_OUTPUT"));
-        if (oo.StartsWith("xml:")) {
-            TStringBuf fileName = oo;
-            fileName = fileName.SubString(4, TStringBuf::npos);
-            processor.BeQuiet();
-            NUnitTest::ShouldColorizeDiff = false;
-            processor.SetTraceProcessor(new TJUnitProcessor(TString(fileName), argv[0]));
-        }
-
+        bool processorSet = false;
+        bool isForked = false;
 
         for (size_t i = 1; i < (size_t)argc; ++i) {
             const char* name = argv[i];
@@ -713,6 +708,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     processor.SetForkTests(true);
                 } else if (strcmp(name, "--is-forked-internal") == 0) {
                     processor.SetIsForked(true);
+                    isForked = true;
                 } else if (strcmp(name, "--loop") == 0) {
                     processor.SetLoop(true);
                 } else if (strcmp(name, "--trace-path") == 0) {
@@ -720,11 +716,13 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     processor.BeQuiet();
                     NUnitTest::ShouldColorizeDiff = false;
                     processor.SetTraceProcessor(new TTraceWriterProcessor(argv[i], CreateAlways));
+                    processorSet = true;
                 } else if (strcmp(name, "--trace-path-append") == 0) {
                     ++i;
                     processor.BeQuiet();
                     NUnitTest::ShouldColorizeDiff = false;
                     processor.SetTraceProcessor(new TTraceWriterProcessor(argv[i], OpenAlways | ForAppend));
+                    processorSet = true;
                 } else if (strcmp(name, "--list-path") == 0) {
                     ++i;
                     listFile = MakeHolder<TFixedBufferFileOutput>(argv[i]);
@@ -745,6 +743,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                         NUnitTest::ShouldColorizeDiff = false;
                         processor.SetTraceProcessor(new TJUnitProcessor(TString(fileName), argv[0]));
                     }
+                    processorSet = true;
                 } else if (TString(name).StartsWith("--")) {
                     return DoUsage(argv[0]), 1;
                 } else if (*name == '-') {
@@ -759,6 +758,19 @@ int NUnitTest::RunMain(int argc, char** argv) {
         if (listTests != DONT_LIST) {
             return DoList(listTests == LIST_VERBOSE, *listStream);
         }
+
+        if (!processorSet && !isForked) {
+            TString oo(getenv("Y_UNITTEST_OUTPUT"));
+            if (oo.StartsWith("xml:")) {
+                TStringBuf fileName = oo;
+                fileName = fileName.SubString(4, TStringBuf::npos);
+                processor.BeQuiet();
+                NUnitTest::ShouldColorizeDiff = false;
+                processor.SetTraceProcessor(new TJUnitProcessor(TString(fileName),
+                  std::filesystem::path(argv[0]).stem().string()));
+            }
+        }
+
 
         TTestFactory::Instance().SetProcessor(&processor);
 

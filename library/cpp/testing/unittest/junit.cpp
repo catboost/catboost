@@ -50,7 +50,7 @@ void TJUnitProcessor::Save() {
             }
         }
         if (!lockFile.IsOpen()) {
-            Cerr << "Could not find a vacant file name to write report, maximum number of reports: " << MaxReps << Endl;
+            Cerr << "Could not find a vacant file name to write report for path " << path << ", maximum number of reports: " << MaxReps << Endl;
             Y_FAIL("Cannot write report");
         }
         path = reportFileName;
