@@ -336,9 +336,6 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
                 break;
             }
             case ECtrTableMergePolicy::KeepAllTables: {
-                CB_ENSURE(
-                    !NeedTargetClassifier(ctrBase.CtrType),
-                    "KeepAllTables policy requires that ctr does not use target");
                 int borderClassifierIdx = SafeIntegerCast<int>(maxIndices[ctrBase] + 1u);
                 for (const auto& ctrTable : ctrValueTables) {
                     auto updatedBase = ctrBase;
