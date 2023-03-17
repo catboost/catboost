@@ -294,17 +294,12 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
         return result;
     }
     THashMap<TModelCtrBase, TVector<const TCtrValueTable*>> valuesMap;
-    THashMap<TModelCtrBase, int> maxIndices;
-    for (const auto& provider : providers) {
+    THashMap<TModelCtrBase, TVector<size_t>> ownerModelIdx;
+    for (auto idx : xrange(providers.size())) {
+        const auto& provider = providers[idx];
         for (const auto& [ctrBase, ctrValueTables] : provider->CtrData.LearnCtrs) {
             valuesMap[ctrBase].push_back(&ctrValueTables);
-
-            const auto idx = ctrBase.TargetBorderClassifierIdx;
-            if (!maxIndices.contains(ctrBase)) {
-                maxIndices[ctrBase] = idx;
-            } else {
-                maxIndices[ctrBase] = Max(maxIndices[ctrBase], idx);
-            }
+            ownerModelIdx[ctrBase].push_back(idx);
         }
     }
     for (const auto& [ctrBase, ctrValueTables] : valuesMap) {
@@ -336,11 +331,10 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
                 break;
             }
             case ECtrTableMergePolicy::KeepAllTables: {
-                int borderClassifierIdx = SafeIntegerCast<int>(maxIndices[ctrBase] + 1u);
-                for (const auto& ctrTable : ctrValueTables) {
+                for (auto tableIdx : xrange(ctrValueTables.size())) {
+                    const auto& ctrTable = ctrValueTables[tableIdx];
                     auto updatedBase = ctrBase;
-                    updatedBase.TargetBorderClassifierIdx = borderClassifierIdx;
-                    ++borderClassifierIdx;
+                    updatedBase.TargetBorderClassifierIdx = ownerModelIdx[ctrBase][tableIdx];
                     auto updatedTable = *ctrTable;
                     updatedTable.ModelCtrBase = updatedBase;
                     CB_ENSURE(!result->CtrData.LearnCtrs.contains(updatedBase));
