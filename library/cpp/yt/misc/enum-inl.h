@@ -41,15 +41,7 @@ namespace NDetail {
 template <typename TValues>
 constexpr bool CheckValuesMonotonic(const TValues& values)
 {
-    if (std::size(values) <= 1) {
-        return true;
-    }
-    for (size_t i = 0; i < std::size(values) - 1; ++i) {
-        if (values[i] > values[i + 1]) {
-            return false;
-        }
-    }
-    return true;
+    return std::adjacent_find(values.begin(), values.end(), std::greater_equal<>()) == values.end();
 }
 
 template <typename TValues>
