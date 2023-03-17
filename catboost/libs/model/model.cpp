@@ -1549,8 +1549,9 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     const TModelTrees& trees,
     double leafMultiplier,
     TObliviousTreeBuilder* builder,
-    bool streamLeafWeights)
-{
+    bool streamLeafWeights,
+    TMaybe<size_t> ownerModelIdx
+) {
     auto& data = trees.GetModelTreeData();
     const auto& binFeatures = trees.GetBinFeatures();
     auto applyData = trees.GetApplyData();
@@ -1562,6 +1563,10 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
              ++splitIdx)
         {
             modelSplits.push_back(binFeatures[data->GetTreeSplits()[splitIdx]]);
+            auto& split = modelSplits.back();
+            if (ownerModelIdx && split.Type == ESplitType::OnlineCtr) {
+                split.OnlineCtr.Ctr.Base.TargetBorderClassifierIdx = *ownerModelIdx;
+            }
         }
         if (leafMultiplier == 1.0) {
             TConstArrayRef<double> leafValuesRef(
@@ -1659,8 +1664,10 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     const TModelTrees& trees,
     double leafMultiplier,
     TNonSymmetricTreeModelBuilder* builder,
-    bool streamLeafWeights
+    bool streamLeafWeights,
+    TMaybe<size_t> ownerModelIdx
 ) {
+    Y_UNUSED(ownerModelIdx);
     const auto& data = trees.GetModelTreeData();
     for (size_t treeIdx = 0; treeIdx < trees.GetTreeCount(); ++treeIdx) {
         builder->AddTree(
@@ -1793,6 +1800,7 @@ static void SumModels(
     const TVector<TFloatFeature>& floatFeatures,
     const TVector<TCatFeature>& catFeatures,
     bool allModelsHaveLeafWeights,
+    ECtrTableMergePolicy ctrMergePolicy,
     TFullModel* sum
 ) {
     const auto approxDimension = modelVector.back()->GetDimensionsCount();
@@ -1804,7 +1812,8 @@ static void SumModels(
             *modelVector[modelId]->ModelTrees,
             weights[modelId] * normer.Scale,
             &builder,
-            allModelsHaveLeafWeights
+            allModelsHaveLeafWeights,
+            ctrMergePolicy == ECtrTableMergePolicy::KeepAllTables ? MakeMaybe(modelId) : Nothing()
         );
     }
     builder.Build(sum->ModelTrees.GetMutable());
@@ -1814,8 +1823,8 @@ TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
     const TVector<TString>& modelParamsPrefixes,
-    ECtrTableMergePolicy ctrMergePolicy)
-{
+    ECtrTableMergePolicy ctrMergePolicy
+) {
     CB_ENSURE(!modelVector.empty(), "empty model vector unexpected");
     CB_ENSURE(modelVector.size() == weights.size());
     CB_ENSURE(modelParamsPrefixes.empty() || (modelVector.size() == modelParamsPrefixes.size()));
@@ -1893,6 +1902,7 @@ TFullModel SumModels(
             merger.MergedFloatFeatures,
             merger.MergedCatFeatures,
             allModelsHaveLeafWeights,
+            ctrMergePolicy,
             &result);
     } else if (IsAllNonSymmetric(modelVector)) {
         SumModels<TNonSymmetricTreeModelBuilder>(
@@ -1901,6 +1911,7 @@ TFullModel SumModels(
             merger.MergedFloatFeatures,
             merger.MergedCatFeatures,
             allModelsHaveLeafWeights,
+            ctrMergePolicy,
             &result);
     } else {
         CB_ENSURE_INTERNAL(false, "This should be unreachable");
