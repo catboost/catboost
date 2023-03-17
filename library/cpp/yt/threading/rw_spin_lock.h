@@ -3,6 +3,8 @@
 #include "public.h"
 #include "spin_lock_base.h"
 
+#include <library/cpp/yt/memory/public.h>
+
 #include <util/system/rwlock.h>
 
 #include <atomic>
@@ -164,4 +166,3 @@ auto WriterGuard(const T* lock);
 #define RW_SPIN_LOCK_INL_H_
 #include "rw_spin_lock-inl.h"
 #undef RW_SPIN_LOCK_INL_H_
-
