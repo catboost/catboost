@@ -2,6 +2,7 @@ import sys
 import subprocess
 import tempfile
 import os
+import shutil
 
 
 class Opts(object):
@@ -77,6 +78,9 @@ if __name__ == "__main__":
         cmd = [opts.archiver] + opts.create_flags + opts.plugin_flags + opts.extra_args + opts.output_opts + opts.objs
         stdin = None
         exit_code = call()
+    elif len(opts.objs) == 0 and len(opts.libs) == 1:
+        shutil.copy(opts.libs[0], opts.output)
+        exit_code = 0
     else:
         temp = tempfile.NamedTemporaryFile(dir=os.path.dirname(opts.output), delete=False)
 
