@@ -8,8 +8,11 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Returns the current processor clock (rdtsc).
+//! Returns the current processor clock (typically obtained via |rdtscp| instruction).
 TCpuInstant GetCpuInstant();
+
+//! Returns the approximate current processor clock (obtained via |rdtsc| instruction).
+TCpuInstant GetApproximateCpuInstant();
 
 //! Returns the current time (obtained via #GetCpuInstant).
 TInstant GetInstant();
