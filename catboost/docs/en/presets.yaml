@@ -515,6 +515,7 @@ default:
   ECtrTableMergePolicy__FailIfCtrsIntersects: FailIfCtrsIntersects
   ECtrTableMergePolicy__LeaveMostDiversifiedTable: LeaveMostDiversifiedTable
   ECtrTableMergePolicy__IntersectingCountersAverage: IntersectingCountersAverage
+  ECtrTableMergePolicy__KeepAllTables: KeepAllTables
   ECtrTableMergePolicy__default: IntersectingCountersAverage
   loss-functions__params__use_weights: use_weights
   loss-functions__params__metric: metric

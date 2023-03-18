@@ -4,11 +4,11 @@
 
 A list of models to blend.
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--list }} of {{ product }} models
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -27,7 +27,7 @@ A list of weights for the leaf values of each model. The length of this list mus
 
 {{ python-type--list }} of numbers
 
-**Default value** 
+**Default value**
 
 None (leaf values weights are set to 1 for all models)
 
@@ -39,11 +39,12 @@ The counters merging policy. Possible values:
 - {{ ECtrTableMergePolicy__FailIfCtrsIntersects }} — Ensure that the models have zero intersecting counters.
 - {{ ECtrTableMergePolicy__LeaveMostDiversifiedTable }} — Use the most diversified counters by the count of unique hash values.
 - {{ ECtrTableMergePolicy__IntersectingCountersAverage }} — Use the average ctr counter values in the intersecting bins.
+- {{ ECtrTableMergePolicy__KeepAllTables }} — Keep Counter and FeatureFreq ctr's from all models.
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ ECtrTableMergePolicy__default }}
