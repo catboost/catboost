@@ -271,6 +271,19 @@ namespace NCatboostCuda {
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
+                case ELossFunction::MultiCrossEntropy:
+                case ELossFunction::MultiLogloss: {
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    MultiCrossEntropyValueAndDer(
+                        target,
+                        weights,
+                        cursor,
+                        (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                        &tmp,
+                        (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
+                }
                 case ELossFunction::MCC: {
                     return BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache);
                 }
@@ -499,9 +512,9 @@ namespace NCatboostCuda {
 
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
-        const auto numClasses = approxDim == 1 ? 2 : approxDim;
         const bool isMulticlass = IsMultiClassOnlyMetric(targetObjective);
-        if (isMulticlass || targetObjective == ELossFunction::RMSEWithUncertainty) {
+        const bool isRMSEWithUncertainty = targetObjective == ELossFunction::RMSEWithUncertainty;
+        if (isMulticlass || IsMultiLabelObjective(targetObjective) || isRMSEWithUncertainty) {
             CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
         } else {
             CB_ENSURE(approxDim == 1, "Error: non-multiclass output dim should be equal to  1");
@@ -509,9 +522,6 @@ namespace NCatboostCuda {
 
         auto metricType = metricDescription.GetLossFunction();
         const TLossParams& params = metricDescription.GetLossParams();
-        TSet<TString> unusedValidParams;
-
-        TMetricConfig config(metricType, params, approxDim, &unusedValidParams);
 
         switch (metricType) {
             case ELossFunction::Logloss:
@@ -524,6 +534,8 @@ namespace NCatboostCuda {
             case ELossFunction::LogLinQuantile:
             case ELossFunction::MultiClass:
             case ELossFunction::MultiClassOneVsAll:
+            case ELossFunction::MultiCrossEntropy:
+            case ELossFunction::MultiLogloss:
             case ELossFunction::MAPE:
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
@@ -541,6 +553,7 @@ namespace NCatboostCuda {
             case ELossFunction::Recall:
             case ELossFunction::F1: {
                 auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
+                const auto numClasses = approxDim == 1 ? 2 : approxDim;
                 for (ui32 i = 0; i < approxDim; ++i) {
                     result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[i]), i, numClasses, isMulticlass, metricDescription));
                 }

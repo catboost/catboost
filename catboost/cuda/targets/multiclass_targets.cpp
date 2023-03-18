@@ -25,8 +25,9 @@ namespace NCatboostCuda {
                                                                               bool secondDerAsWeights,
                                                                               TOptimizationTarget* target) const {
         CB_ENSURE(!secondDerAsWeights, "MultiClass loss doesn't support second derivatives in tree structure search currently");
-        auto gatheredTarget = TVec::CopyMapping(sampledWeights);
-        Gather(gatheredTarget, GetTarget().GetTargets(), sampledIndices);
+        const auto& targetBuffer = GetTarget().GetTargets();
+        auto gatheredTarget = TVec::Create(sampledWeights.GetMapping(), targetBuffer.GetColumnCount());
+        Gather(gatheredTarget, targetBuffer, sampledIndices);
         ui32 statCount = 1 + NumClasses;
         if (Type == ELossFunction::MultiClass) {
             statCount -= 1;
@@ -49,6 +50,14 @@ namespace NCatboostCuda {
             CB_ENSURE(NumClasses == 2, "Expect two-dimensional predictions");
             RMSEWithUncertaintyValueAndDer(gatheredTarget.ConstCopyView(), weights.ConstCopyView(), point, &sampledIndices,
                                   (TVec*)nullptr, &ders);
+        } else if (EqualToOneOf(Type, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)) {
+            MultiCrossEntropyValueAndDer(
+                gatheredTarget.ConstCopyView(),
+                weights.ConstCopyView(),
+                point,
+                &sampledIndices,
+                (TVec*)nullptr,
+                &ders);
         } else {
             CB_ENSURE(false, "Bug");
         }
@@ -71,6 +80,15 @@ namespace NCatboostCuda {
             CB_ENSURE(NumClasses == 2, "Expect two-dimensional predictions");
             RMSEWithUncertaintyValueAndDer(target, weights, point, (const TStripeBuffer<ui32>*)nullptr, value, der,
                                   stream);
+        } else if (EqualToOneOf(Type, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)) {
+            MultiCrossEntropyValueAndDer(
+                target,
+                weights,
+                point,
+                (const TStripeBuffer<ui32>*)nullptr,
+                value,
+                der,
+                stream);
         } else {
             CB_ENSURE(false, "Unsupported loss " << Type);
         }
@@ -95,6 +113,17 @@ namespace NCatboostCuda {
             case ELossFunction::RMSEWithUncertainty: {
                 CB_ENSURE(NumClasses == 2, "Expect two-dimensional predictions");
                 RMSEWithUncertaintySecondDerRow(target, weights, point, row, der, stream);
+                break;
+            }
+            case ELossFunction::MultiCrossEntropy:
+            case ELossFunction::MultiLogloss: {
+                MultiCrossEntropySecondDerRow(
+                    target,
+                    weights,
+                    point,
+                    row,
+                    der,
+                    stream);
                 break;
             }
             default: {

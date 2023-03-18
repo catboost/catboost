@@ -156,6 +156,102 @@ namespace NKernelHost {
         }
     };
 
+    class TMultiCrossEntropyValueAndDerKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Target;
+        TCudaBufferPtr<const float> Weights;
+        TCudaBufferPtr<const float> Predictions;
+        TCudaBufferPtr<const ui32> LoadPredictionIndices;
+        TCudaBufferPtr<float> FunctionValue;
+        TCudaBufferPtr<float> Der;
+
+    public:
+        TMultiCrossEntropyValueAndDerKernel() = default;
+
+        TMultiCrossEntropyValueAndDerKernel(
+            TCudaBufferPtr<const float> target,
+            TCudaBufferPtr<const float> weights,
+            TCudaBufferPtr<const float> predictions,
+            TCudaBufferPtr<const ui32> loadPredictionIndices,
+            TCudaBufferPtr<float> functionValue,
+            TCudaBufferPtr<float> der
+        )
+            : Target(target)
+            , Weights(weights)
+            , Predictions(predictions)
+            , LoadPredictionIndices(loadPredictionIndices)
+            , FunctionValue(functionValue)
+            , Der(der)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Target, Weights, Predictions, LoadPredictionIndices, FunctionValue, Der);
+
+        void Run(const TCudaStream& stream) const {
+            const auto approxDim = Predictions.GetColumnCount();
+            const auto targetDim = Target.GetColumnCount();
+            CB_ENSURE(approxDim == targetDim, LabeledOutput(approxDim, targetDim));
+            if (Der.Get()) {
+                CB_ENSURE(Der.GetColumnCount() == approxDim, LabeledOutput(Der.GetColumnCount(), approxDim));
+            }
+            NKernel::MultiCrossEntropyValueAndDer(
+                targetDim,
+                Target.Size(),
+                Target.Get(), Target.AlignedColumnSize(),
+                Weights.Get(),
+                Predictions.Get(), Predictions.AlignedColumnSize(),
+                LoadPredictionIndices.Get(),
+                FunctionValue.Get(),
+                Der.Get(), Der.AlignedColumnSize(),
+                stream.GetStream());
+        }
+    };
+
+    class TMultiCrossEntropySecondDerKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Target;
+        TCudaBufferPtr<const float> Weights;
+        TCudaBufferPtr<const float> Predictions;
+        ui32 RowIdx;
+        TCudaBufferPtr<float> Der2;
+
+    public:
+        TMultiCrossEntropySecondDerKernel() = default;
+
+        TMultiCrossEntropySecondDerKernel(
+            TCudaBufferPtr<const float> target,
+            TCudaBufferPtr<const float> weights,
+            TCudaBufferPtr<const float> predictions,
+            ui32 rowIdx,
+            TCudaBufferPtr<float> der2
+        )
+            : Target(target)
+            , Weights(weights)
+            , Predictions(predictions)
+            , RowIdx(rowIdx)
+            , Der2(der2)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Target, Weights, Predictions, RowIdx, Der2);
+
+        void Run(const TCudaStream& stream) const {
+            CB_ENSURE(
+                Target.GetColumnCount() == Predictions.GetColumnCount(),
+                LabeledOutput(Target.GetColumnCount(), Predictions.GetColumnCount()));
+            CB_ENSURE(RowIdx <= Der2.GetColumnCount(), LabeledOutput(RowIdx, Der2.GetColumnCount()));
+            NKernel::MultiCrossEntropySecondDer(
+                Target.GetColumnCount(),
+                Target.Size(),
+                Target.Get(), Target.AlignedColumnSize(),
+                Weights.Get(),
+                Predictions.Get(), Predictions.AlignedColumnSize(),
+                Der2.Get(),
+                RowIdx, Der2.AlignedColumnSize(),
+                stream.GetStream());
+        }
+    };
+
     class TMultiClassOneVsAllValueAndDerKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> TargetClasses;
@@ -340,6 +436,48 @@ inline void RMSEWithUncertaintySecondDerRow(const TCudaBuffer<TFloat, TMapping>&
                            approx,
                            rowIdx,
                            weightedDer2Row);
+}
+
+template <class TMapping, class TFloat>
+inline void MultiCrossEntropyValueAndDer(
+    const TCudaBuffer<TFloat, TMapping>& target,
+    const TCudaBuffer<TFloat, TMapping>& weights,
+    const TCudaBuffer<TFloat, TMapping>& approx,
+    const TCudaBuffer<ui32, TMapping>* loadPredictionsIndices,
+    TCudaBuffer<float, TMapping>* score,
+    TCudaBuffer<float, TMapping>* weightedDer,
+    ui32 stream = 0
+) {
+    using TKernel = NKernelHost::TMultiCrossEntropyValueAndDerKernel;
+    LaunchKernels<TKernel>(
+        target.NonEmptyDevices(),
+        stream,
+        target,
+        weights,
+        approx,
+        loadPredictionsIndices,
+        score,
+        weightedDer);
+}
+
+template <class TMapping, class TFloat>
+inline void MultiCrossEntropySecondDerRow(
+    const TCudaBuffer<TFloat, TMapping>& target,
+    const TCudaBuffer<TFloat, TMapping>& weights,
+    const TCudaBuffer<TFloat, TMapping>& approx,
+    ui32 rowIdx,
+    TCudaBuffer<float, TMapping>* weightedDer2Row,
+    ui32 stream = 0
+) {
+    using TKernel = NKernelHost::TMultiCrossEntropySecondDerKernel;
+    LaunchKernels<TKernel>(
+        target.NonEmptyDevices(),
+        stream,
+        target,
+        weights,
+        approx,
+        rowIdx,
+        weightedDer2Row);
 }
 
 template <class TMapping, class TFloat>

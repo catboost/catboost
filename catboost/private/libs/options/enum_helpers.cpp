@@ -218,9 +218,11 @@ MakeRegister(LossInfos,
     ),
     Registree(MultiLogloss,
         EMetricAttribute::IsMultiLabelCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(MultiCrossEntropy,
         EMetricAttribute::IsMultiLabelCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     RankingRegistree(PairLogit, ERankingType::CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible

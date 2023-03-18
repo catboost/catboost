@@ -143,8 +143,7 @@ namespace NCatboostCuda {
 
         const auto& featuresLayout = *dataProvider.MetaInfo.FeaturesLayout;
 
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetOneDimensionalTarget(), ENanMode::Forbidden, borders);
-
+        auto binarizedTarget = NCB::BinarizeLine<ui8>((*dataProvider.TargetData->GetTarget())[0], ENanMode::Forbidden, borders); // espetrov: fix for multi-target + ctr
         TAdaptiveLock lock;
 
         //TODO(noxoomo): locks here are ugly and error prone
@@ -353,8 +352,6 @@ namespace NCatboostCuda {
             CB_ENSURE(!initModel && !initLearnProgress, "Training continuation for GPU is not yet supported");
             Y_UNUSED(initModelApplyCompatiblePools);
             CB_ENSURE_INTERNAL(!dstLearnProgress, "Returning learn progress for GPU is not yet supported");
-            CB_ENSURE(!IsMultiTargetObjective(catboostOptions.LossFunctionDescription->LossFunction),
-                      "Catboost does not support multitarget on GPU yet");
 
             NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
 
@@ -385,7 +382,11 @@ namespace NCatboostCuda {
                                                       quantizedFeaturesInfo,
                                                       objectsCount,
                                                       /*enableShuffling*/internalOptions.HaveLearnFeatureInMemory);
-
+            CB_ENSURE(
+                !IsMultiTargetObjective(lossFunction)
+                || (EqualToOneOf(lossFunction, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)
+                && featuresManager.GetCtrsCount() + featuresManager.GetEstimatedFeatureCount() == 0),
+                "Catboost does not support " << ToString(lossFunction) << " on GPU yet");
 
             SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,
@@ -405,7 +406,7 @@ namespace NCatboostCuda {
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    *trainingData.Learn->TargetData->GetOneDimensionalTarget())(featuresManager.GetTargetBinarizationDescription()));
+                    (*trainingData.Learn->TargetData->GetTarget())[0])(featuresManager.GetTargetBinarizationDescription())); // esp: fix for multi-target
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
 

@@ -212,6 +212,16 @@ namespace NCB {
                 }
                 return startPoint;
             }
+            case ELossFunction::MultiLogloss:
+            {
+                NCatboostOptions::TLossDescription logloss;
+                logloss.LossFunction = ELossFunction::Logloss;
+                TVector<double> startPoint(target.size());
+                for (int dim : xrange(target.size())) {
+                    startPoint[dim] = *CalcOneDimensionalOptimumConstApprox(logloss, target[dim], weights);
+                }
+                return startPoint;
+            }
             case ELossFunction::MultiQuantile:
             {
                 auto params = lossDescription.GetLossParamsMap();

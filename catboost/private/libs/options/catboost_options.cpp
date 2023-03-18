@@ -791,7 +791,10 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
 
-    if (!IsMultiClassOnlyMetric(lossFunction) && lossFunction != ELossFunction::RMSEWithUncertainty && TaskType == ETaskType::GPU && !boostingType.IsSet()) {
+    if (!IsMultiClassOnlyMetric(lossFunction)
+        && !EqualToOneOf(lossFunction, ELossFunction::RMSEWithUncertainty, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)
+        && TaskType == ETaskType::GPU && !boostingType.IsSet()
+    ) {
         boostingType.SetDefault(EBoostingType::Ordered);
     }
 

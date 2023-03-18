@@ -4,6 +4,19 @@
 #include "dataset_helpers.h"
 #include "estimated_features_calcer.h"
 
+template <typename T>
+static TVector<T> Flatten2D(TVector<TVector<T>>&& src) {
+    if (src.empty()) {
+        return TVector<T>();
+    }
+    TVector<T> result;
+    result.reserve(src.size() * src[0].size());
+    for (const auto& v : src) {
+        result.insert(result.end(), v.begin(), v.end());
+    }
+    return result;
+}
+
 NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount,
                                                                                                   NPar::ILocalExecutor* localExecutor) {
     TDocParallelDataSetsHolder dataSetsHolder(DataProvider,
@@ -21,10 +34,12 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     TCudaBuffer<float, NCudaLib::TStripeMapping> targets;
     TCudaBuffer<float, NCudaLib::TStripeMapping> weights;
 
-    targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
+    const auto& cpuTargets = *DataProvider.TargetData->GetTarget();
+    const auto targetCount = cpuTargets.size();
+    targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping, targetCount);
     weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
 
-    targets.Write(learnLoadBalancingPermutation.Gather(*DataProvider.TargetData->GetOneDimensionalTarget()));
+    targets.Write(Flatten2D(learnLoadBalancingPermutation.Gather2D(*DataProvider.TargetData->GetTarget())));
     weights.Write(learnLoadBalancingPermutation.Gather(GetWeights(*DataProvider.TargetData)));
 
     for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
@@ -44,10 +59,10 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
 
         TDataPermutation testLoadBalancingPermutation = dataSetsHolder.TestDocPerDevicesSplit->Permutation;
 
-        testTargets.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
+        testTargets.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping, targetCount);
         testWeights.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
 
-        testTargets.Write(testLoadBalancingPermutation.Gather(*LinkedTest->TargetData->GetOneDimensionalTarget()));
+        testTargets.Write(Flatten2D(testLoadBalancingPermutation.Gather2D(*LinkedTest->TargetData->GetTarget())));
         testWeights.Write(testLoadBalancingPermutation.Gather(GetWeights(*LinkedTest->TargetData)));
 
         dataSetsHolder.TestDataSet = THolder<TDocParallelDataSet>(new TDocParallelDataSet(*LinkedTest,

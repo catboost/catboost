@@ -6,4 +6,7 @@ namespace NCatboostCuda {
     TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClass));
     TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassOneVsAllRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClassOneVsAll));
     TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> RMSEWithUncertaintyRegistrator(GetTrainerFactoryKey(ELossFunction::RMSEWithUncertainty));
+
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MultiLoglossRegistrator(GetTrainerFactoryKey(ELossFunction::MultiLogloss));
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MultiCrossEntropyRegistrator(GetTrainerFactoryKey(ELossFunction::MultiCrossEntropy));
 }
