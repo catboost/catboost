@@ -303,7 +303,7 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
         }
     }
     for (const auto& [ctrBase, ctrValueTables] : valuesMap) {
-        if (ctrValueTables.size() == 1) {
+        if (ctrValueTables.size() == 1 && ECtrTableMergePolicy::KeepAllTables != mergePolicy) {
             result->CtrData.LearnCtrs[ctrBase] = *(ctrValueTables[0]);
             continue;
         }
