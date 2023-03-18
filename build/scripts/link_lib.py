@@ -27,8 +27,8 @@ class Opts(object):
                 self.modify_flags = ['-M']
             self.need_modify = any(item.endswith('.a') for item in auto_input)
             if self.need_modify:
-                self.objs = filter(lambda x: x.endswith('.o'), auto_input)
-                self.libs = filter(lambda x: x.endswith('.a'), auto_input)
+                self.objs = list( filter(lambda x: x.endswith('.o'), auto_input) )
+                self.libs = list( filter(lambda x: x.endswith('.a'), auto_input) )
             else:
                 self.objs = auto_input
                 self.libs = []
