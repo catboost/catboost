@@ -8,6 +8,7 @@ if((NOT DEFINED CATBOOST_COMPONENTS) OR (LIBS IN_LIST CATBOOST_COMPONENTS) OR (l
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(static)
 
 add_library(catboostmodel SHARED)
 target_link_libraries(catboostmodel PUBLIC
