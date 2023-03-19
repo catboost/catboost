@@ -231,12 +231,24 @@ public:
         size_t catFeatureCount = 0;
         std::vector<const char*> catFeaturesPtrsVector;
         std::vector<const char**> charPtrPtrsVector;
-        FromStringToCharVectors(catFeatures, &catFeatureCount, &catFeaturesPtrsVector, &charPtrPtrsVector);
+        FromStringToCharVectors(
+            "categorical",
+            catFeatures,
+            &catFeatureCount,
+            &catFeaturesPtrsVector,
+            &charPtrPtrsVector
+        );
 
         size_t textFeatureCount = 0;
         std::vector<const char*> textFeaturesPtrsVector;
         std::vector<const char**> charTextPtrPtrsVector;
-        FromStringToCharVectors(textFeatures, &textFeatureCount, &textFeaturesPtrsVector, &charTextPtrPtrsVector);
+        FromStringToCharVectors(
+            "text",
+            textFeatures,
+            &textFeatureCount,
+            &textFeaturesPtrsVector,
+            &charTextPtrPtrsVector
+        );
 
         size_t embeddingFeatureCount = 0;
         std::vector<const float*> embeddingFeaturesPtrs;
@@ -295,7 +307,13 @@ public:
         size_t textFeatureCount = 0;
         std::vector<const char*> textFeaturesPtrsVector;
         std::vector<const char**> charTextPtrPtrsVector;
-        FromStringToCharVectors(textFeatures, &textFeatureCount, &textFeaturesPtrsVector, &charTextPtrPtrsVector);
+        FromStringToCharVectors(
+            "text",
+            textFeatures,
+            &textFeatureCount,
+            &textFeaturesPtrsVector,
+            &charTextPtrPtrsVector
+        );
 
         size_t embeddingFeatureCount = 0;
         std::vector<const float*> embeddingFeaturesPtrs;
@@ -417,6 +435,7 @@ private:
     }
 
     void FromStringToCharVectors(
+        const char* featuresType,
         const std::vector<std::vector<std::string>>& stringFeatures,
         size_t* featureCount,
         std::vector<const char*>* featuresPtrsVector,
@@ -428,7 +447,9 @@ private:
                 *featureCount = stringVec.size();
             }
             if (*featureCount != stringVec.size()) {
-                throw std::runtime_error("All text feature vectors should be of the same length");
+                throw std::runtime_error(
+                    std::string("All ") + featuresType + " feature vectors should be of the same length"
+                );
             }
         }
         if (*featureCount != 0) {
