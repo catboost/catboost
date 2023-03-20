@@ -5,9 +5,9 @@ target_host=aarch64-linux-gnu
 [settings]
 arch=armv8
 build_type=Release
-compiler=clang
-compiler.libcxx=libc++
-compiler.version=14
+compiler=gcc
+compiler.libcxx=libstdc++11
+compiler.version=12
 compiler.cppstd=20
 os=Linux
 [options]
@@ -15,10 +15,11 @@ os=Linux
 [env]
 CONAN_CMAKE_FIND_ROOT_PATH=/usr/$target_host
 CONAN_CMAKE_SYSROOT=/usr/$target_host
-CC=clang
-CXX=clang++
-CXXFLAGS="-I/usr/$target_host/include/ -target $target_host"
-CFLAGS="-I/usr/$target_host/include/ -target $target_host"
+SYSROOT=/usr/$target_host
+CC=$target_host-gcc
+CXX=$target_host-g++
+CXXFLAGS="-I/usr/$target_host/include/"
+CFLAGS="-I/usr/$target_host/include/"
 CHOST=$target_host
 AR=$target_host-ar
 AS=$target_host-as
