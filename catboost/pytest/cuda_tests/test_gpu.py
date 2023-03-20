@@ -1679,6 +1679,33 @@ def test_multilogloss(loss_function):
     assert compare_fit_evals_with_precision(cpu_eval_path, gpu_eval_path, rtol=1e-6, atol=1e-6)
 
 
+@pytest.mark.parametrize('loss_function', ['MultiLogloss', 'MultiCrossEntropy'])
+def test_multilogloss_with_bow(loss_function):
+    datatset = 'rotten_tomatoes_small_with_embeddings'
+    fit_params = (
+        '--loss-function', loss_function,
+        '--learning-rate', '0.03',
+        '-f', data_file(datatset, 'train_two_labels'),
+        '-t', data_file(datatset, 'train_two_labels'),
+        '--column-description', data_file(datatset, 'cd_binclass_only_text_two_labels'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--border-count', '254',
+        '--use-best-model', 'false',
+        '--target-border', '0.5',
+    )
+
+    fit_params += NO_RANDOM_PARAMS
+
+    cpu_eval_path = yatest.common.test_output_path('cpu_eval.tsv')
+    gpu_eval_path = yatest.common.test_output_path('gpu_eval.tsv')
+
+    execute_catboost_fit('CPU', fit_params + ('--eval-file', cpu_eval_path))
+    fit_catboost_gpu(fit_params + ('--eval-file', gpu_eval_path))
+    assert compare_fit_evals_with_precision(cpu_eval_path, gpu_eval_path, rtol=1e-6, atol=1e-6)
+
+
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_multiclass_baseline(loss_function):
     labels = [0, 1, 2, 3]
