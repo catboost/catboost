@@ -143,6 +143,8 @@ namespace NUnitTest {
         // --fork-tests is set (warning: this may be false, but never the less test will be forked if called inside UNIT_FORKED_TEST)
         virtual bool GetForkTests() const;
 
+        virtual void SetForkTestsParams(bool forkTests, bool isForked);
+
     private:
         virtual void OnStart();
 
@@ -165,6 +167,8 @@ namespace NUnitTest {
     private:
         TMap<TString, size_t> TestErrors_;
         TMap<TString, size_t> CurTestErrors_;
+        bool IsForked_ = false;
+        bool ForkTests_ = false;
     };
 
     class TTestBase;

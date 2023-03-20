@@ -237,12 +237,17 @@ void NUnitTest::ITestSuiteProcessor::Run(std::function<void()> f, const TString&
     f();
 }
 
+void NUnitTest::ITestSuiteProcessor::SetForkTestsParams(bool forkTests, bool isForked) {
+    ForkTests_ = forkTests;
+    IsForked_ = isForked;
+}
+
 bool NUnitTest::ITestSuiteProcessor::GetIsForked() const {
-    return false;
+    return IsForked_;
 }
 
 bool NUnitTest::ITestSuiteProcessor::GetForkTests() const {
-    return false;
+    return ForkTests_;
 }
 
 void NUnitTest::ITestSuiteProcessor::OnStart() {

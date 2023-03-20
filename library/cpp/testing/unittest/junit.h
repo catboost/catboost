@@ -1,12 +1,26 @@
 #include "registar.h"
 
+#include <util/datetime/base.h>
+#include <util/generic/maybe.h>
+#include <util/system/tempfile.h>
+
 namespace NUnitTest {
 
+extern const TString Y_UNITTEST_OUTPUT_CMDLINE_OPTION;
+
 class TJUnitProcessor : public ITestSuiteProcessor {
+    struct TFailure {
+        TString Message;
+        TString BackTrace;
+    };
+
     struct TTestCase {
         TString Name;
         bool Success;
-        TVector<TString> Failures;
+        TVector<TFailure> Failures;
+        TString StdOut;
+        TString StdErr;
+        double DurationSecods = 0.0;
 
         size_t GetFailuresCount() const {
             return Failures.size();
@@ -27,27 +41,27 @@ class TJUnitProcessor : public ITestSuiteProcessor {
             }
             return sum;
         }
+
+        double GetDurationSeconds() const {
+            double sum = 0.0;
+            for (const auto& [name, testCase] : Cases) {
+                sum += testCase.DurationSecods;
+            }
+            return sum;
+        }
     };
 
+    struct TOutputCapturer;
+
 public:
-    TJUnitProcessor(TString file, TString exec)
-        : FileName(file)
-        , ExecName(exec)
-    {
-    }
+    TJUnitProcessor(TString file, TString exec);
+    ~TJUnitProcessor();
 
-    ~TJUnitProcessor() {
-        Save();
-    }
+    void SetForkTestsParams(bool forkTests, bool isForked) override;
 
-    void OnError(const TError* descr) override {
-        auto* testCase = GetTestCase(descr->test);
-        testCase->Failures.emplace_back(descr->msg);
-    }
-
-    void OnFinish(const TFinish* descr) override {
-        GetTestCase(descr->test)->Success = descr->Success;
-    }
+    void OnBeforeTest(const TTest* test) override;
+    void OnError(const TError* descr) override;
+    void OnFinish(const TFinish* descr) override;
 
 private:
     TTestCase* GetTestCase(const TTest* test) {
@@ -73,10 +87,22 @@ private:
         return sum;
     }
 
+    void SerializeToFile();
+    void MergeSubprocessReport();
+
+    TString BuildFileName(size_t index, const TStringBuf extension) const;
+    void MakeReportFileName();
+    void MakeTmpFileNameForForkedTests();
+
 private:
-    TString FileName;
-    TString ExecName;
+    const TString FileName; // cmd line param
+    const TString ExecName; // cmd line param
+    TString ResultReportFileName;
+    TMaybe<TTempFile> TmpReportFile;
     TMap<TString, TTestSuite> Suites;
+    THolder<TOutputCapturer> StdErrCapturer;
+    THolder<TOutputCapturer> StdOutCapturer;
+    TInstant StartCurrentTestTime;
 };
 
 } // namespace NUnitTest
