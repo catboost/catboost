@@ -311,11 +311,21 @@ def process(fetched_file, file_name, args, remove=True):
     assert len(args.rename) <= len(args.outputs), (
         'too few outputs to rename', args.rename, 'into', args.outputs)
 
-    # Forbid changes to the loaded resource
-    chmod(fetched_file, 0o444)
+    fetched_file_is_dir = os.path.isdir(fetched_file)
+    if fetched_file_is_dir and not args.untar_to:
+        raise ResourceIsDirectoryError('Resource may be directory only with untar_to option: ' + fetched_file)
 
-    if not os.path.isfile(fetched_file):
-        raise ResourceIsDirectoryError('Resource must be a file, not a directory: %s' % fetched_file)
+    # make all read only
+    if fetched_file_is_dir:
+        chmod(fetched_file, 0o555)
+        for root, dirs, files in os.walk(fetched_file):
+            for filename in files:
+                chmod(os.path.join(root, filename), 0o444)
+            for dirname in dirs:
+                chmod(os.path.join(root, dirname), 0o555)
+    else:
+        chmod(fetched_file, 0o444)
+
 
     if args.copy_to:
         hardlink_or_copy(fetched_file, args.copy_to)
@@ -332,19 +342,27 @@ def process(fetched_file, file_name, args, remove=True):
 
     if args.untar_to:
         ensure_dir(args.untar_to)
-        # Extract only requested files
-        try:
-            with tarfile.open(fetched_file, mode='r:*') as tar:
-                inputs = set(map(os.path.normpath, args.rename + args.outputs[len(args.rename):]))
-                members = [entry for entry in tar if os.path.normpath(os.path.join(args.untar_to, entry.name)) in inputs]
-                tar.extractall(args.untar_to, members=members)
-            # Forbid changes to the loaded resource data
-            for root, _, files in os.walk(args.untar_to):
-                for filename in files:
-                    chmod(os.path.join(root, filename), 0o444)
-        except tarfile.ReadError as e:
-            logging.exception(e)
-            raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
+        inputs = set(map(os.path.normpath, args.rename + args.outputs[len(args.rename):]))
+        if fetched_file_is_dir:
+            for member in inputs:
+                hardlink_or_copy(
+                    os.path.normpath(os.path.join(fetched_file, member)),
+                    os.path.normpath(os.path_join(args.untar_to, member)))
+        else:
+           # Extract only requested files
+            try:
+                with tarfile.open(fetched_file, mode='r:*') as tar:
+                    members = [entry for entry in tar if os.path.normpath(os.path.join(args.untar_to, entry.name)) in inputs]
+                    tar.extractall(args.untar_to, members=members)
+            except tarfile.ReadError as e:
+                logging.exception(e)
+                raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
+
+        # Forbid changes to the loaded resource data
+        for root, _, files in os.walk(args.untar_to):
+             for filename in files:
+                 chmod(os.path.join(root, filename), 0o444)
+
 
     for src, dst in zip(args.rename, args.outputs):
         if src == 'RESOURCE':
@@ -372,4 +390,7 @@ def process(fetched_file, file_name, args, remove=True):
             remove = False
 
     if remove:
-        os.remove(fetched_file)
+        if fetched_file_is_dir:
+            shutil.rmtree(fetched_file)
+        else:
+            os.remove(fetched_file)
