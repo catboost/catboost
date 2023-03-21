@@ -63,7 +63,7 @@ def sum_hashes(hashes):
     sha = md5()
 
     for hash_ in hashes:
-        sha.update(six.ensure_binary(hash_ + '#'))
+        sha.update(six.ensure_binary(hash_) + b'#')
 
     return sha.hexdigest()
 
