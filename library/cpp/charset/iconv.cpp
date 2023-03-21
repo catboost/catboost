@@ -5,20 +5,22 @@
 using namespace NICONVPrivate;
 
 TDescriptor::TDescriptor(const char* from, const char* to)
-    : Descriptor_(libiconv_open(to, from))
+    : Descriptor_(iconv_open(to, from))
     , From_(from)
     , To_(to)
 {
+#if defined(USE_ICONV_EXTENSIONS)
     if (!Invalid()) {
         int temp = 1;
 
         libiconvctl(Descriptor_, ICONV_SET_DISCARD_ILSEQ, &temp);
     }
+#endif
 }
 
 TDescriptor::~TDescriptor() {
     if (!Invalid()) {
-        libiconv_close(Descriptor_);
+        iconv_close(Descriptor_);
     }
 }
 
@@ -31,7 +33,7 @@ size_t NICONVPrivate::RecodeImpl(const TDescriptor& descriptor, const char* in, 
     char* outPtr = out;
     size_t inSizeMod = inSize;
     size_t outSizeMod = outSize;
-    size_t res = libiconv(descriptor.Get(), &inPtr, &inSizeMod, &outPtr, &outSizeMod);
+    size_t res = iconv(descriptor.Get(), &inPtr, &inSizeMod, &outPtr, &outSizeMod);
 
     read = inSize - inSizeMod;
     written = outSize - outSizeMod;

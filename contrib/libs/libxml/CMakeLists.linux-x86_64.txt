@@ -6,7 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-find_package(Iconv REQUIRED)
 find_package(ZLIB REQUIRED)
 
 add_library(contrib-libs-libxml)
@@ -27,7 +26,6 @@ target_link_libraries(contrib-libs-libxml PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  Iconv::Iconv
   ZLIB::ZLIB
   library-cpp-charset
 )

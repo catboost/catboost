@@ -6,14 +6,12 @@
 # original buildsystem will not be accepted.
 
 
-find_package(Iconv REQUIRED)
 
 add_library(library-cpp-charset)
 target_link_libraries(library-cpp-charset PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  Iconv::Iconv
 )
 target_sources(library-cpp-charset PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/charset/generated/cp_data.cpp
