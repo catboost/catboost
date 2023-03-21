@@ -20,6 +20,8 @@ namespace NCB::NModelEvaluation {
                 , ApplyData(ModelTrees->GetApplyData())
             {
                 CB_ENSURE(!model.HasCategoricalFeatures(), "Model contains categorical features, gpu evaluation impossible");
+                CB_ENSURE(!model.HasTextFeatures(), "Model contains text features, gpu evaluation impossible");
+                CB_ENSURE(!model.HasEmbeddingFeatures(), "Model contains embedding features, gpu evaluation impossible");
                 CB_ENSURE(model.IsOblivious(), "Model is not oblivious, gpu evaluation impossible");
                 TVector<TGPURepackedBin> gpuBins;
                 for (const TRepackedBin& cpuRepackedBin : ModelTrees->GetRepackedBins()) {
@@ -214,10 +216,6 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureLayout
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
-                CB_ENSURE(
-                    catFeatures.empty(),
-                    "Cat features are not supported on GPU, should be empty"
-                );
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
 
@@ -232,18 +230,8 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureLayout
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
-                CB_ENSURE(
-                    catFeatures.empty(),
-                    "Cat features are not supported on GPU, should be empty"
-                );
-                CB_ENSURE(
-                    textFeatures.empty(),
-                    "Text features are not supported on GPU, should be empty"
-                );
-                CB_ENSURE(
-                    embeddingFeatures.empty(),
-                    "Embedding features are not supported on GPU, should be empty"
-                );
+                Y_UNUSED(textFeatures);
+                Y_UNUSED(embeddingFeatures);
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
 
@@ -256,10 +244,6 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureLayout
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
-                CB_ENSURE(
-                    catFeatures.empty(),
-                    "Cat features are not supported on GPU, should be empty"
-                );
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
 
@@ -273,10 +257,7 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureInfo = nullptr
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
-                CB_ENSURE(
-                    textFeatures.empty(),
-                    "Text features are not supported in GPU calc, should be empty"
-                );
+                Y_UNUSED(textFeatures);
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureInfo);
             }
 
@@ -291,18 +272,8 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureInfo = nullptr
             ) const override {
                 ValidateInputFeatures(floatFeatures, catFeatures);
-                CB_ENSURE(
-                    catFeatures.empty(),
-                    "Cat features are not supported on GPU, should be empty"
-                );
-                CB_ENSURE(
-                    textFeatures.empty(),
-                    "Text features are not supported in GPU calc, should be empty"
-                );
-                CB_ENSURE(
-                    embeddingFeatures.empty(),
-                    "Embedding features are not supported in GPU calc, should be empty"
-                );
+                Y_UNUSED(textFeatures);
+                Y_UNUSED(embeddingFeatures);
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureInfo);
             }
 
