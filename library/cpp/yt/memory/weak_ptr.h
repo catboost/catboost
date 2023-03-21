@@ -257,7 +257,8 @@ int ResetAndGetResidualRefCount(TIntrusivePtr<T>& pointer)
 {
     auto weakPointer = MakeWeak(pointer);
     pointer.Reset();
-    if (pointer = weakPointer.Lock()) {
+    pointer = weakPointer.Lock();
+    if (pointer) {
         // This _may_ return 0 if we are again the only holder of the pointee.
         return pointer->GetRefCount() - 1;
     } else {
