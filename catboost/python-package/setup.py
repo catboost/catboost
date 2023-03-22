@@ -200,7 +200,8 @@ class build_ext(_build_ext):
             '-G', 'Ninja',
             '-DCMAKE_BUILD_TYPE=Release',
             '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(topsrc_dir, 'build', 'toolchains', 'clang.toolchain'),
-            '-DCMAKE_POSITION_INDEPENDENT_CODE=On'
+            '-DCMAKE_POSITION_INDEPENDENT_CODE=On',
+            '-DCATBOOST_COMPONENTS=python-package'
         ]
         logging_execute(cmake_cmd, verbose, dry_run)
 
