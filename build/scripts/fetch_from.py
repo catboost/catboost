@@ -347,7 +347,7 @@ def process(fetched_file, file_name, args, remove=True):
             for member in inputs:
                 hardlink_or_copy(
                     os.path.normpath(os.path.join(fetched_file, member)),
-                    os.path.normpath(os.path_join(args.untar_to, member)))
+                    os.path.normpath(os.path.join(args.untar_to, member)))
         else:
            # Extract only requested files
             try:
