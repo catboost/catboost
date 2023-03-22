@@ -18,9 +18,9 @@ EXT_SRC = 'catboost_so_src'
 def get_all_cmake_lists(base_dir, add_android=True):
     files_list = [
         'CMakeLists.darwin-arm64.txt',
-        'CMakeLists.darwin.txt',
+        'CMakeLists.darwin-x86_64.txt',
         'CMakeLists.linux-aarch64.txt',
-        'CMakeLists.linux.txt',
+        'CMakeLists.linux-x86_64.txt',
         'CMakeLists.txt',
     ]
     if add_android:
