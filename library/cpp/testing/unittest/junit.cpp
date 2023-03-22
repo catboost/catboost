@@ -220,6 +220,8 @@ void TJUnitProcessor::SerializeToFile() {
         xmlFreeTextWriter(file);
     };
 
+    CHECK_CALL(xmlTextWriterSetIndent(file, 1));
+    
     CHECK_CALL(xmlTextWriterStartDocument(file, nullptr, "UTF-8", nullptr));
     CHECK_CALL(xmlTextWriterStartElement(file, XML_STR("testsuites")));
     CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("tests"), XML_STR(ToString(GetTestsCount()).c_str())));
@@ -235,6 +237,7 @@ void TJUnitProcessor::SerializeToFile() {
 
         for (const auto& [testName, test] : suite.Cases) {
             CHECK_CALL(xmlTextWriterStartElement(file, XML_STR("testcase")));
+            CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("classname"), XML_STR(suiteName.c_str())));
             CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("name"), XML_STR(testName.c_str())));
             CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("id"), XML_STR(testName.c_str())));
             CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("time"), XML_STR(ToString(test.DurationSecods).c_str())));
