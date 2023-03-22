@@ -32,6 +32,17 @@ public:
         return *this;
     }
 
+    template <typename ValueType>
+    THttpResponse& AddOrReplaceHeader(const TString& name, const ValueType& value) {
+        return AddOrReplaceHeader(THttpInputHeader(name, ToString(value)));
+    }
+
+    THttpResponse& AddOrReplaceHeader(const THttpInputHeader& header) {
+        Headers.AddOrReplaceHeader(header);
+
+        return *this;
+    }
+
     THttpResponse& AddMultipleHeaders(const THttpHeaders& headers);
 
     const THttpHeaders& GetHeaders() const {
