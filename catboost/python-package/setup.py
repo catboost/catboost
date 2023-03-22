@@ -216,9 +216,15 @@ class build_ext(_build_ext):
 
         logging.info('Successfully built {} with CUDA support'.format(catboost_ext))
 
-        dll = os.path.join(build_dir, 'catboost', 'python-package', 'catboost', catboost_ext)
-        distutils.file_util.copy_file(dll, put_dir, verbose=verbose, dry_run=dry_run)
+        # TODO(akhropov): CMake produces wrong artifact names right now so we have to rename it
+        cmake_dll_artifact_name = {
+            'linux': 'lib_catboost.so',
+            'darwin': 'lib_catboost.dylib',
+            'win32': '_catboost.dll',
+        }[sys.platform]
 
+        dll = os.path.join(build_dir, 'catboost', 'python-package', 'catboost', cmake_dll_artifact_name)
+        distutils.file_util.copy_file(dll, os.path.join(put_dir, catboost_ext), verbose=verbose, dry_run=dry_run)
 
 class sdist(_sdist):
 
