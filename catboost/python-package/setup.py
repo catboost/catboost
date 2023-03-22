@@ -45,7 +45,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         'cmake',
         'contrib',
         'library',
-        'msvs',
         'tools',
         'util',
     ]
@@ -189,10 +188,7 @@ class build_ext(_build_ext):
         dry_run = self.distribution.dry_run
         distutils.dir_util.mkpath(put_dir, verbose=verbose, dry_run=dry_run)
 
-        if 'win' in sys.platform:
-            self.build_with_msbuild(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
-        else:
-            self.build_with_cmake_and_ninja(topsrc_dir, build_dir, 'lib' + catboost_ext, put_dir, verbose, dry_run)
+        self.build_with_cmake_and_ninja(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
 
     def build_with_cmake_and_ninja(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
         logging.info('Buildling {} with cmake and ninja'.format(catboost_ext))
@@ -221,10 +217,6 @@ class build_ext(_build_ext):
 
         dll = os.path.join(build_dir, 'catboost', 'python-package', 'catboost', catboost_ext)
         distutils.file_util.copy_file(dll, put_dir, verbose=verbose, dry_run=dry_run)
-
-    def build_with_msbuild(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
-        logging.info('Buildling {} with msbuild'.format(catboost_ext))
-        raise ValueError('TODO: build with msbuild')
 
 
 class sdist(_sdist):
