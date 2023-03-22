@@ -80,6 +80,17 @@ namespace NJson {
     }
 
     template<>
+    struct TConverter<TJsonValue> {
+        static TJsonValue Encode(const TJsonValue& value) {
+            return value;
+        }
+
+        static TJsonValue Decode(const TJsonValue& value) {
+            return value;
+        }
+    };
+
+    template<>
     struct TConverter<bool>: public TDefaultEncoder<bool> {
         static inline bool Decode(const TJsonValue& value) {
             return value.GetBooleanSafe();
