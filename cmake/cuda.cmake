@@ -66,7 +66,7 @@ if (HAVE_CUDA)
 
     while (Separated_CxxFlags)
       list(POP_FRONT Separated_CxxFlags cxxFlag)
-      if ((cxxFlag IN_LIST ${skipList}) OR (cxxFlag MATCHES ${skipPrefixRegexp}))
+      if ((cxxFlag IN_LIST skipList) OR (cxxFlag MATCHES ${skipPrefixRegexp}))
         continue()
       endif()
       if ((cxxFlag STREQUAL -fopenmp=libomp) AND (NOT isHostCompilerClang))
@@ -131,8 +131,10 @@ if (HAVE_CUDA)
 
   if(MSVC)
     # default CMake flags differ from our configuration
-    set(CMAKE_CUDA_FLAGS_DEBUG "--compiler-options /Ob0,/Od,/D_DEBUG")
-    set(CMAKE_CUDA_FLAGS_RELEASE "--compiler-options /Ox,/Ob2,/Oi,/DNDEBUG")
+    set(CMAKE_CUDA_FLAGS_DEBUG "-D_DEBUG --compiler-options /Z7,/Ob0,/Od")
+    set(CMAKE_CUDA_FLAGS_MINSIZEREL "-DNDEBUG --compiler-options /O1,/Ob1")
+    set(CMAKE_CUDA_FLAGS_RELEASE "-DNDEBUG --compiler-options /Ox,/Ob2,/Oi")
+    set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-DNDEBUG --compiler-options /Z7,/Ox,/Ob1")
   endif()
 
   # use versions from contrib, standard libraries from CUDA distibution are incompatible with MSVC and libcxx
