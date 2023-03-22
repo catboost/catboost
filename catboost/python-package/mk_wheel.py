@@ -234,7 +234,7 @@ def make_record(dir_path, dist_info_dir):
         tmp_dir_length = len(dir_path) + 1
         for item in wheel_items:
             if item != record_filename:
-                record.write(item[tmp_dir_length:] + ',sha256=' + urlsafe_b64encode(calc_sha256_digest(item)).decode('ascii') + ',' + str(os.path.getsize(item)) + '\n')
+                record.write(item[tmp_dir_length:] + ',sha256=' + urlsafe_b64encode(calc_sha256_digest(item)).decode('ascii').rstrip('=') + ',' + str(os.path.getsize(item)) + '\n')
             else:
                 record.write(item[tmp_dir_length:] + ',,\n')
 
