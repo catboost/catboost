@@ -8,7 +8,7 @@ from types import TracebackType
 from typing import Any
 from typing import Callable
 from typing import cast
-from typing import Generic
+from typing import ContextManager
 from typing import List
 from typing import Mapping
 from typing import Optional
@@ -269,10 +269,16 @@ class ApproxMapping(ApproxBase):
                 max_abs_diff = max(
                     max_abs_diff, abs(approx_value.expected - other_value)
                 )
-                max_rel_diff = max(
-                    max_rel_diff,
-                    abs((approx_value.expected - other_value) / approx_value.expected),
-                )
+                if approx_value.expected == 0.0:
+                    max_rel_diff = math.inf
+                else:
+                    max_rel_diff = max(
+                        max_rel_diff,
+                        abs(
+                            (approx_value.expected - other_value)
+                            / approx_value.expected
+                        ),
+                    )
                 different_ids.append(approx_key)
 
         message_data = [
@@ -957,7 +963,7 @@ raises.Exception = fail.Exception  # type: ignore
 
 
 @final
-class RaisesContext(Generic[E]):
+class RaisesContext(ContextManager[_pytest._code.ExceptionInfo[E]]):
     def __init__(
         self,
         expected_exception: Union[Type[E], Tuple[Type[E], ...]],
