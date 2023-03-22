@@ -1,0 +1,12 @@
+allowHTML: true
+apply-presets: true
+varsPreset: external
+
+docs-viewer:
+  metrika: 44884234
+  project-name: catboost
+  logo-title: CatBoost
+  favicon-src: https://avatars.mds.yandex.net/get-bunker/49769/c4b06f2b169c7596da4143d5f951d925b17c413e/orig
+  logo-src: https://yastatic.net/s3/locdoc/daas-static/catboost/71b237a322eec6f2889af0dae2a9c549.svg
+  logo-dark-src: https://catboost-opensource.s3.yandex.net/logo_white_for_dark_theme.svg
+  github-url-prefix: https://github.com/catboost/catboost/tree/master/catboost/docs
