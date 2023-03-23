@@ -32,9 +32,6 @@ using double_conversion::StringToDoubleConverter;
  */
 
 namespace {
-    constexpr char IntToChar[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-    static_assert(Y_ARRAY_SIZE(IntToChar) == 16, "expect Y_ARRAY_SIZE(IntToChar) == 16");
 
     // clang-format off
     constexpr int LetterToIntMap[] = {
@@ -53,82 +50,16 @@ namespace {
     // clang-format on
 
     template <class T>
-    std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T value) noexcept {
-        return std::make_unsigned_t<T>(-(value + 1)) + std::make_unsigned_t<T>(1);
-    }
-
-    template <class T>
-    std::enable_if_t<std::is_unsigned<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T) noexcept {
-        Y_UNREACHABLE();
-    }
-
-    template <class T>
     std::make_signed_t<T> NegatePositiveSigned(T value) noexcept {
         return value > 0 ? (-std::make_signed_t<T>(value - 1) - 1) : 0;
     }
-
-    template <class T, unsigned base, class TChar>
-    struct TBasicIntFormatter {
-        static_assert(1 < base && base < 17, "expect 1 < base && base < 17");
-        static_assert(std::is_unsigned<T>::value, "TBasicIntFormatter can only handle unsigned integers.");
-
-        static inline size_t Format(T value, TChar* buf, size_t len) {
-            Y_ENSURE(len, TStringBuf("zero length"));
-
-            TChar* tmp = buf;
-
-            do {
-                // divide only once, do not use mod
-                const T nextVal = static_cast<T>(value / base);
-                *tmp++ = IntToChar[base == 2 || base == 4 || base == 8 || base == 16 ? value & (base - 1) : value - base * nextVal];
-                value = nextVal;
-            } while (value && --len);
-
-            Y_ENSURE(!value, TStringBuf("not enough room in buffer"));
-
-            const size_t result = tmp - buf;
-
-            --tmp;
-
-            while (buf < tmp) {
-                TChar c = *buf;
-
-                *buf = *tmp;
-                *tmp = c;
-                ++buf;
-                --tmp;
-            }
-
-            return result;
-        }
-    };
-
-    template <class T, unsigned base, class TChar>
-    struct TIntFormatter {
-        static_assert(1 < base && base < 17, "expect 1 < base && base < 17");
-        static_assert(std::is_integral<T>::value, "T must be an integral type.");
-
-        static inline size_t Format(T value, TChar* buf, size_t len) {
-            using TUFmt = TBasicIntFormatter<std::make_unsigned_t<T>, base, TChar>;
-
-            if (std::is_signed<T>::value && value < 0) {
-                Y_ENSURE(len >= 2, TStringBuf("not enough room in buffer"));
-
-                *buf = '-';
-
-                return 1 + TUFmt::Format(NegateNegativeSigned(value), buf + 1, len - 1);
-            }
-
-            return TUFmt::Format(value, buf, len);
-        }
-    };
 
     template <class T>
     struct TFltModifiers;
 
     template <class T, int base, class TChar>
     Y_NO_INLINE size_t FormatInt(T value, TChar* buf, size_t len) {
-        return TIntFormatter<T, base, TChar>::Format(value, buf, len);
+        return TIntStringBuf<T, base, TChar>::Convert(value, buf, len);
     }
 
     template <class T>

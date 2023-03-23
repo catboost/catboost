@@ -386,3 +386,70 @@ static inline TUtf16String ToWtring(const TWtringBuf wtr) {
 static inline TUtf32String ToUtf32String(const TUtf32StringBuf wtr) {
     return TUtf32String(wtr);
 }
+
+template <typename T, unsigned base = 10, class TChar = char>
+class TIntStringBuf {
+private:
+    // inline constexprs are not supported by CUDA yet
+    static constexpr char IntToChar[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+    static_assert(Y_ARRAY_SIZE(IntToChar) == 16, "expect Y_ARRAY_SIZE(IntToChar) == 16");
+    static_assert(1 < base && base < 17, "expect 1 < base && base < 17");
+
+public:
+    template <std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    explicit constexpr TIntStringBuf(T t) {
+        Size_ = Convert(t, Buf_, sizeof(Buf_) - 1);
+        // Init the rest of the array,
+        // otherwise constexpr copy and move constructors don't work due to uninitialized data access
+        std::fill(Buf_ + Size_, Buf_ + sizeof(Buf_), '\0');
+    }
+
+    constexpr operator TStringBuf() const noexcept {
+        return TStringBuf(Buf_, Size_);
+    }
+
+    constexpr static ui32 Convert(T t, TChar* buf, ui32 bufLen) {
+        if (std::is_signed<T>::value && t < 0) {
+            Y_ENSURE(bufLen >= 2, TStringBuf("not enough room in buffer"));
+            buf[0] = '-';
+            const auto mt = std::make_unsigned_t<T>(-(t + 1)) + std::make_unsigned_t<T>(1);
+            return ConvertUnsigned(mt, &buf[1], bufLen - 1) + 1;
+        } else {
+            return ConvertUnsigned(t, buf, bufLen);
+        }
+    }
+
+private:
+    constexpr static ui32 ConvertUnsigned(typename std::make_unsigned<T>::type t, TChar* buf, ui32 bufLen) {
+        Y_ENSURE(bufLen, TStringBuf("zero length"));
+
+        if (t == 0) {
+            *buf = '0';
+            return 1;
+        }
+        auto* be = buf + bufLen;
+        ui32 l = 0;
+        while (t > 0 && be > buf) {
+            const auto v = t / base;
+            const auto r = (base == 2 || base == 4 || base == 8 || base == 16) ? t & (base - 1) : t - base * v;
+            --be;
+            if /*constexpr*/ (base <= 10) { // if constexpr is not supported by CUDA yet
+                *be = r + '0';
+            } else {
+                *be = IntToChar[r];
+            }
+            ++l;
+            t = v;
+        }
+        Y_ENSURE(!t, TStringBuf("not enough room in buffer"));
+        for (ui32 i = 0; i < l; ++i) {
+            *buf = *be;
+            ++buf;
+            ++be;
+        }
+        return l;
+    }
+    ui32 Size_;
+    TChar Buf_[sizeof(T) * 8]; // worst case base = 2
+};
