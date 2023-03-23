@@ -391,9 +391,8 @@ template <typename T, unsigned base = 10, class TChar = char>
 class TIntStringBuf {
 private:
     // inline constexprs are not supported by CUDA yet
-    static constexpr char IntToChar[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    static constexpr char IntToChar[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-    static_assert(Y_ARRAY_SIZE(IntToChar) == 16, "expect Y_ARRAY_SIZE(IntToChar) == 16");
     static_assert(1 < base && base < 17, "expect 1 < base && base < 17");
 
 public:
