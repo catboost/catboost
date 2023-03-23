@@ -46,7 +46,6 @@ migrations:
     - cloud/support/tools/qcalc/app/quota/services
     - cloud/support/tools/quotactl-l2/quota/services
     - cloud/support/tools/websaint/app/saint
-    - crm/space/yacalls_cdr_consumer
     - crypta/buchhalter/services/main/lib/common/stats
     - crypta/ltp/viewer/services/build_index/lib
     - cv/imageproc/ocr/tools/database_extraction/nirvana/imgaug/src/external
@@ -167,7 +166,6 @@ migrations:
     - market/search/services_for_goods/mt
     - market/seo/offer_base
     - market/solo_monitorings/marketpromo/registry/alerts/loyalty
-    - market/sre/services/cema/lib/classes
     - market/sre/services/disabledc/lib
     - market/tools/develop/dashboards/generate_juggler_checks
     - ml/tensorflow/models/userbert/tests/pretrain
@@ -579,7 +577,6 @@ migrations:
     - devtools/subbotnik
     - devtools/ya/build
     - devtools/ya/build/genconf
-    - devtools/ya/build/stat
     - devtools/ya/ide
     - devtools/ya/jbuild/gen/actions
     - devtools/ya/tools/ycmerge/tests
@@ -614,11 +611,9 @@ migrations:
     - dj/nirvana/operations/yql
     - dj/nirvana/operations/yql/yql
     - dj/services/alisa_skills/server/tests
-    - dj/services/mediapers/music/config
     - dj/services/ydo/python_config
     - dj/tools/quality_stand/operations/als/unpack_config
     - dj/tools/resource_loaders/resource_yt_loader
-    - education/english/services/every/app/tasks
     - education/schoolbook/services/studies/it/test_endpoints/test_study
     - education/schoolbook/services/studies/it/test_endpoints/test_study_content
     - education/services/checking_system/marker_checker/it/api/v1
@@ -664,7 +659,6 @@ migrations:
     - infra/clusterstate/services/alpha
     - infra/deploy/dri/lib
     - infra/deploy/dri/logbroker
-    - infra/diskmanager/client
     - infra/diskmanager/lib
     - infra/environments/builder
     - infra/gosky/src/gosky
@@ -687,8 +681,6 @@ migrations:
     - ipreg/geogenerator/bin/RIR/RIPE
     - ipreg/geogenerator/bin/reliability_around
     - ipreg/python/ipreg-parse-noc
-    - k50/infra/services/solo_ecom/registry/alert
-    - k50/infra/services/solo_ecom/registry/dashboard
     - k50/infra/services/solo_fe/registry/alert
     - kernel/ugc/aggregation/python/ut
     - keyboard/analytics/toloka/daemon/tests
@@ -783,7 +775,6 @@ migrations:
     - market/greenlinks/lib
     - market/guru-models-dumper/suggests_storage/tests
     - market/guru-models-dumper/tests
-    - market/idx/datacamp/dev/synthetic/stress_test
     - market/library/shiny/external/s3/beam
     - market/mobile/beru/performance-diagnostic/lib/blueprints
     - market/opsmode/delivery_report_parser/src/transforming
@@ -791,7 +782,6 @@ migrations:
     - market/pylibrary/database/tests
     - market/pylibrary/hammer/tests
     - market/sre/conf/config-monitoring-market/bin/check_hbf
-    - market/sre/services/cema/lib/classes
     - market/sre/services/mindexer-clt-api/mindexer_clt_api
     - market/sre/tools/capacityV2/mcapacity_tool/lib/yt
     - market/tools/code_generator
@@ -1431,7 +1421,6 @@ migrations:
     - market/forecast/elasticity_common/data
     - market/forecast/torch_demand/lib/models
     - market/forecast/torch_demand/lib/tasks
-    - market/idx/datacamp/dev/create_solomon_alerts
     - market/mstat/cubes-web/lib/blueprints
     - market/pinger-report/lib
     - market/replenishment/algorithms/legacy/library
@@ -1649,7 +1638,6 @@ migrations:
     - adfox/amacs/tests/functional/tests_amacs/session_json
     - adfox/amacs/tests/functional/tests_amacs/yabs
     - adfox/amacs/tests/functional/tests_amacs/yt
-    - ads/bigkv/search/realtime_training/run_model_train
     - ads/fast_rank/metrics
     - ads/libs/py_autobudget
     - ads/ml_engine/learn/result/local_extended_fstr/ut
@@ -1703,7 +1691,6 @@ migrations:
     - comdep_analytics/comdep_recsys/etl/logic/signals/geo
     - comdep_analytics/comdep_recsys/etl/logic/web/stats
     - comdep_analytics/comdep_recsys/etl_core/utils
-    - crm/infra/github_webhook/pr_events
     - crypta/ml/spine
     - crypta/siberia/bin/custom_audience/lib/python/clustering
     - crypta/siberia/bin/custom_audience/lib/python/clustering/test/utils
@@ -1746,7 +1733,6 @@ migrations:
     - disk/admin/monitors/telemost_broadcast_restarts
     - distribution_interface/backend/backend/ready_reports
     - dj/lib/viewer/server
-    - dj/services/mediapers/music/config
     - drive/tools/cores_remover
     - education/english/services/aula/app/utils
     - education/english/services/rest/app/common
@@ -1782,7 +1768,6 @@ migrations:
     - geoproduct/bonuses_calculation/from_wiki_to_yt
     - infra/callisto/controllers/user/jupiter
     - infra/callisto/controllers/user/jupiter/chunks
-    - infra/diskmanager/client
     - infra/dostavlyator/lib/debug
     - infra/ebpf-agent/tests
     - infra/kernel/test/misc
@@ -1817,9 +1802,6 @@ migrations:
     - intranet/wiki/src/wiki/api_frontend/serializers/grids/change_grid
     - ipreg/geogenerator/bin/RIR/RIPE
     - ipreg/python
-    - k50/infra/services/solo_ecom/registry/graph
-    - k50/infra/services/solo_ecom/registry/project
-    - k50/infra/services/solo_ecom/registry/yasm
     - k50/infra/services/solo_fe/registry/graph
     - k50/infra/services/solo_fe/registry/project
     - k50/infra/services/solo_fe/registry/yasm
@@ -1887,9 +1869,6 @@ migrations:
     - market/dynamic_pricing/pricing/manual_pricing
     - market/dynamic_pricing/tools/offline_modeling
     - market/forecast/demand_ml_forecast_validation/lib/data_preparation
-    - market/idx/datacamp/controllers/stroller/yatf
-    - market/idx/datacamp/dev/yd_tool
-    - market/idx/datacamp/miner/yatf/resources
     - market/infra/java-application/mj/v1/generate-project-tool/python-script
     - market/mstat/cubes-web/lib
     - market/pinger-report/lib
@@ -1898,7 +1877,6 @@ migrations:
     - market/replenishment/algorithms/lib23/data_preparation/transits
     - market/report/runtime_cloud/report_config
     - market/search/services_for_goods/mt/env
-    - market/sre/services/cema/lib
     - mds/admin/packages/mds-logbackup/lifecycle-rule
     - mds/s3/tasklets/conductor/impl
     - ml/libs/ml_data_reader/src/ml_data_reader/iterators
@@ -1972,7 +1950,6 @@ migrations:
     - quality/user_sessions/rt/packages/us-rt-config-generators
     - repo/pciexpress/celery/common
     - robot/jupiter/library/python/quality_acceptance
-    - robot/jupiter/tools/quality_acceptance
     - robot/kwyt/tools/kwytql
     - robot/mercury/test/comparsion_callisto_test
     - robot/metrics/social_sbr/channels_sbr
@@ -2067,7 +2044,6 @@ migrations:
     - sandbox/projects/websearch/acceptance
     - sandbox/projects/websearch/begemot/common/fast_build
     - sandbox/projects/yabs/YabsPingUnresolvedProblems
-    - sandbox/projects/yabs/dropstat/coordinator
     - sandbox/projects/yabs/mobile_ads_sdk/sut/adapters/standalone
     - sandbox/projects/yabs/nanpu/sut
     - sandbox/projects/yabs/partner_share/lib/integratest
@@ -2155,7 +2131,6 @@ migrations:
     - yabs/server/test/ft/BSDEV-69385
     - yabs/server/test/ft/BSDEV-85219
     - yabs/server/test/ft/BSDEV-85352
-    - yabs/server/test/ft/BSSERVER-11693
     - yabs/server/test/ft/BSSERVER-16347
     - yabs/server/test/ft/BSSERVER-18008
     - yabs/server/test/ft/BSSERVER-18463
@@ -2168,7 +2143,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-21337
     - yabs/server/test/ft/BSSERVER-21779
     - yabs/server/test/ft/BSSERVER-2189
-    - yabs/server/test/ft/BSSERVER-22168
     - yabs/server/test/ft/BSSERVER-22473
     - yabs/server/test/ft/BSSERVER-22647
     - yabs/server/test/ft/BSSERVER-22790
@@ -2377,8 +2351,6 @@ migrations:
     - kinopoisk/tasklets/DeployWithChangeWeight/impl
     - library/python/reactor/client/reactor_client/helper
     - library/python/testing/fake_ya_package/test
-    - library/python/type_info
-    - library/python/type_info/test/lib
     - library/python/ylock/ylock/backends
     - load/projects/yandex-tank/yandextank/plugins/Solomon/tests
     - logbroker/tools/auto/mirror_repair/lib
@@ -2633,7 +2605,6 @@ migrations:
     - ads/nirvana/mr_operations/mr_select_popular_banners
     - ads/nirvana/tools/processtree
     - ads/nirvana/wormhole/dmlc_launcher
-    - ads/pytorch/lib/online_learning/production/processors/deploy_v2_processor
     - ads/quality/adv_machine/scripts/download_shards
     - ads/quality/adv_machine/scripts/patch_resource
     - ads/quality/adv_machine/scripts/preprocess_autotargetting_pool
@@ -2952,7 +2923,6 @@ migrations:
     - extsearch/wizards/fastres2/fastres2pycl
     - extsearch/wizards/fastres2/tools/bad_wizards_control
     - extsearch/wizards/tools/upload
-    - fintech/ml/bnpl/fit_meta_formula
     - geobase/builder/ut/ipreg_checker
     - geoproduct/aml/libs/aml_run_python/tests
     - geoproduct/amocrm/update_companies_info/mapper
@@ -2988,8 +2958,6 @@ migrations:
     - infra/yp_service_discovery/tools/yp_sd_resolver
     - intranet/dispenser/utils/resource-mapping-tool
     - ipreg/python/ipreg-parse-noc
-    - k50/infra/services/solo_ecom/registry/alert
-    - k50/infra/services/solo_ecom/registry/yasm
     - k50/infra/services/solo_fe/registry/alert
     - k50/infra/services/solo_fe/registry/yasm
     - k50/tools/greenbot/api_clients
@@ -3076,7 +3044,6 @@ migrations:
     - maps/automotive/remote_access/server/load_test
     - maps/automotive/tools/statistics_auto/pylib/import_metrics
     - maps/b2bgeo/analytics/tvm_authorization_script
-    - maps/b2bgeo/apikeys_billing/common
     - maps/b2bgeo/tools/release_notes
     - maps/bizdir/sps/yang
     - maps/goods/tools/config_generator
@@ -3477,7 +3444,6 @@ migrations:
     - rtmapreduce/tests/recipes/rtmr_processing_recipe
     - saas/tools/devops/local_wc
     - saas/tools/devops/local_wc/get_sandbox_file
-    - saas/tools/devops/saas_service_check
     - saas/tools/update_upstreams
     - sandbox/client
     - sandbox/projects/BuildBegemotExecutable
@@ -3680,7 +3646,6 @@ migrations:
     - yabs/qa/yabs_b2b_tank/qabs/b2b
     - yabs/qa/yabs_b2b_tank/qabs/newreport
     - yabs/samogon/balancernetdaemon
-    - yabs/sb-bins/clear_caesar_page_imp
     - yabs/sb-bins/post_startreck_comment
     - yabs/sbyt/devutils/oldtopickiller
     - yabs/server/config/b2b/archive
@@ -4801,7 +4766,6 @@ migrations:
     - comdep_analytics/comdep_recsys/etl_core/utils
     - comdep_analytics/exceller_py2/exceller/formatting
     - comdep_analytics/sharepoint_yt_sync/lib
-    - crm/space/yacalls_cdr_consumer
     - crypta/audience/test/fat
     - crypta/graph/archivator/lib
     - crypta/graph/data_import/autoru_log/tests
@@ -4967,8 +4931,6 @@ migrations:
     - drive/devops/cli/secrets
     - edadeal/analytics/scripts/Funnels/FunnelsLib/FunnelsLib
     - education/english/services/aula/app/wordbank
-    - education/english/services/gateway/app/auth
-    - education/english/services/rest/app/users
     - education/infra/ci/tasklets/enigma_operation/impl
     - education/infra/ci/tasklets/send_notification/impl
     - education/lib/nirvana/operations/transfer_uploader/lib
@@ -5117,7 +5079,6 @@ migrations:
     - extsearch/wizards/fastres2/tools/data_delivery/rtmr/delivery/default
     - extsearch/wizards/fastres2/viewer/controllers
     - extsearch/younglings/education/tests
-    - fintech/ml/nirvana/utils/build_pool
     - games/admin/background_modules
     - games/admin/bin/fix_tool
     - games/admin/libs/tasklets/teamcity/impl
@@ -5434,8 +5395,6 @@ migrations:
     - market/shade/lite
     - market/sre/contrib/python/conductor-client/conductor_client
     - market/sre/services/balancer_api/lib
-    - market/sre/services/cema/lib
-    - market/sre/services/cema/lib/classes
     - market/sre/services/logkeeper_web/web/blueprints
     - market/sre/tools/capacityV2/mcapacity_tool/lib/clients
     - market/sre/tools/googlebot_cache_stats
@@ -5810,9 +5769,6 @@ migrations:
     - saas/tools/devops/lib2
     - saas/tools/devops/lib23
     - saas/tools/devops/saas_disaster_alerts/disaster_alerts/modules
-    - saas/tools/devops/saas_service_check
-    - saas/tools/devops/saas_service_check/actions
-    - saas/tools/devops/saas_service_check/checks
     - saas/tools/ssm
     - saas/tools/user_if/ssm-front/backend
     - sandbox/bin
@@ -5996,7 +5952,6 @@ migrations:
     - sandbox/projects/yabs/ssp/base_fill_whitelist/YabsServerFillWhiteList
     - sandbox/projects/yabs/ssp/google/YabsServerFillBlackListNew
     - sandbox/projects/yabs/ssr/tasks/BsSsrCmpTask
-    - sandbox/projects/yabs/ssr/tasks/UniformatMordaAdapter
     - sandbox/projects/yabs/static_rank/YabsApcTableForDistribution
     - sandbox/projects/yane/TestLight
     - sandbox/projects/yasm/YasmSignalsStatTask
@@ -6062,7 +6017,6 @@ migrations:
     - search/mon/curators_helper
     - search/mon/dredd2/dredd_notifier
     - search/mon/fm_monitor
-    - search/mon/hermes
     - search/mon/stater/src/tasklets/clone_warden_data_to_yt/src
     - search/mon/stater/src/tasklets/marty_proto_stats/src
     - search/mon/stater/src/tasks/clone_warden_data_to_yt
@@ -6498,7 +6452,6 @@ migrations:
     - yt/admin/snapshot_processing/helpers
     - yt/admin/snapshot_processing/validate_master_snapshot
     - yt/admin/ytdyncfgen/src/parsers
-    - yt/cron/balance_media/lib
     - yt/cron/duty
     - yt/cron/local_clear_logs
     - yt/cron/map_users_to_pools
@@ -6508,7 +6461,6 @@ migrations:
     - yt/odin-checks/scripts/run_standalone_check
     - yt/python/yt
     - yt/python/yt/environment
-    - yt/python/yt/environment/arcadia_interop
     - yt/python/yt/local
     - yt/python/yt/local/tests
     - yt/python/yt/wrapper
@@ -6853,7 +6805,6 @@ migrations:
     - cloud/mdb/dataproc-infra-tests/tests/helpers
     - cloud/support/tools/quotactl-l2
     - comdep_analytics/comdep_recsys/etl/logic/crm
-    - crm/infra/github_webhook/pr_events
     - crypta/audience/lib/tasks/audience
     - crypta/graph/lib/graph_connectivity
     - crypta/lab/lib
@@ -6879,7 +6830,6 @@ migrations:
     - devtools/qafw/rtc_deploy/cli
     - devtools/ya/build
     - devtools/ya/build/build_plan
-    - devtools/ya/build/stat
     - devtools/ya/build/tests/dist_build
     - devtools/ya/core/yarg
     - devtools/ya/exts
@@ -7009,8 +6959,6 @@ migrations:
     - kikimr/ci/tests/client/pq
     - kikimr/tools/check_yc_access
     - kikimr/tools/duty_bot
-    - kikimr/tools/multinode_configure/configure
-    - kikimr/tools/multinode_configure/configure/base
     - lbs/research/LBS380_use_multiple_gsm/markup_using_exp_algo
     - lbs/research/LBS448_anonymize_signals/scramble_signals_table
     - lbs/tools/generate_ammo_from_api_logs
@@ -7345,7 +7293,6 @@ migrations:
     - statbox/qb2_core/qb2/compiler
     - taxi/supportai/telephony_integration
     - yabs/qa/oneshots/denkitaev/BSSERVER-20575/remove_exp_group_labels
-    - yt/cron/balance_media/tests
     - yt/cron/merge/perform_merge/lib
     - yweb/antiporno/nirvana/operations/self_updateable
     - yweb/dups/dmetric3/bin
@@ -7503,7 +7450,6 @@ migrations:
     - devtools/qafw/selenium/time_distribution/bin
     - devtools/ya/build/genconf
     - devtools/ya/build/reports
-    - devtools/ya/build/stat
     - devtools/ya/build/tests/ymake_heater
     - devtools/ya/core/yarg
     - devtools/ya/entry
@@ -7586,7 +7532,6 @@ migrations:
     - extsearch/video/robot/rt_transcoder/hls2dash/repack
     - extsearch/video/vh/tape
     - fintech/ci/utils/ya-infra-sync
-    - fintech/ml/bnpl/build_pools
     - games/admin/background_modules
     - games/admin/bin/fix_tool
     - geobase/sql/patch/LIB-257.uk.dispute.lings/ling-viewer
@@ -7602,7 +7547,6 @@ migrations:
     - infra/clusterstate/services/hostinfo
     - infra/clusterstate/services/psi
     - infra/dctl/src/lib
-    - infra/diskmanager/server
     - infra/dist/dmover/tests
     - infra/kernel/test/misc/kern
     - infra/logger
@@ -7727,7 +7671,6 @@ migrations:
     - market/report/runtime_cloud/report_config
     - market/robotics/ci/ymbot_ext_repo_mirroring/libs
     - market/sre/library/python/graphite-client/graphite_client
-    - market/sre/services/cema/lib/classes
     - market/sre/tools/dpreparer/lib/sections
     - market/sre/tools/hyperion-tools/yandex-market-hyp2yt/lib
     - market/sre/tools/logradaptor/logradaptor
@@ -8350,9 +8293,6 @@ migrations:
     - logos/projects/money_dwh/tasks/event_money_direct_v5_sorted_merger
     - logos/projects/money_dwh/tasks/event_money_geo_value_updater
     - logos/projects/mstat_dwh_delivery/graph
-    - logos/projects/statkey/tasks/cubes/mobile_expenses/v1/fraud
-    - logos/projects/statkey/tasks/cubes/user_sessions/v4/daily
-    - logos/projects/statkey/tasks/hypercubes/user_history/mobile/v5
     - logos/projects/statkey_py3/tasks/metamerger/tasks/merger_base_task
     - logos/projects/statkey_py3/tasks/metamerger/tools
     - logos/projects/statkey_py3/tasks/money_allocations_merger/v1
@@ -8969,7 +8909,6 @@ migrations:
     - infra/host-cpu-metrics/host_metrics
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_quota_distributor/lib
-    - keyboard/dict/nirvana/config_generator/blocks
     - keyboard/dict/synthetic_ngrams/synthetic_ngrams_builder
     - lbs/metrics/lbs_binbase_diff
     - logbroker/tools/manual/collect_capacity/base_2020
@@ -8985,8 +8924,6 @@ migrations:
     - maps/automotive/tools/statistics_auto/pylib/track_match_finder
     - maps_adv/common/shared_mock/tests
     - market/mobile_validator/mt/env
-    - market/sre/services/cema/lib
-    - market/sre/services/cema/lib/classes
     - milab/lib/i2tclient/python
     - mlp/mail/aspam/experiments/MLP_231
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
@@ -9433,7 +9370,6 @@ migrations:
     - robot/library/python/sandbox
     - smb/common/http_client/lib
     - travel/cpa/lib
-    - weather/workers/wrf/utils
     - yabs/infra/monitorings/yabs_monitorings/baseage_graphite
     - yabs/server/test/qabs_bsserver_pytest/bs_objects
     - ydo/analytics/tools/direct_api
@@ -9655,7 +9591,6 @@ migrations:
     - dj/services/market/uservices/viewer/server/app
     - extsearch/unisearch/medicine/data_processing/avatars/before_avatars
     - geoproduct/amocrm/lead_autoclose
-    - infra/yp_dns_api/tests
     - market/monetize/efficiency/buybox/buybox_report_parser/lib/tests
     - ml/libs/ml_data_reader/tests/seq2seq
     - payplatform/balance_support_dev/tools/email_sender/smtp_sender/lib/tests
@@ -9791,7 +9726,6 @@ migrations:
     - PLW0109
     prefixes:
     - adfox/pdb3/create_table
-    - ads/bsyeti/caesar/tools/yt_sync/settings
     - billing/log_tariffication/py/tests/integration/partner_acts
     - billing/log_tariffication/py/tests/integration/partner_tariff
     - cloud/support/tools/websaint/app/saint
@@ -9946,7 +9880,6 @@ migrations:
     - distribution_interface/backend/backend/kraken/handlers
     - education/english/lib/metric_exporter/src
     - education/english/services/sync/app
-    - infra/cqudp/src/transport
     - infra/qyp/qdm/src/server
     - infra/skyboned/src
     - infra/walle/server/walle/views/api
@@ -10057,7 +9990,6 @@ migrations:
     - maps/poi/notification/bin/prepare_org_status_pushes
     - maps/poi/personalized_poi/builder/dynamic_poi/bin/make_dynamic_poi
     - maps/tools/cpptmpl
-    - market/sre/services/cema/lib
     - mediapers/clearInstance
     - ml/row_processors/row_processors
     - ml/zeliboba/api
@@ -10135,7 +10067,6 @@ migrations:
     - dict/mt/mtdict/make/definitions/modules/images/avatars
     - grut/tools/admin/commands
     - logbroker/tools/cluster_migration/copy_offsets/check_utils/random_tablets
-    - logos/projects/statkey/tasks/cubes/mobile_installs/v5
     - maps/factory/dem_correction/roads_segmentation/train
     - search/priemka/yappy/src/processor/modules/verificator/checks
     - sport/backend/sport/projects/formula1
@@ -10559,7 +10490,6 @@ migrations:
     - orgvisits/library/python/text_tools
     - orgvisits/library/python/yt_jobs/tests
     - orgvisits/metrics/ugc_feedback/ctr
-    - passport/backend/adm_api/views/meltingpot
     - passport/backend/core
     - passport/backend/core/builders/frodo
     - passport/backend/core/builders/yasms
