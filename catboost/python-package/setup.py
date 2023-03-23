@@ -177,7 +177,7 @@ class build_ext(_build_ext):
 
         catboost_ext = {
             'linux': '_catboost.so',
-            'darwin': '_catboost.dylib',
+            'darwin': '_catboost.so',
             'win32': '_catboost.pyd',
         }[sys.platform]
 
