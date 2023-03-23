@@ -55,7 +55,7 @@ target_link_libraries(_catboost_no_cuda PUBLIC
 target_link_options(_catboost_no_cuda PRIVATE
   -headerpad_max_install_names
   -Wl,-no_deduplicate
-  -Wl,-sdk_version,10.15
+  -Wl,-sdk_version,11.0
   -fPIC
   -undefined
   dynamic_lookup

@@ -37,7 +37,7 @@ target_link_libraries(catboost_train_interface PUBLIC
 )
 target_link_options(catboost_train_interface PRIVATE
   -Wl,-no_deduplicate
-  -Wl,-sdk_version,10.15
+  -Wl,-sdk_version,11.0
   -fPIC
   -undefined
   dynamic_lookup

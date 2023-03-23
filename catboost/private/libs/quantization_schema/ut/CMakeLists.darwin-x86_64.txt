@@ -22,7 +22,7 @@ target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
 )
 target_link_options(catboost-private-libs-quantization_schema-ut PRIVATE
   -Wl,-no_deduplicate
-  -Wl,-sdk_version,10.15
+  -Wl,-sdk_version,11.0
   -fPIC
   -fPIC
 )

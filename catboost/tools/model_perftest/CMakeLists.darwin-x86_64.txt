@@ -19,7 +19,7 @@ target_link_libraries(model_perftest PUBLIC
 )
 target_link_options(model_perftest PRIVATE
   -Wl,-no_deduplicate
-  -Wl,-sdk_version,10.15
+  -Wl,-sdk_version,11.0
   -fPIC
   -fPIC
 )
