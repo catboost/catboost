@@ -36,7 +36,7 @@ def create_hnsw_submodule(verbose, dry_run):
                 return
             except Exception as exception:
                 logging.error(f'Encountered an error ({str(exception)}) when creating symlink, try to create hardlink instead')
-            
+
             if verbose:
                 logging.info(f'create hardlink from {hnsw_original_dir} to {hnsw_submodule_dir}')
             try:
