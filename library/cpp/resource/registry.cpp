@@ -49,6 +49,10 @@ namespace {
             Y_VERIFY(size() == Count(), "size mismatch");
         }
 
+        bool Has(const TStringBuf key) const override {
+            return contains(key);
+        }
+
         bool FindExact(const TStringBuf key, TString* out) const override {
             if (TDescriptor* const* res = FindPtr(key)) {
                 // temporary
