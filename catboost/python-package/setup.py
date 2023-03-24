@@ -13,7 +13,7 @@ from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 SETUP_DIR = os.path.abspath(os.path.dirname(__file__))
 PKG_INFO = 'PKG-INFO'
-EXT_SRC = 'catboost_so_src'
+EXT_SRC = 'catboost_all_src'
 
 
 def get_topsrc_dir():
