@@ -86,11 +86,13 @@ class Helper(object):
     options = [
         ('with-cuda=', None, emph('Build with CUDA support (cuda-root|no)')),
         ('parallel=', 'j', emph('Number of parallel build jobs')),
+        ('prebuilt-extensions-build-root-dir=', None, emph('Use extensions from CatBoost project prebuilt with CMake')),
     ]
 
     def initialize_options(self):
         self.with_cuda = os.environ.get('CUDA_PATH') or os.environ.get('CUDA_ROOT') or None
         self.parallel = None
+        self.prebuilt_extensions_build_root_dir = None
 
     def finalize_options(self):
         if os.path.exists(str(self.with_cuda)):
@@ -103,6 +105,7 @@ class Helper(object):
             origin,
             ("with_cuda", "with_cuda"),
             ("parallel", "parallel"),
+            ('prebuilt_extensions_build_root_dir', 'prebuilt_extensions_build_root_dir')
         )
 
 
@@ -181,14 +184,20 @@ class build_ext(_build_ext):
             'win32': '_catboost.pyd',
         }[sys.platform]
 
-        build_dir = os.path.abspath(self.build_temp)
-        put_dir = os.path.abspath(os.path.join(self.build_lib, 'catboost'))
-
         verbose = self.distribution.verbose
         dry_run = self.distribution.dry_run
+
+        put_dir = os.path.abspath(os.path.join(self.build_lib, 'catboost'))
+
         distutils.dir_util.mkpath(put_dir, verbose=verbose, dry_run=dry_run)
 
-        self.build_with_cmake_and_ninja(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
+        if self.prebuilt_extensions_build_root_dir is not None:
+            build_dir = self.prebuilt_extensions_build_root_dir
+        else:
+            build_dir = os.path.abspath(self.build_temp)
+            self.build_with_cmake_and_ninja(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
+
+        self.copy_artifact_built_with_cmake(build_dir, put_dir, catboost_ext, verbose, dry_run)
 
     def build_with_cmake_and_ninja(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
         logging.info('Buildling {} with cmake and ninja'.format(catboost_ext))
@@ -205,6 +214,7 @@ class build_ext(_build_ext):
 
         logging.info('Successfully built {} with CUDA support'.format(catboost_ext))
 
+    def copy_artifact_built_with_cmake(self, build_dir, put_dir, catboost_ext, verbose, dry_run):
         # TODO(akhropov): CMake produces wrong artifact names right now so we have to rename it
         cmake_dll_artifact_name = {
             'linux': 'lib_catboost.so',
