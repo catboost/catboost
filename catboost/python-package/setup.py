@@ -193,26 +193,15 @@ class build_ext(_build_ext):
     def build_with_cmake_and_ninja(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
         logging.info('Buildling {} with cmake and ninja'.format(catboost_ext))
 
-        cmake_cmd = [
-            'cmake',
-            topsrc_dir,
-            '-B', build_dir,
-            '-G', 'Ninja',
-            '-DCMAKE_BUILD_TYPE=Release',
-            '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(topsrc_dir, 'build', 'toolchains', 'clang.toolchain'),
-            '-DCMAKE_POSITION_INDEPENDENT_CODE=On',
-            '-DCATBOOST_COMPONENTS=python-package'
-        ]
-        logging_execute(cmake_cmd, verbose, dry_run)
+        sys.path = [os.path.join(topsrc_dir, 'build')] + sys.path
+        import build_native
 
-        ninja_cmd = [
-            'ninja',
-            '-C', build_dir,
-            '_catboost'
-        ]
-        if self.parallel is not None:
-            ninja_cmd += ['-j', str(self.parallel)]
-        logging_execute(ninja_cmd, verbose, dry_run)
+        build_native.build(
+            build_root_dir=build_dir,
+            targets=['_catboost'],
+            verbose=verbose,
+            dry_run=dry_run
+        )
 
         logging.info('Successfully built {} with CUDA support'.format(catboost_ext))
 
