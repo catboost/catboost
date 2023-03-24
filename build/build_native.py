@@ -87,6 +87,7 @@ class Opts(object):
         'msvc_toolset': Option('Microsoft Visual C++ Toolset version to use', default='14.28.29333'),
         'macosx_version_min': Option('Minimal macOS version to target', default='11.0'),
         'have_cuda': Option('Enable CUDA support', default=False, opt_type=bool),
+        'cuda_root_dir': Option('CUDA root dir (taken from CUDA_PATH or CUDA_ROOT by default)'),
         'cuda_runtime_library': Option('CMAKE_CUDA_RUNTIME_LIBRARY for CMake', default='Static'),
         'android_ndk_root_dir': Option('Path to Android NDK root'),
         'cmake_extra_args': Option(
@@ -135,13 +136,13 @@ class CmdRunner(object):
                 for part in cmd
             )
 
-    def run(self, cmd, **subprocess_run_kwargs):
+    def run(self, cmd, run_even_with_dry_run=False, **subprocess_run_kwargs):
         if 'shell' in subprocess_run_kwargs:
             printed_cmd = cmd
         else:
             printed_cmd = CmdRunner.shlex_join(cmd)
         logging.info(f'Running "{printed_cmd}"')
-        if not self.dry_run:
+        if run_even_with_dry_run or (not self.dry_run):
             subprocess.run(cmd, check=True, **subprocess_run_kwargs)
 
 def get_source_root_dir():
@@ -300,15 +301,26 @@ def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_run
     with tempfile.TemporaryDirectory() as tmp_dir:
         env_vars_file_path = os.path.join(tmp_dir, 'env_vars')
         cmd = f'"{msvs_dir}\\VC\\Auxiliary\\Build\\vcvars64.bat" -vcvars_ver={msvc_toolset} && set > {env_vars_file_path}'
-        cmd_runner.run(cmd, shell=True)
-        if not dry_run:
-            with open(env_vars_file_path) as env_vars_file:
-                for l in env_vars_file:
-                    key, value = l[:-1].split('=')
-                    env_vars[key] = value
+        cmd_runner.run(cmd, run_even_with_dry_run=True, shell=True)
+        with open(env_vars_file_path) as env_vars_file:
+            for l in env_vars_file:
+                key, value = l[:-1].split('=')
+                env_vars[key] = value
 
     return env_vars
 
+def get_cuda_root_dir(cuda_root_dir_option):
+    cuda_root_dir = cuda_root_dir_option or os.environ.get('CUDA_PATH') or os.environ.get('CUDA_ROOT')
+    if not cuda_root_dir:
+        raise RuntimeError('No cuda_root_dir specified and CUDA_PATH and CUDA_ROOT environment variables also not defined')
+    return cuda_root_dir
+
+def add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir):
+    cuda_bin_dir = os.path.join(cuda_root_dir, 'bin')
+    if platform.system().lower() == 'windows':
+        build_environ['Path'] = cuda_bin_dir + ';' + build_environ['Path']
+    else:
+        build_environ['PATH'] = cuda_bin_dir + ':' + build_environ['PATH']
 
 def get_catboost_components(targets):
     catboost_components = set()
@@ -387,7 +399,13 @@ def build(opts=None, cross_build_final_stage=False, **kwargs):
 
     cmake_cmd += [f'-DHAVE_CUDA={"yes" if opts.have_cuda else "no"}']
     if opts.have_cuda:
-        cmake_cmd += [f'-DCMAKE_CUDA_RUNTIME_LIBRARY={opts.cuda_runtime_library}']
+        cuda_root_dir = get_cuda_root_dir(opts.cuda_root_dir)
+        # CMake requires nvcc to be available in $PATH
+        add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir)
+        cmake_cmd += [
+            f'-DCUDAToolkit_ROOT={cuda_root_dir}',
+            f'-DCMAKE_CUDA_RUNTIME_LIBRARY={opts.cuda_runtime_library}'
+        ]
 
     if opts.native_built_tools_root_dir:
         cmake_cmd += [f'-DTOOLS_ROOT={opts.native_built_tools_root_dir}']
