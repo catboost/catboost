@@ -20,6 +20,7 @@ def get_all_cmake_lists(base_dir, add_android=True):
         'CMakeLists.darwin-arm64.txt',
         'CMakeLists.darwin-x86_64.txt',
         'CMakeLists.linux-aarch64.txt',
+        'CMakeLists.linux-x86_64-cuda.txt',
         'CMakeLists.linux-x86_64.txt',
         'CMakeLists.txt',
     ]
@@ -206,16 +207,22 @@ class build_ext(_build_ext):
         import build_native
 
         python3_root_dir = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir))
+        if self.with_cuda:
+            cuda_support_msg = 'with CUDA support'
+        else:
+            cuda_support_msg = 'without CUDA support'
 
         build_native.build(
             build_root_dir=build_dir,
             targets=['_catboost'],
             verbose=verbose,
             dry_run=dry_run,
+            have_cuda=bool(self.with_cuda),
+            cuda_root_dir=self.with_cuda,
             cmake_extra_args=[f'-DPython3_ROOT_DIR={python3_root_dir}']
         )
 
-        logging.info('Successfully built {} with CUDA support'.format(catboost_ext))
+        logging.info('Successfully built {} {}'.format(catboost_ext, cuda_support_msg))
 
     def copy_artifact_built_with_cmake(self, build_dir, put_dir, catboost_ext, verbose, dry_run):
         # TODO(akhropov): CMake produces wrong artifact names right now so we have to rename it
