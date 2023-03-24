@@ -198,11 +198,11 @@ class build_ext(_build_ext):
             build_dir = self.prebuilt_extensions_build_root_dir
         else:
             build_dir = os.path.abspath(self.build_temp)
-            self.build_with_cmake_and_ninja(topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run)
+            self.build_with_cmake_and_ninja(topsrc_dir, build_dir, catboost_ext, verbose, dry_run)
 
         self.copy_artifact_built_with_cmake(build_dir, put_dir, catboost_ext, verbose, dry_run)
 
-    def build_with_cmake_and_ninja(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
+    def build_with_cmake_and_ninja(self, topsrc_dir, build_dir, catboost_ext, verbose, dry_run):
         logging.info('Buildling {} with cmake and ninja'.format(catboost_ext))
 
         sys.path = [os.path.join(topsrc_dir, 'build')] + sys.path
