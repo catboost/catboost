@@ -146,10 +146,13 @@ def fetch(resource_id, custom_fetcher):
 
     logging.info('Resource %s info %s', str(resource_id), json.dumps(resource_info))
 
+    is_multifile = resource_info.get('multifile', False)
     resource_file_name = os.path.basename(resource_info["file_name"])
     expected_md5 = resource_info.get('md5')
 
     proxy_link = resource_info['http']['proxy'] + ORIGIN_SUFFIX
+    if is_multifile:
+        proxy_link += '&stream=tgz'
 
     mds_id = resource_info.get('attributes', {}).get('mds')
     mds_link = MDS_PREFIX + mds_id if mds_id else None
@@ -172,14 +175,14 @@ def fetch(resource_id, custom_fetcher):
             yield lambda: fetch_via_script(custom_fetcher, resource_id)
 
         # Don't try too hard here: we will get back to proxy later on
-        yield lambda: fetch_from.fetch_url(proxy_link, False, resource_file_name, expected_md5, tries=2)
+        yield lambda: fetch_from.fetch_url(proxy_link, is_multifile, resource_file_name, expected_md5, tries=2)
         for x in get_storage_links():
             # Don't spend too much time connecting single host
             yield lambda: fetch_from.fetch_url(x, False, resource_file_name, expected_md5, tries=1)
             if mds_link is not None:
                 # Don't try too hard here: we will get back to MDS later on
                 yield lambda: fetch_from.fetch_url(mds_link, True, resource_file_name, expected_md5, tries=2)
-        yield lambda: fetch_from.fetch_url(proxy_link, False, resource_file_name, expected_md5)
+        yield lambda: fetch_from.fetch_url(proxy_link, is_multifile, resource_file_name, expected_md5)
         if mds_link is not None:
             yield lambda: fetch_from.fetch_url(mds_link, True, resource_file_name, expected_md5)
 
@@ -247,6 +250,8 @@ def main(args):
     if resource_info:
         fetched_file = args.resource_file
         file_name = resource_info['file_name']
+        if resource_info['multifile'] and os.path.isfile(fetched_file):
+            args.rename = [os.path.join(file_name, path) for path in args.rename]
     else:
         # This code should be merged to ya and removed.
         fetched_file, file_name = fetch(args.resource_id, custom_fetcher)
