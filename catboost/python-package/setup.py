@@ -22,6 +22,8 @@ def get_all_cmake_lists(base_dir, add_android=True):
         'CMakeLists.linux-aarch64.txt',
         'CMakeLists.linux-x86_64-cuda.txt',
         'CMakeLists.linux-x86_64.txt',
+        'CMakeLists.windows-x86_64-cuda.txt',
+        'CMakeLists.windows-x86_64.txt',
         'CMakeLists.txt',
     ]
     if add_android:
