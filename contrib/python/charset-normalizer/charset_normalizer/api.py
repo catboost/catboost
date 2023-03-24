@@ -175,7 +175,6 @@ def from_bytes(
         prioritized_encodings.append("utf_8")
 
     for encoding_iana in prioritized_encodings + IANA_SUPPORTED:
-
         if cp_isolation and encoding_iana not in cp_isolation:
             continue
 
@@ -318,7 +317,9 @@ def from_bytes(
                     bom_or_sig_available and strip_sig_or_bom is False
                 ):
                     break
-        except UnicodeDecodeError as e:  # Lazy str loading may have missed something there
+        except (
+            UnicodeDecodeError
+        ) as e:  # Lazy str loading may have missed something there
             logger.log(
                 TRACE,
                 "LazyStr Loading: After MD chunk decode, code page %s does not fit given bytes sequence at ALL. %s",

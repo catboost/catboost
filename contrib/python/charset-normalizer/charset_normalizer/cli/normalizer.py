@@ -147,7 +147,6 @@ def cli_detect(argv: Optional[List[str]] = None) -> int:
     x_ = []
 
     for my_file in args.files:
-
         matches = from_fp(my_file, threshold=args.threshold, explain=args.verbose)
 
         best_guess = matches.best()
@@ -222,7 +221,6 @@ def cli_detect(argv: Optional[List[str]] = None) -> int:
                         )
 
             if args.normalize is True:
-
                 if best_guess.encoding.startswith("utf") is True:
                     print(
                         '"{}" file does not need to be normalized, as it already came from unicode.'.format(

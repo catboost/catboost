@@ -311,7 +311,6 @@ def range_scan(decoded_sequence: str) -> List[str]:
 
 
 def cp_similarity(iana_name_a: str, iana_name_b: str) -> float:
-
     if is_multi_byte_encoding(iana_name_a) or is_multi_byte_encoding(iana_name_b):
         return 0.0
 
@@ -351,7 +350,6 @@ def set_logging_handler(
     level: int = logging.INFO,
     format_string: str = "%(asctime)s | %(levelname)s | %(message)s",
 ) -> None:
-
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
@@ -371,7 +369,6 @@ def cut_sequence_chunks(
     is_multi_byte_decoder: bool,
     decoded_payload: Optional[str] = None,
 ) -> Generator[str, None, None]:
-
     if decoded_payload and is_multi_byte_decoder is False:
         for i in offsets:
             chunk = decoded_payload[i : i + chunk_size]
@@ -397,7 +394,6 @@ def cut_sequence_chunks(
             # multi-byte bad cutting detector and adjustment
             # not the cleanest way to perform that fix but clever enough for now.
             if is_multi_byte_decoder and i > 0:
-
                 chunk_partial_size_chk: int = min(chunk_size, 16)
 
                 if (

@@ -140,7 +140,6 @@ def alphabet_languages(
     source_have_accents = any(is_accentuated(character) for character in characters)
 
     for language, language_characters in FREQUENCIES.items():
-
         target_have_accents, target_pure_latin = get_target_features(language)
 
         if ignore_non_latin and target_pure_latin is False:
