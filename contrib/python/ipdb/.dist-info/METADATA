@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipdb
-Version: 0.13.11
+Version: 0.13.13
 Summary: IPython-enabled pdb
 Home-page: https://github.com/gotcha/ipdb
 Author: Godefroid Chapelle
@@ -241,6 +241,20 @@ instead of ``pdb``. (It does not depend on ``ipdb`` anymore).
 
 Changelog
 =========
+
+0.13.13 (2023-03-09)
+--------------------
+
+- Use context manager for opening toml config
+  [andrewzwicky]
+
+
+0.13.12 (2023-03-09)
+--------------------
+
+- Modify tests to test 3.11 separately from earlier python versions.
+  [andrewzwicky]
+
 
 0.13.11 (2022-12-13)
 --------------------

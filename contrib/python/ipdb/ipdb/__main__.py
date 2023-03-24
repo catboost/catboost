@@ -10,7 +10,7 @@ import sys
 
 from decorator import contextmanager
 
-__version__ = '0.13.11'
+__version__ = '0.13.13'
 
 from IPython import get_ipython
 from IPython.core.debugger import BdbQuit_excepthook
@@ -186,12 +186,13 @@ def get_config():
                     except ImportError:
                         import toml as tomllib
                         file_mode = "r"
-                toml_file = tomllib.load(open(filepath, file_mode))
-                if "tool" in toml_file and "ipdb" in toml_file["tool"]:
-                    if not parser.has_section("ipdb"):
-                        parser.add_section("ipdb")
-                    for key, value in toml_file["tool"]["ipdb"].items():
-                        parser.set("ipdb", key, str(value))
+                with open(filepath, file_mode) as f:
+                    toml_file = tomllib.load(f)
+                    if "tool" in toml_file and "ipdb" in toml_file["tool"]:
+                        if not parser.has_section("ipdb"):
+                            parser.add_section("ipdb")
+                        for key, value in toml_file["tool"]["ipdb"].items():
+                            parser.set("ipdb", key, str(value))
             else:
                 read_func(ConfigFile(filepath))
     return parser
@@ -309,7 +310,7 @@ def main():
     while 1:
         try:
             import pdb as stdlib_pdb
-            if hasattr(stdlib_pdb, "_run"):
+            if hasattr(stdlib_pdb.Pdb, "_run"):
                 # Looks like Pdb from Python 3.11+
                 if run_as_module:
                     pdb._run(stdlib_pdb._ModuleTarget(mainpyfile))
