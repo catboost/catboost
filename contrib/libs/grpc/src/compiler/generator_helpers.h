@@ -23,6 +23,7 @@
 #include <map>
 #include <sstream>
 #include <util/generic/string.h>
+#include <util/string/cast.h>
 #include <vector>
 
 #include <util/generic/string.h>

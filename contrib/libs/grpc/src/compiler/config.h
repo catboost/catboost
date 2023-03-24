@@ -20,6 +20,7 @@
 #define SRC_COMPILER_CONFIG_H
 
 #include <util/generic/string.h>
+#include <util/string/cast.h>
 
 #include "src/compiler/config_protobuf.h"
 

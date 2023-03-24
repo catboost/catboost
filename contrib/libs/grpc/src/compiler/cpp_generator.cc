@@ -21,8 +21,6 @@
 #include <map>
 #include <sstream>
 
-#include <util/string/cast.h>
-
 namespace grpc_cpp_generator {
 namespace {
 

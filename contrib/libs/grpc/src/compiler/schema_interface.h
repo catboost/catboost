@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <util/generic/string.h>
+#include <util/string/cast.h>
 #include <vector>
 
 #include "src/compiler/config.h"
