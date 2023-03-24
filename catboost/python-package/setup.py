@@ -205,11 +205,14 @@ class build_ext(_build_ext):
         sys.path = [os.path.join(topsrc_dir, 'build')] + sys.path
         import build_native
 
+        python3_root_dir = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir))
+
         build_native.build(
             build_root_dir=build_dir,
             targets=['_catboost'],
             verbose=verbose,
-            dry_run=dry_run
+            dry_run=dry_run,
+            cmake_extra_args=[f'-DPython3_ROOT_DIR={python3_root_dir}']
         )
 
         logging.info('Successfully built {} with CUDA support'.format(catboost_ext))
