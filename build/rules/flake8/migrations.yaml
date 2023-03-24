@@ -1425,8 +1425,6 @@ migrations:
     - market/pinger-report/lib
     - market/replenishment/algorithms/legacy/library
     - market/replenishment/algorithms/lib/data_preparation
-    - market/replenishment/algorithms/lib/data_preparation/assortment
-    - market/replenishment/algorithms/lib/data_preparation/forecast
     - market/replenishment/algorithms/lib/data_preparation/integrity_checker
     - market/replenishment/algorithms/lib/data_preparation/regional_assortment
     - market/replenishment/algorithms/lib/data_preparation/simulation_cube
@@ -1786,7 +1784,6 @@ migrations:
     - infra/yt/jobs/hpl_test
     - infra/yt/lib/yt_ssh_swarm/example_job
     - infra/yt/lib/yt_ssh_swarm/hpl_tools
-    - intranet/dogma/mon
     - intranet/plan/src/plan/duty/api
     - intranet/plan/src/plan/duty/schedulers
     - intranet/plan/src/plan/oebs
@@ -2345,7 +2342,6 @@ migrations:
     - irt/common/cnormalizer/ut
     - keyboard/analytics/toloka/scripts/clean_toloka
     - keyboard/dict/prepare_dict
-    - keyboard/suggest/nnlm/python/nnlm/data
     - kikimr/ci/tasklets/update_hostgroup/impl
     - kikimr/ci/tests/sqs
     - kinopoisk/tasklets/DeployWithChangeWeight/impl
@@ -4102,7 +4098,6 @@ migrations:
     - inventori/pylibs/yt_yql_test
     - jupytercloud/backend/lib/db/alembic
     - jupytercloud/tools/lib
-    - keyboard/suggest/nnlm/python/nnlm
     - kikimr/production/checks/lib
     - kikimr/tools/acl_upgrade
     - library/cpp/pybind/example/ut
@@ -5200,7 +5195,6 @@ migrations:
     - keyboard/dict/prepare_dict
     - keyboard/dict/synthetic_ngrams/make
     - keyboard/dict/train_tap_model_ranker
-    - keyboard/suggest/nnlm/python/nnlm/models
     - kikimr/ci/tasklets/teamcity/impl
     - kikimr/tools/deploy_plugins
     - kikimr/tools/duty_bot
@@ -5381,7 +5375,6 @@ migrations:
     - market/pylibrary/thread_pool
     - market/pylibrary/ytdumper
     - market/replenishment/algorithms/legacy/library
-    - market/replenishment/algorithms/lib/data_preparation/assortment
     - market/replenishment/algorithms/lib/data_preparation/bottleneck
     - market/replenishment/algorithms/lib/data_preparation/regional_assortment
     - market/replenishment/algorithms/lib/data_preparation/simulation_cube
@@ -6954,7 +6947,6 @@ migrations:
     - keyboard/dict/lm_diff
     - keyboard/dict/synthetic_ngrams/make
     - keyboard/suggest/nnlm/python/nnlm
-    - keyboard/suggest/nnlm/python/nnlm/data
     - kikimr/ci/libraries/utils
     - kikimr/ci/tests/client/pq
     - kikimr/tools/check_yc_access
@@ -7584,8 +7576,6 @@ migrations:
     - keyboard/analytics/toloka/daemon/eval_taps
     - keyboard/analytics/toloka/nirvana/blocks
     - keyboard/android/libaml
-    - keyboard/suggest/nnlm/python/nnlm/data
-    - keyboard/suggest/nnlm/python/nnlm/models
     - kikimr/tools/monitoring/tests
     - kikimr/tools/sqs/performance/sqs_load
     - kikimr/tools/storage_perf_reporter
