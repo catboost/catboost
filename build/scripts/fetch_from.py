@@ -238,8 +238,7 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
         with tarfile.open(tmp_file_name, mode="r|gz") as tar:
             tar.extractall(tmp_dir)
         tmp_file_name = os.path.join(tmp_dir, resource_file_name)
-        if expected_md5:
-            real_md5 = md5file(tmp_file_name)
+        real_md5 = md5file(tmp_file_name)
 
     logging.info('File size %s (expected %s)', real_file_size, expected_file_size or "UNKNOWN")
     logging.info('File md5 %s (expected %s)', real_md5, expected_md5)
