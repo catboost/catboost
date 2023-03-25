@@ -279,22 +279,23 @@ class build_ext(_build_ext):
             cmake_extra_args=[f'-DPython3_ROOT_DIR={python3_root_dir}']
         )
 
-        logging.info(f'Successfully built {",".join(targets)} {cuda_support_msg}')
+        if not dry_run:
+            logging.info(f'Successfully built {",".join(targets)} {cuda_support_msg}')
 
     def copy_artifacts_built_with_cmake(self, build_dir, verbose, dry_run):
         for ext in self.extensions:
             # TODO(akhropov): CMake produces wrong artifact names right now so we have to rename it
-            dll = os.path.join(
+            src = os.path.join(
                 build_dir,
                 ext.cmake_build_sub_path,
                 build_ext.get_cmake_built_extension_filename(ext.name)
             )
-            distutils.file_util.copy_file(
-                dll,
-                os.path.join(self.build_lib, ext.dst_sub_path, ext.name + build_ext.get_extension_suffix()),
-                verbose=verbose,
-                dry_run=dry_run
-            )
+            dst = os.path.join(self.build_lib, ext.dst_sub_path, ext.name + build_ext.get_extension_suffix())
+            if dry_run:
+                # distutils.file_util.copy_file checks that src file exists so we can't just call it here
+                distutils.file_util.log.info(f'copying {src} -> {dst}')
+            else:
+                distutils.file_util.copy_file(src, dst, verbose=verbose, dry_run=dry_run)
 
 class sdist(_sdist):
 
