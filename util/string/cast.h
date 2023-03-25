@@ -387,18 +387,34 @@ static inline TUtf32String ToUtf32String(const TUtf32StringBuf wtr) {
     return TUtf32String(wtr);
 }
 
-template <typename T, unsigned base = 10, class TChar = char>
+template <typename T, unsigned radix = 10, class TChar = char>
 class TIntStringBuf {
 private:
     // inline constexprs are not supported by CUDA yet
     static constexpr char IntToChar[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    static_assert(1 < radix && radix < 17, "expect 1 < radix && radix < 17");
 
-    static_assert(1 < base && base < 17, "expect 1 < base && base < 17");
+    // auxiliary recursive template used to calculate maximum buffer size for the given type
+    template <T v>
+    struct TBufSizeRec {
+        // MSVC is tries to evaluate both sides of ?: operator and doesn't break recursion
+        static constexpr ui32 GetValue() {
+            if (v == 0) {
+                return 1;
+            }
+            return 1 + TBufSizeRec<v / radix>::value;
+        }
+
+        static constexpr ui32 value = GetValue();
+    };
 
 public:
+    static constexpr ui32 bufferSize = (std::is_signed<T>::value ? 1 : 0) +
+                                       ((radix == 2) ? sizeof(T) * 8 : TBufSizeRec<std::numeric_limits<T>::max()>::value);
+
     template <std::enable_if_t<std::is_integral<T>::value, bool> = true>
     explicit constexpr TIntStringBuf(T t) {
-        Size_ = Convert(t, Buf_, sizeof(Buf_) - 1);
+        Size_ = Convert(t, Buf_, sizeof(Buf_));
         // Init the rest of the array,
         // otherwise constexpr copy and move constructors don't work due to uninitialized data access
         std::fill(Buf_ + Size_, Buf_ + sizeof(Buf_), '\0');
@@ -408,7 +424,8 @@ public:
         return TStringBuf(Buf_, Size_);
     }
 
-    constexpr static ui32 Convert(T t, TChar* buf, ui32 bufLen) {
+    constexpr static ui32 Convert(T t, TChar* buf, size_t bufLen) {
+        bufLen = std::min<size_t>(bufferSize, bufLen);
         if (std::is_signed<T>::value && t < 0) {
             Y_ENSURE(bufLen >= 2, TStringBuf("not enough room in buffer"));
             buf[0] = '-';
@@ -430,10 +447,10 @@ private:
         auto* be = buf + bufLen;
         ui32 l = 0;
         while (t > 0 && be > buf) {
-            const auto v = t / base;
-            const auto r = (base == 2 || base == 4 || base == 8 || base == 16) ? t & (base - 1) : t - base * v;
+            const auto v = t / radix;
+            const auto r = (radix == 2 || radix == 4 || radix == 8 || radix == 16) ? t & (radix - 1) : t - radix * v;
             --be;
-            if /*constexpr*/ (base <= 10) { // if constexpr is not supported by CUDA yet
+            if /*constexpr*/ (radix <= 10) { // if constexpr is not supported by CUDA yet
                 *be = r + '0';
             } else {
                 *be = IntToChar[r];
@@ -442,13 +459,15 @@ private:
             t = v;
         }
         Y_ENSURE(!t, TStringBuf("not enough room in buffer"));
-        for (ui32 i = 0; i < l; ++i) {
-            *buf = *be;
-            ++buf;
-            ++be;
+        if (buf != be) {
+            for (ui32 i = 0; i < l; ++i) {
+                *buf = *be;
+                ++buf;
+                ++be;
+            }
         }
         return l;
     }
     ui32 Size_;
-    TChar Buf_[sizeof(T) * 8]; // worst case base = 2
+    TChar Buf_[bufferSize];
 };

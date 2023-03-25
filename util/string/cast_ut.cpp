@@ -598,5 +598,11 @@ Y_UNIT_TEST_SUITE(TCastTest) {
 
         constexpr auto v = TIntStringBuf(-1111);
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(v), TStringBuf(ToString(-1111)));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<ui16>(65535)), TStringBuf("65535"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i16>(32767)), TStringBuf("32767"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i32>(-32768)), TStringBuf("-32768"));
+
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(127)), TStringBuf("1111111"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(-128)), TStringBuf("-10000000"));
     }
 };
