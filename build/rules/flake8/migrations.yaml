@@ -570,7 +570,6 @@ migrations:
     - datacloud/dev_utils/validators
     - datacloud/features/cluster/tests/yt_tests
     - datacloud/ml_utils/kmeans/lib
-    - datalens/backend/app/bi_billing/bi_billing
     - devtools/codenav/pyndexer
     - devtools/local_cache/toolscache/tests/medium
     - devtools/project-insights/analytics/arc_size
@@ -754,7 +753,6 @@ migrations:
     - maps/pylibs/dataset_collector
     - maps/pylibs/dataset_collector/tests
     - maps/pylibs/fixtures
-    - maps/pylibs/infrastructure_api/juggler/tests
     - maps/realty/jams_generator/lib
     - maps/renderer/tilesgen/tools/lib
     - maps/search/geocoder/segmenter/grammar/converter/lib
@@ -1301,8 +1299,6 @@ migrations:
     - cloud/support/tools/websaint/app/saint
     - cv/imageproc/ocr/tools/database_extraction/nirvana/imgaug/src/external
     - datalens/backend/app/bi_api/tests/db/main
-    - datalens/backend/app/bi_billing/bi_billing
-    - datalens/backend/app/bi_billing/tests/db
     - datalens/backend/app/bi_external_api/bi_external_api
     - datalens/backend/app/bi_external_api/bi_external_api/workbook_ops/wb_mod_steps
     - datalens/backend/app/bi_external_api/tests
@@ -2169,7 +2165,6 @@ migrations:
     - yweb/antiporno/nirvana/operations/for_suggest/suggestreq_tickets
     - yweb/antiporno/nirvana/operations/ncmec
     - yweb/antispam/cid/library
-    - yweb/antispam/cid/library/tests
     - yweb/antispam/cid/phones_base
     - yweb/antispam/cid/phones_base/verdict_classifiers
     - yweb/antispam/clean_web/clients/answers
@@ -4178,9 +4173,7 @@ migrations:
     - mssngr/botfarm/src/logger
     - nirvana/valhalla/misc/arcadia/tests/compile/tests
     - noc/comocutor-contrib/utils
-    - noc/grad/grad/test
     - orgvisits/model_dwellplaces/features/run/cpp/tests
-    - passport/backend/oauth/admin/tests/base
     - passport/backend/oauth/api/tests/base
     - passport/backend/oauth/core/tests/base
     - passport/backend/oauth/sql/bin
@@ -5473,7 +5466,6 @@ migrations:
     - nginx/module_gen
     - nirvana/dc/examples
     - noc/bmp_monitor/utils
-    - noc/grad/influx_proxy_async/lib
     - noc/matilda/python/matilda-server-monitor
     - noc/packages/mondata_server/monitoring/zabbix/server_scripts
     - noc/pahom/src
@@ -6475,9 +6467,6 @@ migrations:
     - yweb/antispam/adblock/tools/ab2cd
     - yweb/antispam/antiinfrarecount/jupiter_state
     - yweb/antispam/antiinfrarecount/yql_query_generator/script
-    - yweb/antispam/cid/assistant
-    - yweb/antispam/cid/assistant/bots
-    - yweb/antispam/cid/assistant/tools/notify_logins
     - yweb/antispam/cid/backend/server
     - yweb/antispam/cid/feedback
     - yweb/antispam/cid/library
@@ -6869,7 +6858,6 @@ migrations:
     - dj/tools/viewer/custom/goods
     - edadeal/analytics/scripts/RetailerReachByRegion/RetailerReachByRegionLib/RetailerReachByRegionLib
     - edadeal/analytics/scripts/UserActivity/UserActivityLib/UserActivityLib
-    - education/schoolbook/services/store/src/app/utils
     - education/services/enigma/app/controllers/celery/ut
     - entity/analytics/tools/ner2/eval/lib
     - entity/ontodb/robot/tools/release_main_delta/lib/ut
@@ -7048,7 +7036,6 @@ migrations:
     - music/tools/card_gen
     - nirvana/vh3/src/vh3/util/typecheck
     - noc/comocutor-contrib/comocutor_contrib
-    - noc/grad/grad/lib
     - noc/hbf-server/tests
     - noc/packages/mondata_server/cmd/linkator3
     - noc/soft_pingers/bomj
@@ -7254,7 +7241,6 @@ migrations:
     - billing/log_tariffication/py/tests/integration/partner_dsp_acts
     - billing/log_tariffication/py/tests/integration/partner_tariff
     - crypta/lab/tools/share_audience_exports
-    - datalens/backend/app/bi_billing/bi_billing
     - datalens/backend/app/bi_materializer/bi_materializer
     - devtools/distbuild/ctl
     - devtools/tools_build
@@ -7691,7 +7677,6 @@ migrations:
     - mssngr/router/tools/close_location
     - mssngr/tools/tests
     - noc/comocutor-contrib/comocutor_contrib
-    - noc/grad/cmd/get_update_freq
     - noc/groppy/groppy
     - noc/hbf-server/contrib/py-radix/radix
     - noc/matilda/python/matilda-netdb
@@ -9352,7 +9337,6 @@ migrations:
     - modadvert/libs/connectors
     - modadvert/libs/connectors/loggers
     - modadvert/libs/sm_api/processors/direct_search_banners
-    - noc/grad/grad/lib
     - ott/drm/faas_infra/metric_artifacts
     - plus/utils/test_utils
     - quality/functionality/rtx/counterparty/fns_sync/bin
@@ -9995,7 +9979,6 @@ migrations:
     - search/tools/sandbox_profiler/libs
     - web/daemons/begemot/scripts/nanny_tidiness
     - yabs/server/tools/filter_reason_disable
-    - yweb/antispam/cid/assistant
     - yweb/antispam/clean_web/common_processes/compressed_logs_viewer
   PLW0642:
     ignore:
