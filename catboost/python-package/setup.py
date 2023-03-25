@@ -22,14 +22,36 @@ def get_topsrc_dir():
     else:
         return os.path.abspath(os.path.join(SETUP_DIR, '..', '..'))
 
-def create_hnsw_submodule(verbose, dry_run):
-    logging.info('Creating hnsw submodule')
-    hnsw_submodule_dir = os.path.join(SETUP_DIR, 'catboost', 'hnsw')
-    if not os.path.exists(hnsw_submodule_dir):
-        hnsw_original_dir = os.path.join(get_topsrc_dir(), 'library', 'python', 'hnsw', 'hnsw')
-        if verbose:
-            logging.info(f'create symlink from {hnsw_original_dir} to {hnsw_submodule_dir}')
-        if not dry_run:
+
+class ExtensionWithSrcAndDstSubPath(Extension):
+    def __init__(self, name, cmake_build_sub_path, dst_sub_path):
+        super().__init__(name, sources=[])
+        self.cmake_build_sub_path = cmake_build_sub_path
+        self.dst_sub_path = dst_sub_path
+
+def setup_hnsw_submodule(argv, extensions):
+    """
+    Does not respect --dry-run because main setup.py commands won't work correctly without this submodule setup
+    """
+
+    cmake_build_sub_path = os.path.join('library', 'python', 'hnsw', 'hnsw')
+    dst_sub_path = os.path.join('catboost', 'hnsw')
+
+    hnsw_submodule_dir = os.path.join(SETUP_DIR, dst_sub_path)
+
+    verbose = '--verbose' in argv
+
+    if '--with-hnsw' in argv:
+        extensions.append(ExtensionWithSrcAndDstSubPath('_hnsw', cmake_build_sub_path, dst_sub_path))
+
+        if not os.path.exists(hnsw_submodule_dir):
+            logging.info('Creating hnsw submodule')
+
+            hnsw_original_dir = os.path.join(get_topsrc_dir(), cmake_build_sub_path)
+
+            if verbose:
+                logging.info(f'create symlink from {hnsw_original_dir} to {hnsw_submodule_dir}')
+
             # there can be issues on Windows when creating symbolic and hard links
             try:
                 os.symlink(hnsw_original_dir, hnsw_submodule_dir, target_is_directory=True)
@@ -48,6 +70,15 @@ def create_hnsw_submodule(verbose, dry_run):
             if verbose:
                 logging.info(f'copy from {hnsw_original_dir} to {hnsw_submodule_dir}')
             shutil.copytree(hnsw_original_dir, hnsw_submodule_dir, dirs_exist_ok=True)
+    elif os.path.exists(hnsw_submodule_dir):
+        if verbose:
+            logging.info('remove previously used catboost.hnsw submodule')
+        if os.path.islink(hnsw_submodule_dir):
+            os.remove(hnsw_submodule_dir)
+        elif sys.version_info >= (3, 8):
+            shutil.rmtree(hnsw_submodule_dir)
+        else:
+            raise RuntimeError("Cannot correctly remove previously used 'hnsw' submodule because it might be a directory junction")
 
 
 def get_all_cmake_lists(base_dir, add_android=True):
@@ -201,13 +232,6 @@ class bdist_wheel(_bdist_wheel):
         _bdist_wheel.run(self)
 
 
-class ExtensionWithSrcAndDstSubPath(Extension):
-    def __init__(self, name, cmake_build_sub_path, dst_sub_path):
-        super().__init__(name, sources=[])
-        self.cmake_build_sub_path = cmake_build_sub_path
-        self.dst_sub_path = dst_sub_path
-
-
 class build_ext(_build_ext):
 
     user_options = _build_ext.user_options + Helper.options
@@ -319,15 +343,7 @@ if __name__ == '__main__':
             'catboost'
         )
     ]
-    if '--with-hnsw' in sys.argv:
-        create_hnsw_submodule('--verbose' in sys.argv, '--dry-run' in sys.argv)
-        extensions.append(
-            ExtensionWithSrcAndDstSubPath(
-                '_hnsw',
-                os.path.join('library', 'python', 'hnsw', 'hnsw'),
-                os.path.join('catboost', 'hnsw')
-            )
-        )
+    setup_hnsw_submodule(sys.argv, extensions)
 
     setup(
         name=os.environ.get('CATBOOST_PACKAGE_NAME') or 'catboost',
