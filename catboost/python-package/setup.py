@@ -171,14 +171,11 @@ class Helper(object):
         else:
             self.with_cuda = None
 
-    def propagate_options(self, origin, subcommand):
-        self.distribution.get_command_obj(subcommand).set_undefined_options(
-            origin,
-            ("with_cuda", "with_cuda"),
-            ("with_hnsw", "with_hnsw"),
-            ("parallel", "parallel"),
-            ('prebuilt_extensions_build_root_dir', 'prebuilt_extensions_build_root_dir')
-        )
+    def propagate_options(self, subcommand):
+        sub_cmd = self.reinitialize_command(subcommand)
+
+        for opt_name in ['with_cuda', 'with_hnsw', 'parallel', 'prebuilt_extensions_build_root_dir']:
+            setattr(sub_cmd, opt_name, getattr(self, opt_name))
 
 
 class build(_build):
@@ -194,7 +191,7 @@ class build(_build):
         Helper.finalize_options(self)
 
     def run(self):
-        Helper.propagate_options(self, "build", "build_ext")
+        Helper.propagate_options(self, "build_ext")
         _build.run(self)
 
 
@@ -211,7 +208,7 @@ class bdist(_bdist):
         Helper.finalize_options(self)
 
     def run(self):
-        Helper.propagate_options(self, "bdist", "build_ext")
+        Helper.propagate_options(self, "build")
         _bdist.run(self)
 
 
@@ -228,7 +225,7 @@ class bdist_wheel(_bdist_wheel):
         Helper.finalize_options(self)
 
     def run(self):
-        Helper.propagate_options(self, "bdist_wheel", "build_ext")
+        Helper.propagate_options(self, "build")
         _bdist_wheel.run(self)
 
 
