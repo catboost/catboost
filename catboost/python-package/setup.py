@@ -293,6 +293,7 @@ class build_ext(_build_ext):
         build_native.build(
             build_root_dir=build_dir,
             targets=targets,
+            build_type='Debug' if self.debug else 'Release',
             verbose=verbose,
             dry_run=dry_run,
             parallel_build_jobs=self.parallel,
