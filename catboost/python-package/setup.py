@@ -295,6 +295,7 @@ class build_ext(_build_ext):
             targets=targets,
             verbose=verbose,
             dry_run=dry_run,
+            parallel_build_jobs=self.parallel,
             have_cuda=bool(self.with_cuda),
             cuda_root_dir=self.with_cuda,
             cmake_extra_args=[f'-DPython3_ROOT_DIR={python3_root_dir}']

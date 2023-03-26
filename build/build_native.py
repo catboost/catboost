@@ -96,6 +96,8 @@ class Opts(object):
             default=[],
             opt_type=list
         ),
+        'parallel_build_jobs':
+            Option('Number of parallel build jobs (default is the number of parallel threads supported by CPU)', opt_type=int),
         'target_platform':
             Option(
                 'Target platform to build for (like "linux-aarch64"), same as host platform by default'
@@ -422,6 +424,8 @@ def build(opts=None, cross_build_final_stage=False, **kwargs):
     ]
     if opts.verbose:
         ninja_cmd += ['-v']
+    if opts.parallel_build_jobs is not None:
+        ninja_cmd += ['-j', str(opts.parallel_build_jobs)]
     ninja_cmd += opts.targets
     cmd_runner.run(ninja_cmd, env=build_environ)
 
