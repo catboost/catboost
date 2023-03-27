@@ -80,7 +80,7 @@ public:
             MetaInfo.TargetType = ERawTargetType::Float;
         }
         DatasetStatistics.Init(MetaInfo, CustomBorders, TargetCustomBorders, FeatureCorrelationDocsToUse > 0);
-        MetaInfo.TargetType = ERawTargetType::String;
+//        MetaInfo.TargetType = ERawTargetType::String;
         FloatTarget.resize(metaInfo.TargetCount);
     }
 
@@ -215,7 +215,11 @@ public:
         if (!ConvertStringTargets) {
             DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
         } else {
-            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, FromString<float>(value));
+            float fValue = FromString<float>(value);
+            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, fValue);
+            with_lock(TargetLock) {
+                FloatTarget[0].push_back(fValue);
+            }
         }
         Y_UNUSED(localObjectIdx);
     }
@@ -230,7 +234,11 @@ public:
         if (!ConvertStringTargets) {
             DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
         } else {
-            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, FromString<float>(value));
+            float fValue = FromString<float>(value);
+            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, fValue);
+            with_lock(TargetLock) {
+                FloatTarget[0].push_back(fValue);
+            }
         }
         Y_UNUSED(localObjectIdx);
     }
