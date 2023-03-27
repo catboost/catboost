@@ -18,7 +18,7 @@ def left_strip(el, prefix):
     Strips prefix at the left of el
     """
     if el.startswith(prefix):
-        return el[len(prefix):]
+        return el[len(prefix) :]
     return el
 
 

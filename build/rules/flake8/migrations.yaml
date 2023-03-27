@@ -1,4 +1,9 @@
 migrations:
+  E121:
+    ignore:
+    - E121
+    prefixes:
+    - infra/skybone-coord/src/daemon
   E122:
     ignore:
     - E122
@@ -95,6 +100,7 @@ migrations:
     - infra/rtc/iolimit_ticketer
     - infra/rtc/nodeinfo/lib/tests
     - infra/shawshank/tests
+    - infra/skybone-coord/src/daemon
     - infra/skyboned/src
     - infra/yp/monitoring/tmp_account_monitoring
     - infra/yp_dns_api/monitoring/alerts
@@ -379,6 +385,14 @@ migrations:
     - zen/yweb/video/faas/lib/taskctx
     - zootopia/analytics/drive/source/drive/operations/toloka/car_damages/backend/second_step_interior
     - zootopia/analytics/ml/uplift_modeling/experiments_processor/lib
+  E126:
+    ignore:
+    - E126
+    prefixes:
+    - extsearch/audio/generative/ableton_api_client/contrib/aiolo
+    - infra/skybone-coord/src
+    - infra/skybone-coord/src/daemon
+    - infra/deploy_notifications_controller/lib
   E127:
     ignore:
     - E127
@@ -658,6 +672,7 @@ migrations:
     - infra/clusterstate/services/alpha
     - infra/deploy/dri/lib
     - infra/deploy/dri/logbroker
+    - infra/deploy_notifications_controller/lib
     - infra/diskmanager/lib
     - infra/environments/builder
     - infra/gosky/src/gosky
@@ -1254,6 +1269,11 @@ migrations:
     - zootopia/analytics/ml/uplift_modeling/experiments_processor
     - zootopia/analytics/ml/util/cb
     - zootopia/analytics/ml/util/logs_context_manager/lib
+  E128:
+    ignore:
+    - E128
+    prefixes:
+    - infra/deploy_notifications_controller/lib
   E131:
     ignore:
     - E131
@@ -1347,6 +1367,7 @@ migrations:
     - entity/ontodb/tasks/fast_death_pipeline
     - entity/recommender/nirvana/operations/abt_experiments_launcher
     - entity/recommender/python_config
+    - extsearch/audio/generative/ableton_api_client/contrib/aiolo
     - extsearch/audio/generative/ableton11_client/contrib/AbletonOSC/pythonosc
     - extsearch/video/robot/youtube_grabber/ugc/lib
     - extsearch/video/vh/tape/lib/ut
@@ -1620,6 +1641,26 @@ migrations:
     - zootopia/analytics/drive/source/drive/operations/toloka/car_damages/backend/select_best_step
     - zootopia/analytics/drive/source/drive/operations/toloka/car_damages/backend/selection_step
     - zootopia/analytics/ml/uplift_modeling/experiments_processor/lib
+  E201:
+    ignore:
+    - E201
+    prefixes:
+    - infra/deploy_notifications_controller/lib
+  E202:
+    ignore:
+    - E202
+    prefixes:
+    - infra/deploy_notifications_controller/lib
+  E221:
+    ignore:
+    - E221
+    prefixes:
+    - infra/deploy_notifications_controller/lib
+  E222:
+    ignore:
+    - E222
+    prefixes:
+    - infra/deploy_notifications_controller/lib
   E225:
     ignore:
     - E225
@@ -1762,6 +1803,7 @@ migrations:
     - infra/callisto/controllers/user/jupiter
     - infra/callisto/controllers/user/jupiter/chunks
     - infra/dostavlyator/lib/debug
+    - infra/deploy_notifications_controller/lib
     - infra/ebpf-agent/tests
     - infra/kernel/test/misc
     - infra/kernel/tools/kvm_kernel/builder/lib
@@ -2218,16 +2260,45 @@ migrations:
     - zen/yweb/video/faas/lib/music
     - zen/yweb/video/faas/lib/outputs
     - zootopia/analytics/ml/features/geo_features/idle_duration_features
+  E227:
+    ignore:
+    - E227
+    prefixes:
+    - infra/skybone-coord/src
+    - infra/skybone-coord/src/daemon
+  E231:
+    ignore:
+    - E231
+    prefixes:
+    - infra/deploy_notifications_controller/lib
+    - infra/skybone-coord/src
+    - passport/backend/tools/phone_joiner
+    - lib
   E251:
     ignore:
     - E251
     prefixes:
     - comdep_analytics/comdep_recsys/etl_core/etl/clickhouse
+  E261:
+    ignore:
+    - E261
+    prefixes:
+    - infra/deploy_notifications_controller/lib
   E262:
     ignore:
     - E262
     prefixes:
     - dict/mt/make/db
+  E265:
+    ignore:
+    - E265
+    prefixes:
+    - infra/skybone-coord/src/daemon
+  E266:
+    ignore:
+    - E266
+    prefixes:
+    - infra/deploy_notifications_controller/lib
   E275:
     ignore:
     - E275
@@ -2322,6 +2393,7 @@ migrations:
     - geotargeting/library/python/geoplotting
     - infra/capacity_planning/utils/resources/all_resources
     - infra/dostavlyator/lib/proto_utils/tests
+    - infra/deploy_notifications_controller/lib
     - infra/environments/builder
     - infra/kernel/tools/kvm_kernel/builder/lib
     - infra/libs/monitoring_lib/docs_builder/basic
@@ -2537,6 +2609,19 @@ migrations:
     - yweb/yasap/answers/answers/resources
     - yweb/yasap/pdb/tools/push_notifications
     - yweb/yasap/znatoki/thequestion/lib
+  E302:
+    ignore:
+    - E302
+    prefixes:
+    - infra/deploy_notifications_controller/lib
+    - infra/skybone-coord/src
+    - infra/skybone-coord/src/daemon
+  E303:
+    ignore:
+    - E303
+    prefixes:
+    - infra/deploy_notifications_controller/lib
+    - infra/skybone-coord/src
   E305:
     ignore:
     - E305
@@ -3469,6 +3554,7 @@ migrations:
     - sandbox/projects/zora/RestartRotorNewService
     - sandbox/projects/zora/RestartRotorService
     - sandbox/projects/zora/RestartRthubService
+    - sandbox/serviceq
     - sdg/labeling/common
     - search/begemot/rules/images/cbir_validate/dict_creator
     - search/begemot/tools/its
@@ -3881,6 +3967,11 @@ migrations:
     - zootopia/analytics/ml/features/user_features/user_orders
     - zootopia/analytics/ml/features/user_geo_features
     - zootopia/analytics/ml/signalq/markup/grouped
+  E306:
+    ignore:
+    - E306
+    prefixes:
+    - infra/deploy_notifications_controller/lib
   E402:
     ignore:
     - E402
@@ -5153,6 +5244,7 @@ migrations:
     - infra/rtc_sla_tentacles/backend/lib/debug
     - infra/shawshank/lib
     - infra/skyboned/src
+    - infra/skybone-coord/src
     - infra/skylib/debug_server
     - infra/swatlib/gevent
     - infra/swatlib/stacksampler
@@ -5946,6 +6038,7 @@ migrations:
     - sandbox/sandboxsdk
     - sandbox/services/base
     - sandbox/services/modules
+    - sandbox/serviceq
     - sandbox/taskbox/dispatcher
     - sandbox/taskbox/worker
     - sandbox/tasklet/sidecars/resource_manager/handlers
@@ -6911,6 +7004,7 @@ migrations:
     - infra/qyp/account_manager/src
     - infra/rtc/sbin/show_kernel_distribution
     - infra/rtc/walle_validator/tests
+    - infra/skybone-coord/src/daemon
     - infra/swatlib
     - infra/swatlib/gevent
     - infra/walle/server/contrib/object-validator
@@ -7243,6 +7337,7 @@ migrations:
     - datalens/backend/app/bi_materializer/bi_materializer
     - devtools/distbuild/ctl
     - devtools/tools_build
+    - devtools/ya/build/stat
     - dj/services/toloka/features/lib/projects
     - education/yaschool/services/sections/app/models
     - extsearch/geo/tools/similarweb_basket_prepare
@@ -8166,6 +8261,7 @@ migrations:
     - dict/mt/video/lib/vt_requests/cli
     - dict/mt/video/tools/browser_queue_handler
     - education/english/lib/metric_exporter/src
+    - extsearch/audio/generative/ableton_api_client/contrib/aiolo
     - extsearch/video/robot/library/py2/yt_utils/get_portion
     - extsearch/video/robot/library/py2/yt_utils/get_portion/algorithms
     - extsearch/video/robot/library/py3/yt_utils/get_portion
@@ -8173,6 +8269,7 @@ migrations:
     - geoproduct/amocrm/utils
     - geotargeting/common/crypta_ids_matching/bin
     - infra/cauth/server/master/importers/servers
+    - infra/skybone-coord/src
     - intranet/forms/src/events/surveyme
     - intranet/idm_backend/src/idm/core/tasks
     - intranet/idm_backend/tests/models/services
@@ -8291,6 +8388,7 @@ migrations:
     - modadvert/libs/text_query_matcher
     - mssngr/botplatform/src/bots/api
     - mssngr/botplatform/src/bots/pusher
+    - passport/backend/tools/passport_api_reporter/timings
     - payplatform/spirit/match_receipts/ut
     - paysys/sre/tools/monitorings/configs/balance_app/base
     - quality/antifraud/xurma/tools/dump_restore/lib
@@ -8792,6 +8890,11 @@ migrations:
     - logos/libs/core
     - logos/projects/ads/tasks/tsar_pytorch_bko_pclick
     - travel/rasp/library/python/api_clients/movista
+  F821:
+    ignore:
+    - F821
+    prefixes:
+    - sandbox/serviceq/types
   F841:
     ignore:
     - F841
@@ -8881,6 +8984,7 @@ migrations:
     - infra/dist/dmover/tests
     - infra/host-cpu-metrics
     - infra/host-cpu-metrics/host_metrics
+    - infra/skybone-coord/src
     - infra/yp_dns/tools/handle_duplicate_records/lib
     - infra/yp_quota_distributor/lib
     - keyboard/dict/synthetic_ngrams/synthetic_ngrams_builder
@@ -9083,6 +9187,7 @@ migrations:
     - dj/services/market/uservices/thematizator/backend/nirvana_scripts/mbo_fuckup_catcher
     - intranet/watcher/tests/unit/tasks
     - intranet/wiki/src/wiki/pages
+    - infra/deploy_notifications_controller/lib
     - load/projects/yandex-tank/yandextank/plugins/Bfg
     - load/projects/yandex-tank/yandextank/plugins/Bfg2020
     - load/projects/yandex-tank/yandextank/plugins/Phantom
@@ -10089,6 +10194,29 @@ migrations:
     - sandbox/scripts/tools/excavator/commands
     - yt/odin-checks/bin/oauth_health
     - yweb/yasap/answers/answers/async_counters
+  W291:
+    ignore:
+    - W291
+    prefixes:
+    - infra/skybone-coord/src
+    - infra/skybone-coord/src/daemon
+  W292:
+    ignore:
+    - W292
+    prefixes:
+    - extsearch/audio/generative/ableton_api_client/contrib/aiolo
+    - infra/skybone-coord/src/daemon
+  W293:
+    ignore:
+    - W293
+    prefixes:
+    - infra/skybone-coord/src
+    - infra/skybone-coord/src/daemon
+  W391:
+    ignore:
+    - W391
+    prefixes:
+    - extsearch/audio/generative/ableton_api_client/contrib/aiolo
   W605:
     ignore:
     - W605
