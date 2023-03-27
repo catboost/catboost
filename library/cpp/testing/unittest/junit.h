@@ -93,6 +93,7 @@ private:
     TString BuildFileName(size_t index, const TStringBuf extension) const;
     void MakeReportFileName();
     void MakeTmpFileNameForForkedTests();
+    static void TransferFromCapturer(THolder<TJUnitProcessor::TOutputCapturer>& capturer, TString& out, IOutputStream& outStream);
 
 private:
     const TString FileName; // cmd line param

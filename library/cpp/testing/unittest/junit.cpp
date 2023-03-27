@@ -3,8 +3,11 @@
 #include <libxml/parser.h>
 #include <libxml/xmlwriter.h>
 
+#include <util/charset/utf8.h>
 #include <util/generic/scope.h>
 #include <util/generic/size_literals.h>
+#include <util/stream/file.h>
+#include <util/stream/input.h>
 #include <util/system/env.h>
 #include <util/system/file.h>
 #include <util/system/fs.h>
@@ -21,6 +24,54 @@
 namespace NUnitTest {
 
 extern const TString Y_UNITTEST_OUTPUT_CMDLINE_OPTION = "Y_UNITTEST_OUTPUT";
+
+static bool IsAllowedInXml(wchar32 c) {
+    // https://en.wikipedia.org/wiki/Valid_characters_in_XML
+    return c == 0x9
+        || c == 0xA
+        || c == 0xD
+        || c >= 0x20 && c <= 0xD7FF
+        || c >= 0xE000 && c <= 0xFFFD
+        || c >= 0x10000 && c <= 0x10FFFF;
+}
+
+static TString SanitizeXmlString(TString s) {
+    TString escaped;
+    bool fixedSomeChars = false;
+    const unsigned char* i = reinterpret_cast<const unsigned char*>(s.data());
+    const unsigned char* end = i + s.size();
+    auto replaceChar = [&]() {
+        if (!fixedSomeChars) {
+            fixedSomeChars = true;
+            escaped.reserve(s.size());
+            escaped.insert(escaped.end(), s.data(), reinterpret_cast<const char*>(i));
+        }
+        escaped.push_back('?');
+    };
+    while (i < end) {
+        wchar32 rune;
+        size_t runeLen;
+        const RECODE_RESULT result = SafeReadUTF8Char(rune, runeLen, i, end);
+        if (result == RECODE_OK) {
+            if (IsAllowedInXml(rune)) {
+                if (fixedSomeChars) {
+                    escaped.insert(escaped.end(), reinterpret_cast<const char*>(i), reinterpret_cast<const char*>(i + runeLen));
+                }
+            } else {
+                replaceChar();
+            }
+            i += runeLen;
+        } else {
+            replaceChar();
+            ++i;
+        }
+    }
+    if (fixedSomeChars) {
+        return escaped;
+    } else {
+        return s;
+    }
+}
 
 struct TJUnitProcessor::TOutputCapturer {
     static constexpr int STDOUT_FD = 1;
@@ -59,20 +110,58 @@ struct TJUnitProcessor::TOutputCapturer {
         }
     }
 
+    TString GetTmpFileName() {
+        Uncapture();
+        return TmpFile.Name();
+    }
+
     TString GetCapturedString() {
         Uncapture();
 
         TFile captured(TmpFile.Name(), EOpenModeFlag::RdOnly);
         i64 len = captured.GetLength();
         if (len > 0) {
-            TString out;
-            if (static_cast<size_t>(len) > 10_KB) {
-                len = static_cast<i64>(10_KB);
-            }
-            out.resize(len);
             try {
-                captured.Read((void*)out.data(), len);
-                return out;
+                constexpr size_t LIMIT = 10_KB;
+                constexpr size_t PART_LIMIT = 5_KB;
+                TStringBuilder out;
+                if (static_cast<size_t>(len) <= LIMIT) {
+                    out.resize(len);
+                    captured.Read((void*)out.data(), len);
+                } else {
+                    // Read first 5_KB
+                    {
+                        TString first;
+                        first.resize(PART_LIMIT);
+                        captured.Read((void*)first.data(), PART_LIMIT);
+                        size_t lastNewLine = first.find_last_of('\n');
+                        if (lastNewLine == TString::npos) {
+                            out << first << Endl;
+                        } else {
+                            out << TStringBuf(first.c_str(), lastNewLine);
+                        }
+                    }
+
+                    out << Endl << Endl << "...SKIPPED..." << Endl << Endl;
+
+                    // Read last 5_KB
+                    {
+                        TString last;
+                        last.resize(PART_LIMIT);
+                        captured.Seek(-PART_LIMIT, sEnd);
+                        captured.Read((void*)last.data(), PART_LIMIT);
+                        size_t newLine = last.find_first_of('\n');
+                        if (newLine == TString::npos) {
+                            out << last << Endl;
+                        } else {
+                            out << TStringBuf(last.c_str() + newLine + 1);
+                        }
+                    }
+                }
+                if (out.back() != '\n') {
+                    out << Endl;
+                }
+                return std::move(out);
             } catch (const std::exception& ex) {
                 Cerr << "Failed to read from captured output: " << ex.what() << Endl;
             }
@@ -108,8 +197,20 @@ void TJUnitProcessor::OnError(const TError* descr) {
     if (!GetForkTests() || GetIsForked()) {
         auto* testCase = GetTestCase(descr->test);
         TFailure& failure = testCase->Failures.emplace_back();
-        failure.Message = descr->msg;
-        failure.BackTrace = descr->BackTrace;
+        failure.Message = SanitizeXmlString(descr->msg);
+        failure.BackTrace = SanitizeXmlString(descr->BackTrace);
+    }
+}
+
+void TJUnitProcessor::TransferFromCapturer(THolder<TJUnitProcessor::TOutputCapturer>& capturer, TString& out, IOutputStream& outStream) {
+    if (capturer) {
+        capturer->Uncapture();
+        {
+            TFileInput fileStream(capturer->GetTmpFileName());
+            TransferData(&fileStream, &outStream);
+            out = SanitizeXmlString(capturer->GetCapturedString());
+        }
+        capturer = nullptr;
     }
 }
 
@@ -121,16 +222,8 @@ void TJUnitProcessor::OnFinish(const TFinish* descr) {
             testCase->DurationSecods = (TInstant::Now() - StartCurrentTestTime).SecondsFloat();
         }
         StartCurrentTestTime = TInstant::Zero();
-        if (StdOutCapturer) {
-            testCase->StdOut = StdOutCapturer->GetCapturedString();
-            StdOutCapturer = nullptr;
-            Cout.Write(testCase->StdOut);
-        }
-        if (StdErrCapturer) {
-            testCase->StdErr = StdErrCapturer->GetCapturedString();
-            StdErrCapturer = nullptr;
-            Cerr.Write(testCase->StdErr);
-        }
+        TransferFromCapturer(StdOutCapturer, testCase->StdOut, Cout);
+        TransferFromCapturer(StdErrCapturer, testCase->StdErr, Cerr);
     } else {
         MergeSubprocessReport();
     }
@@ -221,7 +314,7 @@ void TJUnitProcessor::SerializeToFile() {
     };
 
     CHECK_CALL(xmlTextWriterSetIndent(file, 1));
-    
+
     CHECK_CALL(xmlTextWriterStartDocument(file, nullptr, "UTF-8", nullptr));
     CHECK_CALL(xmlTextWriterStartElement(file, XML_STR("testsuites")));
     CHECK_CALL(xmlTextWriterWriteAttribute(file, XML_STR("tests"), XML_STR(ToString(GetTestsCount()).c_str())));
@@ -292,6 +385,26 @@ static TString GetAttrValue(xmlNodePtr node, TStringBuf name, bool required = tr
     return {};
 }
 
+static xmlNodePtr NextElement(xmlNodePtr node) {
+    if (!node) {
+        return nullptr;
+    }
+
+    do {
+        node = node->next;
+    } while (node && node->type != XML_ELEMENT_NODE);
+
+    return node;
+}
+
+static xmlNodePtr ChildElement(xmlNodePtr node) {
+    xmlNodePtr child = node->children;
+    if (child && child->type != XML_ELEMENT_NODE) {
+        return NextElement(child);
+    }
+    return child;
+}
+
 void TJUnitProcessor::MergeSubprocessReport() {
     {
         const i64 len = GetFileLength(TmpReportFile->Name());
@@ -326,14 +439,14 @@ void TJUnitProcessor::MergeSubprocessReport() {
     }
 
     CHECK_NODE_NAME(root, "testsuites");
-    for (xmlNodePtr suite = root->children; suite != nullptr; suite = suite->next) {
+    for (xmlNodePtr suite = ChildElement(root); suite != nullptr; suite = NextElement(suite)) {
         try {
             CHECK_NODE_NAME(suite, "testsuite");
             TString suiteName = GetAttrValue(suite, "id");
             TTestSuite& suiteInfo = Suites[suiteName];
 
             // Test cases
-            for (xmlNodePtr testCase = suite->children; testCase != nullptr; testCase = testCase->next) {
+            for (xmlNodePtr testCase = ChildElement(suite); testCase != nullptr; testCase = NextElement(testCase)) {
                 try {
                     CHECK_NODE_NAME(testCase, "testcase");
                     TString caseName = GetAttrValue(testCase, "id");
@@ -344,7 +457,7 @@ void TJUnitProcessor::MergeSubprocessReport() {
                     }
 
                     // Failures/stderr/stdout
-                    for (xmlNodePtr testProp = testCase->children; testProp != nullptr; testProp = testProp->next) {
+                    for (xmlNodePtr testProp = ChildElement(testCase); testProp != nullptr; testProp = NextElement(testProp)) {
                         try {
                             if (NODE_NAME(testProp) == "failure") {
                                 TString message = GetAttrValue(testProp, "message");
@@ -359,6 +472,8 @@ void TJUnitProcessor::MergeSubprocessReport() {
                                 ythrow yexception() << "Unknown test case subprop: \"" << NODE_NAME(testProp) << "\"";
                             }
                         } catch (const std::exception& ex) {
+                            auto& failure = testCaseInfo.Failures.emplace_back();
+                            failure.Message = TStringBuilder() << "Failed to read part of test case info from unit test tool: " << ex.what();
                             Cerr << "Failed to load test case " << caseName << " failure in suite " << suiteName << ": " << ex.what() << Endl;
                             continue;
                         }
