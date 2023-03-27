@@ -7,6 +7,7 @@
 // ./library/svnversion/test/test[.exe]
 int main() {
     Cout << "GetProgramSvnVersion(): " << GetProgramSvnVersion() << Endl;
+    Cout << "GetCustomVersion(): " << GetCustomVersion() << Endl;
     Cout << "PrintProgramSvnVersion(): " << Endl; PrintProgramSvnVersion();
     Cout << "GetArcadiaSourcePath(): " << GetArcadiaSourcePath() << Endl;
     Cout << "GetArcadiaSourceUrl(): " << GetArcadiaSourceUrl() << Endl;

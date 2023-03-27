@@ -72,6 +72,7 @@ def get_default_json():
     "BUILD_TIMESTAMP": 0,
     "BUILD_HOST": "localhost",
     "BUILD_USER": "nobody",
+    "CUSTOM_VERSION": "",
     "PROGRAM_VERSION": "Arc info:\\n    Branch: unknown-vcs-branch\\n    Commit: 0000000000000000000000000000000000000000\\n    Author: <UNKNOWN>\\n    Summary: No VCS\\n\\n",
     "SCM_DATA": "Arc info:\\n    Branch: unknown-vcs-branch\\n    Commit: 0000000000000000000000000000000000000000\\n    Author: <UNKNOWN>\\n    Summary: No VCS\\n",
     "VCS": "arc",
@@ -220,6 +221,8 @@ def print_java_mf(info):
     lines += wrap('Build-Date: ', info['BUILD_DATE'])
     if 'BUILD_TIMESTAMP' in info:
         lines += wrap('Build-Timestamp: ', str(info['BUILD_TIMESTAMP']))
+    if 'CUSTOM_VERSION' in info:
+        lines += wrap('Custom-Version-String: ', base64.b64encode(info['CUSTOM_VERSION'].encode('utf-8')).decode('utf-8'))
     return lines, names
 
 
