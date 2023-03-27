@@ -1356,7 +1356,6 @@ migrations:
     - geoproduct/advert_ranking/traffic_prediction/predictor
     - geoproduct/aml/user_scripts/yt_replicator
     - geotargeting/common/crypta_ids_matching/lib
-    - geotargeting/library/python/yt_schema/tests
     - infra/callisto/controllers/utils
     - infra/reconf_juggler/tools/jdump
     - infra/rtc/iolimit_ticketer
