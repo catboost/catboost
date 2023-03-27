@@ -45,6 +45,10 @@ public:
         TargetCustomBorders = targetCustomBorders;
     }
 
+    void SetConvertStringTargets(bool convertStringTargets) {
+        ConvertStringTargets = convertStringTargets;
+    }
+
     void Start(
         bool inBlock, // subset processing - Start/Finish is called for each block
         const TDataMetaInfo& metaInfo,
@@ -72,7 +76,11 @@ public:
         }
         ObjectCount = objectCount + prevTailSize;
         CatFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
-        DatasetStatistics.Init(metaInfo, CustomBorders, TargetCustomBorders, FeatureCorrelationDocsToUse > 0);
+        if (MetaInfo.TargetType == ERawTargetType::String && ConvertStringTargets) {
+            MetaInfo.TargetType = ERawTargetType::Float;
+        }
+        DatasetStatistics.Init(MetaInfo, CustomBorders, TargetCustomBorders, FeatureCorrelationDocsToUse > 0);
+        MetaInfo.TargetType = ERawTargetType::String;
         FloatTarget.resize(metaInfo.TargetCount);
     }
 
@@ -204,7 +212,11 @@ public:
     // TRawTargetData
 
     void AddTarget(ui32 localObjectIdx, const TString& value) override {
-        DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+        if (!ConvertStringTargets) {
+            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+        } else {
+            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, FromString<float>(value));
+        }
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 localObjectIdx, float value) override {
@@ -215,7 +227,11 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
-        DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
+        if (!ConvertStringTargets) {
+            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
+        } else {
+            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, FromString<float>(value));
+        }
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
@@ -307,6 +323,7 @@ private:
 
     TFeatureCustomBorders CustomBorders;
     TFeatureCustomBorders TargetCustomBorders;
+    bool ConvertStringTargets;
 
 public:
     void OutputResult(const TString& outputPath) const;

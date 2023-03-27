@@ -33,6 +33,11 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
         .Handler1T<TString>([&](const TString& param) {
             OnlyLightStatistics = FromString<bool>(param);
         });
+    parser.AddLongOption("not-convert-string-targets")
+        .OptionalValue("true", "bool")
+        .Handler1T<TString>([&](const TString& param) {
+            ConvertStringTargets = !FromString<bool>(param);
+        });
     parser.AddLongOption("custom-feature-limits", "comma separated list of feature limits description in format <feature_id>:<min>:<max>,"
                                                   "for example: 0:0:1,10:-2.1:-1")
         .RequiredArgument("string")
@@ -255,6 +260,7 @@ void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& ca
             &localExecutor);
 
         visitor->SetCustomBorders(calculateStatisticsParams.FeatureLimits, /*targetCustomBorders*/ TFeatureCustomBorders());
+        visitor->SetConvertStringTargets(calculateStatisticsParams.ConvertStringTargets);
 
         datasetLoader->DoIfCompatible(dynamic_cast<IDatasetVisitor*>(visitor.Get()));
 

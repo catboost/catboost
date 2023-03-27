@@ -24,6 +24,7 @@ struct TCalculateStatisticsParams {
     int ThreadCount = -1; // -1 means undefined, set to CPU core count by default
     bool OnlyGroupStatistics = false;
     bool OnlyLightStatistics = false;
+    bool ConvertStringTargets = false;
     size_t BorderCount = 64;
     TFeatureCustomBorders FeatureLimits;
     ui32 SpotSize = 0;
