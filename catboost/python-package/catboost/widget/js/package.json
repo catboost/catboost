@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "webpack --mode=production && jupyter labextension build .",
-    "clean": "rimraf dist && rimraf ../nbextension && rimraf ../labextension",
+    "clean": "rimraf dist && rimraf nbextension && rimraf labextension",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "gocd-catboost",
@@ -26,7 +26,7 @@
   },
   "jupyterlab": {
     "extension": "src/labplugin",
-    "outputDir": "../labextension",
+    "outputDir": "labextension",
     "sharedPackages": {
       "@jupyter-widgets/base": {
         "bundled": false,

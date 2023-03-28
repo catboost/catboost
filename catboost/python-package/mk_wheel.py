@@ -294,13 +294,13 @@ def make_wheel(wheel_name, pkg_name, ver, build_system, arc_root, dst_so_modules
             data_dir = os.path.join(dir_path, '{}-{}.data'.format(pkg_name, ver), 'data')
             widget_dir = os.path.join(catboost_package_dir, 'catboost', 'widget')
             for file in ['extension.js', 'index.js']:
-                src = os.path.join(widget_dir, 'nbextension', file)
+                src = os.path.join(widget_dir, 'js', 'nbextension', file)
                 dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost-widget', file)
                 if not os.path.exists(os.path.dirname(dst)):
                     os.makedirs(os.path.dirname(dst))
                 shutil.copy(src, dst)
 
-            labextension_dir = os.path.join(catboost_package_dir, 'catboost', 'widget', 'labextension')
+            labextension_dir = os.path.join(catboost_package_dir, 'catboost', 'widget', 'js', 'labextension')
             for file in os.listdir(labextension_dir):
                 src = os.path.join(labextension_dir, file)
                 dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost-widget', file)
