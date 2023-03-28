@@ -470,7 +470,10 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
             os.chdir(SETUP_DIR)
 
     def get_source_files(self):
-        return [ os.path.join('catboost', 'widget', 'js', f) for f in os.listdir(os.path.join('catboost', 'widget', 'js')) ]
+        result = []
+        for dirpath, _, filenames in os.walk(os.path.join('catboost', 'widget', 'js')):
+            result += [os.path.join(dirpath, f) for f in filenames]
+        return result
 
     def get_output_mapping(self) -> Dict[str, str]:
         # because they will go 'data' part they won't be returned there
