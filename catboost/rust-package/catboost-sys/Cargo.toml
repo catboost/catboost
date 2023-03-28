@@ -1,8 +1,15 @@
 [package]
 name = "catboost-sys"
-version = "0.1.0"
-authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
+version = "0.1.2"
+authors = ["Sergey Kiselev <kiselev.sg@gmail.com>", "Loh Jia Long <jlloh89@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/jlloh/catboost/tree/refactor-crate-avoid-build/catboost/rust-package/catboost-sys"
+description = """
+Internal bindings for catboostlib c++ apis
+"""
+license = "MIT/Apache-2.0"
 
 [build-dependencies]
 bindgen = "~0.59"
+ureq = "2.5.0"
+anyhow = "1.0.64"

@@ -1,9 +1,15 @@
 [package]
-name = "catboost"
-version = "0.1.0"
-authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
+name = "catboost-rs"
+version = "0.1.3"
+authors = ["Sergey Kiselev <kiselev.sg@gmail.com>", "Loh Jia Long <jlloh89@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/jlloh/catboost/tree/refactor-crate-avoid-build/catboost/rust-package"
+description = """
+(Forked from official) Rust bindings for catboost. 
+Only changes for now are downloading libcatboost sharedlib instead of building, so that it can be more easily published to cargo without needing to clone the whole repo which can be quite big.
+"""
+license = "MIT/Apache-2.0"
+
 
 [dependencies]
-catboost-sys = { path = "catboost-sys", version = "0.1"}
-# catboost-sys = "0.1"
+catboost-sys = "0.1.2"

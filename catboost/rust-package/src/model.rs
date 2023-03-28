@@ -113,6 +113,9 @@ impl Drop for Model {
     }
 }
 
+// Should be thread safe as stated here: https://github.com/catboost/catboost/issues/272
+unsafe impl Send for Model {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
