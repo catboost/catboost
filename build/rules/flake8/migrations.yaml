@@ -1580,7 +1580,6 @@ migrations:
     - yabs/server/test/qabs_bsserver_pytest
     - yabs/stat/direct_monitoring/libs/checks
     - yabs/stat/dropstat2/pylibs/common
-    - yabs/stat/solo/sensors
     - yabs/vh/cms-pgaas/stream_ad_lib/biz
     - yabs/vh/cms-pgaas/ugc_api/graphql_api/schema/video
     - yabs/vh/cms-pgaas/ugc_live_api/lib/api/blueprints
@@ -1676,7 +1675,6 @@ migrations:
     - ads/libs/py_autobudget
     - ads/ml_engine/learn/result/local_extended_fstr/ut
     - ads/pytorch/lib/online_learning/production/processors/deploy_v2_processor
-    - ads/quality/adv_machine/cm_robot/cmpy/config
     - ads/quality/adv_machine/scripts/cluster_master
     - ads/quality/adv_machine/scripts/yp_tools
     - ads/quality/apc/prgmgv3/spy/browser_visit_log
@@ -7344,7 +7342,6 @@ migrations:
     - geosuggest/tools/international_quality/vh3/similarweb_basket_prepare
     - logbroker/tools/cluster_migration/get_max_retention
     - logos/projects/statkey_py3/tasks/cubes/clicks_attribution/v2
-    - maps/analyzer/pylibs/envkit
     - maps/analyzer/pylibs/models
     - maps/analyzer/pylibs/schema
     - maps/analyzer/sandbox/ab_tables_daily/bin
@@ -8114,7 +8111,6 @@ migrations:
     - ydo/tools/bb
     - ydo/tools/dispatch/draw_distance_grid
     - ydo/tools/dispatch/draw_virtual_workers
-    - ydo/tools/dispatch/redispatcher_tester/lib
     - ydo/tools/proxy_phones/call_tracking/lib
     - yql/library/test_framework
     - yql/tests/cli
