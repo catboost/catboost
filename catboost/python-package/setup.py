@@ -123,11 +123,11 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         'AUTHORS', 'LICENSE', 'CONTRIBUTING.md', 'README.md', 'RELEASE.md',
         'conanfile.txt',
         'build',
-        'catboost/cuda',
-        'catboost/idl',
-        'catboost/libs',
-        'catboost/private',
-        'catboost/python-package/catboost',
+        os.path.join('catboost', 'cuda'),
+        os.path.join('catboost', 'idl'),
+        os.path.join('catboost', 'libs'),
+        os.path.join('catboost', 'private'),
+        os.path.join('catboost', 'python-package', 'catboost'),
         'cmake',
         'contrib',
         'library',
@@ -136,7 +136,7 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
     ]
     topnames += get_all_cmake_lists('')
     topnames += get_all_cmake_lists('catboost')
-    topnames += get_all_cmake_lists('catboost/python-package', add_android=False)
+    topnames += get_all_cmake_lists(os.path.join('catboost', 'python-package'), add_android=False)
     for name in topnames:
         src = os.path.join(topdir, name)
         dst = os.path.join(pkgdir, name)
