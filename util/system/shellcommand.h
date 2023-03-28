@@ -184,35 +184,35 @@ public:
     }
 
     /**
-    * @brief set if Finish() should be called on user-supplied streams
-    * if process is run in async mode Finish will be called in process' thread
-    * @param val if Finish() should be called
-    * @return self
-    */
+     * @brief set if Finish() should be called on user-supplied streams
+     * if process is run in async mode Finish will be called in process' thread
+     * @param val if Finish() should be called
+     * @return self
+     */
     inline TShellCommandOptions& SetCloseStreams(bool val) {
         CloseStreams = val;
         return *this;
     }
 
     /**
-    * @brief set if input stream should be closed after all data is read
-    * call SetCloseInput(false) for interactive process
-    * @param val if input stream should be closed
-    * @return self
-    */
+     * @brief set if input stream should be closed after all data is read
+     * call SetCloseInput(false) for interactive process
+     * @param val if input stream should be closed
+     * @return self
+     */
     inline TShellCommandOptions& SetCloseInput(bool val) {
         ShouldCloseInput.store(val);
         return *this;
     }
 
     /**
-    * @brief set if command should be interpreted by OS shell (/bin/sh or cmd.exe)
-    * shell is enabled by default
-    * call SetUseShell(false) for command to be sent to OS verbatim
-    * @note shell operators > < | && || will not work if this option is off
-    * @param useShell if command should be run in shell
-    * @return self
-    */
+     * @brief set if command should be interpreted by OS shell (/bin/sh or cmd.exe)
+     * shell is enabled by default
+     * call SetUseShell(false) for command to be sent to OS verbatim
+     * @note shell operators > < | && || will not work if this option is off
+     * @param useShell if command should be run in shell
+     * @return self
+     */
     inline TShellCommandOptions& SetUseShell(bool useShell) {
         UseShell = useShell;
         if (!useShell)
@@ -246,7 +246,7 @@ public:
      * @note currently ignored on windows
      * @param detach if command should be run in new session
      * @return self
-    */
+     */
     inline TShellCommandOptions& SetDetachSession(bool detach) {
         DetachSession = detach;
         return *this;
@@ -257,7 +257,7 @@ public:
      * @note currently ignored on windows
      * @param function function to be called after fork
      * @return self
-    */
+     */
     inline TShellCommandOptions& SetFuncAfterFork(const std::function<void()>& function) {
         FuncAfterFork = function;
         return *this;

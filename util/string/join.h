@@ -250,7 +250,7 @@ constexpr auto MakeRangeJoiner(TStringBuf delim, const std::initializer_list<TVa
  * This way JoinSeq(",", { s1, s2 }) always does the right thing whatever types s1 and s2 have.
  *
  * If someone needs to join std::initializer_list<TString> -- it still works because of the TContainer template above.
-*/
+ */
 
 template <typename T>
 inline std::enable_if_t<

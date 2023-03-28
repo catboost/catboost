@@ -57,10 +57,10 @@ protected:
 };
 
 /**
-* Input stream with direct access to the input buffer and ability to undo read
-*
-* Derived classes must implement `DoUndo` method.
-*/
+ * Input stream with direct access to the input buffer and ability to undo read
+ *
+ * Derived classes must implement `DoUndo` method.
+ */
 class IZeroCopyInputFastReadTo: public IZeroCopyInput {
 public:
     IZeroCopyInputFastReadTo() noexcept = default;
@@ -74,12 +74,12 @@ protected:
 
 private:
     /**
-    * Undo read.
-    *
-    * Note that this function not check if you try undo more that read. In fact Undo used for undo read in last chunk.
-    *
-    * @param len[in]                   Bytes to undo.
-    */
+     * Undo read.
+     *
+     * Note that this function not check if you try undo more that read. In fact Undo used for undo read in last chunk.
+     *
+     * @param len[in]                   Bytes to undo.
+     */
     inline void Undo(size_t len) {
         if (len) {
             DoUndo(len);

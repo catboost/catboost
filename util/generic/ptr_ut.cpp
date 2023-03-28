@@ -546,8 +546,8 @@ namespace {
         static TFrom Get();
 
         /*
-     * Result == (TFrom could be converted to TTo implicitly)
-     */
+         * Result == (TFrom could be converted to TTo implicitly)
+         */
         enum {
             Result = (sizeof(Func(Get())) != sizeof(RTNo))
         };

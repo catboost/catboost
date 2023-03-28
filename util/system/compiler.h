@@ -654,8 +654,8 @@ Y_FORCE_INLINE void DoNotOptimizeAway(T&& datum) {
 }
 
     /**
- * Use this macro to prevent unused variables elimination.
- */
+     * Use this macro to prevent unused variables elimination.
+     */
     #define Y_DO_NOT_OPTIMIZE_AWAY(X) ::DoNotOptimizeAway(X)
 
 #endif

@@ -271,9 +271,9 @@ public:
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
     /**
-      * @param queueSizeLimit means "unlimited" when = 0
-      * @param threadCount means "single thread" when = 0
-      */
+     * @param queueSizeLimit means "unlimited" when = 0
+     * @param threadCount means "single thread" when = 0
+     */
     void Start(size_t threadCount, size_t queueSizeLimit = 0) override;
     void Stop() noexcept override;
     size_t Size() const noexcept override;
