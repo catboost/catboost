@@ -21,22 +21,23 @@ else:
 
 
 class Target(object):
-    def __init__(self, catboost_component, need_pic):
+    def __init__(self, catboost_component, need_pic, macos_binary_path):
         self.catboost_component = catboost_component
         self.need_pic = need_pic
+        self.macos_binary_path = macos_binary_path # needed for lipo
 
 class Targets(object):
     catboost = {
-        'catboost': Target('app', need_pic=False),
-        'catboostmodel_static': Target('libs', need_pic=False),
-        '_hnsw': Target('python-package', need_pic=True),
-        '_catboost': Target('python-package', need_pic=True),
-        'catboostr': Target('R-package', need_pic=True),
-        'catboostmodel': Target('libs', need_pic=True),
-        'catboost_train_interface': Target('libs', need_pic=True),
-        'catboost4j-prediction': Target('jvm-packages', need_pic=True),
-        'catboost4j-spark-impl': Target('spark', need_pic=True),
-        'catboost4j-spark-impl-cpp': Target('spark', need_pic=True)
+        'catboost': Target('app', need_pic=False, macos_binary_path='catboost/app/catboost'),
+        'catboostmodel_static': Target('libs', need_pic=False, macos_binary_path='catboost/libs/model_interface/static/libcatboostmodel_static.a'),
+        '_hnsw': Target('python-package', need_pic=True, macos_binary_path='library/python/hnsw/hnsw/lib_hnsw.dylib'),
+        '_catboost': Target('python-package', need_pic=True, macos_binary_path='catboost/python-package/catboost/lib_catboost.dylib'),
+        'catboostr': Target('R-package', need_pic=True, macos_binary_path='catboost/R-package/src/libcatboostr.dylib'),
+        'catboostmodel': Target('libs', need_pic=True, macos_binary_path='catboost/libs/model_interface/libcatboostmodel.dylib'),
+        'catboost_train_interface': Target('libs', need_pic=True, macos_binary_path='catboost/libs/train_interface/libcatboost.dylib'),
+        'catboost4j-prediction': Target('jvm-packages', need_pic=True, macos_binary_path='catboost/jvm-packages/catboost4j-prediction/src/native_impl/libcatboost4j-prediction.dylib'),
+        'catboost4j-spark-impl': Target('spark', need_pic=True, macos_binary_path='catboost/spark/catboost4j-spark/core/src/native_impl/libcatboost4j-spark-impl.dylib'),
+        'catboost4j-spark-impl-cpp': Target('spark', need_pic=True, macos_binary_path='catboost/spark/catboost4j-spark/core/src/native_impl/libcatboost4j-spark-impl.dylib'),
     }
     tools = [
         'archiver',
@@ -102,6 +103,11 @@ class Opts(object):
             Option(
                 'Target platform to build for (like "linux-aarch64"), same as host platform by default'
             ),
+        'macos_universal_binaries': Option(
+            "Build macOS universal binaries (don't specify target_platform together with this flag)",
+            default=False,
+            opt_type=bool
+        ),
         'native_built_tools_root_dir':
             Option('Path to tools from CatBoost repository built for build platform (useful only for cross-compilation)')
     }
@@ -149,6 +155,56 @@ class CmdRunner(object):
 
 def get_source_root_dir():
     return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+def mkdir_if_not_exists(dir, verbose, dry_run):
+    if verbose:
+        logging.info(f'create directory {dir}')
+    if not dry_run:
+        os.makedirs(dir, exist_ok=True)
+
+def lipo(opts : Opts, cmd_runner: CmdRunner):
+    for target in opts.targets:
+        target_binary_sub_path = Targets.catboost[target].macos_binary_path
+        dst_path = os.path.join(opts.build_root_dir, target_binary_sub_path)
+        mkdir_if_not_exists(os.path.dirname(dst_path), opts.verbose, opts.dry_run)
+        cmd = ['lipo', '-create', '-output', dst_path]
+        for platform_subdir in ['darwin-x86_64', 'darwin-arm64']:
+            cmd += [os.path.join(opts.build_root_dir, platform_subdir, target_binary_sub_path)]
+        cmd_runner.run(cmd)
+
+def build_macos_universal_binaries(opts: Opts, cmd_runner: CmdRunner):
+    host_platform = get_host_platform()
+    if host_platform == 'darwin-x86_64':
+        cross_build_platform = 'darwin-arm64'
+    elif host_platform == 'darwin-arm64':
+        cross_build_platform = 'darwin-x86_64'
+    else:
+        raise RuntimeError('Building macOS universal binaries is supported only on darwin host platforms')
+
+    logging.info(f"Building macOS universal binaries on host platform {host_platform}")
+
+    host_build_root_dir = os.path.join(opts.build_root_dir, host_platform)
+    mkdir_if_not_exists(host_build_root_dir, opts.verbose, opts.dry_run)
+
+    host_build_opts = copy.copy(opts)
+    host_build_opts.macos_universal_binaries = False
+    host_build_opts.target_platform = host_platform
+    host_build_opts.build_root_dir = host_build_root_dir
+    build(host_build_opts)
+
+    cross_build_root_dir = os.path.join(opts.build_root_dir, cross_build_platform)
+    mkdir_if_not_exists(cross_build_root_dir, opts.verbose, opts.dry_run)
+
+    cross_build_opts = copy.copy(opts)
+    cross_build_opts.macos_universal_binaries = False
+    cross_build_opts.target_platform = cross_build_platform
+    cross_build_opts.build_root_dir = cross_build_root_dir
+    if cross_build_opts.native_built_tools_root_dir is None:
+        cross_build_opts.native_built_tools_root_dir = os.path.abspath(host_build_opts.build_root_dir)
+    cross_build(cross_build_opts, cmd_runner)
+
+    lipo(opts, cmd_runner)
+
 
 
 def get_default_cross_build_toolchain(source_root_dir, opts):
@@ -344,9 +400,17 @@ def build(opts=None, cross_build_final_stage=False, **kwargs):
     if opts is None:
         opts = Opts(**kwargs)
 
+    if opts.native_built_tools_root_dir is not None:
+        opts.native_built_tools_root_dir = os.path.abspath(opts.native_built_tools_root_dir)
+
     cmd_runner = CmdRunner(opts.dry_run)
 
-    if opts.target_platform is not None:
+    if opts.macos_universal_binaries:
+        if opts.target_platform is not None:
+            raise RuntimeError('macos_universal_binaries and target_platform options are incompatible')
+        build_macos_universal_binaries(opts, cmd_runner)
+        return
+    elif opts.target_platform is not None:
         if (opts.target_platform != get_host_platform()) and not cross_build_final_stage:
             cross_build(opts, cmd_runner)
             return

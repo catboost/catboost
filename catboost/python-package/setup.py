@@ -229,6 +229,7 @@ class BuildExtOptions(object):
         ('with-cuda=', None, emph('Build with CUDA support (cuda-root|no)')),
         ('parallel=', 'j', emph('Number of parallel build jobs')),
         ('prebuilt-extensions-build-root-dir=', None, emph('Use extensions from CatBoost project prebuilt with CMake')),
+        ('macos-universal-binaries', None, emph('Build extension libraries as macOS universal binaries'))
     ]
 
     @staticmethod
@@ -236,6 +237,7 @@ class BuildExtOptions(object):
         command.with_cuda = os.environ.get('CUDA_PATH') or os.environ.get('CUDA_ROOT') or None
         command.parallel = None
         command.prebuilt_extensions_build_root_dir = None
+        command.macos_universal_binaries=False
 
     @staticmethod
     def finalize_options(command):
@@ -245,7 +247,7 @@ class BuildExtOptions(object):
             command.with_cuda = None
 
     def get_options_attribute_names():
-        return ['with_cuda', 'parallel', 'prebuilt_extensions_build_root_dir']
+        return ['with_cuda', 'parallel', 'prebuilt_extensions_build_root_dir', 'macos_universal_binaries']
 
 
 class build(_build):
@@ -404,6 +406,7 @@ class build_ext(_build_ext):
             parallel_build_jobs=self.parallel,
             have_cuda=bool(self.with_cuda),
             cuda_root_dir=self.with_cuda,
+            macos_universal_binaries=self.macos_universal_binaries,
             cmake_extra_args=[f'-DPython3_ROOT_DIR={python3_root_dir}']
         )
 
