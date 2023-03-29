@@ -143,7 +143,7 @@ def emph(s):
     return '\x1b[32m{}\x1b[0m'.format(s)
 
 
-def guess_catboost_version():
+def get_catboost_version():
     version_py = os.path.join('catboost', 'version.py')
     exec(compile(open(version_py).read(), version_py, 'exec'))
     return locals()['VERSION']
@@ -565,7 +565,7 @@ if __name__ == '__main__':
 
     setup(
         name=os.environ.get('CATBOOST_PACKAGE_NAME') or 'catboost',
-        version=os.environ.get('CATBOOST_PACKAGE_VERSION') or guess_catboost_version(),
+        version=os.environ.get('CATBOOST_PACKAGE_VERSION') or get_catboost_version(),
         packages=find_packages(),
         package_data={
             'catboost.widget': ['__init__.py', 'ipythonwidget.py', 'metrics_plotter.py', 'callbacks.py'],
