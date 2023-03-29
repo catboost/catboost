@@ -225,6 +225,7 @@ class BuildExtOptions(object):
             + '(useful if CUDA_ROOT or CUDA_PATH is not specified or a particular CUDA version is needed)'
          )
         ),
+        ('no-cuda', None, emph('Build without CUDA support even if CUDA is available')),
         ('parallel=', 'j', emph('Number of parallel build jobs')),
         ('prebuilt-extensions-build-root-dir=', None, emph('Use extensions from CatBoost project prebuilt with CMake')),
         ('macos-universal-binaries', None, emph('Build extension libraries as macOS universal binaries'))
@@ -233,11 +234,7 @@ class BuildExtOptions(object):
     @staticmethod
     def initialize_options(command):
         command.with_cuda = None
-        for cuda_root in ('CUDA_PATH', 'CUDA_ROOT'):
-            if (cuda_root in os.environ) and os.path.exists(os.environ[cuda_root]):
-                logging.info(f'Get default CUDA root dir from {cuda_root} environment variable: {os.environ[cuda_root]}')
-                command.with_cuda = os.environ[cuda_root]
-                break
+        command.no_cuda = False
 
         command.parallel = None
         command.prebuilt_extensions_build_root_dir = None
@@ -245,11 +242,20 @@ class BuildExtOptions(object):
 
     @staticmethod
     def finalize_options(command):
-        if (command.with_cuda is not None) and (not os.path.exists(command.with_cuda)):
-            raise RuntimeError(f'CUDA root dir passed in --with-cuda ({command.with_cuda}) does not exist')
+        if command.with_cuda is not None:
+            if command.no_cuda:
+                raise RuntimeError('--with-cuda and --no-cuda options are incompatible')
+            if not os.path.exists(command.with_cuda):
+                raise RuntimeError(f'CUDA root dir passed in --with-cuda ({command.with_cuda}) does not exist')
+        elif not command.no_cuda:
+            for cuda_root in ('CUDA_PATH', 'CUDA_ROOT'):
+                if (cuda_root in os.environ) and os.path.exists(os.environ[cuda_root]):
+                    logging.info(f'Get default CUDA root dir from {cuda_root} environment variable: {os.environ[cuda_root]}')
+                    command.with_cuda = os.environ[cuda_root]
+                    break
 
     def get_options_attribute_names():
-        return ['with_cuda', 'parallel', 'prebuilt_extensions_build_root_dir', 'macos_universal_binaries']
+        return ['with_cuda', 'no_cuda', 'parallel', 'prebuilt_extensions_build_root_dir', 'macos_universal_binaries']
 
 
 class build(_build):
