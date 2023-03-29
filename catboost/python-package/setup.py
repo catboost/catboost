@@ -577,7 +577,6 @@ if __name__ == '__main__':
             'widget': ['ipywidgets (>=7.0, <8.0)']
         },
         author='CatBoost Developers',
-        author_email='catboost@yandex-team.ru',
         description='CatBoost Python Package',
         long_description='CatBoost is a fast, scalable, high performance gradient boosting on decision trees library. Used for ranking, classification, regression and other ML tasks.',
         license='Apache License, Version 2.0',
