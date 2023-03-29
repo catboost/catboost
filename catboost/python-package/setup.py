@@ -109,11 +109,13 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         'AUTHORS', 'LICENSE', 'CONTRIBUTING.md', 'README.md', 'RELEASE.md',
         'conanfile.txt',
         'build',
+        os.path.join('catboost', 'base_defs.pxd'),
         os.path.join('catboost', 'cuda'),
         os.path.join('catboost', 'idl'),
         os.path.join('catboost', 'libs'),
         os.path.join('catboost', 'private'),
         os.path.join('catboost', 'python-package', 'catboost'),
+        os.path.join('catboost', 'tools'),
         'cmake',
         'contrib',
         'library',
@@ -122,7 +124,11 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
     ]
     topnames += get_all_cmake_lists(topdir, '')
     topnames += get_all_cmake_lists(topdir, 'catboost')
-    topnames += get_all_cmake_lists(topdir, os.path.join('catboost', 'python-package'))
+
+    # we have to include them all (not only python-package) to avoid CMake configuration errors
+    for sub_dir in ['R-package', 'app', 'jvm-packages', 'python-package', 'spark']:
+        topnames += get_all_cmake_lists(topdir, os.path.join('catboost', sub_dir))
+
     for name in topnames:
         src = os.path.join(topdir, name)
         dst = os.path.join(pkgdir, name)
