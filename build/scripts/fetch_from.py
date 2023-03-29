@@ -53,6 +53,7 @@ def hardlink_or_copy(src, dst):
                 sys.stderr.write("Can't make hardlink (errno={}) - fallback to copy: {} -> {}\n".format(e.errno, src, dst))
                 shutil.copy(src, dst)
             else:
+                sys.stderr.write("src: {} dst: {}\n".format(src, dst))
                 raise
 
 
@@ -238,7 +239,8 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
         with tarfile.open(tmp_file_name, mode="r|gz") as tar:
             tar.extractall(tmp_dir)
         tmp_file_name = os.path.join(tmp_dir, resource_file_name)
-        real_md5 = md5file(tmp_file_name)
+        if expected_md5:
+            real_md5 = md5file(tmp_file_name)
 
     logging.info('File size %s (expected %s)', real_file_size, expected_file_size or "UNKNOWN")
     logging.info('File md5 %s (expected %s)', real_md5, expected_md5)
@@ -342,9 +344,10 @@ def process(fetched_file, file_name, args, remove=True):
         inputs = set(map(os.path.normpath, args.rename + args.outputs[len(args.rename):]))
         if fetched_file_is_dir:
             for member in inputs:
-                hardlink_or_copy(
-                    os.path.normpath(os.path.join(fetched_file, member)),
-                    os.path.normpath(os.path.join(args.untar_to, member)))
+                base, name = member.split('/', 1)
+                src = os.path.normpath(os.path.join(fetched_file, name))
+                dst = os.path.normpath(os.path.join(args.untar_to, member))
+                hardlink_or_copy(src, dst)
         else:
            # Extract only requested files
             try:

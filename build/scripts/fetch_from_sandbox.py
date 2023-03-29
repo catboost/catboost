@@ -146,10 +146,13 @@ def fetch(resource_id, custom_fetcher):
 
     logging.info('Resource %s info %s', str(resource_id), json.dumps(resource_info))
 
+    is_multifile = resource_info.get('multifile', False)
     resource_file_name = os.path.basename(resource_info["file_name"])
     expected_md5 = resource_info.get('md5')
 
     proxy_link = resource_info['http']['proxy'] + ORIGIN_SUFFIX
+    if is_multifile:
+        proxy_link += '&stream=tgz'
 
     mds_id = resource_info.get('attributes', {}).get('mds')
     mds_link = MDS_PREFIX + mds_id if mds_id else None
