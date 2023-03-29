@@ -6,7 +6,6 @@ import shutil
 import subprocess
 import sys
 from typing import Dict, List
-from distutils.spawn import spawn
 from distutils.command.bdist import bdist as _bdist
 
 # requires setuptools >= 64.0.0
@@ -426,6 +425,15 @@ class build_ext(_build_ext):
                 distutils.file_util.copy_file(src, dst, verbose=verbose, dry_run=dry_run)
 
 
+# does not add '.exe' to the command on Windows unlike standard 'spawn' from distutils
+# and requires 'shell=True'
+def spawn_wo_exe(cmd_str, dry_run):
+    logging.info(cmd_str)
+    if dry_run:
+        return
+    subprocess.check_call(cmd_str, shell=True)
+
+
 class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
     description = "build CatBoost Jupyter visualization widget (requires yarn (https://yarnpkg.com/))"
 
@@ -462,7 +470,7 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
             os.chdir(self.build_generated)
         try:
             for sub_cmd in ['clean', 'install', 'build']:
-                spawn(['yarn', sub_cmd], verbose=verbose, dry_run=dry_run)
+                spawn_wo_exe(f'yarn {sub_cmd}', dry_run=dry_run)
         finally:
             os.chdir(SETUP_DIR)
 
