@@ -149,17 +149,6 @@ def guess_catboost_version():
     return locals()['VERSION']
 
 
-def logging_execute(cmd, verbose, dry_run):
-    if verbose:
-        logging.info('EXECUTE: {}'.format(subprocess.list2cmdline(cmd)))
-    if not dry_run:
-        subprocess.check_call(cmd, universal_newlines=True)
-
-
-def python_version():
-    return sys.version.split()[0]
-
-
 class OptionsHelper(object):
     @staticmethod
     def get_user_options(extra_options_classes):
