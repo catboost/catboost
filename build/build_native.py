@@ -362,7 +362,7 @@ def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_run
         cmd_runner.run(cmd, run_even_with_dry_run=True, shell=True)
         with open(env_vars_file_path) as env_vars_file:
             for l in env_vars_file:
-                key, value = l[:-1].split('=')
+                key, value = l[:-1].split('=', maxsplit=1)
                 env_vars[key] = value
 
     return env_vars
