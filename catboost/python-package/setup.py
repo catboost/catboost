@@ -327,7 +327,9 @@ class bdist_wheel(_bdist_wheel):
         OptionsHelper.propagate(
             self,
             "install",
-            WidgetOptions.get_options_attribute_names()
+            HNSWOptions.get_options_attribute_names()
+            + WidgetOptions.get_options_attribute_names()
+            + BuildExtOptions.get_options_attribute_names()
         )
         _bdist_wheel.run(self)
 
@@ -521,7 +523,7 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
         self._build(verbose, dry_run)
 
 class install(_install):
-    extra_options_classes = [WidgetOptions]
+    extra_options_classes = [HNSWOptions, WidgetOptions, BuildExtOptions]
 
     user_options = _install.user_options + OptionsHelper.get_user_options(extra_options_classes)
 
@@ -541,6 +543,13 @@ class install(_install):
                 dry_run=self.distribution.dry_run
             )
 
+        OptionsHelper.propagate(
+            self,
+            "build",
+            HNSWOptions.get_options_attribute_names()
+            + WidgetOptions.get_options_attribute_names()
+            + BuildExtOptions.get_options_attribute_names()
+        )
         _install.run(self)
 
 class sdist(_sdist):
