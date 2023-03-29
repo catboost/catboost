@@ -98,25 +98,11 @@ def get_setup_requires(argv):
     return setup_requires
 
 
-def get_all_cmake_lists(base_dir, add_android=True):
-    files_list = [
-        'CMakeLists.darwin-arm64.txt',
-        'CMakeLists.darwin-x86_64.txt',
-        'CMakeLists.linux-aarch64.txt',
-        'CMakeLists.linux-x86_64-cuda.txt',
-        'CMakeLists.linux-x86_64.txt',
-        'CMakeLists.windows-x86_64-cuda.txt',
-        'CMakeLists.windows-x86_64.txt',
-        'CMakeLists.txt',
+def get_all_cmake_lists(topdir, sub_path):
+    return [
+        os.path.join(sub_path, f) for f in os.listdir(os.path.join(topdir, sub_path))
+        if f.startswith('CMakeLists')
     ]
-    if add_android:
-        files_list += [
-            'CMakeLists.android-arm.txt',
-            'CMakeLists.android-arm64.txt',
-            'CMakeLists.android-x86.txt',
-            'CMakeLists.android-x86_64.txt',
-        ]
-    return [os.path.join(base_dir, f) for f in files_list]
 
 def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
     topnames = [
@@ -134,9 +120,9 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         'tools',
         'util',
     ]
-    topnames += get_all_cmake_lists('')
-    topnames += get_all_cmake_lists('catboost')
-    topnames += get_all_cmake_lists(os.path.join('catboost', 'python-package'), add_android=False)
+    topnames += get_all_cmake_lists(topdir, '')
+    topnames += get_all_cmake_lists(topdir, 'catboost')
+    topnames += get_all_cmake_lists(topdir, os.path.join('catboost', 'python-package'))
     for name in topnames:
         src = os.path.join(topdir, name)
         dst = os.path.join(pkgdir, name)
