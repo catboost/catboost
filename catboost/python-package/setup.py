@@ -547,6 +547,9 @@ class sdist(_sdist):
 
 
 if __name__ == '__main__':
+    if sys.platform == 'win32':
+        os.system('color')
+
     logging.basicConfig(format='%(asctime)s %(levelname)1.1s %(msg)s', level=logging.DEBUG, datefmt=emph('%X'))
 
     extensions = [
