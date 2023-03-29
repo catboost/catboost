@@ -218,7 +218,13 @@ class WidgetOptions(object):
 
 class BuildExtOptions(object):
     options = [
-        ('with-cuda=', None, emph('Build with CUDA support (cuda-root|no)')),
+        ('with-cuda=',
+         None,
+         emph(
+            'Path to CUDA root dir '
+            + '(useful if CUDA_ROOT or CUDA_PATH is not specified or a particular CUDA version is needed)'
+         )
+        ),
         ('parallel=', 'j', emph('Number of parallel build jobs')),
         ('prebuilt-extensions-build-root-dir=', None, emph('Use extensions from CatBoost project prebuilt with CMake')),
         ('macos-universal-binaries', None, emph('Build extension libraries as macOS universal binaries'))
@@ -226,17 +232,21 @@ class BuildExtOptions(object):
 
     @staticmethod
     def initialize_options(command):
-        command.with_cuda = os.environ.get('CUDA_PATH') or os.environ.get('CUDA_ROOT') or None
+        command.with_cuda = None
+        for cuda_root in ('CUDA_PATH', 'CUDA_ROOT'):
+            if (cuda_root in os.environ) and os.path.exists(os.environ[cuda_root]):
+                logging.info(f'Get default CUDA root dir from {cuda_root} environment variable: {os.environ[cuda_root]}')
+                command.with_cuda = os.environ[cuda_root]
+                break
+
         command.parallel = None
         command.prebuilt_extensions_build_root_dir = None
         command.macos_universal_binaries=False
 
     @staticmethod
     def finalize_options(command):
-        if os.path.exists(str(command.with_cuda)):
-            logging.info("Targeting for CUDA support with {}".format(command.with_cuda))
-        else:
-            command.with_cuda = None
+        if (command.with_cuda is not None) and (not os.path.exists(command.with_cuda)):
+            raise RuntimeError(f'CUDA root dir passed in --with-cuda ({command.with_cuda}) does not exist')
 
     def get_options_attribute_names():
         return ['with_cuda', 'parallel', 'prebuilt_extensions_build_root_dir', 'macos_universal_binaries']
