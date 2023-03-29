@@ -7,6 +7,7 @@ import subprocess
 import sys
 from typing import Dict, List
 from distutils.command.bdist import bdist as _bdist
+from distutils import log
 
 # requires setuptools >= 64.0.0
 import setuptools.command.build  # for SubCommand
@@ -54,34 +55,34 @@ def setup_hnsw_submodule(argv, extensions):
         extensions.append(ExtensionWithSrcAndDstSubPath('_hnsw', cmake_build_sub_path, dst_sub_path))
 
         if not os.path.exists(hnsw_submodule_dir):
-            logging.info('Creating hnsw submodule')
+            log.info('Creating hnsw submodule')
 
             hnsw_original_dir = os.path.join(get_topsrc_dir(), cmake_build_sub_path)
 
             if verbose:
-                logging.info(f'create symlink from {hnsw_original_dir} to {hnsw_submodule_dir}')
+                log.info(f'create symlink from {hnsw_original_dir} to {hnsw_submodule_dir}')
 
             # there can be issues on Windows when creating symbolic and hard links
             try:
                 os.symlink(hnsw_original_dir, hnsw_submodule_dir, target_is_directory=True)
                 return
             except Exception as exception:
-                logging.error(f'Encountered an error ({str(exception)}) when creating symlink, try to create hardlink instead')
+                log.error(f'Encountered an error ({str(exception)}) when creating symlink, try to create hardlink instead')
 
             if verbose:
-                logging.info(f'create hardlink from {hnsw_original_dir} to {hnsw_submodule_dir}')
+                log.info(f'create hardlink from {hnsw_original_dir} to {hnsw_submodule_dir}')
             try:
                 os.link(hnsw_original_dir, hnsw_submodule_dir)
                 return
             except Exception as exception:
-                logging.error(f'Encountered an error ({str(exception)}) when creating hardlink, just copy instead')
+                log.error(f'Encountered an error ({str(exception)}) when creating hardlink, just copy instead')
 
             if verbose:
-                logging.info(f'copy from {hnsw_original_dir} to {hnsw_submodule_dir}')
+                log.info(f'copy from {hnsw_original_dir} to {hnsw_submodule_dir}')
             shutil.copytree(hnsw_original_dir, hnsw_submodule_dir, dirs_exist_ok=True)
     elif os.path.exists(hnsw_submodule_dir):
         if verbose:
-            logging.info('remove previously used catboost.hnsw submodule')
+            log.info('remove previously used catboost.hnsw submodule')
         if os.path.islink(hnsw_submodule_dir):
             os.remove(hnsw_submodule_dir)
         elif sys.version_info >= (3, 8):
@@ -238,7 +239,7 @@ class BuildExtOptions(object):
         elif not command.no_cuda:
             for cuda_root in ('CUDA_PATH', 'CUDA_ROOT'):
                 if (cuda_root in os.environ) and os.path.exists(os.environ[cuda_root]):
-                    logging.info(f'Get default CUDA root dir from {cuda_root} environment variable: {os.environ[cuda_root]}')
+                    log.info(f'Get default CUDA root dir from {cuda_root} environment variable: {os.environ[cuda_root]}')
                     command.with_cuda = os.environ[cuda_root]
                     break
 
@@ -382,7 +383,7 @@ class build_ext(_build_ext):
     def build_with_cmake_and_ninja(self, topsrc_dir, build_dir, verbose, dry_run):
         targets = [ext.name for ext in self.extensions]
 
-        logging.info(f'Buildling {",".join(targets)} with cmake and ninja')
+        log.info(f'Buildling {",".join(targets)} with cmake and ninja')
 
         sys.path = [os.path.join(topsrc_dir, 'build')] + sys.path
         import build_native
@@ -407,7 +408,7 @@ class build_ext(_build_ext):
         )
 
         if not dry_run:
-            logging.info(f'Successfully built {",".join(targets)} {cuda_support_msg}')
+            log.info(f'Successfully built {",".join(targets)} {cuda_support_msg}')
 
     def copy_artifacts_built_with_cmake(self, build_dir, verbose, dry_run):
         for ext in self.extensions:
@@ -428,7 +429,7 @@ class build_ext(_build_ext):
 # does not add '.exe' to the command on Windows unlike standard 'spawn' from distutils
 # and requires 'shell=True'
 def spawn_wo_exe(cmd_str, dry_run):
-    logging.info(cmd_str)
+    log.info(cmd_str)
     if dry_run:
         return
     subprocess.check_call(cmd_str, shell=True)
@@ -557,8 +558,6 @@ class sdist(_sdist):
 if __name__ == '__main__':
     if sys.platform == 'win32':
         os.system('color')
-
-    logging.basicConfig(format='%(asctime)s %(levelname)1.1s %(msg)s', level=logging.DEBUG, datefmt=emph('%X'))
 
     extensions = [
         ExtensionWithSrcAndDstSubPath(
