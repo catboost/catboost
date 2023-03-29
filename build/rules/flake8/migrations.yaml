@@ -198,8 +198,6 @@ migrations:
     - quality/neural_net/bert/bert
     - quality/neural_net/bert/bert/row_processors/finetune
     - quality/neural_net/bert/tests/finetuning
-    - quality/nirvana_tools/conveyor_operations/bert/common
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/apply_bert_to_table
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/make_exp_serp_items
     - quality/nirvana_tools/conveyor_operations/stove/opt_viewer
     - quality/relev_tools/choice_screen/vh_operations
@@ -874,13 +872,10 @@ migrations:
     - quality/neural_net/bert/tools/convert_lm_to_tfnn
     - quality/nirvana_tools/conveyor_operations/ab_experiment_dump/prepare_ab_input/external_tests
     - quality/nirvana_tools/conveyor_operations/ab_experiment_dump/process_ab_result
-    - quality/nirvana_tools/conveyor_operations/bert/list_bert_models
-    - quality/nirvana_tools/conveyor_operations/findurl/loss_stat_builder/external_tests
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/lib
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/make_mlm_json
     - quality/nirvana_tools/conveyor_operations/online_stove/plot_metrics
     - quality/nirvana_tools/conveyor_operations/stove/run_simple_opt
-    - quality/nirvana_tools/nirvana_operation/updater
     - quality/relev_tools/dsat/find_words_with_absent_forms
     - quality/tools/multi_eval_tools/perun_multitarget_eval
     - quality/trailer/suggest_dict/suggest_framework/tools
@@ -1969,7 +1964,6 @@ migrations:
     - quality/neural_net/bert/bert/row_processors/mlm
     - quality/neural_net/bert/tests/basic
     - quality/neural_net/bert/tools/autobert/builders/subgraph_builders
-    - quality/nirvana_tools/graphs/rated/ussr_base
     - quality/personalization/big_rt/backup/lib
     - quality/relev_tools/brak/tickets_parsing
     - quality/relev_tools/ftmoon/table_archive/tests
@@ -2104,7 +2098,6 @@ migrations:
     - sprav/tycoon/nirvana/lib/tycoon_api
     - statbox/qb2/qb2_extensions/resources
     - statbox/statkey/agency_rewards/tools/kwyt_parse_tool
-    - statbox/statkey/oklo/public/declarators
     - statbox/statkey/reactor/actions/readiness
     - statbox/statkey/reactor/monitorings/cmp_with_artmon/data_imports/v1
     - sup/stat/rtx_squeeze/push_win_sqz/lib/ut
@@ -3316,30 +3309,13 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/asgen/process_daily_batch
     - quality/nirvana_tools/conveyor_operations/asgen/run_gigaminer_task
     - quality/nirvana_tools/conveyor_operations/asgen/weekly_graph_generator
-    - quality/nirvana_tools/conveyor_operations/bert/get_bert_vocab
     - quality/nirvana_tools/conveyor_operations/calc_click_pool_stat
     - quality/nirvana_tools/conveyor_operations/concatenate_tables
     - quality/nirvana_tools/conveyor_operations/enrich_original_query_id_url_with_watto
-    - quality/nirvana_tools/conveyor_operations/findurl/parse_google
     - quality/nirvana_tools/conveyor_operations/generate_rich_description_for_sum
     - quality/nirvana_tools/conveyor_operations/lib
     - quality/nirvana_tools/conveyor_operations/lookup_for_watto_cache_yt
     - quality/nirvana_tools/conveyor_operations/merge_gemini_lookups
-    - quality/nirvana_tools/conveyor_operations/meta_formula/append_formula_factors
-    - quality/nirvana_tools/conveyor_operations/meta_formula/apply_remove_formula_factors
-    - quality/nirvana_tools/conveyor_operations/meta_formula/assign_name_chunk_size
-    - quality/nirvana_tools/conveyor_operations/meta_formula/join_targets
-    - quality/nirvana_tools/conveyor_operations/meta_formula/make_formula_factors_bundle
-    - quality/nirvana_tools/conveyor_operations/meta_formula/make_metapool
-    - quality/nirvana_tools/conveyor_operations/meta_formula/remove_unnecessary_slices
-    - quality/nirvana_tools/conveyor_operations/meta_formula/resolve_ignore_factors
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/append_level_to_bundle
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/apply_and_remove_formula_factors
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/apply_bert_to_table
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/check_metrics_diff
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/make_bundle_chunked_formula_item
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/make_bundle_from_level
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/make_bundle_level
     - quality/nirvana_tools/conveyor_operations/mobile_adaptivness_via_mr_gemini
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/custom_query_group
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/get_predefined_sets
@@ -3350,21 +3326,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/mlm_dump_for_priemka
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/parse_launch_result
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/simple_formula_handler
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/add_canonized_urls
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/add_misprints
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/convert_to_prs_columns
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/country_filter
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/extend_query_data
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/extract_dbd_scores
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/join_dump_and_prs
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/load_tag_to_space
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_aggregation
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_kernel_table
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_rq
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/make_rq_flatten_table
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/merge_aggregated_dumps
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/structure_extend_raw_data
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/structure_raw_data
     - quality/nirvana_tools/conveyor_operations/plot_learning_curve
     - quality/nirvana_tools/conveyor_operations/reactor_tools/reactor_formula_commit
     - quality/nirvana_tools/conveyor_operations/redis_api
@@ -3387,7 +3348,6 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/yt_pool_to_watto
     - quality/nirvana_tools/conveyor_operations/yt_proto_pool_remap_boost/standalone_demo
     - quality/nirvana_tools/conveyor_operations/yt_tools/yt_append
-    - quality/nirvana_tools/sinsig/get_svd_features
     - quality/pers/ml/atom/distribution/conveyor/cleanup_helper
     - quality/pers/ml/atom/distribution/conveyor/fml_learner/lib
     - quality/pers/ml/atom/distribution/conveyor/fml_learner/lib/tests
@@ -4304,13 +4264,11 @@ migrations:
     - quality/neural_net/bert/tests/pretraining_finetuning
     - quality/neural_net/bert/tests/split_bert
     - quality/neural_net/bert/tools/valhalla
-    - quality/nirvana_tools/conveyor_operations/bert/view_bert_models
     - quality/nirvana_tools/conveyor_operations/eval_feature/eval_options
     - quality/nirvana_tools/conveyor_operations/formula_fstr
     - quality/nirvana_tools/conveyor_operations/stove/run_simple_opt
     - quality/nirvana_tools/conveyor_operations/train_dssm/eval/plot
     - quality/nirvana_tools/conveyor_operations/train_localization_classifier/score
-    - quality/nirvana_tools/nirvana_operation/tests
     - quality/query_expansions/proc/covfefe/makefile_update
     - quality/relev_tools/conveyor_dashboard/distributed/front_proxy_monolith
     - quality/relev_tools/dsat/fstr
@@ -5717,8 +5675,6 @@ migrations:
     - quality/neural_net/bert/bert/utils/hooks
     - quality/nirvana_tools/conveyor_operations/ab_experiment_dump/prepare_ab_input
     - quality/nirvana_tools/conveyor_operations/asgen/lib
-    - quality/nirvana_tools/conveyor_operations/bert/get_bert_vocab
-    - quality/nirvana_tools/conveyor_operations/bert/view_bert_models
     - quality/nirvana_tools/conveyor_operations/eval_feature/aggregate_evals
     - quality/nirvana_tools/conveyor_operations/formula_viewer
     - quality/nirvana_tools/conveyor_operations/monitorings/dataset_update_monitoring
@@ -6087,7 +6043,6 @@ migrations:
     - search/metadoc/tools/request_saas
     - search/mon/bot/bot
     - search/mon/bot/bot/modules
-    - search/mon/bot/botd
     - search/mon/bot/kbf
     - search/mon/curators_helper
     - search/mon/dredd2/dredd_notifier
@@ -7162,7 +7117,6 @@ migrations:
     - quality/neural_net/bert/bert/pytorch/pruning
     - quality/nirvana_tools/conveyor_operations/ab_experiment_dump/process_ab_result
     - quality/nirvana_tools/conveyor_operations/asgen/config
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/lib
     - quality/nirvana_tools/conveyor_operations/stove/run_simple_opt
     - quality/trailer/suggest_dict/suggest_framework/tools
     - quality/user_sessions/market/collector_lib
@@ -7818,18 +7772,11 @@ migrations:
     - quality/nirvana_tools/conveyor_operations/asgen/config
     - quality/nirvana_tools/conveyor_operations/asgen/lib
     - quality/nirvana_tools/conveyor_operations/asgen/process_daily_batch
-    - quality/nirvana_tools/conveyor_operations/bert/common
     - quality/nirvana_tools/conveyor_operations/get_prod_formula
     - quality/nirvana_tools/conveyor_operations/lib
-    - quality/nirvana_tools/conveyor_operations/meta_formula/append_formula_factors
-    - quality/nirvana_tools/conveyor_operations/meta_formula/lib
     - quality/nirvana_tools/conveyor_operations/nirvana_mlm_serps/lib/tests
-    - quality/nirvana_tools/conveyor_operations/parse_web_dump/lib
     - quality/nirvana_tools/conveyor_operations/stove_tools/make_formulas_multigrid_opt_bundle
     - quality/nirvana_tools/conveyor_operations/train_dssm/api/api
-    - quality/nirvana_tools/nirvana_operation
-    - quality/nirvana_tools/nirvana_operation/tests
-    - quality/nirvana_tools/nirvana_operation/updater
     - quality/query_expansions/proc/quality_checker/tests
     - quality/relev_tools/mx_ops/tests/small
     - quality/relev_tools/url_canonize/gemini_impl/tests
@@ -8102,8 +8049,6 @@ migrations:
     - yabs/vh/frontend/test/vh_pytest
     - ydo/devops/monitorings/analyze_scripts/analyze_duty_problems
     - ydo/devops/monitorings/analyze_scripts/analyze_spw
-    - ydo/erp/database/lib
-    - ydo/erp/database/tests
     - ydo/libs/apphost_source/test
     - ydo/libs/direct
     - ydo/libs/geobuf
@@ -8528,9 +8473,6 @@ migrations:
     - ydo/devops/monitorings/bin/lib
     - ydo/devops/monitorings/errorbooster/alerts
     - ydo/devops/yt_tools/clean_old_nodes
-    - ydo/erp/libs/education_courses
-    - ydo/erp/libs/financial_reports
-    - ydo/erp/libs/regulations
     - ydo/libs/async_api
     - ydo/libs/categories_tree
     - ydo/libs/csv_operations/convertation
@@ -9171,7 +9113,6 @@ migrations:
     - sandbox/web/api/v1
     - toloka/analytics/libs/python/dwh/draft/ut
     - yweb/antimalware/sba/clientreport/detectors/template
-    - yweb/antimalware/visual_html_parser/yandex-search-antivirus-ytlogcat/antivir/ytlogcat
     - yweb/news/news_back/api/partner_api_v2/agencies
   PLC0113:
     ignore:
@@ -9450,7 +9391,6 @@ migrations:
     - ydo/async_api/lib/logbroker_client
     - yt/odin-checks/bin/operations_snapshots
     - yt/python/yt/wrapper
-    - yweb/antimalware/visual_html_parser/yandex-search-antivirus-common/antivir/common
   PLE0710:
     ignore:
     - PLE0710
@@ -9764,7 +9704,6 @@ migrations:
     - ydo/tools/dispatch/dispatch_tester/lib
     - yt/odin-checks/bin/snapshot_validation
     - yweb/antimalware/directchecker/metrics/merge_incoming_age/bin
-    - yweb/antimalware/visual_html_parser/yandex-search-antivirus-common/antivir/common
     - yweb/antispam/webspam/export/porno/porno_hosts
     - zen/mstand/squeeze_zen/utils
   PLR1733:
@@ -9826,7 +9765,6 @@ migrations:
     - quality/functionality/facts/ml_experiments/bert/0052_large_bert_multi_target_test
     - quality/functionality/facts/ml_experiments/bert/0055_large_bert_aliases_accum
     - quality/functionality/facts/ml_experiments/bert/0056_large_bert_multi_target_test_weights
-    - quality/nirvana_tools/graphs/lib
     - robot/metrics/social_sbr/get_langs
     - statbox/statkey/reactor/cubes/datacatalog/prepare_processes/v2/ut
     - taxi/antifraud/purga/score/startrek/setresults
@@ -9889,7 +9827,6 @@ migrations:
     - PLW0124
     prefixes:
     - crypta/profile/services/disable_unused_segments/bin/test
-    - dict/mt/make/modules/eval
     - dict/mt/make/tools/download_newscrawl
     - dict/mt/make/tools/filter_kwyt
     - dict/mt/make/tools/lang_detector/train_trigram_classifier_lang_detector
@@ -9932,11 +9869,6 @@ migrations:
     - zen/yweb/video/faas/graphs/regular-parallel
     - zen/yweb/video/faas/graphs/ugc-drm
     - zen/yweb/video/faas/services/ott/graph
-  PLW0128:
-    ignore:
-    - PLW0128
-    prefixes:
-    - search/mon/bot/bot/telegram
   PLW0129:
     ignore:
     - PLW0129
@@ -10628,7 +10560,6 @@ migrations:
     - quality/functionality/unstructured/yt_concatenator/tests
     - quality/nirvana_tools/conveyor_operations/asgen/config
     - quality/nirvana_tools/conveyor_operations/eval_feature/eval_feature_viewer
-    - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/get_cache_from_appended_features
     - quality/query_expansions/proc/covfefe/makefile_update
     - quality/query_expansions/tools/tests/test_dummy_process
     - quality/relev_tools/dsat/find_words_with_absent_forms
@@ -11767,7 +11698,6 @@ migrations:
     - sandbox/projects/market/kombat
     - sandbox/projects/market/lilucrm
     - sandbox/projects/market/logistics
-    - sandbox/projects/market/mcrp/MarketMcrpAbcSync
     - sandbox/projects/market/mcrp/MarketMcrpAbcTopServicesSync
     - sandbox/projects/market/monitoring
     - sandbox/projects/market/multitesting
@@ -12307,7 +12237,6 @@ migrations:
     - nirvana/valhalla/tests
     - ofd/notifier/tests/test_unit/test_sender/test_event_types
     - ofd/notifier/tests/test_unit/test_sender/test_notification_types
-    - passport/backend/logbroker_client/account_events/tests
     - passport/backend/logbroker_client/oauth/tests
     - passport/backend/logbroker_client/xiva/tests
     - passport/backend/tools/metrics/ut
