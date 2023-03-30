@@ -274,7 +274,7 @@ def make_wheel(wheel_name, pkg_name, ver, build_system, arc_root, dst_so_modules
 
         # Create metadata
         dist_info_dir = os.path.join(dir_path, '{}-{}.dist-info'.format(pkg_name, ver))
-        shutil.copytree(os.path.join(catboost_package_dir, 'catboost.dist-info'), dist_info_dir)
+        shutil.copytree(os.path.join(catboost_package_dir, 'for_mk_wheel', 'catboost.dist-info'), dist_info_dir)
 
         def substitute_vars(file_path):
             allow_to_write(file_path)

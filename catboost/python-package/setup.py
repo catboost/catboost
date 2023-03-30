@@ -1,7 +1,7 @@
 import distutils
 import itertools
-import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -18,8 +18,10 @@ import setuptools
 from setuptools import setup, find_packages, Extension
 
 from setuptools.command.build_ext import build_ext as _build_ext
+from setuptools.command.develop import develop as _develop
 from setuptools.command.install import install as _install
 from setuptools.command.sdist import sdist as _sdist
+import warnings
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 SETUP_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -105,6 +107,35 @@ def get_all_cmake_lists(topdir, sub_path):
         if f.startswith('CMakeLists')
     ]
 
+
+def get_all_files_wo_built_artifacts(topdir, sub_path, exclude_regexp_str, verbose):
+    exclude_regexp = re.compile(exclude_regexp_str)
+
+    result = []
+    os.chdir(topdir)
+    try:
+        for dirpath, dirnames, filenames in os.walk(sub_path, followlinks=True, topdown=True):
+            i = 0
+            while i < len(dirnames):
+                sub_path = os.path.join(dirpath, dirnames[i])
+                if exclude_regexp.match(sub_path):
+                    if verbose:
+                        log.info(f'excluded {sub_path} from copying')
+                    del dirnames[i]
+                else:
+                    i += 1
+
+            for f in filenames:
+                sub_path = os.path.join(dirpath, f)
+                if exclude_regexp.match(sub_path):
+                    if verbose:
+                        log.info(f'excluded {sub_path} from copying')
+                else:
+                    result.append(sub_path)
+    finally:
+        os.chdir(SETUP_DIR)
+    return result
+
 def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
     topnames = [
         'AUTHORS', 'LICENSE', 'CONTRIBUTING.md', 'README.md', 'RELEASE.md',
@@ -115,7 +146,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         os.path.join('catboost', 'idl'),
         os.path.join('catboost', 'libs'),
         os.path.join('catboost', 'private'),
-        os.path.join('catboost', 'python-package', 'catboost'),
         os.path.join('catboost', 'tools'),
         'cmake',
         os.path.join('contrib', 'deprecated'),
@@ -125,7 +155,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         os.path.join('contrib', 'tools', 'cython'),
         os.path.join('contrib', 'tools', 'flatc'),
         os.path.join('contrib', 'tools', 'protoc'),
-        'library',
         'tools',
         'util',
     ]
@@ -138,6 +167,16 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
     for sub_dir in ['R-package', 'app', 'jvm-packages', 'python-package', 'spark']:
         topnames += get_all_cmake_lists(topdir, os.path.join('catboost', sub_dir))
 
+    # if there were editable installs the source tree can contain __pycache__ and built shared libraries
+    exclude_regexp = '.*(__pycache__|\\.(so|dylib|dll|pyd))$'
+    topnames += get_all_files_wo_built_artifacts(topdir, 'library', exclude_regexp, verbose)
+    topnames += get_all_files_wo_built_artifacts(
+        topdir,
+        os.path.join('catboost', 'python-package', 'catboost'),
+        exclude_regexp,
+        verbose
+    )
+    #sys.exit(0)
     for name in topnames:
         src = os.path.join(topdir, name)
         dst = os.path.join(pkgdir, name)
@@ -380,7 +419,7 @@ class build_ext(_build_ext):
             if not isinstance(ext, ExtensionWithSrcAndDstSubPath):
                 raise RuntimeError('Only ExtensionWithSrcAndDstSubPath extensions are supported')
 
-            put_dir = os.path.abspath(os.path.join(self.build_lib, ext.dst_sub_path))
+            put_dir = os.path.abspath(os.path.join(SETUP_DIR if self.inplace else self.build_lib, ext.dst_sub_path))
             distutils.dir_util.mkpath(put_dir, verbose=verbose, dry_run=dry_run)
 
         if self.prebuilt_extensions_build_root_dir is not None:
@@ -429,7 +468,11 @@ class build_ext(_build_ext):
                 ext.cmake_build_sub_path,
                 build_ext.get_cmake_built_extension_filename(ext.name)
             )
-            dst = os.path.join(self.build_lib, ext.dst_sub_path, ext.name + build_ext.get_extension_suffix())
+            dst = os.path.join(
+                SETUP_DIR if self.inplace else self.build_lib,
+                ext.dst_sub_path,
+                ext.name + build_ext.get_extension_suffix()
+            )
             if dry_run:
                 # distutils.file_util.copy_file checks that src file exists so we can't just call it here
                 distutils.file_util.log.info(f'copying {src} -> {dst}')
@@ -487,7 +530,7 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
             os.chdir(SETUP_DIR)
 
     def get_source_files(self):
-        result = []
+        result = [os.path.join('catboost', 'widget', 'catboost-widget.json')]
         for dirpath, _, filenames in os.walk(os.path.join('catboost', 'widget', 'js')):
             result += [os.path.join(dirpath, f) for f in filenames]
         return result
@@ -530,6 +573,53 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
         dry_run = self.distribution.dry_run
 
         self._build(verbose, dry_run)
+
+class develop(_develop):
+    extra_options_classes = [HNSWOptions, WidgetOptions, BuildExtOptions]
+
+    user_options = _develop.user_options + OptionsHelper.get_user_options(extra_options_classes)
+
+    def initialize_options(self):
+        _develop.initialize_options(self)
+        OptionsHelper.initialize_options(self)
+
+    def finalize_options(self):
+        _develop.finalize_options(self)
+        OptionsHelper.finalize_options(self)
+        if not self.no_widget:
+            warnings.warn(
+                'Widget installation in develop mode is not supported. See https://github.com/pypa/pip/issues/6592',
+                Warning
+            )
+
+    def install_for_development(self):
+        self.run_command('egg_info')
+
+        # Build extensions in-place
+        OptionsHelper.propagate(
+            self,
+            "build_ext",
+            HNSWOptions.get_options_attribute_names()
+            + BuildExtOptions.get_options_attribute_names()
+        )
+        self.distribution.get_command_obj('build_ext').inplace = 1
+        self.run_command('build_ext')
+
+        if setuptools.bootstrap_install_from:
+            self.easy_install(setuptools.bootstrap_install_from)
+            setuptools.bootstrap_install_from = None
+
+        self.install_namespaces()
+
+        # create an .egg-link in the installation dir, pointing to our egg
+        log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
+        if not self.dry_run:
+            with open(self.egg_link, "w") as f:
+                f.write(self.egg_path + "\n" + self.setup_path)
+        # postprocess the installed distro, fixing up .pth, installing scripts,
+        # and handling requirements
+        self.process_distribution(None, self.dist, not self.no_deps)
+
 
 class install_data(_install_data):
     extra_options_classes = [WidgetOptions]
@@ -633,6 +723,7 @@ if __name__ == '__main__':
             'build_ext': build_ext,
             'build_widget': build_widget,
             'build': build,
+            'develop': develop,
             'install': install,
             'install_data': install_data,
             'sdist': sdist,
