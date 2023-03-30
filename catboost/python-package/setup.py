@@ -118,13 +118,21 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         os.path.join('catboost', 'python-package', 'catboost'),
         os.path.join('catboost', 'tools'),
         'cmake',
-        'contrib',
+        os.path.join('contrib', 'deprecated'),
+        os.path.join('contrib', 'libs'),
+        os.path.join('contrib', 'python'), # TODO: remove it, only numpy headers are used from there
+        os.path.join('contrib', 'restricted'),
+        os.path.join('contrib', 'tools', 'cython'),
+        os.path.join('contrib', 'tools', 'flatc'),
+        os.path.join('contrib', 'tools', 'protoc'),
         'library',
         'tools',
         'util',
     ]
     topnames += get_all_cmake_lists(topdir, '')
     topnames += get_all_cmake_lists(topdir, 'catboost')
+    topnames += get_all_cmake_lists(topdir, 'contrib')
+    topnames += get_all_cmake_lists(topdir, os.path.join('contrib', 'tools'))
 
     # we have to include them all (not only python-package) to avoid CMake configuration errors
     for sub_dir in ['R-package', 'app', 'jvm-packages', 'python-package', 'spark']:
