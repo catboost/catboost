@@ -176,7 +176,7 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         exclude_regexp,
         verbose
     )
-    #sys.exit(0)
+
     for name in topnames:
         src = os.path.join(topdir, name)
         dst = os.path.join(pkgdir, name)
