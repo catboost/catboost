@@ -7,6 +7,7 @@ import subprocess
 import sys
 from typing import Dict, List
 from distutils.command.bdist import bdist as _bdist
+from distutils.command.install_data import install_data as _install_data
 from distutils import log
 
 # requires setuptools >= 64.0.0
@@ -522,6 +523,26 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
 
         self._build(verbose, dry_run)
 
+class install_data(_install_data):
+    extra_options_classes = [WidgetOptions]
+
+    user_options = _install.user_options + OptionsHelper.get_user_options(extra_options_classes)
+
+    def initialize_options(self):
+        _install_data.initialize_options(self)
+        OptionsHelper.initialize_options(self)
+
+    def finalize_options(self):
+        _install_data.finalize_options(self)
+        OptionsHelper.finalize_options(self)
+        if not self.no_widget:
+            if self.data_files is None:
+                self.data_files = []
+            self.data_files += self.get_finalized_command("build_widget").get_data_files(
+                dry_run=self.distribution.dry_run
+            )
+
+
 class install(_install):
     extra_options_classes = [HNSWOptions, WidgetOptions, BuildExtOptions]
 
@@ -535,14 +556,10 @@ class install(_install):
         _install.finalize_options(self)
         OptionsHelper.finalize_options(self)
 
-    def run(self):
-        if not self.no_widget:
-            if self.distribution.data_files is None:
-                self.distribution.data_files = []
-            self.distribution.data_files += self.get_finalized_command("build_widget").get_data_files(
-                dry_run=self.distribution.dry_run
-            )
+    def has_data(self):
+        return super().has_data() or (not self.no_widget)
 
+    def run(self):
         OptionsHelper.propagate(
             self,
             "build",
@@ -550,7 +567,20 @@ class install(_install):
             + WidgetOptions.get_options_attribute_names()
             + BuildExtOptions.get_options_attribute_names()
         )
+        OptionsHelper.propagate(
+            self,
+            "install_data",
+            WidgetOptions.get_options_attribute_names()
+        )
         _install.run(self)
+
+    sub_commands = [
+        ('install_lib',     _install.has_lib),
+        ('install_headers', _install.has_headers),
+        ('install_scripts', _install.has_scripts),
+        ('install_data',    has_data),
+        ('install_egg_info', lambda self:True),
+    ]
 
 class sdist(_sdist):
 
@@ -594,6 +624,7 @@ if __name__ == '__main__':
             'build_widget': build_widget,
             'build': build,
             'install': install,
+            'install_data': install_data,
             'sdist': sdist,
         },
         extras_require={
