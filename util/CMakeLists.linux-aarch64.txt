@@ -13,7 +13,6 @@ add_subdirectory(draft)
 add_library(yutil)
 target_compile_options(yutil PRIVATE
   -Wnarrowing
-  -D_FORTIFY_SOURCE=0
 )
 target_link_libraries(yutil PUBLIC
   contrib-libs-linux-headers
