@@ -384,7 +384,7 @@ if __name__ == '__main__':
         args_parser.add_argument('--build-system', choices=['CMAKE', 'YA'], default='CMAKE')
 
         args, tail_args = args_parser.parse_known_args()
-        build_system = BUILD_SYSTEM(args.build_system)
+        build_system = BUILD_SYSTEM[args.build_system]
 
         wheel_name = build(build_system, arc_root, out_root, tail_args, args.build_widget == 'yes', args.build_with_cuda == 'yes')
         print(wheel_name)
