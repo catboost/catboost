@@ -768,7 +768,6 @@ migrations:
     - maps/pylibs/fixtures
     - maps/realty/jams_generator/lib
     - maps/renderer/tilesgen/tools/lib
-    - maps/search/geocoder/segmenter/grammar/converter/lib
     - maps/search/libs/transliteration/tests
     - maps/statistics/external/traffic_lights/lib
     - maps/statistics/hypgen/masstransit_hypothesis/calc_route_change_hypothesis
@@ -1247,7 +1246,6 @@ migrations:
     - yweb/robot/ukrop/nirvana_tools/prepare_mrpool
     - yweb/sitelinks/astrolabe/build_bna/candidates/filter_by_region
     - yweb/sitelinks/astrolabe/build_bna/naming
-    - yweb/sitelinks/editor
     - yweb/sitelinks/scripts/sitelinks
     - yweb/video/transcoder/cm/transcoder/cmpy/ocr
     - yweb/video/vparsrobot/v2/tools/yt_runner
@@ -2145,7 +2143,6 @@ migrations:
     - yabs/analytics/lifeorder_lib
     - yabs/indoor/mocks_generator/lib
     - yabs/infra/monitorings/yabs_monitorings/deployment_mon
-    - yabs/models_services/rsya_l3_candidate/inference/tools/requests_generator/lib
     - yabs/qa/oneshots/keywords
     - yabs/qa/oneshots/sergtaim/BSSERVER-14259/AddKeywordToYT-Via-Simple-IudYtOneshot
     - yabs/qa/oneshots/sergtaim/OneshotDev/oneshots/keywords
@@ -3213,7 +3210,6 @@ migrations:
     - orgvisits/viewers/prepare_dwellplaces
     - orgvisits/yaz/tools/download_ydb_table
     - passport/backend/ch_stat_loader/ch_stat_loader
-    - passport/backend/dbscripts/persistent_tracks_cleaner
     - passport/backend/social/common
     - passport/backend/social/common/test
     - passport/backend/social/configs/social_configs
@@ -3877,7 +3873,6 @@ migrations:
     - yweb/scripts/datascripts/map_reduce
     - yweb/scripts/datascripts/runnerLib
     - yweb/sitelinks/astrolabe/build_bna/candidates
-    - yweb/sitelinks/editor
     - yweb/sitelinks/scripts/sitelinks
     - yweb/verticals/cost_plus/automation/update_partners_for_new_exps
     - yweb/verticals/product_dashboard/format_for_solomon
@@ -4459,7 +4454,6 @@ migrations:
     - yweb/scripts/datascripts/common
     - yweb/scripts/datascripts/runnerLib
     - yweb/sitelinks/astrolabe/build_bna/candidates
-    - yweb/sitelinks/editor
     - yweb/sitelinks/scripts/sitelinks
     - yweb/webdaemons/clickdaemon/tools/update_wizard_alerts/libs
     - yweb/webdaemons/clickdaemon/tools/update_wizard_alerts/main
@@ -6612,7 +6606,6 @@ migrations:
     - yweb/sitelinks/astrolabe/build_bna/candidates/filter_by_region
     - yweb/sitelinks/astrolabe/build_bna/candidates/navigations/build_bna
     - yweb/sitelinks/astrolabe/build_bna/naming
-    - yweb/sitelinks/editor
     - yweb/sitelinks/scripts/sitelinks
     - yweb/tellurium/tools/store_history_to_yt
     - yweb/verticals/cost_plus/metrika/update_state
@@ -6756,7 +6749,6 @@ migrations:
     - bigrt/cli/lib
     - ads/bsyeti/tools/draw_collectors_graph
     - ads/bsyeti/w2v_recommender
-    - ads/clemmer/python/tests/small
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - ads/libs/py_ml_factors/matrixnet
     - ads/nirvana/online_learning/online_dump_txt_prepare/lib/ut
@@ -7286,7 +7278,6 @@ migrations:
     - billing/log_tariffication/py/tests/integration/partner_dsp_acts
     - billing/log_tariffication/py/tests/integration/partner_tariff
     - crypta/lab/tools/share_audience_exports
-    - datalens/backend/app/bi_materializer/bi_materializer
     - devtools/distbuild/ctl
     - devtools/tools_build
     - devtools/ya/build/stat
@@ -7673,8 +7664,6 @@ migrations:
     - maps/pylibs/rtree/lib
     - maps/pylibs/rtree/tests
     - maps/pylibs/yt/lib
-    - maps/search/geocoder/segmenter/grammar/converter/lib
-    - maps/search/geocoder/segmenter/grammar/converter/tests
     - maps/search/transit/basesearch/tests/blackbox
     - maps/statistics/external/traffic_lights/geometry_lib
     - maps/tools/matcher_quality/lib
@@ -8167,7 +8156,6 @@ migrations:
     - cloud/mdb/dbaas-internal-api-image/dbaas_internal_api/utils
     - contrib/python/hyperlink/hyperlink/test
     - cv/imgclassifiers/utils/python/yt_attributes
-    - datalens/backend/app/bi_materializer/bi_materializer/tasks
     - devtools/ya/core/yarg
     - devtools/ya/exts
     - devtools/ya/yalibrary/debug_store/processor
@@ -8236,7 +8224,6 @@ migrations:
     - irt/multik/training/metrics
     - irt/multik/training/optimization
     - irt/multik/training/optimization/nirvana
-    - k50/shopping/src/server/tests/unit/services/external/k50/cabinet
     - k50/shopping/src/server/tests/unit/services/feed_extractor
     - k50/shopping/src/server/tests/unit/views/api/internal/v1_0_0
     - k50/shopping/src/server/tests/utils
@@ -8302,7 +8289,6 @@ migrations:
     - logos/projects/money_dwh/tasks/bs_chevent_cooked_log/slave
     - logos/projects/money_dwh/tasks/bs_chevent_cooked_log/sorter
     - logos/projects/money_dwh/tasks/bs_dsp_cooked_log/builder
-    - logos/projects/money_dwh/tasks/event_money_direct_v5_sorted_merger
     - logos/projects/money_dwh/tasks/event_money_geo_value_updater
     - logos/projects/mstat_dwh_delivery/graph
     - logos/projects/statkey_py3/tasks/metamerger/tasks/merger_base_task
@@ -11335,7 +11321,6 @@ migrations:
     - passport/backend/library/historydbloader
     - passport/backend/logbroker_client/core
     - passport/backend/configs/golovan
-    - passport/backend/contrib/cassandra
     - passport/backend/contrib/django_contrib_comments
     - passport/backend/contrib/elementflow
     - passport/backend/contrib/formencode
