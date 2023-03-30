@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: simplejson
-Version: 3.18.3
+Version: 3.18.4
 Summary: Simple, fast, extensible JSON encoder/decoder for Python
 Home-page: https://github.com/simplejson/simplejson
 Author: Bob Ippolito
