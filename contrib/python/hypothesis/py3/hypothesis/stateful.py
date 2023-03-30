@@ -100,7 +100,7 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
             settings = state_machine_factory.TestCase.settings
             check_type(Settings, settings, "state_machine_factory.TestCase.settings")
         except AttributeError:
-            settings = Settings(deadline=None, suppress_health_check=HealthCheck.all())
+            settings = Settings(deadline=None, suppress_health_check=list(HealthCheck))
     check_type(Settings, settings, "settings")
     check_type(int, _min_steps, "_min_steps")
     if _min_steps < 0:
@@ -390,7 +390,7 @@ class RuleBasedStateMachine(metaclass=StateMachineMeta):
     @lru_cache()
     def _to_test_case(cls):
         class StateMachineTestCase(TestCase):
-            settings = Settings(deadline=None, suppress_health_check=HealthCheck.all())
+            settings = Settings(deadline=None, suppress_health_check=list(HealthCheck))
 
             def runTest(self):
                 run_state_machine_as_test(cls)

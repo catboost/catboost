@@ -329,7 +329,7 @@ class SearchStrategy(Generic[Ex]):
             deadline=None,
             verbosity=Verbosity.quiet,
             phases=(Phase.generate,),
-            suppress_health_check=HealthCheck.all(),
+            suppress_health_check=list(HealthCheck),
         )
         def example_generating_inner_function(ex):
             self.__examples.append(ex)

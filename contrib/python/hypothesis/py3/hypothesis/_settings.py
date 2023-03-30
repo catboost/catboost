@@ -19,7 +19,7 @@ import datetime
 import inspect
 import os
 import warnings
-from enum import Enum, IntEnum, unique
+from enum import Enum, EnumMeta, IntEnum, unique
 from typing import TYPE_CHECKING, Any, Collection, Dict, List, Optional, TypeVar, Union
 
 import attr
@@ -445,8 +445,14 @@ class Phase(IntEnum):
         return f"Phase.{self.name}"
 
 
+class HealthCheckMeta(EnumMeta):
+    def __iter__(self):
+        deprecated = (HealthCheck.return_value, HealthCheck.not_a_test_method)
+        return iter(x for x in super().__iter__() if x not in deprecated)
+
+
 @unique
-class HealthCheck(Enum):
+class HealthCheck(Enum, metaclass=HealthCheckMeta):
     """Arguments for :attr:`~hypothesis.settings.suppress_health_check`.
 
     Each member of this enum is a type of health check to suppress.
@@ -457,6 +463,8 @@ class HealthCheck(Enum):
 
     @classmethod
     def all(cls) -> List["HealthCheck"]:
+        # Skipping of deprecated attributes is handled in HealthCheckMeta.__iter__
+        # TODO: note_deprecation() and write a codemod for HC.all() -> list(HC)
         return list(HealthCheck)
 
     data_too_large = 1
@@ -479,15 +487,14 @@ class HealthCheck(Enum):
     testing."""
 
     return_value = 5
-    """Checks if your tests return a non-None value (which will be ignored and
-    is unlikely to do what you want)."""
+    """Deprecated; we always error if a test returns a non-None value."""
 
     large_base_example = 7
     """Checks if the natural example to shrink towards is very large."""
 
     not_a_test_method = 8
-    """Checks if :func:`@given <hypothesis.given>` has been applied to a
-    method defined by :class:`python:unittest.TestCase` (i.e. not a test)."""
+    """Deprecated; we always error if :func:`@given <hypothesis.given>` is applied
+    to a method defined by :class:`python:unittest.TestCase` (i.e. not a test)."""
 
     function_scoped_fixture = 9
     """Checks if :func:`@given <hypothesis.given>` has been applied to a test
@@ -585,6 +592,12 @@ def validate_health_check_suppressions(suppressions):
                 f"Non-HealthCheck value {s!r} of type {type(s).__name__} "
                 "is invalid in suppress_health_check."
             )
+        if s in (HealthCheck.return_value, HealthCheck.not_a_test_method):
+            note_deprecation(
+                f"The {s.name} health check is deprecated, because this is always an error.",
+                since="2023-03-15",
+                has_codemod=False,
+            )
     return suppressions
 
 
@@ -673,7 +686,7 @@ settings.lock_further_definitions()
 def note_deprecation(message: str, *, since: str, has_codemod: bool) -> None:
     if since != "RELEASEDAY":
         date = datetime.datetime.strptime(since, "%Y-%m-%d").date()
-        assert datetime.date(2016, 1, 1) <= date
+        assert datetime.date(2021, 1, 1) <= date
     if has_codemod:
         message += (
             "\n    The `hypothesis codemod` command-line tool can automatically "

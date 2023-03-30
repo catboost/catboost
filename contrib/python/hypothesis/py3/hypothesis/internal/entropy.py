@@ -19,7 +19,7 @@ from weakref import WeakValueDictionary
 
 import hypothesis.core
 from hypothesis.errors import HypothesisWarning, InvalidArgument
-from hypothesis.internal.compat import PYPY
+from hypothesis.internal.compat import GRAALPY, PYPY
 
 if TYPE_CHECKING:
     if sys.version_info >= (3, 8):
@@ -59,7 +59,7 @@ class NumpyRandomWrapper:
 NP_RANDOM = None
 
 
-if not PYPY:
+if not (PYPY or GRAALPY):
 
     def _get_platform_base_refcount(r: Any) -> int:
         return sys.getrefcount(r)
@@ -68,7 +68,7 @@ if not PYPY:
     # the given platform / version of Python.
     _PLATFORM_REF_COUNT = _get_platform_base_refcount(object())
 else:  # pragma: no cover
-    # PYPY doesn't have `sys.getrefcount`
+    # PYPY and GRAALPY don't have `sys.getrefcount`
     _PLATFORM_REF_COUNT = -1
 
 
@@ -118,8 +118,8 @@ def register_random(r: RandomLike) -> None:
     if r in RANDOMS_TO_MANAGE.values():
         return
 
-    if not PYPY:  # pragma: no branch
-        # PYPY does not have `sys.getrefcount`
+    if not (PYPY or GRAALPY):  # pragma: no branch
+        # PYPY and GRAALPY do not have `sys.getrefcount`
         gc.collect()
         if not gc.get_referrers(r):
             if sys.getrefcount(r) <= _PLATFORM_REF_COUNT:

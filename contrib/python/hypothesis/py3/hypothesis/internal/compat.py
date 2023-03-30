@@ -94,6 +94,7 @@ else:
             Concatenate, ParamSpec = None, None
 
 PYPY = platform.python_implementation() == "PyPy"
+GRAALPY = platform.python_implementation() == "GraalVM"
 WINDOWS = platform.system() == "Windows"
 
 

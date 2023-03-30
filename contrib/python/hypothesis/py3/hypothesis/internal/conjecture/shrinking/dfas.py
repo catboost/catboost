@@ -261,7 +261,7 @@ def normalize(
 
     runner = ConjectureRunner(
         test_function,
-        settings=settings(database=None, suppress_health_check=HealthCheck.all()),
+        settings=settings(database=None, suppress_health_check=list(HealthCheck)),
         ignore_limits=True,
         random=random,
     )
