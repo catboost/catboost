@@ -128,7 +128,10 @@ class GitIgnoreSpec(PathSpec):
 						# Pattern matched by a file pattern.
 						priority = 2
 
-					if priority >= out_priority:
+					if pattern.include and dir_mark:
+						out_matched = pattern.include
+						out_priority = priority
+					elif priority >= out_priority:
 						out_matched = pattern.include
 						out_priority = priority
 

@@ -7,6 +7,7 @@ import os.path
 import pathlib
 import posixpath
 import stat
+import sys
 import warnings
 from collections.abc import (
 	Collection as CollectionType,
@@ -29,6 +30,11 @@ from typing import (
 
 from .pattern import (
 	Pattern)
+
+if sys.version_info >= (3, 9):
+	StrPath = Union[str, PathLike[str]]
+else:
+	StrPath = Union[str, PathLike]
 
 NORMALIZE_PATH_SEPS = [
 	__sep
@@ -141,14 +147,14 @@ def _is_iterable(value: Any) -> bool:
 
 
 def iter_tree_entries(
-	root: Union[str, PathLike],
+	root: StrPath,
 	on_error: Optional[Callable] = None,
 	follow_links: Optional[bool] = None,
 ) -> Iterator['TreeEntry']:
 	"""
 	Walks the specified directory for all files and directories.
 
-	*root* (:class:`str` or :class:`os.PathLike`) is the root directory to
+	*root* (:class:`str` or :class:`os.PathLike[str]`) is the root directory to
 	search.
 
 	*on_error* (:class:`~collections.abc.Callable` or :data:`None`)
@@ -257,14 +263,14 @@ def _iter_tree_entries_next(
 
 
 def iter_tree_files(
-	root: Union[str, PathLike],
+	root: StrPath,
 	on_error: Optional[Callable] = None,
 	follow_links: Optional[bool] = None,
 ) -> Iterator[str]:
 	"""
 	Walks the specified directory for all files.
 
-	*root* (:class:`str` or :class:`os.PathLike`) is the root directory to
+	*root* (:class:`str` or :class:`os.PathLike[str]`) is the root directory to
 	search for files.
 
 	*on_error* (:class:`~collections.abc.Callable` or :data:`None`)
@@ -365,14 +371,14 @@ def match_files(
 
 
 def normalize_file(
-	file: Union[str, PathLike],
+	file: StrPath,
 	separators: Optional[Collection[str]] = None,
 ) -> str:
 	"""
 	Normalizes the file path to use the POSIX path separator (i.e.,
 	:data:`'/'`), and make the paths relative (remove leading :data:`'/'`).
 
-	*file* (:class:`str` or :class:`os.PathLike`) is the file path.
+	*file* (:class:`str` or :class:`os.PathLike[str]`) is the file path.
 
 	*separators* (:class:`~collections.abc.Collection` of :class:`str`; or
 	:data:`None`) optionally contains the path separators to normalize.
@@ -388,7 +394,7 @@ def normalize_file(
 		separators = NORMALIZE_PATH_SEPS
 
 	# Convert path object to string.
-	norm_file = str(file)
+	norm_file: str = os.fspath(file)
 
 	for sep in separators:
 		norm_file = norm_file.replace(sep, posixpath.sep)
@@ -405,9 +411,9 @@ def normalize_file(
 
 
 def normalize_files(
-	files: Iterable[Union[str, PathLike]],
+	files: Iterable[StrPath],
 	separators: Optional[Collection[str]] = None,
-) -> Dict[str, List[Union[str, PathLike]]]:
+) -> Dict[str, List[StrPath]]:
 	"""
 	DEPRECATED: This function is no longer used. Use the :func:`.normalize_file`
 	function with a loop for better results.
@@ -415,7 +421,7 @@ def normalize_files(
 	Normalizes the file paths to use the POSIX path separator.
 
 	*files* (:class:`~collections.abc.Iterable` of :class:`str` or
-	:class:`os.PathLike`) contains the file paths to be normalized.
+	:class:`os.PathLike[str]`) contains the file paths to be normalized.
 
 	*separators* (:class:`~collections.abc.Collection` of :class:`str`; or
 	:data:`None`) optionally contains the path separators to normalize.
@@ -423,7 +429,7 @@ def normalize_files(
 
 	Returns a :class:`dict` mapping each normalized file path (:class:`str`)
 	to the original file paths (:class:`list` of :class:`str` or
-	:class:`os.PathLike`).
+	:class:`os.PathLike[str]`).
 	"""
 	warnings.warn((
 		"util.normalize_files() is deprecated. Use util.normalize_file() "

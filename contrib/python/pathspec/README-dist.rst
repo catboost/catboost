@@ -170,6 +170,23 @@ Change History
 ==============
 
 
+0.11.1 (2023-03-14)
+-------------------
+
+Bug fixes:
+
+- `Issue #74`_: Include directory should override exclude file.
+
+Improvements:
+
+- `Pull #75`_: Fix partially unknown PathLike type.
+- Convert `os.PathLike` to a string properly using `os.fspath`.
+
+.. _`Issue #74`: https://github.com/cpburnz/python-pathspec/issues/74
+.. _`Pull #75`: https://github.com/cpburnz/python-pathspec/pull/75
+
+
+
 0.11.0 (2023-01-24)
 -------------------
 

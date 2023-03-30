@@ -49,6 +49,7 @@ __credits__ = [
 	"haimat <https://github.com/haimat>",
 	"Avasam <https://github.com/Avasam>",
 	"yschroeder <https://github.com/yschroeder>",
+	"axesider <https://github.com/axesider>",
 ]
 __license__ = "MPL 2.0"
-__version__ = "0.11.0"
+__version__ = "0.11.1"
