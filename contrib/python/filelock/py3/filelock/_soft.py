@@ -14,14 +14,14 @@ class SoftFileLock(BaseFileLock):
     def _acquire(self) -> None:
         raise_on_exist_ro_file(self._lock_file)
         # first check for exists and read-only mode as the open will mask this case as EEXIST
-        mode = (
+        flags = (
             os.O_WRONLY  # open for writing only
             | os.O_CREAT
             | os.O_EXCL  # together with above raise EEXIST if the file specified by filename exists
             | os.O_TRUNC  # truncate the file to zero byte
         )
         try:
-            fd = os.open(self._lock_file, mode)
+            fd = os.open(self._lock_file, flags, self._mode)
         except OSError as exception:
             if exception.errno == EEXIST:  # expected if cannot lock
                 pass

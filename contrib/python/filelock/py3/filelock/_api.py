@@ -39,7 +39,12 @@ class AcquireReturnProxy:
 class BaseFileLock(ABC, contextlib.ContextDecorator):
     """Abstract base class for a file lock object."""
 
-    def __init__(self, lock_file: str | os.PathLike[Any], timeout: float = -1) -> None:
+    def __init__(
+        self,
+        lock_file: str | os.PathLike[Any],
+        timeout: float = -1,
+        mode: int = 0o644,
+    ) -> None:
         """
         Create a new lock object.
 
@@ -47,6 +52,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         :param timeout: default timeout when acquiring the lock, in seconds. It will be used as fallback value in
         the acquire method, if no timeout value (``None``) is given. If you want to disable the timeout, set it
         to a negative value. A timeout of 0 means, that there is exactly one attempt to acquire the file lock.
+        : param mode: file permissions for the lockfile.
         """
         # The path to the lock file.
         self._lock_file: str = os.fspath(lock_file)
@@ -57,6 +63,9 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
 
         # The default timeout value.
         self._timeout: float = timeout
+
+        # The mode for the lock files
+        self._mode: int = mode
 
         # We use this lock primarily for the lock counter.
         self._thread_lock: Lock = Lock()
@@ -164,21 +173,24 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
 
         lock_id = id(self)
         lock_filename = self._lock_file
-        start_time = time.monotonic()
+        start_time = time.perf_counter()
         try:
             while True:
                 with self._thread_lock:
                     if not self.is_locked:
                         _LOGGER.debug("Attempting to acquire lock %s on %s", lock_id, lock_filename)
-                        self._acquire()
-
+                        previous_umask = os.umask(0)
+                        try:
+                            self._acquire()
+                        finally:
+                            os.umask(previous_umask)  # reset umask to initial value
                 if self.is_locked:
                     _LOGGER.debug("Lock %s acquired on %s", lock_id, lock_filename)
                     break
                 elif blocking is False:
                     _LOGGER.debug("Failed to immediately acquire lock %s on %s", lock_id, lock_filename)
                     raise Timeout(self._lock_file)
-                elif 0 <= timeout < time.monotonic() - start_time:
+                elif 0 <= timeout < time.perf_counter() - start_time:
                     _LOGGER.debug("Timeout on acquiring lock %s on %s", lock_id, lock_filename)
                     raise Timeout(self._lock_file)
                 else:
@@ -199,7 +211,6 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         :param force: If true, the lock counter is ignored and the lock is released in every case/
         """
         with self._thread_lock:
-
             if self.is_locked:
                 self._lock_counter -= 1
 

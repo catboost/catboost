@@ -30,7 +30,7 @@ else:  # pragma: win32 no cover
     else:
         _FileLock = SoftFileLock
         if warnings is not None:
-            warnings.warn("only soft file lock is available")
+            warnings.warn("only soft file lock is available", stacklevel=2)
 
 #: Alias for the lock, which should be used for the current platform. On Windows, this is an alias for
 # :class:`WindowsFileLock`, on Unix for :class:`UnixFileLock` and otherwise for :class:`SoftFileLock`.
