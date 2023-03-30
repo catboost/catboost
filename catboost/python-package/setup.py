@@ -568,13 +568,15 @@ class install(_install):
         return super().has_data() or (not self.no_widget)
 
     def run(self):
-        OptionsHelper.propagate(
-            self,
-            "build",
-            HNSWOptions.get_options_attribute_names()
-            + WidgetOptions.get_options_attribute_names()
-            + BuildExtOptions.get_options_attribute_names()
-        )
+        if 'build' not in self.distribution.have_run:
+            # do not propagate if build has already been called before install
+            OptionsHelper.propagate(
+                self,
+                "build",
+                HNSWOptions.get_options_attribute_names()
+                + WidgetOptions.get_options_attribute_names()
+                + BuildExtOptions.get_options_attribute_names()
+            )
         OptionsHelper.propagate(
             self,
             "install_data",
