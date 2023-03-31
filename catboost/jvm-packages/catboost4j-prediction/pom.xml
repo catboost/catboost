@@ -193,13 +193,11 @@
                           <configuration>
                               <executable>python</executable>
                               <commandlineArgs>
-                                ${basedir}/../tools/build_native_for_maven.py ${basedir} catboost4j-prediction
-                                --build release
-                                --no-src-links
-                                -DOS_SDK=local
-                                -DHAVE_CUDA=no
-                                -DUSE_SYSTEM_JDK=${JAVA_HOME}
-                                -DJAVA_HOME=${JAVA_HOME}
+                                ${basedir}/../tools/build_native_for_maven.py
+                                --build-output-root-dir=${project.build.directory}/native
+                                --build-type=Release
+                                --base-dir=${basedir}
+                                --lib-name=catboost4j-prediction
                                 ${buildNative.extraArgs}
                               </commandlineArgs>
                               <workingDirectory>${user.dir}</workingDirectory>

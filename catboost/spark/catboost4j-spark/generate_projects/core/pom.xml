@@ -173,7 +173,7 @@
                 </configuration>
             </plugin>
         </plugins>
-        
+
         <resources>
            <resource>
                <directory>${src.root}/main/resources</directory>
@@ -218,7 +218,7 @@
             <artifactId>guava</artifactId>
             <version>29.0-jre</version>
         </dependency>
-        
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -253,9 +253,9 @@
             <version>4.8.98</version>
         </dependency>
 
-        <!-- 
+        <!--
           Default Spark 3.2's 4.1.68.Final dependency is broken because of https://github.com/netty/netty/issues/11657
-          so upgrade to 4.1.72.Final as in Spark itself: https://github.com/apache/spark/pull/34881 
+          so upgrade to 4.1.72.Final as in Spark itself: https://github.com/apache/spark/pull/34881
         -->
         <dependency>
             <groupId>io.netty</groupId>
@@ -378,14 +378,14 @@
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
-        
+
 
         <dependency>
             <groupId>ai.catboost</groupId>
             <artifactId>catboost-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>ai.catboost</groupId>
             <artifactId>catboost-spark-macros_${scala.compat.version}</artifactId>
@@ -437,15 +437,10 @@
                               <executable>python</executable>
                               <commandlineArgs>
                                 ${catboost_root}/jvm-packages/tools/build_native_for_maven.py
-                                ${core_project_root}
-                                catboost4j-spark-impl
-                                --build release
-                                --no-src-links
-                                -DOS_SDK=local
-                                -DHAVE_CUDA=no
-                                -DUSE_LOCAL_SWIG=yes
-                                -DUSE_SYSTEM_JDK=${JAVA_HOME}
-                                -DJAVA_HOME=${JAVA_HOME}
+                                --build-output-root-dir=${project.build.directory}/native
+                                --build-type=Release
+                                --base-dir=${core_project_root}
+                                --lib-name=catboost4j-spark-impl
                                 ${buildNative.extraArgs}
                               </commandlineArgs>
                               <workingDirectory>${user.dir}</workingDirectory>
