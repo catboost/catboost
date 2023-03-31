@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-disclaimer="""
-!!! This script is not a part of public CatBoost API yet and subject to change without notice. !!!
-"""
-
 import argparse
 import copy
 import logging
@@ -499,7 +495,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         description=(
-             disclaimer
+             'Script to build CatBoost binary artifacts using CMake and Ninja (cross-compilation supported).\n'
              + ' All unrecognized arguments will be added to cmake_extra_args'
         ),
         allow_abbrev=False
