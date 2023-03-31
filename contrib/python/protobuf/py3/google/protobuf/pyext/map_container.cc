@@ -521,6 +521,9 @@ PyObject* MapReflectionFriend::ScalarMapToStr(PyObject* _self) {
 
 static void ScalarMapDealloc(PyObject* _self) {
   MapContainer* self = GetMap(_self);
+  if (PyObject_GC_IsTracked(_self)) {
+    PyObject_GC_UnTrack(_self);
+  }
   self->RemoveFromParentCache();
   PyTypeObject *type = Py_TYPE(_self);
   type->tp_free(_self);
@@ -787,6 +790,9 @@ PyObject* MessageMapGet(PyObject* self, PyObject* args, PyObject* kwargs) {
 
 static void MessageMapDealloc(PyObject* _self) {
   MessageMapContainer* self = GetMessageMap(_self);
+  if (PyObject_GC_IsTracked(_self)) {
+    PyObject_GC_UnTrack(_self);
+  }
   self->RemoveFromParentCache();
   Py_DECREF(self->message_class);
   PyTypeObject *type = Py_TYPE(_self);

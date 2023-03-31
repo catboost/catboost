@@ -199,6 +199,9 @@ static PyObject* New(PyTypeObject* type,
 
 static void Dealloc(PyObject* pself) {
   PyDescriptorPool* self = reinterpret_cast<PyDescriptorPool*>(pself);
+  if (PyObject_GC_IsTracked(pself)) {
+    PyObject_GC_UnTrack(pself);
+  }
   descriptor_pool_map->erase(self->pool);
   Py_CLEAR(self->py_message_factory);
   for (std::unordered_map<const void*, PyObject*>::iterator it =

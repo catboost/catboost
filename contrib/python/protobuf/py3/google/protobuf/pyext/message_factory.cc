@@ -106,6 +106,9 @@ PyObject* New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
 static void Dealloc(PyObject* pself) {
   PyMessageFactory* self = reinterpret_cast<PyMessageFactory*>(pself);
 
+  if (PyObject_GC_IsTracked(pself)) {
+    PyObject_GC_UnTrack(pself);
+  }
   typedef PyMessageFactory::ClassesByMessageMap::iterator iterator;
   for (iterator it = self->classes_by_descriptor->begin();
        it != self->classes_by_descriptor->end(); ++it) {

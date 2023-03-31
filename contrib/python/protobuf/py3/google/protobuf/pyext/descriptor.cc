@@ -449,6 +449,9 @@ PyObject* NewInternedDescriptor(PyTypeObject* type,
 
 static void Dealloc(PyObject* pself) {
   PyBaseDescriptor* self = reinterpret_cast<PyBaseDescriptor*>(pself);
+  if (PyObject_GC_IsTracked(pself)) {
+    PyObject_GC_UnTrack(pself);
+  }
   // Remove from interned dictionary
   interned_descriptors->erase(self->descriptor);
   Py_CLEAR(self->pool);
