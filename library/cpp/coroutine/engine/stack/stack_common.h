@@ -19,9 +19,9 @@ namespace NCoro::NStack {
     struct TPoolAllocatorSettings {
         size_t RssPagesToKeep = 1;
         size_t SmallStackRssPagesToKeep = 1; // for stack less than SmallStackMaxSizeInPages
-        size_t ReleaseRate = 2;
+        size_t ReleaseRate = 8;
 #if !defined(_san_enabled_) && defined(NDEBUG)
-        size_t StacksPerChunk = 256;
+        size_t StacksPerChunk = 1024;
 #else
         size_t StacksPerChunk = 2;
 #endif
