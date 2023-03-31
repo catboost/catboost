@@ -34,14 +34,16 @@ FRAGMENT_SAFE_CHARACTERS = URL_SAFE_CHARACTERS | {"?", "/"}
 # The file contains additional information about the date that it was last updated.
 try:  # pragma: no cover
     traversable = resources.files("hypothesis.vendor") / "tlds-alpha-by-domain.txt"
-    _tlds = traversable.read_text().splitlines()
+    _comment, *_tlds = traversable.read_text().splitlines()
 except (AttributeError, ValueError):  # pragma: no cover  # .files() was added in 3.9
-    _tlds = resources.read_text(
+    _comment, *_tlds = resources.read_text(
         "hypothesis.vendor", "tlds-alpha-by-domain.txt"
     ).splitlines()
+assert _comment.startswith("#")
 
-assert _tlds[0].startswith("#")
-TOP_LEVEL_DOMAINS = ["COM"] + sorted(_tlds[1:], key=len)
+# Remove special-use domain names from the list. For more discussion
+# see https://github.com/HypothesisWorks/hypothesis/pull/3572
+TOP_LEVEL_DOMAINS = ["COM"] + sorted((d for d in _tlds if d != "ARPA"), key=len)
 
 
 class DomainNameStrategy(st.SearchStrategy):
