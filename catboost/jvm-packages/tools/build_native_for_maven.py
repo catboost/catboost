@@ -83,15 +83,6 @@ def _get_native_lib_dir(root_dir, package_arcadia_path):
     return os.path.join(root_dir, package_arcadia_path, 'src', 'native_impl')
 
 
-def _ensure_dir_exists(path):
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        import errno
-        if e.errno != errno.EEXIST:
-            raise
-
-
 def _build_native_platform_to_jvm_platform(build_native_platform):
     target_system, target_arch = build_native_platform.split('-')
     if target_system == 'windows':
@@ -209,15 +200,8 @@ def postprocess_after_ya(native_lib_build_dir, lib_name, resources_dir, base_dir
         print('copy sources jar to target', file=sys.stderr)
 
         target_dir = os.path.join(base_dir, 'target')
-        """
-            ensure that target directory exists, can't use exist_ok flag because it is unavailable in
-            python 2.7
-        """
-        try:
-            os.makedirs(target_dir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
+
+        os.makedirs(target_dir, exist_ok=True)
 
         shutil.copy(os.path.join(native_lib_build_dir, lib_name + '-sources.jar'), target_dir)
 
@@ -279,12 +263,12 @@ def _main():
     package_src_sub_path = os.path.relpath(parsed_args.base_dir, top_src_root_dir)
 
     resources_dir = _get_package_resources_dir(parsed_args.base_dir)
-    _ensure_dir_exists(resources_dir)
+    os.makedirs(resources_dir, exist_ok=True)
     shared_lib_dir = os.path.join(
         resources_dir,
         _get_platform_resources_dir(parsed_args),
         'lib')
-    _ensure_dir_exists(shared_lib_dir)
+    os.makedirs(shared_lib_dir, exist_ok=True)
 
     native_lib_build_dir = _get_native_lib_dir(parsed_args.build_output_root_dir, package_src_sub_path)
 
