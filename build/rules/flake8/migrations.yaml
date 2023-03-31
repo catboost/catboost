@@ -553,7 +553,6 @@ migrations:
     - crypta/lib/python/yt/schema_utils
     - crypta/lookalike/lib/python/utils/test
     - crypta/lookalike/services/calc_metrika_counter_audiences/bin/test
-    - crypta/web/dating/back
     - cv/cbir_search/face_ban/check_faces
     - cv/cbir_search/intent_classifier/parse_intent_factors
     - cv/cbir_search/izi_travel
@@ -2073,7 +2072,6 @@ migrations:
     - sandbox/projects/yabs/partner_share/lib/integratest
     - sandbox/projects/yabs/partner_share/tasks/apply_changes
     - sandbox/projects/yabs/partner_share/visualizer
-    - sandbox/projects/yabs/qa/hamster
     - sandbox/projects/yabs/qa/tasks/YabsServerRealRunCSImport
     - sandbox/projects/yabs/run_cached
     - sandbox/projects/yabs/run_cached_temp
@@ -2405,7 +2403,6 @@ migrations:
     - load/projects/yandex-tank/yandextank/plugins/Solomon/tests
     - logbroker/tools/auto/mirror_repair/lib
     - logfeller/python/logfeller/util/solomon/ut
-    - logfeller/python/logfeller/util/time_util/ut
     - mail/docker_tests/tests_common
     - mail/library/python/json_value/tests
     - maps/automotive/libs/large_tests/lib
@@ -3599,7 +3596,6 @@ migrations:
     - taxi/eda/eda_analytics/search_dashboard
     - taxi/tools/dorblu/dorblu_configs_uploader/bin
     - taxi/tools/dorblu/dorblu_configs_uploader/lib
-    - testenv/core/engine/tasks/streams
     - toloka/analytics/libs/python/lama
     - tools/curl_to_ab
     - transfer_manager/scripts/get_resource_usage
@@ -4150,7 +4146,6 @@ migrations:
     - logbroker/tools/ansible/plugins/modules
     - logfeller/python/logfeller/infra/release/yt
     - logfeller/python/logfeller/util/logging
-    - logfeller/python/logfeller/util/time_util/ut
     - logos/libs/md/watcher/lib
     - mail/devpack/lib/components
     - mail/ghost/bin
@@ -4819,7 +4814,6 @@ migrations:
     - crypta/profile/lib/bb_helpers
     - crypta/profile/runners/matching/lib
     - crypta/profile/runners/segments/lib/coded_segments
-    - crypta/web/dating/back
     - crypta/why_this_ad/services/tg_bot/lib
     - cv/cbir_search/intent_classifier/make_queries
     - cv/cbir_search/intent_classifier/parse_intent_factors
@@ -5835,7 +5829,6 @@ migrations:
     - sandbox/projects/Sovetnik/Filter/YandexuidFactors
     - sandbox/projects/TeamcityRunner
     - sandbox/projects/TestFrontMetricsLogs/modules
-    - sandbox/projects/TestPeoplesearchTool
     - sandbox/projects/TestRTYServerDolbiloM
     - sandbox/projects/TestRTYServerTask
     - sandbox/projects/TestRTYServerUnit
@@ -9182,7 +9175,6 @@ migrations:
     prefixes:
     - crowdsourcing/crowdtesting/graphs/process_of_priority/graphs
     - devtools/contrib/sandbox/run_go_toolchain_tests
-    - maps/analyzer/services/eta_comparison/tests
     - mediapers/vh3/graphs/music_prod_cron
     - ml/zeliboba/experiments/_example7_finetune_lm10_on_task
     - search/geo/tools/basket_gathering_2022
@@ -9702,7 +9694,6 @@ migrations:
     - market/sre/tools/capacity/lib/DAU
     - mssngr/botplatform/src/bots/core/testutils
     - quality/ab_testing/scripts/ems/library/ab_calculations
-    - quality/user_sessions/kpi_robot
     - sandbox/projects/billing/tasks/Faas/BillingFaasBuildTask
     - search/priemka/yappy/tests/test_yappy_lib/test_yappy_lib
     - voicetech/vqe/tools/health_check/lib
@@ -9909,7 +9900,6 @@ migrations:
     - travel/avia/shared_flights/tasks/ssim_parser/tests
     - travel/rasp/bus/api/connectors/entities
     - weather/db/models
-    - web/app_host/tools/upper_template_generator/src/yabs_counter
     - yabs/server/cs/tools/ci
     - yabs/server/test/ft/BSSERVER-11310
     - yabs/server/test/ft/BSSERVER-13708
@@ -9930,7 +9920,6 @@ migrations:
     - quality/neural_net/bert/bert/utils/hooks
     - search/tools/fast_data_deployment/lib
     - smarttv/droideka/proxy/serializers
-    - web/app_host/tools/upper_template_generator/src/base
     - yabs/server/test/qabs_bsserver_pytest
   PLW0244:
     ignore:
@@ -9972,7 +9961,6 @@ migrations:
     - alice/boltalka/generative/tfnn/telegram_bot
     - alice/tools/rivals_e2e/cmd_runner
     - antirobot/scripts/ddos_detector
-    - crypta/web/dating/back
     - education/schoolbook/analytics/ml/boosting/lib
     - jupytercloud/tools/mass_rsync
     - jupytercloud/tools/puncher-sync
