@@ -48,8 +48,7 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-jdk
 )
 target_link_options(catboost4j-spark-impl-cpp PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -undefined
   dynamic_lookup

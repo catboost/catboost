@@ -19,8 +19,7 @@ target_link_libraries(cpp_styleguide PUBLIC
   contrib-libs-protoc
 )
 target_link_options(cpp_styleguide PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )

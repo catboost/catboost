@@ -52,8 +52,7 @@ target_link_libraries(_catboost PUBLIC
 )
 target_link_options(_catboost PRIVATE
   -headerpad_max_install_names
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -undefined
   dynamic_lookup

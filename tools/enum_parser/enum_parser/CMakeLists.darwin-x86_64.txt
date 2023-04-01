@@ -17,8 +17,7 @@ target_link_libraries(enum_parser PUBLIC
   tools-enum_parser-parse_enum
 )
 target_link_options(enum_parser PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )

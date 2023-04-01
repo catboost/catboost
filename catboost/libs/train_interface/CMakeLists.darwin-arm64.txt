@@ -36,8 +36,7 @@ target_link_libraries(catboost_train_interface PUBLIC
   library-cpp-logger
 )
 target_link_options(catboost_train_interface PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -undefined
   dynamic_lookup

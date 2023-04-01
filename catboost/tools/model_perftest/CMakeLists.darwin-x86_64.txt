@@ -18,8 +18,7 @@ target_link_libraries(model_perftest PUBLIC
   library-cpp-getopt
 )
 target_link_options(model_perftest PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )

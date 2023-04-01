@@ -17,8 +17,7 @@ target_link_libraries(limited_precision_json_diff PUBLIC
   cpp-getopt-small
 )
 target_link_options(limited_precision_json_diff PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )

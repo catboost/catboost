@@ -16,8 +16,7 @@ target_link_libraries(tensorboard_logger_example PUBLIC
   catboost-libs-loggers
 )
 target_link_options(tensorboard_logger_example PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )

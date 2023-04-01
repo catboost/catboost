@@ -17,8 +17,7 @@ target_link_libraries(catboost-libs-metrics-ut PUBLIC
   catboost-libs-helpers
 )
 target_link_options(catboost-libs-metrics-ut PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )

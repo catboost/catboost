@@ -127,6 +127,17 @@ def gen_default_suppressions(inputs, output, source_root):
             dst.write('}\n')
 
 
+def fix_blas_resolving(cmd):
+    # Intel mkl comes as a precompiled static library and thus can not be recompiled with sanitizer runtime instrumentation.
+    # That's why we prefer to use cblas instead of Intel mkl as a drop-in replacement under sanitizers.
+    # But if the library has dependencies on mkl and cblas simultaneously, it will get a linking error.
+    # Hence we assume that it's probably compiling without sanitizers and we can easily remove cblas to prevent multiple definitions of the same symbol at link time.
+    for arg in cmd:
+        if arg.startswith('contrib/libs') and arg.endswith('mkl-lp64.a'):
+            return [arg for arg in cmd if not arg.endswith('libcontrib-libs-cblas.a')]
+    return cmd
+
+
 def parse_args():
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
@@ -145,7 +156,8 @@ def parse_args():
 if __name__ == '__main__':
     opts, args = parse_args()
 
-    cmd = remove_excessive_flags(args)
+    cmd = fix_blas_resolving(args)
+    cmd = remove_excessive_flags(cmd)
     if opts.musl:
         cmd = fix_cmd_for_musl(cmd)
 

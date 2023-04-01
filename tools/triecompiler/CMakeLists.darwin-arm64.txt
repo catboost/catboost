@@ -16,8 +16,7 @@ target_link_libraries(triecompiler PUBLIC
   tools-triecompiler-lib
 )
 target_link_options(triecompiler PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )

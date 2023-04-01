@@ -19,8 +19,7 @@ target_link_libraries(catboostmodel PUBLIC
   catboost-libs-model
 )
 target_link_options(catboostmodel PRIVATE
-  -Wl,-no_deduplicate
-  -Wl,-sdk_version,11.0
+  -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -undefined
   dynamic_lookup
