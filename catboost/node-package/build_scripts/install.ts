@@ -1,9 +1,9 @@
-import {buildLocal, buildYa} from './build';
+import {buildLocal, buildNative} from './build';
 import {existsSync} from 'fs';
 
 async function install(): Promise<void> {
-    if (existsSync('../../ya')) {
-        await buildYa();
+    if (existsSync('../../build/build_native.py')) {
+        await buildNative();
         return;
     }
 

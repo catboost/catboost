@@ -20,7 +20,7 @@
   },
   "scripts": {
     "install": "node ./build_scripts/bootstrap.js install",
-    "build": "node ./build_scripts/bootstrap.js build_ya",
+    "build": "node ./build_scripts/bootstrap.js build_native",
     "ci": "node ./build_scripts/bootstrap.js ci",
     "compile": "node ./build_scripts/bootstrap.js compile",
     "package_prepublish": "node ./build_scripts/bootstrap.js package_prepublish",
