@@ -2,7 +2,7 @@
   'targets': [
     {
       'target_name': 'catboost-node',
-      'sources': [ 
+      'sources': [
                       'src/api_helpers.cpp',
                       'src/api_module.cpp',
                       'src/model.cpp',
@@ -16,14 +16,14 @@
       'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
       'conditions': [
         ['OS=="linux"', {
-          'libraries': [ 
+          'libraries': [
                      "-L<(module_root_dir)/build/catboost/libs/model_interface/",
                      "-lcatboostmodel",
                      "-Wl,-rpath <(module_root_dir)/build/catboost/libs/model_interface"
                    ],
         }],
         ['OS=="mac"', {
-          'libraries': [ 
+          'libraries': [
                      "-L<(module_root_dir)/build/catboost/libs/model_interface/",
                      "-lcatboostmodel",
                      "-Wl,-rpath,@loader_path/../catboost/libs/model_interface"
