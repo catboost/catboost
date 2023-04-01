@@ -11,7 +11,7 @@ fn main() {
         .canonicalize()
         .unwrap();
 
-    Command::new("../../../build/build_native.py")
+    let build_cmd_status = Command::new("../../../build/build_native.py")
         .args(&[
             "--targets", "catboostmodel",
             "--build-root-dir", out_dir.to_str().unwrap(),
@@ -20,6 +20,9 @@ fn main() {
         .unwrap_or_else(|e| {
             panic!("Failed to run build_native.py : {}", e);
         });
+    if !build_cmd_status.success() {
+        panic!("Building with build_native.py failed");
+    }
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
