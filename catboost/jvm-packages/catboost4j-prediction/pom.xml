@@ -195,7 +195,6 @@
                               <commandlineArgs>
                                 ${basedir}/../tools/build_native_for_maven.py
                                 --build-output-root-dir=${project.build.directory}/native
-                                --build-type=Release
                                 --base-dir=${basedir}
                                 --lib-name=catboost4j-prediction
                                 ${buildNative.extraArgs}

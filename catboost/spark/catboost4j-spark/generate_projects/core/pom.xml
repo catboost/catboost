@@ -438,7 +438,6 @@
                               <commandlineArgs>
                                 ${catboost_root}/jvm-packages/tools/build_native_for_maven.py
                                 --build-output-root-dir=${project.build.directory}/native
-                                --build-type=Release
                                 --base-dir=${core_project_root}
                                 --lib-name=catboost4j-spark-impl
                                 ${buildNative.extraArgs}
