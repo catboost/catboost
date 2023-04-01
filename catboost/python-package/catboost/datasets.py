@@ -275,11 +275,11 @@ def adult():
         'relationship', 'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week',
         'native-country', 'income', )
     dtype = {
-        'age': np.float, 'workclass': np.object, 'fnlwgt': np.float, 'education': np.object,
-        'education-num': np.float, 'marital-status': np.object, 'occupation': np.object,
-        'relationship': np.object, 'race': np.object, 'sex': np.object, 'capital-gain': np.float,
-        'capital-loss': np.float, 'hours-per-week': np.float,
-        'native-country': np.object, 'income': np.object, }
+        'age': float, 'workclass': object, 'fnlwgt': float, 'education': object,
+        'education-num': float, 'marital-status': object, 'occupation': object,
+        'relationship': object, 'race': object, 'sex': object, 'capital-gain': float,
+        'capital-loss': float, 'hours-per-week': float,
+        'native-country': object, 'income': object, }
 
     # proxy.sandbox.yandex-team.ru is Yandex internal storage, we first try to download it from
     # internal storage to avoid putting too much pressure on UCI storage from our internal CI
