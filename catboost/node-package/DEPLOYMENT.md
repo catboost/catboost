@@ -18,7 +18,7 @@ npm run compile_build_scripts
   ```
   - If called outside of the repository, then the package is considered to be installed from npm and it will be built and linked against the binaries specified in `config.json` file. This file is created during package preparation for publishing, see below.
 - `npm run build` - build package locally in the `catboost` repository, link against library built from source.
-- `npm run ci` - a single scrpt for CI which runs the procedure described in "Release procedure" section.
+- `npm run ci` - a single script for CI which runs the procedure described in "Release procedure" section.
 - `npm run compile` - compile Typescript source files only.
 - `npm run test` - run local unit tests.
 - `npm run compile_build_scripts` - compile build scripts from Typescript sources.
