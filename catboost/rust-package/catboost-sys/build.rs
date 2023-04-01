@@ -11,18 +11,14 @@ fn main() {
         .canonicalize()
         .unwrap();
 
-    Command::new("../../../ya")
+    Command::new("../../../build/build_native.py")
         .args(&[
-            "make",
-            "-r",
-            cb_model_interface_root.to_str().unwrap(),
-            // "--sanitize=address",
-            "-o",
-            out_dir.to_str().unwrap(),
+            "--targets", "catboostmodel",
+            "--build-root-dir", out_dir.to_str().unwrap(),
         ])
         .status()
         .unwrap_or_else(|e| {
-            panic!("Failed to yamake libcatboostmodel: {}", e);
+            panic!("Failed to run build_native.py : {}", e);
         });
 
     let bindings = bindgen::Builder::default()
