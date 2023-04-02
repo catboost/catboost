@@ -41,17 +41,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
-    <NMakeBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -d "$(SolutionDir)../../catboost/libs/model_interface" --install $(OutDir)</NMakeBuildCommandLine>
-    <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeReBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -d "$(SolutionDir)../../catboost/libs/model_interface" --install $(OutDir) --rebuild</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>"$(SolutionDir)../../build/build_native.py" --build-type Debug --targets catboostmodel --build-root-dir "$(SolutionDir)$(Configuration)\build" &amp;&amp; copy "$(SolutionDir)$(Configuration)\build\catboost\libs\model_interface\catboostmodel.lib" "$(OutDir)" &amp;&amp; copy "$(SolutionDir)$(Configuration)\build\catboost\libs\model_interface\catboostmodel.dll" "$(OutDir)"</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>"$(SolutionDir)../../build/build_native.py" --rebuild --build-type Debug --targets catboostmodel --build-root-dir "$(SolutionDir)$(Configuration)\build" &amp;&amp; copy "$(SolutionDir)$(Configuration)\build\catboost\libs\model_interface\catboostmodel.lib" "$(OutDir)" &amp;&amp; copy "$(SolutionDir)$(Configuration)\build\catboost\libs\model_interface\catboostmodel.dll" "$(OutDir)"</NMakeReBuildCommandLine>
     <NMakeOutput>$(OutDir)catboostmodel.lib</NMakeOutput>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
-    <NMakeBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -r "$(SolutionDir)../../catboost/libs/model_interface" --install $(OutDir)</NMakeBuildCommandLine>
-    <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeReBuildCommandLine>call "$(VCInstallDir)\Auxiliary\Build\vcvars64.bat" &amp;&amp; "$(SolutionDir)../../ya" make -r "$(SolutionDir)../../catboost/libs/model_interface" --install $(OutDir) --rebuild</NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine>"$(SolutionDir)../../build/build_native.py" --build-type Release --targets catboostmodel --build-root-dir "$(SolutionDir)$(Configuration)\build" &amp;&amp; copy "$(SolutionDir)$(Configuration)\build\catboost\libs\model_interface\catboostmodel.lib" "$(OutDir)" &amp;&amp; copy "$(SolutionDir)$(Configuration)\build\catboost\libs\model_interface\catboostmodel.dll" "$(OutDir)"</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>"$(SolutionDir)../../build/build_native.py" --rebuild --build-type Release --targets catboostmodel --build-root-dir "$(SolutionDir)$(Configuration)\build" &amp;&amp; copy "$(SolutionDir)$(Configuration)\build\catboost\libs\model_interface\catboostmodel.lib" "$(OutDir)" &amp;&amp; copy "$(SolutionDir)$(Configuration)\build\catboost\libs\model_interface\catboostmodel.dll" "$(OutDir)"</NMakeReBuildCommandLine>
     <NMakeOutput>$(OutDir)catboostmodel.lib</NMakeOutput>
   </PropertyGroup>
   <ItemDefinitionGroup>
