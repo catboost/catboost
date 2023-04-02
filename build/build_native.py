@@ -62,6 +62,7 @@ class Opts(object):
         'verbose': Option('Verbose output for CMake and Ninja', default=False, opt_type=bool),
         'build_root_dir': Option('CMake build dir (-B)', required=True),
         'build_type': Option('build type (Debug,Release,RelWithDebInfo,MinSizeRel)', default='Release'),
+        'rebuild': Option('Rebuild targets from scratch', default=False, opt_type=bool),
         'targets':
             Option(
                 f'List of CMake targets to build (,-separated). Note: you cannot mix targets that require PIC and non-PIC targets here',
@@ -266,6 +267,7 @@ def cross_build(opts: Opts, cmd_runner=None):
             verbose=opts.verbose,
             build_root_dir=native_built_tools_root_dir,
             build_type='Release',
+            rebuild=opts.rebuild,
             targets=Targets.tools,
             cmake_target_toolchain=opts.cmake_build_toolchain,
             msvs_version=opts.msvs_version,
@@ -477,6 +479,16 @@ def build(opts=None, cross_build_final_stage=False, **kwargs):
 
     cmd_runner.run(cmake_cmd, env=build_environ)
 
+    if opts.rebuild:
+        ninja_clean_cmd = [
+            'ninja',
+            '-C', opts.build_root_dir,
+            'clean'
+        ]
+        if opts.verbose:
+            ninja_cmd += ['-v']
+        ninja_clean_cmd += opts.targets
+        cmd_runner.run(ninja_clean_cmd, env=build_environ)
 
     ninja_cmd = [
         'ninja',
