@@ -319,23 +319,12 @@ def cross_build(opts: Opts, cmd_runner=None):
 
 
 def get_require_pic(targets):
-    # will be set to defined value below
-    first_target_with_no_pic=None
-    first_target_with_pic=None
-
     for target in targets:
         if target in Targets.catboost:
             if Targets.catboost[target].need_pic:
-                if first_target_with_no_pic is not None:
-                    raise Exception(f'mixing targets that require PIC: {target} and not: {first_target_with_no_pic}')
-                elif first_target_with_pic is None:
-                    first_target_with_pic = target
-            elif first_target_with_pic is not None:
-                raise Exception(f'mixing targets that require PIC: {first_target_with_pic} and not: {target}')
-        elif first_target_with_no_pic is None:
-            first_target_with_no_pic = target
+                return True
 
-    return first_target_with_pic is not None
+    return False
 
 def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
     if msvs_installation_path is None:
