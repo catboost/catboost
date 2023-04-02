@@ -14,7 +14,7 @@
 .. image:: https://readthedocs.org/projects/importlib-metadata/badge/?version=latest
    :target: https://importlib-metadata.readthedocs.io/en/latest/?badge=latest
 
-.. image:: https://img.shields.io/badge/skeleton-2022-informational
+.. image:: https://img.shields.io/badge/skeleton-2023-informational
    :target: https://blog.jaraco.com/skeleton
 
 .. image:: https://tidelift.com/badges/package/pypi/importlib-metadata
