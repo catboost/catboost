@@ -42,3 +42,7 @@
 #if defined(_musl_)
 #include "pyconfig-musl.h"
 #endif
+
+#if !defined(NDEBUG) && !defined(Py_DEBUG) && !defined(Py_LIMITED_API)
+#define Py_DEBUG
+#endif
