@@ -506,7 +506,8 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
         self.inplace = False
 
     def finalize_options(self):
-        self.build_generated = os.path.join('build', 'widget')
+        if self.build_generated is None:
+            self.build_generated = os.path.join('build', 'widget')
 
         if self.editable_mode:
             self.inplace = True
