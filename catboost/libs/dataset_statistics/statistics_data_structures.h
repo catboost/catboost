@@ -430,7 +430,8 @@ public:
         TargetsStatistics,
         SampleIdStatistics,
         GroupwiseStats,
-        TargetHistogram
+        TargetHistogram,
+        ClassNames
     );
 
     SAVELOAD(
@@ -438,12 +439,13 @@ public:
         TargetsStatistics,
         SampleIdStatistics,
         GroupwiseStats,
-        TargetHistogram
+        TargetHistogram,
+        ClassNames
     );
 
     bool operator==(const TDatasetStatistics& a) const {
-        return std::tie(FeatureStatistics, TargetsStatistics, SampleIdStatistics, GroupwiseStats, TargetHistogram) ==
-               std::tie(a.FeatureStatistics, a.TargetsStatistics, a.SampleIdStatistics, a.GroupwiseStats, a.TargetHistogram);
+        return std::tie(FeatureStatistics, TargetsStatistics, SampleIdStatistics, GroupwiseStats, TargetHistogram, ClassNames) ==
+               std::tie(a.FeatureStatistics, a.TargetsStatistics, a.SampleIdStatistics, a.GroupwiseStats, a.TargetHistogram, a.ClassNames);
     }
 
     TFeatureStatistics FeatureStatistics;
@@ -452,6 +454,7 @@ public:
     TMaybe<TGroupwiseStats> GroupwiseStats;
 
     TMaybe<TVector<TFloatFeatureHistogram>> TargetHistogram;
+    TVector<TString> ClassNames;
 
     void Init(const TDataMetaInfo& metaInfo,
               const TFeatureCustomBorders& customBorders,
