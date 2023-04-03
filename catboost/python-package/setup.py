@@ -240,18 +240,20 @@ class HNSWOptions(object):
 class WidgetOptions(object):
     options = [
         ('no-widget', None, emph('Disable Jupyter visualization widget support that is enabled by default')),
+        ('prebuilt-widget', None, emph('Do not rebuild already built widget in "build-generated" directory'))
     ]
 
     @staticmethod
     def initialize_options(command):
         command.no_widget = False
+        command.prebuilt_widget = False
 
     @staticmethod
     def finalize_options(command):
         pass
 
     def get_options_attribute_names():
-        return ['no_widget']
+        return ['no_widget', 'prebuilt_widget']
 
 class BuildExtOptions(object):
     options = [
@@ -313,6 +315,11 @@ class build(_build):
             self,
             "build_ext",
             HNSWOptions.get_options_attribute_names() + BuildExtOptions.get_options_attribute_names()
+        )
+        OptionsHelper.propagate(
+            self,
+            "build_widget",
+            ['prebuilt_widget']
         )
         _build.run(self)
 
@@ -494,6 +501,7 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
 
     user_options = [
         ('build-generated=', 'b', "directory for built modules"),
+        ('prebuilt-widget', None, emph('Do not rebuild already built widget in "build-generated" directory'))
     ]
 
     boolean_options = ['inplace']
@@ -504,6 +512,7 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
         self.editable_mode = False
         self.build_generated = None
         self.inplace = False
+        self.prebuilt_widget = False
 
     def finalize_options(self):
         if self.build_generated is None:
@@ -573,7 +582,8 @@ class build_widget(setuptools.Command, setuptools.command.build.SubCommand):
         verbose = self.distribution.verbose
         dry_run = self.distribution.dry_run
 
-        self._build(verbose, dry_run)
+        if not self.prebuilt_widget:
+            self._build(verbose, dry_run)
 
 class develop(_develop):
     extra_options_classes = [HNSWOptions, WidgetOptions, BuildExtOptions]
