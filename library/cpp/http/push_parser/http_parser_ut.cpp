@@ -1,6 +1,7 @@
 #include "http_parser.h"
 
 #include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/string_utils/base64/base64.h>
 
 #include <util/stream/str.h>
 #include <util/stream/zlib.h>
@@ -299,6 +300,14 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
         }
         {
+            // test br response
+            THttpParser p(THttpParser::Response);
+            TString brTestLine = Base64Decode("CwSAdGVzdCBsaW5lAw==");
+            TString msg = MakeEncodedResponse("br", brTestLine);
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
+        }
+        {
             // test gzip response with trailing garbage
             THttpParser p(THttpParser::Response);
             p.SetGzipAllowMultipleStreams(false);
@@ -318,7 +327,15 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             TString msg = MakeEncodedResponse("gzip", gzipTestLine);
             UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
         }
-
+        {
+            // test br garbage response
+            THttpParser p(THttpParser::Response);
+            TString brTestLine(
+                "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
+                "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09\x00\x00\x00"sv);
+            TString msg = MakeEncodedResponse("br", brTestLine);
+            UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
+        }
     }
 
     Y_UNIT_TEST(TParsingMultilineHeaders) {

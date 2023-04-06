@@ -2,6 +2,7 @@
 
 #include <library/cpp/blockcodecs/stream.h>
 #include <library/cpp/blockcodecs/codecs.h>
+#include <library/cpp/streams/brotli/brotli.h>
 
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
@@ -312,6 +313,9 @@ bool THttpParser::DecodeContent() {
     } else if (ContentEncoding_ == "lz4") {
         const auto* codec = NBlockCodecs::Codec(TStringBuf(ContentEncoding_));
         DecodedContent_ = codec->Decode(Content_);
+    } else if (ContentEncoding_ == "br") {
+        TBrotliDecompress decoder(&in);
+        DecodedContent_ = decoder.ReadAll();
     } else {
         throw THttpParseException() << "Unsupported content-encoding method: " << ContentEncoding_;
     }
