@@ -17,23 +17,30 @@ else:
 
 
 class Target(object):
-    def __init__(self, catboost_component, need_pic, macos_binary_path):
+    def __init__(self, catboost_component, need_pic, macos_binaries_paths):
         self.catboost_component = catboost_component
         self.need_pic = need_pic
-        self.macos_binary_path = macos_binary_path # needed for lipo
+        self.macos_binaries_paths = macos_binaries_paths # needed for lipo
 
 class Targets(object):
     catboost = {
-        'catboost': Target('app', need_pic=False, macos_binary_path='catboost/app/catboost'),
-        'catboostmodel_static': Target('libs', need_pic=False, macos_binary_path='catboost/libs/model_interface/static/libcatboostmodel_static.a'),
-        '_hnsw': Target('python-package', need_pic=True, macos_binary_path='library/python/hnsw/hnsw/lib_hnsw.dylib'),
-        '_catboost': Target('python-package', need_pic=True, macos_binary_path='catboost/python-package/catboost/lib_catboost.dylib'),
-        'catboostr': Target('R-package', need_pic=True, macos_binary_path='catboost/R-package/src/libcatboostr.dylib'),
-        'catboostmodel': Target('libs', need_pic=True, macos_binary_path='catboost/libs/model_interface/libcatboostmodel.dylib'),
-        'catboost_train_interface': Target('libs', need_pic=True, macos_binary_path='catboost/libs/train_interface/libcatboost.dylib'),
-        'catboost4j-prediction': Target('jvm-packages', need_pic=True, macos_binary_path='catboost/jvm-packages/catboost4j-prediction/src/native_impl/libcatboost4j-prediction.dylib'),
-        'catboost4j-spark-impl': Target('spark', need_pic=True, macos_binary_path='catboost/spark/catboost4j-spark/core/src/native_impl/libcatboost4j-spark-impl.dylib'),
-        'catboost4j-spark-impl-cpp': Target('spark', need_pic=True, macos_binary_path='catboost/spark/catboost4j-spark/core/src/native_impl/libcatboost4j-spark-impl.dylib'),
+        'catboost': Target('app', need_pic=False, macos_binaries_paths=['catboost/app/catboost']),
+        'catboostmodel_static':
+            Target(
+                'libs',
+                need_pic=False,
+                macos_binaries_paths=[
+                    f'catboost/libs/model_interface/static/libcatboostmodel_static{suff}.a' for suff in ['', '.global']
+                ]
+            ),
+        '_hnsw': Target('python-package', need_pic=True, macos_binaries_paths=['library/python/hnsw/hnsw/lib_hnsw.dylib']),
+        '_catboost': Target('python-package', need_pic=True, macos_binaries_paths=['catboost/python-package/catboost/lib_catboost.dylib']),
+        'catboostr': Target('R-package', need_pic=True, macos_binaries_paths=['catboost/R-package/src/libcatboostr.dylib']),
+        'catboostmodel': Target('libs', need_pic=True, macos_binaries_paths=['catboost/libs/model_interface/libcatboostmodel.dylib']),
+        'catboost_train_interface': Target('libs', need_pic=True, macos_binaries_paths=['catboost/libs/train_interface/libcatboost.dylib']),
+        'catboost4j-prediction': Target('jvm-packages', need_pic=True, macos_binaries_paths=['catboost/jvm-packages/catboost4j-prediction/src/native_impl/libcatboost4j-prediction.dylib']),
+        'catboost4j-spark-impl': Target('spark', need_pic=True, macos_binaries_paths=['catboost/spark/catboost4j-spark/core/src/native_impl/libcatboost4j-spark-impl.dylib']),
+        'catboost4j-spark-impl-cpp': Target('spark', need_pic=True, macos_binaries_paths=['catboost/spark/catboost4j-spark/core/src/native_impl/libcatboost4j-spark-impl.dylib']),
     }
     tools = [
         'archiver',
@@ -161,13 +168,13 @@ def mkdir_if_not_exists(dir, verbose, dry_run):
 
 def lipo(opts : Opts, cmd_runner: CmdRunner):
     for target in opts.targets:
-        target_binary_sub_path = Targets.catboost[target].macos_binary_path
-        dst_path = os.path.join(opts.build_root_dir, target_binary_sub_path)
-        mkdir_if_not_exists(os.path.dirname(dst_path), opts.verbose, opts.dry_run)
-        cmd = ['lipo', '-create', '-output', dst_path]
-        for platform_subdir in ['darwin-x86_64', 'darwin-arm64']:
-            cmd += [os.path.join(opts.build_root_dir, platform_subdir, target_binary_sub_path)]
-        cmd_runner.run(cmd)
+        for target_binary_sub_path in Targets.catboost[target].macos_binaries_paths:
+            dst_path = os.path.join(opts.build_root_dir, target_binary_sub_path)
+            mkdir_if_not_exists(os.path.dirname(dst_path), opts.verbose, opts.dry_run)
+            cmd = ['lipo', '-create', '-output', dst_path]
+            for platform_subdir in ['darwin-x86_64', 'darwin-arm64']:
+                cmd += [os.path.join(opts.build_root_dir, platform_subdir, target_binary_sub_path)]
+            cmd_runner.run(cmd)
 
 def build_macos_universal_binaries(opts: Opts, cmd_runner: CmdRunner):
     host_platform = get_host_platform()
