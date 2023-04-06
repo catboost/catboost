@@ -89,6 +89,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 case EPredictionType::RawFormulaVal:
                 case EPredictionType::Exponent:
                 case EPredictionType::RMSEWithUncertainty:
+                case EPredictionType::MultiProbability:
                 case EPredictionType::Probability:
                     return GetApproxDimension();
                 case EPredictionType::Class:
@@ -297,7 +298,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 TArrayRef<TCalcerIndexType> indexes
             ) const = 0;
 
-	    virtual void Quantize(
+            virtual void Quantize(
                 TConstArrayRef<TConstArrayRef<float>> features,
                 IQuantizedData* quantizedData
             ) const = 0;

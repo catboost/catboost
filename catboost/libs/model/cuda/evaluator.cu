@@ -6,6 +6,8 @@
 #include <library/cpp/cuda/wrappers/arch.cuh>
 #include <library/cpp/cuda/wrappers/kernel_helpers.cuh>
 
+#include <util/string/cast.h>
+
 #include <cuda_runtime.h>
 #include <assert.h>
 
@@ -317,7 +319,8 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
         break;
     case NCB::NModelEvaluation::EPredictionType::Exponent:
     case NCB::NModelEvaluation::EPredictionType::RMSEWithUncertainty:
-        ythrow yexception() << "Unimplemented on GPU";
+    case NCB::NModelEvaluation::EPredictionType::MultiProbability:
+        ythrow yexception() << "Unimplemented on GPU: prediction type " << ToString(predictionType);
         break;
     case NCB::NModelEvaluation::EPredictionType::Probability:
         ProcessResults<NCB::NModelEvaluation::EPredictionType::Probability, true><<<1, 256, 0, Stream>>> (

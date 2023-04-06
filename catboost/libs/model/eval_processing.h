@@ -219,6 +219,11 @@ namespace NCB::NModelEvaluation {
                         }
                         break;
                     }
+                    case EPredictionType::MultiProbability: {
+                        auto blockView = GetResultBlockView(blockId, ApproxDimension);
+                        CalcSigmoid(blockView, blockView);
+                        break;
+                    }
                     case EPredictionType::Class: {
                         auto resultView = GetResultBlockView(blockId, 1);
                         for (size_t objId = 0; objId < resultView.size(); ++objId) {
