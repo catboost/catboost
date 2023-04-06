@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Build dynamic library with JNI using user-provided arguments and place it to resources directory
 # of Maven package
