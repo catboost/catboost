@@ -8,6 +8,7 @@ import platform
 import subprocess
 import sys
 import tempfile
+from typing import Dict
 
 if sys.version_info < (3, 8):
     import pipes
@@ -127,6 +128,11 @@ class Opts(object):
                     raise RuntimeError(f'Required option {key} not specified')
                 setattr(self, key, option.default)
 
+class PythonDevPaths:
+    def __init__(self, include_path:str, library_path:str):
+        self.include_path = include_path
+        self.library_path = library_path
+
 
 def get_host_platform():
     arch = platform.machine()
@@ -176,7 +182,12 @@ def lipo(opts : Opts, cmd_runner: CmdRunner):
                 cmd += [os.path.join(opts.build_root_dir, platform_subdir, target_binary_sub_path)]
             cmd_runner.run(cmd)
 
-def build_macos_universal_binaries(opts: Opts, cmd_runner: CmdRunner):
+def build_macos_universal_binaries(
+    opts: Opts,
+    cmake_platform_to_root_path:Dict[str,str],
+    cmake_platform_to_python_dev_paths:Dict[str,PythonDevPaths],
+    cmd_runner: CmdRunner):
+
     host_platform = get_host_platform()
     if host_platform == 'darwin-x86_64':
         cross_build_platform = 'darwin-arm64'
@@ -194,6 +205,15 @@ def build_macos_universal_binaries(opts: Opts, cmd_runner: CmdRunner):
     host_build_opts.macos_universal_binaries = False
     host_build_opts.target_platform = host_platform
     host_build_opts.build_root_dir = host_build_root_dir
+    host_build_opts.cmake_extra_args = copy.copy(host_build_opts.cmake_extra_args)
+    if cmake_platform_to_root_path is not None:
+        host_build_opts.cmake_extra_args += [f'-DCMAKE_FIND_ROOT_PATH={cmake_platform_to_root_path[host_platform]}']
+    if cmake_platform_to_python_dev_paths is not None:
+        host_build_opts.cmake_extra_args += [
+            f'-DPython3_INCLUDE_DIR={cmake_platform_to_python_dev_paths[host_platform].include_path}',
+            f'-DPython3_LIBRARY={cmake_platform_to_python_dev_paths[host_platform].library_path}'
+        ]
+
     build(host_build_opts)
 
     cross_build_root_dir = os.path.join(opts.build_root_dir, cross_build_platform)
@@ -203,8 +223,17 @@ def build_macos_universal_binaries(opts: Opts, cmd_runner: CmdRunner):
     cross_build_opts.macos_universal_binaries = False
     cross_build_opts.target_platform = cross_build_platform
     cross_build_opts.build_root_dir = cross_build_root_dir
+    cross_build_opts.cmake_extra_args = copy.copy(cross_build_opts.cmake_extra_args)
+    if cmake_platform_to_root_path is not None:
+        cross_build_opts.cmake_extra_args += [f'-DCMAKE_FIND_ROOT_PATH={cmake_platform_to_root_path[cross_build_platform]}']
+    if cmake_platform_to_python_dev_paths is not None:
+        cross_build_opts.cmake_extra_args += [
+            f'-DPython3_INCLUDE_DIR={cmake_platform_to_python_dev_paths[cross_build_platform].include_path}',
+            f'-DPython3_LIBRARY={cmake_platform_to_python_dev_paths[cross_build_platform].library_path}'
+        ]
     if cross_build_opts.native_built_tools_root_dir is None:
         cross_build_opts.native_built_tools_root_dir = os.path.abspath(host_build_opts.build_root_dir)
+
     cross_build(cross_build_opts, cmd_runner)
 
     lipo(opts, cmd_runner)
@@ -390,7 +419,19 @@ def get_default_build_platform_toolchain(source_root_dir):
         return os.path.abspath(os.path.join(source_root_dir, 'build', 'toolchains', 'clang.toolchain'))
 
 
-def build(opts=None, cross_build_final_stage=False, **kwargs):
+def build(
+    opts=None,
+    cross_build_final_stage=False,
+    cmake_platform_to_root_path:Dict[str,str]=None,
+    cmake_platform_to_python_dev_paths:Dict[str,PythonDevPaths]=None,
+    **kwargs):
+    """
+        cmake_platform_to_root_path is dict: platform_name -> cmake_find_root_path
+        cmake_platform_to_python_dev_paths is dict: platform_name -> PythonDevPaths
+        used only for macOS universal builds because in other cases it is sufficient
+        to add Python3_INCLUDE_DIR, Python3_LIBRARY, CMAKE_FIND_ROOT_PATH to cmake_extra_args
+    """
+
     if opts is None:
         opts = Opts(**kwargs)
 
@@ -402,7 +443,7 @@ def build(opts=None, cross_build_final_stage=False, **kwargs):
     if opts.macos_universal_binaries:
         if opts.target_platform is not None:
             raise RuntimeError('macos_universal_binaries and target_platform options are incompatible')
-        build_macos_universal_binaries(opts, cmd_runner)
+        build_macos_universal_binaries(opts, cmake_platform_to_root_path, cmake_platform_to_python_dev_paths, cmd_runner)
         return
     elif opts.target_platform is not None:
         if (opts.target_platform != get_host_platform()) and not cross_build_final_stage:
