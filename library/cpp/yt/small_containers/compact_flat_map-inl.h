@@ -16,6 +16,11 @@ TCompactFlatMap<K, V, N>::TCompactFlatMap(TInputIterator begin, TInputIterator e
 }
 
 template <class K, class V, size_t N>
+TCompactFlatMap<K, V, N>::TCompactFlatMap(std::initializer_list<value_type> values)
+    : TCompactFlatMap<K, V, N>(values.begin(), values.end())
+{ }
+
+template <class K, class V, size_t N>
 bool TCompactFlatMap<K, V, N>::operator==(const TCompactFlatMap& rhs) const
 {
     return Storage_ == rhs.Storage_;

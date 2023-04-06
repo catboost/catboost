@@ -57,6 +57,8 @@ public:
     template <class TInputIterator>
     TCompactFlatMap(TInputIterator begin, TInputIterator end);
 
+    TCompactFlatMap(std::initializer_list<value_type> values);
+
     bool operator==(const TCompactFlatMap& rhs) const;
     bool operator!=(const TCompactFlatMap& rhs) const;
 
