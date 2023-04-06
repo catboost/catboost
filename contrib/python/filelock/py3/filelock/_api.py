@@ -179,11 +179,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
                 with self._thread_lock:
                     if not self.is_locked:
                         _LOGGER.debug("Attempting to acquire lock %s on %s", lock_id, lock_filename)
-                        previous_umask = os.umask(0)
-                        try:
-                            self._acquire()
-                        finally:
-                            os.umask(previous_umask)  # reset umask to initial value
+                        self._acquire()
                 if self.is_locked:
                     _LOGGER.debug("Lock %s acquired on %s", lock_id, lock_filename)
                     break
