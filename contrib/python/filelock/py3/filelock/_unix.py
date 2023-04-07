@@ -33,7 +33,10 @@ else:  # pragma: win32 no cover
         def _acquire(self) -> None:
             open_flags = os.O_RDWR | os.O_CREAT | os.O_TRUNC
             fd = os.open(self._lock_file, open_flags)
-            os.chmod(fd, self._mode)
+            try:
+                os.chmod(fd, self._mode)
+            except PermissionError:
+                pass  # This locked is not owned by this UID
             try:
                 fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
             except OSError:
