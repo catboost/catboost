@@ -1,4 +1,5 @@
 import os
+import sys
 
 import process_command_files as pcf
 
@@ -47,7 +48,7 @@ class ProcessWholeArchiveOption():
             elif arg == self.end_wa_marker:
                 is_inside_wa_markers = False
             elif is_inside_wa_markers:
-                cmd.append(arg)
+                cmd.append(force_load_flag + arg)
             else:
                 key = self._process_arg(arg)
                 cmd.append(force_load_flag + arg if key else arg)
@@ -135,13 +136,6 @@ class ProcessWholeArchiveOption():
 
         if is_whole_archive:
             cmd.append(no_whole_archive_flag)
-
-        # There are can be an empty sequence of archive files, that are between
-        # -Wl, --no-whole-archive and -Wl, --whole-archive flags.
-        # As a result an unknown option error may occur, therefore to prevent this case
-        # we need just to remove both flags from cmd.
-        if len(cmd) == 2:
-            return []
 
         self._check_peers()
 
