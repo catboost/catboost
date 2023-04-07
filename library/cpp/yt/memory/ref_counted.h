@@ -156,6 +156,22 @@ using TRefCountedPtr = TIntrusivePtr<TRefCounted>;
         ::NYT::TRefCountedHelper<type>::Deallocate(obj); \
     }
 
+//! Provides weak implementations for Ref/Unref overloads.
+//! Do not use if unsure.
+#define DEFINE_WEAK_REFCOUNTED_TYPE(type) \
+    [[maybe_unused]] Y_WEAK YT_ATTRIBUTE_USED const ::NYT::TRefCounter* GetRefCounter(const type*) \
+    { \
+        YT_ABORT(); \
+    } \
+    [[maybe_unused]] Y_WEAK YT_ATTRIBUTE_USED void DestroyRefCounted(const type*) \
+    { \
+        YT_ABORT(); \
+    } \
+    [[maybe_unused]] Y_WEAK YT_ATTRIBUTE_USED void DeallocateRefCounted(const type*) \
+    { \
+        YT_ABORT(); \
+    }
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
