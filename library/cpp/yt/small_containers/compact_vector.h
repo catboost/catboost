@@ -164,17 +164,28 @@ private:
         uint8_t SizePlusOne;
     } alias_hack;
 
+    // TODO(aleexfi): Use [[no_unique_address]] when clang will support it on windows.
+    template <class = void>
     struct TOnHeapMeta
     {
         char Padding[ByteSize - sizeof(uintptr_t)];
         TOnHeapStorage* Storage;
     } alias_hack;
 
+    template <class _>
+        requires (ByteSize == sizeof(uintptr_t))
+    struct TOnHeapMeta<_>
+    {
+        TOnHeapStorage* Storage;
+    } alias_hack;
+
+    static_assert(sizeof(TOnHeapMeta<>) == ByteSize);
+
     union
     {
         T InlineElements_[N];
         TInlineMeta InlineMeta_;
-        TOnHeapMeta OnHeapMeta_;
+        TOnHeapMeta<> OnHeapMeta_;
     };
 
     bool IsInline() const;

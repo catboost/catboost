@@ -1080,6 +1080,17 @@ TEST(CompactVectorTest, AssignToLonger) {
   EXPECT_EQ("foo", lhs[0]);
 }
 
+TEST(CompactVectorTest, ZeroPaddingOnHeapMeta) {
+  TCompactVector<uint8_t, 6> vector;
+  std::vector<uint8_t> expected;
+  for (int i = 0; i < 10; ++i) {
+    vector.push_back(i);
+    expected.push_back(i);
+
+    ASSERT_THAT(vector, ::testing::ElementsAreArray(expected));
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
