@@ -32,7 +32,7 @@ else:  # pragma: win32 no cover
 
         def _acquire(self) -> None:
             open_flags = os.O_RDWR | os.O_CREAT | os.O_TRUNC
-            fd = os.open(self._lock_file, open_flags)
+            fd = os.open(self._lock_file, open_flags, self._mode)
             try:
                 os.chmod(fd, self._mode)
             except PermissionError:
