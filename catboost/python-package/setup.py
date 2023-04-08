@@ -741,7 +741,7 @@ if __name__ == '__main__':
         },
         extras_require={
             # TODO: fix for ipywidgets >= 8.0 (https://github.com/catboost/catboost/issues/2266)
-            'widget': ['ipywidgets (>=7.0, <8.0)']
+            'widget': ['traitlets', 'ipython', 'ipywidgets (>=7.0, <8.0)']
         },
         author='CatBoost Developers',
         description='CatBoost Python Package',
