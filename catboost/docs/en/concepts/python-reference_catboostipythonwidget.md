@@ -84,7 +84,9 @@ Method: [start](python-reference_catboostipythonwidget_update_widget.md)
 > # Gather and read data from all subdirectories
 >
 > 1. Train two models from the root of the file system (`/`):
->     1. ```python
+> 
+>     1.
+>     ```python
 >     from catboost import CatBoostClassifier
 >     
 >     cat_features = [0,1,2]
@@ -103,7 +105,8 @@ Method: [start](python-reference_catboostipythonwidget_update_widget.md)
 >     predictions = model.predict(train_data)
 >     ```
 >     
->     1. ```python
+>     2.
+>     ```python
 >     from catboost import CatBoostClassifier
 >     
 >     cat_features = [0,1,2]
