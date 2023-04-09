@@ -22,8 +22,8 @@ from pytz.tzfile import build_tzinfo
 
 
 # The IANA (nee Olson) database is updated several times a year.
-OLSON_VERSION = '2022g'
-VERSION = '2022.7.1'  # pip compatible version number.
+OLSON_VERSION = '2023b'
+VERSION = '2023.2'  # pip compatible version number.
 __version__ = VERSION
 
 OLSEN_VERSION = OLSON_VERSION  # Old releases had this misspelling
@@ -1311,7 +1311,6 @@ common_timezones = \
  'America/Whitehorse',
  'America/Winnipeg',
  'America/Yakutat',
- 'America/Yellowknife',
  'Antarctica/Casey',
  'Antarctica/Davis',
  'Antarctica/DumontDUrville',
