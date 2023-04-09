@@ -3,11 +3,42 @@ package ai.catboost.spark.impl
 import collection.JavaConverters._
 import collection.mutable
 
-import java.nio.file.Paths
+import java.io.{File,FileOutputStream, IOException}
+import java.nio.file.{Files,Paths}
+import java.util.jar.{JarOutputStream,Manifest}
 
 
 private[spark] object RunClassInNewProcess {
-  private def getClassPathString() : String = {
+  // Pathing Jar code is slightly modified version of code from Gradle's JavaExecHandleBuilder.java
+  // Licensed under the Apache License, Version 2.0 (the "License"): http://www.apache.org/licenses/LICENSE-2.0
+
+  @throws[IOException]
+  private def writePathingJarFile(classPath: Seq[String]) : File = {
+    val pathingJarFile = Files.createTempFile("classpath", ".tmp").toFile
+    pathingJarFile.deleteOnExit
+    val fileOutputStream = new FileOutputStream(pathingJarFile)
+    try {
+      val jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classPath))
+      try {
+        jarOutputStream.putNextEntry(new java.util.zip.ZipEntry("META-INF/"))
+      } finally {
+        jarOutputStream.close()
+      }
+    } finally {
+      fileOutputStream.close()
+    }
+    pathingJarFile
+  }
+
+  private def toManifest(classPath: Seq[String]): Manifest = {
+    val manifest = new Manifest()
+    val attributes = manifest.getMainAttributes()
+    attributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
+    attributes.putValue("Class-Path", classPath.mkString(" "))
+    manifest
+  }
+
+  private def getClassPath() : Seq[String] = {
     val classPathURIs = (new io.github.classgraph.ClassGraph()).getClasspathURIs().asScala
     classPathURIs.flatMap(
         uri => {
@@ -16,7 +47,7 @@ private[spark] object RunClassInNewProcess {
             case _ => Seq()
           }
         }
-    ).mkString(System.getProperty("path.separator"))
+    )
   }
   
   // Strips trailing $ from Scala's object class name to get companion class with static "main" method.
@@ -35,14 +66,15 @@ private[spark] object RunClassInNewProcess {
     redirectError: Option[ProcessBuilder.Redirect] = None
   ) : java.lang.Process = {
     val javaBin = Paths.get(System.getProperty("java.home"), "bin", "java").toString
-    val classpath = getClassPathString()
-    
+    val classPath = getClassPath()
+    val classpathJarFile = writePathingJarFile(classPath)
+
     val cmd = new mutable.ArrayBuffer[String]
     cmd += javaBin
     if (jvmArgs.isDefined) {
       cmd ++= jvmArgs.get
     }
-    cmd ++= Seq("-cp", classpath, getAppMainClassName(clazz.getName()))
+    cmd ++= Seq("-cp", classpathJarFile.getAbsolutePath(), getAppMainClassName(clazz.getName()))
     if (args.isDefined) {
       cmd ++= args.get
     }
