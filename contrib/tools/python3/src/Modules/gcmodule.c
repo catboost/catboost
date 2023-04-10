@@ -41,7 +41,9 @@ module gc
 
 
 #ifdef Py_DEBUG
-#  define GC_DEBUG
+#  ifndef GC_NDEBUG
+#    define GC_DEBUG
+#  endif
 #endif
 
 #define GC_NEXT _PyGCHead_NEXT

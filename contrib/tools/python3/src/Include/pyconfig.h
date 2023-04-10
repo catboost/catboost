@@ -45,4 +45,5 @@
 
 #if !defined(NDEBUG) && !defined(Py_DEBUG) && !defined(Py_LIMITED_API)
 #define Py_DEBUG
+#define GC_NDEBUG
 #endif
