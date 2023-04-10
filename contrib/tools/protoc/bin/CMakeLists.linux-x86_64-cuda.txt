@@ -15,8 +15,6 @@ target_link_libraries(protoc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   contrib-libs-protoc
 )
@@ -32,5 +30,9 @@ target_link_options(protoc PRIVATE
 )
 target_sources(protoc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/main.cc
+)
+target_allocator(protoc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(protoc)

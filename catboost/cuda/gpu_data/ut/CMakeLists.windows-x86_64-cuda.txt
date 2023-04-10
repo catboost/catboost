@@ -11,7 +11,6 @@ add_executable(catboost-cuda-gpu_data-ut)
 target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-cuda-gpu_data
@@ -57,5 +56,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-cuda-gpu_data-ut
+  system_allocator
 )
 vcs_info(catboost-cuda-gpu_data-ut)

@@ -11,10 +11,12 @@ add_executable(methods)
 target_link_libraries(methods PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   library-cpp-cpuid_check
 )
 target_sources(methods PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/mpi_ut/empty_main.cpp
+)
+target_allocator(methods
+  system_allocator
 )
 vcs_info(methods)

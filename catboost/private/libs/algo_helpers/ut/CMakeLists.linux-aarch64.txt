@@ -15,7 +15,6 @@ target_link_libraries(catboost-private-libs-algo_helpers-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-jemalloc
   cpp-testing-unittest_main
   private-libs-algo_helpers
 )
@@ -65,5 +64,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-algo_helpers-ut
+  cpp-malloc-jemalloc
 )
 vcs_info(catboost-private-libs-algo_helpers-ut)

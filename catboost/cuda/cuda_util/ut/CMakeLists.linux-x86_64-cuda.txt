@@ -12,8 +12,6 @@ target_link_libraries(catboost-cuda-cuda_util-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-cuda-cuda_util
@@ -76,5 +74,9 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-cuda-cuda_util-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(catboost-cuda-cuda_util-ut)

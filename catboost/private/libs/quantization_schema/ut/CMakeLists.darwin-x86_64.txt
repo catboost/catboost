@@ -14,7 +14,6 @@ target_include_directories(catboost-private-libs-quantization_schema-ut PRIVATE
 target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   private-libs-quantization_schema
@@ -60,5 +59,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-quantization_schema-ut
+  system_allocator
 )
 vcs_info(catboost-private-libs-quantization_schema-ut)

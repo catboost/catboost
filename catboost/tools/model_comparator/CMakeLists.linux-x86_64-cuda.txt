@@ -16,8 +16,6 @@ target_link_libraries(model_comparator PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   catboost-libs-model
   libs-model-model_export
@@ -42,5 +40,9 @@ target_sources(model_comparator PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/main.cpp
   ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/onnx.cpp
   ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/pmml.cpp
+)
+target_allocator(model_comparator
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(model_comparator)

@@ -15,7 +15,6 @@ target_include_directories(catboost-libs-data-ut PRIVATE
 target_link_libraries(catboost-libs-data-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-libs-data
@@ -84,5 +83,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-libs-data-ut
+  system_allocator
 )
 vcs_info(catboost-libs-data-ut)

@@ -17,8 +17,6 @@ target_link_libraries(catboost_train_interface PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  contrib-libs-tcmalloc
   private-libs-algo
   catboost-libs-column_description
   catboost-libs-data
@@ -55,6 +53,10 @@ target_link_options(catboost_train_interface PRIVATE
 )
 target_sources(catboost_train_interface PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp
+)
+target_allocator(catboost_train_interface
+  cpp-malloc-tcmalloc
+  contrib-libs-tcmalloc
 )
 use_export_script(catboost_train_interface
   ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost.exports

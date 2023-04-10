@@ -11,7 +11,6 @@ add_executable(limited_precision_dsv_diff)
 target_link_libraries(limited_precision_dsv_diff PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   cpp-deprecated-split
   cpp-getopt-small
 )
@@ -22,5 +21,8 @@ target_link_options(limited_precision_dsv_diff PRIVATE
 )
 target_sources(limited_precision_dsv_diff PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff.cpp
+)
+target_allocator(limited_precision_dsv_diff
+  system_allocator
 )
 vcs_info(limited_precision_dsv_diff)

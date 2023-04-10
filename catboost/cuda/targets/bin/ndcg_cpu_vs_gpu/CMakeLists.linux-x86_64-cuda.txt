@@ -12,8 +12,6 @@ target_link_libraries(ndcg_cpu_vs_gpu PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   catboost-cuda-cuda_lib
   catboost-cuda-targets
@@ -38,5 +36,9 @@ target_link_options(ndcg_cpu_vs_gpu PRIVATE
 )
 target_sources(ndcg_cpu_vs_gpu PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/bin/ndcg_cpu_vs_gpu/main.cpp
+)
+target_allocator(ndcg_cpu_vs_gpu
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(ndcg_cpu_vs_gpu)

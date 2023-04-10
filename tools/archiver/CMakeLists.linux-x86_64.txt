@@ -12,8 +12,6 @@ target_link_libraries(archiver PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   library-cpp-archive
   cpp-digest-md5
@@ -31,5 +29,9 @@ target_link_options(archiver PRIVATE
 )
 target_sources(archiver PRIVATE
   ${CMAKE_SOURCE_DIR}/tools/archiver/main.cpp
+)
+target_allocator(archiver
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(archiver)

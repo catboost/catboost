@@ -14,7 +14,6 @@ target_include_directories(catboost-private-libs-functools-ut PRIVATE
 target_link_libraries(catboost-private-libs-functools-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   private-libs-functools
@@ -54,5 +53,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-functools-ut
+  system_allocator
 )
 vcs_info(catboost-private-libs-functools-ut)

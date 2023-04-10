@@ -12,8 +12,6 @@ target_link_libraries(cuda_util PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  contrib-libs-tcmalloc
   library-cpp-cpuid_check
   cpp-testing-unittest
   catboost-cuda-cuda_lib
@@ -43,5 +41,9 @@ target_sources(cuda_util PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_segmented_sort.cpp
   ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_sort.cpp
   ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_transform.cpp
+)
+target_allocator(cuda_util
+  cpp-malloc-tcmalloc
+  contrib-libs-tcmalloc
 )
 vcs_info(cuda_util)

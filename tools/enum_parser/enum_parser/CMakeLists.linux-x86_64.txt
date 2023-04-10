@@ -12,8 +12,6 @@ target_link_libraries(enum_parser PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   cpp-getopt-small
   tools-enum_parser-parse_enum
@@ -30,5 +28,9 @@ target_link_options(enum_parser PRIVATE
 )
 target_sources(enum_parser PRIVATE
   ${CMAKE_SOURCE_DIR}/tools/enum_parser/enum_parser/main.cpp
+)
+target_allocator(enum_parser
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(enum_parser)

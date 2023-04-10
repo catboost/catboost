@@ -15,7 +15,6 @@ target_link_libraries(protoc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-jemalloc
   contrib-libs-protoc
 )
 target_link_options(protoc PRIVATE
@@ -30,5 +29,8 @@ target_link_options(protoc PRIVATE
 )
 target_sources(protoc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/main.cc
+)
+target_allocator(protoc
+  cpp-malloc-jemalloc
 )
 vcs_info(protoc)

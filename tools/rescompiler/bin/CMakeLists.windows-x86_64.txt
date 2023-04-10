@@ -11,11 +11,13 @@ add_executable(rescompiler)
 target_link_libraries(rescompiler PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   library-cpp-cpuid_check
   library-cpp-resource
 )
 target_sources(rescompiler PRIVATE
   ${CMAKE_SOURCE_DIR}/tools/rescompiler/main.cpp
+)
+target_allocator(rescompiler
+  system_allocator
 )
 vcs_info(rescompiler)

@@ -12,8 +12,6 @@ target_link_libraries(catboost-private-libs-feature_estimator-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   private-libs-feature_estimator
@@ -65,5 +63,9 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-feature_estimator-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(catboost-private-libs-feature_estimator-ut)

@@ -15,7 +15,6 @@ target_link_libraries(catboost-libs-helpers-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-jemalloc
   cpp-testing-unittest_main
   catboost-libs-helpers
   cpp-binsaver-ut_util
@@ -85,5 +84,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-libs-helpers-ut
+  cpp-malloc-jemalloc
 )
 vcs_info(catboost-libs-helpers-ut)

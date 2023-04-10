@@ -21,7 +21,6 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-mimalloc
   library-cpp-dbg_output
   library-cpp-grid_creator
   library-cpp-json
@@ -86,5 +85,8 @@ add_jar(
   catboost4j-spark-impl
   SOURCES
   @${CMAKE_CURRENT_BINARY_DIR}/swig_gen_java.lst
+)
+target_allocator(catboost4j-spark-impl-cpp
+  cpp-malloc-mimalloc
 )
 vcs_info(catboost4j-spark-impl-cpp)

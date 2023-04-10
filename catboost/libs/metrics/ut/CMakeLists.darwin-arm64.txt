@@ -11,7 +11,6 @@ add_executable(catboost-libs-metrics-ut)
 target_link_libraries(catboost-libs-metrics-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   cpp-testing-unittest_main
   catboost-libs-metrics
   catboost-libs-helpers
@@ -81,5 +80,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-libs-metrics-ut
+  system_allocator
 )
 vcs_info(catboost-libs-metrics-ut)

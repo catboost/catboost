@@ -11,7 +11,6 @@ add_executable(catboost-libs-helpers-parallel_sort-ut)
 target_link_libraries(catboost-libs-helpers-parallel_sort-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   cpp-testing-unittest_main
   libs-helpers-parallel_sort
   cpp-testing-unittest
@@ -56,5 +55,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-libs-helpers-parallel_sort-ut
+  system_allocator
 )
 vcs_info(catboost-libs-helpers-parallel_sort-ut)

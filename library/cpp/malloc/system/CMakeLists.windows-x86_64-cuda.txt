@@ -7,11 +7,11 @@
 
 
 
-add_library(cpp-malloc-system)
-target_link_libraries(cpp-malloc-system PUBLIC
+add_library(system_allocator)
+target_link_libraries(system_allocator PUBLIC
   contrib-libs-cxxsupp
   cpp-malloc-api
 )
-target_sources(cpp-malloc-system PRIVATE
+target_sources(system_allocator PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/malloc/system/malloc-info.cpp
 )

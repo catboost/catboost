@@ -12,8 +12,6 @@ target_link_libraries(catboost-libs-dataset_statistics-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-libs-dataset_statistics
@@ -64,5 +62,9 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-libs-dataset_statistics-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(catboost-libs-dataset_statistics-ut)

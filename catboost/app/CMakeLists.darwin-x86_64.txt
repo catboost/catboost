@@ -19,7 +19,6 @@ add_executable(catboost)
 target_link_libraries(catboost PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-mimalloc
   library-cpp-cpuid_check
   catboost-libs-data
   catboost-libs-dataset_statistics
@@ -73,6 +72,9 @@ generate_enum_serilization(catboost
   ${CMAKE_SOURCE_DIR}/catboost/app/model_metainfo_helpers.h
   INCLUDE_HEADERS
   catboost/app/model_metainfo_helpers.h
+)
+target_allocator(catboost
+  cpp-malloc-mimalloc
 )
 vcs_info(catboost)
 

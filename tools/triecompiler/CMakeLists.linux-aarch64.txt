@@ -13,7 +13,6 @@ target_link_libraries(triecompiler PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-jemalloc
   tools-triecompiler-lib
 )
 target_link_options(triecompiler PRIVATE
@@ -28,5 +27,8 @@ target_link_options(triecompiler PRIVATE
 )
 target_sources(triecompiler PRIVATE
   ${CMAKE_SOURCE_DIR}/tools/triecompiler/main.cpp
+)
+target_allocator(triecompiler
+  cpp-malloc-jemalloc
 )
 vcs_info(triecompiler)

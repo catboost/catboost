@@ -13,8 +13,6 @@ target_link_libraries(triecompiler PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   tools-triecompiler-lib
 )
@@ -30,5 +28,9 @@ target_link_options(triecompiler PRIVATE
 )
 target_sources(triecompiler PRIVATE
   ${CMAKE_SOURCE_DIR}/tools/triecompiler/main.cpp
+)
+target_allocator(triecompiler
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(triecompiler)

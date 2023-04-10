@@ -11,7 +11,6 @@ add_executable(archiver)
 target_link_libraries(archiver PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   library-cpp-cpuid_check
   library-cpp-archive
   cpp-digest-md5
@@ -19,5 +18,8 @@ target_link_libraries(archiver PUBLIC
 )
 target_sources(archiver PRIVATE
   ${CMAKE_SOURCE_DIR}/tools/archiver/main.cpp
+)
+target_allocator(archiver
+  system_allocator
 )
 vcs_info(archiver)

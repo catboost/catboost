@@ -15,7 +15,6 @@ target_compile_options(model_comparator PRIVATE
 target_link_libraries(model_comparator PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-system
   catboost-libs-model
   libs-model-model_export
   contrib-libs-onnx
@@ -34,5 +33,8 @@ target_sources(model_comparator PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/main.cpp
   ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/onnx.cpp
   ${CMAKE_SOURCE_DIR}/catboost/tools/model_comparator/pmml.cpp
+)
+target_allocator(model_comparator
+  system_allocator
 )
 vcs_info(model_comparator)

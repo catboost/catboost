@@ -12,7 +12,6 @@ target_link_libraries(catboost-private-libs-data_util-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-jemalloc
   cpp-testing-unittest_main
   private-libs-data_util
 )
@@ -62,5 +61,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-data_util-ut
+  cpp-malloc-jemalloc
 )
 vcs_info(catboost-private-libs-data_util-ut)

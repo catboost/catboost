@@ -14,8 +14,6 @@ target_include_directories(flatc PRIVATE
 target_link_libraries(flatc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   libs-flatbuffers-flatc
 )
 target_link_options(flatc PRIVATE
@@ -28,5 +26,9 @@ target_link_options(flatc PRIVATE
 )
 target_sources(flatc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/flatc_main.cpp
+)
+target_allocator(flatc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(flatc)

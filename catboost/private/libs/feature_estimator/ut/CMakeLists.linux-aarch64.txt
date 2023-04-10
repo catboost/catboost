@@ -12,7 +12,6 @@ target_link_libraries(catboost-private-libs-feature_estimator-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-jemalloc
   cpp-testing-unittest_main
   private-libs-feature_estimator
   private-libs-text_features
@@ -63,5 +62,8 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+target_allocator(catboost-private-libs-feature_estimator-ut
+  cpp-malloc-jemalloc
 )
 vcs_info(catboost-private-libs-feature_estimator-ut)

@@ -22,7 +22,6 @@ target_link_libraries(_catboost_no_cuda PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-mimalloc
   Python3::Module
   libs-gpu_config-force_no_cuda
   catboost-libs-cat_feature
@@ -74,6 +73,9 @@ target_sources(_catboost_no_cuda PRIVATE
 )
 set_python_type_for_cython(_catboost_no_cuda
   PY3
+)
+target_allocator(_catboost_no_cuda
+  cpp-malloc-mimalloc
 )
 target_cython_include_directories(_catboost_no_cuda
   ${CMAKE_BINARY_DIR}

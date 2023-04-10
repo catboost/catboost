@@ -12,8 +12,6 @@ target_link_libraries(rescompiler PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   library-cpp-resource
 )
@@ -29,5 +27,9 @@ target_link_options(rescompiler PRIVATE
 )
 target_sources(rescompiler PRIVATE
   ${CMAKE_SOURCE_DIR}/tools/rescompiler/main.cpp
+)
+target_allocator(rescompiler
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
 )
 vcs_info(rescompiler)
