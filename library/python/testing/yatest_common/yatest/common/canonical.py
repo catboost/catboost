@@ -54,7 +54,7 @@ def canonical_file(
 
 
 @runtime.default_arg0
-def canonical_dir(path, diff_tool=None, diff_file_name=None, diff_tool_timeout=None):
+def canonical_dir(path, diff_tool=None, local=False, diff_file_name=None, diff_tool_timeout=None):
     abs_path = os.path.abspath(path)
     assert os.path.exists(abs_path), "Canonical path {} does not exist".format(path)
     assert os.path.isdir(abs_path), "Path {} is not a directory".format(path)
@@ -64,7 +64,7 @@ def canonical_dir(path, diff_tool=None, diff_file_name=None, diff_tool_timeout=N
     safe_path = os.path.join(tempdir, os.path.basename(abs_path))
     shutil.copytree(abs_path, safe_path)
     return runtime._get_ya_plugin_instance().file(
-        safe_path, diff_tool=diff_tool, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout
+        safe_path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout
     )
 
 
