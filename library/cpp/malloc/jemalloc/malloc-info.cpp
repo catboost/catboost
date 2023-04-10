@@ -85,6 +85,8 @@ namespace {
                 static_assert(sizeof(size_t) == sizeof(void*), "fix me");
 
                 return (const char*)(void*)allocated;
+            } else if (strcmp(param, "j:stats_print_func") == 0) {
+                return (const char*)&malloc_stats_print;
             }
 
             return nullptr;
