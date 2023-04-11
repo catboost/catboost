@@ -34,11 +34,13 @@ public:
     void Store(TIntrusivePtr<T> other);
 
     void Reset();
-    bool CompareAndSwap(void*& comparePtr, T* target);
-    bool CompareAndSwap(void*& comparePtr, TIntrusivePtr<T> target);
+
+    using TRawPtr = std::conditional_t<std::is_const_v<T>, const void*, void*>;
+    bool CompareAndSwap(TRawPtr& comparePtr, T* target);
+    bool CompareAndSwap(TRawPtr& comparePtr, TIntrusivePtr<T> target);
 
     // Result is suitable only for comparison. Not dereference.
-    void* Get() const;
+    TRawPtr Get() const;
 
     explicit operator bool() const;
 

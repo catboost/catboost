@@ -115,7 +115,7 @@ void TAtomicIntrusivePtr<T>::Reset()
 }
 
 template <class T>
-bool TAtomicIntrusivePtr<T>::CompareAndSwap(void*& comparePtr, T* target)
+bool TAtomicIntrusivePtr<T>::CompareAndSwap(TRawPtr& comparePtr, T* target)
 {
     auto* targetPtr = AcquireObject(target, false);
 
@@ -132,7 +132,7 @@ bool TAtomicIntrusivePtr<T>::CompareAndSwap(void*& comparePtr, T* target)
 }
 
 template <class T>
-bool TAtomicIntrusivePtr<T>::CompareAndSwap(void*& comparePtr, TIntrusivePtr<T> target)
+bool TAtomicIntrusivePtr<T>::CompareAndSwap(TRawPtr& comparePtr, TIntrusivePtr<T> target)
 {
     // TODO(lukyan): Make helper for packed owning ptr?
     auto targetPtr = AcquireObject(target.Release(), true);
@@ -150,7 +150,7 @@ bool TAtomicIntrusivePtr<T>::CompareAndSwap(void*& comparePtr, TIntrusivePtr<T> 
 }
 
 template <class T>
-void* TAtomicIntrusivePtr<T>::Get() const
+typename TAtomicIntrusivePtr<T>::TRawPtr TAtomicIntrusivePtr<T>::Get() const
 {
     return TTaggedPtr<void>::Unpack(Ptr_.load()).Ptr;
 }
