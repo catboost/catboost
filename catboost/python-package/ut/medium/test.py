@@ -810,7 +810,7 @@ def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_
 
     for cat_features_dtype in ['object', 'category']:
         columns_for_new_df = OrderedDict()
-        for column_name, column_data in df.iteritems():
+        for column_name, column_data in df.items():
             if column_name in cat_features:
                 column_data = column_data.astype(cat_features_dtype)
             columns_for_new_df.setdefault(column_name, column_data)
@@ -8496,7 +8496,7 @@ def convert_cat_columns_to_hashed(src_features_dataframe):
         return hashed_column
 
     new_columns_data = OrderedDict()
-    for column_name, column_data in src_features_dataframe.iteritems():
+    for column_name, column_data in src_features_dataframe.items():
         if column_data.dtype.name == 'category':
             new_columns_data[column_name] = create_hashed_categorical_column(column_data)
         else:
@@ -8612,7 +8612,7 @@ def test_fit_on_scipy_sparse_spmatrix(features_dtype, features_density):
 # NaNs in categorical values are not supported by CatBoost
 def make_catboost_compatible_categorical_missing_values(src_features_dataframe):
     new_columns_data = OrderedDict()
-    for column_name, column_data in src_features_dataframe.iteritems():
+    for column_name, column_data in src_features_dataframe.items():
         if column_data.dtype.name == 'category':
             column_data = column_data.cat.rename_categories([str(x) for x in column_data.cat.categories])
             column_data = column_data.cat.add_categories('').fillna('')
@@ -8624,7 +8624,7 @@ def make_catboost_compatible_categorical_missing_values(src_features_dataframe):
 
 def convert_to_sparse(src_features_dataframe, indexing_kind):
     new_columns_data = OrderedDict()
-    for column_name, column_data in src_features_dataframe.iteritems():
+    for column_name, column_data in src_features_dataframe.items():
         if column_data.dtype.name == 'category':
             fill_value = ''
         else:
