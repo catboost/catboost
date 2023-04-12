@@ -1,6 +1,9 @@
 #pragma once
-// Writing systems, a.k.a. scripts
 
+#include <util/generic/strbuf.h>
+
+// Writing systems, a.k.a. scripts
+//
 enum EScript {
     SCRIPT_UNKNOWN = 0,
     SCRIPT_LATIN,
@@ -44,3 +47,10 @@ enum EScript {
     SCRIPT_OTHER,
     SCRIPT_MAX
 };
+
+// According to ISO 15924 codes. See https://en.wikipedia.org/wiki/ISO_15924
+//
+EScript ScriptByName(const TStringBuf& name);
+EScript ScriptByNameOrDie(const TStringBuf& name);
+const char* IsoNameByScript(EScript script);
+const char* FullNameByScript(EScript script);

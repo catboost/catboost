@@ -39,11 +39,7 @@
 #include "../../thread/thread_store.cuh"
 #include "../../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \brief WarpReduceSmem provides smem-based variants of parallel reduction of items partitioned across a CUDA thread warp.
@@ -109,18 +105,12 @@ struct WarpReduceSmem
      ******************************************************************************/
 
     /// Constructor
-    __device__ __forceinline__ WarpReduceSmem(
-        TempStorage     &temp_storage)
-    :
-        temp_storage(temp_storage.Alias()),
-
-        lane_id(IS_ARCH_WARP ?
-            LaneId() :
-            LaneId() % LOGICAL_WARP_THREADS),
-
-        member_mask((0xffffffff >> (32 - LOGICAL_WARP_THREADS)) << ((IS_ARCH_WARP || !IS_POW_OF_TWO ) ?
-            0 : // arch-width and non-power-of-two subwarps cannot be tiled with the arch-warp
-            ((LaneId() / LOGICAL_WARP_THREADS) * LOGICAL_WARP_THREADS)))
+    explicit __device__ __forceinline__ WarpReduceSmem(TempStorage &temp_storage)
+        : temp_storage(temp_storage.Alias())
+        , lane_id(IS_ARCH_WARP ? LaneId() : LaneId() % LOGICAL_WARP_THREADS)
+        , member_mask(
+            WarpMask<LOGICAL_WARP_THREADS, PTX_ARCH>(
+              LaneId() / LOGICAL_WARP_THREADS))
     {}
 
     /******************************************************************************
@@ -368,5 +358,4 @@ struct WarpReduceSmem
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

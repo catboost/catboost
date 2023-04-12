@@ -7,7 +7,6 @@ import threading
 import time
 from asyncio import (
     AbstractEventLoop,
-    CancelledError,
     Future,
     Task,
     ensure_future,
@@ -15,21 +14,24 @@ from asyncio import (
     set_event_loop,
     sleep,
 )
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from subprocess import Popen
 from traceback import format_tb
 from typing import (
     Any,
     Awaitable,
     Callable,
+    Coroutine,
     Dict,
     FrozenSet,
     Generator,
     Generic,
     Hashable,
     Iterable,
+    Iterator,
     List,
     Optional,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -41,6 +43,7 @@ from typing import (
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.cache import SimpleCache
 from prompt_toolkit.clipboard import Clipboard, InMemoryClipboard
+from prompt_toolkit.cursor_shapes import AnyCursorShapeConfig, to_cursor_shape_config
 from prompt_toolkit.data_structures import Size
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.eventloop import (
@@ -215,6 +218,7 @@ class Application(Generic[_AppResult]):
         max_render_postpone_time: Union[float, int, None] = 0.01,
         refresh_interval: Optional[float] = None,
         terminal_size_polling_interval: Optional[float] = 0.5,
+        cursor: AnyCursorShapeConfig = None,
         on_reset: Optional["ApplicationEventHandler[_AppResult]"] = None,
         on_invalidate: Optional["ApplicationEventHandler[_AppResult]"] = None,
         before_render: Optional["ApplicationEventHandler[_AppResult]"] = None,
@@ -264,6 +268,8 @@ class Application(Generic[_AppResult]):
         self.max_render_postpone_time = max_render_postpone_time
         self.refresh_interval = refresh_interval
         self.terminal_size_polling_interval = terminal_size_polling_interval
+
+        self.cursor = to_cursor_shape_config(cursor)
 
         # Events.
         self.on_invalidate = Event(self, on_invalidate)
@@ -427,7 +433,7 @@ class Application(Generic[_AppResult]):
 
         self.exit_style = ""
 
-        self.background_tasks: List[Task[None]] = []
+        self._background_tasks: Set[Task[None]] = set()
 
         self.renderer.reset()
         self.key_processor.reset()
@@ -578,8 +584,7 @@ class Application(Generic[_AppResult]):
         # (All controls are able to invalidate themselves.)
         def gather_events() -> Iterable[Event[object]]:
             for c in self.layout.find_all_controls():
-                for ev in c.get_invalidate_events():
-                    yield ev
+                yield from c.get_invalidate_events()
 
         self._invalidate_events = list(gather_events())
 
@@ -630,6 +635,8 @@ class Application(Generic[_AppResult]):
         self,
         pre_run: Optional[Callable[[], None]] = None,
         set_exception_handler: bool = True,
+        handle_sigint: bool = True,
+        slow_callback_duration: float = 0.5,
     ) -> _AppResult:
         """
         Run the prompt_toolkit :class:`~prompt_toolkit.application.Application`
@@ -646,15 +653,25 @@ class Application(Generic[_AppResult]):
         :param set_exception_handler: When set, in case of an exception, go out
             of the alternate screen and hide the application, display the
             exception, and wait for the user to press ENTER.
+        :param handle_sigint: Handle SIGINT signal if possible. This will call
+            the `<sigint>` key binding when a SIGINT is received. (This only
+            works in the main thread.)
+        :param slow_callback_duration: Display warnings if code scheduled in
+            the asyncio event loop takes more time than this. The asyncio
+            default of `0.1` is sometimes not sufficient on a slow system,
+            because exceptionally, the drawing of the app, which happens in the
+            event loop, can take a bit longer from time to time.
         """
         assert not self._is_running, "Application is already running."
 
-        async def _run_async() -> _AppResult:
-            "Coroutine."
-            loop = get_event_loop()
-            f = loop.create_future()
-            self.future = f  # XXX: make sure to set this before calling '_redraw'.
-            self.loop = loop
+        if not in_main_thread() or sys.platform == "win32":
+            # Handling signals in other threads is not supported.
+            # Also on Windows, `add_signal_handler(signal.SIGINT, ...)` raises
+            # `NotImplementedError`.
+            # See: https://github.com/prompt-toolkit/python-prompt-toolkit/issues/1553
+            handle_sigint = False
+
+        async def _run_async(f: "asyncio.Future[_AppResult]") -> _AppResult:
             self.context = contextvars.copy_context()
 
             # Counter for cancelling 'flush' timeouts. Every time when a key is
@@ -720,12 +737,13 @@ class Application(Generic[_AppResult]):
             with self.input.raw_mode(), self.input.attach(
                 read_from_input
             ), attach_winch_signal_handler(self._on_resize):
-                self.create_background_task(self._poll_output_size())
 
                 # Draw UI.
                 self._request_absolute_cursor_position()
                 self._redraw()
                 self._start_auto_refresh_task()
+
+                self.create_background_task(self._poll_output_size())
 
                 # Wait for UI to finish.
                 try:
@@ -768,10 +786,83 @@ class Application(Generic[_AppResult]):
                         # Store unprocessed input as typeahead for next time.
                         store_typeahead(self.input, self.key_processor.empty_queue())
 
-                return cast(_AppResult, result)
+                return result
 
-        async def _run_async2() -> _AppResult:
+        @contextmanager
+        def get_loop() -> Iterator[AbstractEventLoop]:
+            loop = get_event_loop()
+            self.loop = loop
+
+            try:
+                yield loop
+            finally:
+                self.loop = None
+
+        @contextmanager
+        def set_is_running() -> Iterator[None]:
             self._is_running = True
+            try:
+                yield
+            finally:
+                self._is_running = False
+
+        @contextmanager
+        def set_handle_sigint(loop: AbstractEventLoop) -> Iterator[None]:
+            if handle_sigint:
+                loop.add_signal_handler(
+                    signal.SIGINT,
+                    lambda *_: loop.call_soon_threadsafe(
+                        self.key_processor.send_sigint
+                    ),
+                )
+                try:
+                    yield
+                finally:
+                    loop.remove_signal_handler(signal.SIGINT)
+            else:
+                yield
+
+        @contextmanager
+        def set_exception_handler_ctx(loop: AbstractEventLoop) -> Iterator[None]:
+            if set_exception_handler:
+                previous_exc_handler = loop.get_exception_handler()
+                loop.set_exception_handler(self._handle_exception)
+                try:
+                    yield
+                finally:
+                    loop.set_exception_handler(previous_exc_handler)
+
+            else:
+                yield
+
+        @contextmanager
+        def set_callback_duration(loop: AbstractEventLoop) -> Iterator[None]:
+            # Set slow_callback_duration.
+            original_slow_callback_duration = loop.slow_callback_duration
+            loop.slow_callback_duration = slow_callback_duration
+            try:
+                yield
+            finally:
+                # Reset slow_callback_duration.
+                loop.slow_callback_duration = original_slow_callback_duration
+
+        @contextmanager
+        def create_future(
+            loop: AbstractEventLoop,
+        ) -> "Iterator[asyncio.Future[_AppResult]]":
+            f = loop.create_future()
+            self.future = f  # XXX: make sure to set this before calling '_redraw'.
+
+            try:
+                yield f
+            finally:
+                # Also remove the Future again. (This brings the
+                # application back to its initial state, where it also
+                # doesn't have a Future.)
+                self.future = None
+
+        with ExitStack() as stack:
+            stack.enter_context(set_is_running())
 
             # Make sure to set `_invalidated` to `False` to begin with,
             # otherwise we're not going to paint anything. This can happen if
@@ -780,44 +871,36 @@ class Application(Generic[_AppResult]):
             # `max_postpone_time`.
             self._invalidated = False
 
-            loop = get_event_loop()
-            if set_exception_handler:
-                previous_exc_handler = loop.get_exception_handler()
-                loop.set_exception_handler(self._handle_exception)
+            loop = stack.enter_context(get_loop())
+
+            stack.enter_context(set_handle_sigint(loop))
+            stack.enter_context(set_exception_handler_ctx(loop))
+            stack.enter_context(set_callback_duration(loop))
+            stack.enter_context(set_app(self))
+            stack.enter_context(self._enable_breakpointhook())
+
+            f = stack.enter_context(create_future(loop))
 
             try:
-                with set_app(self), self._enable_breakpointhook():
-                    try:
-                        result = await _run_async()
-                    finally:
-                        # Wait for the background tasks to be done. This needs to
-                        # go in the finally! If `_run_async` raises
-                        # `KeyboardInterrupt`, we still want to wait for the
-                        # background tasks.
-                        await self.cancel_and_wait_for_background_tasks()
-
-                        # Set the `_is_running` flag to `False`. Normally this
-                        # happened already in the finally block in `run_async`
-                        # above, but in case of exceptions, that's not always the
-                        # case.
-                        self._is_running = False
-
-                        # Also remove the Future again. (This brings the
-                        # application back to its initial state, where it also
-                        # doesn't have a Future.)
-                        self.future = None
-
-                    return result
+                return await _run_async(f)
             finally:
-                if set_exception_handler:
-                    loop.set_exception_handler(previous_exc_handler)
+                # Wait for the background tasks to be done. This needs to
+                # go in the finally! If `_run_async` raises
+                # `KeyboardInterrupt`, we still want to wait for the
+                # background tasks.
+                await self.cancel_and_wait_for_background_tasks()
 
-        return await _run_async2()
+        # The `ExitStack` above is defined in typeshed in a way that it can
+        # swallow exceptions. Without next line, mypy would think that there's
+        # a possibility we don't return here. See:
+        # https://github.com/python/mypy/issues/7726
+        assert False, "unreachable"
 
     def run(
         self,
         pre_run: Optional[Callable[[], None]] = None,
         set_exception_handler: bool = True,
+        handle_sigint: bool = True,
         in_thread: bool = False,
     ) -> _AppResult:
         """
@@ -843,6 +926,8 @@ class Application(Generic[_AppResult]):
             `get_appp().create_background_task()`, so that unfinished tasks are
             properly cancelled before the event loop is closed. This is used
             for instance in ptpython.
+        :param handle_sigint: Handle SIGINT signal. Call the key binding for
+            `Keys.SIGINT`. (This only works in the main thread.)
         """
         if in_thread:
             result: _AppResult
@@ -852,7 +937,10 @@ class Application(Generic[_AppResult]):
                 nonlocal result, exception
                 try:
                     result = self.run(
-                        pre_run=pre_run, set_exception_handler=set_exception_handler
+                        pre_run=pre_run,
+                        set_exception_handler=set_exception_handler,
+                        # Signal handling only works in the main thread.
+                        handle_sigint=False,
                     )
                 except BaseException as e:
                     exception = e
@@ -888,7 +976,11 @@ class Application(Generic[_AppResult]):
             set_event_loop(loop)
 
         return loop.run_until_complete(
-            self.run_async(pre_run=pre_run, set_exception_handler=set_exception_handler)
+            self.run_async(
+                pre_run=pre_run,
+                set_exception_handler=set_exception_handler,
+                handle_sigint=handle_sigint,
+            )
         )
 
     def _handle_exception(
@@ -911,7 +1003,7 @@ class Application(Generic[_AppResult]):
                 # but don't use logger. (This works better on Python 2.)
                 print("\nUnhandled exception in event loop:")
                 print(formatted_tb)
-                print("Exception %s" % (context.get("exception"),))
+                print("Exception {}".format(context.get("exception")))
 
                 await _do_wait_for_enter("Press ENTER to continue...")
 
@@ -967,39 +1059,83 @@ class Application(Generic[_AppResult]):
         CustomPdb(stdout=sys.__stdout__).set_trace(frame)
 
     def create_background_task(
-        self, coroutine: Awaitable[None]
+        self, coroutine: Coroutine[Any, Any, None]
     ) -> "asyncio.Task[None]":
         """
         Start a background task (coroutine) for the running application. When
         the `Application` terminates, unfinished background tasks will be
         cancelled.
 
-        If asyncio had nurseries like Trio, we would create a nursery in
-        `Application.run_async`, and run the given coroutine in that nursery.
+        Given that we still support Python versions before 3.11, we can't use
+        task groups (and exception groups), because of that, these background
+        tasks are not allowed to raise exceptions. If they do, we'll call the
+        default exception handler from the event loop.
 
-        Not threadsafe.
+        If at some point, we have Python 3.11 as the minimum supported Python
+        version, then we can use a `TaskGroup` (with the lifetime of
+        `Application.run_async()`, and run run the background tasks in there.
+
+        This is not threadsafe.
         """
-        task = get_event_loop().create_task(coroutine)
-        self.background_tasks.append(task)
+        loop = self.loop or get_event_loop()
+        task: asyncio.Task[None] = loop.create_task(coroutine)
+        self._background_tasks.add(task)
+
+        task.add_done_callback(self._on_background_task_done)
         return task
+
+    def _on_background_task_done(self, task: "asyncio.Task[None]") -> None:
+        """
+        Called when a background task completes. Remove it from
+        `_background_tasks`, and handle exceptions if any.
+        """
+        self._background_tasks.discard(task)
+
+        if task.cancelled():
+            return
+
+        exc = task.exception()
+        if exc is not None:
+            get_event_loop().call_exception_handler(
+                {
+                    "message": f"prompt_toolkit.Application background task {task!r} "
+                    "raised an unexpected exception.",
+                    "exception": exc,
+                    "task": task,
+                }
+            )
 
     async def cancel_and_wait_for_background_tasks(self) -> None:
         """
-        Cancel all background tasks, and wait for the cancellation to be done.
+        Cancel all background tasks, and wait for the cancellation to complete.
         If any of the background tasks raised an exception, this will also
         propagate the exception.
 
         (If we had nurseries like Trio, this would be the `__aexit__` of a
         nursery.)
         """
-        for task in self.background_tasks:
+        for task in self._background_tasks:
             task.cancel()
 
-        for task in self.background_tasks:
-            try:
-                await task
-            except CancelledError:
-                pass
+        # Wait until the cancellation of the background tasks completes.
+        # `asyncio.wait()` does not propagate exceptions raised within any of
+        # these tasks, which is what we want. Otherwise, we can't distinguish
+        # between a `CancelledError` raised in this task because it got
+        # cancelled, and a `CancelledError` raised on this `await` checkpoint,
+        # because *we* got cancelled during the teardown of the application.
+        # (If we get cancelled here, then it's important to not suppress the
+        # `CancelledError`, and have it propagate.)
+        # NOTE: Currently, if we get cancelled at this point then we can't wait
+        #       for the cancellation to complete (in the future, we should be
+        #       using anyio or Python's 3.11 TaskGroup.)
+        #       Also, if we had exception groups, we could propagate an
+        #       `ExceptionGroup` if something went wrong here. Right now, we
+        #       don't propagate exceptions, but have them printed in
+        #       `_on_background_task_done`.
+        if len(self._background_tasks) > 0:
+            await asyncio.wait(
+                self._background_tasks, timeout=None, return_when=asyncio.ALL_COMPLETED
+            )
 
     async def _poll_output_size(self) -> None:
         """
@@ -1156,15 +1292,16 @@ class Application(Generic[_AppResult]):
         if _SIGTSTP is not None:
 
             def run() -> None:
+                signal = cast(int, _SIGTSTP)
                 # Send `SIGTSTP` to own process.
                 # This will cause it to suspend.
 
                 # Usually we want the whole process group to be suspended. This
                 # handles the case when input is piped from another process.
                 if suspend_group:
-                    os.kill(0, _SIGTSTP)
+                    os.kill(0, signal)
                 else:
-                    os.kill(os.getpid(), _SIGTSTP)
+                    os.kill(os.getpid(), signal)
 
             run_in_terminal(run)
 
@@ -1207,10 +1344,8 @@ class Application(Generic[_AppResult]):
 
         if attrs_for_style:
             return sorted(
-                [
-                    re.sub(r"\s+", " ", style_str).strip()
-                    for style_str in attrs_for_style.keys()
-                ]
+                re.sub(r"\s+", " ", style_str).strip()
+                for style_str in attrs_for_style.keys()
             )
 
         return []
@@ -1235,6 +1370,7 @@ class _CombinedRegistry(KeyBindingsBase):
         KeyBindings object."""
         raise NotImplementedError
 
+    @property
     def bindings(self) -> List[Binding]:
         """Not needed - this object is not going to be wrapped in another
         KeyBindings object."""
@@ -1334,7 +1470,10 @@ async def _do_wait_for_enter(wait_text: AnyFormattedText) -> None:
     session: PromptSession[None] = PromptSession(
         message=wait_text, key_bindings=key_bindings
     )
-    await session.app.run_async()
+    try:
+        await session.app.run_async()
+    except KeyboardInterrupt:
+        pass  # Control-c pressed. Don't propagate this error.
 
 
 @contextmanager

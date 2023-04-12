@@ -50,11 +50,7 @@
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -477,10 +473,10 @@ struct DispatchSpmv
         typename                Spmv1ColKernelT,                    ///< Function type of cub::DeviceSpmv1ColKernel
         typename                SpmvSearchKernelT,                  ///< Function type of cub::AgentSpmvSearchKernel
         typename                SpmvKernelT,                        ///< Function type of cub::AgentSpmvKernel
-        typename                SegmentFixupKernelT>                 ///< Function type of cub::DeviceSegmentFixupKernelT
+        typename                SegmentFixupKernelT>                ///< Function type of cub::DeviceSegmentFixupKernelT
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                   d_temp_storage,                     ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                   d_temp_storage,                     ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                 temp_storage_bytes,                 ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SpmvParamsT&            spmv_params,                        ///< SpMV input parameter bundle
         cudaStream_t            stream,                             ///< [in] CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -501,6 +497,21 @@ struct DispatchSpmv
         cudaError error = cudaSuccess;
         do
         {
+            if (spmv_params.num_rows < 0 || spmv_params.num_cols < 0)
+            {
+              return cudaErrorInvalidValue;
+            }
+
+            if (spmv_params.num_rows == 0 || spmv_params.num_cols == 0)
+            { // Empty problem, no-op.
+                if (d_temp_storage == NULL)
+                {
+                    temp_storage_bytes = 1;
+                }
+
+                break;
+            }
+
             if (spmv_params.num_cols == 1)
             {
                 if (d_temp_storage == NULL)
@@ -518,7 +529,7 @@ struct DispatchSpmv
                     degen_col_kernel_grid_size, degen_col_kernel_block_size, (long long) stream);
 
                 // Invoke spmv_search_kernel
-                thrust::cuda_cub::launcher::triple_chevron(
+                THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                     degen_col_kernel_grid_size, degen_col_kernel_block_size, 0,
                     stream
                 ).doit(spmv_1col_kernel,
@@ -543,7 +554,7 @@ struct DispatchSpmv
 
             // Get max x-dimension of grid
             int max_dim_x;
-            if (CubDebug(error = cudaDeviceGetAttribute(&max_dim_x, cudaDevAttrMaxGridDimX, device_ordinal))) break;;
+            if (CubDebug(error = cudaDeviceGetAttribute(&max_dim_x, cudaDevAttrMaxGridDimX, device_ordinal))) break;
 
             // Total number of spmv work items
             int num_merge_items = spmv_params.num_rows + spmv_params.num_nonzeros;
@@ -607,14 +618,6 @@ struct DispatchSpmv
             int search_block_size   = INIT_KERNEL_THREADS;
             int search_grid_size    = cub::DivideAndRoundUp(num_merge_tiles + 1, search_block_size);
 
-            #if CUB_INCLUDE_HOST_CODE
-                if (CUB_IS_HOST_CODE)
-                {
-                    // Init textures
-                    if (CubDebug(error = spmv_params.t_vector_x.BindTexture(spmv_params.d_vector_x))) break;
-                }
-            #endif
-
             if (search_grid_size < sm_count)
 //            if (num_merge_tiles < spmv_sm_occupancy * sm_count)
             {
@@ -630,7 +633,7 @@ struct DispatchSpmv
                     search_grid_size, search_block_size, (long long) stream);
 
                 // Invoke spmv_search_kernel
-                thrust::cuda_cub::launcher::triple_chevron(
+                THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                     search_grid_size, search_block_size, 0, stream
                 ).doit(spmv_search_kernel,
                     num_merge_tiles,
@@ -649,7 +652,7 @@ struct DispatchSpmv
                 spmv_grid_size.x, spmv_grid_size.y, spmv_grid_size.z, spmv_config.block_threads, (long long) stream, spmv_config.items_per_thread, spmv_sm_occupancy);
 
             // Invoke spmv_kernel
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 spmv_grid_size, spmv_config.block_threads, 0, stream
             ).doit(spmv_kernel,
                 spmv_params,
@@ -673,7 +676,7 @@ struct DispatchSpmv
                     segment_fixup_grid_size.x, segment_fixup_grid_size.y, segment_fixup_grid_size.z, segment_fixup_config.block_threads, (long long) stream, segment_fixup_config.items_per_thread, segment_fixup_sm_occupancy);
 
                 // Invoke segment_fixup_kernel
-                thrust::cuda_cub::launcher::triple_chevron(
+                THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                     segment_fixup_grid_size, segment_fixup_config.block_threads,
                     0, stream
                 ).doit(segment_fixup_kernel,
@@ -689,14 +692,6 @@ struct DispatchSpmv
                 // Sync the stream if specified to flush runtime errors
                 if (debug_synchronous && (CubDebug(error = SyncStream(stream)))) break;
             }
-
-            #if CUB_INCLUDE_HOST_CODE
-                if (CUB_IS_HOST_CODE)
-                {
-                    // Free textures
-                    if (CubDebug(error = spmv_params.t_vector_x.UnbindTexture())) break;
-                }
-            #endif
         }
         while (0);
 
@@ -711,7 +706,7 @@ struct DispatchSpmv
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                   d_temp_storage,                     ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                   d_temp_storage,                     ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                 temp_storage_bytes,                 ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SpmvParamsT&            spmv_params,                        ///< SpMV input parameter bundle
         cudaStream_t            stream                  = 0,        ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -744,7 +739,6 @@ struct DispatchSpmv
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 

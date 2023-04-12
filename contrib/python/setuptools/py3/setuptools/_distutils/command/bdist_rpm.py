@@ -3,134 +3,152 @@
 Implements the Distutils 'bdist_rpm' command (create RPM source and binary
 distributions)."""
 
-import subprocess, sys, os
-from distutils.core import Command
-from distutils.debug import DEBUG
-from distutils.file_util import write_file
-from distutils.errors import *
-from distutils.sysconfig import get_python_version
-from distutils import log
+import subprocess
+import sys
+import os
+
+from ..core import Command
+from ..debug import DEBUG
+from ..file_util import write_file
+from ..errors import (
+    DistutilsOptionError,
+    DistutilsPlatformError,
+    DistutilsFileError,
+    DistutilsExecError,
+)
+from ..sysconfig import get_python_version
+from distutils._log import log
+
 
 class bdist_rpm(Command):
-
     description = "create an RPM distribution"
 
     user_options = [
-        ('bdist-base=', None,
-         "base directory for creating built distributions"),
-        ('rpm-base=', None,
-         "base directory for creating RPMs (defaults to \"rpm\" under "
-         "--bdist-base; must be specified for RPM 2)"),
-        ('dist-dir=', 'd',
-         "directory to put final RPM files in "
-         "(and .spec files if --spec-only)"),
-        ('python=', None,
-         "path to Python interpreter to hard-code in the .spec file "
-         "(default: \"python\")"),
-        ('fix-python', None,
-         "hard-code the exact path to the current Python interpreter in "
-         "the .spec file"),
-        ('spec-only', None,
-         "only regenerate spec file"),
-        ('source-only', None,
-         "only generate source RPM"),
-        ('binary-only', None,
-         "only generate binary RPM"),
-        ('use-bzip2', None,
-         "use bzip2 instead of gzip to create source distribution"),
-
+        ('bdist-base=', None, "base directory for creating built distributions"),
+        (
+            'rpm-base=',
+            None,
+            "base directory for creating RPMs (defaults to \"rpm\" under "
+            "--bdist-base; must be specified for RPM 2)",
+        ),
+        (
+            'dist-dir=',
+            'd',
+            "directory to put final RPM files in " "(and .spec files if --spec-only)",
+        ),
+        (
+            'python=',
+            None,
+            "path to Python interpreter to hard-code in the .spec file "
+            "(default: \"python\")",
+        ),
+        (
+            'fix-python',
+            None,
+            "hard-code the exact path to the current Python interpreter in "
+            "the .spec file",
+        ),
+        ('spec-only', None, "only regenerate spec file"),
+        ('source-only', None, "only generate source RPM"),
+        ('binary-only', None, "only generate binary RPM"),
+        ('use-bzip2', None, "use bzip2 instead of gzip to create source distribution"),
         # More meta-data: too RPM-specific to put in the setup script,
         # but needs to go in the .spec file -- so we make these options
         # to "bdist_rpm".  The idea is that packagers would put this
         # info in setup.cfg, although they are of course free to
         # supply it on the command line.
-        ('distribution-name=', None,
-         "name of the (Linux) distribution to which this "
-         "RPM applies (*not* the name of the module distribution!)"),
-        ('group=', None,
-         "package classification [default: \"Development/Libraries\"]"),
-        ('release=', None,
-         "RPM release number"),
-        ('serial=', None,
-         "RPM serial number"),
-        ('vendor=', None,
-         "RPM \"vendor\" (eg. \"Joe Blow <joe@example.com>\") "
-         "[default: maintainer or author from setup script]"),
-        ('packager=', None,
-         "RPM packager (eg. \"Jane Doe <jane@example.net>\") "
-         "[default: vendor]"),
-        ('doc-files=', None,
-         "list of documentation files (space or comma-separated)"),
-        ('changelog=', None,
-         "RPM changelog"),
-        ('icon=', None,
-         "name of icon file"),
-        ('provides=', None,
-         "capabilities provided by this package"),
-        ('requires=', None,
-         "capabilities required by this package"),
-        ('conflicts=', None,
-         "capabilities which conflict with this package"),
-        ('build-requires=', None,
-         "capabilities required to build this package"),
-        ('obsoletes=', None,
-         "capabilities made obsolete by this package"),
-        ('no-autoreq', None,
-         "do not automatically calculate dependencies"),
-
+        (
+            'distribution-name=',
+            None,
+            "name of the (Linux) distribution to which this "
+            "RPM applies (*not* the name of the module distribution!)",
+        ),
+        ('group=', None, "package classification [default: \"Development/Libraries\"]"),
+        ('release=', None, "RPM release number"),
+        ('serial=', None, "RPM serial number"),
+        (
+            'vendor=',
+            None,
+            "RPM \"vendor\" (eg. \"Joe Blow <joe@example.com>\") "
+            "[default: maintainer or author from setup script]",
+        ),
+        (
+            'packager=',
+            None,
+            "RPM packager (eg. \"Jane Doe <jane@example.net>\") " "[default: vendor]",
+        ),
+        ('doc-files=', None, "list of documentation files (space or comma-separated)"),
+        ('changelog=', None, "RPM changelog"),
+        ('icon=', None, "name of icon file"),
+        ('provides=', None, "capabilities provided by this package"),
+        ('requires=', None, "capabilities required by this package"),
+        ('conflicts=', None, "capabilities which conflict with this package"),
+        ('build-requires=', None, "capabilities required to build this package"),
+        ('obsoletes=', None, "capabilities made obsolete by this package"),
+        ('no-autoreq', None, "do not automatically calculate dependencies"),
         # Actions to take when building RPM
-        ('keep-temp', 'k',
-         "don't clean up RPM build directory"),
-        ('no-keep-temp', None,
-         "clean up RPM build directory [default]"),
-        ('use-rpm-opt-flags', None,
-         "compile with RPM_OPT_FLAGS when building from source RPM"),
-        ('no-rpm-opt-flags', None,
-         "do not pass any RPM CFLAGS to compiler"),
-        ('rpm3-mode', None,
-         "RPM 3 compatibility mode (default)"),
-        ('rpm2-mode', None,
-         "RPM 2 compatibility mode"),
-
+        ('keep-temp', 'k', "don't clean up RPM build directory"),
+        ('no-keep-temp', None, "clean up RPM build directory [default]"),
+        (
+            'use-rpm-opt-flags',
+            None,
+            "compile with RPM_OPT_FLAGS when building from source RPM",
+        ),
+        ('no-rpm-opt-flags', None, "do not pass any RPM CFLAGS to compiler"),
+        ('rpm3-mode', None, "RPM 3 compatibility mode (default)"),
+        ('rpm2-mode', None, "RPM 2 compatibility mode"),
         # Add the hooks necessary for specifying custom scripts
-        ('prep-script=', None,
-         "Specify a script for the PREP phase of RPM building"),
-        ('build-script=', None,
-         "Specify a script for the BUILD phase of RPM building"),
-
-        ('pre-install=', None,
-         "Specify a script for the pre-INSTALL phase of RPM building"),
-        ('install-script=', None,
-         "Specify a script for the INSTALL phase of RPM building"),
-        ('post-install=', None,
-         "Specify a script for the post-INSTALL phase of RPM building"),
-
-        ('pre-uninstall=', None,
-         "Specify a script for the pre-UNINSTALL phase of RPM building"),
-        ('post-uninstall=', None,
-         "Specify a script for the post-UNINSTALL phase of RPM building"),
-
-        ('clean-script=', None,
-         "Specify a script for the CLEAN phase of RPM building"),
-
-        ('verify-script=', None,
-         "Specify a script for the VERIFY phase of the RPM build"),
-
+        ('prep-script=', None, "Specify a script for the PREP phase of RPM building"),
+        ('build-script=', None, "Specify a script for the BUILD phase of RPM building"),
+        (
+            'pre-install=',
+            None,
+            "Specify a script for the pre-INSTALL phase of RPM building",
+        ),
+        (
+            'install-script=',
+            None,
+            "Specify a script for the INSTALL phase of RPM building",
+        ),
+        (
+            'post-install=',
+            None,
+            "Specify a script for the post-INSTALL phase of RPM building",
+        ),
+        (
+            'pre-uninstall=',
+            None,
+            "Specify a script for the pre-UNINSTALL phase of RPM building",
+        ),
+        (
+            'post-uninstall=',
+            None,
+            "Specify a script for the post-UNINSTALL phase of RPM building",
+        ),
+        ('clean-script=', None, "Specify a script for the CLEAN phase of RPM building"),
+        (
+            'verify-script=',
+            None,
+            "Specify a script for the VERIFY phase of the RPM build",
+        ),
         # Allow a packager to explicitly force an architecture
-        ('force-arch=', None,
-         "Force an architecture onto the RPM build process"),
+        ('force-arch=', None, "Force an architecture onto the RPM build process"),
+        ('quiet', 'q', "Run the INSTALL phase of RPM building in quiet mode"),
+    ]
 
-        ('quiet', 'q',
-         "Run the INSTALL phase of RPM building in quiet mode"),
-        ]
+    boolean_options = [
+        'keep-temp',
+        'use-rpm-opt-flags',
+        'rpm3-mode',
+        'no-autoreq',
+        'quiet',
+    ]
 
-    boolean_options = ['keep-temp', 'use-rpm-opt-flags', 'rpm3-mode',
-                       'no-autoreq', 'quiet']
-
-    negative_opt = {'no-keep-temp': 'keep-temp',
-                    'no-rpm-opt-flags': 'use-rpm-opt-flags',
-                    'rpm2-mode': 'rpm3-mode'}
-
+    negative_opt = {
+        'no-keep-temp': 'keep-temp',
+        'no-rpm-opt-flags': 'use-rpm-opt-flags',
+        'rpm2-mode': 'rpm3-mode',
+    }
 
     def initialize_options(self):
         self.bdist_base = None
@@ -181,8 +199,7 @@ class bdist_rpm(Command):
         self.set_undefined_options('bdist', ('bdist_base', 'bdist_base'))
         if self.rpm_base is None:
             if not self.rpm3_mode:
-                raise DistutilsOptionError(
-                      "you must specify --rpm-base in RPM 2 mode")
+                raise DistutilsOptionError("you must specify --rpm-base in RPM 2 mode")
             self.rpm_base = os.path.join(self.bdist_base, "rpm")
 
         if self.python is None:
@@ -192,14 +209,17 @@ class bdist_rpm(Command):
                 self.python = "python3"
         elif self.fix_python:
             raise DistutilsOptionError(
-                  "--python and --fix-python are mutually exclusive options")
+                "--python and --fix-python are mutually exclusive options"
+            )
 
         if os.name != 'posix':
-            raise DistutilsPlatformError("don't know how to create RPM "
-                   "distributions on platform %s" % os.name)
+            raise DistutilsPlatformError(
+                "don't know how to create RPM " "distributions on platform %s" % os.name
+            )
         if self.binary_only and self.source_only:
             raise DistutilsOptionError(
-                  "cannot supply both '--source-only' and '--binary-only'")
+                "cannot supply both '--source-only' and '--binary-only'"
+            )
 
         # don't pass CFLAGS to pure python distributions
         if not self.distribution.has_ext_modules():
@@ -210,9 +230,11 @@ class bdist_rpm(Command):
 
     def finalize_package_data(self):
         self.ensure_string('group', "Development/Libraries")
-        self.ensure_string('vendor',
-                           "%s <%s>" % (self.distribution.get_contact(),
-                                        self.distribution.get_contact_email()))
+        self.ensure_string(
+            'vendor',
+            "%s <%s>"
+            % (self.distribution.get_contact(), self.distribution.get_contact_email()),
+        )
         self.ensure_string('packager')
         self.ensure_string_list('doc_files')
         if isinstance(self.doc_files, list):
@@ -221,12 +243,12 @@ class bdist_rpm(Command):
                     self.doc_files.append(readme)
 
         self.ensure_string('release', "1")
-        self.ensure_string('serial')   # should it be an int?
+        self.ensure_string('serial')  # should it be an int?
 
         self.ensure_string('distribution_name')
 
         self.ensure_string('changelog')
-          # Format changelog correctly
+        # Format changelog correctly
         self.changelog = self._format_changelog(self.changelog)
 
         self.ensure_filename('icon')
@@ -253,7 +275,7 @@ class bdist_rpm(Command):
 
         self.ensure_string('force_arch')
 
-    def run(self):
+    def run(self):  # noqa: C901
         if DEBUG:
             print("before _get_package_data():")
             print("vendor =", self.vendor)
@@ -274,14 +296,12 @@ class bdist_rpm(Command):
 
         # Spec file goes into 'dist_dir' if '--spec-only specified',
         # build/rpm.<plat> otherwise.
-        spec_path = os.path.join(spec_dir,
-                                 "%s.spec" % self.distribution.get_name())
-        self.execute(write_file,
-                     (spec_path,
-                      self._make_spec_file()),
-                     "writing '%s'" % spec_path)
+        spec_path = os.path.join(spec_dir, "%s.spec" % self.distribution.get_name())
+        self.execute(
+            write_file, (spec_path, self._make_spec_file()), "writing '%s'" % spec_path
+        )
 
-        if self.spec_only: # stop if requested
+        if self.spec_only:  # stop if requested
             return
 
         # Make a source distribution and copy to SOURCES directory with
@@ -303,14 +323,13 @@ class bdist_rpm(Command):
             if os.path.exists(self.icon):
                 self.copy_file(self.icon, source_dir)
             else:
-                raise DistutilsFileError(
-                      "icon file '%s' does not exist" % self.icon)
+                raise DistutilsFileError("icon file '%s' does not exist" % self.icon)
 
         # build package
         log.info("building RPMs")
         rpm_cmd = ['rpmbuild']
 
-        if self.source_only: # what kind of RPMs?
+        if self.source_only:  # what kind of RPMs?
             rpm_cmd.append('-bs')
         elif self.binary_only:
             rpm_cmd.append('-bb')
@@ -318,8 +337,7 @@ class bdist_rpm(Command):
             rpm_cmd.append('-ba')
         rpm_cmd.extend(['--define', '__python %s' % self.python])
         if self.rpm3_mode:
-            rpm_cmd.extend(['--define',
-                             '_topdir %s' % os.path.abspath(self.rpm_base)])
+            rpm_cmd.extend(['--define', '_topdir %s' % os.path.abspath(self.rpm_base)])
         if not self.keep_temp:
             rpm_cmd.append('--clean')
 
@@ -334,8 +352,11 @@ class bdist_rpm(Command):
         nvr_string = "%{name}-%{version}-%{release}"
         src_rpm = nvr_string + ".src.rpm"
         non_src_rpm = "%{arch}/" + nvr_string + ".%{arch}.rpm"
-        q_cmd = r"rpm -q --qf '%s %s\n' --specfile '%s'" % (
-            src_rpm, non_src_rpm, spec_path)
+        q_cmd = r"rpm -q --qf '{} {}\n' --specfile '{}'".format(
+            src_rpm,
+            non_src_rpm,
+            spec_path,
+        )
 
         out = os.popen(q_cmd)
         try:
@@ -345,12 +366,12 @@ class bdist_rpm(Command):
                 line = out.readline()
                 if not line:
                     break
-                l = line.strip().split()
-                assert(len(l) == 2)
-                binary_rpms.append(l[1])
+                ell = line.strip().split()
+                assert len(ell) == 2
+                binary_rpms.append(ell[1])
                 # The source rpm is named after the first entry in the spec file
                 if source_rpm is None:
-                    source_rpm = l[0]
+                    source_rpm = ell[0]
 
             status = out.close()
             if status:
@@ -369,38 +390,37 @@ class bdist_rpm(Command):
 
             if not self.binary_only:
                 srpm = os.path.join(rpm_dir['SRPMS'], source_rpm)
-                assert(os.path.exists(srpm))
+                assert os.path.exists(srpm)
                 self.move_file(srpm, self.dist_dir)
                 filename = os.path.join(self.dist_dir, source_rpm)
-                self.distribution.dist_files.append(
-                    ('bdist_rpm', pyversion, filename))
+                self.distribution.dist_files.append(('bdist_rpm', pyversion, filename))
 
             if not self.source_only:
                 for rpm in binary_rpms:
                     rpm = os.path.join(rpm_dir['RPMS'], rpm)
                     if os.path.exists(rpm):
                         self.move_file(rpm, self.dist_dir)
-                        filename = os.path.join(self.dist_dir,
-                                                os.path.basename(rpm))
+                        filename = os.path.join(self.dist_dir, os.path.basename(rpm))
                         self.distribution.dist_files.append(
-                            ('bdist_rpm', pyversion, filename))
+                            ('bdist_rpm', pyversion, filename)
+                        )
 
     def _dist_path(self, path):
         return os.path.join(self.dist_dir, os.path.basename(path))
 
-    def _make_spec_file(self):
+    def _make_spec_file(self):  # noqa: C901
         """Generate the text of an RPM spec file and return it as a
         list of strings (one per line).
         """
         # definitions and headers
         spec_file = [
             '%define name ' + self.distribution.get_name(),
-            '%define version ' + self.distribution.get_version().replace('-','_'),
+            '%define version ' + self.distribution.get_version().replace('-', '_'),
             '%define unmangled_version ' + self.distribution.get_version(),
-            '%define release ' + self.release.replace('-','_'),
+            '%define release ' + self.release.replace('-', '_'),
             '',
-            'Summary: ' + self.distribution.get_description(),
-            ]
+            'Summary: ' + (self.distribution.get_description() or "UNKNOWN"),
+        ]
 
         # Workaround for #14443 which affects some RPM based systems such as
         # RHEL6 (and probably derivatives)
@@ -408,8 +428,9 @@ class bdist_rpm(Command):
         # Generate a potential replacement value for __os_install_post (whilst
         # normalizing the whitespace to simplify the test for whether the
         # invocation of brp-python-bytecompile passes in __python):
-        vendor_hook = '\n'.join(['  %s \\' % line.strip()
-                                 for line in vendor_hook.splitlines()])
+        vendor_hook = '\n'.join(
+            ['  %s \\' % line.strip() for line in vendor_hook.splitlines()]
+        )
         problem = "brp-python-bytecompile \\\n"
         fixed = "brp-python-bytecompile %{__python} \\\n"
         fixed_hook = vendor_hook.replace(problem, fixed)
@@ -420,14 +441,17 @@ class bdist_rpm(Command):
         # put locale summaries into spec file
         # XXX not supported for now (hard to put a dictionary
         # in a config file -- arg!)
-        #for locale in self.summaries.keys():
+        # for locale in self.summaries.keys():
         #    spec_file.append('Summary(%s): %s' % (locale,
         #                                          self.summaries[locale]))
 
-        spec_file.extend([
-            'Name: %{name}',
-            'Version: %{version}',
-            'Release: %{release}',])
+        spec_file.extend(
+            [
+                'Name: %{name}',
+                'Version: %{version}',
+                'Release: %{release}',
+            ]
+        )
 
         # XXX yuck! this filename is available from the "sdist" command,
         # but only after it has run: and we create the spec file before
@@ -437,42 +461,44 @@ class bdist_rpm(Command):
         else:
             spec_file.append('Source0: %{name}-%{unmangled_version}.tar.gz')
 
-        spec_file.extend([
-            'License: ' + self.distribution.get_license(),
-            'Group: ' + self.group,
-            'BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot',
-            'Prefix: %{_prefix}', ])
+        spec_file.extend(
+            [
+                'License: ' + (self.distribution.get_license() or "UNKNOWN"),
+                'Group: ' + self.group,
+                'BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot',
+                'Prefix: %{_prefix}',
+            ]
+        )
 
         if not self.force_arch:
             # noarch if no extension modules
             if not self.distribution.has_ext_modules():
                 spec_file.append('BuildArch: noarch')
         else:
-            spec_file.append( 'BuildArch: %s' % self.force_arch )
+            spec_file.append('BuildArch: %s' % self.force_arch)
 
-        for field in ('Vendor',
-                      'Packager',
-                      'Provides',
-                      'Requires',
-                      'Conflicts',
-                      'Obsoletes',
-                      ):
+        for field in (
+            'Vendor',
+            'Packager',
+            'Provides',
+            'Requires',
+            'Conflicts',
+            'Obsoletes',
+        ):
             val = getattr(self, field.lower())
             if isinstance(val, list):
-                spec_file.append('%s: %s' % (field, ' '.join(val)))
+                spec_file.append('{}: {}'.format(field, ' '.join(val)))
             elif val is not None:
-                spec_file.append('%s: %s' % (field, val))
+                spec_file.append('{}: {}'.format(field, val))
 
-
-        if self.distribution.get_url() != 'UNKNOWN':
+        if self.distribution.get_url():
             spec_file.append('Url: ' + self.distribution.get_url())
 
         if self.distribution_name:
             spec_file.append('Distribution: ' + self.distribution_name)
 
         if self.build_requires:
-            spec_file.append('BuildRequires: ' +
-                             ' '.join(self.build_requires))
+            spec_file.append('BuildRequires: ' + ' '.join(self.build_requires))
 
         if self.icon:
             spec_file.append('Icon: ' + os.path.basename(self.icon))
@@ -480,16 +506,18 @@ class bdist_rpm(Command):
         if self.no_autoreq:
             spec_file.append('AutoReq: 0')
 
-        spec_file.extend([
-            '',
-            '%description',
-            self.distribution.get_long_description()
-            ])
+        spec_file.extend(
+            [
+                '',
+                '%description',
+                self.distribution.get_long_description() or "",
+            ]
+        )
 
         # put locale descriptions into spec file
         # XXX again, suppressed because config file syntax doesn't
         # easily support this ;-(
-        #for locale in self.descriptions.keys():
+        # for locale in self.descriptions.keys():
         #    spec_file.extend([
         #        '',
         #        '%description -l ' + locale,
@@ -498,7 +526,7 @@ class bdist_rpm(Command):
 
         # rpm scripts
         # figure out default build script
-        def_setup_call = "%s %s" % (self.python,os.path.basename(sys.argv[0]))
+        def_setup_call = "{} {}".format(self.python, os.path.basename(sys.argv[0]))
         def_build = "%s build" % def_setup_call
         if self.use_rpm_opt_flags:
             def_build = 'env CFLAGS="$RPM_OPT_FLAGS" ' + def_build
@@ -509,8 +537,9 @@ class bdist_rpm(Command):
         # that we open and interpolate into the spec file, but the defaults
         # are just text that we drop in as-is.  Hmmm.
 
-        install_cmd = ('%s install -O1 --root=$RPM_BUILD_ROOT '
-                       '--record=INSTALLED_FILES') % def_setup_call
+        install_cmd = (
+            '%s install -O1 --root=$RPM_BUILD_ROOT ' '--record=INSTALLED_FILES'
+        ) % def_setup_call
 
         script_options = [
             ('prep', 'prep_script', "%setup -n %{name}-%{unmangled_version}"),
@@ -524,42 +553,48 @@ class bdist_rpm(Command):
             ('postun', 'post_uninstall', None),
         ]
 
-        for (rpm_opt, attr, default) in script_options:
+        for rpm_opt, attr, default in script_options:
             # Insert contents of file referred to, if no file is referred to
             # use 'default' as contents of script
             val = getattr(self, attr)
             if val or default:
-                spec_file.extend([
-                    '',
-                    '%' + rpm_opt,])
+                spec_file.extend(
+                    [
+                        '',
+                        '%' + rpm_opt,
+                    ]
+                )
                 if val:
                     with open(val) as f:
                         spec_file.extend(f.read().split('\n'))
                 else:
                     spec_file.append(default)
 
-
         # files section
-        spec_file.extend([
-            '',
-            '%files -f INSTALLED_FILES',
-            '%defattr(-,root,root)',
-            ])
+        spec_file.extend(
+            [
+                '',
+                '%files -f INSTALLED_FILES',
+                '%defattr(-,root,root)',
+            ]
+        )
 
         if self.doc_files:
             spec_file.append('%doc ' + ' '.join(self.doc_files))
 
         if self.changelog:
-            spec_file.extend([
-                '',
-                '%changelog',])
+            spec_file.extend(
+                [
+                    '',
+                    '%changelog',
+                ]
+            )
             spec_file.extend(self.changelog)
 
         return spec_file
 
     def _format_changelog(self, changelog):
-        """Format the changelog correctly and convert it to a list of strings
-        """
+        """Format the changelog correctly and convert it to a list of strings"""
         if not changelog:
             return changelog
         new_changelog = []

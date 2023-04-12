@@ -7,24 +7,30 @@ Implements the Distutils 'register' command (register with the repository).
 
 import getpass
 import io
-import urllib.parse, urllib.request
+import logging
+import urllib.parse
+import urllib.request
 from warnings import warn
 
-from distutils.core import PyPIRCCommand
-from distutils.errors import *
-from distutils import log
+from ..core import PyPIRCCommand
+from distutils._log import log
+
 
 class register(PyPIRCCommand):
-
-    description = ("register the distribution with the Python package index")
+    description = "register the distribution with the Python package index"
     user_options = PyPIRCCommand.user_options + [
-        ('list-classifiers', None,
-         'list the valid Trove classifiers'),
-        ('strict', None ,
-         'Will stop the registering if the meta-data are not fully compliant')
-        ]
+        ('list-classifiers', None, 'list the valid Trove classifiers'),
+        (
+            'strict',
+            None,
+            'Will stop the registering if the meta-data are not fully compliant',
+        ),
+    ]
     boolean_options = PyPIRCCommand.boolean_options + [
-        'verify', 'list-classifiers', 'strict']
+        'verify',
+        'list-classifiers',
+        'strict',
+    ]
 
     sub_commands = [('check', lambda self: True)]
 
@@ -36,8 +42,10 @@ class register(PyPIRCCommand):
     def finalize_options(self):
         PyPIRCCommand.finalize_options(self)
         # setting options for the `check` subcommand
-        check_options = {'strict': ('register', self.strict),
-                         'restructuredtext': ('register', 1)}
+        check_options = {
+            'strict': ('register', self.strict),
+            'restructuredtext': ('register', 1),
+        }
         self.distribution.command_options['check'] = check_options
 
     def run(self):
@@ -57,8 +65,11 @@ class register(PyPIRCCommand):
 
     def check_metadata(self):
         """Deprecated API."""
-        warn("distutils.command.register.check_metadata is deprecated, \
-              use the check command instead", PendingDeprecationWarning)
+        warn(
+            "distutils.command.register.check_metadata is deprecated; "
+            "use the check command instead",
+            DeprecationWarning,
+        )
         check = self.distribution.get_command_obj('check')
         check.ensure_finalized()
         check.strict = self.strict
@@ -66,8 +77,7 @@ class register(PyPIRCCommand):
         check.run()
 
     def _set_config(self):
-        ''' Reads the configuration file and set attributes.
-        '''
+        '''Reads the configuration file and set attributes.'''
         config = self._read_pypirc()
         if config != {}:
             self.username = config['username']
@@ -83,45 +93,43 @@ class register(PyPIRCCommand):
             self.has_config = False
 
     def classifiers(self):
-        ''' Fetch the list of classifiers from the server.
-        '''
-        url = self.repository+'?:action=list_classifiers'
+        '''Fetch the list of classifiers from the server.'''
+        url = self.repository + '?:action=list_classifiers'
         response = urllib.request.urlopen(url)
         log.info(self._read_pypi_response(response))
 
     def verify_metadata(self):
-        ''' Send the metadata to the package index server to be checked.
-        '''
+        '''Send the metadata to the package index server to be checked.'''
         # send the info to the server and report the result
         (code, result) = self.post_to_server(self.build_post_data('verify'))
         log.info('Server response (%s): %s', code, result)
 
-    def send_metadata(self):
-        ''' Send the metadata to the package index server.
+    def send_metadata(self):  # noqa: C901
+        '''Send the metadata to the package index server.
 
-            Well, do the following:
-            1. figure who the user is, and then
-            2. send the data as a Basic auth'ed POST.
+        Well, do the following:
+        1. figure who the user is, and then
+        2. send the data as a Basic auth'ed POST.
 
-            First we try to read the username/password from $HOME/.pypirc,
-            which is a ConfigParser-formatted file with a section
-            [distutils] containing username and password entries (both
-            in clear text). Eg:
+        First we try to read the username/password from $HOME/.pypirc,
+        which is a ConfigParser-formatted file with a section
+        [distutils] containing username and password entries (both
+        in clear text). Eg:
 
-                [distutils]
-                index-servers =
-                    pypi
+            [distutils]
+            index-servers =
+                pypi
 
-                [pypi]
-                username: fred
-                password: sekrit
+            [pypi]
+            username: fred
+            password: sekrit
 
-            Otherwise, to figure who the user is, we offer the user three
-            choices:
+        Otherwise, to figure who the user is, we offer the user three
+        choices:
 
-             1. use existing login,
-             2. register as a new user, or
-             3. set the password to a random string and email the user.
+         1. use existing login,
+         2. register as a new user, or
+         3. set the password to a random string and email the user.
 
         '''
         # see if we can short-cut and get the username/password from the
@@ -137,13 +145,16 @@ class register(PyPIRCCommand):
         # get the user's login info
         choices = '1 2 3 4'.split()
         while choice not in choices:
-            self.announce('''\
+            self.announce(
+                '''\
 We need to know who you are, so please choose either:
  1. use your existing login,
  2. register as a new user,
  3. have the server generate a new password for you (and email it to you), or
  4. quit
-Your selection [default 1]: ''', log.INFO)
+Your selection [default 1]: ''',
+                logging.INFO,
+            )
             choice = input()
             if not choice:
                 choice = '1'
@@ -162,10 +173,8 @@ Your selection [default 1]: ''', log.INFO)
             host = urllib.parse.urlparse(self.repository)[1]
             auth.add_password(self.realm, host, username, password)
             # send the info to the server and report the result
-            code, result = self.post_to_server(self.build_post_data('submit'),
-                auth)
-            self.announce('Server response (%s): %s' % (code, result),
-                          log.INFO)
+            code, result = self.post_to_server(self.build_post_data('submit'), auth)
+            self.announce('Server response ({}): {}'.format(code, result), logging.INFO)
 
             # possibly save the login
             if code == 200:
@@ -174,10 +183,17 @@ Your selection [default 1]: ''', log.INFO)
                     # so the upload command can reuse it
                     self.distribution.password = password
                 else:
-                    self.announce(('I can store your PyPI login so future '
-                                   'submissions will be faster.'), log.INFO)
-                    self.announce('(the login will be stored in %s)' % \
-                                  self._get_rc_file(), log.INFO)
+                    self.announce(
+                        (
+                            'I can store your PyPI login so future '
+                            'submissions will be faster.'
+                        ),
+                        logging.INFO,
+                    )
+                    self.announce(
+                        '(the login will be stored in %s)' % self._get_rc_file(),
+                        logging.INFO,
+                    )
                     choice = 'X'
                     while choice.lower() not in 'yn':
                         choice = input('Save your login (y/N)?')
@@ -208,8 +224,7 @@ Your selection [default 1]: ''', log.INFO)
                 log.info('Server response (%s): %s', code, result)
             else:
                 log.info('You will receive an email shortly.')
-                log.info(('Follow the instructions in it to '
-                          'complete registration.'))
+                log.info('Follow the instructions in it to ' 'complete registration.')
         elif choice == '3':
             data = {':action': 'password_reset'}
             data['email'] = ''
@@ -224,7 +239,7 @@ Your selection [default 1]: ''', log.INFO)
         meta = self.distribution.metadata
         data = {
             ':action': action,
-            'metadata_version' : '1.0',
+            'metadata_version': '1.0',
             'name': meta.get_name(),
             'version': meta.get_version(),
             'summary': meta.get_description(),
@@ -246,13 +261,13 @@ Your selection [default 1]: ''', log.INFO)
             data['metadata_version'] = '1.1'
         return data
 
-    def post_to_server(self, data, auth=None):
-        ''' Post a query to the server, and return a string response.
-        '''
+    def post_to_server(self, data, auth=None):  # noqa: C901
+        '''Post a query to the server, and return a string response.'''
         if 'name' in data:
-            self.announce('Registering %s to %s' % (data['name'],
-                                                    self.repository),
-                                                    log.INFO)
+            self.announce(
+                'Registering {} to {}'.format(data['name'], self.repository),
+                logging.INFO,
+            )
         # Build up the MIME payload for the urllib2 POST data
         boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
         sep_boundary = '\n--' + boundary
@@ -260,12 +275,12 @@ Your selection [default 1]: ''', log.INFO)
         body = io.StringIO()
         for key, value in data.items():
             # handle multiple entries for the same name
-            if type(value) not in (type([]), type( () )):
+            if type(value) not in (type([]), type(())):
                 value = [value]
             for value in value:
                 value = str(value)
                 body.write(sep_boundary)
-                body.write('\nContent-Disposition: form-data; name="%s"'%key)
+                body.write('\nContent-Disposition: form-data; name="%s"' % key)
                 body.write("\n\n")
                 body.write(value)
                 if value and value[-1] == '\r':
@@ -276,8 +291,9 @@ Your selection [default 1]: ''', log.INFO)
 
         # build the Request
         headers = {
-            'Content-type': 'multipart/form-data; boundary=%s; charset=utf-8'%boundary,
-            'Content-length': str(len(body))
+            'Content-type': 'multipart/form-data; boundary=%s; charset=utf-8'
+            % boundary,
+            'Content-length': str(len(body)),
         }
         req = urllib.request.Request(self.repository, body, headers)
 
@@ -300,5 +316,5 @@ Your selection [default 1]: ''', log.INFO)
             result = 200, 'OK'
         if self.show_response:
             msg = '\n'.join(('-' * 75, data, '-' * 75))
-            self.announce(msg, log.INFO)
+            self.announce(msg, logging.INFO)
         return result

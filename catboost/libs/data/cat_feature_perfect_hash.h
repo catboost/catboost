@@ -225,7 +225,7 @@ namespace NCB {
 
         void Load() const {
             if (!HasHashInRam) {
-                Y_VERIFY(StorageTempFile);
+                CB_ENSURE(StorageTempFile, "Need a file to load cat features hash");
                 TIFStream inputStream(StorageTempFile->Name());
                 FeaturesPerfectHash.clear();
                 ::Load(&inputStream, FeaturesPerfectHash);
@@ -241,7 +241,7 @@ namespace NCB {
 
     private:
         void Save() const {
-            Y_VERIFY(StorageTempFile);
+            CB_ENSURE(StorageTempFile, "Need a file to load cat features hash");
             TOFStream out(StorageTempFile->Name());
             ::Save(&out, FeaturesPerfectHash);
         }

@@ -2,6 +2,279 @@
 Cython Changelog
 ================
 
+0.29.33 (2023-01-06)
+====================
+
+Features added
+--------------
+
+* The ``cythonize`` and ``cython`` commands have a new option ``-M`` / ``--depfile``
+  to generate ``.dep`` dependency files for the compilation unit.  This can be used
+  by external build tools to track these dependencies.
+  The ``cythonize`` option was already available in Cython :ref:`0.29.27`.
+  Patches by Evgeni Burovski and Eli Schwartz.  (Github issue :issue:`1214`)
+
+Bugs fixed
+----------
+
+* ``const`` fused types could not be used with memory views.
+  Patch by Thomas Vincent.  (Github issue :issue:`1772`)
+
+* ``wstr`` usage was removed in Python 3.12 and later (PEP-623).
+  (Github issue :issue:`5145`)
+
+* A type check assertion for Cython functions failed in debug Python builds.
+  (Github issue :issue:`5031`)
+
+* Fixed various compiler warnings.
+  Patches by Lisandro Dalcin et al.  (Github issues :issue:`4948`, :issue:`5086`)
+
+* Fixed error when calculating complex powers of negative numbers.
+  (Github issue :issue:`5014`)
+  
+* Corrected a small mis-formatting of exception messages on Python 2.
+  (Github issue :issue:`5018`)
+
+* The ``PyUnicode_AsUTF8AndSize()`` C-API function was missing from the CPython declarations.
+  (Github issue :issue:`5163`)
+
+* A performance problem in the compiler was resolved when nesting conditional expressions.
+  (Github issue :issue:`5197`)
+
+* Test suite problems with recent NumPy and CPython versions were resolved.
+  (Github issues :issue:`5183`, :issue:`5190`)
+
+Other changes
+-------------
+  
+* The undocumented, untested and apparently useless syntax
+  ``from somemodule cimport class/struct/union somename`` was deprecated
+  in anticipation of its removal in Cython 3.  The type
+  modifier is not needed here and a plain ``cimport`` of the name will do.
+  (Github issue :issue:`4905`)
+  
+* Properly disable generation of descriptor docstrings on PyPy since they cause crashes.
+  It was previously disabled, but only accidentally via a typo.
+  Patch by Matti Picus.  (Github issue :issue:`5083`)
+
+* The ``cpow`` directive of Cython 3.0 is available as a no-op.
+  (Github issue :issue:`5016`)
+
+
+0.29.32 (2022-07-29)
+====================
+
+Bugs fixed
+----------
+
+* Revert "Using memoryview typed arguments in inner functions is now rejected as unsupported."
+  Patch by David Woods.  (Github issue #4798)
+
+* ``from module import *`` failed in 0.29.31 when using memoryviews.
+  Patch by David Woods.  (Github issue #4927)
+
+
+0.29.31 (2022-07-27)
+====================
+
+Features added
+--------------
+
+* A new argument ``--module-name`` was added to the ``cython`` command to
+  provide the (one) exact target module name from the command line.
+  Patch by Matthew Brett and h-vetinari.  (Github issue #4906)
+
+Bugs fixed
+----------
+
+* Use ``importlib.util.find_spec()`` instead of the deprecated ``importlib.find_loader()``
+  function when setting up the package path at import-time.
+  Patch by Matti Picus.  (Github issue #4764)
+
+* Require the C compiler to support the two-arg form of ``va_start``
+  on Python 3.10 and higher.
+  Patch by Thomas Caswell.  (Github issue #4820)
+
+* Make ``fused_type`` subscriptable in Shadow.py.
+  Patch by Pfebrer.  (Github issue #4842)
+
+* Fix the incorrect code generation of the target type in ``bytearray`` loops.
+  Patch by Kenrick Everett.  (Github issue #4108)
+
+* Atomic refcounts for memoryviews were not used on some GCC versions by accident.
+  Patch by Sam Gross.  (Github issue #4915)
+
+* Silence some GCC ``-Wconversion`` warnings in C utility code.
+  Patch by Lisandro Dalcin.  (Github issue #4854)
+
+* Tuple multiplication was ignored in expressions such as ``[*(1,) * 2]``.
+  Patch by David Woods.  (Github issue #4864)
+
+* Calling ``append`` methods on extension types could fail to find the method
+  in some cases.
+  Patch by David Woods.  (Github issue #4828)
+
+* Ensure that object buffers (e.g. ``ndarray[object, ndim=1]``) containing
+  ``NULL``  pointers are safe to use, returning ``None`` instead of the ``NULL``
+  pointer.
+  Patch by Sebastian Berg.  (Github issue #4859)
+
+* Using memoryview typed arguments in inner functions is now rejected as unsupported.
+  Patch by David Woods.  (Github issue #4798)
+
+* Compilation could fail on systems (e.g. FIPS) that block MD5 checksums at runtime.
+  (Github issue #4909)
+
+* Experimental adaptations for the CPython "nogil" fork was added.
+  Note that there is no official support for this in Cython 0.x.
+  Patch by Sam Gross.  (Github issue #4912)
+
+
+0.29.30 (2022-05-16)
+====================
+
+Bugs fixed
+----------
+
+* The GIL handling changes in 0.29.29 introduced a regression where
+  objects could be deallocated without holding the GIL.
+  (Github issue #4796)
+
+
+0.29.29 (2022-05-16)
+====================
+
+Features added
+--------------
+
+* Avoid acquiring the GIL at the end of nogil functions.
+  This change was backported in order to avoid generating wrong C code
+  that would trigger C compiler warnings with tracing support enabled.
+  Backport by Oleksandr Pavlyk.  (Github issue #4637)
+
+Bugs fixed
+----------
+
+* Function definitions in ``finally:`` clauses were not correctly generated.
+  Patch by David Woods.  (Github issue #4651)
+
+* A case where C-API functions could be called with a live exception set was fixed.
+  Patch by Jakub Kulík.  (Github issue #4722)
+
+* Pickles can now be exchanged again with those generated from Cython 3.0 modules.
+  (Github issue #4680)
+
+* Cython now correctly generates Python methods for both the provided regular and
+  reversed special numeric methods of extension types.
+  Patch by David Woods.  (Github issue #4750)
+
+* Calling unbound extension type methods without arguments could raise an
+  ``IndexError`` instead of a ``TypeError``.
+  Patch by David Woods.  (Github issue #4779)
+
+* Calling unbound ``.__contains__()`` super class methods on some builtin base
+  types could trigger an infinite recursion.
+  Patch by David Woods.  (Github issue #4785)
+
+* The C union type in pure Python mode mishandled some field names.
+  Patch by Jordan Brière.  (Github issue #4727)
+
+* Allow users to overwrite the C macro ``_USE_MATH_DEFINES``.
+  Patch by Yuriy Chernyshov. (Github issue #4690)
+
+* Improved compatibility with CPython 3.10/11.
+  Patches by Thomas Caswell, David Woods.  (Github issues #4609, #4667, #4721, #4730, #4777)
+
+* Docstrings of descriptors are now provided in PyPy 7.3.9.
+  Patch by Matti Picus.  (Github issue #4701)
+
+
+0.29.28 (2022-02-17)
+====================
+
+Bugs fixed
+----------
+
+* Due to backwards incompatible changes in CPython 3.11a4, the feature flags
+  ``CYTHON_FAST_THREAD_STATE`` and ``CYTHON_USE_EXC_INFO_STACK`` are now disabled
+  in Python 3.11 and later.  They are enabled again in Cython 3.0.
+  Patch by David Woods.  (Github issue #4610)
+
+* A C compiler warning in older PyPy versions was resolved.
+  Patch by Matti Picus.  (Github issue #4236)
+
+
+0.29.27 (2022-01-28)
+====================
+
+Features added
+--------------
+
+* The ``cythonize`` command has a new option ``-M`` to generate ``.dep`` dependency
+  files for the compilation unit.  This can be used by external build tools to track
+  these dependencies.
+  Patch by Evgeni Burovski.  (Github issue #1214)
+
+Bugs fixed
+----------
+
+* Compilation failures on PyPy were resolved.
+  Patches by Matti Picus.  (Github issues #4509, #4517)
+
+* Calls to ``range()`` with more than three arguments did not fail.
+  Original patch by Max Bachmann.  (Github issue #4550)
+
+* Some C compiler warnings about missing type struct initialisers in Py3.10 were resolved.
+
+* Cython no longer warns about using OpenMP 3.0 features since they are now
+  considered generally available.
+
+
+0.29.26 (2021-12-16)
+====================
+
+Bugs fixed
+----------
+
+* An incompatibility with CPython 3.11.0a3 was resolved.
+  (Github issue #4499)
+
+* The ``in`` operator failed on literal lists with starred expressions.
+  Patch by Arvind Natarajan.  (Github issue #3938)
+
+* A C compiler warning in PyPy about a missing struct field initialisation was resolved.
+
+
+0.29.25 (2021-12-06)
+====================
+
+Bugs fixed
+----------
+
+* Several incompatibilities with CPython 3.11 were resolved.
+  Patches by David Woods, Victor Stinner, Thomas Caswell.
+  (Github issues #4411, #4414, #4415, #4416, #4420, #4428, #4473, #4479, #4480)
+
+* Some C compiler warnings were resolved.
+  Patches by Lisandro Dalcin and others.  (Github issue #4439)
+
+* C++ ``std::move()`` should only be used automatically in MSVC versions that support it.
+  Patch by Max Bachmann.  (Github issue #4191)
+
+ * The ``Py_hash_t`` type failed to accept arbitrary "index" values.
+   (Github issue #2752)
+
+* Avoid copying unaligned 16-bit values since some platforms require them to be aligned.
+  Use memcpy() instead to let the C compiler decide how to do it.
+  (Github issue #4343)
+
+* Cython crashed on invalid truthiness tests on C++ types without ``operator bool``.
+  Patch by David Woods.  (Github issue #4348)
+
+* The declaration of ``PyUnicode_CompareWithASCIIString()`` in ``cpython.unicode`` was incorrect.
+  Patch by Max Bachmann.  (Github issue #4344)
+
+
 0.29.24 (2021-07-14)
 ====================
 

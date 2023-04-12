@@ -2,6 +2,7 @@
 #include "dir_helper.h"
 #include "train_model.h"
 #include "options_helper.h"
+#include "trainer_env.h"
 
 #include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/calc_score_cache.h>
@@ -194,7 +195,7 @@ public:
     }
 
     bool IsContinueTraining(const TMetricsAndTimeLeftHistory& metricsAndTimeHistory) override {
-        Y_VERIFY(metricsAndTimeHistory.TimeHistory.size() > 0);
+        CB_ENSURE(metricsAndTimeHistory.TimeHistory.size() > 0, "Training time history is empty");
         size_t iteration = (FoldContext->TaskType == ETaskType::CPU) ?
               metricsAndTimeHistory.TimeHistory.size() - 1
             : (metricsAndTimeHistory.TimeHistory.size() - 1);
@@ -555,6 +556,8 @@ void CrossValidate(
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
 
+    auto trainerEnv = NCB::CreateTrainerEnv(NCatboostOptions::LoadOptions(jsonParams));
+
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
     NPar::TLocalExecutor localExecutor;
@@ -627,9 +630,8 @@ TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
             return NCB::StratifiedSplitToFolds(*dataProvider.ObjectsGrouping, rawTargetData[0], partCount);
         }
         default:
-            Y_UNREACHABLE();
+            CB_ENSURE(false, "Unexpected raw target type");
     }
-    Y_UNREACHABLE();
 }
 
 TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(

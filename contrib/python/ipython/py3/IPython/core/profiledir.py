@@ -7,6 +7,7 @@
 import os
 import shutil
 import errno
+from pathlib import Path
 
 from traitlets.config.configurable import LoggingConfigurable
 from ..paths import get_ipython_package_dir
@@ -131,19 +132,20 @@ class ProfileDir(LoggingConfigurable):
         self.check_pid_dir()
         self.check_startup_dir()
 
-    def copy_config_file(self, config_file, path=None, overwrite=False):
+    def copy_config_file(self, config_file: str, path: Path, overwrite=False) -> bool:
         """Copy a default config file into the active profile directory.
 
         Default configuration files are kept in :mod:`IPython.core.profile`.
         This function moves these from that location to the working profile
         directory.
         """
-        dst = os.path.join(self.location, config_file)
-        if os.path.isfile(dst) and not overwrite:
+        dst = Path(os.path.join(self.location, config_file))
+        if dst.exists() and not overwrite:
             return False
         if path is None:
             path = os.path.join(get_ipython_package_dir(), u'core', u'profile', u'default')
-        src = os.path.join(path, config_file)
+        assert isinstance(path, Path)
+        src = path / config_file
         shutil.copy(src, dst)
         return True
 
@@ -184,7 +186,7 @@ class ProfileDir(LoggingConfigurable):
         is not found, a :class:`ProfileDirError` exception will be raised.
 
         The search path algorithm is:
-        1. ``os.getcwd()``
+        1. ``os.getcwd()`` # removed for security reason.
         2. ``ipython_dir``
 
         Parameters
@@ -196,7 +198,7 @@ class ProfileDir(LoggingConfigurable):
             will be "profile_<profile>".
         """
         dirname = u'profile_' + name
-        paths = [os.getcwd(), ipython_dir]
+        paths = [ipython_dir]
         for p in paths:
             profile_dir = os.path.join(p, dirname)
             if os.path.isdir(profile_dir):

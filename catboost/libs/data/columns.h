@@ -104,7 +104,7 @@ namespace NCB {
                 case EFeatureValuesType::FeaturesGroup:
                     CB_ENSURE_INTERNAL(false, "GetFeatureType called for Aggregate type");
             }
-            Y_FAIL("This place should be inaccessible");
+            CB_ENSURE(false, "This place should be inaccessible");
             return EFeatureType::Float; // to keep compiler happy
         }
 
@@ -171,7 +171,7 @@ namespace NCB {
         } else if (auto ui32iter = dynamic_cast<IDynamicBlockIterator<ui32>*>(blockIterator)) {
             typedIteratorFunc(ui32iter);
         } else {
-            Y_VERIFY(0, "Unexpected iterator basetype");
+            CB_ENSURE(0, "Unexpected iterator basetype");
         }
     }
 

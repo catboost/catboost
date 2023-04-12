@@ -1,6 +1,8 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #include "algorithm.h"
+#include "hash.h"
+#include "hash_multi_map.h"
 #include "strbuf.h"
 #include "string.h"
 
@@ -416,6 +418,56 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         }
     }
 
+    Y_UNIT_TEST(AdjacentFindTest) {
+        TVector<int> v0;
+        UNIT_ASSERT_EQUAL(AdjacentFind(v0), v0.end());
+
+        TVector<int> v1 = {1};
+        UNIT_ASSERT_EQUAL(AdjacentFind(v1), v1.end());
+
+        const int v2[] = {8, 7, 6, 6, 5, 5, 5, 4, 3, 2, 1};
+        UNIT_ASSERT_EQUAL(AdjacentFind(v2), std::begin(v2) + 2);
+
+        TVector<TStringBuf> v3 = {"six", "five", "four", "three", "two", "one"};
+        UNIT_ASSERT_EQUAL(AdjacentFind(v3), v3.end());
+
+        TVector<int> v4 = {1, 1, 1, 1, 1};
+        for (;;) {
+            if (auto it = AdjacentFind(v4); it == v4.end()) {
+                break;
+            } else {
+                *it += 1;
+            }
+        }
+        UNIT_ASSERT_VALUES_EQUAL(v4, (TVector<int>{5, 4, 3, 2, 1}));
+    }
+
+    Y_UNIT_TEST(AdjacentFindByTest) {
+        TVector<int> v0;
+        UNIT_ASSERT_EQUAL(AdjacentFindBy(v0, std::negate<int>()), v0.end());
+
+        TVector<int> v1 = {1};
+        UNIT_ASSERT_EQUAL(AdjacentFindBy(v1, std::negate<int>()), v1.end());
+
+        const int v2[] = {8, 7, 6, 6, 5, 5, 5, 4, 3, 2, 1};
+        UNIT_ASSERT_EQUAL(AdjacentFindBy(v2, std::negate<int>()), std::begin(v2) + 2);
+        UNIT_ASSERT_EQUAL(AdjacentFindBy(v2, [](const auto& e) { return e / 8; }), std::begin(v2) + 1);
+
+        TVector<TStringBuf> v3 = {"six", "five", "four", "three", "two", "one"};
+        UNIT_ASSERT_EQUAL(AdjacentFind(v3), v3.end());
+        UNIT_ASSERT_EQUAL(AdjacentFindBy(v3, std::mem_fn(&TStringBuf::size)), v3.begin() + 1);
+
+        TVector<int> v4 = {101, 201, 301, 401, 501};
+        for (;;) {
+            if (auto it = AdjacentFindBy(v4, [](int a) { return a % 10; }); it == v4.end()) {
+                break;
+            } else {
+                *it += 1;
+            }
+        }
+        UNIT_ASSERT_VALUES_EQUAL(v4, (TVector<int>{105, 204, 303, 402, 501}));
+    }
+
     Y_UNIT_TEST(IsSortedTest) {
         TVector<int> v0;
         UNIT_ASSERT_VALUES_EQUAL(IsSorted(v0.begin(), v0.end()), true);
@@ -434,15 +486,19 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
     Y_UNIT_TEST(IsSortedByTest) {
         TVector<int> v0;
         UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v0.begin(), v0.end(), std::negate<int>()), true);
+        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v0, std::negate<int>()), true);
 
         TVector<int> v1 = {1};
         UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v1.begin(), v1.end(), std::negate<int>()), true);
+        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v1, std::negate<int>()), true);
 
         TVector<int> v2 = {8, 7, 6, 6, 5, 5, 5, 4, 3, 2, 1};
         UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v2.begin(), v2.end(), std::negate<int>()), true);
+        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v2, std::negate<int>()), true);
 
         TVector<int> v3 = {1, 2, 1};
         UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v3.begin(), v3.end(), std::negate<int>()), false);
+        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v3, std::negate<int>()), false);
     }
 
     Y_UNIT_TEST(SortTestTwoIterators) {

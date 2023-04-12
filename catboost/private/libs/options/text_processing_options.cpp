@@ -121,12 +121,25 @@ namespace NCatboostOptions {
             return;
         }
         TString calcerName;
-        if (options.Has("calcer_type")) {
+
+        if (options.IsString()) {
+            TStringBuf name, calcersOptions;
+            TStringBuf(options.GetString()).Split(':', name, calcersOptions);
+            calcerName = name;
+            CalcerOptions->InsertValue("calcer_type", calcerName);
+            for (TStringBuf stringParam : StringSplitter(calcersOptions).Split(':')) {
+                TStringBuf key, value;
+                stringParam.Split('=', key, value);
+                CalcerOptions->InsertValue(key, value);
+            }
+        } else {
+            CB_ENSURE(options.IsMap(),
+                      "We only support string and dictionaries as featurization options for value "
+                      << options.GetStringRobust() << " with type " << options.GetType());
             calcerName = options["calcer_type"].GetString();
             CalcerOptions.Set(options);
-        } else {
-            calcerName = options.GetString();
         }
+
         EFeatureCalcerType calcerType;
 
         CB_ENSURE(TryFromString<EFeatureCalcerType>(calcerName, calcerType),
@@ -153,6 +166,10 @@ namespace NCatboostOptions {
         , Dictionaries("dictionaries", {})
         , TextFeatureProcessing("feature_processing", {})
     {
+        SetDefault();
+    }
+
+    void TTextProcessingOptions::SetDefault(bool forClassification) {
         const TString tokenizerName = "Space";
         Tokenizers.SetDefault(TVector<TTextColumnTokenizerOptions>{{tokenizerName, TTokenizerOptions()}});
 
@@ -166,18 +183,47 @@ namespace NCatboostOptions {
 
         Dictionaries.SetDefault(TVector<TTextColumnDictionaryOptions>{bigramDctionary, unigramDctionary});
 
-        TextFeatureProcessing.SetDefault(TMap<TString, TVector<TTextFeatureProcessing>>{{DefaultProcessingName(), {
+        TVector<TTextFeatureProcessing> textFeatureProcessingVector;
+        textFeatureProcessingVector.push_back(
             TTextFeatureProcessing{
                 {TFeatureCalcerDescription{EFeatureCalcerType::BoW}},
                 {tokenizerName},
                 {bigramDctionaryName, unigramDctionaryName}
-            },
-            TTextFeatureProcessing{
-                {TFeatureCalcerDescription{EFeatureCalcerType::NaiveBayes}},
-                {tokenizerName},
-                {unigramDctionaryName}
             }
-        }}});
+        );
+        if (forClassification) {
+            textFeatureProcessingVector.push_back(
+                TTextFeatureProcessing{
+                    {TFeatureCalcerDescription{EFeatureCalcerType::NaiveBayes}},
+                    {tokenizerName},
+                    {unigramDctionaryName}
+                }
+            );
+        }
+
+        TextFeatureProcessing.SetDefault(
+            TMap<TString, TVector<TTextFeatureProcessing>>{{DefaultProcessingName(), std::move(textFeatureProcessingVector)}}
+        );
+    }
+
+    void TTextProcessingOptions::Validate(bool forClassification) const {
+        if (!forClassification) {
+            if (TextFeatureProcessing.IsSet()) {
+                for (const auto& [featureId, processings]: TextFeatureProcessing.Get()) {
+                    for (const auto& processing: processings) {
+                        if (!processing.FeatureCalcers->empty()) {
+                            for (const auto& featureCalcer : processing.FeatureCalcers.Get()) {
+                                CB_ENSURE(
+                                    !IsClassificationOnlyEstimator(featureCalcer.CalcerType.Get()),
+                                    "Text feature processing feature calcer has type " << featureCalcer.CalcerType.Get()
+                                    << " that is supported only for classification"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void TTextProcessingOptions::SetNotSpecifiedOptionsToDefaults() {
@@ -276,7 +322,9 @@ namespace NCatboostOptions {
         TVector<TTextColumnDictionaryOptions>&& dictionaries,
         TMap<TString, TVector<TTextFeatureProcessing>>&& textFeatureProcessing
     )
-        : TTextProcessingOptions()
+        : Tokenizers("tokenizers", {})
+        , Dictionaries("dictionaries", {})
+        , TextFeatureProcessing("feature_processing", {})
     {
         Tokenizers.Set(tokenizers);
         Dictionaries.Set(dictionaries);

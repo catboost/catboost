@@ -48,6 +48,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
     threadCount: Int,
     connectTimeout: java.time.Duration,
     workerInitializationTimeout: java.time.Duration,
+    workerListeningPortParam: Int, // auto-assign if 0
     
     // returns (quantizedDataProviders, estimatedQuantizedDataProviders, dstRows) can return null
     getDataProvidersCallback : (TLocalExecutor) => (TVector_TDataProviderPtr, TVector_TDataProviderPtr, Array[mutable.ArrayBuffer[Array[Any]]])
@@ -91,7 +92,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
         log.info("processPartition: data is empty")
       }
 
-      val workerPort = TrainingDriver.getWorkerPort()
+      val workerListeningPort = if (workerListeningPortParam != 0) { workerListeningPortParam } else { TrainingDriver.getWorkerPort() }
 
       val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
 
@@ -103,7 +104,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
               trainingDriverListeningAddress,
               partitionId,
               partitionSize,
-              workerPort,
+              workerListeningPort,
               connectTimeout,
               workerInitializationTimeout
             )
@@ -116,9 +117,9 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
         new Runnable() {
           def run() = {
             if (partitionSize != 0) {
-              log.info("processPartition: start RunWorkerWrapper")
-              native_impl.RunWorkerWrapper(threadCount, workerPort)
-              log.info("processPartition: end RunWorkerWrapper")
+              log.info("processPartition: start RunWorker")
+              native_impl.RunWorker(threadCount, workerListeningPort)
+              log.info("processPartition: end RunWorker")
             }
           }
         },
@@ -129,7 +130,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
         impl.Helpers.waitForTwoFutures(
           ecs,
           workerFuture,
-          "native_impl.RunWorkerWrapper",
+          "native_impl.RunWorker",
           sendWorkerInfoFuture,
           "TrainingDriver.waitForListeningPortAndSendWorkerInfo"
         )
@@ -194,6 +195,7 @@ private[spark] object CatBoostWorkers {
     workerCount: Int,
     connectTimeout: java.time.Duration,
     workerInitializationTimeout: java.time.Duration,
+    workerListeningPort: Int,
     preparedTrainPool: DatasetForTraining,
     preparedEvalPools: Seq[DatasetForTraining],
     catBoostJsonParams: JObject,
@@ -246,6 +248,7 @@ private[spark] object CatBoostWorkers {
     // copies are needed because Spark will try to capture the whole CatBoostWorkers class and fail
     val connectTimeoutCopy = connectTimeout
     val workerInitializationTimeoutCopy = workerInitializationTimeout
+    val workerListeningPortParamCopy = workerListeningPort
     val precomputedOnlineCtrMetaDataAsJsonStringCopy = precomputedOnlineCtrMetaDataAsJsonString
 
     val totalDatasetCount = 1 + evalDataForWorkers.size
@@ -280,6 +283,7 @@ private[spark] object CatBoostWorkers {
               threadCount,
               connectTimeoutCopy,
               workerInitializationTimeoutCopy,
+              workerListeningPortParamCopy,
               (localExecutor: TLocalExecutor) => {
                 if (groups.hasNext) {
                   DataHelpers.loadQuantizedDatasetsWithPairs(
@@ -330,6 +334,7 @@ private[spark] object CatBoostWorkers {
               threadCount,
               connectTimeoutCopy,
               workerInitializationTimeoutCopy,
+              workerListeningPortParamCopy,
               (localExecutor: TLocalExecutor) => {
                 if (rows.hasNext) {
                   DataHelpers.loadQuantizedDatasets(

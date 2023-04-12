@@ -142,6 +142,14 @@ const char* GetProgramBuildDate() {
 #endif
 }
 
+const char* GetCustomVersion() {
+#if defined(CUSTOM_VERSION)
+    return CUSTOM_VERSION;
+#else
+    return "";
+#endif
+}
+
 int GetProgramBuildTimestamp() {
 #if defined(BUILD_TIMESTAMP)
     return BUILD_TIMESTAMP;

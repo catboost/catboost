@@ -34,27 +34,36 @@ static void ValidateSplits(
     }
 }
 
-NCatboostCuda::TBestSplitResult NCatboostCuda::TPairwiseScoreCalcer::FindOptimalSplit(bool needBestSolution) {
+NCatboostCuda::TBestSplitResult NCatboostCuda::TPairwiseScoreCalcer::FindOptimalSplit(bool needBestSolution, double scoreBeforeSplit) {
     //first: write to one vector on remote side
     //second: read results in one operations
     //reduce latency for mulithost learning
     TStripeBuffer<TBestSplitPropertiesWithIndex> bestSplits;
     TVector<EFeaturesGroupingPolicy> policies;
+    const auto& featureIds = Features.GetFeatures();
+    CB_ENSURE(featureIds.size() > 0, "Need some features for training");
+    const auto featureCount = *MaxElement(featureIds.begin(), featureIds.end()) + 1;
+    const auto featureWeightsCpu = NCatboostOptions::ExpandFeatureWeights(TreeConfig.FeaturePenalties.Get(), featureCount);
+    TMirrorBuffer<float> featureWeights = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(featureWeightsCpu.size()));
+    featureWeights.Write(featureWeightsCpu);
 
     for (auto& helper : Helpers) {
         policies.push_back(helper.first);
     }
 
     const auto policyCount = policies.size();
-    Y_VERIFY(policyCount);
+    CB_ENSURE(policyCount, "Dataset does not have any features?");
     bestSplits.Reset(NCudaLib::TStripeMapping::RepeatOnAllDevices(policyCount));
 
     for (ui32 i = 0; i < policies.size(); ++i) {
         EFeaturesGroupingPolicy policy = policies[i];
         auto bestScoreSlice = NCudaLib::ParallelStripeView(bestSplits,
                                                            TSlice(i, (i + 1)));
+
         SelectOptimalSplit(Solutions[policy]->Scores,
                            Solutions[policy]->BinFeatures,
+                           scoreBeforeSplit,
+                           featureWeights,
                            bestScoreSlice);
     }
 
@@ -67,36 +76,30 @@ NCatboostCuda::TBestSplitResult NCatboostCuda::TPairwiseScoreCalcer::FindOptimal
 
     ValidateSplits(bestSplitCpu, policies, deviceCount);
 
+    CB_ENSURE_INTERNAL(deviceCount > 0, "Device count is zero");
+
     for (ui32 policyId = 0; policyId < policyCount; ++policyId) {
-        bool found = false;
-        for (ui32 dev = 0; dev < deviceCount; ++dev) {
+        bestForPolicies[policyId] = bestSplitCpu[policyCount * 0 + policyId];
+        for (ui32 dev = 1; dev < deviceCount; ++dev) {
             const auto& current = bestSplitCpu[policyCount * dev + policyId];
-            if (current.Score < bestForPolicies[policyId].Score) {
+            if (current < bestForPolicies[policyId]) {
                 bestForPolicies[policyId] = current;
-                found = true;
             }
         }
-
-        const auto policy = policies[policyId];
-        CB_ENSURE(found, "failed to find best score for " << LabeledOutput(policy, policyId));
     }
 
-    TBestSplitPropertiesWithIndex bestSplit;
-    EFeaturesGroupingPolicy bestPolicy;
+    TBestSplitPropertiesWithIndex bestSplit = bestForPolicies[0];
+    EFeaturesGroupingPolicy bestPolicy = policies[0];
 
-    bool foundBestScoreAmongPolicies = false;
-    for (ui32 policyId = 0; policyId < policyCount; ++policyId) {
+    for (ui32 policyId = 1; policyId < policyCount; ++policyId) {
         EFeaturesGroupingPolicy policy = policies[policyId];
 
         const auto& current = bestForPolicies[policyId];
-        if (current.Score < bestSplit.Score) {
+        if (current < bestSplit) {
             bestSplit = current;
             bestPolicy = policy;
-            foundBestScoreAmongPolicies = true;
         }
     }
-
-    CB_ENSURE(foundBestScoreAmongPolicies);
 
     TBestSplitResult bestSplitResult;
     bestSplitResult.BestSplit = static_cast<TBestSplitProperties&>(bestSplit);

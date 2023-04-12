@@ -10,7 +10,7 @@ catboost.predict(model,
                  thread_count={{ fit__thread_count__wrappers }})
 ```
 
-## {{ dl--purpose }} {#prdict-purpose}
+## {{ dl--purpose }} {#predict-purpose}
 
 {% include [sections-with-methods-desc-predict--purpose](../_includes/work_src/reusage/predict--purpose.md) %}
 

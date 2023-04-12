@@ -16,12 +16,18 @@
 #include <catboost/libs/train_lib/options_helper.h>
 
 #include <library/cpp/json/json_value.h>
+#include <library/cpp/threading/local_executor/tbb_local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>
+#include <util/generic/ptr.h>
+#include <util/generic/xrange.h>
 
 #include <type_traits>
+
+
+struct TTrainTestSplitParams;
 
 
 class TGilGuard : public TNonCopyable {
@@ -192,6 +198,8 @@ void SetDataFromScipyCsrSparse(
     TConstArrayRef<ui32> indptr,
     TConstArrayRef<TFloatOrInteger> data,
     TConstArrayRef<ui32> indices,
+    bool hasSeparateEmbeddingFeaturesData,
+    TConstArrayRef<ui32> mainDataFeatureIdxToDstFeatureIdx,
     TConstArrayRef<bool> isCatFeature,
     NCB::IRawObjectsOrderDataVisitor* builderVisitor,
     NPar::ILocalExecutor* localExecutor
@@ -209,9 +217,20 @@ void SetDataFromScipyCsrSparse(
             [=] (ui32 objIdx) {
                 const auto nonzeroBegin = indptr[objIdx];
                 const auto nonzeroEnd = indptr[objIdx + 1];
+
+                TVector<ui32> dstIndices;
+                if (hasSeparateEmbeddingFeaturesData) {
+                    dstIndices.yresize(nonzeroEnd - nonzeroBegin);
+                    for (auto dstIdx : xrange(nonzeroEnd - nonzeroBegin)) {
+                        dstIndices[dstIdx] = mainDataFeatureIdxToDstFeatureIdx[indices[nonzeroBegin + dstIdx]];
+                    }
+                } else {
+                    dstIndices.assign(indices.data() + nonzeroBegin, indices.data() + nonzeroEnd);
+                }
+
                 const auto features = MakeConstPolymorphicValuesSparseArrayWithArrayIndex(
                     featureCount,
-                    NCB::TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>{indices.data() + nonzeroBegin, indices.data() + nonzeroEnd}),
+                    NCB::TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(dstIndices)),
                     NCB::TMaybeOwningConstArrayHolder<TFloatOrInteger>::CreateOwning(TVector<TFloatOrInteger>{data.data() + nonzeroBegin, data.data() + nonzeroEnd}),
                     /*ordered*/ true,
                     /*defaultValue*/ 0.0f);
@@ -227,7 +246,7 @@ void SetDataFromScipyCsrSparse(
             const auto nonzeroBegin = indptr[objIdx];
             const auto nonzeroEnd = indptr[objIdx + 1];
             for (auto nonzeroIdx : xrange(nonzeroBegin, nonzeroEnd, 1)) {
-                const auto featureIdx = indices[nonzeroIdx];
+                const auto featureIdx = mainDataFeatureIdxToDstFeatureIdx[indices[nonzeroIdx]];
                 const auto value = data[nonzeroIdx];
                 if (isCatFeature[featureIdx]) {
                     const auto isFloat = std::is_same<TFloatOrInteger, float>::value || std::is_same<TFloatOrInteger, double>::value;
@@ -247,3 +266,19 @@ void SetDataFromScipyCsrSparse(
 
 size_t GetNumPairs(const NCB::TDataProvider& dataProvider);
 TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider);
+
+
+void TrainEvalSplit(
+    const NCB::TDataProvider& srcDataProvider,
+    NCB::TDataProviderPtr* trainDataProvider,
+    NCB::TDataProviderPtr* evalDataProvider,
+    const TTrainTestSplitParams& splitParams,
+    bool saveEvalDataset,
+    int threadCount,
+    ui64 cpuUsedRamLimit
+);
+
+
+TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount);
+
+size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription);

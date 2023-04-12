@@ -2,6 +2,8 @@
 
 #include "jemalloc_internal_defs-linux.h"
 
+#undef JEMALLOC_HAVE_MPROTECT
+
 /*
  * Define overrides for non-standard allocator-related functions if they are
  * present on the system.
@@ -86,6 +88,7 @@
 
 /* Use libunwind for profile backtracing if defined. */
 #undef JEMALLOC_PROF_LIBUNWIND
+#undef JEMALLOC_PROF_LIBGCC
 
 /*
  * JEMALLOC_DSS enables use of sbrk(2) to allocate extents from the data storage

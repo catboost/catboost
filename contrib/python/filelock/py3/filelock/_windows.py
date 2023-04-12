@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 import sys
-from abc import ABC
 from errno import ENOENT
 from typing import cast
 
@@ -15,13 +16,13 @@ if sys.platform == "win32":  # pragma: win32 cover
 
         def _acquire(self) -> None:
             raise_on_exist_ro_file(self._lock_file)
-            mode = (
+            flags = (
                 os.O_RDWR  # open for read and write
                 | os.O_CREAT  # create file if not exists
                 | os.O_TRUNC  # truncate file  if not empty
             )
             try:
-                fd = os.open(self._lock_file, mode)
+                fd = os.open(self._lock_file, flags, self._mode)
             except OSError as exception:
                 if exception.errno == ENOENT:  # No such file or directory
                     raise
@@ -45,11 +46,16 @@ if sys.platform == "win32":  # pragma: win32 cover
             except OSError:
                 pass
 
-
 else:  # pragma: win32 no cover
 
-    class WindowsFileLock(BaseFileLock, ABC):
+    class WindowsFileLock(BaseFileLock):
         """Uses the :func:`msvcrt.locking` function to hard lock the lock file on windows systems."""
+
+        def _acquire(self) -> None:
+            raise NotImplementedError
+
+        def _release(self) -> None:
+            raise NotImplementedError
 
 
 __all__ = [

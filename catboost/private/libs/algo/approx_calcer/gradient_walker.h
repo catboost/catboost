@@ -4,7 +4,7 @@
 
 #include <util/generic/vector.h>
 
-template <bool IsLeafwise, typename TLeafUpdater, typename TApproxUpdater, typename TLossCalcer, typename TApproxCopier, typename TStep>
+template <typename TLeafUpdater, typename TApproxUpdater, typename TLossCalcer, typename TApproxCopier>
 void GradientWalker(
     bool isTrivial,
     int iterationCount,
@@ -15,12 +15,9 @@ void GradientWalker(
     const TLossCalcer& lossCalcerFunc,
     const TApproxCopier& approxCopyFunc,
     TVector<TVector<double>>* point,
-    TVector<TStep>* stepSum
+    TVector<TVector<double>>* stepSum
 ) {
-    if (IsLeafwise) {
-        leafCount = 0;
-    }
-    TVector<TStep> step(dimensionCount, TStep(leafCount));
+    TVector<TVector<double>> step(dimensionCount, TVector<double>(leafCount));
 
     if (isTrivial) {
         for (int iterationIdx = 0; iterationIdx < iterationCount; ++iterationIdx) {
@@ -59,7 +56,7 @@ void GradientWalker(
     }
 }
 
-template <bool IsLeafwise, typename TLeafUpdater, typename TApproxUpdater, typename TLossCalcer, typename TStep>
+template <typename TLeafUpdater, typename TApproxUpdater, typename TLossCalcer>
 void FastGradientWalker(
     bool isTrivial,
     int iterationCount,
@@ -69,12 +66,9 @@ void FastGradientWalker(
     const TApproxUpdater& approxUpdaterFunc,
     const TLossCalcer& lossCalcerFunc,
     TVector<TVector<double>>* point,
-    TVector<TStep>* stepSum
+    TVector<TVector<double>>* stepSum
 ) {
-    if (IsLeafwise) {
-        leafCount = 0;
-    }
-    TVector<TStep> step(dimensionCount, TStep(leafCount));
+    TVector<TVector<double>> step(dimensionCount, TVector<double>(leafCount));
 
     if (isTrivial) {
         for (int iterationIdx = 0; iterationIdx < iterationCount; ++iterationIdx) {

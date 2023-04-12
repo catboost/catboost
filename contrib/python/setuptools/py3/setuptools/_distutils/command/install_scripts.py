@@ -6,18 +6,17 @@ Python scripts."""
 # contributed by Bastian Kleineidam
 
 import os
-from distutils.core import Command
-from distutils import log
+from ..core import Command
+from distutils._log import log
 from stat import ST_MODE
 
 
 class install_scripts(Command):
-
     description = "install scripts (Python or otherwise)"
 
     user_options = [
         ('install-dir=', 'd', "directory to install scripts to"),
-        ('build-dir=','b', "build directory (where to install from)"),
+        ('build-dir=', 'b', "build directory (where to install from)"),
         ('force', 'f', "force installation (overwrite existing files)"),
         ('skip-build', None, "skip the build steps"),
     ]
@@ -32,11 +31,12 @@ class install_scripts(Command):
 
     def finalize_options(self):
         self.set_undefined_options('build', ('build_scripts', 'build_dir'))
-        self.set_undefined_options('install',
-                                   ('install_scripts', 'install_dir'),
-                                   ('force', 'force'),
-                                   ('skip_build', 'skip_build'),
-                                  )
+        self.set_undefined_options(
+            'install',
+            ('install_scripts', 'install_dir'),
+            ('force', 'force'),
+            ('skip_build', 'skip_build'),
+        )
 
     def run(self):
         if not self.skip_build:

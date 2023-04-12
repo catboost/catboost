@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "path.h"
 #include <util/generic/string.h>
 

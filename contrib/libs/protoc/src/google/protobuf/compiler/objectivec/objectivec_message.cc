@@ -450,7 +450,7 @@ void MessageGenerator::GenerateSource(io::Printer* printer) {
     printer->Print(
         "\n"
         "typedef struct $classname$__storage_ {\n"
-        "  uint32_t _has_storage_[$sizeof_has_storage$];\n",
+        "  arc_ui32 _has_storage_[$sizeof_has_storage$];\n",
         "classname", class_name_,
         "sizeof_has_storage", StrCat(sizeof_has_storage));
     printer->Indent();
@@ -510,7 +510,7 @@ void MessageGenerator::GenerateSource(io::Printer* printer) {
     vars["fields"] = has_fields ? "fields" : "NULL";
     if (has_fields) {
       vars["fields_count"] =
-          "(uint32_t)(sizeof(fields) / sizeof(" + field_description_type + "))";
+          "(arc_ui32)(sizeof(fields) / sizeof(" + field_description_type + "))";
     } else {
       vars["fields_count"] = "0";
     }
@@ -547,7 +547,7 @@ void MessageGenerator::GenerateSource(io::Printer* printer) {
       printer->Print(
           "    };\n"
           "    [localDescriptor setupOneofs:oneofs\n"
-          "                           count:(uint32_t)(sizeof(oneofs) / sizeof(char*))\n"
+          "                           count:(arc_ui32)(sizeof(oneofs) / sizeof(char*))\n"
           "                   firstHasIndex:$first_has_index$];\n",
           "first_has_index", oneof_generators_[0]->HasIndexAsString());
     }
@@ -579,7 +579,7 @@ void MessageGenerator::GenerateSource(io::Printer* printer) {
       printer->Print(
           "    };\n"
           "    [localDescriptor setupExtensionRanges:ranges\n"
-          "                                    count:(uint32_t)(sizeof(ranges) / sizeof(GPBExtensionRange))];\n");
+          "                                    count:(arc_ui32)(sizeof(ranges) / sizeof(GPBExtensionRange))];\n");
     }
     if (descriptor_->containing_type() != NULL) {
       TProtoStringType containing_class = ClassName(descriptor_->containing_type());

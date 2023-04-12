@@ -1,8 +1,5 @@
 #include "interrupt_signals.h"
 
-#include "compiler.h"
-#include "error.h"
-
 #include <util/generic/yexception.h>
 
 #include <csignal>

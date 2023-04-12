@@ -9,25 +9,30 @@ from unittest import TestCase
 from pytest import mark
 
 from traitlets.config.application import Application
-from traitlets.config.configurable import (
-    Configurable,
-    LoggingConfigurable,
-    SingletonConfigurable,
-)
+from traitlets.config.configurable import Configurable, LoggingConfigurable, SingletonConfigurable
+from traitlets.config.loader import Config
 from traitlets.log import get_logger
 from traitlets.traitlets import (
-    Integer, Float, Unicode, List, Dict, Set, Enum, FuzzyEnum,
-    CaselessStrEnum, _deprecations_shown, validate,
+    CaselessStrEnum,
+    Dict,
+    Enum,
+    Float,
+    FuzzyEnum,
+    Integer,
+    List,
+    Set,
+    Unicode,
+    _deprecations_shown,
+    validate,
 )
 
-from traitlets.config.loader import Config
-
 from traitlets.tests._warnings import expected_warnings
+
 
 class MyConfigurable(Configurable):
     a = Integer(1, help="The integer a.").tag(config=True)
     b = Float(1.0, help="The integer b.").tag(config=True)
-    c = Unicode('no config')
+    c = Unicode("no config")
 
 
 mc_help = """MyConfigurable(Configurable) options
@@ -39,7 +44,7 @@ mc_help = """MyConfigurable(Configurable) options
     The integer b.
     Default: 1.0"""
 
-mc_help_inst="""MyConfigurable(Configurable) options
+mc_help_inst = """MyConfigurable(Configurable) options
 ------------------------------------
 --MyConfigurable.a=<Integer>
     The integer a.
@@ -52,22 +57,24 @@ mc_help_inst="""MyConfigurable(Configurable) options
 mc_help = mc_help.replace("<Integer>", "<Int>")
 mc_help_inst = mc_help_inst.replace("<Integer>", "<Int>")
 
+
 class Foo(Configurable):
     a = Integer(0, help="The integer a.").tag(config=True)
-    b = Unicode('nope').tag(config=True)
+    b = Unicode("nope").tag(config=True)
     flist = List([]).tag(config=True)
     fdict = Dict().tag(config=True)
 
 
 class Bar(Foo):
-    b = Unicode('gotit', help="The string b.").tag(config=False)
+    b = Unicode("gotit", help="The string b.").tag(config=False)
     c = Float(help="The string c.").tag(config=True)
-    bset = Set([]).tag(config=True, multiplicity='+')
-    bset_values = Set([2,1,5]).tag(config=True, multiplicity='+')
-    bdict = Dict().tag(config=True, multiplicity='+')
-    bdict_values = Dict({1:'a','0':'b',5:'c'}).tag(config=True, multiplicity='+')
+    bset = Set([]).tag(config=True, multiplicity="+")
+    bset_values = Set([2, 1, 5]).tag(config=True, multiplicity="+")
+    bdict = Dict().tag(config=True, multiplicity="+")
+    bdict_values = Dict({1: "a", "0": "b", 5: "c"}).tag(config=True, multiplicity="+")
 
-foo_help="""Foo(Configurable) options
+
+foo_help = """Foo(Configurable) options
 -------------------------
 --Foo.a=<Int>
     The integer a.
@@ -79,7 +86,7 @@ foo_help="""Foo(Configurable) options
 --Foo.flist=<list-item-1>...
     Default: []"""
 
-bar_help="""Bar(Foo) options
+bar_help = """Bar(Foo) options
 ----------------
 --Bar.a=<Int>
     The integer a.
@@ -102,7 +109,6 @@ bar_help="""Bar(Foo) options
 
 
 class TestConfigurable(TestCase):
-
     def test_default(self):
         c1 = Configurable()
         c2 = Configurable(config=c1.config)
@@ -112,8 +118,8 @@ class TestConfigurable(TestCase):
 
     def test_custom(self):
         config = Config()
-        config.foo = 'foo'
-        config.bar = 'bar'
+        config.foo = "foo"
+        config.bar = "bar"
         c1 = Configurable(config=config)
         c2 = Configurable(config=c1.config)
         c3 = Configurable(config=c2.config)
@@ -142,14 +148,14 @@ class TestConfigurable(TestCase):
         config = Config()
         config.Foo.a = 10
         config.Foo.b = "wow"
-        config.Bar.b = 'later'
+        config.Bar.b = "later"
         config.Bar.c = 100.0
         f = Foo(config=config)
-        with expected_warnings(['`b` not recognized']):
+        with expected_warnings(["`b` not recognized"]):
             b = Bar(config=f.config)
         self.assertEqual(f.a, 10)
-        self.assertEqual(f.b, 'wow')
-        self.assertEqual(b.b, 'gotit')
+        self.assertEqual(f.b, "wow")
+        self.assertEqual(b.b, "gotit")
         self.assertEqual(b.c, 100.0)
 
     def test_override1(self):
@@ -159,22 +165,22 @@ class TestConfigurable(TestCase):
         c = MyConfigurable(a=3, config=config)
         self.assertEqual(c.a, 3)
         self.assertEqual(c.b, config.MyConfigurable.b)
-        self.assertEqual(c.c, 'no config')
+        self.assertEqual(c.c, "no config")
 
     def test_override2(self):
         config = Config()
         config.Foo.a = 1
-        config.Bar.b = 'or'  # Up above b is config=False, so this won't do it.
+        config.Bar.b = "or"  # Up above b is config=False, so this won't do it.
         config.Bar.c = 10.0
-        with expected_warnings(['`b` not recognized']):
+        with expected_warnings(["`b` not recognized"]):
             c = Bar(config=config)
         self.assertEqual(c.a, config.Foo.a)
-        self.assertEqual(c.b, 'gotit')
+        self.assertEqual(c.b, "gotit")
         self.assertEqual(c.c, config.Bar.c)
-        with expected_warnings(['`b` not recognized']):
-            c = Bar(a=2, b='and', c=20.0, config=config)
+        with expected_warnings(["`b` not recognized"]):
+            c = Bar(a=2, b="and", c=20.0, config=config)
         self.assertEqual(c.a, 2)
-        self.assertEqual(c.b, 'and')
+        self.assertEqual(c.b, "and")
         self.assertEqual(c.c, 20.0)
 
     def test_help(self):
@@ -188,8 +194,7 @@ class TestConfigurable(TestCase):
 
     def test_generated_config_enum_comments(self):
         class MyConf(Configurable):
-            an_enum = Enum('Choice1 choice2'.split(),
-                           help="Many choices.").tag(config=True)
+            an_enum = Enum("Choice1 choice2".split(), help="Many choices.").tag(config=True)
 
         help_str = "Many choices."
         enum_choices_str = "Choices: any of ['Choice1', 'choice2']"
@@ -207,9 +212,8 @@ class TestConfigurable(TestCase):
         self.assertIn(help_str, cls_cfg)
         self.assertIn(enum_choices_str, cls_cfg)
         self.assertNotIn(or_none_str, cls_help)
-        ## Check order of Help-msg <--> Choices sections
-        self.assertGreater(cls_cfg.index(enum_choices_str),
-                           cls_cfg.index(help_str))
+        # Check order of Help-msg <--> Choices sections
+        self.assertGreater(cls_cfg.index(enum_choices_str), cls_cfg.index(help_str))
 
         rst_help = MyConf.class_config_rst_doc()
 
@@ -218,10 +222,12 @@ class TestConfigurable(TestCase):
         self.assertNotIn(or_none_str, rst_help)
 
         class MyConf2(Configurable):
-            an_enum = Enum('Choice1 choice2'.split(),
-                           allow_none=True,
-                           default_value='choice2',
-                           help="Many choices.").tag(config=True)
+            an_enum = Enum(
+                "Choice1 choice2".split(),
+                allow_none=True,
+                default_value="choice2",
+                help="Many choices.",
+            ).tag(config=True)
 
         defaults_str = "Default: 'choice2'"
 
@@ -231,9 +237,8 @@ class TestConfigurable(TestCase):
         self.assertIn(enum_choices_str, cls2_msg)
         self.assertIn(or_none_str, cls2_msg)
         self.assertIn(defaults_str, cls2_msg)
-        ## Check order of Default <--> Choices sections
-        self.assertGreater(cls2_msg.index(defaults_str),
-                           cls2_msg.index(enum_choices_str))
+        # Check order of Default <--> Choices sections
+        self.assertGreater(cls2_msg.index(defaults_str), cls2_msg.index(enum_choices_str))
 
         cls2_cfg = MyConf2.class_config_section()
 
@@ -241,9 +246,8 @@ class TestConfigurable(TestCase):
         self.assertIn(enum_choices_str, cls2_cfg)
         self.assertIn(or_none_str, cls2_cfg)
         self.assertIn(defaults_str, cls2_cfg)
-        ## Check order of Default <--> Choices sections
-        self.assertGreater(cls2_cfg.index(defaults_str),
-                           cls2_cfg.index(enum_choices_str))
+        # Check order of Default <--> Choices sections
+        self.assertGreater(cls2_cfg.index(defaults_str), cls2_cfg.index(enum_choices_str))
 
     def test_generated_config_strenum_comments(self):
         help_str = "Many choices."
@@ -251,13 +255,14 @@ class TestConfigurable(TestCase):
         or_none_str = "or None"
 
         class MyConf3(Configurable):
-            an_enum = CaselessStrEnum('Choice1 choice2'.split(),
-                                      allow_none=True,
-                                      default_value='choice2',
-                                      help="Many choices.").tag(config=True)
+            an_enum = CaselessStrEnum(
+                "Choice1 choice2".split(),
+                allow_none=True,
+                default_value="choice2",
+                help="Many choices.",
+            ).tag(config=True)
 
-        enum_choices_str = ("Choices: any of ['Choice1', 'choice2'] "
-                            "(case-insensitive)")
+        enum_choices_str = "Choices: any of ['Choice1', 'choice2'] (case-insensitive)"
 
         cls3_msg = MyConf3.class_get_help()
 
@@ -265,9 +270,8 @@ class TestConfigurable(TestCase):
         self.assertIn(enum_choices_str, cls3_msg)
         self.assertIn(or_none_str, cls3_msg)
         self.assertIn(defaults_str, cls3_msg)
-        ## Check order of Default <--> Choices sections
-        self.assertGreater(cls3_msg.index(defaults_str),
-                           cls3_msg.index(enum_choices_str))
+        # Check order of Default <--> Choices sections
+        self.assertGreater(cls3_msg.index(defaults_str), cls3_msg.index(enum_choices_str))
 
         cls3_cfg = MyConf3.class_config_section()
 
@@ -275,18 +279,18 @@ class TestConfigurable(TestCase):
         self.assertIn(enum_choices_str, cls3_cfg)
         self.assertIn(or_none_str, cls3_cfg)
         self.assertIn(defaults_str, cls3_cfg)
-        ## Check order of Default <--> Choices sections
-        self.assertGreater(cls3_cfg.index(defaults_str),
-                           cls3_cfg.index(enum_choices_str))
+        # Check order of Default <--> Choices sections
+        self.assertGreater(cls3_cfg.index(defaults_str), cls3_cfg.index(enum_choices_str))
 
         class MyConf4(Configurable):
-            an_enum = FuzzyEnum('Choice1 choice2'.split(),
-                                allow_none=True,
-                                default_value='choice2',
-                                help="Many choices.").tag(config=True)
+            an_enum = FuzzyEnum(
+                "Choice1 choice2".split(),
+                allow_none=True,
+                default_value="choice2",
+                help="Many choices.",
+            ).tag(config=True)
 
-        enum_choices_str = ("Choices: any case-insensitive prefix "
-                            "of ['Choice1', 'choice2']")
+        enum_choices_str = "Choices: any case-insensitive prefix of ['Choice1', 'choice2']"
 
         cls4_msg = MyConf4.class_get_help()
 
@@ -294,9 +298,8 @@ class TestConfigurable(TestCase):
         self.assertIn(enum_choices_str, cls4_msg)
         self.assertIn(or_none_str, cls4_msg)
         self.assertIn(defaults_str, cls4_msg)
-        ## Check order of Default <--> Choices sections
-        self.assertGreater(cls4_msg.index(defaults_str),
-                           cls4_msg.index(enum_choices_str))
+        # Check order of Default <--> Choices sections
+        self.assertGreater(cls4_msg.index(defaults_str), cls4_msg.index(enum_choices_str))
 
         cls4_cfg = MyConf4.class_config_section()
 
@@ -304,16 +307,15 @@ class TestConfigurable(TestCase):
         self.assertIn(enum_choices_str, cls4_cfg)
         self.assertIn(or_none_str, cls4_cfg)
         self.assertIn(defaults_str, cls4_cfg)
-        ## Check order of Default <--> Choices sections
-        self.assertGreater(cls4_cfg.index(defaults_str),
-                           cls4_cfg.index(enum_choices_str))
-
+        # Check order of Default <--> Choices sections
+        self.assertGreater(cls4_cfg.index(defaults_str), cls4_cfg.index(enum_choices_str))
 
 
 class TestSingletonConfigurable(TestCase):
-
     def test_instance(self):
-        class Foo(SingletonConfigurable): pass
+        class Foo(SingletonConfigurable):
+            pass
+
         self.assertEqual(Foo.initialized(), False)
         foo = Foo.instance()
         self.assertEqual(Foo.initialized(), True)
@@ -321,8 +323,12 @@ class TestSingletonConfigurable(TestCase):
         self.assertEqual(SingletonConfigurable._instance, None)
 
     def test_inheritance(self):
-        class Bar(SingletonConfigurable): pass
-        class Bam(Bar): pass
+        class Bar(SingletonConfigurable):
+            pass
+
+        class Bam(Bar):
+            pass
+
         self.assertEqual(Bar.initialized(), False)
         self.assertEqual(Bam.initialized(), False)
         bam = Bam.instance()
@@ -334,10 +340,13 @@ class TestSingletonConfigurable(TestCase):
 
 
 class TestLoggingConfigurable(TestCase):
-
     def test_parent_logger(self):
-        class Parent(LoggingConfigurable): pass
-        class Child(LoggingConfigurable): pass
+        class Parent(LoggingConfigurable):
+            pass
+
+        class Child(LoggingConfigurable):
+            pass
+
         log = get_logger().getChild("TestLoggingConfigurable")
 
         parent = Parent(log=log)
@@ -351,8 +360,12 @@ class TestLoggingConfigurable(TestCase):
         self.assertEqual(child.log, log)
 
     def test_parent_not_logging_configurable(self):
-        class Parent(Configurable): pass
-        class Child(LoggingConfigurable): pass
+        class Parent(Configurable):
+            pass
+
+        class Child(LoggingConfigurable):
+            pass
+
         parent = Parent()
         child = Child(parent=parent)
         self.assertEqual(child.log, get_logger())
@@ -361,175 +374,191 @@ class TestLoggingConfigurable(TestCase):
 class MyParent(Configurable):
     pass
 
+
 class MyParent2(MyParent):
     pass
 
-class TestParentConfigurable(TestCase):
 
+class TestParentConfigurable(TestCase):
     def test_parent_config(self):
-        cfg = Config({
-            'MyParent' : {
-                'MyConfigurable' : {
-                    'b' : 2.0,
+        cfg = Config(
+            {
+                "MyParent": {
+                    "MyConfigurable": {
+                        "b": 2.0,
+                    }
                 }
             }
-        })
+        )
         parent = MyParent(config=cfg)
         myc = MyConfigurable(parent=parent)
         self.assertEqual(myc.b, parent.config.MyParent.MyConfigurable.b)
 
     def test_parent_inheritance(self):
-        cfg = Config({
-            'MyParent' : {
-                'MyConfigurable' : {
-                    'b' : 2.0,
+        cfg = Config(
+            {
+                "MyParent": {
+                    "MyConfigurable": {
+                        "b": 2.0,
+                    }
                 }
             }
-        })
+        )
         parent = MyParent2(config=cfg)
         myc = MyConfigurable(parent=parent)
         self.assertEqual(myc.b, parent.config.MyParent.MyConfigurable.b)
 
     def test_multi_parent(self):
-        cfg = Config({
-            'MyParent2' : {
-                'MyParent' : {
-                    'MyConfigurable' : {
-                        'b' : 2.0,
-                    }
-                },
-                # this one shouldn't count
-                'MyConfigurable' : {
-                    'b' : 3.0,
-                },
+        cfg = Config(
+            {
+                "MyParent2": {
+                    "MyParent": {
+                        "MyConfigurable": {
+                            "b": 2.0,
+                        }
+                    },
+                    # this one shouldn't count
+                    "MyConfigurable": {
+                        "b": 3.0,
+                    },
+                }
             }
-        })
+        )
         parent2 = MyParent2(config=cfg)
         parent = MyParent(parent=parent2)
         myc = MyConfigurable(parent=parent)
         self.assertEqual(myc.b, parent.config.MyParent2.MyParent.MyConfigurable.b)
 
     def test_parent_priority(self):
-        cfg = Config({
-            'MyConfigurable' : {
-                'b' : 2.0,
-            },
-            'MyParent' : {
-                'MyConfigurable' : {
-                    'b' : 3.0,
-                }
-            },
-            'MyParent2' : {
-                'MyConfigurable' : {
-                    'b' : 4.0,
-                }
+        cfg = Config(
+            {
+                "MyConfigurable": {
+                    "b": 2.0,
+                },
+                "MyParent": {
+                    "MyConfigurable": {
+                        "b": 3.0,
+                    }
+                },
+                "MyParent2": {
+                    "MyConfigurable": {
+                        "b": 4.0,
+                    }
+                },
             }
-        })
+        )
         parent = MyParent2(config=cfg)
         myc = MyConfigurable(parent=parent)
         self.assertEqual(myc.b, parent.config.MyParent2.MyConfigurable.b)
 
     def test_multi_parent_priority(self):
-        cfg = Config({
-            'MyConfigurable': {
-                'b': 2.0,
-            },
-            'MyParent': {
-                'MyConfigurable': {
-                    'b': 3.0,
+        cfg = Config(
+            {
+                "MyConfigurable": {
+                    "b": 2.0,
                 },
-            },
-            'MyParent2': {
-                'MyConfigurable': {
-                    'b': 4.0,
-                },
-                'MyParent': {
-                    'MyConfigurable': {
-                        'b': 5.0,
+                "MyParent": {
+                    "MyConfigurable": {
+                        "b": 3.0,
                     },
                 },
-            },
-        })
+                "MyParent2": {
+                    "MyConfigurable": {
+                        "b": 4.0,
+                    },
+                    "MyParent": {
+                        "MyConfigurable": {
+                            "b": 5.0,
+                        },
+                    },
+                },
+            }
+        )
         parent2 = MyParent2(config=cfg)
         parent = MyParent2(parent=parent2)
         myc = MyConfigurable(parent=parent)
         self.assertEqual(myc.b, parent.config.MyParent2.MyParent.MyConfigurable.b)
 
+
 class Containers(Configurable):
     lis = List().tag(config=True)
+
     def _lis_default(self):
         return [-1]
 
     s = Set().tag(config=True)
+
     def _s_default(self):
-        return {'a'}
+        return {"a"}
 
     d = Dict().tag(config=True)
+
     def _d_default(self):
-        return {'a' : 'b'}
+        return {"a": "b"}
+
 
 class TestConfigContainers(TestCase):
     def test_extend(self):
         c = Config()
         c.Containers.lis.extend(list(range(5)))
         obj = Containers(config=c)
-        self.assertEqual(obj.lis, list(range(-1,5)))
+        self.assertEqual(obj.lis, list(range(-1, 5)))
 
     def test_insert(self):
         c = Config()
-        c.Containers.lis.insert(0, 'a')
-        c.Containers.lis.insert(1, 'b')
+        c.Containers.lis.insert(0, "a")
+        c.Containers.lis.insert(1, "b")
         obj = Containers(config=c)
-        self.assertEqual(obj.lis, ['a', 'b', -1])
+        self.assertEqual(obj.lis, ["a", "b", -1])
 
     def test_prepend(self):
         c = Config()
-        c.Containers.lis.prepend([1,2])
-        c.Containers.lis.prepend([2,3])
+        c.Containers.lis.prepend([1, 2])
+        c.Containers.lis.prepend([2, 3])
         obj = Containers(config=c)
-        self.assertEqual(obj.lis, [2,3,1,2,-1])
+        self.assertEqual(obj.lis, [2, 3, 1, 2, -1])
 
     def test_prepend_extend(self):
         c = Config()
-        c.Containers.lis.prepend([1,2])
-        c.Containers.lis.extend([2,3])
+        c.Containers.lis.prepend([1, 2])
+        c.Containers.lis.extend([2, 3])
         obj = Containers(config=c)
-        self.assertEqual(obj.lis, [1,2,-1,2,3])
+        self.assertEqual(obj.lis, [1, 2, -1, 2, 3])
 
     def test_append_extend(self):
         c = Config()
-        c.Containers.lis.append([1,2])
-        c.Containers.lis.extend([2,3])
+        c.Containers.lis.append([1, 2])
+        c.Containers.lis.extend([2, 3])
         obj = Containers(config=c)
-        self.assertEqual(obj.lis, [-1,[1,2],2,3])
+        self.assertEqual(obj.lis, [-1, [1, 2], 2, 3])
 
     def test_extend_append(self):
         c = Config()
-        c.Containers.lis.extend([2,3])
-        c.Containers.lis.append([1,2])
+        c.Containers.lis.extend([2, 3])
+        c.Containers.lis.append([1, 2])
         obj = Containers(config=c)
-        self.assertEqual(obj.lis, [-1,2,3,[1,2]])
+        self.assertEqual(obj.lis, [-1, 2, 3, [1, 2]])
 
     def test_insert_extend(self):
         c = Config()
         c.Containers.lis.insert(0, 1)
-        c.Containers.lis.extend([2,3])
+        c.Containers.lis.extend([2, 3])
         obj = Containers(config=c)
-        self.assertEqual(obj.lis, [1,-1,2,3])
+        self.assertEqual(obj.lis, [1, -1, 2, 3])
 
     def test_set_update(self):
         c = Config()
-        c.Containers.s.update({0,1,2})
+        c.Containers.s.update({0, 1, 2})
         c.Containers.s.update({3})
         obj = Containers(config=c)
-        self.assertEqual(obj.s, {'a', 0, 1, 2, 3})
+        self.assertEqual(obj.s, {"a", 0, 1, 2, 3})
 
     def test_dict_update(self):
         c = Config()
-        c.Containers.d.update({'c' : 'd'})
-        c.Containers.d.update({'e' : 'f'})
+        c.Containers.d.update({"c": "d"})
+        c.Containers.d.update({"e": "f"})
         obj = Containers(config=c)
-        self.assertEqual(obj.d, {'a':'b', 'c':'d', 'e':'f'})
+        self.assertEqual(obj.d, {"a": "b", "c": "d", "e": "f"})
 
     def test_update_twice(self):
         c = Config()
@@ -562,6 +591,7 @@ class TestConfigContainers(TestCase):
 
         class DefaultConfigurable(Configurable):
             a = Integer().tag(config=True)
+
             def _config_default(self):
                 if SomeSingleton.initialized():
                     return SomeSingleton.instance().config
@@ -581,14 +611,17 @@ class TestConfigContainers(TestCase):
 
     def test_config_default_deprecated(self):
         """Make sure configurables work even with the deprecations in traitlets"""
+
         class SomeSingleton(SingletonConfigurable):
             pass
 
         # reset deprecation limiter
         _deprecations_shown.clear()
         with expected_warnings([]):
+
             class DefaultConfigurable(Configurable):
                 a = Integer(config=True)
+
                 def _config_default(self):
                     if SomeSingleton.initialized():
                         return SomeSingleton.instance().config
@@ -613,68 +646,67 @@ class TestConfigContainers(TestCase):
         # - kwargs are set before config
         # - kwargs have priority over config
         class A(Configurable):
-            a = Unicode('default', config=True)
-            b = Unicode('default', config=True)
-            c = Unicode('default', config=True)
-            c_during_config = Unicode('never')
-            @validate('b')
+            a = Unicode("default", config=True)
+            b = Unicode("default", config=True)
+            c = Unicode("default", config=True)
+            c_during_config = Unicode("never")
+
+            @validate("b")
             def _record_c(self, proposal):
                 # setting b from config records c's value at the time
                 self.c_during_config = self.c
                 return proposal.value
 
         cfg = Config()
-        cfg.A.a = 'a-config'
-        cfg.A.b = 'b-config'
-        obj = A(a='a-kwarg', c='c-kwarg', config=cfg)
-        assert obj.a == 'a-kwarg'
-        assert obj.b == 'b-config'
-        assert obj.c == 'c-kwarg'
-        assert obj.c_during_config == 'c-kwarg'
+        cfg.A.a = "a-config"
+        cfg.A.b = "b-config"
+        obj = A(a="a-kwarg", c="c-kwarg", config=cfg)
+        assert obj.a == "a-kwarg"
+        assert obj.b == "b-config"
+        assert obj.c == "c-kwarg"
+        assert obj.c_during_config == "c-kwarg"
 
 
 class TestLogger(TestCase):
-
     class A(LoggingConfigurable):
-            foo = Integer(config=True)
-            bar = Integer(config=True)
-            baz = Integer(config=True)
+        foo = Integer(config=True)
+        bar = Integer(config=True)
+        baz = Integer(config=True)
 
-    @mark.skipif(not hasattr(TestCase, 'assertLogs'), reason='requires TestCase.assertLogs')
+    @mark.skipif(not hasattr(TestCase, "assertLogs"), reason="requires TestCase.assertLogs")
     def test_warn_match(self):
-        logger = logging.getLogger('test_warn_match')
-        cfg = Config({'A': {'bat': 5}})
+        logger = logging.getLogger("test_warn_match")
+        cfg = Config({"A": {"bat": 5}})
         with self.assertLogs(logger, logging.WARNING) as captured:
             TestLogger.A(config=cfg, log=logger)
-
-        output = '\n'.join(captured.output)
-        self.assertIn('Did you mean one of: `bar, baz`?', output)
-        self.assertIn('Config option `bat` not recognized by `A`.', output)
-
-        cfg = Config({'A': {'fool': 5}})
-        with self.assertLogs(logger, logging.WARNING) as captured:
-            TestLogger.A(config=cfg, log=logger)
-
-        output = '\n'.join(captured.output)
-        self.assertIn('Config option `fool` not recognized by `A`.', output)
-        self.assertIn('Did you mean `foo`?', output)
-
-        cfg = Config({'A': {'totally_wrong': 5}})
-        with self.assertLogs(logger, logging.WARNING) as captured:
-            TestLogger.A(config=cfg, log=logger)
-
-        output = '\n'.join(captured.output)
-        self.assertIn('Config option `totally_wrong` not recognized by `A`.', output)
-        self.assertNotIn('Did you mean', output)
-
-    def test_logger_adapter(self):
-        logger = logging.getLogger("test_logger_adapter")
-        adapter = logging.LoggerAdapter(logger, {"key": "adapted"})
-
-        with self.assertLogs(logger, logging.INFO) as captured:
-            app = Application(log=adapter, log_level=logging.INFO)
-            app.log_format = "%(key)s %(message)s"
-            app.log.info("test message")
 
         output = "\n".join(captured.output)
-        assert "adapted test message" in output
+        self.assertIn("Did you mean one of: `bar, baz`?", output)
+        self.assertIn("Config option `bat` not recognized by `A`.", output)
+
+        cfg = Config({"A": {"fool": 5}})
+        with self.assertLogs(logger, logging.WARNING) as captured:
+            TestLogger.A(config=cfg, log=logger)
+
+        output = "\n".join(captured.output)
+        self.assertIn("Config option `fool` not recognized by `A`.", output)
+        self.assertIn("Did you mean `foo`?", output)
+
+        cfg = Config({"A": {"totally_wrong": 5}})
+        with self.assertLogs(logger, logging.WARNING) as captured:
+            TestLogger.A(config=cfg, log=logger)
+
+        output = "\n".join(captured.output)
+        self.assertIn("Config option `totally_wrong` not recognized by `A`.", output)
+        self.assertNotIn("Did you mean", output)
+
+
+def test_logger_adapter(caplog, capsys):
+    logger = logging.getLogger("Application")
+    adapter = logging.LoggerAdapter(logger, {"key": "adapted"})
+
+    app = Application(log=adapter, log_level=logging.INFO)
+    app.log_format = "%(key)s %(message)s"
+    app.log.info("test message")
+
+    assert "adapted test message" in capsys.readouterr().err

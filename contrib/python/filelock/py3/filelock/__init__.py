@@ -5,9 +5,11 @@ A platform independent file lock that supports the with-statement.
    :no-value:
 
 """
+from __future__ import annotations
+
 import sys
 import warnings
-from typing import Type
+from typing import TYPE_CHECKING
 
 from ._api import AcquireReturnProxy, BaseFileLock
 from ._error import Timeout
@@ -21,18 +23,21 @@ __version__: str = version
 
 
 if sys.platform == "win32":  # pragma: win32 cover
-    _FileLock: Type[BaseFileLock] = WindowsFileLock
+    _FileLock: type[BaseFileLock] = WindowsFileLock
 else:  # pragma: win32 no cover
     if has_fcntl:
-        _FileLock: Type[BaseFileLock] = UnixFileLock
+        _FileLock: type[BaseFileLock] = UnixFileLock
     else:
         _FileLock = SoftFileLock
         if warnings is not None:
-            warnings.warn("only soft file lock is available")
+            warnings.warn("only soft file lock is available", stacklevel=2)
 
 #: Alias for the lock, which should be used for the current platform. On Windows, this is an alias for
 # :class:`WindowsFileLock`, on Unix for :class:`UnixFileLock` and otherwise for :class:`SoftFileLock`.
-FileLock: Type[BaseFileLock] = _FileLock
+if TYPE_CHECKING:
+    FileLock = SoftFileLock
+else:
+    FileLock = _FileLock
 
 
 __all__ = [

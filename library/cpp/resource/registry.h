@@ -17,6 +17,7 @@ namespace NResource {
     class IStore {
     public:
         virtual void Store(const TStringBuf key, const TStringBuf data) = 0;
+        virtual bool Has(const TStringBuf key) const = 0;
         virtual bool FindExact(const TStringBuf key, TString* out) const = 0;
         virtual void FindMatch(const TStringBuf subkey, IMatch& cb) const = 0;
         virtual size_t Count() const noexcept = 0;

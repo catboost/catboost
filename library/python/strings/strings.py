@@ -18,7 +18,7 @@ def left_strip(el, prefix):
     Strips prefix at the left of el
     """
     if el.startswith(prefix):
-        return el[len(prefix):]
+        return el[len(prefix) :]
     return el
 
 
@@ -29,7 +29,7 @@ def to_basestring(value):
         return value
     try:
         if six.PY2:
-            return unicode(value)
+            return unicode(value)  # noqa
         else:
             return str(value)
     except UnicodeDecodeError:
@@ -37,6 +37,8 @@ def to_basestring(value):
             return str(value)
         except UnicodeEncodeError:
             return repr(value)
+
+
 to_text = to_basestring
 
 
@@ -45,7 +47,7 @@ def to_unicode(value, from_enc=DEFAULT_ENCODING):
         return value
     if isinstance(value, six.binary_type):
         if six.PY2:
-            return unicode(value, from_enc, ENCODING_ERRORS_POLICY)
+            return unicode(value, from_enc, ENCODING_ERRORS_POLICY)  # noqa
         else:
             return value.decode(from_enc, errors=ENCODING_ERRORS_POLICY)
     return six.text_type(value)
@@ -80,10 +82,17 @@ def _convert_deep(x, enc, convert, relaxed=True):
     raise TypeError('unsupported type')
 
 
+# Result as from six.ensure_text
 def unicodize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
     return _convert_deep(x, enc, to_unicode, relaxed)
 
 
+# Result as from six.ensure_str
+def ensure_str_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
+    return _convert_deep(x, enc, six.ensure_str, relaxed)
+
+
+# Result as from six.ensure_binary
 def stringize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
     return _convert_deep(x, enc, to_str, relaxed)
 
@@ -127,3 +136,40 @@ def encode(value, encoding=DEFAULT_ENCODING):
     if isinstance(value, six.binary_type):
         value = value.decode(encoding, errors='ignore')
     return value.encode(encoding)
+
+
+class Whence(object):
+    Start = 0
+    End = 1
+    Middle = 2
+
+
+def truncate(data, limit, whence=None, msg=None):
+    msg = "..." if msg is None else msg
+    msg = six.ensure_binary(msg)
+    whence = Whence.End if whence is None else whence
+    data = six.ensure_binary(data)
+
+    if len(data) <= limit:
+        return six.ensure_str(data)
+    text_limit = limit - len(msg)
+    assert text_limit >= 0
+
+    if whence == Whence.Start:
+        data = msg + data[-text_limit:]
+    elif whence == Whence.End:
+        data = data[:text_limit] + msg
+    elif whence == Whence.Middle:
+        headpos = limit // 2 - len(msg) // 2
+        tailpos = len(data) - (text_limit - headpos)
+        data = data[:headpos] + msg + data[tailpos:]
+    else:
+        raise AssertionError("Unknown whence: %s" % str(whence))
+    return fix_utf8(data)
+
+
+def fix_utf8(data):
+    # type: (six.string_types) -> str
+    # remove destroyed symbol code
+    udata = six.ensure_text(data, 'utf-8', 'ignore')
+    return six.ensure_str(udata, 'utf-8', errors='ignore')

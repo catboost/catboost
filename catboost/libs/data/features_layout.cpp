@@ -162,7 +162,7 @@ TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
             if (!featureNames) {
                 finalFeatureNames.push_back(column.Id);
             }
-            if (column.Type == EColumn::Categ) {
+            if ((column.Type == EColumn::Categ) || (column.Type == EColumn::HashedCateg)) {
                 catFeatureIndices.push_back(featureIdx);
             } else if (column.Type == EColumn::Text) {
                 textFeatureIndices.push_back(featureIdx);
@@ -414,7 +414,7 @@ void TFeaturesLayout::AddFeature(TFeatureMetaInfo&& featureMetaInfo) {
             EmbeddingFeatureInternalIdxToExternalIdx.push_back(externalIdx);
             break;
         default:
-            Y_FAIL();
+            CB_ENSURE(false, "Unexpected feature type");
     }
     ExternalIdxToMetaInfo.push_back(std::move(featureMetaInfo));
 }

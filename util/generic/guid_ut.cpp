@@ -97,10 +97,10 @@ Y_UNIT_TEST_SUITE(TGuidTest) {
 
     Y_UNIT_TEST(DoubleConvert) {
         /**
-        * test print and parsing RFC4122 GUID, which described in
-        * https://en.wikipedia.org/wiki/Universally_unique_identifier
-        * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-        **/
+         * test print and parsing RFC4122 GUID, which described in
+         * https://en.wikipedia.org/wiki/Universally_unique_identifier
+         * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+         **/
         auto guid = TGUID::Create();
         auto printed = guid.AsUuidString();
 
@@ -118,5 +118,11 @@ Y_UNIT_TEST_SUITE(TGuidTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(guid.AsGuidString(), "5612-12000000-123-0");
         UNIT_ASSERT_VALUES_EQUAL(guid.AsUuidString(), "00005612-1200-0000-0000-012300000000");
+    }
+
+    Y_UNIT_TEST(TimeBased) {
+        TString guid = TGUID::CreateTimebased().AsUuidString();
+        UNIT_ASSERT(!guid.empty());
+        UNIT_ASSERT_EQUAL(guid[14], '1');
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Przemyslaw Skibinski, Yann Collet, Facebook, Inc.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -64,7 +64,7 @@ extern "C" {
 #    define SET_REALTIME_PRIORITY /* disabled */
 #  endif
 
-#else  /* unknown non-unix operating systen */
+#else  /* unknown non-unix operating system */
 #  define UTIL_sleep(s)          /* disabled */
 #  define UTIL_sleepMilli(milli) /* disabled */
 #  define SET_REALTIME_PRIORITY  /* disabled */
@@ -122,6 +122,7 @@ int UTIL_requireUserConfirmation(const char* prompt, const char* abortMsg, const
 #define STRDUP(s) strdup(s)
 #endif
 
+
 /**
  * Calls platform's equivalent of stat() on filename and writes info to statbuf.
  * Returns success (1) or failure (0).
@@ -134,6 +135,14 @@ int UTIL_stat(const char* filename, stat_t* statbuf);
  * update this info for regular files.
  */
 int UTIL_setFileStat(const char* filename, const stat_t* statbuf);
+
+/**
+ * Set atime to now and mtime to the st_mtim in statbuf.
+ *
+ * Directly wraps utime() or utimensat(). Returns -1 on error.
+ * Does not validate filename is valid.
+ */
+int UTIL_utime(const char* filename, const stat_t *statbuf);
 
 /*
  * These helpers operate on a pre-populated stat_t, i.e., the result of
@@ -162,13 +171,50 @@ int UTIL_chmod(char const* filename, const stat_t* statbuf, mode_t permissions);
 int UTIL_isRegularFile(const char* infilename);
 int UTIL_isDirectory(const char* infilename);
 int UTIL_isSameFile(const char* file1, const char* file2);
+int UTIL_isSameFileStat(const char* file1, const char* file2, const stat_t* file1Stat, const stat_t* file2Stat);
 int UTIL_isCompressedFile(const char* infilename, const char *extensionList[]);
 int UTIL_isLink(const char* infilename);
 int UTIL_isFIFO(const char* infilename);
 
+/**
+ * Returns with the given file descriptor is a console.
+ * Allows faking whether stdin/stdout/stderr is a console
+ * using UTIL_fake*IsConsole().
+ */
+int UTIL_isConsole(FILE* file);
+
+/**
+ * Pretends that stdin/stdout/stderr is a console for testing.
+ */
+void UTIL_fakeStdinIsConsole(void);
+void UTIL_fakeStdoutIsConsole(void);
+void UTIL_fakeStderrIsConsole(void);
+
+/**
+ * Emit traces for functions that read, or modify file metadata.
+ */
+void UTIL_traceFileStat(void);
+
 #define UTIL_FILESIZE_UNKNOWN  ((U64)(-1))
 U64 UTIL_getFileSize(const char* infilename);
 U64 UTIL_getTotalFileSize(const char* const * fileNamesTable, unsigned nbFiles);
+
+/**
+ * Take @size in bytes,
+ * prepare the components to pretty-print it in a scaled way.
+ * The components in the returned struct should be passed in
+ * precision, value, suffix order to a "%.*f%s" format string.
+ * Output policy is sensible to @g_utilDisplayLevel,
+ * for verbose mode (@g_utilDisplayLevel >= 4),
+ * does not scale down.
+ */
+typedef struct {
+  double value;
+  int precision;
+  const char* suffix;
+} UTIL_HumanReadableSize_t;
+
+UTIL_HumanReadableSize_t UTIL_makeHumanReadableSize(U64 size);
 
 int UTIL_compareStr(const void *p1, const void *p2);
 const char* UTIL_getFileExtension(const char* infilename);
@@ -222,7 +268,6 @@ UTIL_mergeFileNamesTable(FileNamesTable* table1, FileNamesTable* table2);
 /*! UTIL_expandFNT() :
  *  read names from @fnt, and expand those corresponding to directories
  *  update @fnt, now containing only file names,
- * @return : 0 in case of success, 1 if error
  *  note : in case of error, @fnt[0] is NULL
  */
 void UTIL_expandFNT(FileNamesTable** fnt, int followLinks);
@@ -243,6 +288,11 @@ UTIL_createFNT_fromROTable(const char** filenames, size_t nbFilenames);
  */
 FileNamesTable* UTIL_allocateFileNamesTable(size_t tableSize);
 
+/*! UTIL_searchFileNamesTable() :
+ *  Searched through entries in FileNamesTable for a specific name.
+ * @return : index of entry if found or -1 if not found
+ */
+int UTIL_searchFileNamesTable(FileNamesTable* table, char const* name);
 
 /*! UTIL_refFilename() :
  *  Add a reference to read-only name into @fnt table.
@@ -275,13 +325,19 @@ void UTIL_refFilename(FileNamesTable* fnt, const char* filename);
 FileNamesTable*
 UTIL_createExpandedFNT(const char* const* filenames, size_t nbFilenames, int followLinks);
 
+#if defined(_WIN32) || defined(WIN32)
+DWORD CountSetBits(ULONG_PTR bitMask);
+#endif
 
 /*-****************************************
  *  System
  ******************************************/
 
+int UTIL_countCores(int logical);
+
 int UTIL_countPhysicalCores(void);
 
+int UTIL_countLogicalCores(void);
 
 #if defined (__cplusplus)
 }

@@ -6,7 +6,7 @@
 #include <array>
 
 constexpr auto MakeTestData() {
-    std::array<ui64, 4096> result;
+    std::array<ui64, 4096> result{};
     for (ui64 i = 0; i < result.size(); ++i) {
         result[i] = i;
     }

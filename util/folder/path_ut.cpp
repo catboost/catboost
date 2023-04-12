@@ -809,4 +809,25 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT_EXCEPTION_CONTAINS(testSymlink.ForceDelete(), TIoException, "failed to delete");
     }
 #endif
+
+    Y_UNIT_TEST(TestCopyWithInitializedSplit) {
+        const TFsPath path1 = TFsPath("some_folder_with_file") / TFsPath("file_in_folder");
+        path1.PathSplit();
+
+        const TFsPath path2 = path1;
+        const TPathSplit& split2 = path2.PathSplit();
+
+        for (const auto& it : split2) {
+            UNIT_ASSERT(path2.GetPath().begin() <= it.begin());
+            UNIT_ASSERT(it.end() <= path2.GetPath().end());
+        }
+    }
+
+    Y_UNIT_TEST(TestAssignmentWithInitializedSplit) {
+        TFsPath path1 = TFsPath("some_folder_with_file_1") / TFsPath("file_in_folder_1");
+        TFsPath path2 = TFsPath("some_folder_with_file_2") / TFsPath("file_in_folder_2");
+        path1.PathSplit();
+        path1 = path2;
+        UNIT_ASSERT_VALUES_EQUAL(path1.PathSplit().at(1), "file_in_folder_2");
+    }
 }

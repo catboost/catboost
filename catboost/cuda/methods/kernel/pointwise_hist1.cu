@@ -201,7 +201,7 @@ namespace NKernel
 
     template <int StripeSize, int OuterUnroll, int N,  typename THist>
     __forceinline__ __device__ void ComputeHistogram(int BlocksPerFeature, const ui32* __restrict__ indices,
-                                                     int offset, int dsSize,
+                                                     ui32 offset, ui32 dsSize,
                                                      const float* __restrict__ target,
                                                      const ui32* __restrict__ cindex,
                                                      float* result) {
@@ -210,12 +210,12 @@ namespace NKernel
         indices += offset;
 
         THist hist(result);
-        int i = (threadIdx.x & 31) + (threadIdx.x / 32) * 32;
+        ui32 i = (threadIdx.x & 31) + (threadIdx.x / 32) * 32;
 
         //all operations should be warp-aligned
         //first: first warp make memory access aligned. it load first 32 - offset % 32 elements.
         {
-            int lastId = min(dsSize, 32 - (offset & 31));
+            ui32 lastId = min(dsSize, 32 - (offset & 31));
 
             if ((blockIdx.x % BlocksPerFeature) == 0) {
                 const int index = i < lastId ? __ldg(indices + i) : 0;
@@ -223,19 +223,19 @@ namespace NKernel
                 const float wt = i < lastId ? __ldg(target + i) : 0;
                 hist.AddPoint(ci, wt);
             }
-            dsSize = max(dsSize - lastId, 0);
+            dsSize = dsSize > lastId > 0 ? dsSize - lastId : 0;
 
             indices += lastId;
             target += lastId;
         }
 
         //now lets align end
-        const int unalignedTail = (dsSize & 31);
+        const ui32 unalignedTail = (dsSize & 31);
 
         if (unalignedTail != 0) {
             if ((blockIdx.x % BlocksPerFeature) == 0)
             {
-                const int tailOffset = dsSize - unalignedTail;
+                const ui32 tailOffset = dsSize - unalignedTail;
                 const int index = i < unalignedTail ? __ldg(indices + tailOffset + i) : 0;
                 const ui32 ci = i < unalignedTail ? __ldg(cindex + index) : 0;
                 const float wt = i < unalignedTail ? __ldg(target + tailOffset + i) : 0;
@@ -253,18 +253,18 @@ namespace NKernel
 
         indices += (blockIdx.x % BlocksPerFeature) * StripeSize;
         target += (blockIdx.x % BlocksPerFeature) * StripeSize;
-        dsSize = max(dsSize - (blockIdx.x % BlocksPerFeature) * StripeSize, 0);
-        const int stripe = StripeSize * BlocksPerFeature;
+        dsSize = dsSize > (blockIdx.x % BlocksPerFeature) * StripeSize ? dsSize - (blockIdx.x % BlocksPerFeature) * StripeSize : 0;
+        const ui32 stripe = StripeSize * BlocksPerFeature;
 
         if (dsSize) {
-            int iteration_count = (dsSize - i + (stripe - 1)) / stripe;
-            int blocked_iteration_count = ((dsSize - (i | 31) + (stripe - 1)) / stripe) / N;
+            ui32 iteration_count = dsSize > i ? (dsSize - i + (stripe - 1)) / stripe : 0;
+            ui32 blocked_iteration_count = dsSize > (i | 31) ? ((dsSize - (i | 31) + (stripe - 1)) / stripe) / N : 0;
 
             target += i;
             indices += i;
 
 #pragma unroll OuterUnroll
-            for (int j = 0; j < blocked_iteration_count; ++j) {
+            for (ui32 j = 0; j < blocked_iteration_count; ++j) {
                 ui32 local_index[N];
 #pragma unroll
                 for (int k = 0; k < N; k++) {
@@ -289,7 +289,7 @@ namespace NKernel
                 target += stripe * N;
             }
 
-            for (int k = blocked_iteration_count * N; k < iteration_count; ++k) {
+            for (ui32 k = blocked_iteration_count * N; k < iteration_count; ++k) {
                 const int index = __ldg(indices);
                 ui32 ci = __ldg(cindex + index);
                 float wt = __ldg(target);
@@ -308,7 +308,7 @@ namespace NKernel
 
     template <int StripeSize, int OuterUnroll,  typename THist>
     __forceinline__ __device__ void ComputeHistogram64BitLoads(int BlocksPerFeature, const ui32* __restrict__ indices,
-                                                               int offset, int dsSize,
+                                                               ui32 offset, ui32 dsSize,
                                                                const float* __restrict__ target,
                                                                const ui32* __restrict__ cindex,
                                                                float* result) {
@@ -321,8 +321,8 @@ namespace NKernel
         if (dsSize) {
             //first: first warp make memory access aligned. it load first 32 - offset % 32 elements.
             {
-                int lastId = min(dsSize, 128 - (offset & 127));
-                int colId = (threadIdx.x & 31) + (threadIdx.x / 32 ) * 32;
+                ui32 lastId = min(dsSize, 128 - (offset & 127));
+                ui32 colId = (threadIdx.x & 31) + (threadIdx.x / 32 ) * 32;
 
                 if ((blockIdx.x % BlocksPerFeature) == 0)
                 {
@@ -335,20 +335,20 @@ namespace NKernel
                     }
                 }
 
-                dsSize = max(dsSize - lastId, 0);
+                dsSize = dsSize > lastId ? dsSize - lastId : 0;
 
                 indices += lastId;
                 target += lastId;
             }
 
             //now lets align end
-            const int unalignedTail = (dsSize & 63);
+            const ui32 unalignedTail = (dsSize & 63);
 
             if (unalignedTail != 0) {
                 if ((blockIdx.x % BlocksPerFeature) == 0)
                 {
-                    int colId = (threadIdx.x & 31) + (threadIdx.x / 32 ) * 32;
-                    const int tailOffset = dsSize - unalignedTail;
+                    ui32 colId = (threadIdx.x & 31) + (threadIdx.x / 32 ) * 32;
+                    const ui32 tailOffset = dsSize - unalignedTail;
                     for (; (colId < 64); colId += blockDim.x) {
                         const int index = colId < unalignedTail ? __ldg(indices + tailOffset + colId) : 0;
                         const ui32 ci = colId < unalignedTail ? __ldg(cindex + index) : 0;
@@ -372,16 +372,16 @@ namespace NKernel
             indices += (blockIdx.x % BlocksPerFeature) * StripeSize * 2;
             target += (blockIdx.x % BlocksPerFeature) * StripeSize * 2;
 
-            const int stripe = StripeSize * BlocksPerFeature * 2;
-            dsSize = max(dsSize - (blockIdx.x % BlocksPerFeature) * StripeSize * 2, 0);
+            const ui32 stripe = StripeSize * BlocksPerFeature * 2;
+            dsSize = dsSize > (blockIdx.x % BlocksPerFeature) * StripeSize * 2 ? dsSize - (blockIdx.x % BlocksPerFeature) * StripeSize * 2 : 0;
 
             if (dsSize) {
-                int iterCount;
+                ui32 iterCount;
                 {
-                    const int i = 2 * ((threadIdx.x & 31) + (threadIdx.x / 32) * 32);
+                    const ui32 i = 2 * ((threadIdx.x & 31) + (threadIdx.x / 32) * 32);
                     target += i;
                     indices += i;
-                    iterCount = (dsSize - i + (stripe - 1)) / stripe;
+                    iterCount = dsSize > i ? (dsSize - i + (stripe - 1)) / stripe : 0;
                 }
 
                 #pragma unroll OuterUnroll
@@ -426,8 +426,8 @@ namespace NKernel
             const int outerUnroll =  InnerHistBitsCount == 0 ? 4 : 2;
            #endif
 
-            const int size = partition->Size;
-            const int offset = partition->Offset;
+            const ui32 size = partition->Size;
+            const ui32 offset = partition->Offset;
 
             ComputeHistogram64BitLoads < BlockSize, outerUnroll, THist > (BlocksPerFeature,
                                                                           indices,
@@ -458,8 +458,8 @@ namespace NKernel
         }
         __syncthreads();
 
-        const int fold = threadIdx.x;
-        const int histSize = 1 << (5 + InnerHistBitsCount);
+        const ui32 fold = threadIdx.x;
+        const ui32 histSize = 1 << (5 + InnerHistBitsCount);
 
         #pragma unroll 4
         for (int fid = 0; fid < fCount; ++fid) {
@@ -506,7 +506,7 @@ template <int BlockSize, bool IsFullPass>
         fCount = min(fCount - (blockIdx.x / M) * 4, 4);
 
         __shared__ float counters[32 * BlockSize];
-        const int maxBinCount = GetMaxBinCount(feature, fCount, (int*) &counters[0]);
+        const ui32 maxBinCount = GetMaxBinCount(feature, fCount, (ui32*) &counters[0]);
         __syncthreads();
 
 
@@ -596,8 +596,8 @@ template <int BlockSize, bool IsFullPass>
             ui32 fid = threadIdx.x;
 
             if (fid < fCount) {
-                const int groupId = fid / 4;
-                const int fMask = 1 << (3 - (fid & 3));
+                const ui32 groupId = fid / 4;
+                const ui32 fMask = 1 << (3 - (fid & 3));
 
                 float sum = 0.f;
                 #pragma uroll
@@ -728,8 +728,8 @@ template <int BlockSize, bool IsFullPass>
 
             __syncthreads();
 
-            const int fid = threadIdx.x >> 4;
-            const int fold = threadIdx.x & 15;
+            const ui32 fid = threadIdx.x >> 4;
+            const ui32 fold = threadIdx.x & 15;
 
 
             if (fid < fCount && fold < feature[fid].Folds) {
@@ -786,18 +786,21 @@ template <int BlockSize, bool IsFullPass>
                             TCudaStream stream) {
         dim3 numBlocks;
         numBlocks.x = (bCount + 31) / 32;
-        const int histCount = fullPass ? partsCount : partsCount / 2;
+        const ui32 histCount = fullPass ? partsCount : partsCount / 2;
         numBlocks.y = histCount;
         numBlocks.z = foldCount;
 
-        const int blockSize = 768;
-        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
+        constexpr ui32 BlockSize = 768;
+        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64u);
         numBlocks.x *= multiplier;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         if (bCount) {
 
             #define COMPUTE(k)  \
-            RunComputeHist1BinaryKernel<blockSize, k>(bFeatures, bCount, cindex, target,  indices, \
+            RunComputeHist1BinaryKernel<BlockSize, k>(bFeatures, bCount, cindex, target,  indices, \
                                                       partition, binSums,  histLineSize, fullPass, stream, numBlocks); \
 
             if (multiplier == 1) {
@@ -815,7 +818,7 @@ template <int BlockSize, bool IsFullPass>
             } else if (multiplier == 64) {
                 COMPUTE(64)
             } else {
-                exit(1);
+                CB_ENSURE_INTERNAL(false, "Expected multiplier = 1, 2, 4, 8, 16, 32, or 64, not " << multiplier);
             }
 
             #undef COMPUTE
@@ -836,18 +839,21 @@ template <int BlockSize, bool IsFullPass>
                               TCudaStream stream) {
         dim3 numBlocks;
         numBlocks.x = static_cast<ui32>((halfByteFeaturesCount + 7) / 8);
-        const int histCount = fullPass ? partsCount : partsCount / 2;
+        const ui32 histCount = fullPass ? partsCount : partsCount / 2;
         numBlocks.y = static_cast<ui32>(histCount);
         numBlocks.z = foldCount;
 
-        const int blockSize = 768;
+        constexpr ui32 BlockSize = 768;
         const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
         numBlocks.x *= multiplier;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         if (halfByteFeaturesCount) {
 
             #define COMPUTE(k)\
-            RunComputeHist1HalfByteKernel<blockSize, k>(halfByteFeatures, halfByteFeaturesCount, cindex,\
+            RunComputeHist1HalfByteKernel<BlockSize, k>(halfByteFeatures, halfByteFeaturesCount, cindex,\
                                                         target,\
                                                         indices, partition, binSums, histLineSize,\
                                                         fullPass,\
@@ -868,7 +874,7 @@ template <int BlockSize, bool IsFullPass>
             } else if (multiplier == 64) {
                 COMPUTE(64)
             } else {
-                exit(1);
+                CB_ENSURE_INTERNAL(false, "Expected multiplier = 1, 2, 4, 8, 16, 32, or 64, not " << multiplier);
             }
 
             #undef COMPUTE
@@ -891,15 +897,18 @@ template <int BlockSize, bool IsFullPass>
 
             dim3 numBlocks;
             numBlocks.x = (nbCount + 3) / 4;
-            const int histCount = (fullPass ? partCount : partCount / 2);
+            const ui32 histCount = (fullPass ? partCount : partCount / 2);
             numBlocks.y = histCount;
             numBlocks.z = foldCount;
-            const int blockSize = 384;
+            constexpr ui32 BlockSize = 384;
             const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
             numBlocks.x *= multiplier;
+            if (IsGridEmpty(numBlocks)) {
+                return;
+            }
 
             #define COMPUTE(k)                                                                                              \
-             RunComputeHist1NonBinaryKernel<blockSize, k>(nbFeatures, nbCount, cindex,  target, indices,                    \
+             RunComputeHist1NonBinaryKernel<BlockSize, k>(nbFeatures, nbCount, cindex,  target, indices,                    \
                                                           partition, binSums, histLineSize, fullPass, stream, numBlocks);
             if (multiplier == 1) {
                 COMPUTE(1)
@@ -916,7 +925,7 @@ template <int BlockSize, bool IsFullPass>
             } else if (multiplier == 64) {
                 COMPUTE(64)
             } else {
-                exit(1);
+                CB_ENSURE_INTERNAL(false, "Expected multiplier = 1, 2, 4, 8, 16, 32, or 64, not " << multiplier);
             }
             #undef COMPUTE
         }

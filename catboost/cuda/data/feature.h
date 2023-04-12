@@ -213,6 +213,8 @@ namespace NCatboostCuda {
         {
         }
 
+        TCtr& operator=(const TCtr& other) = default;
+
         bool operator==(const TCtr& other) const {
             return std::tie(FeatureTensor, Configuration) == std::tie(other.FeatureTensor, other.Configuration);
         }

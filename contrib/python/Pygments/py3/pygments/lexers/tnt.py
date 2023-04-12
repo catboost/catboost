@@ -4,7 +4,7 @@
 
     Lexer for Typographic Number Theory.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,14 +20,13 @@ __all__ = ['TNTLexer']
 class TNTLexer(Lexer):
     """
     Lexer for Typographic Number Theory, as described in the book
-    Gödel, Escher, Bach, by Douglas R. Hofstadter,
-    or as summarized here:
-    https://github.com/Kenny2github/language-tnt/blob/master/README.md#summary-of-tnt
-
+    Gödel, Escher, Bach, by Douglas R. Hofstadter
+    
     .. versionadded:: 2.7
     """
 
     name = 'Typographic Number Theory'
+    url = 'https://github.com/Kenny2github/language-tnt'
     aliases = ['tnt']
     filenames = ['*.tnt']
 

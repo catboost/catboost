@@ -9,13 +9,14 @@
 #ifndef _LIBCPP___ALGORITHM_SAMPLE_H
 #define _LIBCPP___ALGORITHM_SAMPLE_H
 
-#include <__config>
 #include <__algorithm/min.h>
+#include <__assert>
+#include <__config>
 #include <__random/uniform_int_distribution.h>
 #include <iterator>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 _LIBCPP_PUSH_MACROS

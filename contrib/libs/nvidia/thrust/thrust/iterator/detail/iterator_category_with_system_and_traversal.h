@@ -18,8 +18,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -53,5 +52,5 @@ template<typename Category, typename System, typename Traversal>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

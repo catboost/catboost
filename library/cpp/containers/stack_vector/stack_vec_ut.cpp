@@ -19,6 +19,28 @@ namespace {
 
         char Junk[JunkPayloadSize]{sizeof(T)};
     };
+
+    template <class T>
+    struct TStatefulAlloc: public std::allocator<T> {
+        using TBase = std::allocator<T>;
+
+        template <class U>
+        struct rebind {
+            using other = TStatefulAlloc<U>;
+        };
+
+        TStatefulAlloc(size_t* allocCount)
+            : AllocCount(allocCount)
+        {}
+
+        size_t* AllocCount;
+
+        T* allocate(size_t n)
+        {
+            *AllocCount += 1;
+            return TBase::allocate(n);
+        }
+    };
 }
 
 Y_UNIT_TEST_SUITE(TStackBasedVectorTest) {
@@ -109,5 +131,14 @@ Y_UNIT_TEST_SUITE(TStackBasedVectorTest) {
         constexpr size_t n = 16384;
         using TVec = TStackVec<size_t, 1, true, TThickAlloc<size_t, n>>;
         UNIT_ASSERT_LT(sizeof(TVec), 1.5 * n);
+    }
+
+    Y_UNIT_TEST(TestStatefulAlloc) {
+        size_t count = 0;
+        TStackVec<size_t, 1, true, TStatefulAlloc<size_t>> vec{{ &count }};
+        for (size_t i = 0; i < 5; ++i) {
+            vec.push_back(1);
+        }
+        UNIT_ASSERT_VALUES_EQUAL(count, 3);
     }
 }

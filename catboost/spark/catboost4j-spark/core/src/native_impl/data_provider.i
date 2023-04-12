@@ -8,6 +8,8 @@
 %include "tvector.i"
 
 
+%catches(yexception) TDataProviderPtr::GetQuantizedObjectsDataProvider() const;
+
 namespace NCB {
     class TObjectsDataProviderPtr;
 
@@ -58,5 +60,5 @@ namespace NCB {
     };
 }
 
-%template(TVector_TDataProviderPtr) TVector<NCB::TDataProviderPtr>;
-%template(TVector_TQuantizedObjectsDataProviderPtr) TVector<NCB::TQuantizedObjectsDataProviderPtr>;
+DECLARE_TVECTOR(TVector_TDataProviderPtr, NCB::TDataProviderPtr)
+DECLARE_TVECTOR(TVector_TQuantizedObjectsDataProviderPtr, NCB::TQuantizedObjectsDataProviderPtr)

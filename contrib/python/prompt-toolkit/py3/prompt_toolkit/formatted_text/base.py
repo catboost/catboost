@@ -5,6 +5,8 @@ from prompt_toolkit.mouse_events import MouseEvent
 if TYPE_CHECKING:
     from typing_extensions import Protocol
 
+    from prompt_toolkit.key_binding.key_bindings import NotImplementedOrNone
+
 __all__ = [
     "OneStyleAndTextTuple",
     "StyleAndTextTuples",
@@ -18,7 +20,7 @@ __all__ = [
 ]
 
 OneStyleAndTextTuple = Union[
-    Tuple[str, str], Tuple[str, str, Callable[[MouseEvent], None]]
+    Tuple[str, str], Tuple[str, str, Callable[[MouseEvent], "NotImplementedOrNone"]]
 ]
 
 # List of (style, text) tuples.
@@ -78,7 +80,7 @@ def to_formatted_text(
     elif callable(value):
         return to_formatted_text(value(), style=style)
     elif auto_convert:
-        result = [("", "{}".format(value))]
+        result = [("", f"{value}")]
     else:
         raise ValueError(
             "No formatted text. Expecting a unicode object, "

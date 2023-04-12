@@ -4,7 +4,7 @@
 
     Lexers for other C-like languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -51,14 +51,14 @@ class PikeLexer(CppLexer):
              r'array|multiset|program|function|lambda|mixed|'
              r'[a-z_][a-z0-9_]*_t)\b',
              Keyword.Type),
-            (r'(class)(\s+)', bygroups(Keyword, Text), 'classname'),
+            (r'(class)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
             (r'[~!%^&*+=|?:<>/@-]', Operator),
             inherit,
         ],
         'classname': [
             (r'[a-zA-Z_]\w*', Name.Class, '#pop'),
             # template specification
-            (r'\s*(?=>)', Text, '#pop'),
+            (r'\s*(?=>)', Whitespace, '#pop'),
         ],
     }
 
@@ -104,7 +104,7 @@ class ClayLexer(RegexLexer):
     mimetypes = ['text/x-clay']
     tokens = {
         'root': [
-            (r'\s', Text),
+            (r'\s+', Whitespace),
             (r'//.*?$', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'\b(public|private|import|as|record|variant|instance'
@@ -169,7 +169,7 @@ class ECLexer(CLexer):
             (words(('uint', 'uint16', 'uint32', 'uint64', 'bool', 'byte',
                     'unichar', 'int64'), suffix=r'\b'),
              Keyword.Type),
-            (r'(class)(\s+)', bygroups(Keyword, Text), 'classname'),
+            (r'(class)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
             (r'(null|value|this)\b', Name.Builtin),
             inherit,
         ]
@@ -190,8 +190,8 @@ class ValaLexer(RegexLexer):
     tokens = {
         'whitespace': [
             (r'^\s*#if\s+0', Comment.Preproc, 'if0'),
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             (r'\\\n', Text),  # line continuation
             (r'//(\n|(.|\n)*?[^\\]\n)', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
@@ -226,10 +226,10 @@ class ValaLexer(RegexLexer):
                 'public', 'ref', 'requires', 'signal', 'static', 'throws', 'unowned',
                 'var', 'virtual', 'volatile', 'weak', 'yields'), suffix=r'\b'),
              Keyword.Declaration),
-            (r'(namespace|using)(\s+)', bygroups(Keyword.Namespace, Text),
+            (r'(namespace|using)(\s+)', bygroups(Keyword.Namespace, Whitespace),
              'namespace'),
             (r'(class|errordomain|interface|struct)(\s+)',
-             bygroups(Keyword.Declaration, Text), 'class'),
+             bygroups(Keyword.Declaration, Whitespace), 'class'),
             (r'(\.)([a-zA-Z_]\w*)',
              bygroups(Operator, Name.Attribute)),
             # void is an actual keyword, others are in glib-2.0.vapi
@@ -304,8 +304,8 @@ class CudaLexer(CLexer):
                  '__syncthreads_or'}
     execution_confs = {'<<<', '>>>'}
 
-    def get_tokens_unprocessed(self, text):
-        for index, token, value in CLexer.get_tokens_unprocessed(self, text):
+    def get_tokens_unprocessed(self, text, stack=('root',)):
+        for index, token, value in CLexer.get_tokens_unprocessed(self, text, stack):
             if token is Name:
                 if value in self.variable_qualifiers:
                     token = Keyword.Type
@@ -525,8 +525,8 @@ class ArduinoLexer(CppLexer):
         'typename', 'this', 'alignof', 'constexpr', 'decltype', 'noexcept',
         'static_assert', 'thread_local', 'restrict'}
 
-    def get_tokens_unprocessed(self, text):
-        for index, token, value in CppLexer.get_tokens_unprocessed(self, text):
+    def get_tokens_unprocessed(self, text, stack=('root',)):
+        for index, token, value in CppLexer.get_tokens_unprocessed(self, text, stack):
             if value in self.structure:
                 yield index, Name.Builtin, value
             elif value in self.operators:
@@ -573,12 +573,13 @@ class CharmciLexer(CppLexer):
 
 class OmgIdlLexer(CLexer):
     """
-    Lexer for `Object Management Group Interface Definition Language <https://www.omg.org/spec/IDL/About-IDL/>`_.
+    Lexer for Object Management Group Interface Definition Language.
 
     .. versionadded:: 2.9
     """
 
     name = 'OMG Interface Definition Language'
+    url = 'https://www.omg.org/spec/IDL/About-IDL/'
     aliases = ['omg-idl']
     filenames = ['*.idl', '*.pidl']
     mimetypes = []

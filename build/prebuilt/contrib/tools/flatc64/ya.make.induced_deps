@@ -1,3 +1,0 @@
-INDUCED_DEPS(h
-    ${ARCADIA_ROOT}/contrib/libs/flatbuffers64/include/flatbuffers/flatbuffers.h
-)

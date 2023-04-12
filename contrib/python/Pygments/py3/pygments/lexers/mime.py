@@ -4,7 +4,7 @@
 
     Lexer for Multipurpose Internet Mail Extensions (MIME) data.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -88,7 +88,7 @@ class MIMELexer(RegexLexer):
             pos_body_start = pos_body_start + 1
             entire_body = entire_body[1:]
 
-        # if it is not a mulitpart
+        # if it is not a multipart
         if not self.content_type.startswith("multipart") or not self.boundary:
             for i, t, v in self.get_bodypart_tokens(entire_body):
                 yield pos_body_start + i, t, v

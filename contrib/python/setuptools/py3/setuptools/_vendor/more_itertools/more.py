@@ -2,7 +2,6 @@ import warnings
 
 from collections import Counter, defaultdict, deque, abc
 from collections.abc import Sequence
-from concurrent.futures import ThreadPoolExecutor
 from functools import partial, reduce, wraps
 from heapq import merge, heapify, heapreplace, heappop
 from itertools import (
@@ -3454,7 +3453,7 @@ class callback_iter:
         self._aborted = False
         self._future = None
         self._wait_seconds = wait_seconds
-        self._executor = ThreadPoolExecutor(max_workers=1)
+        self._executor = __import__("concurrent.futures").futures.ThreadPoolExecutor(max_workers=1)
         self._iterator = self._reader()
 
     def __enter__(self):

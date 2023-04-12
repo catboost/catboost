@@ -4,7 +4,7 @@
 
     Lexers for "business-oriented" languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, include, words, bygroups
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error
+    Number, Punctuation, Error, Whitespace
 
 from pygments.lexers._openedge_builtins import OPENEDGEKEYWORDS
 
@@ -49,7 +49,7 @@ class CobolLexer(RegexLexer):
             include('nums'),
             (r'[a-z0-9]([\w\-]*[a-z0-9]+)?', Name.Variable),
             # (r'[\s]+', Text),
-            (r'[ \t]+', Text),
+            (r'[ \t]+', Whitespace),
         ],
         'comment': [
             (r'(^.{6}[*/].*\n|^.{6}|\*>.*\n)', Comment),
@@ -129,7 +129,7 @@ class CobolLexer(RegexLexer):
                 'SEQUENCE', 'SEQUENTIAL', 'SHARING', 'SIGN', 'SIGNED', 'SIGNED-INT',
                 'SIGNED-LONG', 'SIGNED-SHORT', 'SIZE', 'SORT-MERGE', 'SOURCE',
                 'SOURCE-COMPUTER', 'SPECIAL-NAMES', 'STANDARD',
-                'STANDARD-1', 'STANDARD-2', 'STATUS', 'SUM',
+                'STANDARD-1', 'STANDARD-2', 'STATUS', 'SUBKEY', 'SUM',
                 'SYMBOLIC', 'SYNC', 'SYNCHRONIZED', 'TALLYING', 'TAPE',
                 'TEST', 'THROUGH', 'THRU', 'TIME', 'TIMES', 'TO', 'TOP', 'TRAILING',
                 'TRANSFORM', 'TYPE', 'UNDERLINE', 'UNIT', 'UNSIGNED',
@@ -252,7 +252,7 @@ class ABAPLexer(RegexLexer):
 
     tokens = {
         'common': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'^\*.*$', Comment.Single),
             (r'\".*?\n', Comment.Single),
             (r'##\w+', Comment.Special),
@@ -270,18 +270,18 @@ class ABAPLexer(RegexLexer):
              r'TRANSACTION|TRANSFORMATION))\b',
              Keyword),
             (r'(FORM|PERFORM)(\s+)(\w+)',
-             bygroups(Keyword, Text, Name.Function)),
+             bygroups(Keyword, Whitespace, Name.Function)),
             (r'(PERFORM)(\s+)(\()(\w+)(\))',
-             bygroups(Keyword, Text, Punctuation, Name.Variable, Punctuation)),
+             bygroups(Keyword, Whitespace, Punctuation, Name.Variable, Punctuation)),
             (r'(MODULE)(\s+)(\S+)(\s+)(INPUT|OUTPUT)',
-             bygroups(Keyword, Text, Name.Function, Text, Keyword)),
+             bygroups(Keyword, Whitespace, Name.Function, Whitespace, Keyword)),
 
             # method implementation
             (r'(METHOD)(\s+)([\w~]+)',
-             bygroups(Keyword, Text, Name.Function)),
+             bygroups(Keyword, Whitespace, Name.Function)),
             # method calls
             (r'(\s+)([\w\-]+)([=\-]>)([\w\-~]+)',
-             bygroups(Text, Name.Variable, Operator, Name.Function)),
+             bygroups(Whitespace, Name.Variable, Operator, Name.Function)),
             # call methodnames returning style
             (r'(?<=(=|-)>)([\w\-~]+)(?=\()', Name.Function),
 
@@ -481,7 +481,7 @@ class OpenEdgeLexer(RegexLexer):
             (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'[0-9]+', Number.Integer),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[+*/=-]', Operator),
             (r'[.:()]', Punctuation),
             (r'.', Name.Variable),  # Lazy catch-all
@@ -552,7 +552,7 @@ com/gooddata/processor/COMMANDS.txt>`_
             (r'"', String, 'string-literal'),
             (r'[0-9]+(?:\.[0-9]+)?(?:e[+-]?[0-9]{1,3})?', Number),
             # Space is not significant
-            (r'\s', Text)
+            (r'\s', Whitespace)
         ],
         'string-literal': [
             (r'\\[tnrfbae"\\]', String.Escape),
@@ -616,7 +616,7 @@ class MaqlLexer(RegexLexer):
             # Punctuation
             (r'[,;()]', Punctuation),
             # Space is not significant
-            (r'\s+', Text)
+            (r'\s+', Whitespace)
         ],
         'string-literal': [
             (r'\\[tnrfbae"\\]', String.Escape),

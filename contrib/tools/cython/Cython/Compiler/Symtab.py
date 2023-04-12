@@ -1250,7 +1250,7 @@ class ModuleScope(Scope):
         entry.qualified_name = self.builtin_scope().qualify_name(name)
         return entry
 
-    def find_module(self, module_name, pos, relative_level=-1):
+    def find_module(self, module_name, pos, relative_level=-1, need_pxd=1):
         # Find a module in the import namespace, interpreting
         # relative imports relative to this module's parent.
         # Finds and parses the module's .pxd file if the module
@@ -1271,7 +1271,7 @@ class ModuleScope(Scope):
 
         module_scope = self.global_scope()
         return module_scope.context.find_module(
-            module_name, relative_to=relative_to, pos=pos, absolute_fallback=absolute_fallback)
+            module_name, relative_to=relative_to, pos=pos, absolute_fallback=absolute_fallback, need_pxd=need_pxd)
 
     def find_submodule(self, name):
         # Find and return scope for a submodule of this module,

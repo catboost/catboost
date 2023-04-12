@@ -85,7 +85,6 @@ compilers. Unsupported versions may emit deprecation warnings, which can be
 silenced by defining CUB_IGNORE_DEPRECATED_COMPILER during compilation.
 
 - NVCC 11.0+
-- NVC++ 20.9+
 - GCC 5+
 - Clang 7+
 - MSVC 2019+ (19.20/16.0/14.20)
@@ -100,6 +99,13 @@ See the [changelog](CHANGELOG.md) for details about specific releases.
 
 | CUB Release               | Included In                             |
 | ------------------------- | --------------------------------------- |
+| 1.17.2                    | TBD                                     |
+| 1.17.1                    | TBD                                     |
+| 1.17.0                    | TBD                                     |
+| 1.16.0                    | TBD                                     |
+| 1.15.0                    | NVIDIA HPC SDK 22.1 & CUDA Toolkit 11.6 |
+| 1.14.0                    | NVIDIA HPC SDK 21.9                     |
+| 1.13.1                    | CUDA Toolkit 11.5                       |
 | 1.13.0                    | NVIDIA HPC SDK 21.7                     |
 | 1.12.1                    | CUDA Toolkit 11.4                       |
 | 1.12.0                    | NVIDIA HPC SDK 21.3                     |

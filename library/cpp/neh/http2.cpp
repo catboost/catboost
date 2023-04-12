@@ -18,13 +18,13 @@
 #include <util/stream/output.h>
 #include <util/stream/zlib.h>
 #include <util/system/condvar.h>
-#include <util/system/error.h>
 #include <util/system/mutex.h>
 #include <util/system/spinlock.h>
 #include <util/system/yassert.h>
 #include <util/thread/factory.h>
 #include <util/thread/singleton.h>
 #include <util/system/sanitizers.h>
+#include <util/system/thread.h>
 
 #include <atomic>
 
@@ -105,6 +105,7 @@ bool THttp2Options::AnyResponseIsNotError = false;
 bool THttp2Options::TcpKeepAlive = false;
 i32 THttp2Options::LimitRequestsPerConnection = -1;
 bool THttp2Options::QuickAck = false;
+bool THttp2Options::UseAsyncSendRequest = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
@@ -115,7 +116,8 @@ bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
     HTTP2_TRY_SET(TDuration, ConnectTimeout)
     else HTTP2_TRY_SET(TDuration, InputDeadline)
     else HTTP2_TRY_SET(TDuration, OutputDeadline)
-    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else HTTP2_TRY_SET(bool, RedirectionNotError) else HTTP2_TRY_SET(bool, AnyResponseIsNotError) else HTTP2_TRY_SET(bool, TcpKeepAlive) else HTTP2_TRY_SET(i32, LimitRequestsPerConnection) else HTTP2_TRY_SET(bool, QuickAck) else {
+    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else HTTP2_TRY_SET(bool, RedirectionNotError) else HTTP2_TRY_SET(bool, AnyResponseIsNotError) else HTTP2_TRY_SET(bool, TcpKeepAlive) else HTTP2_TRY_SET(i32, LimitRequestsPerConnection) else HTTP2_TRY_SET(bool, QuickAck)
+    else HTTP2_TRY_SET(bool, UseAsyncSendRequest) else {
         return false;
     }
     return true;
@@ -182,7 +184,7 @@ namespace {
     }
 
     bool Compress(TData& data, const TString& compressionScheme) {
-        if (compressionScheme == "gzip") {
+        if (compressionScheme == "gzip" && data.size() > 23) {  // there is no string less than 24 bytes long that might be compressed with gzip
             try {
                 TData gzipped(data.size());
                 TMemoryOutput out(gzipped.data(), gzipped.size());
@@ -513,7 +515,7 @@ namespace {
 #endif
         }
 
-        void StartRequest(THttpRequestRef req, const TEndpoint& ep, size_t addrId, TDuration slowConn) {
+        void StartRequest(THttpRequestRef req, const TEndpoint& ep, size_t addrId, TDuration slowConn, bool useAsyncSendRequest = false) {
             {
                 //thread safe linking connection->request
                 TGuard<TSpinLock> g(SL_);
@@ -529,7 +531,7 @@ namespace {
                     ConnectDeadline_ = THttp2Options::ConnectTimeout - slowConn;
                 }
                 DBGOUT("AsyncConnect to " << ep.IpToString());
-                AS_.AsyncConnect(ep, std::bind(&THttpConn::OnConnect, THttpConnRef(this), _1, _2), connectDeadline);
+                AS_.AsyncConnect(ep, std::bind(&THttpConn::OnConnect, THttpConnRef(this), _1, _2, useAsyncSendRequest), connectDeadline);
             } catch (...) {
                 ReleaseRequest();
                 throw;
@@ -537,7 +539,7 @@ namespace {
         }
 
         //start next request on keep-alive connection
-        bool StartNextRequest(THttpRequestRef& req) {
+        bool StartNextRequest(THttpRequestRef& req, bool useAsyncSendRequest = false) {
             if (Finalized_) {
                 return false;
             }
@@ -552,12 +554,16 @@ namespace {
             BeginReadResponse_ = false;
 
             try {
-                TErrorCode ec;
-                SendRequest(req->BuildRequest(), ec); //throw std::bad_alloc
-                if (ec.Value() == ECANCELED) {
-                    OnCancel();
-                } else if (ec) {
-                    OnError(ec);
+                if (!useAsyncSendRequest) {
+                    TErrorCode ec;
+                    SendRequest(req->BuildRequest(), ec); //throw std::bad_alloc
+                    if (ec.Value() == ECANCELED) {
+                        OnCancel();
+                    } else if (ec) {
+                        OnError(ec);
+                    }
+                } else {
+                    SendRequestAsync(req->BuildRequest()); //throw std::bad_alloc
                 }
             } catch (...) {
                 OnError(CurrentExceptionMessage());
@@ -643,7 +649,7 @@ namespace {
         }
 
         //can be called only from asio
-        void OnConnect(const TErrorCode& ec, IHandlingContext& ctx) {
+        void OnConnect(const TErrorCode& ec, IHandlingContext& ctx, bool useAsyncSendRequest = false) {
             DBGOUT("THttpConn::OnConnect: " << ec.Value());
             if (Y_UNLIKELY(ec)) {
                 if (ec.Value() == ETIMEDOUT && ConnectDeadline_.GetValue()) {
@@ -704,11 +710,15 @@ namespace {
 
                 THttpRequestBuffersPtr ptr(req->BuildRequest());
                 PrepareParser();
-                TErrorCode ec3;
 
-                SendRequest(ptr, ec3);
-                if (ec3) {
-                    OnError(ec3);
+                if (!useAsyncSendRequest) {
+                    TErrorCode ec3;
+                    SendRequest(ptr, ec3);
+                    if (ec3) {
+                        OnError(ec3);
+                    }
+                } else {
+                    SendRequestAsync(ptr);
                 }
             }
         }
@@ -719,22 +729,30 @@ namespace {
         }
 
         void SendRequest(const THttpRequestBuffersPtr& bfs, TErrorCode& ec) { //throw std::bad_alloc
-            size_t amount = AS_.WriteSome(*bfs->GetIOvec(), ec);
+            if (!THttp2Options::UseAsyncSendRequest) {
+                size_t amount = AS_.WriteSome(*bfs->GetIOvec(), ec);
 
-            if (ec && ec.Value() != EAGAIN && ec.Value() != EWOULDBLOCK && ec.Value() != EINPROGRESS) {
-                return;
-            }
-            ec.Assign(0);
+                if (ec && ec.Value() != EAGAIN && ec.Value() != EWOULDBLOCK && ec.Value() != EINPROGRESS) {
+                    return;
+                }
+                ec.Assign(0);
 
-            bfs->GetIOvec()->Proceed(amount);
+                bfs->GetIOvec()->Proceed(amount);
 
-            if (bfs->GetIOvec()->Complete()) {
-                RequestWritten_ = true;
-                StartRead();
+                if (bfs->GetIOvec()->Complete()) {
+                    RequestWritten_ = true;
+                    StartRead();
+                } else {
+                    SendRequestAsync(bfs);
+                }
             } else {
-                NAsio::TTcpSocket::TSendedData sd(bfs.Release());
-                AS_.AsyncWrite(sd, std::bind(&THttpConn::OnWrite, THttpConnRef(this), _1, _2, _3), THttp2Options::OutputDeadline);
+                SendRequestAsync(bfs);
             }
+        }
+
+        void SendRequestAsync(const THttpRequestBuffersPtr& bfs) {
+            NAsio::TTcpSocket::TSendedData sd(bfs.Release());
+            AS_.AsyncWrite(sd, std::bind(&THttpConn::OnWrite, THttpConnRef(this), _1, _2, _3), THttp2Options::OutputDeadline);
         }
 
         void OnWrite(const TErrorCode& err, size_t amount, IHandlingContext& ctx) {
@@ -946,8 +964,8 @@ namespace {
         inline bool Get(THttpConnRef& conn, size_t addrId) {
 #ifdef DEBUG_STAT
             TDebugStat::ConnTotal.store(TotalConn.Val(), std::memory_order_release);
-            TDebugStat::ConnActive(Active(), std::memory_order_release);
-            TDebugStat::ConnCached(Cache_.Size(), std::memory_order_release);
+            TDebugStat::ConnActive.store(Active(), std::memory_order_release);
+            TDebugStat::ConnCached.store(Cache_.Size(), std::memory_order_release);
 #endif
             return Cache_.Get(conn, addrId);
         }
@@ -1025,6 +1043,7 @@ namespace {
         }
 
         void DoExecute() override {
+            TThread::SetCurrentThreadName("NehHttpConnMngr");
             while (true) {
                 {
                     TGuard<TMutex> g(PurgeMutex_);
@@ -1139,7 +1158,7 @@ namespace {
                 if (HttpConnManager()->Get(conn, Addr_->Id)) {
                     DBGOUT("Use connection from cache");
                     Conn_ = conn; //thread magic
-                    if (!conn->StartNextRequest(req)) {
+                    if (!conn->StartNextRequest(req, RequestSettings_.UseAsyncSendRequest)) {
                         continue; //if use connection from cache, ignore write error and try another conn
                     }
                 } else {
@@ -1544,7 +1563,10 @@ namespace {
                     size_t buffPos = 0;
                     //DBGOUT("receive and parse: " << TStringBuf(Buff_.Get(), amount));
                     while (P_->Parse(Buff_.Get() + buffPos, amount - buffPos)) {
-                        SeenMessageWithoutKeepalive_ |= !P_->IsKeepAlive() || LeftRequestsToDisconnect_ == 1;
+                        if (!P_->IsKeepAlive() || LeftRequestsToDisconnect_ == 1) {
+                            SeenMessageWithoutKeepalive_ = true;
+                        }
+
                         char rt = *P_->FirstLine().data();
                         const size_t extraDataSize = P_->GetExtraDataSize();
                         if (rt == 'P' || rt == 'p') {
@@ -1839,7 +1861,7 @@ namespace {
             THashMap<TAtomicBase, TResponseDataRef> ResponsesData_;
 
             TAtomicBool Canceled_;
-            bool SeenMessageWithoutKeepalive_ = false;
+            TAtomicBool SeenMessageWithoutKeepalive_ = false;
 
             i32 LeftRequestsToDisconnect_ = -1;
         };
@@ -1971,6 +1993,19 @@ namespace {
             return ret.Get();
         }
 
+        THandleRef ScheduleAsyncRequest(const TMessage& msg, IOnRecv* fallback, TServiceStatRef& ss, bool useAsyncSendRequest) override {
+            THttpRequest::THandleRef ret(new THttpRequest::THandle(fallback, msg, !ss ? nullptr : new TStatCollector(ss)));
+            try {
+                auto requestSettings = T::RequestSettings();
+                requestSettings.SetUseAsyncSendRequest(useAsyncSendRequest);
+                THttpRequest::Run(ret, msg, &T::Build, requestSettings);
+            } catch (...) {
+                ret->ResetOnRecv();
+                throw;
+            }
+            return ret.Get();
+        }
+
         TStringBuf Scheme() const noexcept override {
             return T::Name();
         }
@@ -2070,4 +2105,3 @@ namespace NNeh {
 
     }
 }
-

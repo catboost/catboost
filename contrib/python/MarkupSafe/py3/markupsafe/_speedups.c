@@ -254,19 +254,6 @@ soft_str(PyObject *self, PyObject *s)
 }
 
 
-static PyObject*
-soft_unicode(PyObject *self, PyObject *s)
-{
-	PyErr_WarnEx(
-		PyExc_DeprecationWarning,
-		"'soft_unicode' has been renamed to 'soft_str'. The old name"
-		" will be removed in MarkupSafe 2.1.",
-		2
-	);
-	return soft_str(self, s);
-}
-
-
 static PyMethodDef module_methods[] = {
 	{
 		"escape",
@@ -307,12 +294,6 @@ static PyMethodDef module_methods[] = {
 		"Markup('&amp;lt;User 1&amp;gt;')\n"
 		">>> escape(soft_str(value))\n"
 		"Markup('&lt;User 1&gt;')\n"
-	},
-	{
-		"soft_unicode",
-		(PyCFunction)soft_unicode,
-		METH_O,
-		""
 	},
 	{NULL, NULL, 0, NULL}  /* Sentinel */
 };

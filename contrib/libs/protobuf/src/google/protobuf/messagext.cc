@@ -167,6 +167,11 @@ private:
 };
 
 void TProtoSerializer::Load(IInputStream* input, Message& msg) {
+    msg.Clear();
+    MergeFrom(input, msg);
+}
+
+void TProtoSerializer::MergeFrom(IInputStream* input, Message& msg) {
     ui32 size;
     if (!ReadVarint32(input, size))
         ythrow yexception() << "Stream is exhausted";
@@ -175,9 +180,8 @@ void TProtoSerializer::Load(IInputStream* input, Message& msg) {
     ::LoadPodArray(input, buf.Data(), size);
     CodedInputStream decoder(buf.Data(), size);
     decoder.SetTotalBytesLimit(MaxSizeBytes);
-    if (!msg.ParseFromCodedStream(&decoder))
+    if (!msg.MergeFromCodedStream(&decoder))
         ythrow yexception() << "Cannot read protobuf::Message (" << msg.GetTypeName() << ") from input stream";
-
 }
 
 TProtoReader::TProtoReader(IInputStream* input, const size_t bufferSize)

@@ -10,7 +10,6 @@ import yatest.common
 
 def unpack_python(dst_path, py_ver):
     arch_name = {
-        "3.5": "python3.5.tar.gz",
         "3.6": "python3.6.tar.gz",
     }[py_ver]
     tar = tarfile.open(yatest.common.binary_path("catboost/python-package/ut/large/pkg/" + arch_name))
@@ -59,16 +58,6 @@ def unpack_deps(dst_path, py_ver):
             ]
         ]
 
-        if py_ver == "3.5":
-            deps += [
-                os.path.join(deps_dir, dep) for dep in [
-                    "numpy-1.16.0-cp35-cp35m-manylinux1_x86_64.whl",
-                    "pandas-0.24.0-cp35-cp35m-manylinux1_x86_64.whl",
-                    "scikit_learn-0.22.2.post1-cp35-cp35m-manylinux1_x86_64.whl",
-                    "scipy-1.4.1-cp35-cp35m-manylinux1_x86_64.whl"
-                ]
-            ]
-
         if py_ver == "3.6":
             deps += [
                 os.path.join(deps_dir, dep) for dep in [
@@ -116,7 +105,7 @@ def pytest_sessionstart(session):
             return
 
         os.mkdir(python_envs_dir)
-        for py_ver in ['3.5', '3.6']:
+        for py_ver in ['3.6']:
             dst_path = os.path.join(python_envs_dir, py_ver)
 
             whl_dir = yatest.common.source_path("catboost/python-package")

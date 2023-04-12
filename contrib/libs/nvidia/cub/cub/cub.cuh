@@ -38,27 +38,32 @@
 
 // Block
 #include "block/block_histogram.cuh"
+#include "block/block_adjacent_difference.cuh"
 #include "block/block_discontinuity.cuh"
 #include "block/block_exchange.cuh"
 #include "block/block_load.cuh"
 #include "block/block_radix_rank.cuh"
 #include "block/block_radix_sort.cuh"
+#include "block/block_merge_sort.cuh"
 #include "block/block_reduce.cuh"
 #include "block/block_scan.cuh"
 #include "block/block_store.cuh"
 //#include "block/block_shift.cuh"
 
 // Device
+#include "device/device_merge_sort.cuh"
 #include "device/device_histogram.cuh"
 #include "device/device_partition.cuh"
 #include "device/device_radix_sort.cuh"
 #include "device/device_reduce.cuh"
 #include "device/device_run_length_encode.cuh"
 #include "device/device_scan.cuh"
+#include "device/device_segmented_sort.cuh"
 #include "device/device_segmented_radix_sort.cuh"
 #include "device/device_segmented_reduce.cuh"
 #include "device/device_select.cuh"
 #include "device/device_spmv.cuh"
+#include "device/device_adjacent_difference.cuh"
 
 // Grid
 //#include "grid/grid_barrier.cuh"
@@ -74,8 +79,12 @@
 #include "thread/thread_store.cuh"
 
 // Warp
+#include "warp/warp_exchange.cuh"
+#include "warp/warp_load.cuh"
+#include "warp/warp_merge_sort.cuh"
 #include "warp/warp_reduce.cuh"
 #include "warp/warp_scan.cuh"
+#include "warp/warp_store.cuh"
 
 // Iterator
 #include "iterator/arg_index_input_iterator.cuh"

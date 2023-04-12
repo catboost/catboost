@@ -43,7 +43,7 @@ namespace internal {
 
 namespace {
 
-TProtoStringType* MutableUnknownFields(MessageLite* msg, int64 arena_offset) {
+TProtoStringType* MutableUnknownFields(MessageLite* msg, arc_i64 arena_offset) {
   return Raw<InternalMetadata>(msg, arena_offset)
       ->mutable_unknown_fields<TProtoStringType>();
 }
@@ -78,7 +78,7 @@ struct UnknownFieldHandlerLite {
   static bool ParseExtension(MessageLite* msg, const ParseTable& table,
                              io::CodedInputStream* input, int tag) {
     ExtensionSet* extensions = GetExtensionSet(msg, table.extension_offset);
-    if (extensions == NULL) {
+    if (extensions == nullptr) {
       return false;
     }
 

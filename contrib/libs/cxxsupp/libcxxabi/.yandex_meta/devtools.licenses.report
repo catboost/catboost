@@ -61,6 +61,7 @@ BELONGS ya.make
 
 KEEP     MIT                  5debb370f50e1dfd24ff5144233a2ef6
 BELONGS ya.make
+    # any - just word, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: MIT
@@ -105,7 +106,6 @@ BELONGS ya.make
         src/demangle/Utility.h [3:4]
         src/fallback_malloc.cpp [3:4]
         src/fallback_malloc.h [3:4]
-        src/include/atomic_support.h [3:4]
         src/private_typeinfo.cpp [3:4]
         src/private_typeinfo.h [3:4]
         src/stdlib_exception.cpp [3:4]
@@ -142,7 +142,6 @@ BELONGS ya.make
         src/demangle/Utility.h [3:4]
         src/fallback_malloc.cpp [3:4]
         src/fallback_malloc.h [3:4]
-        src/include/atomic_support.h [3:4]
         src/private_typeinfo.cpp [3:4]
         src/private_typeinfo.h [3:4]
         src/stdlib_exception.cpp [3:4]
@@ -161,8 +160,9 @@ BELONGS ya.make
     Files with this license:
         LICENSE.TXT [208:222]
 
-KEEP     Apache-2.0 WITH LLVM-exception 9ac77f65a898755c7eed97099caded94
+KEEP     Apache-2.0           9ac77f65a898755c7eed97099caded94
 BELONGS ya.make
+    # any and version - just words, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: Apache-2.0
@@ -174,6 +174,7 @@ BELONGS ya.make
 
 KEEP     NCSA                 b160d8bd561da097b0edd40b062e1c84
 BELONGS ya.make
+    # any and list - just words, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: NCSA
@@ -217,7 +218,6 @@ BELONGS ya.make
         src/demangle/Utility.h [5:5]
         src/fallback_malloc.cpp [5:5]
         src/fallback_malloc.h [5:5]
-        src/include/atomic_support.h [5:5]
         src/private_typeinfo.cpp [5:5]
         src/private_typeinfo.h [5:5]
         src/stdlib_exception.cpp [5:5]
@@ -254,7 +254,6 @@ BELONGS ya.make
         src/demangle/Utility.h [5:5]
         src/fallback_malloc.cpp [5:5]
         src/fallback_malloc.h [5:5]
-        src/include/atomic_support.h [5:5]
         src/private_typeinfo.cpp [5:5]
         src/private_typeinfo.h [5:5]
         src/stdlib_exception.cpp [5:5]

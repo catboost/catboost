@@ -46,6 +46,11 @@ from prompt_toolkit.auto_suggest import AutoSuggest, DynamicAutoSuggest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.clipboard import Clipboard, DynamicClipboard, InMemoryClipboard
 from prompt_toolkit.completion import Completer, DynamicCompleter, ThreadedCompleter
+from prompt_toolkit.cursor_shapes import (
+    AnyCursorShapeConfig,
+    CursorShapeConfig,
+    DynamicCursorShapeConfig,
+)
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
 from prompt_toolkit.eventloop import get_event_loop
@@ -342,6 +347,7 @@ class PromptSession(Generic[_T]):
         "style_transformation",
         "swap_light_and_dark_colors",
         "color_depth",
+        "cursor",
         "include_default_pygments_style",
         "rprompt",
         "multiline",
@@ -394,6 +400,7 @@ class PromptSession(Generic[_T]):
         style_transformation: Optional[StyleTransformation] = None,
         swap_light_and_dark_colors: FilterOrBool = False,
         color_depth: Optional[ColorDepth] = None,
+        cursor: AnyCursorShapeConfig = None,
         include_default_pygments_style: FilterOrBool = True,
         history: Optional[History] = None,
         clipboard: Optional[Clipboard] = None,
@@ -436,6 +443,7 @@ class PromptSession(Generic[_T]):
         self.style_transformation = style_transformation
         self.swap_light_and_dark_colors = swap_light_and_dark_colors
         self.color_depth = color_depth
+        self.cursor = cursor
         self.include_default_pygments_style = include_default_pygments_style
         self.rprompt = rprompt
         self.multiline = multiline
@@ -751,6 +759,7 @@ class PromptSession(Generic[_T]):
             erase_when_done=erase_when_done,
             reverse_vi_search_direction=True,
             color_depth=lambda: self.color_depth,
+            cursor=DynamicCursorShapeConfig(lambda: self.cursor),
             refresh_interval=self.refresh_interval,
             input=self._input,
             output=self._output,
@@ -807,6 +816,7 @@ class PromptSession(Generic[_T]):
             display_completions_like_readline(event)
 
         @handle("c-c", filter=default_focused)
+        @handle("<sigint>")
         def _keyboard_interrupt(event: E) -> None:
             "Abort when Control-C has been pressed."
             event.app.exit(exception=KeyboardInterrupt, style="class:aborting")
@@ -860,6 +870,7 @@ class PromptSession(Generic[_T]):
         bottom_toolbar: Optional[AnyFormattedText] = None,
         style: Optional[BaseStyle] = None,
         color_depth: Optional[ColorDepth] = None,
+        cursor: Optional[AnyCursorShapeConfig] = None,
         include_default_pygments_style: Optional[FilterOrBool] = None,
         style_transformation: Optional[StyleTransformation] = None,
         swap_light_and_dark_colors: Optional[FilterOrBool] = None,
@@ -889,6 +900,7 @@ class PromptSession(Generic[_T]):
         accept_default: bool = False,
         pre_run: Optional[Callable[[], None]] = None,
         set_exception_handler: bool = True,
+        handle_sigint: bool = True,
         in_thread: bool = False,
     ) -> _T:
         """
@@ -956,6 +968,8 @@ class PromptSession(Generic[_T]):
             self.style = style
         if color_depth is not None:
             self.color_depth = color_depth
+        if cursor is not None:
+            self.cursor = cursor
         if include_default_pygments_style is not None:
             self.include_default_pygments_style = include_default_pygments_style
         if style_transformation is not None:
@@ -1015,10 +1029,12 @@ class PromptSession(Generic[_T]):
         # dumb prompt.
         if self._output is None and is_dumb_terminal():
             with self._dumb_prompt(self.message) as dump_app:
-                return dump_app.run(in_thread=in_thread)
+                return dump_app.run(in_thread=in_thread, handle_sigint=handle_sigint)
 
         return self.app.run(
-            set_exception_handler=set_exception_handler, in_thread=in_thread
+            set_exception_handler=set_exception_handler,
+            in_thread=in_thread,
+            handle_sigint=handle_sigint,
         )
 
     @contextmanager
@@ -1089,6 +1105,7 @@ class PromptSession(Generic[_T]):
         bottom_toolbar: Optional[AnyFormattedText] = None,
         style: Optional[BaseStyle] = None,
         color_depth: Optional[ColorDepth] = None,
+        cursor: Optional[CursorShapeConfig] = None,
         include_default_pygments_style: Optional[FilterOrBool] = None,
         style_transformation: Optional[StyleTransformation] = None,
         swap_light_and_dark_colors: Optional[FilterOrBool] = None,
@@ -1118,6 +1135,7 @@ class PromptSession(Generic[_T]):
         accept_default: bool = False,
         pre_run: Optional[Callable[[], None]] = None,
         set_exception_handler: bool = True,
+        handle_sigint: bool = True,
     ) -> _T:
 
         if message is not None:
@@ -1144,6 +1162,8 @@ class PromptSession(Generic[_T]):
             self.style = style
         if color_depth is not None:
             self.color_depth = color_depth
+        if cursor is not None:
+            self.cursor = cursor
         if include_default_pygments_style is not None:
             self.include_default_pygments_style = include_default_pygments_style
         if style_transformation is not None:
@@ -1203,9 +1223,11 @@ class PromptSession(Generic[_T]):
         # dumb prompt.
         if self._output is None and is_dumb_terminal():
             with self._dumb_prompt(self.message) as dump_app:
-                return await dump_app.run_async()
+                return await dump_app.run_async(handle_sigint=handle_sigint)
 
-        return await self.app.run_async(set_exception_handler=set_exception_handler)
+        return await self.app.run_async(
+            set_exception_handler=set_exception_handler, handle_sigint=handle_sigint
+        )
 
     def _add_pre_run_callables(
         self, pre_run: Optional[Callable[[], None]], accept_default: bool
@@ -1357,6 +1379,7 @@ def prompt(
     bottom_toolbar: Optional[AnyFormattedText] = None,
     style: Optional[BaseStyle] = None,
     color_depth: Optional[ColorDepth] = None,
+    cursor: AnyCursorShapeConfig = None,
     include_default_pygments_style: Optional[FilterOrBool] = None,
     style_transformation: Optional[StyleTransformation] = None,
     swap_light_and_dark_colors: Optional[FilterOrBool] = None,
@@ -1407,6 +1430,7 @@ def prompt(
         bottom_toolbar=bottom_toolbar,
         style=style,
         color_depth=color_depth,
+        cursor=cursor,
         include_default_pygments_style=include_default_pygments_style,
         style_transformation=style_transformation,
         swap_light_and_dark_colors=swap_light_and_dark_colors,

@@ -4,13 +4,13 @@
 
     Lexers for misc console output.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, include, bygroups
 from pygments.token import Generic, Comment, String, Text, Keyword, Name, \
-    Punctuation, Number
+    Punctuation, Number, Whitespace
 
 __all__ = ['VCTreeStatusLexer', 'PyPyLogLexer']
 
@@ -36,7 +36,8 @@ class VCTreeStatusLexer(RegexLexer):
             (r'^D\s+', Generic.Deleted),
             (r'^[?!]\s+', Comment.Preproc),
             (r'      >\s+.*\n', Comment.Preproc),
-            (r'.*\n', Text)
+            (r'\S+', Text),
+            (r'\s+', Whitespace),
         ]
     }
 
@@ -107,7 +108,7 @@ class PyPyLogLexer(RegexLexer):
             include("extra-stuff"),
         ],
         "extra-stuff": [
-            (r"\s+", Text),
+            (r"\s+", Whitespace),
             (r"#.*?$", Comment),
         ],
     }

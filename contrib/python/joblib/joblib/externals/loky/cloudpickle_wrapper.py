@@ -1,17 +1,12 @@
 import inspect
 from functools import partial
-
-try:
-    from joblib.externals.cloudpickle import dumps, loads
-    cloudpickle = True
-except ImportError:
-    cloudpickle = False
+from joblib.externals.cloudpickle import dumps, loads
 
 
-WRAP_CACHE = dict()
+WRAP_CACHE = {}
 
 
-class CloudpickledObjectWrapper(object):
+class CloudpickledObjectWrapper:
     def __init__(self, obj, keep_wrapper=False):
         self._obj = obj
         self._keep_wrapper = keep_wrapper
@@ -52,9 +47,6 @@ def _reconstruct_wrapper(_pickled_object, keep_wrapper):
 def _wrap_objects_when_needed(obj):
     # Function to introspect an object and decide if it should be wrapped or
     # not.
-    if not cloudpickle:
-        return obj
-
     need_wrap = "__main__" in getattr(obj, "__module__", "")
     if isinstance(obj, partial):
         return partial(
@@ -92,11 +84,6 @@ def wrap_non_picklable_objects(obj, keep_wrapper=True):
     objects in the main scripts and to implement __reduce__ functions for
     complex classes.
     """
-    if not cloudpickle:
-        raise ImportError("could not from joblib.externals import cloudpickle. Please install "
-                          "cloudpickle to allow extended serialization. "
-                          "(`pip install cloudpickle`).")
-
     # If obj is a  class, create a CloudpickledClassWrapper which instantiates
     # the object internally and wrap it directly in a CloudpickledObjectWrapper
     if inspect.isclass(obj):

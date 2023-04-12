@@ -24,6 +24,16 @@
 extern "C" {
 #endif
 
+static inline long long strtoll_l(const char *nptr, char **endptr, int base,
+                                  locale_t) {
+  return strtoll(nptr, endptr, base);
+}
+
+static inline unsigned long long strtoull_l(const char *nptr, char **endptr,
+                                            int base, locale_t) {
+  return strtoull(nptr, endptr, base);
+}
+
 static inline long long wcstoll_l(const wchar_t *nptr, wchar_t **endptr,
                                   int base, locale_t) {
   return wcstoll(nptr, endptr, base);

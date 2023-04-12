@@ -369,6 +369,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "sampling_frequency", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_max_ctr_complexity_for_borders_cache", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "observations_to_bootstrap", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "fixed_binary_splits", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "monotone_constraints", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_approxes", &treeOptions, &seenKeys);
 
@@ -446,6 +447,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "gpu_cat_features_storage", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_scoring", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_group_features", &dataProcessingOptions, &seenKeys);
+    CopyOption(plainOptions, "eval_fraction", &dataProcessingOptions, &seenKeys);
 
     auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
     floatFeaturesBinarization.SetType(NJson::JSON_MAP);
@@ -490,10 +492,13 @@ void NCatboostOptions::PlainJsonToOptions(
     if (featuresSelectOptions) {
         CopyOption(plainOptions, "features_for_select", featuresSelectOptions, &seenKeys);
         CopyOption(plainOptions, "num_features_to_select", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "features_tags_for_select", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "num_features_tags_to_select", featuresSelectOptions, &seenKeys);
         CopyOption(plainOptions, "features_selection_steps", featuresSelectOptions, &seenKeys);
         CopyOption(plainOptions, "train_final_model", featuresSelectOptions, &seenKeys);
         CopyOption(plainOptions, "features_selection_result_path", featuresSelectOptions, &seenKeys);
         CopyOption(plainOptions, "features_selection_algorithm", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "features_selection_grouping", featuresSelectOptions, &seenKeys);
         CopyOption(plainOptions, "shap_calc_type", featuresSelectOptions, &seenKeys);
     }
 
@@ -725,6 +730,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "observations_to_bootstrap");
 
+        CopyOption(treeOptions, "fixed_binary_splits", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "fixed_binary_splits");
+
         CopyOption(treeOptions, "monotone_constraints", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "monotone_constraints");
 
@@ -908,6 +916,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(dataProcessingOptions, "target_border", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "target_border");
+
+        CopyOption(dataProcessingOptions, "eval_fraction", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "eval_fraction");
 
         if (dataProcessingOptions.Has("float_features_binarization")) {
             const auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];

@@ -1,3 +1,4 @@
+import pathlib
 import re
 import sys
 
@@ -15,6 +16,10 @@ class ArcadiaDistribution(Distribution):
 
     def __init__(self, prefix):
         self.prefix = prefix
+
+    @property
+    def _path(self):
+        return pathlib.Path(self.prefix)
 
     def read_text(self, filename):
         data = __res.resfs_read(f'{self.prefix}{filename}')

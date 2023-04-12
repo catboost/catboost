@@ -10,8 +10,8 @@
 #line 1
 /* -*- c -*- */
 #define PY_SSIZE_T_CLEAN
-#include "Python.h"
-#include "structmember.h"
+#include <Python.h>
+#include <structmember.h>
 
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #ifndef _MULTIARRAYMODULE
@@ -30,6 +30,7 @@
 #include "ctors.h"
 #include "usertypes.h"
 #include "numpyos.h"
+#include "can_cast_table.h"
 #include "common.h"
 #include "scalartypes.h"
 #include "_datetime.h"
@@ -44,6 +45,16 @@
 
 #include "binop_override.h"
 
+/*
+ * used for allocating a single scalar, so use the default numpy
+ * memory allocators instead of the (maybe) user overrides
+ */
+NPY_NO_EXPORT void *
+npy_alloc_cache_zero(size_t nmemb, size_t size);
+
+NPY_NO_EXPORT void
+npy_free_cache(void * p, npy_uintp sz);
+
 NPY_NO_EXPORT PyBoolScalarObject _PyArrayScalar_BoolValues[] = {
     {PyObject_HEAD_INIT(&PyBoolArrType_Type) 0},
     {PyObject_HEAD_INIT(&PyBoolArrType_Type) 1},
@@ -57,63 +68,63 @@ NPY_NO_EXPORT PyTypeObject PyTimeIntegerArrType_Type;
  * single inheritance)
  */
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PyNumberArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.number",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PyIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.integer",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PySignedIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.signedinteger",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PyUnsignedIntegerArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.unsignedinteger",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PyInexactArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.inexact",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PyFloatingArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.floating",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PyComplexFloatingArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.complexfloating",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PyFlexibleArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.flexible",
     .tp_basicsize = sizeof(PyObject),
 };
 
-#line 56
+#line 67
 NPY_NO_EXPORT PyTypeObject PyCharacterArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.character",
@@ -128,8 +139,11 @@ gentype_alloc(PyTypeObject *type, Py_ssize_t nitems)
     const size_t size = _PyObject_VAR_SIZE(type, nitems + 1);
 
     obj = (PyObject *)PyObject_Malloc(size);
+    if (obj == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
     /*
-     * Fixme. Need to check for no memory.
      * If we don't need to zero memory, we could use
      * PyObject_{New, NewVar} for this whole function.
      */
@@ -146,7 +160,6 @@ gentype_alloc(PyTypeObject *type, Py_ssize_t nitems)
 static void
 gentype_dealloc(PyObject *v)
 {
-    _dealloc_cached_buffer_info(v);
     Py_TYPE(v)->tp_free(v);
 }
 
@@ -211,7 +224,7 @@ static PyObject *
 gentype_add(PyObject *m1, PyObject* m2)
 {
     /* special case str.__radd__, which should not call array_add */
-    if (PyString_Check(m1) || PyUnicode_Check(m1)) {
+    if (PyBytes_Check(m1) || PyUnicode_Check(m1)) {
         Py_INCREF(Py_NotImplemented);
         return Py_NotImplemented;
     }
@@ -219,7 +232,7 @@ gentype_add(PyObject *m1, PyObject* m2)
     return PyArray_Type.tp_as_number->nb_add(m1, m2);
 }
 
-#line 166
+#line 179
 static PyObject *
 gentype_subtract(PyObject *m1, PyObject *m2)
 {
@@ -228,7 +241,7 @@ gentype_subtract(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_remainder(PyObject *m1, PyObject *m2)
 {
@@ -237,7 +250,7 @@ gentype_remainder(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_divmod(PyObject *m1, PyObject *m2)
 {
@@ -246,7 +259,7 @@ gentype_divmod(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_lshift(PyObject *m1, PyObject *m2)
 {
@@ -255,7 +268,7 @@ gentype_lshift(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_rshift(PyObject *m1, PyObject *m2)
 {
@@ -264,7 +277,7 @@ gentype_rshift(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_and(PyObject *m1, PyObject *m2)
 {
@@ -273,7 +286,7 @@ gentype_and(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_xor(PyObject *m1, PyObject *m2)
 {
@@ -282,7 +295,7 @@ gentype_xor(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_or(PyObject *m1, PyObject *m2)
 {
@@ -291,7 +304,7 @@ gentype_or(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_floor_divide(PyObject *m1, PyObject *m2)
 {
@@ -300,7 +313,7 @@ gentype_floor_divide(PyObject *m1, PyObject *m2)
 }
 
 
-#line 166
+#line 179
 static PyObject *
 gentype_true_divide(PyObject *m1, PyObject *m2)
 {
@@ -344,7 +357,118 @@ gentype_multiply(PyObject *m1, PyObject *m2)
     return PyArray_Type.tp_as_number->nb_multiply(m1, m2);
 }
 
-#line 213
+#line 232
+static PyObject *
+npy_byte_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_byte scalar = PyArrayScalar_VAL(self, Byte);
+    uint8_t count = npy_popcounthh(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_ubyte_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_ubyte scalar = PyArrayScalar_VAL(self, UByte);
+    uint8_t count = npy_popcountuhh(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_short_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_short scalar = PyArrayScalar_VAL(self, Short);
+    uint8_t count = npy_popcounth(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_ushort_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_ushort scalar = PyArrayScalar_VAL(self, UShort);
+    uint8_t count = npy_popcountuh(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_int_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_int scalar = PyArrayScalar_VAL(self, Int);
+    uint8_t count = npy_popcount(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_uint_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_uint scalar = PyArrayScalar_VAL(self, UInt);
+    uint8_t count = npy_popcountu(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_long_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_long scalar = PyArrayScalar_VAL(self, Long);
+    uint8_t count = npy_popcountl(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_ulong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_ulong scalar = PyArrayScalar_VAL(self, ULong);
+    uint8_t count = npy_popcountul(scalar);
+    PyObject *result = PyLong_FromLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_longlong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_longlong scalar = PyArrayScalar_VAL(self, LongLong);
+    uint8_t count = npy_popcountll(scalar);
+    PyObject *result = PyLong_FromLongLong(count);
+
+    return result;
+}
+
+#line 232
+static PyObject *
+npy_ulonglong_bit_count(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+    npy_ulonglong scalar = PyArrayScalar_VAL(self, ULongLong);
+    uint8_t count = npy_popcountull(scalar);
+    PyObject *result = PyLong_FromLongLong(count);
+
+    return result;
+}
+
+
+#line 247
 static PyObject *
 gentype_positive(PyObject *m1)
 {
@@ -359,7 +483,7 @@ gentype_positive(PyObject *m1)
     return ret;
 }
 
-#line 213
+#line 247
 static PyObject *
 gentype_negative(PyObject *m1)
 {
@@ -374,7 +498,7 @@ gentype_negative(PyObject *m1)
     return ret;
 }
 
-#line 213
+#line 247
 static PyObject *
 gentype_absolute(PyObject *m1)
 {
@@ -389,7 +513,7 @@ gentype_absolute(PyObject *m1)
     return ret;
 }
 
-#line 213
+#line 247
 static PyObject *
 gentype_invert(PyObject *m1)
 {
@@ -404,7 +528,7 @@ gentype_invert(PyObject *m1)
     return ret;
 }
 
-#line 213
+#line 247
 static PyObject *
 gentype_int(PyObject *m1)
 {
@@ -419,7 +543,7 @@ gentype_int(PyObject *m1)
     return ret;
 }
 
-#line 213
+#line 247
 static PyObject *
 gentype_float(PyObject *m1)
 {
@@ -524,7 +648,7 @@ gentype_format(PyObject *self, PyObject *args)
 #define NPY_LONGDOUBLE_FMT NPY_DOUBLE_FMT
 #endif
 
-#line 324
+#line 358
 
 NPY_NO_EXPORT PyObject *
 format_half(npy_half val, npy_bool scientific,
@@ -533,19 +657,19 @@ format_half(npy_half val, npy_bool scientific,
 {
     if (scientific) {
         return Dragon4_Scientific_Half(&val,
-                        DigitMode_Unique, precision,
+                        DigitMode_Unique, precision, -1,
                         sign, trim, pad_left, exp_digits);
     }
     else {
         return Dragon4_Positional_Half(&val,
                         DigitMode_Unique, CutoffMode_TotalLength, precision,
-                        sign, trim, pad_left, pad_right);
+                        -1, sign, trim, pad_left, pad_right);
     }
 }
 
 
 
-#line 324
+#line 358
 
 NPY_NO_EXPORT PyObject *
 format_float(npy_float val, npy_bool scientific,
@@ -554,19 +678,19 @@ format_float(npy_float val, npy_bool scientific,
 {
     if (scientific) {
         return Dragon4_Scientific_Float(&val,
-                        DigitMode_Unique, precision,
+                        DigitMode_Unique, precision, -1,
                         sign, trim, pad_left, exp_digits);
     }
     else {
         return Dragon4_Positional_Float(&val,
                         DigitMode_Unique, CutoffMode_TotalLength, precision,
-                        sign, trim, pad_left, pad_right);
+                        -1, sign, trim, pad_left, pad_right);
     }
 }
 
 
 
-#line 324
+#line 358
 
 NPY_NO_EXPORT PyObject *
 format_double(npy_double val, npy_bool scientific,
@@ -575,19 +699,19 @@ format_double(npy_double val, npy_bool scientific,
 {
     if (scientific) {
         return Dragon4_Scientific_Double(&val,
-                        DigitMode_Unique, precision,
+                        DigitMode_Unique, precision, -1,
                         sign, trim, pad_left, exp_digits);
     }
     else {
         return Dragon4_Positional_Double(&val,
                         DigitMode_Unique, CutoffMode_TotalLength, precision,
-                        sign, trim, pad_left, pad_right);
+                        -1, sign, trim, pad_left, pad_right);
     }
 }
 
 
 
-#line 324
+#line 358
 
 NPY_NO_EXPORT PyObject *
 format_longdouble(npy_longdouble val, npy_bool scientific,
@@ -596,13 +720,13 @@ format_longdouble(npy_longdouble val, npy_bool scientific,
 {
     if (scientific) {
         return Dragon4_Scientific_LongDouble(&val,
-                        DigitMode_Unique, precision,
+                        DigitMode_Unique, precision, -1,
                         sign, trim, pad_left, exp_digits);
     }
     else {
         return Dragon4_Positional_LongDouble(&val,
                         DigitMode_Unique, CutoffMode_TotalLength, precision,
-                        sign, trim, pad_left, pad_right);
+                        -1, sign, trim, pad_left, pad_right);
     }
 }
 
@@ -614,7 +738,7 @@ format_longdouble(npy_longdouble val, npy_bool scientific,
  * then call the corresponding functions of PyBytes_Type to generate the string
  */
 
-#line 353
+#line 387
 static PyObject *
 stringtype_repr(PyObject *self)
 {
@@ -635,7 +759,7 @@ stringtype_repr(PyObject *self)
     return ret;
 }
 
-#line 353
+#line 387
 static PyObject *
 stringtype_str(PyObject *self)
 {
@@ -662,7 +786,7 @@ stringtype_str(PyObject *self)
  * then call the corresponding functions of PyUnicode_Type to generate the string
  */
 
-#line 382
+#line 416
 static PyObject *
 unicodetype_repr(PyObject *self)
 {
@@ -689,7 +813,7 @@ unicodetype_repr(PyObject *self)
     return ret;
 }
 
-#line 382
+#line 416
 static PyObject *
 unicodetype_str(PyObject *self)
 {
@@ -760,7 +884,7 @@ _void_to_hex(const char* argbuf, const Py_ssize_t arglen,
     }
     memcpy(&retbuf[j], echars, strlen(echars));
 
-    retval = PyUString_FromStringAndSize(retbuf, slen);
+    retval = PyUnicode_FromStringAndSize(retbuf, slen);
     PyMem_Free(retbuf);
 
     return retval;
@@ -831,21 +955,15 @@ datetimetype_repr(PyObject *self)
      */
     if ((scal->obmeta.num == 1 && scal->obmeta.base != NPY_FR_h) ||
             scal->obmeta.base == NPY_FR_GENERIC) {
-        ret = PyUString_FromString("numpy.datetime64('");
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString(iso));
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString("')"));
+        ret = PyUnicode_FromFormat("numpy.datetime64('%s')", iso);
     }
     else {
-        ret = PyUString_FromString("numpy.datetime64('");
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString(iso));
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString("','"));
-        ret = append_metastr_to_string(&scal->obmeta, 1, ret);
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString("')"));
+        PyObject *meta = metastr_to_unicode(&scal->obmeta, 1);
+        if (meta == NULL) {
+            return NULL;
+        }
+        ret = PyUnicode_FromFormat("numpy.datetime64('%s','%S')", iso, meta);
+        Py_DECREF(meta);
     }
 
     return ret;
@@ -855,7 +973,7 @@ static PyObject *
 timedeltatype_repr(PyObject *self)
 {
     PyTimedeltaScalarObject *scal;
-    PyObject *ret;
+    PyObject *val, *ret;
 
     if (!PyArray_IsScalar(self, Timedelta)) {
         PyErr_SetString(PyExc_RuntimeError,
@@ -867,32 +985,34 @@ timedeltatype_repr(PyObject *self)
 
     /* The value */
     if (scal->obval == NPY_DATETIME_NAT) {
-        ret = PyUString_FromString("numpy.timedelta64('NaT'");
+        val = PyUnicode_FromString("'NaT'");
     }
     else {
-        /*
-         * Can't use "%lld" if HAVE_LONG_LONG is not defined
-         */
+         /* Can't use "%lld" if HAVE_LONG_LONG is not defined */
 #if defined(HAVE_LONG_LONG)
-        ret = PyUString_FromFormat("numpy.timedelta64(%lld",
-                                            (long long)scal->obval);
+        val = PyUnicode_FromFormat("%lld", (long long)scal->obval);
 #else
-        ret = PyUString_FromFormat("numpy.timedelta64(%ld",
-                                            (long)scal->obval);
+        val = PyUnicode_FromFormat("%ld", (long)scal->obval);
 #endif
     }
+    if (val == NULL) {
+        return NULL;
+    }
+
     /* The metadata unit */
     if (scal->obmeta.base == NPY_FR_GENERIC) {
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString(")"));
+        ret = PyUnicode_FromFormat("numpy.timedelta64(%S)", val);
     }
     else {
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString(",'"));
-        ret = append_metastr_to_string(&scal->obmeta, 1, ret);
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString("')"));
+        PyObject *meta = metastr_to_unicode(&scal->obmeta, 1);
+        if (meta == NULL) {
+            Py_DECREF(val);
+            return NULL;
+        }
+        ret = PyUnicode_FromFormat("numpy.timedelta64(%S,'%S')", val, meta);
+        Py_DECREF(meta);
     }
+    Py_DECREF(val);
 
     return ret;
 }
@@ -924,7 +1044,7 @@ datetimetype_str(PyObject *self)
         return NULL;
     }
 
-    return PyUString_FromString(iso);
+    return PyUnicode_FromString(iso);
 }
 
 static char *_datetime_verbose_strings[NPY_DATETIME_NUMUNITS] = {
@@ -970,21 +1090,19 @@ timedeltatype_str(PyObject *self)
     }
 
     if (scal->obval == NPY_DATETIME_NAT) {
-        ret = PyUString_FromString("NaT");
+        ret = PyUnicode_FromString("NaT");
     }
     else {
         /*
          * Can't use "%lld" if HAVE_LONG_LONG is not defined
          */
 #if defined(HAVE_LONG_LONG)
-        ret = PyUString_FromFormat("%lld ",
-                                (long long)(scal->obval * scal->obmeta.num));
+        ret = PyUnicode_FromFormat("%lld %s",
+            (long long)(scal->obval * scal->obmeta.num), basestr);
 #else
-        ret = PyUString_FromFormat("%ld ",
-                                (long)(scal->obval * scal->obmeta.num));
+        ret = PyUnicode_FromFormat("%ld %s",
+            (long)(scal->obval * scal->obmeta.num), basestr);
 #endif
-        PyUString_ConcatAndDel(&ret,
-                PyUString_FromString(basestr));
     }
 
     return ret;
@@ -1021,9 +1139,9 @@ extern int npy_legacy_print_mode;
 #define LONGDOUBLEPREC_STR 12
 #endif
 
-#line 717
+#line 745
 
-#line 724
+#line 752
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 #define _FMT2 "%%+.%i" NPY_FLOAT_FMT
@@ -1100,14 +1218,14 @@ legacy_cfloat_formatstr(npy_cfloat val)
         PyOS_snprintf(buf, sizeof(buf), "(%s%sj)", re, im);
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
 #undef _FMT2
 
 
-#line 724
+#line 752
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_DOUBLE_FMT
@@ -1184,14 +1302,14 @@ legacy_cdouble_formatstr(npy_cdouble val)
         PyOS_snprintf(buf, sizeof(buf), "(%s%sj)", re, im);
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
 #undef _FMT2
 
 
-#line 724
+#line 752
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_LONGDOUBLE_FMT
@@ -1268,7 +1386,7 @@ legacy_clongdouble_formatstr(npy_clongdouble val)
         PyOS_snprintf(buf, sizeof(buf), "(%s%sj)", re, im);
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
@@ -1276,7 +1394,7 @@ legacy_clongdouble_formatstr(npy_clongdouble val)
 
 
 
-#line 814
+#line 842
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 
@@ -1304,13 +1422,13 @@ legacy_float_formatstr(npy_float val){
         strcpy(&buf[cnt],".0");
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
 
 
-#line 814
+#line 842
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 
@@ -1338,13 +1456,13 @@ legacy_double_formatstr(npy_double val){
         strcpy(&buf[cnt],".0");
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
 
 
-#line 814
+#line 842
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 
@@ -1372,7 +1490,7 @@ legacy_longdouble_formatstr(npy_longdouble val){
         strcpy(&buf[cnt],".0");
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
@@ -1380,9 +1498,9 @@ legacy_longdouble_formatstr(npy_longdouble val){
 
 
 
-#line 717
+#line 745
 
-#line 724
+#line 752
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 #define _FMT2 "%%+.%i" NPY_FLOAT_FMT
@@ -1459,14 +1577,14 @@ legacy_cfloat_formatrepr(npy_cfloat val)
         PyOS_snprintf(buf, sizeof(buf), "(%s%sj)", re, im);
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
 #undef _FMT2
 
 
-#line 724
+#line 752
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_DOUBLE_FMT
@@ -1543,14 +1661,14 @@ legacy_cdouble_formatrepr(npy_cdouble val)
         PyOS_snprintf(buf, sizeof(buf), "(%s%sj)", re, im);
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
 #undef _FMT2
 
 
-#line 724
+#line 752
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 #define _FMT2 "%%+.%i" NPY_LONGDOUBLE_FMT
@@ -1627,7 +1745,7 @@ legacy_clongdouble_formatrepr(npy_clongdouble val)
         PyOS_snprintf(buf, sizeof(buf), "(%s%sj)", re, im);
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
@@ -1635,7 +1753,7 @@ legacy_clongdouble_formatrepr(npy_clongdouble val)
 
 
 
-#line 814
+#line 842
 
 #define _FMT1 "%%.%i" NPY_FLOAT_FMT
 
@@ -1663,13 +1781,13 @@ legacy_float_formatrepr(npy_float val){
         strcpy(&buf[cnt],".0");
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
 
 
-#line 814
+#line 842
 
 #define _FMT1 "%%.%i" NPY_DOUBLE_FMT
 
@@ -1697,13 +1815,13 @@ legacy_double_formatrepr(npy_double val){
         strcpy(&buf[cnt],".0");
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
 
 
-#line 814
+#line 842
 
 #define _FMT1 "%%.%i" NPY_LONGDOUBLE_FMT
 
@@ -1731,7 +1849,7 @@ legacy_longdouble_formatrepr(npy_longdouble val){
         strcpy(&buf[cnt],".0");
     }
 
-    return PyUString_FromString(buf);
+    return PyUnicode_FromString(buf);
 }
 
 #undef _FMT1
@@ -1746,9 +1864,9 @@ legacy_longdouble_formatrepr(npy_longdouble val){
  */
 
 
-#line 859
+#line 887
 
-#line 865
+#line 893
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -1757,7 +1875,7 @@ floattype_str_either(npy_float val, TrimMode trim_pos, TrimMode trim_sci,
 {
     npy_float absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_float_formatstr(val);
     }
 
@@ -1779,11 +1897,11 @@ floattype_str(PyObject *self)
 static PyObject *
 cfloattype_str(PyObject *self)
 {
-    PyObject *rstr, *istr, *ret;
+    PyObject *rstr, *istr;
     npy_cfloat val = PyArrayScalar_VAL(self, CFloat);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_cfloat_formatstr(val);
     }
 
@@ -1792,54 +1910,54 @@ cfloattype_str(PyObject *self)
         if (istr == NULL) {
             return NULL;
         }
-
-        PyUString_ConcatAndDel(&istr, PyUString_FromString("j"));
-        return istr;
+        PyObject *ret = PyUnicode_FromFormat("%Sj", istr);
+        Py_DECREF(istr);
+        return ret;
     }
 
     if (npy_isfinite(val.real)) {
         rstr = floattype_str_either(val.real, trim, trim, 0);
-        if (rstr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.real)) {
-        rstr = PyUString_FromString("nan");
+        rstr = PyUnicode_FromString("nan");
     }
     else if (val.real > 0){
-        rstr = PyUString_FromString("inf");
+        rstr = PyUnicode_FromString("inf");
     }
     else {
-        rstr = PyUString_FromString("-inf");
+        rstr = PyUnicode_FromString("-inf");
+    }
+    if (rstr == NULL) {
+        return NULL;
     }
 
     if (npy_isfinite(val.imag)) {
         istr = floattype_str_either(val.imag, trim, trim, 1);
-        if (istr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.imag)) {
-        istr = PyUString_FromString("+nan");
+        istr = PyUnicode_FromString("+nan");
     }
     else if (val.imag > 0){
-        istr = PyUString_FromString("+inf");
+        istr = PyUnicode_FromString("+inf");
     }
     else {
-        istr = PyUString_FromString("-inf");
+        istr = PyUnicode_FromString("-inf");
+    }
+    if (istr == NULL) {
+        Py_DECREF(rstr);
+        return NULL;
     }
 
-    ret = PyUString_FromString("(");
-    PyUString_ConcatAndDel(&ret, rstr);
-    PyUString_ConcatAndDel(&ret, istr);
-    PyUString_ConcatAndDel(&ret, PyUString_FromString("j)"));
+    PyObject *ret = PyUnicode_FromFormat("(%S%Sj)", rstr, istr);
+    Py_DECREF(rstr);
+    Py_DECREF(istr);
     return ret;
 }
 
 #undef PREC
 
 
-#line 865
+#line 893
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -1848,7 +1966,7 @@ doubletype_str_either(npy_double val, TrimMode trim_pos, TrimMode trim_sci,
 {
     npy_double absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_double_formatstr(val);
     }
 
@@ -1870,11 +1988,11 @@ doubletype_str(PyObject *self)
 static PyObject *
 cdoubletype_str(PyObject *self)
 {
-    PyObject *rstr, *istr, *ret;
+    PyObject *rstr, *istr;
     npy_cdouble val = PyArrayScalar_VAL(self, CDouble);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_cdouble_formatstr(val);
     }
 
@@ -1883,54 +2001,54 @@ cdoubletype_str(PyObject *self)
         if (istr == NULL) {
             return NULL;
         }
-
-        PyUString_ConcatAndDel(&istr, PyUString_FromString("j"));
-        return istr;
+        PyObject *ret = PyUnicode_FromFormat("%Sj", istr);
+        Py_DECREF(istr);
+        return ret;
     }
 
     if (npy_isfinite(val.real)) {
         rstr = doubletype_str_either(val.real, trim, trim, 0);
-        if (rstr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.real)) {
-        rstr = PyUString_FromString("nan");
+        rstr = PyUnicode_FromString("nan");
     }
     else if (val.real > 0){
-        rstr = PyUString_FromString("inf");
+        rstr = PyUnicode_FromString("inf");
     }
     else {
-        rstr = PyUString_FromString("-inf");
+        rstr = PyUnicode_FromString("-inf");
+    }
+    if (rstr == NULL) {
+        return NULL;
     }
 
     if (npy_isfinite(val.imag)) {
         istr = doubletype_str_either(val.imag, trim, trim, 1);
-        if (istr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.imag)) {
-        istr = PyUString_FromString("+nan");
+        istr = PyUnicode_FromString("+nan");
     }
     else if (val.imag > 0){
-        istr = PyUString_FromString("+inf");
+        istr = PyUnicode_FromString("+inf");
     }
     else {
-        istr = PyUString_FromString("-inf");
+        istr = PyUnicode_FromString("-inf");
+    }
+    if (istr == NULL) {
+        Py_DECREF(rstr);
+        return NULL;
     }
 
-    ret = PyUString_FromString("(");
-    PyUString_ConcatAndDel(&ret, rstr);
-    PyUString_ConcatAndDel(&ret, istr);
-    PyUString_ConcatAndDel(&ret, PyUString_FromString("j)"));
+    PyObject *ret = PyUnicode_FromFormat("(%S%Sj)", rstr, istr);
+    Py_DECREF(rstr);
+    Py_DECREF(istr);
     return ret;
 }
 
 #undef PREC
 
 
-#line 865
+#line 893
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -1939,7 +2057,7 @@ longdoubletype_str_either(npy_longdouble val, TrimMode trim_pos, TrimMode trim_s
 {
     npy_longdouble absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_longdouble_formatstr(val);
     }
 
@@ -1961,11 +2079,11 @@ longdoubletype_str(PyObject *self)
 static PyObject *
 clongdoubletype_str(PyObject *self)
 {
-    PyObject *rstr, *istr, *ret;
+    PyObject *rstr, *istr;
     npy_clongdouble val = PyArrayScalar_VAL(self, CLongDouble);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_clongdouble_formatstr(val);
     }
 
@@ -1974,47 +2092,47 @@ clongdoubletype_str(PyObject *self)
         if (istr == NULL) {
             return NULL;
         }
-
-        PyUString_ConcatAndDel(&istr, PyUString_FromString("j"));
-        return istr;
+        PyObject *ret = PyUnicode_FromFormat("%Sj", istr);
+        Py_DECREF(istr);
+        return ret;
     }
 
     if (npy_isfinite(val.real)) {
         rstr = longdoubletype_str_either(val.real, trim, trim, 0);
-        if (rstr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.real)) {
-        rstr = PyUString_FromString("nan");
+        rstr = PyUnicode_FromString("nan");
     }
     else if (val.real > 0){
-        rstr = PyUString_FromString("inf");
+        rstr = PyUnicode_FromString("inf");
     }
     else {
-        rstr = PyUString_FromString("-inf");
+        rstr = PyUnicode_FromString("-inf");
+    }
+    if (rstr == NULL) {
+        return NULL;
     }
 
     if (npy_isfinite(val.imag)) {
         istr = longdoubletype_str_either(val.imag, trim, trim, 1);
-        if (istr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.imag)) {
-        istr = PyUString_FromString("+nan");
+        istr = PyUnicode_FromString("+nan");
     }
     else if (val.imag > 0){
-        istr = PyUString_FromString("+inf");
+        istr = PyUnicode_FromString("+inf");
     }
     else {
-        istr = PyUString_FromString("-inf");
+        istr = PyUnicode_FromString("-inf");
+    }
+    if (istr == NULL) {
+        Py_DECREF(rstr);
+        return NULL;
     }
 
-    ret = PyUString_FromString("(");
-    PyUString_ConcatAndDel(&ret, rstr);
-    PyUString_ConcatAndDel(&ret, istr);
-    PyUString_ConcatAndDel(&ret, PyUString_FromString("j)"));
+    PyObject *ret = PyUnicode_FromFormat("(%S%Sj)", rstr, istr);
+    Py_DECREF(rstr);
+    Py_DECREF(istr);
     return ret;
 }
 
@@ -2030,7 +2148,7 @@ halftype_str(PyObject *self)
     float floatval = npy_half_to_float(val);
     float absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_float_formatstr(floatval);
     }
 
@@ -2044,9 +2162,9 @@ halftype_str(PyObject *self)
 
 
 
-#line 859
+#line 887
 
-#line 865
+#line 893
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2055,7 +2173,7 @@ floattype_repr_either(npy_float val, TrimMode trim_pos, TrimMode trim_sci,
 {
     npy_float absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_float_formatrepr(val);
     }
 
@@ -2077,11 +2195,11 @@ floattype_repr(PyObject *self)
 static PyObject *
 cfloattype_repr(PyObject *self)
 {
-    PyObject *rstr, *istr, *ret;
+    PyObject *rstr, *istr;
     npy_cfloat val = PyArrayScalar_VAL(self, CFloat);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_cfloat_formatrepr(val);
     }
 
@@ -2090,54 +2208,54 @@ cfloattype_repr(PyObject *self)
         if (istr == NULL) {
             return NULL;
         }
-
-        PyUString_ConcatAndDel(&istr, PyUString_FromString("j"));
-        return istr;
+        PyObject *ret = PyUnicode_FromFormat("%Sj", istr);
+        Py_DECREF(istr);
+        return ret;
     }
 
     if (npy_isfinite(val.real)) {
         rstr = floattype_repr_either(val.real, trim, trim, 0);
-        if (rstr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.real)) {
-        rstr = PyUString_FromString("nan");
+        rstr = PyUnicode_FromString("nan");
     }
     else if (val.real > 0){
-        rstr = PyUString_FromString("inf");
+        rstr = PyUnicode_FromString("inf");
     }
     else {
-        rstr = PyUString_FromString("-inf");
+        rstr = PyUnicode_FromString("-inf");
+    }
+    if (rstr == NULL) {
+        return NULL;
     }
 
     if (npy_isfinite(val.imag)) {
         istr = floattype_repr_either(val.imag, trim, trim, 1);
-        if (istr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.imag)) {
-        istr = PyUString_FromString("+nan");
+        istr = PyUnicode_FromString("+nan");
     }
     else if (val.imag > 0){
-        istr = PyUString_FromString("+inf");
+        istr = PyUnicode_FromString("+inf");
     }
     else {
-        istr = PyUString_FromString("-inf");
+        istr = PyUnicode_FromString("-inf");
+    }
+    if (istr == NULL) {
+        Py_DECREF(rstr);
+        return NULL;
     }
 
-    ret = PyUString_FromString("(");
-    PyUString_ConcatAndDel(&ret, rstr);
-    PyUString_ConcatAndDel(&ret, istr);
-    PyUString_ConcatAndDel(&ret, PyUString_FromString("j)"));
+    PyObject *ret = PyUnicode_FromFormat("(%S%Sj)", rstr, istr);
+    Py_DECREF(rstr);
+    Py_DECREF(istr);
     return ret;
 }
 
 #undef PREC
 
 
-#line 865
+#line 893
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2146,7 +2264,7 @@ doubletype_repr_either(npy_double val, TrimMode trim_pos, TrimMode trim_sci,
 {
     npy_double absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_double_formatrepr(val);
     }
 
@@ -2168,11 +2286,11 @@ doubletype_repr(PyObject *self)
 static PyObject *
 cdoubletype_repr(PyObject *self)
 {
-    PyObject *rstr, *istr, *ret;
+    PyObject *rstr, *istr;
     npy_cdouble val = PyArrayScalar_VAL(self, CDouble);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_cdouble_formatrepr(val);
     }
 
@@ -2181,54 +2299,54 @@ cdoubletype_repr(PyObject *self)
         if (istr == NULL) {
             return NULL;
         }
-
-        PyUString_ConcatAndDel(&istr, PyUString_FromString("j"));
-        return istr;
+        PyObject *ret = PyUnicode_FromFormat("%Sj", istr);
+        Py_DECREF(istr);
+        return ret;
     }
 
     if (npy_isfinite(val.real)) {
         rstr = doubletype_repr_either(val.real, trim, trim, 0);
-        if (rstr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.real)) {
-        rstr = PyUString_FromString("nan");
+        rstr = PyUnicode_FromString("nan");
     }
     else if (val.real > 0){
-        rstr = PyUString_FromString("inf");
+        rstr = PyUnicode_FromString("inf");
     }
     else {
-        rstr = PyUString_FromString("-inf");
+        rstr = PyUnicode_FromString("-inf");
+    }
+    if (rstr == NULL) {
+        return NULL;
     }
 
     if (npy_isfinite(val.imag)) {
         istr = doubletype_repr_either(val.imag, trim, trim, 1);
-        if (istr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.imag)) {
-        istr = PyUString_FromString("+nan");
+        istr = PyUnicode_FromString("+nan");
     }
     else if (val.imag > 0){
-        istr = PyUString_FromString("+inf");
+        istr = PyUnicode_FromString("+inf");
     }
     else {
-        istr = PyUString_FromString("-inf");
+        istr = PyUnicode_FromString("-inf");
+    }
+    if (istr == NULL) {
+        Py_DECREF(rstr);
+        return NULL;
     }
 
-    ret = PyUString_FromString("(");
-    PyUString_ConcatAndDel(&ret, rstr);
-    PyUString_ConcatAndDel(&ret, istr);
-    PyUString_ConcatAndDel(&ret, PyUString_FromString("j)"));
+    PyObject *ret = PyUnicode_FromFormat("(%S%Sj)", rstr, istr);
+    Py_DECREF(rstr);
+    Py_DECREF(istr);
     return ret;
 }
 
 #undef PREC
 
 
-#line 865
+#line 893
 
 /* helper function choose scientific of fractional output, based on a cutoff */
 static PyObject *
@@ -2237,7 +2355,7 @@ longdoubletype_repr_either(npy_longdouble val, TrimMode trim_pos, TrimMode trim_
 {
     npy_longdouble absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_longdouble_formatrepr(val);
     }
 
@@ -2259,11 +2377,11 @@ longdoubletype_repr(PyObject *self)
 static PyObject *
 clongdoubletype_repr(PyObject *self)
 {
-    PyObject *rstr, *istr, *ret;
+    PyObject *rstr, *istr;
     npy_clongdouble val = PyArrayScalar_VAL(self, CLongDouble);
     TrimMode trim = TrimMode_DptZeros;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_clongdouble_formatrepr(val);
     }
 
@@ -2272,47 +2390,47 @@ clongdoubletype_repr(PyObject *self)
         if (istr == NULL) {
             return NULL;
         }
-
-        PyUString_ConcatAndDel(&istr, PyUString_FromString("j"));
-        return istr;
+        PyObject *ret = PyUnicode_FromFormat("%Sj", istr);
+        Py_DECREF(istr);
+        return ret;
     }
 
     if (npy_isfinite(val.real)) {
         rstr = longdoubletype_repr_either(val.real, trim, trim, 0);
-        if (rstr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.real)) {
-        rstr = PyUString_FromString("nan");
+        rstr = PyUnicode_FromString("nan");
     }
     else if (val.real > 0){
-        rstr = PyUString_FromString("inf");
+        rstr = PyUnicode_FromString("inf");
     }
     else {
-        rstr = PyUString_FromString("-inf");
+        rstr = PyUnicode_FromString("-inf");
+    }
+    if (rstr == NULL) {
+        return NULL;
     }
 
     if (npy_isfinite(val.imag)) {
         istr = longdoubletype_repr_either(val.imag, trim, trim, 1);
-        if (istr == NULL) {
-            return NULL;
-        }
     }
     else if (npy_isnan(val.imag)) {
-        istr = PyUString_FromString("+nan");
+        istr = PyUnicode_FromString("+nan");
     }
     else if (val.imag > 0){
-        istr = PyUString_FromString("+inf");
+        istr = PyUnicode_FromString("+inf");
     }
     else {
-        istr = PyUString_FromString("-inf");
+        istr = PyUnicode_FromString("-inf");
+    }
+    if (istr == NULL) {
+        Py_DECREF(rstr);
+        return NULL;
     }
 
-    ret = PyUString_FromString("(");
-    PyUString_ConcatAndDel(&ret, rstr);
-    PyUString_ConcatAndDel(&ret, istr);
-    PyUString_ConcatAndDel(&ret, PyUString_FromString("j)"));
+    PyObject *ret = PyUnicode_FromFormat("(%S%Sj)", rstr, istr);
+    Py_DECREF(rstr);
+    Py_DECREF(istr);
     return ret;
 }
 
@@ -2328,7 +2446,7 @@ halftype_repr(PyObject *self)
     float floatval = npy_half_to_float(val);
     float absval;
 
-    if (npy_legacy_print_mode == 113) {
+    if (npy_legacy_print_mode <= 113) {
         return legacy_float_formatrepr(floatval);
     }
 
@@ -2343,7 +2461,7 @@ halftype_repr(PyObject *self)
 
 
 
-#line 984
+#line 1012
 static PyObject *
 longdoubletype_float(PyObject *self)
 {
@@ -2359,7 +2477,7 @@ longdoubletype_long(PyObject *self)
 }
 
 
-#line 984
+#line 1012
 static PyObject *
 clongdoubletype_float(PyObject *self)
 {
@@ -2437,19 +2555,19 @@ gentype_richcompare(PyObject *self, PyObject *other, int cmp_op)
 }
 
 static PyObject *
-gentype_ndim_get(PyObject *NPY_UNUSED(self))
+gentype_ndim_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
-    return PyInt_FromLong(0);
+    return PyLong_FromLong(0);
 }
 
 static PyObject *
-gentype_flags_get(PyObject *NPY_UNUSED(self))
+gentype_flags_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     return PyArray_NewFlagsObject(NULL);
 }
 
 static PyObject *
-voidtype_flags_get(PyVoidScalarObject *self)
+voidtype_flags_get(PyVoidScalarObject *self, void *NPY_UNUSED(ignored))
 {
     PyObject *flagobj;
     flagobj = PyArrayFlags_Type.tp_alloc(&PyArrayFlags_Type, 0);
@@ -2462,7 +2580,7 @@ voidtype_flags_get(PyVoidScalarObject *self)
 }
 
 static PyObject *
-voidtype_dtypedescr_get(PyVoidScalarObject *self)
+voidtype_dtypedescr_get(PyVoidScalarObject *self, void *NPY_UNUSED(ignored))
 {
     Py_INCREF(self->descr);
     return (PyObject *)self->descr;
@@ -2470,7 +2588,7 @@ voidtype_dtypedescr_get(PyVoidScalarObject *self)
 
 
 static PyObject *
-inttype_numerator_get(PyObject *self)
+inttype_numerator_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     Py_INCREF(self);
     return self;
@@ -2478,21 +2596,21 @@ inttype_numerator_get(PyObject *self)
 
 
 static PyObject *
-inttype_denominator_get(PyObject *self)
+inttype_denominator_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
-    return PyInt_FromLong(1);
+    return PyLong_FromLong(1);
 }
 
 
 static PyObject *
-gentype_data_get(PyObject *self)
+gentype_data_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     return PyMemoryView_FromObject(self);
 }
 
 
 static PyObject *
-gentype_itemsize_get(PyObject *self)
+gentype_itemsize_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArray_Descr *typecode;
     PyObject *ret;
@@ -2500,22 +2618,22 @@ gentype_itemsize_get(PyObject *self)
 
     typecode = PyArray_DescrFromScalar(self);
     elsize = typecode->elsize;
-    ret = PyInt_FromLong((long) elsize);
+    ret = PyLong_FromLong((long) elsize);
     Py_DECREF(typecode);
     return ret;
 }
 
 static PyObject *
-gentype_size_get(PyObject *NPY_UNUSED(self))
+gentype_size_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
-    return PyInt_FromLong(1);
+    return PyLong_FromLong(1);
 }
 
 static PyObject *
-gentype_sizeof(PyObject *self)
+gentype_sizeof(PyObject *self, PyObject *NPY_UNUSED(args))
 {
     Py_ssize_t nbytes;
-    PyObject * isz = gentype_itemsize_get(self);
+    PyObject * isz = gentype_itemsize_get(self, NULL);
     if (isz == NULL) {
         return NULL;
     }
@@ -2528,19 +2646,23 @@ gentype_sizeof(PyObject *self)
 NPY_NO_EXPORT void
 gentype_struct_free(PyObject *ptr)
 {
-    PyArrayInterface *arrif;
-    PyObject *context;
-
-    arrif = (PyArrayInterface*)PyCapsule_GetPointer(ptr, NULL);
-    context = (PyObject *)PyCapsule_GetContext(ptr);
-    Py_DECREF(context);
+    PyArrayInterface *arrif = (PyArrayInterface*)PyCapsule_GetPointer(ptr, NULL);
+    if (arrif == NULL) {
+        PyErr_WriteUnraisable(ptr);
+        return;
+    }
+    PyObject *context = (PyObject *)PyCapsule_GetContext(ptr);
+    if (context == NULL && PyErr_Occurred()) {
+        PyErr_WriteUnraisable(ptr);
+    }
+    Py_XDECREF(context);
     Py_XDECREF(arrif->descr);
     PyArray_free(arrif->shape);
     PyArray_free(arrif);
 }
 
 static PyObject *
-gentype_struct_get(PyObject *self)
+gentype_struct_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArrayObject *arr;
     PyArrayInterface *inter;
@@ -2551,8 +2673,7 @@ gentype_struct_get(PyObject *self)
     inter->two = 2;
     inter->nd = 0;
     inter->flags = PyArray_FLAGS(arr);
-    inter->flags &= ~(NPY_ARRAY_UPDATEIFCOPY | NPY_ARRAY_WRITEBACKIFCOPY |
-                      NPY_ARRAY_OWNDATA);
+    inter->flags &= ~(NPY_ARRAY_WRITEBACKIFCOPY | NPY_ARRAY_OWNDATA);
     inter->flags |= NPY_ARRAY_NOTSWAPPED;
     inter->typekind = PyArray_DESCR(arr)->kind;
     inter->itemsize = PyArray_DESCR(arr)->elsize;
@@ -2566,20 +2687,20 @@ gentype_struct_get(PyObject *self)
 }
 
 static PyObject *
-gentype_priority_get(PyObject *NPY_UNUSED(self))
+gentype_priority_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     return PyFloat_FromDouble(NPY_SCALAR_PRIORITY);
 }
 
 static PyObject *
-gentype_shape_get(PyObject *NPY_UNUSED(self))
+gentype_shape_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     return PyTuple_New(0);
 }
 
 
 static PyObject *
-gentype_interface_get(PyObject *self)
+gentype_interface_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArrayObject *arr;
     PyObject *inter;
@@ -2599,20 +2720,20 @@ gentype_interface_get(PyObject *self)
 
 
 static PyObject *
-gentype_typedescr_get(PyObject *self)
+gentype_typedescr_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     return (PyObject *)PyArray_DescrFromScalar(self);
 }
 
 
 static PyObject *
-gentype_base_get(PyObject *NPY_UNUSED(self))
+gentype_base_get(PyObject *NPY_UNUSED(self), void *NPY_UNUSED(ignored))
 {
     Py_RETURN_NONE;
 }
 
 static PyObject *
-voidtype_base_get(PyVoidScalarObject *self)
+voidtype_base_get(PyVoidScalarObject *self, void *NPY_UNUSED(ignored))
 {
     if (self->base == NULL) {
         Py_RETURN_NONE;
@@ -2643,7 +2764,7 @@ _realdescr_fromcomplexscalar(PyObject *self, int *typenum)
 }
 
 static PyObject *
-gentype_real_get(PyObject *self)
+gentype_real_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArray_Descr *typecode;
     PyObject *ret;
@@ -2670,7 +2791,7 @@ gentype_real_get(PyObject *self)
 }
 
 static PyObject *
-gentype_imag_get(PyObject *self)
+gentype_imag_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyArray_Descr *typecode=NULL;
     PyObject *ret;
@@ -2688,7 +2809,7 @@ gentype_imag_get(PyObject *self)
         ret = PyObject_GetAttrString(obj, "imag");
         if (ret == NULL) {
             PyErr_Clear();
-            obj = PyInt_FromLong(0);
+            obj = PyLong_FromLong(0);
             newtype = PyArray_DescrFromType(NPY_OBJECT);
             ret = PyArray_Scalar((char *)&obj, newtype, NULL);
             Py_DECREF(newtype);
@@ -2700,7 +2821,7 @@ gentype_imag_get(PyObject *self)
         int elsize;
         typecode = PyArray_DescrFromScalar(self);
         elsize = typecode->elsize;
-        temp = npy_alloc_cache_zero(elsize);
+        temp = npy_alloc_cache_zero(1, elsize);
         ret = PyArray_Scalar(temp, typecode, NULL);
         npy_free_cache(temp, elsize);
     }
@@ -2710,7 +2831,7 @@ gentype_imag_get(PyObject *self)
 }
 
 static PyObject *
-gentype_flat_get(PyObject *self)
+gentype_flat_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     PyObject *ret, *arr;
 
@@ -2725,7 +2846,7 @@ gentype_flat_get(PyObject *self)
 
 
 static PyObject *
-gentype_transpose_get(PyObject *self)
+gentype_transpose_get(PyObject *self, void *NPY_UNUSED(ignored))
 {
     Py_INCREF(self);
     return self;
@@ -2735,74 +2856,46 @@ gentype_transpose_get(PyObject *self)
 static PyGetSetDef gentype_getsets[] = {
     {"ndim",
         (getter)gentype_ndim_get,
-        (setter) 0,
-        "number of array dimensions",
-        NULL},
+        (setter) 0, NULL, NULL},
     {"flags",
         (getter)gentype_flags_get,
-        (setter)0,
-        "integer value of flags",
-        NULL},
+        (setter)0, NULL, NULL},
     {"shape",
         (getter)gentype_shape_get,
-        (setter)0,
-        "tuple of array dimensions",
-        NULL},
+        (setter)0, NULL, NULL},
     {"strides",
         (getter)gentype_shape_get,
-        (setter) 0,
-        "tuple of bytes steps in each dimension",
-        NULL},
+        (setter) 0, NULL, NULL},
     {"data",
         (getter)gentype_data_get,
-        (setter) 0,
-        "pointer to start of data",
-        NULL},
+        (setter) 0, NULL, NULL},
     {"itemsize",
         (getter)gentype_itemsize_get,
-        (setter)0,
-        "length of one element in bytes",
-        NULL},
+        (setter)0, NULL, NULL},
     {"size",
         (getter)gentype_size_get,
-        (setter)0,
-        "number of elements in the gentype",
-        NULL},
+        (setter)0, NULL, NULL},
     {"nbytes",
         (getter)gentype_itemsize_get,
-        (setter)0,
-        "length of item in bytes",
-        NULL},
+        (setter)0, NULL, NULL},
     {"base",
         (getter)gentype_base_get,
-        (setter)0,
-        "base object",
-        NULL},
+        (setter)0, NULL, NULL},
     {"dtype",
         (getter)gentype_typedescr_get,
-        NULL,
-        "get array data-descriptor",
-        NULL},
+        NULL, NULL, NULL},
     {"real",
         (getter)gentype_real_get,
-        (setter)0,
-        "real part of scalar",
-        NULL},
+        (setter)0, NULL, NULL},
     {"imag",
         (getter)gentype_imag_get,
-        (setter)0,
-        "imaginary part of scalar",
-        NULL},
+        (setter)0, NULL, NULL},
     {"flat",
         (getter)gentype_flat_get,
-        (setter)0,
-        "a 1-d view of scalar",
-        NULL},
+        (setter)0, NULL, NULL},
     {"T",
         (getter)gentype_transpose_get,
-        (setter)0,
-        "transpose",
-        NULL},
+        (setter)0, NULL, NULL},
     {"__array_interface__",
         (getter)gentype_interface_get,
         NULL,
@@ -2871,77 +2964,77 @@ gentype_wraparray(PyObject *NPY_UNUSED(scalar), PyObject *args)
  * These gentype_* functions do not take keyword arguments.
  * The proper flag is METH_VARARGS.
  */
-#line 1501
+#line 1504
 static PyObject *
 gentype_tolist(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "tolist");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype_item(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "item");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype___deepcopy__(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "__deepcopy__");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype___copy__(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "__copy__");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype_swapaxes(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "swapaxes");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype_conj(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "conj");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype_conjugate(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "conjugate");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype_nonzero(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "nonzero");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype_fill(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "fill");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype_transpose(PyObject *self, PyObject *args)
 {
     return gentype_generic_method(self, args, NULL, "transpose");
 }
 
-#line 1501
+#line 1504
 static PyObject *
 gentype_newbyteorder(PyObject *self, PyObject *args)
 {
@@ -3001,266 +3094,266 @@ gentype_byteswap(PyObject *self, PyObject *args, PyObject *kwds)
  * These gentype_* functions take keyword arguments.
  * The proper flag is METH_VARARGS | METH_KEYWORDS.
  */
-#line 1568
+#line 1571
 static PyObject *
 gentype_take(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "take");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_getfield(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "getfield");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_put(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "put");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_repeat(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "repeat");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_tofile(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tofile");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_mean(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "mean");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_trace(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "trace");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_diagonal(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "diagonal");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_clip(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "clip");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_std(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "std");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_var(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "var");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_sum(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "sum");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_cumsum(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "cumsum");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_prod(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "prod");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_cumprod(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "cumprod");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_compress(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "compress");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_sort(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "sort");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_argsort(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argsort");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "round");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_argmax(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argmax");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_argmin(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "argmin");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_max(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "max");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_min(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "min");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_ptp(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "ptp");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_any(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "any");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_all(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "all");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_astype(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "astype");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_resize(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "resize");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_reshape(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "reshape");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_choose(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "choose");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_tostring(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tostring");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_tobytes(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "tobytes");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_copy(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "copy");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_searchsorted(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "searchsorted");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_view(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "view");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_flatten(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "flatten");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_ravel(PyObject *self, PyObject *args, PyObject *kwds)
 {
     return gentype_generic_method(self, args, kwds, "ravel");
 }
 
-#line 1568
+#line 1571
 static PyObject *
 gentype_squeeze(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3269,7 +3362,7 @@ gentype_squeeze(PyObject *self, PyObject *args, PyObject *kwds)
 
 
 
-#line 1580
+#line 1583
 static PyObject *
 integertype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3316,7 +3409,7 @@ integertype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
     return obj;
 }
 
-#line 1580
+#line 1583
 static PyObject *
 floatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3363,7 +3456,7 @@ floatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
     return obj;
 }
 
-#line 1580
+#line 1583
 static PyObject *
 complexfloatingtype_dunder_round(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -3529,7 +3622,6 @@ gentype_reduce(PyObject *self, PyObject *NPY_UNUSED(args))
          * sticks around after the release.
          */
         PyBuffer_Release(&view);
-        _dealloc_cached_buffer_info(self);
     }
     else {
         Py_DECREF(ret);
@@ -3538,11 +3630,13 @@ gentype_reduce(PyObject *self, PyObject *NPY_UNUSED(args))
 
     mod = PyImport_ImportModule("numpy.core._multiarray_umath");
     if (mod == NULL) {
+        Py_DECREF(ret);
         return NULL;
     }
     obj = PyObject_GetAttrString(mod, "scalar");
     Py_DECREF(mod);
     if (obj == NULL) {
+        Py_DECREF(ret);
         return NULL;
     }
     PyTuple_SET_ITEM(ret, 0, obj);
@@ -3551,6 +3645,7 @@ gentype_reduce(PyObject *self, PyObject *NPY_UNUSED(args))
         PyObject *val = PyArrayScalar_VAL(self, Object);
         PyObject *tup = Py_BuildValue("NO", obj, val);
         if (tup == NULL) {
+            Py_DECREF(ret);
             return NULL;
         }
         PyTuple_SET_ITEM(ret, 1, tup);
@@ -3559,16 +3654,13 @@ gentype_reduce(PyObject *self, PyObject *NPY_UNUSED(args))
         /* a structured dtype with an object in a field */
         PyArrayObject *arr = (PyArrayObject *)PyArray_FromScalar(self, NULL);
         if (arr == NULL) {
+            Py_DECREF(ret);
             return NULL;
         }
-        /* arr.item() */
-        PyObject *val = PyArray_GETITEM(arr, PyArray_DATA(arr));
-        Py_DECREF(arr);
-        if (val == NULL) {
-            return NULL;
-        }
-        PyObject *tup = Py_BuildValue("NN", obj, val);
+        /* Use the whole array which handles sturctured void correctly */
+        PyObject *tup = Py_BuildValue("NN", obj, arr);
         if (tup == NULL) {
+            Py_DECREF(ret);
             return NULL;
         }
         PyTuple_SET_ITEM(ret, 1, tup);
@@ -3626,12 +3718,65 @@ gentype_setflags(PyObject *NPY_UNUSED(self), PyObject *NPY_UNUSED(args),
     Py_RETURN_NONE;
 }
 
+static PyObject *
+numbertype_class_getitem_abc(PyObject *cls, PyObject *args)
+{
+    PyObject *generic_alias;
+
+#ifdef Py_GENERICALIASOBJECT_H
+    Py_ssize_t args_len;
+    int args_len_expected;
+
+    /* complexfloating should take 2 parameters, all others take 1 */
+    if (PyType_IsSubtype((PyTypeObject *)cls,
+                         &PyComplexFloatingArrType_Type)) {
+        args_len_expected = 2;
+    }
+    else {
+        args_len_expected = 1;
+    }
+
+    args_len = PyTuple_Check(args) ? PyTuple_Size(args) : 1;
+    if ((args_len > args_len_expected) || (args_len == 0)) {
+        return PyErr_Format(PyExc_TypeError,
+                            "Too %s arguments for %s",
+                            args_len > args_len_expected ? "many" : "few",
+                            ((PyTypeObject *)cls)->tp_name);
+    }
+    generic_alias = Py_GenericAlias(cls, args);
+#else
+    PyErr_SetString(PyExc_TypeError,
+                    "Type subscription requires python >= 3.9");
+    generic_alias = NULL;
+#endif
+    return generic_alias;
+}
+
+/*
+ * Use for concrete np.number subclasses, making them act as if they
+ * were subtyped from e.g. np.signedinteger[object], thus lacking any
+ * free subscription parameters. Requires python >= 3.9.
+ */
+static PyObject *
+numbertype_class_getitem(PyObject *cls, PyObject *args)
+{
+#ifdef Py_GENERICALIASOBJECT_H
+    PyErr_Format(PyExc_TypeError,
+                 "There are no type variables left in %s",
+                 ((PyTypeObject *)cls)->tp_name);
+#else
+    PyErr_SetString(PyExc_TypeError,
+                    "Type subscription requires python >= 3.9");
+#endif
+    return NULL;
+}
+
 /*
  * casting complex numbers (that don't inherit from Python complex)
  * to Python complex
  */
 
-#line 1851
+#line 1906
 static PyObject *
 cfloat_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                PyObject *NPY_UNUSED(kwds))
@@ -3640,7 +3785,7 @@ cfloat_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                                  PyArrayScalar_VAL(self, CFloat).imag);
 }
 
-#line 1851
+#line 1906
 static PyObject *
 clongdouble_complex(PyObject *self, PyObject *NPY_UNUSED(args),
                PyObject *NPY_UNUSED(kwds))
@@ -3650,10 +3795,10 @@ clongdouble_complex(PyObject *self, PyObject *NPY_UNUSED(args),
 }
 
 
-#line 1869
+#line 1924
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
-half_as_integer_ratio(PyObject *self)
+half_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
 {
 #if 1
     npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Half));
@@ -3726,10 +3871,10 @@ error:
     return result_pair;
 }
 
-#line 1869
+#line 1924
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
-float_as_integer_ratio(PyObject *self)
+float_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
 {
 #if 0
     npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Float));
@@ -3802,10 +3947,10 @@ error:
     return result_pair;
 }
 
-#line 1869
+#line 1924
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
-double_as_integer_ratio(PyObject *self)
+double_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
 {
 #if 0
     npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Double));
@@ -3878,10 +4023,10 @@ error:
     return result_pair;
 }
 
-#line 1869
+#line 1924
 /* Heavily copied from the builtin float.as_integer_ratio */
 static PyObject *
-longdouble_as_integer_ratio(PyObject *self)
+longdouble_as_integer_ratio(PyObject *self, PyObject *NPY_UNUSED(args))
 {
 #if 0
     npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, LongDouble));
@@ -3955,6 +4100,103 @@ error:
 }
 
 
+#line 2006
+static PyObject *
+half_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+#if 1
+    npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Half));
+#else
+    npy_half val = PyArrayScalar_VAL(self, Half);
+#endif
+    PyObject *ret;
+
+    if (npy_isnan(val)) {
+        Py_RETURN_FALSE;
+    }
+    if (!npy_isfinite(val)) {
+        Py_RETURN_FALSE;
+    }
+
+    ret = (npy_floorf(val) == val) ? Py_True : Py_False;
+    Py_INCREF(ret);
+    return ret;
+}
+
+#line 2006
+static PyObject *
+float_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+#if 0
+    npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Float));
+#else
+    npy_float val = PyArrayScalar_VAL(self, Float);
+#endif
+    PyObject *ret;
+
+    if (npy_isnan(val)) {
+        Py_RETURN_FALSE;
+    }
+    if (!npy_isfinite(val)) {
+        Py_RETURN_FALSE;
+    }
+
+    ret = (npy_floorf(val) == val) ? Py_True : Py_False;
+    Py_INCREF(ret);
+    return ret;
+}
+
+#line 2006
+static PyObject *
+double_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+#if 0
+    npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, Double));
+#else
+    npy_double val = PyArrayScalar_VAL(self, Double);
+#endif
+    PyObject *ret;
+
+    if (npy_isnan(val)) {
+        Py_RETURN_FALSE;
+    }
+    if (!npy_isfinite(val)) {
+        Py_RETURN_FALSE;
+    }
+
+    ret = (npy_floor(val) == val) ? Py_True : Py_False;
+    Py_INCREF(ret);
+    return ret;
+}
+
+#line 2006
+static PyObject *
+longdouble_is_integer(PyObject *self, PyObject *NPY_UNUSED(args))
+{
+#if 0
+    npy_double val = npy_half_to_double(PyArrayScalar_VAL(self, LongDouble));
+#else
+    npy_longdouble val = PyArrayScalar_VAL(self, LongDouble);
+#endif
+    PyObject *ret;
+
+    if (npy_isnan(val)) {
+        Py_RETURN_FALSE;
+    }
+    if (!npy_isfinite(val)) {
+        Py_RETURN_FALSE;
+    }
+
+    ret = (npy_floorl(val) == val) ? Py_True : Py_False;
+    Py_INCREF(ret);
+    return ret;
+}
+
+
+static PyObject *
+integer_is_integer(PyObject *self, PyObject *NPY_UNUSED(args)) {
+    Py_RETURN_TRUE;
+}
 
 /*
  * need to fill in doc-strings for these methods on import -- copy from
@@ -4202,33 +4444,40 @@ static PyGetSetDef inttype_getsets[] = {
     {NULL, NULL, NULL, NULL, NULL}
 };
 
-#line 2195
+static PyMethodDef numbertype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem_abc,
+        METH_CLASS | METH_O, NULL},
+    {NULL, NULL, 0, NULL}  /* sentinel */
+};
+
+#line 2291
 static PyMethodDef cfloattype_methods[] = {
     {"__complex__",
         (PyCFunction)cfloat_complex,
         METH_VARARGS | METH_KEYWORDS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2195
+#line 2291
 static PyMethodDef clongdoubletype_methods[] = {
     {"__complex__",
         (PyCFunction)clongdouble_complex,
         METH_VARARGS | METH_KEYWORDS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
 
-#line 2206
-static PyMethodDef integertype_methods[] = {
-    /* Hook for the round() builtin */
-    {"__round__",
-        (PyCFunction)integertype_dunder_round,
-        METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL, NULL, 0, NULL} /* sentinel */
-};
-
-#line 2206
+#line 2306
 static PyMethodDef floatingtype_methods[] = {
     /* Hook for the round() builtin */
     {"__round__",
@@ -4237,7 +4486,7 @@ static PyMethodDef floatingtype_methods[] = {
     {NULL, NULL, 0, NULL} /* sentinel */
 };
 
-#line 2206
+#line 2306
 static PyMethodDef complexfloatingtype_methods[] = {
     /* Hook for the round() builtin */
     {"__round__",
@@ -4247,37 +4496,217 @@ static PyMethodDef complexfloatingtype_methods[] = {
 };
 
 
-#line 2218
+static PyMethodDef integertype_methods[] = {
+    /* Hook for the round() builtin */
+    {"__round__",
+        (PyCFunction)integertype_dunder_round,
+        METH_VARARGS | METH_KEYWORDS, NULL},
+    {"is_integer",
+        (PyCFunction)integer_is_integer,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2329
 static PyMethodDef halftype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)half_as_integer_ratio,
         METH_NOARGS, NULL},
+    {"is_integer",
+        (PyCFunction)half_is_integer,
+        METH_NOARGS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2218
+#line 2329
 static PyMethodDef floattype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)float_as_integer_ratio,
         METH_NOARGS, NULL},
+    {"is_integer",
+        (PyCFunction)float_is_integer,
+        METH_NOARGS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2218
+#line 2329
 static PyMethodDef doubletype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)double_as_integer_ratio,
         METH_NOARGS, NULL},
+    {"is_integer",
+        (PyCFunction)double_is_integer,
+        METH_NOARGS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
 
-#line 2218
+#line 2329
 static PyMethodDef longdoubletype_methods[] = {
     {"as_integer_ratio",
         (PyCFunction)longdouble_as_integer_ratio,
         METH_NOARGS, NULL},
+    {"is_integer",
+        (PyCFunction)longdouble_is_integer,
+        METH_NOARGS, NULL},
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
     {NULL, NULL, 0, NULL}
 };
+
+
+#line 2347
+static PyMethodDef timedeltatype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {NULL, NULL, 0, NULL}
+};
+
+#line 2347
+static PyMethodDef cdoubletype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {NULL, NULL, 0, NULL}
+};
+
+
+#line 2360
+static PyMethodDef bytetype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_byte_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef ubytetype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_ubyte_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef shorttype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_short_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef ushorttype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_ushort_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef inttype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_int_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef uinttype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_uint_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef longtype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_long_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef ulongtype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_ulong_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef longlongtype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_longlong_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
+#line 2360
+static PyMethodDef ulonglongtype_methods[] = {
+    /* for typing; requires python >= 3.9 */
+    {"__class_getitem__",
+        (PyCFunction)numbertype_class_getitem,
+        METH_CLASS | METH_O, NULL},
+    {"bit_count",
+        (PyCFunction)npy_ulonglong_bit_count,
+        METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL} /* sentinel */
+};
+
 
 
 /************* As_mapping functions for void array scalar ************/
@@ -4400,7 +4829,7 @@ voidtype_ass_subscript(PyVoidScalarObject *self, PyObject *ind, PyObject *val)
         return -1;
     }
 
-    if (PyBaseString_Check(ind)) {
+    if (PyUnicode_Check(ind)) {
         /*
          * Much like in voidtype_setfield, we cannot simply use ndarray's
          * __setitem__ since assignment to void scalars should not broadcast
@@ -4473,9 +4902,948 @@ static PySequenceMethods voidtype_as_sequence = {
 };
 
 
-static PyBufferProcs gentype_as_buffer = {
-    .bf_getbuffer = gentype_getbuffer,
-    /* release buffer not defined (see buffer.c) */
+/*
+ * This function implements simple buffer export for user defined subclasses
+ * of `np.generic`. All other scalar types override the buffer export.
+ */
+static int
+gentype_arrtype_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_FORMAT) == PyBUF_FORMAT) {
+        PyErr_Format(PyExc_TypeError,
+                "NumPy scalar %R can only exported as a buffer without format.",
+                self);
+        return -1;
+    }
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyArray_Descr *descr = PyArray_DescrFromScalar(self);
+    if (descr == NULL) {
+        return -1;
+    }
+    if (!PyDataType_ISUSERDEF(descr)) {
+        /* This path would also reject the (hopefully) impossible "object" */
+        PyErr_Format(PyExc_TypeError,
+                "user-defined scalar %R registered for built-in dtype %S? "
+                "This should be impossible.",
+                self, descr);
+        Py_DECREF(descr);
+        return -1;
+    }
+    view->ndim = 0;
+    view->len = descr->elsize;
+    view->itemsize = descr->elsize;
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;  /* assume general (user) scalars are readonly. */
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = scalar_value(self, descr);
+    Py_DECREF(descr);
+    view->format = NULL;
+    return 0;
+}
+
+
+static PyBufferProcs gentype_arrtype_as_buffer = {
+    .bf_getbuffer = (getbufferproc)gentype_arrtype_getbuffer,
+};
+
+
+#line 2629
+
+static int
+bool_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyBoolScalarObject *scalar = (PyBoolScalarObject *)self;
+
+    static char fmt[3] = "?";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs bool_arrtype_as_buffer = {
+    .bf_getbuffer = bool_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+byte_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyByteScalarObject *scalar = (PyByteScalarObject *)self;
+
+    static char fmt[3] = "b";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs byte_arrtype_as_buffer = {
+    .bf_getbuffer = byte_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+short_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyShortScalarObject *scalar = (PyShortScalarObject *)self;
+
+    static char fmt[3] = "h";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs short_arrtype_as_buffer = {
+    .bf_getbuffer = short_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+int_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyIntScalarObject *scalar = (PyIntScalarObject *)self;
+
+    static char fmt[3] = "i";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs int_arrtype_as_buffer = {
+    .bf_getbuffer = int_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+long_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyLongScalarObject *scalar = (PyLongScalarObject *)self;
+
+    static char fmt[3] = "l";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs long_arrtype_as_buffer = {
+    .bf_getbuffer = long_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+longlong_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyLongLongScalarObject *scalar = (PyLongLongScalarObject *)self;
+
+    static char fmt[3] = "q";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs longlong_arrtype_as_buffer = {
+    .bf_getbuffer = longlong_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+ubyte_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyUByteScalarObject *scalar = (PyUByteScalarObject *)self;
+
+    static char fmt[3] = "B";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs ubyte_arrtype_as_buffer = {
+    .bf_getbuffer = ubyte_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+ushort_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyUShortScalarObject *scalar = (PyUShortScalarObject *)self;
+
+    static char fmt[3] = "H";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs ushort_arrtype_as_buffer = {
+    .bf_getbuffer = ushort_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+uint_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyUIntScalarObject *scalar = (PyUIntScalarObject *)self;
+
+    static char fmt[3] = "I";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs uint_arrtype_as_buffer = {
+    .bf_getbuffer = uint_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+ulong_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyULongScalarObject *scalar = (PyULongScalarObject *)self;
+
+    static char fmt[3] = "L";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs ulong_arrtype_as_buffer = {
+    .bf_getbuffer = ulong_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+ulonglong_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyULongLongScalarObject *scalar = (PyULongLongScalarObject *)self;
+
+    static char fmt[3] = "Q";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs ulonglong_arrtype_as_buffer = {
+    .bf_getbuffer = ulonglong_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+half_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyHalfScalarObject *scalar = (PyHalfScalarObject *)self;
+
+    static char fmt[3] = "e";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs half_arrtype_as_buffer = {
+    .bf_getbuffer = half_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+float_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyFloatScalarObject *scalar = (PyFloatScalarObject *)self;
+
+    static char fmt[3] = "f";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs float_arrtype_as_buffer = {
+    .bf_getbuffer = float_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+double_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyDoubleScalarObject *scalar = (PyDoubleScalarObject *)self;
+
+    static char fmt[3] = "d";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs double_arrtype_as_buffer = {
+    .bf_getbuffer = double_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+longdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyLongDoubleScalarObject *scalar = (PyLongDoubleScalarObject *)self;
+
+    static char fmt[3] = "g";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs longdouble_arrtype_as_buffer = {
+    .bf_getbuffer = longdouble_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+cfloat_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyCFloatScalarObject *scalar = (PyCFloatScalarObject *)self;
+
+    static char fmt[3] = "Zf";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs cfloat_arrtype_as_buffer = {
+    .bf_getbuffer = cfloat_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+cdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyCDoubleScalarObject *scalar = (PyCDoubleScalarObject *)self;
+
+    static char fmt[3] = "Zd";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs cdouble_arrtype_as_buffer = {
+    .bf_getbuffer = cdouble_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2629
+
+static int
+clongdouble_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyCLongDoubleScalarObject *scalar = (PyCLongDoubleScalarObject *)self;
+
+    static char fmt[3] = "Zg";
+
+    view->ndim = 0;
+    view->len = sizeof(scalar->obval);
+    view->itemsize = sizeof(scalar->obval);
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    view->format = fmt;
+
+    return 0;
+}
+
+static PyBufferProcs clongdouble_arrtype_as_buffer = {
+    .bf_getbuffer = clongdouble_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+
+static int
+unicode_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyUnicodeScalarObject *scalar = (PyUnicodeScalarObject *)self;
+    Py_ssize_t length = PyUnicode_GetLength(self);
+
+    view->ndim = 0;
+    view->len = length * 4;
+    view->itemsize = length * 4;
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+
+    if (scalar->obval == NULL) {
+        /*
+         * Unicode may not have the representation available, `scalar_value`
+         * ensures materialization.
+         */
+        PyArray_Descr *descr = PyArray_DescrFromType(NPY_UNICODE);
+        scalar_value(self, descr);
+        Py_DECREF(descr);
+        if (scalar->obval == NULL) {
+            /* allocating memory failed */
+            Py_SETREF(view->obj, NULL);
+            return -1;
+        }
+    }
+    view->buf = scalar->obval;
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    if (scalar->buffer_fmt != NULL) {
+        view->format = scalar->buffer_fmt;
+    }
+    else {
+        scalar->buffer_fmt = PyMem_Malloc(22);
+        if (scalar->buffer_fmt == NULL) {
+            Py_SETREF(view->obj, NULL);
+            return -1;
+        }
+        PyOS_snprintf(scalar->buffer_fmt, 22, "%" NPY_INTP_FMT "w", length);
+        view->format = scalar->buffer_fmt;
+    }
+
+    return 0;
+}
+
+static PyBufferProcs unicode_arrtype_as_buffer = {
+    .bf_getbuffer = unicode_getbuffer,
+    /* No need to release the buffer */
+};
+
+
+#line 2738
+
+static int
+datetime_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyDatetimeScalarObject *scalar = (PyDatetimeScalarObject *)self;
+
+    view->ndim = 1;
+    view->len = 8;
+    view->itemsize = 1;
+    static Py_ssize_t length = 8;
+    view->shape = &length;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    /* export datetime scalars as bytes (although arrays are not exported) */
+    view->format = "B";
+
+    return 0;
+}
+
+static PyBufferProcs datetime_arrtype_as_buffer = {
+        .bf_getbuffer = datetime_getbuffer,
+        /* No need to release the buffer */
+};
+
+
+#line 2738
+
+static int
+timedelta_getbuffer(PyObject *self, Py_buffer *view, int flags)
+{
+    if ((flags & PyBUF_WRITEABLE) == PyBUF_WRITEABLE) {
+        PyErr_SetString(PyExc_BufferError, "scalar buffer is readonly");
+        return -1;
+    }
+    PyTimedeltaScalarObject *scalar = (PyTimedeltaScalarObject *)self;
+
+    view->ndim = 1;
+    view->len = 8;
+    view->itemsize = 1;
+    static Py_ssize_t length = 8;
+    view->shape = &length;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->readonly = 1;
+    Py_INCREF(self);
+    view->obj = self;
+
+    view->buf = &(scalar->obval);
+
+    if ((flags & PyBUF_FORMAT) != PyBUF_FORMAT) {
+        /* It is unnecessary to find the correct format */
+        view->format = NULL;
+        return 0;
+    }
+
+    /* export datetime scalars as bytes (although arrays are not exported) */
+    view->format = "B";
+
+    return 0;
+}
+
+static PyBufferProcs timedelta_arrtype_as_buffer = {
+        .bf_getbuffer = timedelta_getbuffer,
+        /* No need to release the buffer */
+};
+
+
+
+static PyBufferProcs void_arrtype_as_buffer = {
+        .bf_getbuffer = void_getbuffer,  /* defined in buffer.c */
+        /* No need to release the buffer */
 };
 
 
@@ -4488,18 +5856,45 @@ NPY_NO_EXPORT PyTypeObject PyGenericArrType_Type = {
     .tp_basicsize = sizeof(PyObject),
 };
 
+
 static void
 void_dealloc(PyVoidScalarObject *v)
 {
-    _dealloc_cached_buffer_info((PyObject *)v);
-
     if (v->flags & NPY_ARRAY_OWNDATA) {
         npy_free_cache(v->obval, Py_SIZE(v));
     }
     Py_XDECREF(v->descr);
     Py_XDECREF(v->base);
+    if (_buffer_info_free(v->_buffer_info, (PyObject *)v) < 0) {
+        PyErr_WriteUnraisable(NULL);
+    }
     Py_TYPE(v)->tp_free(v);
 }
+
+
+static PyObject *
+object_arrtype_alloc(PyTypeObject *type, Py_ssize_t items)
+{
+    /*
+     * Object scalars should not actually exist, if they exist we should
+     * consider it to be a bug.
+     */
+    static PyObject *visibleDeprecationWarning = NULL;
+    npy_cache_import("numpy", "VisibleDeprecationWarning",
+                     &visibleDeprecationWarning);
+    if (visibleDeprecationWarning == NULL) {
+        return NULL;
+    }
+    if (PyErr_WarnEx(visibleDeprecationWarning,
+            "Creating a NumPy object scalar.  NumPy object scalars should "
+            "never be created.  If you see this message please inform the "
+            "NumPy developers.  Since this message should never be shown "
+            "this will raise a TypeError in the future.", 1) < 0) {
+        return NULL;
+    }
+    return gentype_alloc(type, items);
+}
+
 
 static void
 object_arrtype_dealloc(PyObject *v)
@@ -4513,11 +5908,12 @@ unicode_arrtype_dealloc(PyObject *v)
 {
     /* note: may be null if it was never requested */
     PyMem_Free(PyArrayScalar_VAL(v, Unicode));
+    PyMem_Free(((PyUnicodeScalarObject *)v)->buffer_fmt);
     /* delegate to the base class */
     PyUnicode_Type.tp_dealloc(v);
 }
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _BYTE_IS_BYTE
@@ -4551,7 +5947,7 @@ byte_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not byte */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -4634,7 +6030,7 @@ byte_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _BYTE_IS_BYTE
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _SHORT_IS_SHORT
@@ -4668,7 +6064,7 @@ short_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not short */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -4751,7 +6147,7 @@ short_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _SHORT_IS_SHORT
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _INT_IS_INT
@@ -4785,7 +6181,7 @@ int_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not int */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -4868,7 +6264,7 @@ int_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _INT_IS_INT
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _LONG_IS_LONG
@@ -4902,7 +6298,7 @@ long_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not long */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -4985,7 +6381,7 @@ long_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONG_IS_LONG
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _LONGLONG_IS_LONGLONG
@@ -5019,7 +6415,7 @@ longlong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not longlong */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -5102,7 +6498,7 @@ longlong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONGLONG_IS_LONGLONG
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _UBYTE_IS_UBYTE
@@ -5136,7 +6532,7 @@ ubyte_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not ubyte */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -5219,7 +6615,7 @@ ubyte_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _UBYTE_IS_UBYTE
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _USHORT_IS_USHORT
@@ -5253,7 +6649,7 @@ ushort_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not ushort */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -5336,7 +6732,7 @@ ushort_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _USHORT_IS_USHORT
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _UINT_IS_UINT
@@ -5370,7 +6766,7 @@ uint_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not uint */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -5453,7 +6849,7 @@ uint_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _UINT_IS_UINT
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _ULONG_IS_ULONG
@@ -5487,7 +6883,7 @@ ulong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not ulong */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -5570,7 +6966,7 @@ ulong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _ULONG_IS_ULONG
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _ULONGLONG_IS_ULONGLONG
@@ -5604,7 +7000,7 @@ ulonglong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not ulonglong */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -5687,7 +7083,7 @@ ulonglong_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _ULONGLONG_IS_ULONGLONG
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _HALF_IS_HALF
@@ -5721,7 +7117,7 @@ half_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not half */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -5804,7 +7200,7 @@ half_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _HALF_IS_HALF
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _FLOAT_IS_FLOAT
@@ -5838,7 +7234,7 @@ float_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not float */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -5921,7 +7317,7 @@ float_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _FLOAT_IS_FLOAT
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _DOUBLE_IS_DOUBLE
@@ -5955,7 +7351,7 @@ double_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not double */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -6038,7 +7434,7 @@ double_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _DOUBLE_IS_DOUBLE
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _LONGDOUBLE_IS_LONGDOUBLE
@@ -6072,7 +7468,7 @@ longdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not longdouble */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -6155,7 +7551,7 @@ longdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _LONGDOUBLE_IS_LONGDOUBLE
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _CFLOAT_IS_CFLOAT
@@ -6189,7 +7585,7 @@ cfloat_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not cfloat */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -6272,7 +7668,7 @@ cfloat_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CFLOAT_IS_CFLOAT
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _CDOUBLE_IS_CDOUBLE
@@ -6306,7 +7702,7 @@ cdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not cdouble */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -6389,7 +7785,7 @@ cdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CDOUBLE_IS_CDOUBLE
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _CLONGDOUBLE_IS_CLONGDOUBLE
@@ -6423,7 +7819,7 @@ clongdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not clongdouble */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -6506,7 +7902,7 @@ clongdouble_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _CLONGDOUBLE_IS_CLONGDOUBLE
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _STRING_IS_STRING
@@ -6540,7 +7936,7 @@ string_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not string */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -6623,7 +8019,7 @@ string_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 #undef _STRING_IS_STRING
 
 
-#line 2474
+#line 2863
 
 /* used as a pattern for testing token equality */
 #define _UNICODE_IS_UNICODE
@@ -6657,7 +8053,7 @@ unicode_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     /* TODO: include type name in error message, which is not unicode */
     PyObject *obj = NULL;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwnames, &obj)) {
         return NULL;
     }
@@ -6745,7 +8141,7 @@ static PyObject *
 object_arrtype_new(PyTypeObject *NPY_UNUSED(type), PyObject *args, PyObject *kwds)
 {
     PyObject *obj = Py_None;
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O:object_", kwnames, &obj)) {
         return NULL;
     }
@@ -6758,7 +8154,7 @@ object_arrtype_new(PyTypeObject *NPY_UNUSED(type), PyObject *args, PyObject *kwd
     return PyArray_Return(arr);
 }
 
-#line 2614
+#line 3003
 
 static PyObject *
 datetime_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -6766,7 +8162,7 @@ datetime_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *obj = NULL, *meta_obj = NULL;
     PyDatetimeScalarObject *ret;
 
-    char *kwnames[] = {"", "", NULL};  /* positional-only */
+    static char *kwnames[] = {"", "", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OO", kwnames, &obj, &meta_obj)) {
         return NULL;
     }
@@ -6817,7 +8213,7 @@ datetime_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *)ret;
 }
 
-#line 2614
+#line 3003
 
 static PyObject *
 timedelta_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -6825,7 +8221,7 @@ timedelta_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *obj = NULL, *meta_obj = NULL;
     PyTimedeltaScalarObject *ret;
 
-    char *kwnames[] = {"", "", NULL};  /* positional-only */
+    static char *kwnames[] = {"", "", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OO", kwnames, &obj, &meta_obj)) {
         return NULL;
     }
@@ -6884,7 +8280,7 @@ bool_arrtype_new(PyTypeObject *NPY_UNUSED(type), PyObject *args, PyObject *kwds)
     PyObject *obj = NULL;
     PyArrayObject *arr;
 
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O:bool_", kwnames, &obj)) {
         return NULL;
     }
@@ -6943,55 +8339,55 @@ bool_arrtype_nonzero(PyObject *a)
     return a == PyArrayScalar_True;
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods byte_arrtype_as_number;
 static PyObject *
 byte_index(PyObject *self)
 {
-    return PyInt_FromLong(PyArrayScalar_VAL(self, Byte));
+    return PyLong_FromLong(PyArrayScalar_VAL(self, Byte));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods short_arrtype_as_number;
 static PyObject *
 short_index(PyObject *self)
 {
-    return PyInt_FromLong(PyArrayScalar_VAL(self, Short));
+    return PyLong_FromLong(PyArrayScalar_VAL(self, Short));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods int_arrtype_as_number;
 static PyObject *
 int_index(PyObject *self)
 {
-    return PyInt_FromLong(PyArrayScalar_VAL(self, Int));
+    return PyLong_FromLong(PyArrayScalar_VAL(self, Int));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods long_arrtype_as_number;
 static PyObject *
 long_index(PyObject *self)
 {
-    return PyInt_FromLong(PyArrayScalar_VAL(self, Long));
+    return PyLong_FromLong(PyArrayScalar_VAL(self, Long));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods ubyte_arrtype_as_number;
 static PyObject *
 ubyte_index(PyObject *self)
 {
-    return PyInt_FromLong(PyArrayScalar_VAL(self, UByte));
+    return PyLong_FromLong(PyArrayScalar_VAL(self, UByte));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods ushort_arrtype_as_number;
 static PyObject *
 ushort_index(PyObject *self)
 {
-    return PyInt_FromLong(PyArrayScalar_VAL(self, UShort));
+    return PyLong_FromLong(PyArrayScalar_VAL(self, UShort));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods longlong_arrtype_as_number;
 static PyObject *
 longlong_index(PyObject *self)
@@ -6999,7 +8395,7 @@ longlong_index(PyObject *self)
     return PyLong_FromLongLong(PyArrayScalar_VAL(self, LongLong));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods uint_arrtype_as_number;
 static PyObject *
 uint_index(PyObject *self)
@@ -7007,7 +8403,7 @@ uint_index(PyObject *self)
     return PyLong_FromUnsignedLong(PyArrayScalar_VAL(self, UInt));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods ulong_arrtype_as_number;
 static PyObject *
 ulong_index(PyObject *self)
@@ -7015,7 +8411,7 @@ ulong_index(PyObject *self)
     return PyLong_FromUnsignedLong(PyArrayScalar_VAL(self, ULong));
 }
 
-#line 2747
+#line 3136
 static PyNumberMethods ulonglong_arrtype_as_number;
 static PyObject *
 ulonglong_index(PyObject *self)
@@ -7024,25 +8420,25 @@ ulonglong_index(PyObject *self)
 }
 
 
-#line 2761
+#line 3150
 static PyNumberMethods half_arrtype_as_number;
 
-#line 2761
+#line 3150
 static PyNumberMethods float_arrtype_as_number;
 
-#line 2761
+#line 3150
 static PyNumberMethods double_arrtype_as_number;
 
-#line 2761
+#line 3150
 static PyNumberMethods longdouble_arrtype_as_number;
 
-#line 2761
+#line 3150
 static PyNumberMethods cfloat_arrtype_as_number;
 
-#line 2761
+#line 3150
 static PyNumberMethods cdouble_arrtype_as_number;
 
-#line 2761
+#line 3150
 static PyNumberMethods clongdouble_arrtype_as_number;
 
 
@@ -7055,7 +8451,7 @@ bool_index(PyObject *a)
         return NULL;
     }
     else {
-        return PyInt_FromLong(PyArrayScalar_VAL(a, Bool));
+        return PyLong_FromLong(PyArrayScalar_VAL(a, Bool));
     }
 }
 
@@ -7073,7 +8469,7 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *obj, *arr;
     PyObject *new = NULL;
 
-    char *kwnames[] = {"", NULL};  /* positional-only */
+    static char *kwnames[] = {"", NULL};  /* positional-only */
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O:void", kwnames, &obj)) {
         return NULL;
     }
@@ -7081,7 +8477,7 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
      * For a VOID scalar first see if obj is an integer or long
      * and create new memory of that size (filled with 0) for the scalar
      */
-    if (PyLong_Check(obj) || PyInt_Check(obj) ||
+    if (PyLong_Check(obj) ||
             PyArray_IsScalar(obj, Integer) ||
             (PyArray_Check(obj) &&
                      PyArray_NDIM((PyArrayObject *)obj)==0 &&
@@ -7100,7 +8496,10 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                     (int) NPY_MAX_INT);
             return NULL;
         }
-        destptr = npy_alloc_cache_zero(memu);
+        if (memu == 0) {
+            memu = 1;
+        }
+        destptr = npy_alloc_cache_zero(memu, 1);
         if (destptr == NULL) {
             return PyErr_NoMemory();
         }
@@ -7111,12 +8510,16 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         }
         ((PyVoidScalarObject *)ret)->obval = destptr;
         Py_SET_SIZE((PyVoidScalarObject *)ret, (int) memu);
-        ((PyVoidScalarObject *)ret)->descr =
-            PyArray_DescrNewFromType(NPY_VOID);
-        ((PyVoidScalarObject *)ret)->descr->elsize = (int) memu;
         ((PyVoidScalarObject *)ret)->flags = NPY_ARRAY_BEHAVED |
                                              NPY_ARRAY_OWNDATA;
         ((PyVoidScalarObject *)ret)->base = NULL;
+        ((PyVoidScalarObject *)ret)->descr =
+            PyArray_DescrNewFromType(NPY_VOID);
+        if (((PyVoidScalarObject *)ret)->descr == NULL) {
+            Py_DECREF(ret);
+            return NULL;
+        }
+        ((PyVoidScalarObject *)ret)->descr->elsize = (int) memu;
         return ret;
     }
 
@@ -7127,21 +8530,21 @@ void_arrtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 /****************  Define Hash functions ********************/
 
-#line 2849
+#line 3245
 static npy_hash_t
 bool_arrtype_hash(PyObject *obj)
 {
     return (npy_hash_t)(PyArrayScalar_VAL(obj, Bool));
 }
 
-#line 2849
+#line 3245
 static npy_hash_t
 ubyte_arrtype_hash(PyObject *obj)
 {
     return (npy_hash_t)(PyArrayScalar_VAL(obj, UByte));
 }
 
-#line 2849
+#line 3245
 static npy_hash_t
 ushort_arrtype_hash(PyObject *obj)
 {
@@ -7149,7 +8552,7 @@ ushort_arrtype_hash(PyObject *obj)
 }
 
 
-#line 2860
+#line 3256
 static npy_hash_t
 byte_arrtype_hash(PyObject *obj)
 {
@@ -7160,7 +8563,7 @@ byte_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 2860
+#line 3256
 static npy_hash_t
 short_arrtype_hash(PyObject *obj)
 {
@@ -7171,7 +8574,7 @@ short_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 2860
+#line 3256
 static npy_hash_t
 uint_arrtype_hash(PyObject *obj)
 {
@@ -7211,7 +8614,7 @@ long_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 2904
+#line 3300
 static NPY_INLINE npy_hash_t
 longlong_arrtype_hash(PyObject *obj)
 {
@@ -7222,7 +8625,7 @@ longlong_arrtype_hash(PyObject *obj)
     return x;
 }
 
-#line 2904
+#line 3300
 static NPY_INLINE npy_hash_t
 ulonglong_arrtype_hash(PyObject *obj)
 {
@@ -7235,7 +8638,7 @@ ulonglong_arrtype_hash(PyObject *obj)
 
 
 
-#line 2920
+#line 3316
 #if NPY_SIZEOF_HASH_T==NPY_SIZEOF_DATETIME
 static npy_hash_t
 datetime_arrtype_hash(PyObject *obj)
@@ -7272,7 +8675,7 @@ datetime_arrtype_hash(PyObject *obj)
 }
 #endif
 
-#line 2920
+#line 3316
 #if NPY_SIZEOF_HASH_T==NPY_SIZEOF_DATETIME
 static npy_hash_t
 timedelta_arrtype_hash(PyObject *obj)
@@ -7314,11 +8717,11 @@ timedelta_arrtype_hash(PyObject *obj)
 
 /* Wrong thing to do for longdouble, but....*/
 
-#line 2965
+#line 3361
 static npy_hash_t
 float_arrtype_hash(PyObject *obj)
 {
-    return _Py_HashDouble((double) PyArrayScalar_VAL(obj, Float));
+    return Npy_HashDouble(obj, (double)PyArrayScalar_VAL(obj, Float));
 }
 
 /* borrowed from complex_hash */
@@ -7326,14 +8729,14 @@ static npy_hash_t
 cfloat_arrtype_hash(PyObject *obj)
 {
     npy_hash_t hashreal, hashimag, combined;
-    hashreal = _Py_HashDouble((double)
-            PyArrayScalar_VAL(obj, CFloat).real);
+    hashreal = Npy_HashDouble(
+            obj, (double)PyArrayScalar_VAL(obj, CFloat).real);
 
     if (hashreal == -1) {
         return -1;
     }
-    hashimag = _Py_HashDouble((double)
-            PyArrayScalar_VAL(obj, CFloat).imag);
+    hashimag = Npy_HashDouble(
+            obj, (double)PyArrayScalar_VAL(obj, CFloat).imag);
     if (hashimag == -1) {
         return -1;
     }
@@ -7344,11 +8747,11 @@ cfloat_arrtype_hash(PyObject *obj)
     return combined;
 }
 
-#line 2965
+#line 3361
 static npy_hash_t
 longdouble_arrtype_hash(PyObject *obj)
 {
-    return _Py_HashDouble((double) PyArrayScalar_VAL(obj, LongDouble));
+    return Npy_HashDouble(obj, (double)PyArrayScalar_VAL(obj, LongDouble));
 }
 
 /* borrowed from complex_hash */
@@ -7356,14 +8759,14 @@ static npy_hash_t
 clongdouble_arrtype_hash(PyObject *obj)
 {
     npy_hash_t hashreal, hashimag, combined;
-    hashreal = _Py_HashDouble((double)
-            PyArrayScalar_VAL(obj, CLongDouble).real);
+    hashreal = Npy_HashDouble(
+            obj, (double)PyArrayScalar_VAL(obj, CLongDouble).real);
 
     if (hashreal == -1) {
         return -1;
     }
-    hashimag = _Py_HashDouble((double)
-            PyArrayScalar_VAL(obj, CLongDouble).imag);
+    hashimag = Npy_HashDouble(
+            obj, (double)PyArrayScalar_VAL(obj, CLongDouble).imag);
     if (hashimag == -1) {
         return -1;
     }
@@ -7378,7 +8781,8 @@ clongdouble_arrtype_hash(PyObject *obj)
 static npy_hash_t
 half_arrtype_hash(PyObject *obj)
 {
-    return _Py_HashDouble(npy_half_to_double(PyArrayScalar_VAL(obj, Half)));
+    return Npy_HashDouble(
+            obj, npy_half_to_double(PyArrayScalar_VAL(obj, Half)));
 }
 
 static npy_hash_t
@@ -7554,6 +8958,7 @@ NPY_NO_EXPORT PyTypeObject PyObjectArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy.object_",
     .tp_basicsize = sizeof(PyObjectScalarObject),
+    .tp_alloc = object_arrtype_alloc,
     .tp_dealloc = (destructor)object_arrtype_dealloc,
     .tp_as_sequence = &object_arrtype_as_sequence,
     .tp_as_mapping = &object_arrtype_as_mapping,
@@ -7592,28 +8997,28 @@ gen_arrtype_subscript(PyObject *self, PyObject *key)
 #define NAME_string "bytes"
 #define NAME_unicode "str"
 
-#line 3217
+#line 3615
 NPY_NO_EXPORT PyTypeObject PyBoolArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy." NAME_bool "_",
     .tp_basicsize = sizeof(PyBoolScalarObject),
 };
 
-#line 3217
+#line 3615
 NPY_NO_EXPORT PyTypeObject PyStringArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy." NAME_string "_",
     .tp_basicsize = sizeof(PyStringScalarObject),
 };
 
-#line 3217
+#line 3615
 NPY_NO_EXPORT PyTypeObject PyUnicodeArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy." NAME_unicode "_",
     .tp_basicsize = sizeof(PyUnicodeScalarObject),
 };
 
-#line 3217
+#line 3615
 NPY_NO_EXPORT PyTypeObject PyVoidArrType_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "numpy." NAME_void "",
@@ -7626,7 +9031,7 @@ NPY_NO_EXPORT PyTypeObject PyVoidArrType_Type = {
 #undef NAME_string
 #undef NAME_unicode
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_CHAR == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_CHAR == 16
@@ -7653,7 +9058,7 @@ NPY_NO_EXPORT PyTypeObject PyByteArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_SHORT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_SHORT == 16
@@ -7680,7 +9085,7 @@ NPY_NO_EXPORT PyTypeObject PyShortArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_INT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_INT == 16
@@ -7707,7 +9112,7 @@ NPY_NO_EXPORT PyTypeObject PyIntArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_LONG == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONG == 16
@@ -7734,7 +9139,7 @@ NPY_NO_EXPORT PyTypeObject PyLongArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_LONGLONG == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONGLONG == 16
@@ -7761,7 +9166,7 @@ NPY_NO_EXPORT PyTypeObject PyLongLongArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_CHAR == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_CHAR == 16
@@ -7788,7 +9193,7 @@ NPY_NO_EXPORT PyTypeObject PyUByteArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_SHORT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_SHORT == 16
@@ -7815,7 +9220,7 @@ NPY_NO_EXPORT PyTypeObject PyUShortArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_INT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_INT == 16
@@ -7842,7 +9247,7 @@ NPY_NO_EXPORT PyTypeObject PyUIntArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_LONG == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONG == 16
@@ -7869,7 +9274,7 @@ NPY_NO_EXPORT PyTypeObject PyULongArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_LONGLONG == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONGLONG == 16
@@ -7896,7 +9301,7 @@ NPY_NO_EXPORT PyTypeObject PyULongLongArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_HALF == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_HALF == 16
@@ -7923,7 +9328,7 @@ NPY_NO_EXPORT PyTypeObject PyHalfArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_FLOAT == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_FLOAT == 16
@@ -7950,7 +9355,7 @@ NPY_NO_EXPORT PyTypeObject PyFloatArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_DOUBLE == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_DOUBLE == 16
@@ -7977,7 +9382,7 @@ NPY_NO_EXPORT PyTypeObject PyDoubleArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_LONGDOUBLE == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_LONGDOUBLE == 16
@@ -8004,7 +9409,7 @@ NPY_NO_EXPORT PyTypeObject PyLongDoubleArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_DATETIME == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_DATETIME == 16
@@ -8031,7 +9436,7 @@ NPY_NO_EXPORT PyTypeObject PyDatetimeArrType_Type = {
 
 #undef _THIS_SIZE
 
-#line 3236
+#line 3634
 #if NPY_BITSOF_TIMEDELTA == 8
 #define _THIS_SIZE "8"
 #elif NPY_BITSOF_TIMEDELTA == 16
@@ -8065,7 +9470,7 @@ static PyMappingMethods gentype_as_mapping = {
 };
 
 
-#line 3274
+#line 3672
 #if NPY_BITSOF_FLOAT == 16
 #define _THIS_SIZE "32"
 #elif NPY_BITSOF_FLOAT == 32
@@ -8091,7 +9496,7 @@ NPY_NO_EXPORT PyTypeObject PyCFloatArrType_Type = {
 #undef _THIS_SIZE
 
 
-#line 3274
+#line 3672
 #if NPY_BITSOF_DOUBLE == 16
 #define _THIS_SIZE "32"
 #elif NPY_BITSOF_DOUBLE == 32
@@ -8117,7 +9522,7 @@ NPY_NO_EXPORT PyTypeObject PyCDoubleArrType_Type = {
 #undef _THIS_SIZE
 
 
-#line 3274
+#line 3672
 #if NPY_BITSOF_LONGDOUBLE == 16
 #define _THIS_SIZE "32"
 #elif NPY_BITSOF_LONGDOUBLE == 32
@@ -8167,13 +9572,6 @@ NPY_NO_EXPORT signed char
 _npy_next_larger_type_table[NPY_NTYPES];
 
 /*
- * This table describes safe casting for small type numbers,
- * and is used by PyArray_CanCastSafely.
- */
-NPY_NO_EXPORT unsigned char
-_npy_can_cast_safely_table[NPY_NTYPES][NPY_NTYPES];
-
-/*
  * This table gives the smallest-size and smallest-kind type to which
  * the input types may be safely cast, according to _npy_can_cast_safely.
  */
@@ -8201,22173 +9599,124 @@ initialize_casting_tables(void)
 
     /* Compile-time loop of scalar kinds */
 
-    #line 3373
+    #line 3764
 
     _npy_scalar_kinds_table[NPY_BOOL] = NPY_BOOL_SCALAR;
     _npy_next_larger_type_table[NPY_BOOL] = -1;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_BYTE] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_BYTE] = NPY_SHORT;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_UBYTE] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_UBYTE] = NPY_USHORT;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_SHORT] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_SHORT] = NPY_INT;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_USHORT] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_USHORT] = NPY_UINT;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_INT] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_INT] = NPY_LONG;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_UINT] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_UINT] = NPY_ULONG;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_LONG] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_LONG] = NPY_LONGLONG;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_ULONG] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_ULONG] = NPY_ULONGLONG;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_LONGLONG] = NPY_INTNEG_SCALAR;
     _npy_next_larger_type_table[NPY_LONGLONG] = -1;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_ULONGLONG] = NPY_INTPOS_SCALAR;
     _npy_next_larger_type_table[NPY_ULONGLONG] = -1;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_HALF] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_HALF] = NPY_FLOAT;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_FLOAT] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_FLOAT] = NPY_DOUBLE;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_DOUBLE] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_DOUBLE] = NPY_LONGDOUBLE;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_LONGDOUBLE] = NPY_FLOAT_SCALAR;
     _npy_next_larger_type_table[NPY_LONGDOUBLE] = -1;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_CFLOAT] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CFLOAT] = NPY_CDOUBLE;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_CDOUBLE] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CDOUBLE] = NPY_CLONGDOUBLE;
 
     
-#line 3373
+#line 3764
 
     _npy_scalar_kinds_table[NPY_CLONGDOUBLE] = NPY_COMPLEX_SCALAR;
     _npy_next_larger_type_table[NPY_CLONGDOUBLE] = -1;
 
     
 
-    memset(_npy_can_cast_safely_table, 0, sizeof(_npy_can_cast_safely_table));
-
-    for (i = 0; i < NPY_NTYPES; ++i) {
-        /* Identity */
-        _npy_can_cast_safely_table[i][i] = 1;
-        if (i != NPY_DATETIME) {
-            /*
-             * Bool -> <Anything> except datetime (since
-             *                    it conceptually has no zero)
-             */
-            _npy_can_cast_safely_table[NPY_BOOL][i] = 1;
-        }
-        /* <Anything> -> Object */
-        _npy_can_cast_safely_table[i][NPY_OBJECT] = 1;
-        /* <Anything> -> Void */
-        _npy_can_cast_safely_table[i][NPY_VOID] = 1;
-    }
-
-    _npy_can_cast_safely_table[NPY_STRING][NPY_UNICODE] = 1;
-
-#ifndef NPY_SIZEOF_BYTE
-#define NPY_SIZEOF_BYTE 1
-#endif
-
-    /* Compile-time loop of casting rules */
-
-    #line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_BYTE
-#define _FROM_NUM   (NPY_BYTE)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 1 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
 #undef _TO_NUM
 #undef _TO_BSIZE
 
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
+/**end repeat1**/
 
 #undef _FROM_NUM
 #undef _FROM_BSIZE
 
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_BYTE
-#define _FROM_NUM   (NPY_UBYTE)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 1 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_SHORT
-#define _FROM_NUM   (NPY_SHORT)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 1 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_SHORT
-#define _FROM_NUM   (NPY_USHORT)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 1 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_INT
-#define _FROM_NUM   (NPY_INT)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 1 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_INT
-#define _FROM_NUM   (NPY_UINT)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 1 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_LONG
-#define _FROM_NUM   (NPY_LONG)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 1 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_LONG
-#define _FROM_NUM   (NPY_ULONG)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 1 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_LONGLONG
-#define _FROM_NUM   (NPY_LONGLONG)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 1 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_LONGLONG
-#define _FROM_NUM   (NPY_ULONGLONG)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 1 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_HALF
-#define _FROM_NUM   (NPY_HALF)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_FLOAT
-#define _FROM_NUM   (NPY_FLOAT)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_DOUBLE
-#define _FROM_NUM   (NPY_DOUBLE)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _FROM_NUM   (NPY_LONGDOUBLE)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_FLOAT
-#define _FROM_NUM   (NPY_CFLOAT)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_DOUBLE
-#define _FROM_NUM   (NPY_CDOUBLE)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
-#line 3427
-
-#define _FROM_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _FROM_NUM   (NPY_CLONGDOUBLE)
-
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_STRING] = 1;
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_UNICODE] = 1;
-
-#if 0 && NPY_SIZEOF_TIMEDELTA >= _FROM_BSIZE
-    /* Allow casts from smaller or equal signed integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#elif 0 && NPY_SIZEOF_TIMEDELTA > _FROM_BSIZE
-    /* Allow casts from smaller unsigned integers to the TIMEDELTA type */
-    _npy_can_cast_safely_table[_FROM_NUM][NPY_TIMEDELTA] = 1;
-#endif
-
-    #line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_BYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_BYTE
-#define _TO_NUM   (NPY_UBYTE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_SHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_SHORT
-#define _TO_NUM   (NPY_USHORT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_INT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_INT
-#define _TO_NUM   (NPY_UINT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_LONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONG
-#define _TO_NUM   (NPY_ULONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_LONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGLONG
-#define _TO_NUM   (NPY_ULONGLONG)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_HALF
-#define _TO_NUM   (NPY_HALF)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_FLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_DOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_LONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_FLOAT
-#define _TO_NUM   (NPY_CFLOAT)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_DOUBLE
-#define _TO_NUM   (NPY_CDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-#line 3464
-#define _TO_BSIZE NPY_SIZEOF_LONGDOUBLE
-#define _TO_NUM   (NPY_CLONGDOUBLE)
-
-    /*
-     * NOTE: _FROM_BSIZE and _TO_BSIZE are the sizes of the "base type"
-     *       which is the same as the size of the type except for
-     *       complex, where it is the size of the real type.
-     */
-
-#if 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* int -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> int */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> uint */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 0 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE < 8) && (_TO_BSIZE > _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_FROM_BSIZE >= 8) && (_TO_BSIZE >= _FROM_BSIZE)
-    /* uint -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-
-#elif 0
-
-#  if 0 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> float */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  elif 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* float -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#elif 1
-
-#  if 1 && (_TO_BSIZE >= _FROM_BSIZE)
-    /* complex -> complex */
-    _npy_can_cast_safely_table[_FROM_NUM][_TO_NUM] = 1;
-#  endif
-
-#endif
-
-#undef _TO_NUM
-#undef _TO_BSIZE
-
-
-
-#undef _FROM_NUM
-#undef _FROM_BSIZE
-
-
+/**end repeat**/
 
     /*
      * Now that the _can_cast_safely table is finished, we can
@@ -30463,7 +9812,6 @@ initialize_numeric_types(void)
     init_basetypes();
     PyGenericArrType_Type.tp_dealloc = (destructor)gentype_dealloc;
     PyGenericArrType_Type.tp_as_number = &gentype_as_number;
-    PyGenericArrType_Type.tp_as_buffer = &gentype_as_buffer;
     PyGenericArrType_Type.tp_as_mapping = &gentype_as_mapping;
     PyGenericArrType_Type.tp_flags = BASEFLAGS;
     PyGenericArrType_Type.tp_methods = gentype_methods;
@@ -30472,6 +9820,7 @@ initialize_numeric_types(void)
     PyGenericArrType_Type.tp_alloc = gentype_alloc;
     PyGenericArrType_Type.tp_free = (freefunc)gentype_free;
     PyGenericArrType_Type.tp_richcompare = gentype_richcompare;
+    PyGenericArrType_Type.tp_as_buffer = &gentype_arrtype_as_buffer;
 
     PyBoolArrType_Type.tp_as_number = &bool_arrtype_as_number;
     /*
@@ -30480,98 +9829,98 @@ initialize_numeric_types(void)
      * also fill array_type_as_number struct with reasonable defaults
      */
 
-    #line 3661
+    #line 3897
     byte_arrtype_as_number = gentype_as_number;
     PyByteArrType_Type.tp_as_number = &byte_arrtype_as_number;
     PyByteArrType_Type.tp_as_number->nb_index = (unaryfunc)byte_index;
 
     
-#line 3661
+#line 3897
     short_arrtype_as_number = gentype_as_number;
     PyShortArrType_Type.tp_as_number = &short_arrtype_as_number;
     PyShortArrType_Type.tp_as_number->nb_index = (unaryfunc)short_index;
 
     
-#line 3661
+#line 3897
     int_arrtype_as_number = gentype_as_number;
     PyIntArrType_Type.tp_as_number = &int_arrtype_as_number;
     PyIntArrType_Type.tp_as_number->nb_index = (unaryfunc)int_index;
 
     
-#line 3661
+#line 3897
     long_arrtype_as_number = gentype_as_number;
     PyLongArrType_Type.tp_as_number = &long_arrtype_as_number;
     PyLongArrType_Type.tp_as_number->nb_index = (unaryfunc)long_index;
 
     
-#line 3661
+#line 3897
     longlong_arrtype_as_number = gentype_as_number;
     PyLongLongArrType_Type.tp_as_number = &longlong_arrtype_as_number;
     PyLongLongArrType_Type.tp_as_number->nb_index = (unaryfunc)longlong_index;
 
     
-#line 3661
+#line 3897
     ubyte_arrtype_as_number = gentype_as_number;
     PyUByteArrType_Type.tp_as_number = &ubyte_arrtype_as_number;
     PyUByteArrType_Type.tp_as_number->nb_index = (unaryfunc)ubyte_index;
 
     
-#line 3661
+#line 3897
     ushort_arrtype_as_number = gentype_as_number;
     PyUShortArrType_Type.tp_as_number = &ushort_arrtype_as_number;
     PyUShortArrType_Type.tp_as_number->nb_index = (unaryfunc)ushort_index;
 
     
-#line 3661
+#line 3897
     uint_arrtype_as_number = gentype_as_number;
     PyUIntArrType_Type.tp_as_number = &uint_arrtype_as_number;
     PyUIntArrType_Type.tp_as_number->nb_index = (unaryfunc)uint_index;
 
     
-#line 3661
+#line 3897
     ulong_arrtype_as_number = gentype_as_number;
     PyULongArrType_Type.tp_as_number = &ulong_arrtype_as_number;
     PyULongArrType_Type.tp_as_number->nb_index = (unaryfunc)ulong_index;
 
     
-#line 3661
+#line 3897
     ulonglong_arrtype_as_number = gentype_as_number;
     PyULongLongArrType_Type.tp_as_number = &ulonglong_arrtype_as_number;
     PyULongLongArrType_Type.tp_as_number->nb_index = (unaryfunc)ulonglong_index;
 
     
 
-    #line 3673
+    #line 3909
     half_arrtype_as_number = gentype_as_number;
     PyHalfArrType_Type.tp_as_number = &half_arrtype_as_number;
 
     
-#line 3673
+#line 3909
     float_arrtype_as_number = gentype_as_number;
     PyFloatArrType_Type.tp_as_number = &float_arrtype_as_number;
 
     
-#line 3673
+#line 3909
     double_arrtype_as_number = gentype_as_number;
     PyDoubleArrType_Type.tp_as_number = &double_arrtype_as_number;
 
     
-#line 3673
+#line 3909
     longdouble_arrtype_as_number = gentype_as_number;
     PyLongDoubleArrType_Type.tp_as_number = &longdouble_arrtype_as_number;
 
     
-#line 3673
+#line 3909
     cfloat_arrtype_as_number = gentype_as_number;
     PyCFloatArrType_Type.tp_as_number = &cfloat_arrtype_as_number;
 
     
-#line 3673
+#line 3909
     cdouble_arrtype_as_number = gentype_as_number;
     PyCDoubleArrType_Type.tp_as_number = &cdouble_arrtype_as_number;
 
     
-#line 3673
+#line 3909
     clongdouble_arrtype_as_number = gentype_as_number;
     PyCLongDoubleArrType_Type.tp_as_number = &clongdouble_arrtype_as_number;
 
@@ -30597,354 +9946,611 @@ initialize_numeric_types(void)
 
     PyIntegerArrType_Type.tp_getset = inttype_getsets;
 
-    #line 3702
+    PyNumberArrType_Type.tp_methods = numbertype_methods;
+
+    #line 3940
 
     PyNumberArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3702
+#line 3940
 
     PyIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3702
+#line 3940
 
     PySignedIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3702
+#line 3940
 
     PyUnsignedIntegerArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3702
+#line 3940
 
     PyInexactArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3702
+#line 3940
 
     PyFloatingArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3702
+#line 3940
 
     PyComplexFloatingArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3702
+#line 3940
 
     PyFlexibleArrType_Type.tp_flags = BASEFLAGS;
 
     
-#line 3702
+#line 3940
 
     PyCharacterArrType_Type.tp_flags = BASEFLAGS;
 
     
 
-    #line 3717
+    #line 3955
 
     PyBoolArrType_Type.tp_flags = BASEFLAGS;
     PyBoolArrType_Type.tp_new = bool_arrtype_new;
     PyBoolArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Bool  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyBoolArrType_Type.tp_as_buffer = &bool_arrtype_as_buffer;
+#endif
+#undef _IS_Bool
+
     
-#line 3717
+#line 3955
 
     PyByteArrType_Type.tp_flags = BASEFLAGS;
     PyByteArrType_Type.tp_new = byte_arrtype_new;
     PyByteArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Byte  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyByteArrType_Type.tp_as_buffer = &byte_arrtype_as_buffer;
+#endif
+#undef _IS_Byte
+
     
-#line 3717
+#line 3955
 
     PyShortArrType_Type.tp_flags = BASEFLAGS;
     PyShortArrType_Type.tp_new = short_arrtype_new;
     PyShortArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Short  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyShortArrType_Type.tp_as_buffer = &short_arrtype_as_buffer;
+#endif
+#undef _IS_Short
+
     
-#line 3717
+#line 3955
 
     PyIntArrType_Type.tp_flags = BASEFLAGS;
     PyIntArrType_Type.tp_new = int_arrtype_new;
     PyIntArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Int  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyIntArrType_Type.tp_as_buffer = &int_arrtype_as_buffer;
+#endif
+#undef _IS_Int
+
     
-#line 3717
+#line 3955
 
     PyLongArrType_Type.tp_flags = BASEFLAGS;
     PyLongArrType_Type.tp_new = long_arrtype_new;
     PyLongArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Long  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyLongArrType_Type.tp_as_buffer = &long_arrtype_as_buffer;
+#endif
+#undef _IS_Long
+
     
-#line 3717
+#line 3955
 
     PyLongLongArrType_Type.tp_flags = BASEFLAGS;
     PyLongLongArrType_Type.tp_new = longlong_arrtype_new;
     PyLongLongArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_LongLong  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyLongLongArrType_Type.tp_as_buffer = &longlong_arrtype_as_buffer;
+#endif
+#undef _IS_LongLong
+
     
-#line 3717
+#line 3955
 
     PyUByteArrType_Type.tp_flags = BASEFLAGS;
     PyUByteArrType_Type.tp_new = ubyte_arrtype_new;
     PyUByteArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_UByte  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyUByteArrType_Type.tp_as_buffer = &ubyte_arrtype_as_buffer;
+#endif
+#undef _IS_UByte
+
     
-#line 3717
+#line 3955
 
     PyUShortArrType_Type.tp_flags = BASEFLAGS;
     PyUShortArrType_Type.tp_new = ushort_arrtype_new;
     PyUShortArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_UShort  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyUShortArrType_Type.tp_as_buffer = &ushort_arrtype_as_buffer;
+#endif
+#undef _IS_UShort
+
     
-#line 3717
+#line 3955
 
     PyUIntArrType_Type.tp_flags = BASEFLAGS;
     PyUIntArrType_Type.tp_new = uint_arrtype_new;
     PyUIntArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_UInt  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyUIntArrType_Type.tp_as_buffer = &uint_arrtype_as_buffer;
+#endif
+#undef _IS_UInt
+
     
-#line 3717
+#line 3955
 
     PyULongArrType_Type.tp_flags = BASEFLAGS;
     PyULongArrType_Type.tp_new = ulong_arrtype_new;
     PyULongArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_ULong  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyULongArrType_Type.tp_as_buffer = &ulong_arrtype_as_buffer;
+#endif
+#undef _IS_ULong
+
     
-#line 3717
+#line 3955
 
     PyULongLongArrType_Type.tp_flags = BASEFLAGS;
     PyULongLongArrType_Type.tp_new = ulonglong_arrtype_new;
     PyULongLongArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_ULongLong  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyULongLongArrType_Type.tp_as_buffer = &ulonglong_arrtype_as_buffer;
+#endif
+#undef _IS_ULongLong
+
     
-#line 3717
+#line 3955
 
     PyHalfArrType_Type.tp_flags = BASEFLAGS;
     PyHalfArrType_Type.tp_new = half_arrtype_new;
     PyHalfArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Half  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyHalfArrType_Type.tp_as_buffer = &half_arrtype_as_buffer;
+#endif
+#undef _IS_Half
+
     
-#line 3717
+#line 3955
 
     PyFloatArrType_Type.tp_flags = BASEFLAGS;
     PyFloatArrType_Type.tp_new = float_arrtype_new;
     PyFloatArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Float  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyFloatArrType_Type.tp_as_buffer = &float_arrtype_as_buffer;
+#endif
+#undef _IS_Float
+
     
-#line 3717
+#line 3955
 
     PyDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyDoubleArrType_Type.tp_new = double_arrtype_new;
     PyDoubleArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Double  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyDoubleArrType_Type.tp_as_buffer = &double_arrtype_as_buffer;
+#endif
+#undef _IS_Double
+
     
-#line 3717
+#line 3955
 
     PyLongDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyLongDoubleArrType_Type.tp_new = longdouble_arrtype_new;
     PyLongDoubleArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_LongDouble  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyLongDoubleArrType_Type.tp_as_buffer = &longdouble_arrtype_as_buffer;
+#endif
+#undef _IS_LongDouble
+
     
-#line 3717
+#line 3955
 
     PyCFloatArrType_Type.tp_flags = BASEFLAGS;
     PyCFloatArrType_Type.tp_new = cfloat_arrtype_new;
     PyCFloatArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_CFloat  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyCFloatArrType_Type.tp_as_buffer = &cfloat_arrtype_as_buffer;
+#endif
+#undef _IS_CFloat
+
     
-#line 3717
+#line 3955
 
     PyCDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyCDoubleArrType_Type.tp_new = cdouble_arrtype_new;
     PyCDoubleArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_CDouble  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyCDoubleArrType_Type.tp_as_buffer = &cdouble_arrtype_as_buffer;
+#endif
+#undef _IS_CDouble
+
     
-#line 3717
+#line 3955
 
     PyCLongDoubleArrType_Type.tp_flags = BASEFLAGS;
     PyCLongDoubleArrType_Type.tp_new = clongdouble_arrtype_new;
     PyCLongDoubleArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_CLongDouble  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyCLongDoubleArrType_Type.tp_as_buffer = &clongdouble_arrtype_as_buffer;
+#endif
+#undef _IS_CLongDouble
+
     
-#line 3717
+#line 3955
 
     PyStringArrType_Type.tp_flags = BASEFLAGS;
     PyStringArrType_Type.tp_new = string_arrtype_new;
     PyStringArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_String  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyStringArrType_Type.tp_as_buffer = &string_arrtype_as_buffer;
+#endif
+#undef _IS_String
+
     
-#line 3717
+#line 3955
 
     PyUnicodeArrType_Type.tp_flags = BASEFLAGS;
     PyUnicodeArrType_Type.tp_new = unicode_arrtype_new;
     PyUnicodeArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Unicode  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyUnicodeArrType_Type.tp_as_buffer = &unicode_arrtype_as_buffer;
+#endif
+#undef _IS_Unicode
+
     
-#line 3717
+#line 3955
 
     PyVoidArrType_Type.tp_flags = BASEFLAGS;
     PyVoidArrType_Type.tp_new = void_arrtype_new;
     PyVoidArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Void  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyVoidArrType_Type.tp_as_buffer = &void_arrtype_as_buffer;
+#endif
+#undef _IS_Void
+
     
-#line 3717
+#line 3955
 
     PyObjectArrType_Type.tp_flags = BASEFLAGS;
     PyObjectArrType_Type.tp_new = object_arrtype_new;
     PyObjectArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Object  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyObjectArrType_Type.tp_as_buffer = &object_arrtype_as_buffer;
+#endif
+#undef _IS_Object
+
     
-#line 3717
+#line 3955
 
     PyDatetimeArrType_Type.tp_flags = BASEFLAGS;
     PyDatetimeArrType_Type.tp_new = datetime_arrtype_new;
     PyDatetimeArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Datetime  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyDatetimeArrType_Type.tp_as_buffer = &datetime_arrtype_as_buffer;
+#endif
+#undef _IS_Datetime
+
     
-#line 3717
+#line 3955
 
     PyTimedeltaArrType_Type.tp_flags = BASEFLAGS;
     PyTimedeltaArrType_Type.tp_new = timedelta_arrtype_new;
     PyTimedeltaArrType_Type.tp_richcompare = gentype_richcompare;
 
+#define _IS_Timedelta  /* inherit string buffer */
+#if !defined(_IS_String)
+    PyTimedeltaArrType_Type.tp_as_buffer = &timedelta_arrtype_as_buffer;
+#endif
+#undef _IS_Timedelta
+
     
 
     PyUnicodeArrType_Type.tp_dealloc = unicode_arrtype_dealloc;
-    PyUnicodeArrType_Type.tp_as_buffer = &gentype_as_buffer;
 
-    #line 3735
+    #line 3978
 
     PyBoolArrType_Type.tp_hash = bool_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyByteArrType_Type.tp_hash = byte_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyShortArrType_Type.tp_hash = short_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyUByteArrType_Type.tp_hash = ubyte_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyUShortArrType_Type.tp_hash = ushort_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyUIntArrType_Type.tp_hash = uint_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyULongArrType_Type.tp_hash = ulong_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyULongLongArrType_Type.tp_hash = ulonglong_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyHalfArrType_Type.tp_hash = half_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyFloatArrType_Type.tp_hash = float_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyLongDoubleArrType_Type.tp_hash = longdouble_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyCFloatArrType_Type.tp_hash = cfloat_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyCLongDoubleArrType_Type.tp_hash = clongdouble_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyVoidArrType_Type.tp_hash = void_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyObjectArrType_Type.tp_hash = object_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyDatetimeArrType_Type.tp_hash = datetime_arrtype_hash;
 
     
-#line 3735
+#line 3978
 
     PyTimedeltaArrType_Type.tp_hash = timedelta_arrtype_hash;
 
     
 
-    #line 3744
+    #line 3987
 
     PyCFloatArrType_Type.tp_methods = cfloattype_methods;
 
     
-#line 3744
+#line 3987
 
     PyCLongDoubleArrType_Type.tp_methods = clongdoubletype_methods;
 
     
-#line 3744
+#line 3987
 
     PyFloatingArrType_Type.tp_methods = floatingtype_methods;
 
     
-#line 3744
+#line 3987
 
     PyIntegerArrType_Type.tp_methods = integertype_methods;
 
     
-#line 3744
+#line 3987
 
     PyComplexFloatingArrType_Type.tp_methods = complexfloatingtype_methods;
 
     
 
-    #line 3753
+    #line 3998
+
+    PyByteArrType_Type.tp_methods = bytetype_methods;
+
+    
+#line 3998
+
+    PyShortArrType_Type.tp_methods = shorttype_methods;
+
+    
+#line 3998
+
+    PyIntArrType_Type.tp_methods = inttype_methods;
+
+    
+#line 3998
+
+    PyLongArrType_Type.tp_methods = longtype_methods;
+
+    
+#line 3998
+
+    PyLongLongArrType_Type.tp_methods = longlongtype_methods;
+
+    
+#line 3998
+
+    PyUByteArrType_Type.tp_methods = ubytetype_methods;
+
+    
+#line 3998
+
+    PyUShortArrType_Type.tp_methods = ushorttype_methods;
+
+    
+#line 3998
+
+    PyUIntArrType_Type.tp_methods = uinttype_methods;
+
+    
+#line 3998
+
+    PyULongArrType_Type.tp_methods = ulongtype_methods;
+
+    
+#line 3998
+
+    PyULongLongArrType_Type.tp_methods = ulonglongtype_methods;
+
+    
+
+    #line 4007
 
     PyHalfArrType_Type.tp_methods = halftype_methods;
 
     
-#line 3753
+#line 4007
 
     PyFloatArrType_Type.tp_methods = floattype_methods;
 
     
-#line 3753
+#line 4007
 
     PyDoubleArrType_Type.tp_methods = doubletype_methods;
 
     
-#line 3753
+#line 4007
 
     PyLongDoubleArrType_Type.tp_methods = longdoubletype_methods;
+
+    
+
+    #line 4018
+
+    PyByteArrType_Type.tp_methods = bytetype_methods;
+
+    
+#line 4018
+
+    PyShortArrType_Type.tp_methods = shorttype_methods;
+
+    
+#line 4018
+
+    PyIntArrType_Type.tp_methods = inttype_methods;
+
+    
+#line 4018
+
+    PyLongArrType_Type.tp_methods = longtype_methods;
+
+    
+#line 4018
+
+    PyLongLongArrType_Type.tp_methods = longlongtype_methods;
+
+    
+#line 4018
+
+    PyUByteArrType_Type.tp_methods = ubytetype_methods;
+
+    
+#line 4018
+
+    PyUShortArrType_Type.tp_methods = ushorttype_methods;
+
+    
+#line 4018
+
+    PyUIntArrType_Type.tp_methods = uinttype_methods;
+
+    
+#line 4018
+
+    PyULongArrType_Type.tp_methods = ulongtype_methods;
+
+    
+#line 4018
+
+    PyULongLongArrType_Type.tp_methods = ulonglongtype_methods;
+
+    
+#line 4018
+
+    PyTimedeltaArrType_Type.tp_methods = timedeltatype_methods;
+
+    
+#line 4018
+
+    PyCDoubleArrType_Type.tp_methods = cdoubletype_methods;
 
     
 
@@ -30957,7 +10563,7 @@ initialize_numeric_types(void)
     /* We won't be inheriting from Python Int type. */
     PyLongLongArrType_Type.tp_hash = longlong_arrtype_hash;
 
-    #line 3770
+    #line 4035
 
     PyHalfArrType_Type.tp_repr = halftype_repr;
 
@@ -30971,7 +10577,7 @@ initialize_numeric_types(void)
     PyTimedeltaArrType_Type.tp_repr = timedeltatype_repr;
 
     
-#line 3770
+#line 4035
 
     PyHalfArrType_Type.tp_str = halftype_str;
 
@@ -30987,77 +10593,77 @@ initialize_numeric_types(void)
     
 
 
-    #line 3789
+    #line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyBoolArrType_Type.tp_str = genint_type_str;
     PyBoolArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyByteArrType_Type.tp_str = genint_type_str;
     PyByteArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUByteArrType_Type.tp_str = genint_type_str;
     PyUByteArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyShortArrType_Type.tp_str = genint_type_str;
     PyShortArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUShortArrType_Type.tp_str = genint_type_str;
     PyUShortArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyIntArrType_Type.tp_str = genint_type_str;
     PyIntArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyUIntArrType_Type.tp_str = genint_type_str;
     PyUIntArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyLongArrType_Type.tp_str = genint_type_str;
     PyLongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyULongArrType_Type.tp_str = genint_type_str;
     PyULongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyLongLongArrType_Type.tp_str = genint_type_str;
     PyLongLongArrType_Type.tp_repr = genint_type_str;
 
     
-#line 3789
+#line 4054
 
     /* both str/repr use genint_type_str to avoid trailing "L" of longs */
     PyULongLongArrType_Type.tp_str = genint_type_str;
@@ -31067,7 +10673,7 @@ initialize_numeric_types(void)
 
 
 
-    #line 3802
+    #line 4067
 
     /*
      * These need to be coded specially because longdouble/clongdouble getitem
@@ -31081,7 +10687,7 @@ initialize_numeric_types(void)
     PyLongDoubleArrType_Type.tp_str = longdoubletype_str;
 
     
-#line 3802
+#line 4067
 
     /*
      * These need to be coded specially because longdouble/clongdouble getitem

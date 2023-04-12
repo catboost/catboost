@@ -4,7 +4,7 @@
 
     Lexers for Prolog and Prolog-like languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -26,8 +26,6 @@ class PrologLexer(RegexLexer):
     filenames = ['*.ecl', '*.prolog', '*.pro', '*.pl']
     mimetypes = ['text/x-prolog']
 
-    flags = re.UNICODE | re.MULTILINE
-
     tokens = {
         'root': [
             (r'/\*', Comment.Multiline, 'nested-comment'),
@@ -44,7 +42,7 @@ class PrologLexer(RegexLexer):
             (r'[\[\](){}|.,;!]', Punctuation),
             (r':-|-->', Punctuation),
             (r'"(?:\\x[0-9a-fA-F]+\\|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8}|'
-             r'\\[0-7]+\\|\\["\nabcefnrstv]|[^\\"])*"', String.Double),
+             r'\\[0-7]+\\|\\["\\abcefnrstv]|[^\\"])*"', String.Double),
             (r"'(?:''|[^'])*'", String.Atom),  # quoted atom
             # Needs to not be followed by an atom.
             # (r'=(?=\s|[a-zA-Z\[])', Operator),
@@ -85,12 +83,13 @@ class PrologLexer(RegexLexer):
 
 class LogtalkLexer(RegexLexer):
     """
-    For `Logtalk <http://logtalk.org/>`_ source code.
+    For Logtalk source code.
 
     .. versionadded:: 0.10
     """
 
     name = 'Logtalk'
+    url = 'http://logtalk.org/'
     aliases = ['logtalk']
     filenames = ['*.lgt', '*.logtalk']
     mimetypes = ['text/x-logtalk']
@@ -200,9 +199,9 @@ class LogtalkLexer(RegexLexer):
             (r'(>>|<<|/\\|\\\\|\\)', Operator),
             # Predicate aliases
             (r'\bas\b', Operator),
-            # Arithemtic evaluation
+            # Arithmetic evaluation
             (r'\bis\b', Keyword),
-            # Arithemtic comparison
+            # Arithmetic comparison
             (r'(=:=|=\\=|<|=<|>=|>)', Operator),
             # Term creation and decomposition
             (r'=\.\.', Operator),
@@ -213,7 +212,7 @@ class LogtalkLexer(RegexLexer):
             # Evaluable functors
             (r'(//|[-+*/])', Operator),
             (r'\b(e|pi|div|mod|rem)\b', Operator),
-            # Other arithemtic functors
+            # Other arithmetic functors
             (r'\b\*\*\b', Operator),
             # DCG rules
             (r'-->', Operator),

@@ -120,9 +120,12 @@ namespace NCatboostOptions {
         bool operator==(const TTextProcessingOptions& rhs) const;
         bool operator!=(const TTextProcessingOptions& rhs) const;
 
+        void Validate(bool forClassification) const;
+
         const TVector<TTextColumnTokenizerOptions>& GetTokenizers() const;
         const TVector<TTextColumnDictionaryOptions>& GetDictionaries() const;
         const TVector<TTextFeatureProcessing>& GetFeatureProcessing(ui32 textFeatureIdx) const;
+        void SetDefault(bool forClassification = false);
         void SetDefaultMinTokenOccurrence(ui64 minTokenOccurrence);
         void SetDefaultMaxDictionarySize(ui32 maxDictionarySize);
 

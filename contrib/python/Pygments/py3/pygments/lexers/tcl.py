@@ -4,7 +4,7 @@
 
     Lexers for Tcl and related languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -41,6 +41,7 @@ class TclLexer(RegexLexer):
         'subst', 'tell', 'time', 'tm', 'unknown', 'unload'), prefix=r'\b', suffix=r'\b')
 
     name = 'Tcl'
+    url = 'https://www.tcl.tk/about/language.html'
     aliases = ['tcl']
     filenames = ['*.tcl', '*.rvt']
     mimetypes = ['text/x-tcl', 'text/x-script.tcl', 'application/x-tcl']
@@ -84,8 +85,9 @@ class TclLexer(RegexLexer):
             (r'0[0-7]+', Number.Oct),
             (r'\d+\.\d+', Number.Float),
             (r'\d+', Number.Integer),
-            (r'\$([\w.:-]+)', Name.Variable),
-            (r'([\w.,@:-]+)', Text),
+            (r'\$[\w.:-]+', Name.Variable),
+            (r'\$\{[\w.:-]+\}', Name.Variable),
+            (r'[\w.,@:-]+', Text),
         ],
         'params': [
             (r';', Keyword, '#pop'),

@@ -75,7 +75,7 @@ namespace NCB {
         if (target.empty()) {
             return 0;
         }
-        const TVector<float> defaultWeights(target.size(), 1);
+        const TVector<float> defaultWeights(target.size(), 1); // espetrov: replace with dispatch by weights.empty()
         const auto weightsRef = weights.empty() ? MakeConstArrayRef(defaultWeights) : weights;
         double q = CalcSampleQuantile(target, weightsRef, alpha);
 
@@ -108,7 +108,7 @@ namespace NCB {
     ) {
         TVector<float> weightsWithTarget = weights.empty()
             ? TVector<float>(target.size(), 1.0)
-            : TVector<float>(weights.begin(), weights.end());
+            : TVector<float>(weights.begin(), weights.end()); // espetrov: replace with dispatch by weights.empty()
         for (auto idx : xrange(target.size())) {
             weightsWithTarget[idx] /= Max(1.0f, Abs(target[idx]));
         }
@@ -125,7 +125,7 @@ namespace NCB {
         if (target.empty()) {
             return 0;
         }
-        
+
         auto func = [&] (double approx, auto hasWeights) {
             double res = 0;
             for (auto idx: xrange(target.size())) {
@@ -209,6 +209,36 @@ namespace NCB {
                 TVector<double> startPoint(target.size());
                 for (int dim : xrange(target.size())) {
                     startPoint[dim] = *CalcOneDimensionalOptimumConstApprox(singleRMSELoss, target[dim], weights);
+                }
+                return startPoint;
+            }
+            case ELossFunction::MultiLogloss:
+            {
+                NCatboostOptions::TLossDescription logloss;
+                logloss.LossFunction = ELossFunction::Logloss;
+                TVector<double> startPoint(target.size());
+                for (int dim : xrange(target.size())) {
+                    startPoint[dim] = *CalcOneDimensionalOptimumConstApprox(logloss, target[dim], weights);
+                }
+                return startPoint;
+            }
+            case ELossFunction::MultiQuantile:
+            {
+                auto params = lossDescription.GetLossParamsMap();
+                const auto alpha = NCatboostOptions::GetAlphaMultiQuantile(params);
+                NCatboostOptions::TLossDescription quantileDescription;
+                quantileDescription.LossFunction = ELossFunction::Quantile;
+                if (params.contains("delta")) {
+                    quantileDescription.LossParams->Put("delta", params.at("delta"));
+                }
+                const auto quantileCount = alpha.size();
+                TVector<double> startPoint(quantileCount);
+                for (auto quantile : xrange(quantileCount)) {
+                    quantileDescription.LossParams->Put("alpha", ToString(alpha[quantile]));
+                    startPoint[quantile] = *CalcOneDimensionalOptimumConstApprox(
+                        quantileDescription,
+                        target[0],
+                        weights);
                 }
                 return startPoint;
             }

@@ -122,21 +122,23 @@ namespace {
     //        }
     //    }
 
+    template <StrictUTF8 strictMode = StrictUTF8::No>
     void CheckRecodeOK(wchar32 expected, unsigned char* first, size_t n) {
         wchar32 w = 0;
         const unsigned char* p = first;
 
-        RECODE_RESULT r = ReadUTF8CharAndAdvance(w, p, first + n);
+        RECODE_RESULT r = ReadUTF8CharAndAdvance<strictMode>(w, p, first + n);
         UNIT_ASSERT(w == expected);
         UNIT_ASSERT(size_t(p - first) == n);
         UNIT_ASSERT(r == RECODE_OK);
     }
 
+    template <StrictUTF8 strictMode = StrictUTF8::No>
     void CheckBrokenSymbol(unsigned char* first, unsigned char* last) {
         wchar32 w = 0;
         const unsigned char* p = first;
 
-        RECODE_RESULT r = ReadUTF8CharAndAdvance(w, p, last);
+        RECODE_RESULT r = ReadUTF8CharAndAdvance<strictMode>(w, p, last);
         UNIT_ASSERT(w == BROKEN_RUNE);
         UNIT_ASSERT(p - first == 0);
         UNIT_ASSERT(r == RECODE_BROKENSYMBOL);
@@ -294,6 +296,61 @@ void TConversionTest::TestReadUTF8Char() {
         e = c & LEAD_BITS_MASK_3_BYTES;
         e <<= 12;
         CheckRecodeOK(e, first, 3);
+
+        CheckEndOfInput(first, 2);
+        CheckEndOfInput(first, 1);
+    }
+
+    // leading byte of 3-byte symbol before surrogates: 1110 0001 - 1110 1100
+    for (c = 0xE1; c <= 0xEC; ++c) {
+        u = c;
+        CheckBrokenSymbol<StrictUTF8::Yes>(first, last);
+
+        u |= 0x808000;
+        // w: 0000 0000  0000 0000 - 0000 0111  1100 0000
+        e = c & LEAD_BITS_MASK_3_BYTES;
+        e <<= 12;
+        CheckRecodeOK<StrictUTF8::Yes>(e, first, 3);
+
+        CheckEndOfInput(first, 2);
+        CheckEndOfInput(first, 1);
+    }
+
+    // rest of allowed characters before surrogate block
+    {
+        u = 0xED;
+        CheckBrokenSymbol<StrictUTF8::Yes>(first, last);
+
+        u |= 0xBF9F00;
+        e = 0xD7FF;
+        CheckRecodeOK<StrictUTF8::Yes>(e, first, 3);
+
+        CheckEndOfInput(first, 2);
+        CheckEndOfInput(first, 1);
+    }
+
+    // rfc3629 section 4 forbids characters 0xD800 - 0xDFFF
+    {
+        u = 0xED;
+        CheckBrokenSymbol<StrictUTF8::Yes>(first, last);
+
+        u |= 0x80A000;
+        CheckBrokenSymbol<StrictUTF8::Yes>(first, last);
+
+        CheckEndOfInput(first, 2);
+        CheckEndOfInput(first, 1);
+    }
+
+    // leading byte of 3-byte symbol after surrogates: 1110 1110 - 1110 1111
+    for (c = 0xEE; c <= 0xEF; ++c) {
+        u = c;
+        CheckBrokenSymbol<StrictUTF8::Yes>(first, last);
+
+        u |= 0x808000;
+        // w: 0000 0000  0000 0000 - 0000 0111  1100 0000
+        e = c & LEAD_BITS_MASK_3_BYTES;
+        e <<= 12;
+        CheckRecodeOK<StrictUTF8::Yes>(e, first, 3);
 
         CheckEndOfInput(first, 2);
         CheckEndOfInput(first, 1);

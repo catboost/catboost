@@ -76,8 +76,16 @@ template <>
 struct hash<const char*>: ::NHashPrivate::TStringHash<char> {
 };
 
+template <size_t n>
+struct hash<char[n]>: ::NHashPrivate::TStringHash<char> {
+};
+
 template <>
 struct THash<TStringBuf>: ::NHashPrivate::TStringHash<char> {
+};
+
+template <>
+struct THash<std::string_view>: ::NHashPrivate::TStringHash<char> {
 };
 
 template <>

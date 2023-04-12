@@ -226,7 +226,7 @@ cdef extern from *:
     # equal, and greater than, respectively. It is best to pass only ASCII-encoded
     # strings, but the function interprets the input string as ISO-8859-1 if it
     # contains non-ASCII characters.
-    int PyUnicode_CompareWithASCIIString(object uni, char *string) except? -1
+    int PyUnicode_CompareWithASCIIString(object uni, const char *string)
 
     # Rich compare two unicode strings and return one of the following:
     #
@@ -314,8 +314,24 @@ cdef extern from *:
     # raised by the codec.
     bytes PyUnicode_EncodeUTF8(Py_UNICODE *s, Py_ssize_t size, char *errors)
 
-    # Encode a Unicode objects using UTF-8 and return the result as Python string object. Error handling is ``strict''. Return NULL if an exception was raised by the codec.
+    # Encode a Unicode objects using UTF-8 and return the result as Python bytes object. Error handling is ``strict''. Return NULL if an exception was raised by the codec.
     bytes PyUnicode_AsUTF8String(object unicode)
+
+
+    # Return a pointer to the UTF-8 encoding of the Unicode object,
+    # and store the size of the encoded representation (in bytes) in size.
+    # The size argument can be NULL; in this case no size will be stored.
+    # The returned buffer always has an extra null byte appended
+    # (not included in size), regardless of whether there are any
+    # other null code points.
+
+    # In the case of an error, NULL is returned with an exception set and
+    # no size is stored.
+
+    # This caches the UTF-8 representation of the string in the Unicode
+    # object, and subsequent calls will return a pointer to the same buffer.
+    # The caller is not responsible for deallocating the buffer
+    const char* PyUnicode_AsUTF8AndSize(object unicode, Py_ssize_t *size)
 
 # These are the UTF-16 codec APIs:
 

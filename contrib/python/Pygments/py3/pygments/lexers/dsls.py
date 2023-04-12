@@ -4,7 +4,7 @@
 
     Lexers for various domain-specific languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,19 +22,19 @@ __all__ = ['ProtoBufLexer', 'ZeekLexer', 'PuppetLexer', 'RslLexer',
 
 class ProtoBufLexer(RegexLexer):
     """
-    Lexer for `Protocol Buffer <http://code.google.com/p/protobuf/>`_
-    definition files.
+    Lexer for Protocol Buffer definition files.
 
     .. versionadded:: 1.4
     """
 
     name = 'Protocol Buffer'
+    url = 'https://developers.google.com/protocol-buffers/'
     aliases = ['protobuf', 'proto']
     filenames = ['*.proto']
 
     tokens = {
         'root': [
-            (r'[ \t]+', Text),
+            (r'[ \t]+', Whitespace),
             (r'[,;{}\[\]()<>]', Punctuation),
             (r'/(\\\n)?/(\n|(.|\n)*?[^\\]\n)', Comment.Single),
             (r'/(\\\n)?\*(.|\n)*?\*(\\\n)?/', Comment.Multiline),
@@ -49,11 +49,11 @@ class ProtoBufLexer(RegexLexer):
                 'float', 'double', 'bool', 'string', 'bytes'), suffix=r'\b'),
              Keyword.Type),
             (r'(true|false)\b', Keyword.Constant),
-            (r'(package)(\s+)', bygroups(Keyword.Namespace, Text), 'package'),
+            (r'(package)(\s+)', bygroups(Keyword.Namespace, Whitespace), 'package'),
             (r'(message|extend)(\s+)',
-             bygroups(Keyword.Declaration, Text), 'message'),
+             bygroups(Keyword.Declaration, Whitespace), 'message'),
             (r'(enum|group|service)(\s+)',
-             bygroups(Keyword.Declaration, Text), 'type'),
+             bygroups(Keyword.Declaration, Whitespace), 'type'),
             (r'\".*?\"', String),
             (r'\'.*?\'', String),
             (r'(\d+\.\d*|\.\d+|\d+)[eE][+-]?\d+[LlUu]*', Number.Float),
@@ -64,7 +64,7 @@ class ProtoBufLexer(RegexLexer):
             (r'\d+[LlUu]*', Number.Integer),
             (r'[+-=]', Operator),
             (r'([a-zA-Z_][\w.]*)([ \t]*)(=)',
-             bygroups(Name.Attribute, Text, Operator)),
+             bygroups(Name.Attribute, Whitespace, Operator)),
             (r'[a-zA-Z_][\w.]*', Name),
         ],
         'package': [
@@ -84,11 +84,12 @@ class ProtoBufLexer(RegexLexer):
 
 class ThriftLexer(RegexLexer):
     """
-    For `Thrift <https://thrift.apache.org/>`__ interface definitions.
+    For Thrift interface definitions.
 
     .. versionadded:: 2.1
     """
     name = 'Thrift'
+    url = 'https://thrift.apache.org/'
     aliases = ['thrift']
     filenames = ['*.thrift']
     mimetypes = ['application/x-thrift']
@@ -100,13 +101,13 @@ class ThriftLexer(RegexLexer):
             (r'"', String.Double, combined('stringescape', 'dqs')),
             (r'\'', String.Single, combined('stringescape', 'sqs')),
             (r'(namespace)(\s+)',
-                bygroups(Keyword.Namespace, Text.Whitespace), 'namespace'),
+                bygroups(Keyword.Namespace, Whitespace), 'namespace'),
             (r'(enum|union|struct|service|exception)(\s+)',
-                bygroups(Keyword.Declaration, Text.Whitespace), 'class'),
+                bygroups(Keyword.Declaration, Whitespace), 'class'),
             (r'((?:(?:[^\W\d]|\$)[\w.\[\]$<>]*\s+)+?)'  # return arguments
              r'((?:[^\W\d]|\$)[\w$]*)'                  # method name
              r'(\s*)(\()',                              # signature start
-             bygroups(using(this), Name.Function, Text, Operator)),
+             bygroups(using(this), Name.Function, Whitespace, Operator)),
             include('keywords'),
             include('numbers'),
             (r'[&=]', Operator),
@@ -114,8 +115,8 @@ class ThriftLexer(RegexLexer):
             (r'[a-zA-Z_](\.\w|\w)*', Name),
         ],
         'whitespace': [
-            (r'\n', Text.Whitespace),
-            (r'\s+', Text.Whitespace),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
         ],
         'comments': [
             (r'#.*$', Comment),
@@ -189,11 +190,12 @@ class ThriftLexer(RegexLexer):
 
 class ZeekLexer(RegexLexer):
     """
-    For `Zeek <https://www.zeek.org/>`_ scripts.
+    For Zeek scripts.
 
     .. versionadded:: 2.5
     """
     name = 'Zeek'
+    url = 'https://www.zeek.org/'
     aliases = ['zeek', 'bro']
     filenames = ['*.zeek', '*.bro']
 
@@ -218,9 +220,9 @@ class ZeekLexer(RegexLexer):
         ],
 
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
-            (r'\\\n', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
+            (r'(\\)(\n)', bygroups(Text, Whitespace)),
         ],
 
         'comments': [
@@ -230,7 +232,8 @@ class ZeekLexer(RegexLexer):
         'directives': [
             (r'@(load-plugin|load-sigs|load|unload)\b.*$', Comment.Preproc),
             (r'@(DEBUG|DIR|FILENAME|deprecated|if|ifdef|ifndef|else|endif)\b', Comment.Preproc),
-            (r'(@prefixes)\s*(\+?=).*$', Comment.Preproc),
+            (r'(@prefixes)(\s*)((\+?=).*)$', bygroups(Comment.Preproc, 
+                Whitespace, Comment.Preproc)),
         ],
 
         'attributes': [
@@ -253,16 +256,16 @@ class ZeekLexer(RegexLexer):
              Keyword.Type),
 
             (r'(opaque)(\s+)(of)(\s+)((?:[A-Za-z_]\w*)(?:::(?:[A-Za-z_]\w*))*)\b',
-                bygroups(Keyword.Type, Text, Operator.Word, Text, Keyword.Type)),
+                bygroups(Keyword.Type, Whitespace, Operator.Word, Whitespace, Keyword.Type)),
 
             (r'(type)(\s+)((?:[A-Za-z_]\w*)(?:::(?:[A-Za-z_]\w*))*)(\s*)(:)(\s*)\b(record|enum)\b',
-                bygroups(Keyword, Text, Name.Class, Text, Operator, Text, Keyword.Type)),
+                bygroups(Keyword, Whitespace, Name.Class, Whitespace, Operator, Whitespace, Keyword.Type)),
 
             (r'(type)(\s+)((?:[A-Za-z_]\w*)(?:::(?:[A-Za-z_]\w*))*)(\s*)(:)',
-                bygroups(Keyword, Text, Name, Text, Operator)),
+                bygroups(Keyword, Whitespace, Name, Whitespace, Operator)),
 
             (r'(redef)(\s+)(record|enum)(\s+)((?:[A-Za-z_]\w*)(?:::(?:[A-Za-z_]\w*))*)\b',
-                bygroups(Keyword, Text, Keyword.Type, Text, Name.Class)),
+                bygroups(Keyword, Whitespace, Keyword.Type, Whitespace, Name.Class)),
         ],
 
         'keywords': [
@@ -276,7 +279,7 @@ class ZeekLexer(RegexLexer):
             (r'(print)\b', Keyword),
             (r'(global|local|const|option)\b', Keyword.Declaration),
             (r'(module)(\s+)(([A-Za-z_]\w*)(?:::([A-Za-z_]\w*))*)\b',
-                bygroups(Keyword.Namespace, Text, Name.Namespace)),
+                bygroups(Keyword.Namespace, Whitespace, Name.Namespace)),
         ],
 
         'literals': [
@@ -349,11 +352,12 @@ BroLexer = ZeekLexer
 
 class PuppetLexer(RegexLexer):
     """
-    For `Puppet <http://puppetlabs.com/>`__ configuration DSL.
+    For Puppet configuration DSL.
 
     .. versionadded:: 1.6
     """
     name = 'Puppet'
+    url = 'https://puppet.com/'
     aliases = ['puppet']
     filenames = ['*.pp']
 
@@ -367,11 +371,11 @@ class PuppetLexer(RegexLexer):
             include('strings'),
 
             (r'[]{}:(),;[]', Punctuation),
-            (r'[^\S\n]+', Text),
+            (r'\s+', Whitespace),
         ],
 
         'comments': [
-            (r'\s*#.*$', Comment),
+            (r'(\s*)(#.*)$', bygroups(Whitespace, Comment)),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
         ],
 
@@ -436,13 +440,14 @@ class PuppetLexer(RegexLexer):
 
 class RslLexer(RegexLexer):
     """
-    `RSL <http://en.wikipedia.org/wiki/RAISE>`_ is the formal specification
+    RSL is the formal specification
     language used in RAISE (Rigorous Approach to Industrial Software Engineering)
     method.
 
     .. versionadded:: 2.0
     """
     name = 'RSL'
+    url = 'http://en.wikipedia.org/wiki/RAISE'
     aliases = ['rsl']
     filenames = ['*.rsl']
     mimetypes = ['text/rsl']
@@ -469,9 +474,11 @@ class RslLexer(RegexLexer):
             (r'<:.*?:>', Comment),
             (r'\{!.*?!\}', Comment),
             (r'/\*.*?\*/', Comment),
-            (r'^[ \t]*([\w]+)[ \t]*:[^:]', Name.Function),
-            (r'(^[ \t]*)([\w]+)([ \t]*\([\w\s,]*\)[ \t]*)(is|as)',
-             bygroups(Text, Name.Function, Text, Keyword)),
+            (r'^([ \t]*)([\w]+)([ \t]*)(:[^:])', bygroups(Whitespace,
+                Name.Function, Whitespace, Name.Function)),
+            (r'(^[ \t]*)([\w]+)([ \t]*)(\([\w\s,]*\))([ \t]*)(is|as)',
+             bygroups(Whitespace, Name.Function, Whitespace, Text,
+                 Whitespace, Keyword)),
             (r'\b[A-Z]\w*\b', Keyword.Type),
             (r'(true|false)\b', Keyword.Constant),
             (r'".*"', String),
@@ -482,6 +489,7 @@ class RslLexer(RegexLexer):
             (r'[0-9]+\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'0x[0-9a-f]+', Number.Hex),
             (r'[0-9]+', Number.Integer),
+            (r'\s+', Whitespace),
             (r'.', Text),
         ],
     }
@@ -496,11 +504,12 @@ class RslLexer(RegexLexer):
 
 class MscgenLexer(RegexLexer):
     """
-    For `Mscgen <http://www.mcternan.me.uk/mscgen/>`_ files.
+    For Mscgen files.
 
     .. versionadded:: 1.6
     """
     name = 'Mscgen'
+    url = 'http://www.mcternan.me.uk/mscgen/'
     aliases = ['mscgen', 'msc']
     filenames = ['*.msc']
 
@@ -530,7 +539,7 @@ class MscgenLexer(RegexLexer):
         'attrs': [
             (r'\]', Punctuation, '#pop'),
             (_var + r'(\s*)(=)(\s*)' + _var,
-             bygroups(Name.Attribute, Text.Whitespace, Operator, Text.Whitespace,
+             bygroups(Name.Attribute, Whitespace, Operator, Whitespace,
                       String)),
             (r',', Punctuation),
             include('comments')
@@ -538,19 +547,19 @@ class MscgenLexer(RegexLexer):
         'comments': [
             (r'(?://|#).*?\n', Comment.Single),
             (r'/\*(?:.|\n)*?\*/', Comment.Multiline),
-            (r'[ \t\r\n]+', Text.Whitespace)
+            (r'[ \t\r\n]+', Whitespace)
         ]
     }
 
 
 class VGLLexer(RegexLexer):
     """
-    For `SampleManager VGL <http://www.thermoscientific.com/samplemanager>`_
-    source code.
+    For SampleManager VGL source code.
 
     .. versionadded:: 1.6
     """
     name = 'VGL'
+    url = 'http://www.thermoscientific.com/samplemanager'
     aliases = ['vgl']
     filenames = ['*.rpf']
 
@@ -571,20 +580,21 @@ class VGLLexer(RegexLexer):
             (r'(\.)([a-z_$][\w$]*)', bygroups(Operator, Name.Attribute)),
             (r'[0-9][0-9]*(\.[0-9]+(e[+\-]?[0-9]+)?)?', Number),
             (r'[a-z_$][\w$]*', Name),
-            (r'[\r\n]+', Text),
-            (r'\s+', Text)
+            (r'[\r\n]+', Whitespace),
+            (r'\s+', Whitespace)
         ]
     }
 
 
 class AlloyLexer(RegexLexer):
     """
-    For `Alloy <http://alloy.mit.edu>`_ source code.
+    For Alloy source code.
 
     .. versionadded:: 2.0
     """
 
     name = 'Alloy'
+    url = 'http://alloy.mit.edu'
     aliases = ['alloy']
     filenames = ['*.als']
     mimetypes = ['text/x-alloy']
@@ -592,7 +602,7 @@ class AlloyLexer(RegexLexer):
     flags = re.MULTILINE | re.DOTALL
 
     iden_rex = r'[a-zA-Z_][\w\']*'
-    text_tuple = (r'[^\S\n]+', Text)
+    text_tuple = (r'[^\S\n]+', Whitespace)
 
     tokens = {
         'sig': [
@@ -616,30 +626,30 @@ class AlloyLexer(RegexLexer):
             (r'//.*?$', Comment.Single),
             (r'/\*.*?\*/', Comment.Multiline),
             text_tuple,
-            (r'(module|open)(\s+)', bygroups(Keyword.Namespace, Text),
+            (r'(module|open)(\s+)', bygroups(Keyword.Namespace, Whitespace),
                 'module'),
-            (r'(sig|enum)(\s+)', bygroups(Keyword.Declaration, Text), 'sig'),
+            (r'(sig|enum)(\s+)', bygroups(Keyword.Declaration, Whitespace), 'sig'),
             (r'(iden|univ|none)\b', Keyword.Constant),
             (r'(int|Int)\b', Keyword.Type),
             (r'(this|abstract|extends|set|seq|one|lone|let)\b', Keyword),
             (r'(all|some|no|sum|disj|when|else)\b', Keyword),
             (r'(run|check|for|but|exactly|expect|as)\b', Keyword),
             (r'(and|or|implies|iff|in)\b', Operator.Word),
-            (r'(fun|pred|fact|assert)(\s+)', bygroups(Keyword, Text), 'fun'),
+            (r'(fun|pred|fact|assert)(\s+)', bygroups(Keyword, Whitespace), 'fun'),
             (r'!|#|&&|\+\+|<<|>>|>=|<=>|<=|\.|->', Operator),
             (r'[-+/*%=<>&!^|~{}\[\]().]', Operator),
             (iden_rex, Name),
             (r'[:,]', Punctuation),
             (r'[0-9]+', Number.Integer),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
-            (r'\n', Text),
+            (r'\n', Whitespace),
         ]
     }
 
 
 class PanLexer(RegexLexer):
     """
-    Lexer for `pan <https://github.com/quattor/pan/>`_ source files.
+    Lexer for pan source files.
 
     Based on tcsh lexer.
 
@@ -647,6 +657,7 @@ class PanLexer(RegexLexer):
     """
 
     name = 'Pan'
+    url = 'https://github.com/quattor/pan/'
     aliases = ['pan']
     filenames = ['*.pan']
 
@@ -662,7 +673,7 @@ class PanLexer(RegexLexer):
                 'if', 'for', 'with', 'else', 'type', 'bind', 'while', 'valid', 'final',
                 'prefix', 'unique', 'object', 'foreach', 'include', 'template',
                 'function', 'variable', 'structure', 'extensible', 'declaration'),
-                prefix=r'\b', suffix=r'\s*\b'),
+                prefix=r'\b', suffix=r'\b'),
              Keyword),
             (words((
                 'file_contents', 'format', 'index', 'length', 'match', 'matches',
@@ -674,11 +685,11 @@ class PanLexer(RegexLexer):
                 'is_number', 'is_property', 'is_resource', 'is_string', 'to_boolean',
                 'to_double', 'to_long', 'to_string', 'clone', 'delete', 'exists',
                 'path_exists', 'if_exists', 'return', 'value'),
-                prefix=r'\b', suffix=r'\s*\b'),
+                prefix=r'\b', suffix=r'\b'),
              Name.Builtin),
             (r'#.*', Comment),
             (r'\\[\w\W]', String.Escape),
-            (r'(\b\w+)(\s*)(=)', bygroups(Name.Variable, Text, Operator)),
+            (r'(\b\w+)(\s*)(=)', bygroups(Name.Variable, Whitespace, Operator)),
             (r'[\[\]{}()=]+', Operator),
             (r'<<\s*(\'?)\\?(\w+)[\w\W]+?\2', String),
             (r';', Punctuation),
@@ -686,7 +697,7 @@ class PanLexer(RegexLexer):
         'data': [
             (r'(?s)"(\\\\|\\[0-7]+|\\.|[^"\\])*"', String.Double),
             (r"(?s)'(\\\\|\\[0-7]+|\\.|[^'\\])*'", String.Single),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[^=\s\[\]{}()$"\'`\\;#]+', Text),
             (r'\d+(?= |\Z)', Number),
         ],
@@ -707,12 +718,12 @@ class PanLexer(RegexLexer):
 
 class CrmshLexer(RegexLexer):
     """
-    Lexer for `crmsh <http://crmsh.github.io/>`_ configuration files
-    for Pacemaker clusters.
+    Lexer for crmsh configuration files for Pacemaker clusters.
 
     .. versionadded:: 2.1
     """
     name = 'Crmsh'
+    url = 'http://crmsh.github.io/'
     aliases = ['crmsh', 'pcmk']
     filenames = ['*.crmsh', '*.pcmk']
     mimetypes = []
@@ -738,7 +749,7 @@ class CrmshLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^#.*\n?', Comment),
+            (r'^(#.*)(\n)?', bygroups(Comment, Whitespace)),
             # attr=value (nvpair)
             (r'([\w#$-]+)(=)("(?:""|[^"])*"|\S+)',
                 bygroups(Name.Attribute, Punctuation, String)),
@@ -777,11 +788,12 @@ class CrmshLexer(RegexLexer):
 
 class FlatlineLexer(RegexLexer):
     """
-    Lexer for `Flatline <https://github.com/bigmlcom/flatline>`_ expressions.
+    Lexer for Flatline expressions.
 
     .. versionadded:: 2.2
     """
     name = 'Flatline'
+    url = 'https://github.com/bigmlcom/flatline'
     aliases = ['flatline']
     filenames = []
     mimetypes = ['text/x-flatline']
@@ -818,7 +830,8 @@ class FlatlineLexer(RegexLexer):
     tokens = {
         'root': [
             # whitespaces - usually not relevant
-            (r'[,\s]+', Text),
+            (r'[,]+', Text),
+            (r'\s+', Whitespace),
 
             # numbers
             (r'-?\d+\.\d+', Number.Float),
@@ -852,12 +865,13 @@ class FlatlineLexer(RegexLexer):
 
 class SnowballLexer(ExtendedRegexLexer):
     """
-    Lexer for `Snowball <http://snowballstem.org/>`_ source code.
+    Lexer for Snowball source code.
 
     .. versionadded:: 2.2
     """
 
     name = 'Snowball'
+    url = 'http://snowballstem.org/'
     aliases = ['snowball']
     filenames = ['*.sbl']
 
@@ -902,7 +916,7 @@ class SnowballLexer(ExtendedRegexLexer):
     def _stringescapes(lexer, match, ctx):
         lexer._start = match.group(3)
         lexer._end = match.group(5)
-        return bygroups(Keyword.Reserved, Text, String.Escape, Text,
+        return bygroups(Keyword.Reserved, Whitespace, String.Escape, Whitespace,
                         String.Escape)(lexer, match, ctx)
 
     tokens = {
@@ -911,7 +925,7 @@ class SnowballLexer(ExtendedRegexLexer):
             include('root1'),
         ],
         'root1': [
-            (r'[%s]+' % _ws, Text),
+            (r'[%s]+' % _ws, Whitespace),
             (r'\d+', Number.Integer),
             (r"'", String.Single, 'string'),
             (r'[()]', Punctuation),
@@ -935,7 +949,7 @@ class SnowballLexer(ExtendedRegexLexer):
                    suffix=r'\b'),
              Name.Builtin),
             (r'(stringdef\b)([%s]*)([^%s]+)' % (_ws, _ws),
-             bygroups(Keyword.Reserved, Text, String.Escape)),
+             bygroups(Keyword.Reserved, Whitespace, String.Escape)),
             (r'(stringescapes\b)([%s]*)(.)([%s]*)(.)' % (_ws, _ws),
              _stringescapes),
             (r'[A-Za-z]\w*', Name),

@@ -195,10 +195,8 @@ The only parameter that can be selected based on cross-validation is the number 
 
 - Training on {{ calcer_type__cpu }} has the `model_size_reg` set by default. It decreases the size of models that have categorical features. This option is turned off for training on GPU.
 - Training on {{ calcer_type__gpu }} is non-deterministic, because the order of floating point summations is non-deterministic in this implementation.
-- The following parameters are not supported if training is performed on {{ calcer_type__gpu }}: `--model-size-reg` for the Command-line version, `--ctr-leaf-count-limit` for the Command-line version, `--monotone-constraints` for the Command-line version.
-
-- The default value of the `--leaf-estimation-method` for the Command-line version parameter for {{ error-function--Quantile }} and {{ error-function--MAE }} loss functions is {{ fit__leaf_estimation_method__Exact }} on {{ calcer_type__cpu }} and {{ fit__leaf_estimation_method__Gradient }} on {{ calcer_type__gpu }}.
-
+- The following parameters are not supported if training is performed on {{ calcer_type__gpu }}: `--ctr-leaf-count-limit` for the Command-line version, `--monotone-constraints` for the Command-line version.
+- The default value of the `--leaf-estimation-method` for the {{ error-function--Quantile }} and {{ error-function--MAE }} loss functions is {{ fit__leaf_estimation_method__Exact }} on {{ cpu-gpu }}.
 - Combinations of categorical features are not supported for the following modes if training is performed on {{ calcer_type__gpu }}: {{ error-function--MultiClass }} and {{ error-function--MultiClassOneVsAll }}. The default value of the `--max-ctr-complexity` for the Command-line version parameter for such cases is set to 1.
 - The default values for the following parameters depend on the processing unit type:
     - `--bootstrap-type` for the Command-line version:

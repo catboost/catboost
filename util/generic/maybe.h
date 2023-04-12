@@ -6,16 +6,17 @@
 #include "yexception.h"
 
 #include <util/system/align.h>
+#include <util/system/compiler.h>
 #include <util/stream/output.h>
 #include <util/ysaveload.h>
 
 namespace NMaybe {
     struct TPolicyUndefinedExcept {
-        [[noreturn]] static void OnEmpty();
+        [[noreturn]] static void OnEmpty(const std::type_info& valueTypeInfo);
     };
 
     struct TPolicyUndefinedFail {
-        [[noreturn]] static void OnEmpty();
+        [[noreturn]] static void OnEmpty(const std::type_info& valueTypeInfo);
     };
 }
 
@@ -284,7 +285,7 @@ public:
         return *Data();
     }
 
-    void Clear() noexcept {
+    Y_REINITIALIZES_OBJECT void Clear() noexcept {
         if (Defined()) {
             this->Defined_ = false;
             Data()->~T();
@@ -301,7 +302,7 @@ public:
 
     void CheckDefined() const {
         if (Y_UNLIKELY(!Defined())) {
-            Policy::OnEmpty();
+            Policy::OnEmpty(typeid(TValueType));
         }
     }
 

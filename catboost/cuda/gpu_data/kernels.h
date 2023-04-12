@@ -13,6 +13,10 @@
 #include <library/cpp/grid_creator/binarization.h>
 #include <util/ysaveload.h>
 
+inline static ui8 ClipWideHistValue(ui16 wideValue, ui16 baseValue) {
+    return Min(Max(wideValue - baseValue, 0), 255);
+}
+
 namespace NKernelHost {
     class TFindBordersKernel: public TStatelessKernel {
     private:
@@ -123,18 +127,24 @@ namespace NKernelHost {
     class TWriteLazyCompressedIndexKernel: public TKernelBase<NKernel::TLazyWirteCompressedIndexKernelContext, false> {
     private:
         NCB::TPathWithScheme PathWithScheme;
+        ui32 DatasetFeatureId;
         ui32 FeatureId;
         TCFeature Feature;
         TCudaBufferPtr<ui32> Dst;
         TSlice DeviceSlice;
         ui64 SingleObjectSize = 1;
+        TMaybe<ui16> BaseValue = Nothing();
+
+        NCB::TDatasetSubset GetLoadSubset() const {
+            return NCB::TDatasetSubset::MakeRange(DeviceSlice.Left, DeviceSlice.Right);
+        }
 
     public:
         using TKernelContext = NKernel::TLazyWirteCompressedIndexKernelContext;
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             CB_ENSURE_INTERNAL(
-                NCB::TQuantizedPoolLoadersCache::HaveLoader(PathWithScheme),
+                NCB::TQuantizedPoolLoadersCache::HaveLoader(PathWithScheme, GetLoadSubset()),
                 "No loader for " << PathWithScheme.Scheme << "://" << PathWithScheme.Path);
             const auto deviceId = Dst.GetDeviceId();
             CB_ENSURE_INTERNAL(DeviceSlice.NotEmpty(), "Device " << deviceId.DeviceId << " at host " << deviceId.HostId << " did not get any objects");
@@ -146,35 +156,53 @@ namespace NKernelHost {
         TWriteLazyCompressedIndexKernel() = default;
 
         TWriteLazyCompressedIndexKernel(const NCB::TPathWithScheme& pathWithScheme,
+                                    ui32 datasetFeatureId,
                                     const TSlice& deviceSlice,
                                     ui64 singleObjectSize,
                                     ui32 featureId,
                                     TCFeature feature,
+                                    TMaybe<ui16> baseValue,
                                     TCudaBufferPtr<ui32> cindex)
             : PathWithScheme(pathWithScheme)
+            , DatasetFeatureId(datasetFeatureId)
             , FeatureId(featureId)
             , Feature(feature)
             , Dst(cindex)
             , DeviceSlice(deviceSlice)
             , SingleObjectSize(singleObjectSize)
+            , BaseValue(baseValue)
         {
-            NCB::TQuantizedPoolLoadersCache::GetLoader(pathWithScheme);
+            NCB::TQuantizedPoolLoadersCache::GetLoader(pathWithScheme, GetLoadSubset());
         }
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
             CB_ENSURE(Feature.Mask != 0);
             CB_ENSURE(Feature.Offset != (ui64)(-1));
-            auto poolLoader = NCB::TQuantizedPoolLoadersCache::GetLoader(PathWithScheme);
-            const auto bins = poolLoader->LoadQuantizedColumn(FeatureId, DeviceSlice.Left * SingleObjectSize, DeviceSlice.Size() * SingleObjectSize);
-            CB_ENSURE_INTERNAL(bins.size() > 0, "LoadQuantizedColumn returns empty vector");
             CB_ENSURE_INTERNAL(Dst.Get(), "Dst.Get() returns nullptr");
-
             TDeviceBuffer<ui8, EPtrType::CudaDevice> deviceBins(
                 context.TempStorage,
                 TObjectsMeta(DeviceSlice.Size(), SingleObjectSize),
                 /*columnCount*/1,
                 Dst.GetDeviceId());
-            deviceBins.Write(bins, stream);
+
+            auto poolLoader = NCB::TQuantizedPoolLoadersCache::GetLoader(PathWithScheme, GetLoadSubset());
+            const auto rawBytes = poolLoader->LoadQuantizedColumn(DatasetFeatureId, DeviceSlice.Left, DeviceSlice.Size());
+            CB_ENSURE_INTERNAL(rawBytes.size() > 0, "LoadQuantizedColumn returns empty vector");
+            if (DeviceSlice.Size() == rawBytes.size()) {
+                deviceBins.Write(rawBytes, stream);
+            } else {
+                CB_ENSURE(
+                    BaseValue.Defined() && rawBytes.size() == DeviceSlice.Size() * sizeof(ui16),
+                    "Wide column size in bytes (" << rawBytes.size() << ") "
+                    "mismatches size of device slice (" << DeviceSlice.Size() << ")");
+                TVector<ui8> bins;
+                bins.yresize(DeviceSlice.Size());
+                for (auto i : xrange(DeviceSlice.Size())) {
+                    bins[i] = ClipWideHistValue(reinterpret_cast<const ui16*>(rawBytes.data())[i], *BaseValue);
+                }
+                deviceBins.Write(bins, stream);
+            }
+
             NKernel::WriteCompressedIndex(Feature,
                                           deviceBins.Get(),
                                           deviceBins.Size(),
@@ -183,12 +211,12 @@ namespace NKernelHost {
         }
 
         inline void Save(IOutputStream* s) const {
-            ::SaveMany(s, FeatureId, Feature, Dst, PathWithScheme, DeviceSlice, SingleObjectSize);
+            ::SaveMany(s, FeatureId, Feature, Dst, PathWithScheme, DatasetFeatureId, DeviceSlice, SingleObjectSize, BaseValue);
         }
 
         inline void Load(IInputStream* s) {
-            ::LoadMany(s, FeatureId, Feature, Dst, PathWithScheme, DeviceSlice, SingleObjectSize);
-            NCB::TQuantizedPoolLoadersCache::GetLoader(PathWithScheme);
+            ::LoadMany(s, FeatureId, Feature, Dst, PathWithScheme, DatasetFeatureId, DeviceSlice, SingleObjectSize, BaseValue);
+            NCB::TQuantizedPoolLoadersCache::GetLoader(PathWithScheme, GetLoadSubset());
         }
     };
 
@@ -274,7 +302,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Seeds, Qids, Keys);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(Qids.Size() == Keys.Size());
+            CB_ENSURE(Qids.Size() == Keys.Size(), "Number of keys and query ids should be same");
             NKernel::CreateSortKeys(Seeds.Get(), Seeds.Size(), Qids.Get(), Qids.Size(), Keys.Get(), stream.GetStream());
         }
     };
@@ -422,7 +450,9 @@ inline void WriteLazyCompressedFeature(
     const NCudaLib::TDistributedObject<TCFeature>& feature,
     const NCudaLib::TStripeMapping& docMapping,
     const NCB::TPathWithScheme& pathWithScheme,
+    ui32 datasetFeatureId,
     ui32 featureId,
+    TMaybe<ui16> baseValue,
     TStripeBuffer<ui32>& cindex,
     ui32 stream = 0
 ) {
@@ -437,7 +467,17 @@ inline void WriteLazyCompressedFeature(
         CATBOOST_DEBUG_LOG << "Device(" << deviceId.DeviceId << ")@Host(" << deviceId.HostId << "): [" << deviceSlice.Left << ", " << deviceSlice.Right << ")" << Endl;
     }
 
-    LaunchKernels<TKernel>(docMapping.NonEmptyDevices(), stream, pathWithScheme, deviceSlices, docMapping.SingleObjectSize(), featureId, feature, cindex);
+    LaunchKernels<TKernel>(
+        docMapping.NonEmptyDevices(),
+        stream,
+        pathWithScheme,
+        datasetFeatureId,
+        deviceSlices,
+        docMapping.SingleObjectSize(),
+        featureId,
+        feature,
+        baseValue,
+        cindex);
 }
 
 inline void DropAllLoaders(const NCudaLib::TDevicesList& deviceList, ui32 stream = 0) {

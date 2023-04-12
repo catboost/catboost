@@ -8,55 +8,45 @@
 import ast
 import bdb
 import builtins as builtin_mod
+import cProfile as profile
 import gc
 import itertools
+import math
 import os
+import pstats
+import re
 import shlex
 import sys
 import time
 import timeit
-import math
-import re
+from ast import Module
+from io import StringIO
+from logging import error
+from pathlib import Path
 from pdb import Restart
+from warnings import warn
 
-# cProfile was added in Python2.5
-try:
-    import cProfile as profile
-    import pstats
-except ImportError:
-    # profile isn't bundled by default in Debian for license reasons
-    try:
-        import profile, pstats
-    except ImportError:
-        profile = pstats = None
-
-from IPython.core import oinspect
-from IPython.core import magic_arguments
-from IPython.core import page
+from IPython.core import magic_arguments, oinspect, page
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
-from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
-                                line_cell_magic, on_off, needs_local_scope,
-                                no_var_expand)
+from IPython.core.magic import (
+    Magics,
+    cell_magic,
+    line_cell_magic,
+    line_magic,
+    magics_class,
+    needs_local_scope,
+    no_var_expand,
+    output_can_be_silenced,
+    on_off,
+)
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.contexts import preserve_keys
 from IPython.utils.capture import capture_output
+from IPython.utils.contexts import preserve_keys
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, shellglob
 from IPython.utils.timing import clock, clock2
-from warnings import warn
-from logging import error
-from io import StringIO
-
-if sys.version_info > (3,8):
-    from ast import Module
-else :
-    # mock the new API, ignore second argument
-    # see https://github.com/ipython/ipython/issues/11590
-    from ast import Module as OriginalModule
-    Module = lambda nodelist, type_ignores: OriginalModule(nodelist)
-
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -103,17 +93,15 @@ class TimeitResult(object):
                 pm = u'\xb1'
             except:
                 pass
-        return (
-            u"{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops} loop{loop_plural} each)"
-                .format(
-                    pm = pm,
-                    runs = self.repeat,
-                    loops = self.loops,
-                    loop_plural = "" if self.loops == 1 else "s",
-                    run_plural = "" if self.repeat == 1 else "s",
-                    mean = _format_time(self.average, self._precision),
-                    std = _format_time(self.stdev, self._precision))
-                )
+        return "{mean} {pm} {std} per loop (mean {pm} std. dev. of {runs} run{run_plural}, {loops:,} loop{loop_plural} each)".format(
+            pm=pm,
+            runs=self.repeat,
+            loops=self.loops,
+            loop_plural="" if self.loops == 1 else "s",
+            run_plural="" if self.repeat == 1 else "s",
+            mean=_format_time(self.average, self._precision),
+            std=_format_time(self.stdev, self._precision),
+        )
 
     def _repr_pretty_(self, p , cycle):
         unic = self.__str__()
@@ -181,16 +169,8 @@ class ExecutionMagics(Magics):
 
     def __init__(self, shell):
         super(ExecutionMagics, self).__init__(shell)
-        if profile is None:
-            self.prun = self.profile_missing_notice
         # Default execution function used to actually run user code.
         self.default_runner = None
-
-    def profile_missing_notice(self, *args, **kwargs):
-        error("""\
-The profile module could not be found. It has been removed from the standard
-python packages because of its non-free license. To use profiling, install the
-python-profiler package from non-free.""")
 
     @skip_doctest
     @no_var_expand
@@ -375,18 +355,22 @@ python-profiler package from non-free.""")
         text_file = opts.T[0]
         if dump_file:
             prof.dump_stats(dump_file)
-            print('\n*** Profile stats marshalled to file',\
-                  repr(dump_file)+'.',sys_exit)
+            print(
+                f"\n*** Profile stats marshalled to file {repr(dump_file)}.{sys_exit}"
+            )
         if text_file:
-            with open(text_file, 'w') as pfile:
-                pfile.write(output)
-            print('\n*** Profile printout saved to text file',\
-                  repr(text_file)+'.',sys_exit)
+            pfile = Path(text_file)
+            pfile.touch(exist_ok=True)
+            pfile.write_text(output, encoding="utf-8")
+
+            print(
+                f"\n*** Profile printout saved to text file {repr(text_file)}.{sys_exit}"
+            )
 
         if 'r' in opts:
             return stats
-        else:
-            return None
+
+        return None
 
     @line_magic
     def pdb(self, parameter_s=''):
@@ -423,7 +407,6 @@ python-profiler package from non-free.""")
         self.shell.call_pdb = new_pdb
         print('Automatic pdb calling has been turned',on_off(new_pdb))
 
-    @skip_doctest
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('--breakpoint', '-b', metavar='FILE:LINE',
         help="""
@@ -529,10 +512,21 @@ python-profiler package from non-free.""")
         """Run the named file inside IPython as a program.
 
         Usage::
-        
+
           %run [-n -i -e -G]
                [( -t [-N<N>] | -d [-b<N>] | -p [profile options] )]
-               ( -m mod | file ) [args]
+               ( -m mod | filename ) [args]
+
+        The filename argument should be either a pure Python script (with
+        extension ``.py``), or a file with custom IPython syntax (such as
+        magics). If the latter, the file can be either a script with ``.ipy``
+        extension, or a Jupyter notebook with ``.ipynb`` extension. When running
+        a Jupyter notebook, the output from print statements and other
+        displayed objects will appear in the terminal (even matplotlib figures
+        will open, if a terminal-compliant backend is being used). Note that,
+        at the system command line, the ``jupyter run`` command offers similar
+        functionality for executing notebooks (albeit currently with some
+        differences in supported options).
 
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
@@ -559,7 +553,7 @@ python-profiler package from non-free.""")
         *two* back slashes (e.g. ``\\\\*``) to suppress expansions.
         To completely disable these expansions, you can use -G flag.
 
-        On Windows systems, the use of single quotes `'` when specifying 
+        On Windows systems, the use of single quotes `'` when specifying
         a file is not supported. Use double quotes `"`.
 
         Options:
@@ -701,9 +695,9 @@ python-profiler package from non-free.""")
             fpath = None # initialize to make sure fpath is in scope later
             fpath = arg_lst[0]
             filename = file_finder(fpath)
-        except IndexError:
+        except IndexError as e:
             msg = 'you must provide at least a filename.'
-            raise Exception(msg)
+            raise Exception(msg) from e
         except IOError as e:
             try:
                 msg = str(e)
@@ -711,7 +705,7 @@ python-profiler package from non-free.""")
                 msg = e.message
             if os.name == 'nt' and re.match(r"^'.*'$",fpath):
                 warn('For Windows, use double quotes to wrap a filename: %run "mypath\\myfile.py"')
-            raise Exception(msg)
+            raise Exception(msg) from e
         except TypeError:
             if fpath in sys.meta_path:
                 filename = ""
@@ -740,7 +734,7 @@ python-profiler package from non-free.""")
         sys.argv = [filename] + args  # put in the proper filename
 
         if 'n' in opts:
-            name = os.path.splitext(os.path.basename(filename))[0]
+            name = Path(filename).stem
         else:
             name = '__main__'
 
@@ -1074,7 +1068,6 @@ python-profiler package from non-free.""")
 
           In [6]: %timeit -n1 time.sleep(2)
 
-
         The times reported by %timeit will be slightly higher than those
         reported by the timeit.py script when variables are accessed. This is
         due to the fact that %timeit executes the statement in the namespace
@@ -1083,8 +1076,9 @@ python-profiler package from non-free.""")
         does not matter as long as results from timeit.py are not mixed with
         those from %timeit."""
 
-        opts, stmt = self.parse_options(line,'n:r:tcp:qo',
-                                        posix=False, strict=False)
+        opts, stmt = self.parse_options(
+            line, "n:r:tcp:qo", posix=False, strict=False, preserve_non_opts=True
+        )
         if stmt == "" and cell is None:
             return
         
@@ -1201,13 +1195,14 @@ python-profiler package from non-free.""")
     @no_var_expand
     @needs_local_scope
     @line_cell_magic
+    @output_can_be_silenced
     def time(self,line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
         expression (if any) is returned.  Note that under Win32, system time
         is always reported as 0, since it can not be measured.
-        
+
         This function can be used both as a line and cell magic:
 
         - In line mode you can time a single-line statement (though multiple
@@ -1243,7 +1238,6 @@ python-profiler package from non-free.""")
           hello world
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
-
 
         .. note::
             The time needed by Python to compile the given expression will be
@@ -1334,19 +1328,22 @@ python-profiler package from non-free.""")
 
         wall_end = wtime()
         # Compute actual times and report
-        wall_time = wall_end-wall_st
-        cpu_user = end[0]-st[0]
-        cpu_sys = end[1]-st[1]
-        cpu_tot = cpu_user+cpu_sys
-        # On windows cpu_sys is always zero, so no new information to the next print 
-        if sys.platform != 'win32':
-            print("CPU times: user %s, sys: %s, total: %s" % \
-                (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot)))
-        print("Wall time: %s" % _format_time(wall_time))
+        wall_time = wall_end - wall_st
+        cpu_user = end[0] - st[0]
+        cpu_sys = end[1] - st[1]
+        cpu_tot = cpu_user + cpu_sys
+        # On windows cpu_sys is always zero, so only total is displayed
+        if sys.platform != "win32":
+            print(
+                f"CPU times: user {_format_time(cpu_user)}, sys: {_format_time(cpu_sys)}, total: {_format_time(cpu_tot)}"
+            )
+        else:
+            print(f"CPU times: total: {_format_time(cpu_tot)}")
+        print(f"Wall time: {_format_time(wall_time)}")
         if tc > tc_min:
-            print("Compiler : %s" % _format_time(tc))
+            print(f"Compiler : {_format_time(tc)}")
         if tp > tp_min:
-            print("Parser   : %s" % _format_time(tp))
+            print(f"Parser   : {_format_time(tp)}")
         return out
 
     @skip_doctest

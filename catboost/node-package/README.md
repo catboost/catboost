@@ -43,4 +43,4 @@ console.log(prediction);
 
 ### Release procedure
 
-See [DEMPLOYMENT.md](./DEPLOYMENT.md).
+See [DEPLOYMENT.md](./DEPLOYMENT.md).

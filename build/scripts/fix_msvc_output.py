@@ -4,6 +4,7 @@ import sys
 import process_command_files as pcf
 import process_whole_archive_option as pwa
 
+
 def out2err(cmd):
     return subprocess.Popen(cmd, stdout=sys.stderr).wait()
 

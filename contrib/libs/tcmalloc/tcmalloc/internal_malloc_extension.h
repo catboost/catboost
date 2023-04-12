@@ -120,6 +120,12 @@ ABSL_ATTRIBUTE_WEAK void MallocExtension_Internal_SetMaxTotalThreadCacheBytes(
 ABSL_ATTRIBUTE_WEAK void
 MallocExtension_EnableForkSupport();
 
+ABSL_ATTRIBUTE_WEAK void
+MallocExtension_SetSampleUserDataCallbacks(
+    tcmalloc::MallocExtension::CreateSampleUserDataCallback create,
+    tcmalloc::MallocExtension::CopySampleUserDataCallback copy,
+    tcmalloc::MallocExtension::DestroySampleUserDataCallback destroy);
+
 }
 
 #endif

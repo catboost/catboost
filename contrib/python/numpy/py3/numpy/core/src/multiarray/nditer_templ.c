@@ -129,7 +129,7 @@ npyiter_iternext_itflags0_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -276,7 +276,7 @@ npyiter_iternext_itflags0_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -423,7 +423,7 @@ npyiter_iternext_itflags0_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -572,7 +572,7 @@ npyiter_iternext_itflags0_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -719,7 +719,7 @@ npyiter_iternext_itflags0_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -866,7 +866,7 @@ npyiter_iternext_itflags0_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1015,7 +1015,7 @@ npyiter_iternext_itflags0_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1162,7 +1162,7 @@ npyiter_iternext_itflags0_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1309,7 +1309,7 @@ npyiter_iternext_itflags0_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1460,7 +1460,7 @@ npyiter_iternext_itflagsIND_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1607,7 +1607,7 @@ npyiter_iternext_itflagsIND_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1754,7 +1754,7 @@ npyiter_iternext_itflagsIND_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1903,7 +1903,7 @@ npyiter_iternext_itflagsIND_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2050,7 +2050,7 @@ npyiter_iternext_itflagsIND_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2197,7 +2197,7 @@ npyiter_iternext_itflagsIND_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2346,7 +2346,7 @@ npyiter_iternext_itflagsIND_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2493,7 +2493,7 @@ npyiter_iternext_itflagsIND_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2640,7 +2640,7 @@ npyiter_iternext_itflagsIND_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2791,7 +2791,7 @@ npyiter_iternext_itflagsNOINN_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2938,7 +2938,7 @@ npyiter_iternext_itflagsNOINN_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3085,7 +3085,7 @@ npyiter_iternext_itflagsNOINN_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3234,7 +3234,7 @@ npyiter_iternext_itflagsNOINN_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3381,7 +3381,7 @@ npyiter_iternext_itflagsNOINN_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3528,7 +3528,7 @@ npyiter_iternext_itflagsNOINN_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3677,7 +3677,7 @@ npyiter_iternext_itflagsNOINN_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3824,7 +3824,7 @@ npyiter_iternext_itflagsNOINN_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3971,7 +3971,7 @@ npyiter_iternext_itflagsNOINN_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4122,7 +4122,7 @@ npyiter_iternext_itflagsRNG_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4269,7 +4269,7 @@ npyiter_iternext_itflagsRNG_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4416,7 +4416,7 @@ npyiter_iternext_itflagsRNG_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4565,7 +4565,7 @@ npyiter_iternext_itflagsRNG_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4712,7 +4712,7 @@ npyiter_iternext_itflagsRNG_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4859,7 +4859,7 @@ npyiter_iternext_itflagsRNG_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5008,7 +5008,7 @@ npyiter_iternext_itflagsRNG_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5155,7 +5155,7 @@ npyiter_iternext_itflagsRNG_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5302,7 +5302,7 @@ npyiter_iternext_itflagsRNG_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5453,7 +5453,7 @@ npyiter_iternext_itflagsRNGuIND_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5600,7 +5600,7 @@ npyiter_iternext_itflagsRNGuIND_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5747,7 +5747,7 @@ npyiter_iternext_itflagsRNGuIND_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5896,7 +5896,7 @@ npyiter_iternext_itflagsRNGuIND_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6043,7 +6043,7 @@ npyiter_iternext_itflagsRNGuIND_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6190,7 +6190,7 @@ npyiter_iternext_itflagsRNGuIND_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6339,7 +6339,7 @@ npyiter_iternext_itflagsRNGuIND_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6486,7 +6486,7 @@ npyiter_iternext_itflagsRNGuIND_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6633,7 +6633,7 @@ npyiter_iternext_itflagsRNGuIND_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6747,7 +6747,10 @@ npyiter_buffered_reduce_iternext_iters1(NpyIter *iter)
     memcpy(prev_dataptrs, NAD_PTRS(axisdata), NPY_SIZEOF_INTP*nop);
 
     /* Write back to the arrays */
-    npyiter_copy_from_buffers(iter);
+    if (npyiter_copy_from_buffers(iter) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     /* Check if we're past the end */
     if (NIT_ITERINDEX(iter) >= NIT_ITEREND(iter)) {
@@ -6760,7 +6763,10 @@ npyiter_buffered_reduce_iternext_iters1(NpyIter *iter)
     }
 
     /* Prepare the next buffers and set iterend/size */
-    npyiter_copy_to_buffers(iter, prev_dataptrs);
+    if (npyiter_copy_to_buffers(iter, prev_dataptrs) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     return 1;
 }
@@ -6832,7 +6838,10 @@ npyiter_buffered_reduce_iternext_iters2(NpyIter *iter)
     memcpy(prev_dataptrs, NAD_PTRS(axisdata), NPY_SIZEOF_INTP*nop);
 
     /* Write back to the arrays */
-    npyiter_copy_from_buffers(iter);
+    if (npyiter_copy_from_buffers(iter) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     /* Check if we're past the end */
     if (NIT_ITERINDEX(iter) >= NIT_ITEREND(iter)) {
@@ -6845,7 +6854,10 @@ npyiter_buffered_reduce_iternext_iters2(NpyIter *iter)
     }
 
     /* Prepare the next buffers and set iterend/size */
-    npyiter_copy_to_buffers(iter, prev_dataptrs);
+    if (npyiter_copy_to_buffers(iter, prev_dataptrs) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     return 1;
 }
@@ -6917,7 +6929,10 @@ npyiter_buffered_reduce_iternext_iters3(NpyIter *iter)
     memcpy(prev_dataptrs, NAD_PTRS(axisdata), NPY_SIZEOF_INTP*nop);
 
     /* Write back to the arrays */
-    npyiter_copy_from_buffers(iter);
+    if (npyiter_copy_from_buffers(iter) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     /* Check if we're past the end */
     if (NIT_ITERINDEX(iter) >= NIT_ITEREND(iter)) {
@@ -6930,7 +6945,10 @@ npyiter_buffered_reduce_iternext_iters3(NpyIter *iter)
     }
 
     /* Prepare the next buffers and set iterend/size */
-    npyiter_copy_to_buffers(iter, prev_dataptrs);
+    if (npyiter_copy_to_buffers(iter, prev_dataptrs) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     return 1;
 }
@@ -7002,7 +7020,10 @@ npyiter_buffered_reduce_iternext_iters4(NpyIter *iter)
     memcpy(prev_dataptrs, NAD_PTRS(axisdata), NPY_SIZEOF_INTP*nop);
 
     /* Write back to the arrays */
-    npyiter_copy_from_buffers(iter);
+    if (npyiter_copy_from_buffers(iter) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     /* Check if we're past the end */
     if (NIT_ITERINDEX(iter) >= NIT_ITEREND(iter)) {
@@ -7015,7 +7036,10 @@ npyiter_buffered_reduce_iternext_iters4(NpyIter *iter)
     }
 
     /* Prepare the next buffers and set iterend/size */
-    npyiter_copy_to_buffers(iter, prev_dataptrs);
+    if (npyiter_copy_to_buffers(iter, prev_dataptrs) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     return 1;
 }
@@ -7087,7 +7111,10 @@ npyiter_buffered_reduce_iternext_itersANY(NpyIter *iter)
     memcpy(prev_dataptrs, NAD_PTRS(axisdata), NPY_SIZEOF_INTP*nop);
 
     /* Write back to the arrays */
-    npyiter_copy_from_buffers(iter);
+    if (npyiter_copy_from_buffers(iter) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     /* Check if we're past the end */
     if (NIT_ITERINDEX(iter) >= NIT_ITEREND(iter)) {
@@ -7100,7 +7127,10 @@ npyiter_buffered_reduce_iternext_itersANY(NpyIter *iter)
     }
 
     /* Prepare the next buffers and set iterend/size */
-    npyiter_copy_to_buffers(iter, prev_dataptrs);
+    if (npyiter_copy_to_buffers(iter, prev_dataptrs) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     return 1;
 }
@@ -7141,7 +7171,10 @@ npyiter_buffered_iternext(NpyIter *iter)
     }
 
     /* Write back to the arrays */
-    npyiter_copy_from_buffers(iter);
+    if (npyiter_copy_from_buffers(iter) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     /* Check if we're past the end */
     if (NIT_ITERINDEX(iter) >= NIT_ITEREND(iter)) {
@@ -7154,7 +7187,10 @@ npyiter_buffered_iternext(NpyIter *iter)
     }
 
     /* Prepare the next buffers and set iterend/size */
-    npyiter_copy_to_buffers(iter, NULL);
+    if (npyiter_copy_to_buffers(iter, NULL) < 0) {
+        npyiter_clear_buffers(iter);
+        return 0;
+    }
 
     return 1;
 }
@@ -7239,17 +7275,17 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
      * The combinations HASINDEX|EXLOOP and RANGE|EXLOOP are excluded
      * by the New functions
      */
-#line 412
+#line 424
         case 0:
             switch (ndim) {
-#line 418
+#line 430
                 case 1:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflags0_dims1_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflags0_dims1_iters2;
 
@@ -7258,14 +7294,14 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                             return &npyiter_iternext_itflags0_dims1_itersANY;
                     }
 
-#line 418
+#line 430
                 case 2:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflags0_dims2_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflags0_dims2_iters2;
 
@@ -7277,11 +7313,11 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                 /* Not specialized on ndim */
                 default:
                     switch (nop) {
-#line 439
+#line 451
                         case 1:
                             return &npyiter_iternext_itflags0_dimsANY_iters1;
 
-#line 439
+#line 451
                         case 2:
                             return &npyiter_iternext_itflags0_dimsANY_iters2;
 
@@ -7291,17 +7327,17 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                     }
             }
 
-#line 412
+#line 424
         case NPY_ITFLAG_HASINDEX:
             switch (ndim) {
-#line 418
+#line 430
                 case 1:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflagsIND_dims1_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflagsIND_dims1_iters2;
 
@@ -7310,14 +7346,14 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                             return &npyiter_iternext_itflagsIND_dims1_itersANY;
                     }
 
-#line 418
+#line 430
                 case 2:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflagsIND_dims2_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflagsIND_dims2_iters2;
 
@@ -7329,11 +7365,11 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                 /* Not specialized on ndim */
                 default:
                     switch (nop) {
-#line 439
+#line 451
                         case 1:
                             return &npyiter_iternext_itflagsIND_dimsANY_iters1;
 
-#line 439
+#line 451
                         case 2:
                             return &npyiter_iternext_itflagsIND_dimsANY_iters2;
 
@@ -7343,17 +7379,17 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                     }
             }
 
-#line 412
+#line 424
         case NPY_ITFLAG_EXLOOP:
             switch (ndim) {
-#line 418
+#line 430
                 case 1:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflagsNOINN_dims1_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflagsNOINN_dims1_iters2;
 
@@ -7362,14 +7398,14 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                             return &npyiter_iternext_itflagsNOINN_dims1_itersANY;
                     }
 
-#line 418
+#line 430
                 case 2:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflagsNOINN_dims2_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflagsNOINN_dims2_iters2;
 
@@ -7381,11 +7417,11 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                 /* Not specialized on ndim */
                 default:
                     switch (nop) {
-#line 439
+#line 451
                         case 1:
                             return &npyiter_iternext_itflagsNOINN_dimsANY_iters1;
 
-#line 439
+#line 451
                         case 2:
                             return &npyiter_iternext_itflagsNOINN_dimsANY_iters2;
 
@@ -7395,17 +7431,17 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                     }
             }
 
-#line 412
+#line 424
         case NPY_ITFLAG_RANGE:
             switch (ndim) {
-#line 418
+#line 430
                 case 1:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflagsRNG_dims1_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflagsRNG_dims1_iters2;
 
@@ -7414,14 +7450,14 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                             return &npyiter_iternext_itflagsRNG_dims1_itersANY;
                     }
 
-#line 418
+#line 430
                 case 2:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflagsRNG_dims2_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflagsRNG_dims2_iters2;
 
@@ -7433,11 +7469,11 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                 /* Not specialized on ndim */
                 default:
                     switch (nop) {
-#line 439
+#line 451
                         case 1:
                             return &npyiter_iternext_itflagsRNG_dimsANY_iters1;
 
-#line 439
+#line 451
                         case 2:
                             return &npyiter_iternext_itflagsRNG_dimsANY_iters2;
 
@@ -7447,17 +7483,17 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                     }
             }
 
-#line 412
+#line 424
         case NPY_ITFLAG_RANGE|NPY_ITFLAG_HASINDEX:
             switch (ndim) {
-#line 418
+#line 430
                 case 1:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflagsRNGuIND_dims1_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflagsRNGuIND_dims1_iters2;
 
@@ -7466,14 +7502,14 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                             return &npyiter_iternext_itflagsRNGuIND_dims1_itersANY;
                     }
 
-#line 418
+#line 430
                 case 2:
                     switch (nop) {
-#line 424
+#line 436
                         case 1:
                             return &npyiter_iternext_itflagsRNGuIND_dims2_iters1;
 
-#line 424
+#line 436
                         case 2:
                             return &npyiter_iternext_itflagsRNGuIND_dims2_iters2;
 
@@ -7485,11 +7521,11 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
                 /* Not specialized on ndim */
                 default:
                     switch (nop) {
-#line 439
+#line 451
                         case 1:
                             return &npyiter_iternext_itflagsRNGuIND_dimsANY_iters1;
 
-#line 439
+#line 451
                         case 2:
                             return &npyiter_iternext_itflagsRNGuIND_dimsANY_iters2;
 
@@ -7517,7 +7553,7 @@ NpyIter_GetIterNext(NpyIter *iter, char **errmsg)
 
 /* SPECIALIZED getindex functions */
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflags0(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7559,7 +7595,7 @@ npyiter_get_multi_index_itflags0(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsIND(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7601,7 +7637,7 @@ npyiter_get_multi_index_itflagsIND(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsIDP(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7643,7 +7679,7 @@ npyiter_get_multi_index_itflagsIDP(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsINDuIDP(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7685,7 +7721,7 @@ npyiter_get_multi_index_itflagsINDuIDP(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsNEGP(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7727,7 +7763,7 @@ npyiter_get_multi_index_itflagsNEGP(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsINDuNEGP(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7769,7 +7805,7 @@ npyiter_get_multi_index_itflagsINDuNEGP(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsBUF(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7811,7 +7847,7 @@ npyiter_get_multi_index_itflagsBUF(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsINDuBUF(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7853,7 +7889,7 @@ npyiter_get_multi_index_itflagsINDuBUF(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsIDPuBUF(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7895,7 +7931,7 @@ npyiter_get_multi_index_itflagsIDPuBUF(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsINDuIDPuBUF(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7937,7 +7973,7 @@ npyiter_get_multi_index_itflagsINDuIDPuBUF(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsNEGPuBUF(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -7979,7 +8015,7 @@ npyiter_get_multi_index_itflagsNEGPuBUF(
 #endif /* not ident perm */
 }
 
-#line 482
+#line 494
 static void
 npyiter_get_multi_index_itflagsINDuNEGPuBUF(
                         NpyIter *iter, npy_intp *out_multi_index)
@@ -8078,51 +8114,51 @@ NpyIter_GetGetMultiIndex(NpyIter *iter, char **errmsg)
                 NPY_ITFLAG_BUFFER);
 
     switch (itflags) {
-#line 596
+#line 608
         case 0:
             return npyiter_get_multi_index_itflags0;
 
-#line 596
+#line 608
         case NPY_ITFLAG_HASINDEX:
             return npyiter_get_multi_index_itflagsIND;
 
-#line 596
+#line 608
         case NPY_ITFLAG_IDENTPERM:
             return npyiter_get_multi_index_itflagsIDP;
 
-#line 596
+#line 608
         case NPY_ITFLAG_HASINDEX|NPY_ITFLAG_IDENTPERM:
             return npyiter_get_multi_index_itflagsINDuIDP;
 
-#line 596
+#line 608
         case NPY_ITFLAG_NEGPERM:
             return npyiter_get_multi_index_itflagsNEGP;
 
-#line 596
+#line 608
         case NPY_ITFLAG_HASINDEX|NPY_ITFLAG_NEGPERM:
             return npyiter_get_multi_index_itflagsINDuNEGP;
 
-#line 596
+#line 608
         case NPY_ITFLAG_BUFFER:
             return npyiter_get_multi_index_itflagsBUF;
 
-#line 596
+#line 608
         case NPY_ITFLAG_HASINDEX|NPY_ITFLAG_BUFFER:
             return npyiter_get_multi_index_itflagsINDuBUF;
 
-#line 596
+#line 608
         case NPY_ITFLAG_IDENTPERM|NPY_ITFLAG_BUFFER:
             return npyiter_get_multi_index_itflagsIDPuBUF;
 
-#line 596
+#line 608
         case NPY_ITFLAG_HASINDEX|NPY_ITFLAG_IDENTPERM|NPY_ITFLAG_BUFFER:
             return npyiter_get_multi_index_itflagsINDuIDPuBUF;
 
-#line 596
+#line 608
         case NPY_ITFLAG_NEGPERM|NPY_ITFLAG_BUFFER:
             return npyiter_get_multi_index_itflagsNEGPuBUF;
 
-#line 596
+#line 608
         case NPY_ITFLAG_HASINDEX|NPY_ITFLAG_NEGPERM|NPY_ITFLAG_BUFFER:
             return npyiter_get_multi_index_itflagsINDuNEGPuBUF;
 

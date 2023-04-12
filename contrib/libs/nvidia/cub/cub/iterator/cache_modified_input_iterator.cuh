@@ -48,11 +48,7 @@
 #endif // THRUST_VERSION
 
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 
@@ -117,9 +113,9 @@ public:
 
 #if (THRUST_VERSION >= 100700)
     // Use Thrust's iterator categories so we can use these iterators in Thrust 1.7 (or newer) methods
-    typedef typename thrust::detail::iterator_facade_category<
-        thrust::device_system_tag,
-        thrust::random_access_traversal_tag,
+    typedef typename THRUST_NS_QUALIFIER::detail::iterator_facade_category<
+        THRUST_NS_QUALIFIER::device_system_tag,
+        THRUST_NS_QUALIFIER::random_access_traversal_tag,
         value_type,
         reference
       >::type iterator_category;                                        ///< The iterator category
@@ -138,7 +134,7 @@ public:
     __host__ __device__ __forceinline__ CacheModifiedInputIterator(
         QualifiedValueType* ptr)     ///< Native pointer to wrap
     :
-        ptr(const_cast<typename RemoveQualifiers<QualifiedValueType>::Type *>(ptr))
+        ptr(const_cast<typename std::remove_cv<QualifiedValueType>::type *>(ptr))
     {}
 
     /// Postfix increment
@@ -236,5 +232,4 @@ public:
 
 /** @} */       // end group UtilIterator
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

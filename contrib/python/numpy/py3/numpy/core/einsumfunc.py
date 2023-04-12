@@ -327,7 +327,7 @@ def _greedy_path(input_sets, output_set, idx_dict, memory_limit):
         Set that represents the rhs side of the overall einsum subscript
     idx_dict : dictionary
         Dictionary of index sizes
-    memory_limit_limit : int
+    memory_limit : int
         The maximum number of elements in a temporary array
 
     Returns
@@ -821,6 +821,7 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
     if path_type is None:
         path_type = False
 
+    explicit_einsum_path = False
     memory_limit = None
 
     # No optimization or a named path algorithm
@@ -829,7 +830,7 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
 
     # Given an explicit path
     elif len(path_type) and (path_type[0] == 'einsum_path'):
-        pass
+        explicit_einsum_path = True
 
     # Path tuple with memory limit
     elif ((len(path_type) == 2) and isinstance(path_type[0], str) and
@@ -898,15 +899,19 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
     naive_cost = _flop_count(indices, inner_product, len(input_list), dimension_dict)
 
     # Compute the path
-    if (path_type is False) or (len(input_list) in [1, 2]) or (indices == output_set):
+    if explicit_einsum_path:
+        path = path_type[1:]
+    elif (
+        (path_type is False)
+        or (len(input_list) in [1, 2])
+        or (indices == output_set)
+    ):
         # Nothing to be optimized, leave it to einsum
         path = [tuple(range(len(input_list)))]
     elif path_type == "greedy":
         path = _greedy_path(input_sets, output_set, dimension_dict, memory_arg)
     elif path_type == "optimal":
         path = _optimal_path(input_sets, output_set, dimension_dict, memory_arg)
-    elif path_type[0] == 'einsum_path':
-        path = path_type[1:]
     else:
         raise KeyError("Path name %s not found", path_type)
 
@@ -955,6 +960,13 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
 
     opt_cost = sum(cost_list) + 1
 
+    if len(input_list) != 1:
+        # Explicit "einsum_path" is usually trusted, but we detect this kind of
+        # mistake in order to prevent from returning an intermediate value.
+        raise RuntimeError(
+            "Invalid einsum_path is specified: {} more operands has to be "
+            "contracted.".format(len(input_list) - 1))
+
     if einsum_call_arg:
         return (operands, contraction_list)
 
@@ -987,7 +999,7 @@ def einsum_path(*operands, optimize='greedy', einsum_call=False):
 
 
 def _einsum_dispatcher(*operands, out=None, optimize=None, **kwargs):
-    # Arguably we dispatch on more arguments that we really should; see note in
+    # Arguably we dispatch on more arguments than we really should; see note in
     # _einsum_path_dispatcher for why.
     yield from operands
     yield out
@@ -1061,6 +1073,15 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
     See Also
     --------
     einsum_path, dot, inner, outer, tensordot, linalg.multi_dot
+    einops :
+        similar verbose interface is provided by
+        `einops <https://github.com/arogozhnikov/einops>`_ package to cover
+        additional operations: transpose, reshape/flatten, repeat/tile,
+        squeeze/unsqueeze and reductions.
+    opt_einsum :
+        `opt_einsum <https://optimized-einsum.readthedocs.io/en/stable/>`_
+        optimizes contraction order for einsum-like expressions
+        in backend-agnostic manner.
 
     Notes
     -----
@@ -1358,10 +1379,17 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
         raise TypeError("Did not understand the following kwargs: %s"
                         % unknown_kwargs)
 
-
     # Build the contraction list and operand
     operands, contraction_list = einsum_path(*operands, optimize=optimize,
                                              einsum_call=True)
+
+    # Handle order kwarg for output array, c_einsum allows mixed case
+    output_order = kwargs.pop('order', 'K')
+    if output_order.upper() == 'A':
+        if all(arr.flags.f_contiguous for arr in operands):
+            output_order = 'F'
+        else:
+            output_order = 'C'
 
     # Start contraction loop
     for num, contraction in enumerate(contraction_list):
@@ -1412,4 +1440,4 @@ def einsum(*operands, out=None, optimize=False, **kwargs):
     if specified_out:
         return out
     else:
-        return operands[0]
+        return asanyarray(operands[0], order=output_order)

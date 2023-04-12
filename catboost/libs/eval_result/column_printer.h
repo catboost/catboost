@@ -379,6 +379,10 @@ namespace NCB {
             return NeedToGenerate ? typeid(ui64) : typeid(TString);
         }
 
+        bool NeedPrinterPtr() {
+            return !NeedToGenerate;
+        }
+
     private:
         TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
         bool NeedToGenerate;

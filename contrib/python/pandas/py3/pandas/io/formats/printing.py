@@ -11,7 +11,6 @@ from typing import (
     Iterable,
     Mapping,
     Sequence,
-    Sized,
     TypeVar,
     Union,
 )
@@ -260,10 +259,14 @@ def enable_data_resource_formatter(enable: bool) -> None:
         if mimetype not in formatters:
             # define tableschema formatter
             from IPython.core.formatters import BaseFormatter
+            from traitlets import ObjectName
 
             class TableSchemaFormatter(BaseFormatter):
-                print_method = "_repr_data_resource_"
-                _return_type = (dict,)
+                print_method = ObjectName("_repr_data_resource_")
+                # Incompatible types in assignment (expression has type
+                # "Tuple[Type[Dict[Any, Any]]]", base class "BaseFormatter"
+                # defined the type as "Type[str]")
+                _return_type = (dict,)  # type: ignore[assignment]
 
             # register it:
             formatters[mimetype] = TableSchemaFormatter()
@@ -503,44 +506,6 @@ def _justify(
     #  List[Sequence[str]]]", expected "Tuple[List[Tuple[str, ...]],
     #  List[Tuple[str, ...]]]")
     return head, tail  # type: ignore[return-value]
-
-
-def format_object_attrs(
-    obj: Sized, include_dtype: bool = True
-) -> list[tuple[str, str | int]]:
-    """
-    Return a list of tuples of the (attr, formatted_value)
-    for common attrs, including dtype, name, length
-
-    Parameters
-    ----------
-    obj : object
-        Must be sized.
-    include_dtype : bool
-        If False, dtype won't be in the returned list
-
-    Returns
-    -------
-    list of 2-tuple
-
-    """
-    attrs: list[tuple[str, str | int]] = []
-    if hasattr(obj, "dtype") and include_dtype:
-        # error: "Sized" has no attribute "dtype"
-        attrs.append(("dtype", f"'{obj.dtype}'"))  # type: ignore[attr-defined]
-    if getattr(obj, "name", None) is not None:
-        # error: "Sized" has no attribute "name"
-        attrs.append(("name", default_pprint(obj.name)))  # type: ignore[attr-defined]
-    # error: "Sized" has no attribute "names"
-    elif getattr(obj, "names", None) is not None and any(
-        obj.names  # type: ignore[attr-defined]
-    ):
-        # error: "Sized" has no attribute "names"
-        attrs.append(("names", default_pprint(obj.names)))  # type: ignore[attr-defined]
-    max_seq_items = get_option("display.max_seq_items") or len(obj)
-    if len(obj) > max_seq_items:
-        attrs.append(("length", len(obj)))
-    return attrs
 
 
 class PrettyDict(Dict[_KT, _VT]):

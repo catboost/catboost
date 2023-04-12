@@ -1,13 +1,13 @@
 Metadata-Version: 2.1
 Name: pandas
-Version: 1.3.4
+Version: 1.5.3
 Summary: Powerful data structures for data analysis, time series, and statistics
 Home-page: https://pandas.pydata.org
 Author: The Pandas Development Team
 Author-email: pandas-dev@python.org
 License: BSD-3-Clause
 Project-URL: Bug Tracker, https://github.com/pandas-dev/pandas/issues
-Project-URL: Documentation, https://pandas.pydata.org/pandas-docs/stable
+Project-URL: Documentation, https://pandas.pydata.org/docs/
 Project-URL: Source Code, https://github.com/pandas-dev/pandas
 Platform: any
 Classifier: Development Status :: 5 - Production/Stable
@@ -19,24 +19,23 @@ Classifier: Programming Language :: Cython
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Scientific/Engineering
-Requires-Python: >=3.7.1
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: python-dateutil (>=2.7.3)
-Requires-Dist: pytz (>=2017.3)
-Requires-Dist: numpy (>=1.17.3) ; platform_machine != "aarch64" and platform_machine != "arm64" and python_version < "3.10"
-Requires-Dist: numpy (>=1.19.2) ; platform_machine == "aarch64" and python_version < "3.10"
-Requires-Dist: numpy (>=1.20.0) ; platform_machine == "arm64" and python_version < "3.10"
+Requires-Dist: python-dateutil (>=2.8.1)
+Requires-Dist: pytz (>=2020.1)
+Requires-Dist: numpy (>=1.20.3) ; python_version < "3.10"
 Requires-Dist: numpy (>=1.21.0) ; python_version >= "3.10"
+Requires-Dist: numpy (>=1.23.2) ; python_version >= "3.11"
 Provides-Extra: test
-Requires-Dist: hypothesis (>=3.58) ; extra == 'test'
+Requires-Dist: hypothesis (>=5.5.3) ; extra == 'test'
 Requires-Dist: pytest (>=6.0) ; extra == 'test'
-Requires-Dist: pytest-xdist ; extra == 'test'
+Requires-Dist: pytest-xdist (>=1.31) ; extra == 'test'
 
 <div align="center">
   <img src="https://pandas.pydata.org/static/img/pandas.svg"><br>
@@ -49,10 +48,9 @@ Requires-Dist: pytest-xdist ; extra == 'test'
 [![Conda Latest Release](https://anaconda.org/conda-forge/pandas/badges/version.svg)](https://anaconda.org/anaconda/pandas/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3509134.svg)](https://doi.org/10.5281/zenodo.3509134)
 [![Package Status](https://img.shields.io/pypi/status/pandas.svg)](https://pypi.org/project/pandas/)
-[![License](https://img.shields.io/pypi/l/pandas.svg)](https://github.com/pandas-dev/pandas/blob/master/LICENSE)
-[![Azure Build Status](https://dev.azure.com/pandas-dev/pandas/_apis/build/status/pandas-dev.pandas?branch=master)](https://dev.azure.com/pandas-dev/pandas/_build/latest?definitionId=1&branch=master)
-[![Coverage](https://codecov.io/github/pandas-dev/pandas/coverage.svg?branch=master)](https://codecov.io/gh/pandas-dev/pandas)
-[![Downloads](https://anaconda.org/conda-forge/pandas/badges/downloads.svg)](https://pandas.pydata.org)
+[![License](https://img.shields.io/pypi/l/pandas.svg)](https://github.com/pandas-dev/pandas/blob/main/LICENSE)
+[![Coverage](https://codecov.io/github/pandas-dev/pandas/coverage.svg?branch=main)](https://codecov.io/gh/pandas-dev/pandas)
+[![Downloads](https://static.pepy.tech/personalized-badge/pandas?period=month&units=international_system&left_color=black&right_color=orange&left_text=PyPI%20downloads%20per%20month)](https://pepy.tech/project/pandas)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pydata/pandas)
 [![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -176,7 +174,7 @@ or alternatively
 python setup.py develop
 ```
 
-See the full instructions for [installing from source](https://pandas.pydata.org/pandas-docs/stable/install.html#installing-from-source).
+See the full instructions for [installing from source](https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html#installing-from-source).
 
 ## License
 [BSD 3](LICENSE)
@@ -200,7 +198,7 @@ Most development discussions take place on GitHub in this repo. Further, the [pa
 
 All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
 
-A detailed overview on how to contribute can be found in the **[contributing guide](https://pandas.pydata.org/docs/dev/development/contributing.html)**. There is also an [overview](.github/CONTRIBUTING.md) on GitHub.
+A detailed overview on how to contribute can be found in the **[contributing guide](https://pandas.pydata.org/docs/dev/development/contributing.html)**.
 
 If you are simply looking to start working with the pandas codebase, navigate to the [GitHub "issues" tab](https://github.com/pandas-dev/pandas/issues) and start looking through interesting issues. There are a number of issues listed under [Docs](https://github.com/pandas-dev/pandas/issues?labels=Docs&sort=updated&state=open) and [good first issue](https://github.com/pandas-dev/pandas/issues?labels=good+first+issue&sort=updated&state=open) where you could start out.
 
@@ -210,6 +208,4 @@ Or maybe through using pandas you have an idea of your own or are looking for so
 
 Feel free to ask questions on the [mailing list](https://groups.google.com/forum/?fromgroups#!forum/pydata) or on [Gitter](https://gitter.im/pydata/pandas).
 
-As contributors and maintainers to this project, you are expected to abide by pandas' code of conduct. More information can be found at: [Contributor Code of Conduct](https://github.com/pandas-dev/pandas/blob/master/.github/CODE_OF_CONDUCT.md)
-
-
+As contributors and maintainers to this project, you are expected to abide by pandas' code of conduct. More information can be found at: [Contributor Code of Conduct](https://github.com/pandas-dev/.github/blob/master/CODE_OF_CONDUCT.md)

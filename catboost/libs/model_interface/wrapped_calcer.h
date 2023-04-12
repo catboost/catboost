@@ -2,11 +2,13 @@
 
 #include "c_api.h"
 
+#include <cstdlib>
 #include <string>
 #include <array>
 #include <vector>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 
 /**
  * Model C API header-only wrapper class
@@ -89,52 +91,17 @@ public:
     }
 
     /**
-     * Evaluate model on single object float features vector and vector of categorical features strings.
-     * Don't work on multiclass models (models with ApproxDimension > 1)
-     * @param[in] features
-     * @return double raw model prediction
-     */
-    double Calc(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures) const {
-        double result;
-        const float* floatPtr = floatFeatures.data();
-        std::vector<const char*> catFeaturesPtrs;
-        FromStringToCharVector(catFeatures, &catFeaturesPtrs);
-        const char** catFeaturesPtr = catFeaturesPtrs.data();
-        if (!CalcModelPrediction(CalcerHolder.get(), 1, &floatPtr, floatFeatures.size(), &catFeaturesPtr, catFeatures.size(), &result, 1)) {
-            throw std::runtime_error(GetErrorString());
-        }
-        return result;
-    }
-
-    /**
-     * Evaluate model on single object float features vector and vector of categorical features strings.
-     * Work for models with any dimension count
-     * @param[in] features
-     * @return double raw model prediction
-     */
-    std::vector<double> CalcMulti(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures) const {
-        std::vector<double> result(DimensionsCount);
-        const float* floatPtr = floatFeatures.data();
-        std::vector<const char*> catFeaturesPtrs;
-        FromStringToCharVector(catFeatures, &catFeaturesPtrs);
-        const char** catFeaturesPtr = catFeaturesPtrs.data();
-        if (!CalcModelPrediction(CalcerHolder.get(), 1, &floatPtr, floatFeatures.size(), &catFeaturesPtr, catFeatures.size(), result.data(), DimensionsCount)) {
-            throw std::runtime_error(GetErrorString());
-        }
-        return result;
-    }
-
-    /**
-     * Evaluate model on single object float features vector, vector of categorical features strings and
-     * vector of text features strings.
+     * Evaluate model on single object float features vector, vector of categorical features strings,
+     * vector of text features strings and vector of embedding features vectors.
      * Don't work on multiclass models (models with ApproxDimension > 1)
      * @param[in] features
      * @return double raw model prediction
      */
     double Calc(
         const std::vector<float>& floatFeatures,
-        const std::vector<std::string>& catFeatures,
-        const std::vector<std::string>& textFeatures
+        const std::vector<std::string>& catFeatures = {},
+        const std::vector<std::string>& textFeatures = {},
+        const std::vector<std::vector<float>>& embeddingFeatures = {}
     ) const {
         double result;
         const float* floatPtr = floatFeatures.data();
@@ -146,11 +113,21 @@ public:
         std::vector<const char*> textFeaturesPtrs;
         FromStringToCharVector(textFeatures, &textFeaturesPtrs);
         const char** textFeaturesPtr = textFeaturesPtrs.data();
-        if (!CalcModelPredictionText(
+
+        std::vector<const float*> embeddingFeaturesPtrs;
+        std::vector<size_t> embeddingFeatureSizes;
+        for (const auto& embeddingFeatureData : embeddingFeatures) {
+            embeddingFeaturesPtrs.push_back(embeddingFeatureData.data());
+            embeddingFeatureSizes.push_back(embeddingFeatureData.size());
+        }
+        const float** embeddingFeaturesPtr = embeddingFeaturesPtrs.data();
+
+        if (!CalcModelPredictionTextAndEmbeddings(
             CalcerHolder.get(), 1,
             &floatPtr, floatFeatures.size(),
             &catFeaturesPtr, catFeatures.size(),
             &textFeaturesPtr, textFeatures.size(),
+            &embeddingFeaturesPtr, embeddingFeatureSizes.data(), embeddingFeatures.size(),
             &result, 1
         )) {
             throw std::runtime_error(GetErrorString());
@@ -159,16 +136,17 @@ public:
     }
 
     /**
-     * Evaluate model on single object float features vector, vector of categorical features strings and
-     * vector of text features strings.
+     * Evaluate model on single object float features vector, vector of categorical features strings,
+     * vector of text features strings, and vector of embedding features vectors
      * Work for models with any dimension count
      * @param[in] features
      * @return double raw model prediction
      */
     std::vector<double> CalcMulti(
         const std::vector<float>& floatFeatures,
-        const std::vector<std::string>& catFeatures,
-        const std::vector<std::string>& textFeatures
+        const std::vector<std::string>& catFeatures = {},
+        const std::vector<std::string>& textFeatures = {},
+        const std::vector<std::vector<float>>& embeddingFeatures = {}
     ) const {
         std::vector<double> result(DimensionsCount);
         const float* floatPtr = floatFeatures.data();
@@ -180,11 +158,21 @@ public:
         std::vector<const char*> textFeaturesPtrs;
         FromStringToCharVector(textFeatures, &textFeaturesPtrs);
         const char** textFeaturesPtr = textFeaturesPtrs.data();
-        if (!CalcModelPredictionText(
+
+        std::vector<const float*> embeddingFeaturesPtrs;
+        std::vector<size_t> embeddingFeatureSizes;
+        for (const auto& embeddingFeatureData : embeddingFeatures) {
+            embeddingFeaturesPtrs.push_back(embeddingFeatureData.data());
+            embeddingFeatureSizes.push_back(embeddingFeatureData.size());
+        }
+        const float** embeddingFeaturesPtr = embeddingFeaturesPtrs.data();
+
+        if (!CalcModelPredictionTextAndEmbeddings(
             CalcerHolder.get(), 1,
             &floatPtr, floatFeatures.size(),
             &catFeaturesPtr, catFeatures.size(),
             &textFeaturesPtr, textFeatures.size(),
+            &embeddingFeaturesPtr, embeddingFeatureSizes.data(), embeddingFeatures.size(),
             result.data(), DimensionsCount
         )) {
             throw std::runtime_error(GetErrorString());
@@ -215,56 +203,20 @@ public:
     }
 
     /**
-     * Evaluate model on float features vector and vector of categorical feature values.
-     * **WARNING** categorical features string values should not contain zero bytes in the middle of the string (latter this could be changed).
-     * If so, use GetStringCatFeatureHash from model_calcer_wrapper.h and use CalcHashed method.
-     * @param floatFeatures
-     * @param catFeature
-     * @return vector of raw prediction values
-     */
-    std::vector<double> Calc(const std::vector<std::vector<float>>& floatFeatures,
-                             const std::vector<std::vector<std::string>>& catFeatures) const {
-        std::vector<double> result(floatFeatures.size() * DimensionsCount);
-        std::vector<const float*> floatPtrsVector;
-        size_t floatFeatureCount = 0;
-
-        for (const auto& floatFeatureVec : floatFeatures) {
-            if (floatFeatureCount == 0) {
-                floatFeatureCount = floatFeatureVec.size();
-            }
-            floatPtrsVector.push_back(floatFeatureVec.data());
-        }
-
-        size_t catFeatureCount = 0;
-        std::vector<const char*> catFeaturesPtrsVector;
-        std::vector<const char**> charPtrPtrsVector;
-        FromStringToCharVectors(catFeatures, &catFeatureCount, &catFeaturesPtrsVector, &charPtrPtrsVector);
-
-        if (!CalcModelPrediction(
-            CalcerHolder.get(),
-            result.size(),
-            floatPtrsVector.data(), floatFeatureCount,
-            charPtrPtrsVector.data(), catFeatureCount,
-            result.data(), result.size())
-        ) {
-            throw std::runtime_error(GetErrorString());
-        }
-        return result;
-    }
-
-    /**
-     * Evaluate model on float features vector and vector of categorical and text feature values.
+     * Evaluate model on vectors of float, categorical, text and embedding feature values.
      * **WARNING** categorical and text features string values should not contain zero bytes in the middle of the string (latter this could be changed).
      * If so, use GetStringCatFeatureHash from model_calcer_wrapper.h and use CalcHashed method.
      * @param floatFeatures
      * @param catFeatures
      * @param textFeatures
+     * @param embeddingFeatures
      * @return vector of raw prediction values
      */
     std::vector<double> Calc(
         const std::vector<std::vector<float>>& floatFeatures,
-        const std::vector<std::vector<std::string>>& catFeatures,
-        const std::vector<std::vector<std::string>>& textFeatures
+        const std::vector<std::vector<std::string>>& catFeatures = {},
+        const std::vector<std::vector<std::string>>& textFeatures = {},
+        const std::vector<std::vector<std::vector<float>>>& embeddingFeatures = {}
     ) const {
         std::vector<double> result(floatFeatures.size() * DimensionsCount);
         std::vector<const float*> floatPtrsVector;
@@ -280,19 +232,44 @@ public:
         size_t catFeatureCount = 0;
         std::vector<const char*> catFeaturesPtrsVector;
         std::vector<const char**> charPtrPtrsVector;
-        FromStringToCharVectors(catFeatures, &catFeatureCount, &catFeaturesPtrsVector, &charPtrPtrsVector);
+        FromStringToCharVectors(
+            "categorical",
+            catFeatures,
+            &catFeatureCount,
+            &catFeaturesPtrsVector,
+            &charPtrPtrsVector
+        );
 
         size_t textFeatureCount = 0;
         std::vector<const char*> textFeaturesPtrsVector;
         std::vector<const char**> charTextPtrPtrsVector;
-        FromStringToCharVectors(textFeatures, &textFeatureCount, &textFeaturesPtrsVector, &charTextPtrPtrsVector);
+        FromStringToCharVectors(
+            "text",
+            textFeatures,
+            &textFeatureCount,
+            &textFeaturesPtrsVector,
+            &charTextPtrPtrsVector
+        );
 
-        if (!CalcModelPredictionText(
+        size_t embeddingFeatureCount = 0;
+        std::vector<const float*> embeddingFeaturesPtrs;
+        std::vector<const float**> embeddingFeaturesPerSamplePtrs;
+        std::vector<size_t> embeddingFeatureSizes;
+        EmbeddingFeaturesVectorsToPtrs(
+            embeddingFeatures,
+            &embeddingFeatureCount,
+            &embeddingFeaturesPtrs,
+            &embeddingFeaturesPerSamplePtrs,
+            &embeddingFeatureSizes
+        );
+
+        if (!CalcModelPredictionTextAndEmbeddings(
             CalcerHolder.get(),
-            result.size(),
+            floatFeatures.size(),
             floatPtrsVector.data(), floatFeatureCount,
             charPtrPtrsVector.data(), catFeatureCount,
             charTextPtrPtrsVector.data(), textFeatureCount,
+            embeddingFeaturesPerSamplePtrs.data(), embeddingFeatureSizes.data(), embeddingFeatureCount,
             result.data(), result.size()
         )) {
             throw std::runtime_error(GetErrorString());
@@ -301,13 +278,18 @@ public:
     }
 
     /**
-     * Evaluate model on float features vector and vector of hashed categorical feature values.
+     * Evaluate model on vectors of float, hashed categorical, text and embedding feature values.
      * @param floatFeatures
      * @param catFeatureHashes
+     * @param textFeatures
+     * @param embeddingFeatures
      * @return vector of raw prediction values
      */
     std::vector<double> CalcHashed(const std::vector<std::vector<float>>& floatFeatures,
-                                   const std::vector<std::vector<int>>& catFeatureHashes) const {
+                                   const std::vector<std::vector<int>>& catFeatureHashes,
+                                   const std::vector<std::vector<std::string>>& textFeatures = {},
+                                   const std::vector<std::vector<std::vector<float>>>& embeddingFeatures = {}
+                                   ) const {
         std::vector<double> result(floatFeatures.size() * DimensionsCount);
         std::vector<const float*> floatPtrsVector;
         std::vector<const int*> hashPtrsVector;
@@ -323,13 +305,38 @@ public:
             hashPtrsVector.push_back(hashVec.data());
         }
 
-        if (!CalcModelPredictionWithHashedCatFeatures(
+        size_t textFeatureCount = 0;
+        std::vector<const char*> textFeaturesPtrsVector;
+        std::vector<const char**> charTextPtrPtrsVector;
+        FromStringToCharVectors(
+            "text",
+            textFeatures,
+            &textFeatureCount,
+            &textFeaturesPtrsVector,
+            &charTextPtrPtrsVector
+        );
+
+        size_t embeddingFeatureCount = 0;
+        std::vector<const float*> embeddingFeaturesPtrs;
+        std::vector<const float**> embeddingFeaturesPerSamplePtrs;
+        std::vector<size_t> embeddingFeatureSizes;
+        EmbeddingFeaturesVectorsToPtrs(
+            embeddingFeatures,
+            &embeddingFeatureCount,
+            &embeddingFeaturesPtrs,
+            &embeddingFeaturesPerSamplePtrs,
+            &embeddingFeatureSizes
+        );
+
+        if (!CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFeatures(
             CalcerHolder.get(),
-            result.size(),
+            floatFeatures.size(),
             floatPtrsVector.data(), floatFeatureCount,
             hashPtrsVector.data(), catFeatureCount,
-            result.data(), result.size())
-            ) {
+            charTextPtrPtrsVector.data(), textFeatureCount,
+            embeddingFeaturesPerSamplePtrs.data(), embeddingFeatureSizes.data(), embeddingFeatureCount,
+            result.data(), result.size()
+        )) {
             throw std::runtime_error(GetErrorString());
         }
         return result;
@@ -337,11 +344,19 @@ public:
 
 
     bool InitFromFile(const std::string& filename) {
-        return LoadFullModelFromFile(CalcerHolder.get(), filename.c_str());
+        if (!LoadFullModelFromFile(CalcerHolder.get(), filename.c_str())) {
+            return false;
+        }
+        InitProps();
+        return true;
     }
 
     bool InitFromMemory(const void* pointer, size_t size) {
-        return LoadFullModelFromBuffer(CalcerHolder.get(), pointer, size);
+        if (!LoadFullModelFromBuffer(CalcerHolder.get(), pointer, size)) {
+            return false;
+        }
+        InitProps();
+        return true;
     }
 
     bool init_from_file(const std::string& filename) {  // TODO(kirillovs): mark as deprecated
@@ -360,6 +375,10 @@ public:
         return ::GetCatFeaturesCount(CalcerHolder.get());
     }
 
+    size_t GetTextFeaturesCount() const {
+        return ::GetTextFeaturesCount(CalcerHolder.get());
+    }
+
     bool CheckMetadataHasKey(const std::string& key) const {
         return ::CheckModelMetadataHasKey(CalcerHolder.get(), key.c_str(), key.size());
     }
@@ -371,6 +390,36 @@ public:
         size_t value_size = GetModelInfoValueSize(CalcerHolder.get(), key.c_str(), key.size());
         const char* value_ptr = GetModelInfoValue(CalcerHolder.get(), key.c_str(), key.size());
         return std::string(value_ptr, value_size);
+    }
+
+    std::vector<std::string> GetUsedFeaturesNames() const {
+        char** featureNames = nullptr;
+        size_t featureCount = 0;
+        if (!GetModelUsedFeaturesNames(CalcerHolder.get(), &featureNames, &featureCount)) {
+            throw std::runtime_error(GetErrorString());
+        }
+        std::vector<std::string> result;
+        try {
+            result.reserve(featureCount);
+            for (size_t i = 0; i < featureCount; ++i) {
+                result.push_back(std::string(featureNames[i]));
+            }
+        } catch (...) {
+            for (size_t i = 0; i < featureCount; ++i) {
+                std::free(featureNames[i]);
+            }
+            std::free(featureNames);
+            throw;
+        }
+
+        {
+            for (size_t i = 0; i < featureCount; ++i) {
+                std::free(featureNames[i]);
+            }
+            std::free(featureNames);
+        }
+
+        return result;
     }
 
 private:
@@ -387,6 +436,7 @@ private:
     }
 
     void FromStringToCharVectors(
+        const char* featuresType,
         const std::vector<std::vector<std::string>>& stringFeatures,
         size_t* featureCount,
         std::vector<const char*>* featuresPtrsVector,
@@ -398,7 +448,9 @@ private:
                 *featureCount = stringVec.size();
             }
             if (*featureCount != stringVec.size()) {
-                throw std::runtime_error("All text feature vectors should be of the same length");
+                throw std::runtime_error(
+                    std::string("All ") + featuresType + " feature vectors should be of the same length"
+                );
             }
         }
         if (*featureCount != 0) {
@@ -410,6 +462,32 @@ private:
                 charPtrPtrsVector->push_back(featuresPtrsVector->data() + currentTextOffset);
                 currentTextOffset += *featureCount;
             }
+        }
+    }
+
+    static void EmbeddingFeaturesVectorsToPtrs(
+        const std::vector<std::vector<std::vector<float>>>& embeddingFeatures,
+        size_t* embeddingFeatureCount,
+        std::vector<const float*>* embeddingFeaturesPtrs,
+        std::vector<const float**>* embeddingFeaturesPerSamplePtrs,
+        std::vector<size_t>* embeddingFeatureSizes
+    ) {
+        const size_t embeddingFeatureCountLocal = embeddingFeatures.empty() ? 0 : embeddingFeatures.begin()->size();
+        *embeddingFeatureCount = embeddingFeatureCountLocal;
+        embeddingFeaturesPtrs->resize(embeddingFeatures.size() * embeddingFeatureCountLocal);
+        embeddingFeaturesPerSamplePtrs->resize(embeddingFeatures.size());
+
+        for (size_t sampleIdx = 0; sampleIdx < embeddingFeatures.size(); ++sampleIdx) {
+            if (embeddingFeatureSizes->empty()) {
+                for (const auto& embeddingFeatureData : embeddingFeatures[sampleIdx]) {
+                    embeddingFeatureSizes->push_back(embeddingFeatureData.size());
+                }
+            }
+            for (size_t embeddingFeatureIdx = 0; embeddingFeatureIdx < embeddingFeatureCountLocal; ++embeddingFeatureIdx) {
+                (*embeddingFeaturesPtrs)[sampleIdx * embeddingFeatureCountLocal + embeddingFeatureIdx]
+                    = embeddingFeatures[sampleIdx][embeddingFeatureIdx].data();
+            }
+            (*embeddingFeaturesPerSamplePtrs)[sampleIdx] = embeddingFeaturesPtrs->data() + sampleIdx * embeddingFeatureCountLocal;
         }
     }
 

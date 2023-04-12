@@ -1,4 +1,4 @@
-#### {{ loss-functions__params__auc__type__Classic }}
+#### {{ loss-functions__params__auc__type__Classic }} type
 
 $\displaystyle\frac{\sum I(a_{i}, a_{j}) \cdot w_{i} \cdot w_{j}} {\sum w_{i} \cdot w_{j}}$
 The sum is calculated on all pairs of objects $(i,j)$ such that:
@@ -15,7 +15,7 @@ If the target type is not binary, then every object with target value $t$ and we
 
 Target values must be in the range [0; 1].
 
-#### {{ loss-functions__params__auc__type__Ranking }}
+#### {{ loss-functions__params__auc__type__Ranking }} type
 
 $\displaystyle\frac{\sum I(a_{i}, a_{j}) \cdot w_{i} \cdot w_{j}} {\sum w_{i} * w_{j}}$
 

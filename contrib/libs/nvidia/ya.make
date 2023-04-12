@@ -1,6 +1,0 @@
-
-
-RECURSE(
-    cub
-    thrust
-)

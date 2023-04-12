@@ -6,7 +6,7 @@
 #include <util/generic/vector.h>
 #include <util/stream/mem.h>
 #include <util/stream/output.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 
 #include "location.h"
 #include "neh.h"
@@ -155,6 +155,7 @@ namespace NNeh {
         struct TRequestSettings {
             bool NoDelay = true;
             EResolverType ResolverType = EResolverType::ETCP;
+            bool UseAsyncSendRequest = false;
 
             TRequestSettings& SetNoDelay(bool noDelay) {
                 NoDelay = noDelay;
@@ -163,6 +164,11 @@ namespace NNeh {
 
             TRequestSettings& SetResolverType(EResolverType resolverType) {
                 ResolverType = resolverType;
+                return *this;
+            }
+
+            TRequestSettings& SetUseAsyncSendRequest(bool useAsyncSendRequest) {
+                UseAsyncSendRequest = useAsyncSendRequest;
                 return *this;
             }
         };

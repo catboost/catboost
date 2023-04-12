@@ -144,6 +144,9 @@ namespace NKernel
         const int blockSize = 768;
         const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
         numBlocks.x *= multiplier;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         if (bCount) {
 

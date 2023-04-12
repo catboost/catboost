@@ -199,7 +199,7 @@ namespace NCB::NModelEvaluation {
                         }
                         break;
                     default:
-                        Y_ENSURE(false, "unsupported prediction type");
+                        CB_ENSURE(false, "unsupported prediction type");
                 }
             } else {
                 switch (PredictionType) {
@@ -217,6 +217,11 @@ namespace NCB::NModelEvaluation {
                             auto docView = blockView.Slice(i, ApproxDimension);
                             CalcSoftmax(docView, docView);
                         }
+                        break;
+                    }
+                    case EPredictionType::MultiProbability: {
+                        auto blockView = GetResultBlockView(blockId, ApproxDimension);
+                        CalcSigmoid(blockView, blockView);
                         break;
                     }
                     case EPredictionType::Class: {

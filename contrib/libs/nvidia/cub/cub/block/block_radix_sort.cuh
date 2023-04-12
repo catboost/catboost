@@ -41,11 +41,7 @@
 #include "../util_ptx.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \brief The BlockRadixSort class provides [<em>collective</em>](index.html#sec0) methods for sorting items partitioned across a CUDA thread block using a radix sorting method.  ![](sorting_logo.png)
@@ -155,6 +151,13 @@ namespace cub {
  * corresponding output \p thread_keys in those threads will be
  * <tt>{ [0,1,2,3], [4,5,6,7], [8,9,10,11], ..., [508,509,510,511] }</tt>.
  *
+ * \par Re-using dynamically allocating shared memory
+ * The following example under the examples/block folder illustrates usage of
+ * dynamically shared memory with BlockReduce and how to re-purpose
+ * the same memory region:
+ * <a href="../../examples/block/example_block_reduce_dyn_smem.cu">example_block_reduce_dyn_smem.cu</a>
+ *
+ * This example can be easily adapted to the storage required by BlockRadixSort.
  */
 template <
     typename                KeyT,
@@ -182,7 +185,7 @@ private:
         BLOCK_THREADS               = BLOCK_DIM_X * BLOCK_DIM_Y * BLOCK_DIM_Z,
 
         // Whether or not there are values to be trucked along with keys
-        KEYS_ONLY                   = Equals<ValueT, NullType>::VALUE,
+        KEYS_ONLY                   = std::is_same<ValueT, NullType>::value,
     };
 
     // KeyT traits and unsigned bits type
@@ -898,6 +901,5 @@ public:
  * \example example_block_radix_sort.cu
  */
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

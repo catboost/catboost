@@ -6,7 +6,7 @@ from IPython.display import display
 from ipywidgets import DOMWidget, Layout, widget_serialization
 
 
-class MetricVisualizer(DOMWidget):
+class MetricWidget(DOMWidget):
     _view_name = Unicode('CatboostWidgetView').tag(sync=True)
     _model_name = Unicode('CatboostWidgetModel').tag(sync=True)
     _view_module = Unicode('catboost-widget').tag(sync=True)
@@ -16,6 +16,11 @@ class MetricVisualizer(DOMWidget):
 
     data = Dict({}).tag(sync=True, **widget_serialization)
 
+    @default('layout')
+    def _default_layout(self):
+        return Layout(height='500px', align_self='stretch')
+
+class MetricVisualizer(MetricWidget):
     def __init__(self, train_dirs, subdirs=False):
         super(self.__class__, self).__init__()
         if isinstance(train_dirs, str):
@@ -33,10 +38,6 @@ class MetricVisualizer(DOMWidget):
             self._names.append(os.path.basename(abspath) if abspath != curdir else 'current')
         self._need_to_stop = Event()
         self._update_after_stop_signal = False
-
-    @default('layout')
-    def _default_layout(self):
-        return Layout(height='500px', align_self='stretch')
 
     def start(self):
         display(self)

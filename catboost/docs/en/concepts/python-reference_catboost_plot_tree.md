@@ -64,7 +64,7 @@ For MultiRMSE models, leaves contain one value for each label.
 ```
 import numpy as np
 import catboost
-from catboost import CatBoostClassifier, Pool
+from catboost import CatBoost, Pool
 
 from catboost.datasets import titanic
 titanic_df = titanic()
@@ -80,7 +80,7 @@ for feature, feat_is_cat in is_cat.to_dict().items():
 cat_features_index = np.where(is_cat)[0]
 pool = Pool(X, y, cat_features=cat_features_index, feature_names=list(X.columns))
 
-model = CatBoostClassifier(
+model = CatBoost(
     max_depth=2, verbose=False, max_ctr_complexity=1, iterations=2).fit(pool)
 
 model.plot_tree(

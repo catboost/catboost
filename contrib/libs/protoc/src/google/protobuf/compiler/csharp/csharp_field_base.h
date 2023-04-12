@@ -108,4 +108,3 @@ class FieldGeneratorBase : public SourceGeneratorBase {
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_FIELD_BASE_H__
-

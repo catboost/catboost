@@ -48,7 +48,7 @@ double GetMinimizeSign(const THolder<IMetric>& metric) {
             return -1.0;
         }
         default: {
-            Y_UNREACHABLE();
+            CB_ENSURE(false, "Unexpected best metric value type");
         }
     }
 }

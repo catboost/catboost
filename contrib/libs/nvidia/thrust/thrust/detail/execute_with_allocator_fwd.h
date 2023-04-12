@@ -24,8 +24,8 @@
   #include <thrust/detail/execute_with_dependencies.h>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -101,4 +101,6 @@ public:
 #endif
 };
 
-}} // namespace thrust::detail
+} // namespace detail
+
+THRUST_NAMESPACE_END

@@ -3,6 +3,9 @@
 #include "cuda_base.h"
 #include "single_device.h"
 #include "helpers.h"
+
+#include <catboost/private/libs/options/catboost_options.h>
+
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
@@ -57,6 +60,8 @@ namespace NCudaLib {
             return PinnedMemorySize;
         }
     };
+
+    TDeviceRequestConfig CreateDeviceRequestConfig(const NCatboostOptions::TCatBoostOptions& options);
 
     //for mpi test purpose
     inline NCudaLib::TDeviceRequestConfig& GetDefaultDeviceRequestConfig() {
@@ -198,9 +203,16 @@ namespace NCudaLib {
         friend class TMpiManager;
 
     public:
-        ~TDevicesProvider() {
+        ~TDevicesProvider() noexcept(false) {
 #if defined(USE_MPI)
-            Y_VERIFY(Devices.size() == 0);
+            if (Devices.size() > 0) {
+                CATBOOST_ERROR_LOG << "CatBoost did not free some GPU devices. "
+                    << " This may result in memory leakage/fragmentation, "
+                    << " abandoned threads on CPU and GPU on local or remoted hosts" << Endl;
+                if (!std::uncaught_exceptions()) {
+                    CB_ENSURE(Devices.size() == 0);
+                }
+            }
 #else
             Devices.resize(0);
 #endif

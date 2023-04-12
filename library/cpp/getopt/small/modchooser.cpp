@@ -1,21 +1,18 @@
 #include "completer.h"
 #include "completer_command.h"
-#include "completion_generator.h"
 #include "last_getopt.h"
 #include "modchooser.h"
 
 #include <library/cpp/colorizer/colors.h>
 
 #include <util/stream/output.h>
-#include <util/stream/format.h>
 #include <util/generic/yexception.h>
 #include <util/generic/ptr.h>
 #include <util/string/builder.h>
-#include <util/string/join.h>
 
 class PtrWrapper: public TMainClass {
 public:
-    explicit PtrWrapper(const TMainFunctionPtr main)
+    explicit PtrWrapper(const TMainFunctionPtr& main)
         : Main(main)
     {
     }
@@ -30,7 +27,7 @@ private:
 
 class PtrvWrapper: public TMainClass {
 public:
-    explicit PtrvWrapper(const TMainFunctionPtrV main)
+    explicit PtrvWrapper(const TMainFunctionPtrV& main)
         : Main(main)
     {
     }

@@ -1,6 +1,0 @@
-package NProto;
-
-message TLangMask {
-    repeated uint32 Bits = 1; 	// binary
-    optional string Names = 2;  // human readable
-}

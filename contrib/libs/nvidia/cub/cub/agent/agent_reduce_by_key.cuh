@@ -44,11 +44,7 @@
 #include "../iterator/cache_modified_input_iterator.cuh"
 #include "../iterator/constant_input_iterator.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -102,29 +98,27 @@ struct AgentReduceByKey
     //---------------------------------------------------------------------
 
     // The input keys type
-    typedef typename std::iterator_traits<KeysInputIteratorT>::value_type KeyInputT;
+    using KeyInputT = cub::detail::value_t<KeysInputIteratorT>;
 
     // The output keys type
-    typedef typename If<(Equals<typename std::iterator_traits<UniqueOutputIteratorT>::value_type, void>::VALUE),    // KeyOutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<KeysInputIteratorT>::value_type,                                              // ... then the input iterator's value type,
-        typename std::iterator_traits<UniqueOutputIteratorT>::value_type>::Type KeyOutputT;                         // ... else the output iterator's value type
+    using KeyOutputT =
+      cub::detail::non_void_value_t<UniqueOutputIteratorT, KeyInputT>;
 
     // The input values type
-    typedef typename std::iterator_traits<ValuesInputIteratorT>::value_type ValueInputT;
+    using ValueInputT = cub::detail::value_t<ValuesInputIteratorT>;
 
     // The output values type
-    typedef typename If<(Equals<typename std::iterator_traits<AggregatesOutputIteratorT>::value_type, void>::VALUE),    // ValueOutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<ValuesInputIteratorT>::value_type,                                                // ... then the input iterator's value type,
-        typename std::iterator_traits<AggregatesOutputIteratorT>::value_type>::Type ValueOutputT;                       // ... else the output iterator's value type
+    using ValueOutputT =
+      cub::detail::non_void_value_t<AggregatesOutputIteratorT, ValueInputT>;
 
     // Tuple type for scanning (pairs accumulated segment-value with segment-index)
-    typedef KeyValuePair<OffsetT, ValueOutputT> OffsetValuePairT;
+    using OffsetValuePairT = KeyValuePair<OffsetT, ValueOutputT>;
 
     // Tuple type for pairing keys and values
-    typedef KeyValuePair<KeyOutputT, ValueOutputT> KeyValuePairT;
+    using KeyValuePairT = KeyValuePair<KeyOutputT, ValueOutputT>;
 
     // Tile status descriptor interface type
-    typedef ReduceByKeyScanTileState<ValueOutputT, OffsetT> ScanTileStateT;
+    using ScanTileStateT = ReduceByKeyScanTileState<ValueOutputT, OffsetT>;
 
     // Guarded inequality functor
     template <typename _EqualityOpT>
@@ -153,71 +147,73 @@ struct AgentReduceByKey
     // Constants
     enum
     {
-        BLOCK_THREADS       = AgentReduceByKeyPolicyT::BLOCK_THREADS,
-        ITEMS_PER_THREAD    = AgentReduceByKeyPolicyT::ITEMS_PER_THREAD,
-        TILE_ITEMS          = BLOCK_THREADS * ITEMS_PER_THREAD,
-        TWO_PHASE_SCATTER   = (ITEMS_PER_THREAD > 1),
+      BLOCK_THREADS     = AgentReduceByKeyPolicyT::BLOCK_THREADS,
+      ITEMS_PER_THREAD  = AgentReduceByKeyPolicyT::ITEMS_PER_THREAD,
+      TILE_ITEMS        = BLOCK_THREADS * ITEMS_PER_THREAD,
+      TWO_PHASE_SCATTER = (ITEMS_PER_THREAD > 1),
 
-        // Whether or not the scan operation has a zero-valued identity value (true if we're performing addition on a primitive type)
-        HAS_IDENTITY_ZERO   = (Equals<ReductionOpT, cub::Sum>::VALUE) && (Traits<ValueOutputT>::PRIMITIVE),
+      // Whether or not the scan operation has a zero-valued identity value (true if we're performing addition on a primitive type)
+      HAS_IDENTITY_ZERO = (std::is_same<ReductionOpT, cub::Sum>::value) &&
+                          (Traits<ValueOutputT>::PRIMITIVE),
     };
 
     // Cache-modified Input iterator wrapper type (for applying cache modifier) for keys
-    typedef typename If<IsPointer<KeysInputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentReduceByKeyPolicyT::LOAD_MODIFIER, KeyInputT, OffsetT>,     // Wrap the native input pointer with CacheModifiedValuesInputIterator
-            KeysInputIteratorT>::Type                                                                   // Directly use the supplied input iterator type
-        WrappedKeysInputIteratorT;
+    // Wrap the native input pointer with CacheModifiedValuesInputIterator
+    // or directly use the supplied input iterator type
+    using WrappedKeysInputIteratorT = cub::detail::conditional_t<
+      std::is_pointer<KeysInputIteratorT>::value,
+      CacheModifiedInputIterator<AgentReduceByKeyPolicyT::LOAD_MODIFIER,
+                                 KeyInputT,
+                                 OffsetT>,
+      KeysInputIteratorT>;
 
     // Cache-modified Input iterator wrapper type (for applying cache modifier) for values
-    typedef typename If<IsPointer<ValuesInputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentReduceByKeyPolicyT::LOAD_MODIFIER, ValueInputT, OffsetT>,   // Wrap the native input pointer with CacheModifiedValuesInputIterator
-            ValuesInputIteratorT>::Type                                                                 // Directly use the supplied input iterator type
-        WrappedValuesInputIteratorT;
+    // Wrap the native input pointer with CacheModifiedValuesInputIterator
+    // or directly use the supplied input iterator type
+    using WrappedValuesInputIteratorT = cub::detail::conditional_t<
+      std::is_pointer<ValuesInputIteratorT>::value,
+      CacheModifiedInputIterator<AgentReduceByKeyPolicyT::LOAD_MODIFIER,
+                                 ValueInputT,
+                                 OffsetT>,
+      ValuesInputIteratorT>;
 
     // Cache-modified Input iterator wrapper type (for applying cache modifier) for fixup values
-    typedef typename If<IsPointer<AggregatesOutputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentReduceByKeyPolicyT::LOAD_MODIFIER, ValueInputT, OffsetT>,   // Wrap the native input pointer with CacheModifiedValuesInputIterator
-            AggregatesOutputIteratorT>::Type                                                            // Directly use the supplied input iterator type
-        WrappedFixupInputIteratorT;
+    // Wrap the native input pointer with CacheModifiedValuesInputIterator
+    // or directly use the supplied input iterator type
+    using WrappedFixupInputIteratorT = cub::detail::conditional_t<
+      std::is_pointer<AggregatesOutputIteratorT>::value,
+      CacheModifiedInputIterator<AgentReduceByKeyPolicyT::LOAD_MODIFIER,
+                                 ValueInputT,
+                                 OffsetT>,
+      AggregatesOutputIteratorT>;
 
     // Reduce-value-by-segment scan operator
-    typedef ReduceBySegmentOp<ReductionOpT> ReduceBySegmentOpT;
+    using ReduceBySegmentOpT = ReduceBySegmentOp<ReductionOpT>;
 
     // Parameterized BlockLoad type for keys
-    typedef BlockLoad<
-            KeyOutputT,
-            BLOCK_THREADS,
-            ITEMS_PER_THREAD,
-            AgentReduceByKeyPolicyT::LOAD_ALGORITHM>
-        BlockLoadKeysT;
+    using BlockLoadKeysT = BlockLoad<KeyOutputT,
+                                     BLOCK_THREADS,
+                                     ITEMS_PER_THREAD,
+                                     AgentReduceByKeyPolicyT::LOAD_ALGORITHM>;
 
     // Parameterized BlockLoad type for values
-    typedef BlockLoad<
-            ValueOutputT,
-            BLOCK_THREADS,
-            ITEMS_PER_THREAD,
-            AgentReduceByKeyPolicyT::LOAD_ALGORITHM>
-        BlockLoadValuesT;
+    using BlockLoadValuesT = BlockLoad<ValueOutputT,
+                                       BLOCK_THREADS,
+                                       ITEMS_PER_THREAD,
+                                       AgentReduceByKeyPolicyT::LOAD_ALGORITHM>;
 
     // Parameterized BlockDiscontinuity type for keys
-    typedef BlockDiscontinuity<
-            KeyOutputT,
-            BLOCK_THREADS>
-        BlockDiscontinuityKeys;
+    using BlockDiscontinuityKeys =
+      BlockDiscontinuity<KeyOutputT, BLOCK_THREADS>;
 
     // Parameterized BlockScan type
-    typedef BlockScan<
-            OffsetValuePairT,
-            BLOCK_THREADS,
-            AgentReduceByKeyPolicyT::SCAN_ALGORITHM>
-        BlockScanT;
+    using BlockScanT = BlockScan<OffsetValuePairT,
+                                 BLOCK_THREADS,
+                                 AgentReduceByKeyPolicyT::SCAN_ALGORITHM>;
 
     // Callback type for obtaining tile prefix during block scan
-    typedef TilePrefixCallbackOp<
-            OffsetValuePairT,
-            ReduceBySegmentOpT,
-            ScanTileStateT>
-        TilePrefixCallbackOpT;
+    using TilePrefixCallbackOpT =
+      TilePrefixCallbackOp<OffsetValuePairT, ReduceBySegmentOpT, ScanTileStateT>;
 
     // Key and value exchange types
     typedef KeyOutputT    KeyExchangeT[TILE_ITEMS + 1];
@@ -542,6 +538,5 @@ struct AgentReduceByKey
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

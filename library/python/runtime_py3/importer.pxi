@@ -2,7 +2,7 @@ import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
 from _frozen_importlib import _call_with_frames_removed, spec_from_loader, BuiltinImporter
-from _frozen_importlib_external import _os, _path_isfile, _path_isdir, _path_isabs, path_sep, _path_join, _path_split
+from _frozen_importlib_external import _os, _path_isfile, _path_isabs, path_sep, _path_join, _path_split
 from _io import FileIO
 
 import __res as __resource
@@ -110,6 +110,10 @@ def iter_py_modules(with_keys=False):
                 yield key, mod
             else:
                 yield mod
+
+
+def py_src_key(filename):
+    return py_prefix + _b(filename)
 
 
 def iter_prefixes(s):
@@ -402,6 +406,7 @@ class ArcadiaSourceFinder:
     NAMESPACE_PREFIX = b'py/namespace/'
     PY_EXT = '.py'
     YA_MAKE = 'ya.make'
+    S_IFDIR = 0o040000
 
     def __init__(self, source_root):
         self.source_root = source_root
@@ -451,11 +456,15 @@ class ArcadiaSourceFinder:
             # Yield from cache
             import re
             rx = re.compile(re.escape(package_prefix) + r'([^.]+)$')
+            # Save result to temporary list to prevent 'RuntimeError: dictionary changed size during iteration'
+            found = []
             for mod, path in self.module_path_cache.items():
                 if path is not None:
                     m = rx.match(mod)
                     if m:
-                        yield prefix + m.group(1), self.is_package(mod)
+                        found.append((prefix + m.group(1), self.is_package(mod)))
+            for cm in found:
+                yield cm
 
             # Yield from file system
             for path in paths:
@@ -466,12 +475,20 @@ class ArcadiaSourceFinder:
                     elif dir_item.endswith(self.PY_EXT) and _path_isfile(_path_join(abs_path, dir_item)):
                         yield prefix + dir_item[:-len(self.PY_EXT)], False
 
+    def _isdir(self, path):
+        """ Unlike _path_isdir() this function don't follow symlink """
+        try:
+            stat_info = _os.lstat(path)
+        except OSError:
+            return False
+        return (stat_info.st_mode & 0o170000) == self.S_IFDIR
+
     def _path_is_simple_dir(self, abs_path):
         """
             Check if path is a directory but doesn't contain ya.make file.
             We don't want to steal directory from nested project and treat it as a package
         """
-        return _path_isdir(abs_path) and not _path_isfile(_path_join(abs_path, self.YA_MAKE))
+        return self._isdir(abs_path) and not _path_isfile(_path_join(abs_path, self.YA_MAKE))
 
     def _find_module_in_paths(self, find_package_only, paths, module):
         """Auxiliary method. See _cache_module_path() for details"""
@@ -491,7 +508,7 @@ class ArcadiaSourceFinder:
                 return package_paths
 
     def _cache_module_path(self, fullname, find_package_only=False):
-        """ 
+        """
             Find module path or package directory paths and save result in the cache
 
             find_package_only=True - don't try to find module
@@ -544,11 +561,32 @@ def executable_path_hook(path):
     raise ImportError(path)
 
 
+def get_path0():
+    """
+    An incomplete and simplified version of _PyPathConfig_ComputeSysPath0.
+    We need this to somewhat properly emulate the behaviour of a normal python interpreter
+    when using ya ide venv.
+
+    """
+    if not sys.argv:
+        return
+    argv0 = sys.argv[0]
+
+    have_module_arg = argv0 == '-m'
+
+    if have_module_arg:
+        return _os.getcwd()
+
+
 if YA_IDE_VENV:
     sys.meta_path.append(importer)
     sys.meta_path.append(BuiltinSubmoduleImporter)
     if executable not in sys.path:
         sys.path.append(executable)
+    path0 = get_path0()
+    if path0 is not None:
+        sys.path.insert(0, path0)
+
     sys.path_hooks.append(executable_path_hook)
 else:
     sys.meta_path.insert(0, BuiltinSubmoduleImporter)

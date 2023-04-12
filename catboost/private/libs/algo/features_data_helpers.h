@@ -173,8 +173,10 @@ namespace NCB {
 
         Y_FORCE_INLINE auto GetFloatAccessor() const {
             return [this](TFeaturePosition position, size_t index) -> float {
-                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < FloatValues.size());
-                Y_ASSERT(SafeIntegerCast<size_t>(index) < FloatValues[position.FlatIndex].size());
+                CB_ENSURE_INTERNAL(SafeIntegerCast<size_t>(position.FlatIndex) < FloatValues.size(),
+                                   "position.FlatIndex " << position.FlatIndex << ", FloatValues.size() " << FloatValues.size());
+                CB_ENSURE_INTERNAL(SafeIntegerCast<size_t>(index) < FloatValues[position.FlatIndex].size(),
+                                   "index " << index << ", size " << FloatValues[position.FlatIndex].size());
                 return FloatValues[position.FlatIndex][index];
             };
         }

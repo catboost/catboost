@@ -21,10 +21,8 @@
 
 %include <bindings/swiglib/stroka.swg>
 
-
-%template(TVector_TMaybeOwningConstArrayHolder_float) TVector<NCB::TMaybeOwningConstArrayHolder<float>>;
-%template(TVector_TMaybeOwningConstArrayHolder_i32) TVector<NCB::TMaybeOwningConstArrayHolder<i32>>;
-
+DECLARE_TVECTOR(TVector_TMaybeOwningConstArrayHolder_float, NCB::TMaybeOwningConstArrayHolder<float>)
+DECLARE_TVECTOR(TVector_TMaybeOwningConstArrayHolder_i32, NCB::TMaybeOwningConstArrayHolder<i32>)
 
 %{
 
@@ -35,6 +33,35 @@ NCB::TUnalignedArrayBuf<TDst> AsUnalignedBuf(TConstArrayRef<TSrc> data) {
 
 %}
 
+
+%catches(yexception) IQuantizedFeaturesDataVisitor::Start(
+    const TDataMetaInfo& metaInfo,
+    i32 objectCount,
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
+);
+
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddGroupId(TConstArrayRef<i64> groupIdData);
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddSubgroupId(TConstArrayRef<i32> subgroupIdData);
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddTimestamp(TConstArrayRef<i64> timestampData);
+
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddFeature(
+    const NCB::TFeaturesLayout& featuresLayout,
+    i32 flatFeatureIdx,
+    i32 objectCount,
+    i8 bitsPerDocumentFeature,
+    TVector<i64>* featureDataBuffer // moved into per-object data size depends on BitsPerKey
+);
+
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddTarget(TConstArrayRef<float> targetData);
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddTarget(TVector<TString>* targetData);
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddBaseline(
+    i32 baselineIdx,
+    TConstArrayRef<float> baselineData
+);
+
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddWeight(TConstArrayRef<float> weightData);
+%catches(yexception) IQuantizedFeaturesDataVisitor::AddGroupWeight(TConstArrayRef<float> groupWeightData);
+%catches(yexception) IQuantizedFeaturesDataVisitor::Finish();
 
 namespace NCB {
 
@@ -164,4 +191,34 @@ namespace NCB {
 
 }
 
+
+%catches(yexception) CreateRawObjectsDataProvider(
+    NCB::TFeaturesLayoutPtr featuresLayout,
+    i64 objectCount,
+    TVector<NCB::TMaybeOwningConstArrayHolder<float>>* columnwiseFloatFeaturesData,
+    TVector<NCB::TMaybeOwningConstArrayHolder<i32>>* columnwiseCatFeaturesData,
+    i32 maxUniqCatFeatureValues,
+    NPar::TLocalExecutor* localExecutor
+);
+
+%catches(yexception) TQuantizedRowAssembler::TQuantizedRowAssembler(
+    NCB::TQuantizedObjectsDataProviderPtr objectsData
+);
+
+%catches(yexception) TQuantizedRowAssembler::GetObjectBlobSize() const;
+
+%catches(yexception) TQuantizedRowAssembler::AssembleObjectBlob(i32 objectIdx, TArrayRef<i8> buffer);
+
+%catches(yexception) TDataProviderClosureForJVM::TDataProviderClosureForJVM(
+    NCB::EDatasetVisitorType visitorType,
+    const NCB::TDataProviderBuilderOptions& options,
+    bool hasFeatures,
+    NPar::TLocalExecutor* localExecutor
+);
+
+%catches(yexception) TDataProviderClosureForJVM::GetVisitor<NCB::IQuantizedFeaturesDataVisitor>;
+
+%catches(yexception) TDataProviderClosureForJVM::GetResult();
+
 %include "data_provider_builders.h"
+

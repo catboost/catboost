@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "net_acks.h"
-#include <util/datetime/cputimer.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
 #include <util/system/datetime.h>

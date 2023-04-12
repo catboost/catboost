@@ -300,8 +300,8 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         BadFloatTester<float>("a10E-5");
         BadFloatTester<float>("10 ");
         BadFloatTester<float>("10\t");
-        //BadFloatTester<float>("10E");
-        //BadFloatTester<float>("10.E");
+        // BadFloatTester<float>("10E");
+        // BadFloatTester<float>("10.E");
         BadFloatTester<float>("..0");
         BadFloatTester<float>(""); // IGNIETFERRO-300
         BadFloatTester<double>("1.00.01");
@@ -437,6 +437,32 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault<size_t>(s4), size_t());
     }
 
+    Y_UNIT_TEST(TestMaybe) {
+        TMaybe<int> res;
+
+        TString s1("100500");
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s1), yexception);
+        UNIT_ASSERT_VALUES_EQUAL(res, 100500);
+
+        UNIT_ASSERT_VALUES_EQUAL(TryFromString<int>("100500"), 100500);
+
+        TString s2("100q500");
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s2), yexception);
+        UNIT_ASSERT(res.Empty());
+
+        TUtf16String s3 = u"-100500";
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<size_t>(s3), yexception);
+        UNIT_ASSERT(res.Empty());
+
+        TUtf16String s4 = u"-f100500";
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s4), yexception);
+        UNIT_ASSERT(res.Empty());
+
+        std::string s5 = "100500";
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s5), yexception);
+        UNIT_ASSERT_VALUES_EQUAL(res, 100500);
+    }
+
     Y_UNIT_TEST(TestBool) {
         // True cases
         UNIT_ASSERT_VALUES_EQUAL(FromString<bool>("yes"), true);
@@ -464,50 +490,12 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(integer, wideCharacterCode);
     }
 
-    static void CheckMessage(TFromStringException& exc, const TString& phrase) {
-        TString message = exc.what();
-        if (!message.Contains(phrase)) {
-            Cerr << message << Endl;
-            UNIT_ASSERT(false);
-        }
-    }
-
     Y_UNIT_TEST(ErrorMessages) {
-        try {
-            FromString<ui32>("");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            CheckMessage(e, "empty string as number");
-        }
-
-        try {
-            FromString<ui32>("-");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            // Unsigned should have no sign at all, so - is not expected
-            CheckMessage(e, "Unexpected symbol \"-\" at pos 0 in string \"-\"");
-        }
-
-        try {
-            FromString<i32>("-");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            CheckMessage(e, "Cannot parse string \"-\" as number");
-        }
-
-        try {
-            FromString<i32>("+");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            CheckMessage(e, "Cannot parse string \"+\" as number");
-        }
-
-        try {
-            FromString<ui32>("0.328413745072");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            CheckMessage(e, "Unexpected symbol \".\" at pos 1 in string \"0.328413745072\"");
-        }
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<ui32>(""), TFromStringException, "empty string as number");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<ui32>("-"), TFromStringException, "Unexpected symbol \"-\" at pos 0 in string \"-\"");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<i32>("-"), TFromStringException, "Cannot parse string \"-\" as number");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<i32>("+"), TFromStringException, "Cannot parse string \"+\" as number");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<i32>("0.328413745072"), TFromStringException, "Unexpected symbol \".\" at pos 1 in string \"0.328413745072\"");
     }
 
     Y_UNIT_TEST(TryStringBuf) {
@@ -598,5 +586,23 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(ToString(U'0'), "48");
         UNIT_ASSERT_VALUES_EQUAL(ToString(U'я'), "1103");
         UNIT_ASSERT_VALUES_EQUAL(ToString(U'\U0001F600'), "128512"); // 'GRINNING FACE' (U+1F600)
+    }
+
+    Y_UNIT_TEST(TestTIntStringBuf) {
+        static_assert(TStringBuf(TIntStringBuf(111)) == TStringBuf("111"));
+        static_assert(TStringBuf(TIntStringBuf(-111)) == TStringBuf("-111"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf(0)), "0"sv);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf(1111)), "1111"sv);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf(-1)), "-1"sv);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf(-1111)), "-1111"sv);
+
+        constexpr auto v = TIntStringBuf(-1111);
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(v), TStringBuf(ToString(-1111)));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<ui16>(65535)), TStringBuf("65535"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i16>(32767)), TStringBuf("32767"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i32>(-32768)), TStringBuf("-32768"));
+
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(127)), TStringBuf("1111111"));
+        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(-128)), TStringBuf("-10000000"));
     }
 };

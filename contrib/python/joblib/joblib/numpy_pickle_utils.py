@@ -50,7 +50,7 @@ def _get_prefixes_max_len():
 
 
 def _is_numpy_array_byte_order_mismatch(array):
-    """Check if numpy array is having byte order mis-match"""
+    """Check if numpy array is having byte order mismatch"""
     return ((sys.byteorder == 'big' and
              (array.dtype.byteorder == '<' or
               (array.dtype.byteorder == '|' and array.dtype.fields and

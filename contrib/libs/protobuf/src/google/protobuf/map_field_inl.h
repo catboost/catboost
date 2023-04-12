@@ -49,19 +49,19 @@ namespace internal {
 template <typename T>
 T UnwrapMapKey(const MapKey& map_key);
 template <>
-inline int32 UnwrapMapKey<int32>(const MapKey& map_key) {
+inline arc_i32 UnwrapMapKey<arc_i32>(const MapKey& map_key) {
   return map_key.GetInt32Value();
 }
 template <>
-inline uint32 UnwrapMapKey<uint32>(const MapKey& map_key) {
+inline arc_ui32 UnwrapMapKey<arc_ui32>(const MapKey& map_key) {
   return map_key.GetUInt32Value();
 }
 template <>
-inline int64 UnwrapMapKey<int64>(const MapKey& map_key) {
+inline arc_i64 UnwrapMapKey<arc_i64>(const MapKey& map_key) {
   return map_key.GetInt64Value();
 }
 template <>
-inline uint64 UnwrapMapKey<uint64>(const MapKey& map_key) {
+inline arc_ui64 UnwrapMapKey<arc_ui64>(const MapKey& map_key) {
   return map_key.GetUInt64Value();
 }
 template <>
@@ -77,19 +77,19 @@ inline TProtoStringType UnwrapMapKey<TProtoStringType>(const MapKey& map_key) {
 template <typename T>
 inline void SetMapKey(MapKey* map_key, const T& value);
 template <>
-inline void SetMapKey<int32>(MapKey* map_key, const int32& value) {
+inline void SetMapKey<arc_i32>(MapKey* map_key, const arc_i32& value) {
   map_key->SetInt32Value(value);
 }
 template <>
-inline void SetMapKey<uint32>(MapKey* map_key, const uint32& value) {
+inline void SetMapKey<arc_ui32>(MapKey* map_key, const arc_ui32& value) {
   map_key->SetUInt32Value(value);
 }
 template <>
-inline void SetMapKey<int64>(MapKey* map_key, const int64& value) {
+inline void SetMapKey<arc_i64>(MapKey* map_key, const arc_i64& value) {
   map_key->SetInt64Value(value);
 }
 template <>
-inline void SetMapKey<uint64>(MapKey* map_key, const uint64& value) {
+inline void SetMapKey<arc_ui64>(MapKey* map_key, const arc_ui64& value) {
   map_key->SetUInt64Value(value);
 }
 template <>
@@ -138,7 +138,7 @@ template <typename Key, typename T>
 void TypeDefinedMapFieldBase<Key, T>::InitializeIterator(
     MapIterator* map_iter) const {
   map_iter->iter_ = new typename Map<Key, T>::const_iterator;
-  GOOGLE_CHECK(map_iter->iter_ != NULL);
+  GOOGLE_CHECK(map_iter->iter_ != nullptr);
 }
 
 template <typename Key, typename T>
@@ -304,7 +304,7 @@ template <typename Derived, typename Key, typename T,
           WireFormatLite::FieldType kValueFieldType>
 void MapField<Derived, Key, T, kKeyFieldType,
               kValueFieldType>::SyncRepeatedFieldWithMapNoLock() const {
-  if (this->MapFieldBase::repeated_field_ == NULL) {
+  if (this->MapFieldBase::repeated_field_ == nullptr) {
     this->MapFieldBase::repeated_field_ =
         Arena::CreateMessage<RepeatedPtrField<Message> >(
             this->MapFieldBase::arena_);
@@ -341,7 +341,7 @@ void MapField<Derived, Key, T, kKeyFieldType,
   RepeatedPtrField<EntryType>* repeated_field =
       reinterpret_cast<RepeatedPtrField<EntryType>*>(
           this->MapFieldBase::repeated_field_);
-  GOOGLE_CHECK(this->MapFieldBase::repeated_field_ != NULL);
+  GOOGLE_CHECK(this->MapFieldBase::repeated_field_ != nullptr);
   map->clear();
   for (typename RepeatedPtrField<EntryType>::iterator it =
            repeated_field->begin();
@@ -361,7 +361,7 @@ template <typename Derived, typename Key, typename T,
 size_t MapField<Derived, Key, T, kKeyFieldType,
                 kValueFieldType>::SpaceUsedExcludingSelfNoLock() const {
   size_t size = 0;
-  if (this->MapFieldBase::repeated_field_ != NULL) {
+  if (this->MapFieldBase::repeated_field_ != nullptr) {
     size += this->MapFieldBase::repeated_field_->SpaceUsedExcludingSelfLong();
   }
   size += impl_.GetMap().SpaceUsedExcludingSelfLong();

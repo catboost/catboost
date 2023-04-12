@@ -50,7 +50,6 @@ Implementation
 
 from __future__ import annotations
 
-from collections import namedtuple
 from contextlib import (
     ContextDecorator,
     contextmanager,
@@ -59,15 +58,35 @@ import re
 from typing import (
     Any,
     Callable,
+    Generic,
     Iterable,
+    Iterator,
+    NamedTuple,
     cast,
 )
 import warnings
 
-from pandas._typing import F
+from pandas._typing import (
+    F,
+    T,
+)
+from pandas.util._exceptions import find_stack_level
 
-DeprecatedOption = namedtuple("DeprecatedOption", "key msg rkey removal_ver")
-RegisteredOption = namedtuple("RegisteredOption", "key defval doc validator cb")
+
+class DeprecatedOption(NamedTuple):
+    key: str
+    msg: str | None
+    rkey: str | None
+    removal_ver: str | None
+
+
+class RegisteredOption(NamedTuple):
+    key: str
+    defval: object
+    doc: str
+    validator: Callable[[object], Any] | None
+    cb: Callable[[str], Any] | None
+
 
 # holds deprecated option metadata
 _deprecated_options: dict[str, DeprecatedOption] = {}
@@ -84,8 +103,9 @@ _reserved_keys: list[str] = ["all"]
 
 class OptionError(AttributeError, KeyError):
     """
-    Exception for pandas.options, backwards compatible with KeyError
-    checks
+    Exception raised for pandas.options.
+
+    Backwards compatible with KeyError checks.
     """
 
 
@@ -111,7 +131,7 @@ def _get_single_key(pat: str, silent: bool) -> str:
     return key
 
 
-def _get_option(pat: str, silent: bool = False):
+def _get_option(pat: str, silent: bool = False) -> Any:
     key = _get_single_key(pat, silent)
 
     # walk the nested dict
@@ -151,18 +171,18 @@ def _set_option(*args, **kwargs) -> None:
                 o.cb(key)
 
 
-def _describe_option(pat: str = "", _print_desc: bool = True):
+def _describe_option(pat: str = "", _print_desc: bool = True) -> str | None:
 
     keys = _select_options(pat)
     if len(keys) == 0:
         raise OptionError("No such keys(s)")
 
-    s = "\n".join(_build_option_description(k) for k in keys)
+    s = "\n".join([_build_option_description(k) for k in keys])
 
     if _print_desc:
         print(s)
-    else:
-        return s
+        return None
+    return s
 
 
 def _reset_option(pat: str, silent: bool = False) -> None:
@@ -191,7 +211,7 @@ def get_default_val(pat: str):
 class DictWrapper:
     """provide attribute-style access to a nested dict"""
 
-    def __init__(self, d: dict[str, Any], prefix: str = ""):
+    def __init__(self, d: dict[str, Any], prefix: str = "") -> None:
         object.__setattr__(self, "d", d)
         object.__setattr__(self, "prefix", prefix)
 
@@ -234,16 +254,17 @@ class DictWrapper:
 # of options, and option descriptions.
 
 
-class CallableDynamicDoc:
-    def __init__(self, func, doc_tmpl):
+class CallableDynamicDoc(Generic[T]):
+    def __init__(self, func: Callable[..., T], doc_tmpl: str) -> None:
         self.__doc_tmpl__ = doc_tmpl
         self.__func__ = func
 
-    def __call__(self, *args, **kwds):
+    def __call__(self, *args, **kwds) -> T:
         return self.__func__(*args, **kwds)
 
+    # error: Signature of "__doc__" incompatible with supertype "object"
     @property
-    def __doc__(self):
+    def __doc__(self) -> str:  # type: ignore[override]
         opts_desc = _describe_option("all", _print_desc=False)
         opts_list = pp_options_list(list(_registered_options.keys()))
         return self.__doc_tmpl__.format(opts_desc=opts_desc, opts_list=opts_list)
@@ -276,6 +297,8 @@ OptionError : if no such option exists
 
 Notes
 -----
+Please reference the :ref:`User Guide <options>` for more information.
+
 The available options with its descriptions:
 
 {opts_desc}
@@ -310,6 +333,8 @@ OptionError if no such option exists
 
 Notes
 -----
+Please reference the :ref:`User Guide <options>` for more information.
+
 The available options with its descriptions:
 
 {opts_desc}
@@ -320,7 +345,7 @@ describe_option(pat, _print_desc=False)
 
 Prints the description for one or more registered options.
 
-Call with not arguments to get a listing for all registered options.
+Call with no arguments to get a listing for all registered options.
 
 Available options:
 
@@ -342,6 +367,8 @@ is False
 
 Notes
 -----
+Please reference the :ref:`User Guide <options>` for more information.
+
 The available options with its descriptions:
 
 {opts_desc}
@@ -372,6 +399,8 @@ None
 
 Notes
 -----
+Please reference the :ref:`User Guide <options>` for more information.
+
 The available options with its descriptions:
 
 {opts_desc}
@@ -398,10 +427,10 @@ class option_context(ContextDecorator):
     Examples
     --------
     >>> with option_context('display.max_rows', 10, 'display.max_columns', 5):
-    ...     ...
+    ...     pass
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         if len(args) % 2 != 0 or len(args) < 2:
             raise ValueError(
                 "Need to invoke as option_context(pat, val, [(pat, val), ...])."
@@ -409,13 +438,13 @@ class option_context(ContextDecorator):
 
         self.ops = list(zip(args[::2], args[1::2]))
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
 
         for pat, val in self.ops:
             _set_option(pat, val, silent=True)
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> None:
         if self.undo:
             for pat, val in self.undo:
                 _set_option(pat, val, silent=True)
@@ -425,7 +454,7 @@ def register_option(
     key: str,
     defval: object,
     doc: str = "",
-    validator: Callable[[Any], Any] | None = None,
+    validator: Callable[[object], Any] | None = None,
     cb: Callable[[str], Any] | None = None,
 ) -> None:
     """
@@ -497,7 +526,10 @@ def register_option(
 
 
 def deprecate_option(
-    key: str, msg: str | None = None, rkey: str | None = None, removal_ver=None
+    key: str,
+    msg: str | None = None,
+    rkey: str | None = None,
+    removal_ver: str | None = None,
 ) -> None:
     """
     Mark option `key` as deprecated, if code attempts to access this option,
@@ -523,7 +555,7 @@ def deprecate_option(
         re-routed to `rkey` including set/get/reset.
         rkey must be a fully-qualified option name (e.g "x.y.z.rkey").
         used by the default message if no `msg` is specified.
-    removal_ver : optional
+    removal_ver : str, optional
         Specifies the version in which this option will
         be removed. used by the default message if no `msg` is specified.
 
@@ -626,8 +658,11 @@ def _warn_if_deprecated(key: str) -> bool:
     d = _get_deprecated_option(key)
     if d:
         if d.msg:
-            print(d.msg)
-            warnings.warn(d.msg, FutureWarning)
+            warnings.warn(
+                d.msg,
+                FutureWarning,
+                stacklevel=find_stack_level(),
+            )
         else:
             msg = f"'{key}' is deprecated"
             if d.removal_ver:
@@ -637,7 +672,7 @@ def _warn_if_deprecated(key: str) -> bool:
             else:
                 msg += ", please refrain from using it."
 
-            warnings.warn(msg, FutureWarning)
+            warnings.warn(msg, FutureWarning, stacklevel=find_stack_level())
         return True
     return False
 
@@ -705,7 +740,7 @@ def pp_options_list(keys: Iterable[str], width=80, _print: bool = False):
 
 
 @contextmanager
-def config_prefix(prefix):
+def config_prefix(prefix) -> Iterator[None]:
     """
     contextmanager for multiple invocations of API with a common prefix
 
@@ -747,10 +782,12 @@ def config_prefix(prefix):
     set_option = wrap(set_option)
     get_option = wrap(get_option)
     register_option = wrap(register_option)
-    yield None
-    set_option = _set_option
-    get_option = _get_option
-    register_option = _register_option
+    try:
+        yield
+    finally:
+        set_option = _set_option
+        get_option = _get_option
+        register_option = _register_option
 
 
 # These factories and methods are handy for use as the validator
@@ -823,7 +860,7 @@ def is_one_of_factory(legal_values) -> Callable[[Any], None]:
     return inner
 
 
-def is_nonnegative_int(value: int | None) -> None:
+def is_nonnegative_int(value: object) -> None:
     """
     Verify that value is None or a positive int.
 

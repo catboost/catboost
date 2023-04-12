@@ -1,4 +1,5 @@
 #include "hash.h"
+#include "hash_multi_map.h"
 #include "vector.h"
 #include "hash_set.h"
 
@@ -42,6 +43,7 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestEmplaceDirect);
     UNIT_TEST(TestTryEmplace);
     UNIT_TEST(TestTryEmplaceCopyKey);
+    UNIT_TEST(TestInsertOrAssign);
     UNIT_TEST(TestHMMapEmplace);
     UNIT_TEST(TestHMMapEmplaceNoresize);
     UNIT_TEST(TestHMMapEmplaceDirect);
@@ -59,6 +61,7 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestHMSetInitializerList);
     UNIT_TEST(TestHSetInsertInitializerList);
     UNIT_TEST(TestTupleHash);
+    UNIT_TEST(TestStringHash);
     UNIT_TEST_SUITE_END();
 
     using hmset = THashMultiSet<char, hash<char>, TEqualTo<char>>;
@@ -93,6 +96,7 @@ protected:
     void TestEmplaceDirect();
     void TestTryEmplace();
     void TestTryEmplaceCopyKey();
+    void TestInsertOrAssign();
     void TestHSetEmplace();
     void TestHSetEmplaceNoresize();
     void TestHSetEmplaceDirect();
@@ -110,6 +114,7 @@ protected:
     void TestHMSetInitializerList();
     void TestHSetInsertInitializerList();
     void TestTupleHash();
+    void TestStringHash();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(THashTest);
@@ -189,7 +194,7 @@ void THashTest::TestHMap1() {
     p = m.insert(std::pair<const char, TString>('c', TString("100")));
     UNIT_ASSERT(!p.second);
 
-    //Some iterators compare check, really compile time checks
+    // Some iterators compare check, really compile time checks
     maptype::iterator ite(m.begin());
     maptype::const_iterator cite(m.begin());
     cite = m.begin();
@@ -320,7 +325,7 @@ void THashTest::TestHMMap1() {
     size_t count = m.erase('X');
     UNIT_ASSERT(count == 2);
 
-    //Some iterators compare check, really compile time checks
+    // Some iterators compare check, really compile time checks
     mmap::iterator ite(m.begin());
     mmap::const_iterator cite(m.begin());
 
@@ -332,7 +337,7 @@ void THashTest::TestHMMap1() {
     using HMapType = THashMultiMap<size_t, size_t>;
     HMapType hmap;
 
-    //We fill the map to implicitely start a rehash.
+    // We fill the map to implicitely start a rehash.
     for (size_t counter = 0; counter < 3077; ++counter) {
         hmap.insert(HMapType::value_type(1, counter));
     }
@@ -342,7 +347,7 @@ void THashTest::TestHMMap1() {
 
     UNIT_ASSERT(hmap.count(12325) == 2);
 
-    //At this point 23 goes to the same bucket as 12325, it used to reveal a bug.
+    // At this point 23 goes to the same bucket as 12325, it used to reveal a bug.
     hmap.insert(HMapType::value_type(23, 0));
 
     UNIT_ASSERT(hmap.count(12325) == 2);
@@ -980,6 +985,57 @@ void THashTest::TestTryEmplaceCopyKey() {
     }
 }
 
+void THashTest::TestInsertOrAssign() {
+    static int constructorCounter = 0;
+    static int assignmentCounter = 0;
+
+    struct TCountConstruct {
+        explicit TCountConstruct(int v)
+            : Value(v)
+        {
+            ++constructorCounter;
+        }
+
+        TCountConstruct& operator=(int v) {
+            Value = v;
+            ++assignmentCounter;
+            return *this;
+        }
+
+        TCountConstruct(const TCountConstruct&) = delete;
+        int Value;
+    };
+
+    THashMap<int, TCountConstruct> hash;
+    {
+        auto r = hash.insert_or_assign(TNonCopyableInt<4>(4), 1);
+        UNIT_ASSERT(r.second);
+        UNIT_ASSERT_VALUES_EQUAL(1, hash.size());
+        UNIT_ASSERT_VALUES_EQUAL(1, constructorCounter);
+        UNIT_ASSERT_VALUES_EQUAL(0, assignmentCounter);
+        UNIT_ASSERT_VALUES_EQUAL(1, r.first->second.Value);
+    }
+    {
+        auto r = hash.insert_or_assign(TNonCopyableInt<4>(4), 5);
+        UNIT_ASSERT(!r.second);
+        UNIT_ASSERT_VALUES_EQUAL(1, hash.size());
+        UNIT_ASSERT_VALUES_EQUAL(1, constructorCounter);
+        UNIT_ASSERT_VALUES_EQUAL(1, assignmentCounter);
+        UNIT_ASSERT_VALUES_EQUAL(5, r.first->second.Value);
+    }
+    {
+        constexpr int iterations = 200;
+        for (int iteration = 0; iteration < iterations; ++iteration) {
+            hash.insert_or_assign(iteration, iteration);
+        }
+        UNIT_ASSERT_VALUES_EQUAL(iterations, hash.size());
+        UNIT_ASSERT_VALUES_EQUAL(iterations, constructorCounter);
+        UNIT_ASSERT_VALUES_EQUAL(2, assignmentCounter);
+        UNIT_ASSERT_VALUES_EQUAL(4, hash.at(4).Value);
+        UNIT_ASSERT_VALUES_EQUAL(44, hash.at(44).Value);
+    }
+}
+
 void THashTest::TestHMMapEmplace() {
     using hash_t = THashMultiMap<int, TNonCopyableInt<0>>;
     hash_t hash;
@@ -1251,21 +1307,30 @@ void THashTest::TestHSetInsertInitializerList() {
 }
 
 /*
-* Sequence for MultiHash is reversed as it calculates hash as
-* f(head:tail) = f(tail)xHash(head)
-*/
+ * Sequence for MultiHash is reversed as it calculates hash as
+ * f(head:tail) = f(tail)xHash(head)
+ */
 void THashTest::TestTupleHash() {
     std::tuple<int, int> tuple{1, 3};
     UNIT_ASSERT_VALUES_EQUAL(THash<decltype(tuple)>()(tuple), MultiHash(3, 1));
 
     /*
-    * This thing checks that we didn't break STL code
-    * See https://a.yandex-team.ru/arc/commit/2864838#comment-401
-    * for example
-    */
+     * This thing checks that we didn't break STL code
+     * See https://a.yandex-team.ru/arc/commit/2864838#comment-401
+     * for example
+     */
     struct A {
         A Foo(const std::tuple<A, float>& v) {
             return std::get<A>(v);
         }
     };
+}
+
+void THashTest::TestStringHash() {
+    // Make sure that different THash<> variants behave in the same way
+    const size_t expected = ComputeHash(TString("hehe"));
+    UNIT_ASSERT_VALUES_EQUAL(ComputeHash("hehe"), expected);              // char[5]
+    UNIT_ASSERT_VALUES_EQUAL(ComputeHash("hehe"sv), expected);            // std::string_view
+    UNIT_ASSERT_VALUES_EQUAL(ComputeHash(TStringBuf("hehe")), expected);  // TStringBuf
+    UNIT_ASSERT_VALUES_EQUAL(ComputeHash<const char*>("hehe"), expected); // const char*
 }

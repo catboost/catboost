@@ -16,13 +16,13 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
 #include <thrust/detail/type_traits.h>
 #include <limits>
 
 //#include <stdint.h> // for intmax_t (not provided on MSVS 2005)
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -126,5 +126,4 @@ numeric_distance(Number x, Number y)
 
 } // end detail
 
-} // end thrust
-
+THRUST_NAMESPACE_END

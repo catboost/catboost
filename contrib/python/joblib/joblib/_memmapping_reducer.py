@@ -99,6 +99,10 @@ def unlink_file(filename):
                 raise
             else:
                 time.sleep(.2)
+        except FileNotFoundError:
+            # In case of a race condition when deleting the temporary folder,
+            # avoid noisy FileNotFoundError exception in the resource tracker.
+            pass
 
 
 resource_tracker._CLEANUP_FUNCS['file'] = unlink_file

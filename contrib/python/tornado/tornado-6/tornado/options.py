@@ -86,6 +86,12 @@ instances to define isolated sets of options, such as for subcommands.
        options.logging = None
        parse_command_line()
 
+.. note::
+
+   `parse_command_line` or `parse_config_file` function should called after
+   logging configuration and user-defined command line flags using the
+   ``callback`` option definition, or these configurations will not take effect.
+
 .. versionchanged:: 4.3
    Dashes and underscores are fully interchangeable in option names;
    options can be defined, set, and read with any mix of the two.
@@ -266,17 +272,22 @@ class OptionParser(object):
                 % (normalized, self._options[normalized].file_name)
             )
         frame = sys._getframe(0)
-        options_file = frame.f_code.co_filename
+        if frame is not None:
+            options_file = frame.f_code.co_filename
 
-        # Can be called directly, or through top level define() fn, in which
-        # case, step up above that frame to look for real caller.
-        if (
-            frame.f_back.f_code.co_filename == options_file
-            and frame.f_back.f_code.co_name == "define"
-        ):
-            frame = frame.f_back
+            # Can be called directly, or through top level define() fn, in which
+            # case, step up above that frame to look for real caller.
+            if (
+                frame.f_back is not None
+                and frame.f_back.f_code.co_filename == options_file
+                and frame.f_back.f_code.co_name == "define"
+            ):
+                frame = frame.f_back
 
-        file_name = frame.f_back.f_code.co_filename
+            assert frame.f_back is not None
+            file_name = frame.f_back.f_code.co_filename
+        else:
+            file_name = "<unknown>"
         if file_name == options_file:
             file_name = ""
         if type is None:
@@ -651,7 +662,9 @@ class _Option(object):
                 num = float(m.group(1))
                 units = m.group(2) or "seconds"
                 units = self._TIMEDELTA_ABBREV_DICT.get(units, units)
-                sum += datetime.timedelta(**{units: num})
+                # This line confuses mypy when setup.py sets python_version=3.6
+                # https://github.com/python/mypy/issues/9676
+                sum += datetime.timedelta(**{units: num})  # type: ignore
                 start = m.end()
             return sum
         except Exception:

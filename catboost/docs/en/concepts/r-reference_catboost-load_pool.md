@@ -190,7 +190,7 @@ NULL
 {% include [methods-param-desc-python__group_weight__first-sentence](../_includes/work_src/reusage/python__group_weight__first-sentence.md) %}
 
 
-{% include [group-params-r__group-and-group-weight__resctriction](../_includes/work_src/reusage/r__group-and-group-weight__resctriction.md) %}
+{% include [group-params-r__group-and-group-weight__restriction](../_includes/work_src/reusage/r__group-and-group-weight__restriction.md) %}
 
 
 

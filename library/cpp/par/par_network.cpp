@@ -13,14 +13,12 @@
 #include <library/cpp/netliba/v12/udp_http.h>
 #include <library/cpp/threading/atomic/bool.h>
 
-#include <util/generic/hash.h>
 #include <util/generic/strbuf.h>
 #include <util/network/sock.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
-#include <util/system/atomic.h>
-#include <util/system/atomic_ops.h>
+#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/mutex.h>
 #include <util/thread/factory.h>
 

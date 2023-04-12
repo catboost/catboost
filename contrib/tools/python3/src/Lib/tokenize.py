@@ -27,6 +27,7 @@ __credits__ = ('GvR, ESR, Tim Peters, Thomas Wouters, Fred Drake, '
 from builtins import open as _builtin_open
 from codecs import lookup, BOM_UTF8
 import collections
+import functools
 from io import TextIOWrapper
 import itertools as _itertools
 import re
@@ -95,6 +96,7 @@ def _all_string_prefixes():
                 result.add(''.join(u))
     return result
 
+@functools.lru_cache
 def _compile(expr):
     return re.compile(expr, re.UNICODE)
 
@@ -141,6 +143,7 @@ for _prefix in _all_string_prefixes():
     endpats[_prefix + '"'] = Double
     endpats[_prefix + "'''"] = Single3
     endpats[_prefix + '"""'] = Double3
+del _prefix
 
 # A set of all of the single and triple quoted string prefixes,
 #  including the opening quotes.
@@ -151,6 +154,7 @@ for t in _all_string_prefixes():
         single_quoted.add(u)
     for u in (t + '"""', t + "'''"):
         triple_quoted.add(u)
+del t, u
 
 tabsize = 8
 
@@ -677,6 +681,14 @@ def main():
     except Exception as err:
         perror("unexpected error: %s" % err)
         raise
+
+def _generate_tokens_from_c_tokenizer(source):
+    """Tokenize a source reading Python code as unicode strings using the internal C tokenizer"""
+    import _tokenize as c_tokenizer
+    for info in c_tokenizer.TokenizerIter(source):
+        tok, type, lineno, end_lineno, col_off, end_col_off, line = info
+        yield TokenInfo(type, tok, (lineno, col_off), (end_lineno, end_col_off), line)
+
 
 if __name__ == "__main__":
     main()

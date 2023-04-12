@@ -1,0 +1,666 @@
+Parameterized testing with any Python test framework
+====================================================
+
+.. image:: https://img.shields.io/pypi/v/parameterized.svg
+    :alt: PyPI
+    :target: https://pypi.org/project/parameterized/
+
+.. image:: https://circleci.com/gh/wolever/parameterized.svg?style=svg
+    :alt: Circle CI
+    :target: https://circleci.com/gh/wolever/parameterized
+
+
+Parameterized testing in Python sucks.
+
+``parameterized`` fixes that. For everything. Parameterized testing for nose,
+parameterized testing for py.test, parameterized testing for unittest.
+
+.. code:: python
+
+   # test_math.py
+   from nose.tools import assert_equal
+   from parameterized import parameterized, parameterized_class
+
+   import unittest
+   import math
+
+   @parameterized([
+       (2, 2, 4),
+       (2, 3, 8),
+       (1, 9, 1),
+       (0, 9, 0),
+   ])
+   def test_pow(base, exponent, expected):
+      assert_equal(math.pow(base, exponent), expected)
+
+   class TestMathUnitTest(unittest.TestCase):
+      @parameterized.expand([
+          ("negative", -1.5, -2.0),
+          ("integer", 1, 1.0),
+          ("large fraction", 1.6, 1),
+      ])
+      def test_floor(self, name, input, expected):
+          assert_equal(math.floor(input), expected)
+
+   @parameterized_class(('a', 'b', 'expected_sum', 'expected_product'), [
+      (1, 2, 3, 2),
+      (5, 5, 10, 25),
+   ])
+   class TestMathClass(unittest.TestCase):
+      def test_add(self):
+         assert_equal(self.a + self.b, self.expected_sum)
+
+      def test_multiply(self):
+         assert_equal(self.a * self.b, self.expected_product)
+
+   @parameterized_class([
+      { "a": 3, "expected": 2 },
+      { "b": 5, "expected": -4 },
+   ])
+   class TestMathClassDict(unittest.TestCase):
+      a = 1
+      b = 1
+
+      def test_subtract(self):
+         assert_equal(self.a - self.b, self.expected)
+
+
+With nose (and nose2)::
+
+    $ nosetests -v test_math.py
+    test_floor_0_negative (test_math.TestMathUnitTest) ... ok
+    test_floor_1_integer (test_math.TestMathUnitTest) ... ok
+    test_floor_2_large_fraction (test_math.TestMathUnitTest) ... ok
+    test_math.test_pow(2, 2, 4, {}) ... ok
+    test_math.test_pow(2, 3, 8, {}) ... ok
+    test_math.test_pow(1, 9, 1, {}) ... ok
+    test_math.test_pow(0, 9, 0, {}) ... ok
+    test_add (test_math.TestMathClass_0) ... ok
+    test_multiply (test_math.TestMathClass_0) ... ok
+    test_add (test_math.TestMathClass_1) ... ok
+    test_multiply (test_math.TestMathClass_1) ... ok
+    test_subtract (test_math.TestMathClassDict_0) ... ok
+
+    ----------------------------------------------------------------------
+    Ran 12 tests in 0.015s
+
+    OK
+
+As the package name suggests, nose is best supported and will be used for all
+further examples.
+
+
+With py.test (version 2.0 and above)::
+
+    $ py.test -v test_math.py
+    ============================= test session starts ==============================
+    platform darwin -- Python 3.6.1, pytest-3.1.3, py-1.4.34, pluggy-0.4.0
+    collecting ... collected 13 items
+
+    test_math.py::test_pow::[0] PASSED
+    test_math.py::test_pow::[1] PASSED
+    test_math.py::test_pow::[2] PASSED
+    test_math.py::test_pow::[3] PASSED
+    test_math.py::TestMathUnitTest::test_floor_0_negative PASSED
+    test_math.py::TestMathUnitTest::test_floor_1_integer PASSED
+    test_math.py::TestMathUnitTest::test_floor_2_large_fraction PASSED
+    test_math.py::TestMathClass_0::test_add PASSED
+    test_math.py::TestMathClass_0::test_multiply PASSED
+    test_math.py::TestMathClass_1::test_add PASSED
+    test_math.py::TestMathClass_1::test_multiply PASSED
+    test_math.py::TestMathClassDict_0::test_subtract PASSED
+    ==================== 12 passed, 4 warnings in 0.16 seconds =====================
+
+With unittest (and unittest2)::
+
+    $ python -m unittest -v test_math
+    test_floor_0_negative (test_math.TestMathUnitTest) ... ok
+    test_floor_1_integer (test_math.TestMathUnitTest) ... ok
+    test_floor_2_large_fraction (test_math.TestMathUnitTest) ... ok
+    test_add (test_math.TestMathClass_0) ... ok
+    test_multiply (test_math.TestMathClass_0) ... ok
+    test_add (test_math.TestMathClass_1) ... ok
+    test_multiply (test_math.TestMathClass_1) ... ok
+    test_subtract (test_math.TestMathClassDict_0) ... ok
+
+    ----------------------------------------------------------------------
+    Ran 8 tests in 0.001s
+
+    OK
+
+(note: because unittest does not support test decorators, only tests created
+with ``@parameterized.expand`` will be executed)
+
+With green::
+
+    $ green test_math.py -vvv
+    test_math
+      TestMathClass_1
+    .   test_method_a
+    .   test_method_b
+      TestMathClass_2
+    .   test_method_a
+    .   test_method_b
+      TestMathClass_3
+    .   test_method_a
+    .   test_method_b
+      TestMathUnitTest
+    .   test_floor_0_negative
+    .   test_floor_1_integer
+    .   test_floor_2_large_fraction
+      TestMathClass_0
+    .   test_add
+    .   test_multiply
+      TestMathClass_1
+    .   test_add
+    .   test_multiply
+      TestMathClassDict_0
+    .   test_subtract
+
+    Ran 12 tests in 0.121s
+
+    OK (passes=9)
+
+
+Installation
+------------
+
+::
+
+    $ pip install parameterized
+
+
+Compatibility
+-------------
+
+`Yes`__ (mostly).
+
+__ https://travis-ci.org/wolever/parameterized
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * -
+     - Py2.6
+     - Py2.7
+     - Py3.4
+     - Py3.5
+     - Py3.6
+     - Py3.7
+     - Py3.8
+     - Py3.9
+     - PyPy
+     - ``@mock.patch``
+   * - nose
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - nose2
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - py.test 2
+     - yes
+     - yes
+     - no*
+     - no*
+     - no*
+     - no*
+     - yes
+     - yes
+     - yes
+     - yes
+   * - py.test 3
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - py.test 4
+     - no**
+     - no**
+     - no**
+     - no**
+     - no**
+     - no**
+     - no**
+     - no**
+     - no**
+     - no**
+   * - py.test fixtures
+     - no†
+     - no†
+     - no†
+     - no†
+     - no†
+     - no†
+     - no†
+     - no†
+     - no†
+     - no†
+   * - | unittest
+       | (``@parameterized.expand``)
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+   * - | unittest2
+       | (``@parameterized.expand``)
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+     - yes
+
+\*: py.test 2 does `does not appear to work (#71)`__ under Python 3. Please comment on the related issues if you are affected.
+
+\*\*: py.test 4 is not yet supported (but coming!) in `issue #34`__
+
+†: py.test fixture support is documented in `issue #81`__
+
+__ https://github.com/wolever/parameterized/issues/71
+__ https://github.com/wolever/parameterized/issues/34
+__ https://github.com/wolever/parameterized/issues/81
+
+Dependencies
+------------
+
+(this section left intentionally blank)
+
+
+Exhaustive Usage Examples
+--------------------------
+
+The ``@parameterized`` and ``@parameterized.expand`` decorators accept a list
+or iterable of tuples or ``param(...)``, or a callable which returns a list or
+iterable:
+
+.. code:: python
+
+    from parameterized import parameterized, param
+
+    # A list of tuples
+    @parameterized([
+        (2, 3, 5),
+        (3, 5, 8),
+    ])
+    def test_add(a, b, expected):
+        assert_equal(a + b, expected)
+
+    # A list of params
+    @parameterized([
+        param("10", 10),
+        param("10", 16, base=16),
+    ])
+    def test_int(str_val, expected, base=10):
+        assert_equal(int(str_val, base=base), expected)
+
+    # An iterable of params
+    @parameterized(
+        param.explicit(*json.loads(line))
+        for line in open("testcases.jsons")
+    )
+    def test_from_json_file(...):
+        ...
+
+    # A callable which returns a list of tuples
+    def load_test_cases():
+        return [
+            ("test1", ),
+            ("test2", ),
+        ]
+    @parameterized(load_test_cases)
+    def test_from_function(name):
+        ...
+
+.. **
+
+Note that, when using an iterator or a generator, all the items will be loaded
+into memory before the start of the test run (we do this explicitly to ensure
+that generators are exhausted exactly once in multi-process or multi-threaded
+testing environments).
+
+The ``@parameterized`` decorator can be used test class methods, and standalone
+functions:
+
+.. code:: python
+
+    from parameterized import parameterized
+
+    class AddTest(object):
+        @parameterized([
+            (2, 3, 5),
+        ])
+        def test_add(self, a, b, expected):
+            assert_equal(a + b, expected)
+
+    @parameterized([
+        (2, 3, 5),
+    ])
+    def test_add(a, b, expected):
+        assert_equal(a + b, expected)
+
+
+And ``@parameterized.expand`` can be used to generate test methods in
+situations where test generators cannot be used (for example, when the test
+class is a subclass of ``unittest.TestCase``):
+
+.. code:: python
+
+    import unittest
+    from parameterized import parameterized
+
+    class AddTestCase(unittest.TestCase):
+        @parameterized.expand([
+            ("2 and 3", 2, 3, 5),
+            ("3 and 5", 2, 3, 5),
+        ])
+        def test_add(self, _, a, b, expected):
+            assert_equal(a + b, expected)
+
+Will create the test cases::
+
+    $ nosetests example.py
+    test_add_0_2_and_3 (example.AddTestCase) ... ok
+    test_add_1_3_and_5 (example.AddTestCase) ... ok
+
+    ----------------------------------------------------------------------
+    Ran 2 tests in 0.001s
+
+    OK
+
+Note that ``@parameterized.expand`` works by creating new methods on the test
+class. If the first parameter is a string, that string will be added to the end
+of the method name. For example, the test case above will generate the methods
+``test_add_0_2_and_3`` and ``test_add_1_3_and_5``.
+
+The names of the test cases generated by ``@parameterized.expand`` can be
+customized using the ``name_func`` keyword argument. The value should
+be a function which accepts three arguments: ``testcase_func``, ``param_num``,
+and ``params``, and it should return the name of the test case.
+``testcase_func`` will be the function to be tested, ``param_num`` will be the
+index of the test case parameters in the list of parameters, and ``param``
+(an instance of ``param``) will be the parameters which will be used.
+
+.. code:: python
+
+    import unittest
+    from parameterized import parameterized
+
+    def custom_name_func(testcase_func, param_num, param):
+        return "%s_%s" %(
+            testcase_func.__name__,
+            parameterized.to_safe_name("_".join(str(x) for x in param.args)),
+        )
+
+    class AddTestCase(unittest.TestCase):
+        @parameterized.expand([
+            (2, 3, 5),
+            (2, 3, 5),
+        ], name_func=custom_name_func)
+        def test_add(self, a, b, expected):
+            assert_equal(a + b, expected)
+
+Will create the test cases::
+
+    $ nosetests example.py
+    test_add_1_2_3 (example.AddTestCase) ... ok
+    test_add_2_3_5 (example.AddTestCase) ... ok
+
+    ----------------------------------------------------------------------
+    Ran 2 tests in 0.001s
+
+    OK
+
+
+The ``param(...)`` helper class stores the parameters for one specific test
+case.  It can be used to pass keyword arguments to test cases:
+
+.. code:: python
+
+    from parameterized import parameterized, param
+
+    @parameterized([
+        param("10", 10),
+        param("10", 16, base=16),
+    ])
+    def test_int(str_val, expected, base=10):
+        assert_equal(int(str_val, base=base), expected)
+
+
+If test cases have a docstring, the parameters for that test case will be
+appended to the first line of the docstring. This behavior can be controlled
+with the ``doc_func`` argument:
+
+.. code:: python
+
+    from parameterized import parameterized
+
+    @parameterized([
+        (1, 2, 3),
+        (4, 5, 9),
+    ])
+    def test_add(a, b, expected):
+        """ Test addition. """
+        assert_equal(a + b, expected)
+
+    def my_doc_func(func, num, param):
+        return "%s: %s with %s" %(num, func.__name__, param)
+
+    @parameterized([
+        (5, 4, 1),
+        (9, 6, 3),
+    ], doc_func=my_doc_func)
+    def test_subtraction(a, b, expected):
+        assert_equal(a - b, expected)
+
+::
+
+    $ nosetests example.py
+    Test addition. [with a=1, b=2, expected=3] ... ok
+    Test addition. [with a=4, b=5, expected=9] ... ok
+    0: test_subtraction with param(*(5, 4, 1)) ... ok
+    1: test_subtraction with param(*(9, 6, 3)) ... ok
+
+    ----------------------------------------------------------------------
+    Ran 4 tests in 0.001s
+
+    OK
+
+Finally ``@parameterized_class`` parameterizes an entire class, using
+either a list of attributes, or a list of dicts that will be applied to the
+class:
+
+.. code:: python
+
+    from yourapp.models import User
+    from parameterized import parameterized_class
+
+    @parameterized_class([
+       { "username": "user_1", "access_level": 1 },
+       { "username": "user_2", "access_level": 2, "expected_status_code": 404 },
+    ])
+    class TestUserAccessLevel(TestCase):
+       expected_status_code = 200
+
+       def setUp(self):
+          self.client.force_login(User.objects.get(username=self.username)[0])
+
+       def test_url_a(self):
+          response = self.client.get('/url')
+          self.assertEqual(response.status_code, self.expected_status_code)
+
+       def tearDown(self):
+          self.client.logout()
+
+
+    @parameterized_class(("username", "access_level", "expected_status_code"), [
+       ("user_1", 1, 200),
+       ("user_2", 2, 404)
+    ])
+    class TestUserAccessLevel(TestCase):
+       def setUp(self):
+          self.client.force_login(User.objects.get(username=self.username)[0])
+
+       def test_url_a(self):
+          response = self.client.get("/url")
+          self.assertEqual(response.status_code, self.expected_status_code)
+
+       def tearDown(self):
+          self.client.logout()
+
+
+The ``@parameterized_class`` decorator accepts a ``class_name_func`` argument,
+which controls the name of the parameterized classes generated by
+``@parameterized_class``:
+
+.. code:: python
+
+    from parameterized import parameterized, parameterized_class
+
+    def get_class_name(cls, num, params_dict):
+        # By default the generated class named includes either the "name"
+        # parameter (if present), or the first string value. This example shows
+        # multiple parameters being included in the generated class name:
+        return "%s_%s_%s%s" %(
+            cls.__name__,
+            num,
+            parameterized.to_safe_name(params_dict['a']),
+            parameterized.to_safe_name(params_dict['b']),
+        )
+
+    @parameterized_class([
+       { "a": "hello", "b": " world!", "expected": "hello world!" },
+       { "a": "say ", "b": " cheese :)", "expected": "say cheese :)" },
+    ], class_name_func=get_class_name)
+    class TestConcatenation(TestCase):
+      def test_concat(self):
+          self.assertEqual(self.a + self.b, self.expected)
+
+::
+
+    $ nosetests -v test_math.py
+    test_concat (test_concat.TestConcatenation_0_hello_world_) ... ok
+    test_concat (test_concat.TestConcatenation_0_say_cheese__) ... ok
+
+
+
+Using with Single Parameters
+............................
+
+If a test function only accepts one parameter and the value is not iterable,
+then it is possible to supply a list of values without wrapping each one in a
+tuple:
+
+.. code:: python
+
+   @parameterized([1, 2, 3])
+   def test_greater_than_zero(value):
+      assert value > 0
+
+Note, however, that if the single parameter *is* iterable (such as a list or
+tuple), then it *must* be wrapped in a tuple, list, or the ``param(...)``
+helper:
+
+.. code:: python
+
+   @parameterized([
+      ([1, 2, 3], ),
+      ([3, 3], ),
+      ([6], ),
+   ])
+   def test_sums_to_6(numbers):
+      assert sum(numbers) == 6
+
+(note, also, that Python requires single element tuples to be defined with a
+trailing comma: ``(foo, )``)
+
+
+Using with ``@mock.patch``
+..........................
+
+``parameterized`` can be used with ``mock.patch``, but the argument ordering
+can be confusing. The ``@mock.patch(...)`` decorator must come *below* the
+``@parameterized(...)``, and the mocked parameters must come *last*:
+
+.. code:: python
+
+   @mock.patch("os.getpid")
+   class TestOS(object):
+      @parameterized(...)
+      @mock.patch("os.fdopen")
+      @mock.patch("os.umask")
+      def test_method(self, param1, param2, ..., mock_umask, mock_fdopen, mock_getpid):
+         ...
+
+Note: the same holds true when using ``@parameterized.expand``.
+
+
+Migrating from ``nose-parameterized`` to ``parameterized``
+----------------------------------------------------------
+
+To migrate a codebase from ``nose-parameterized`` to ``parameterized``:
+
+1. Update your requirements file, replacing ``nose-parameterized`` with
+   ``parameterized``.
+
+2. Replace all references to ``nose_parameterized`` with ``parameterized``::
+
+    $ perl -pi -e 's/nose_parameterized/parameterized/g' your-codebase/
+
+3. You're done!
+
+
+FAQ
+---
+
+What happened to ``nose-parameterized``?
+    Originally only nose was supported. But now everything is supported, and it
+    only made sense to change the name!
+
+What do you mean when you say "nose is best supported"?
+    There are small caveates with ``py.test`` and ``unittest``: ``py.test``
+    does not show the parameter values (ex, it will show ``test_add[0]``
+    instead of ``test_add[1, 2, 3]``), and ``unittest``/``unittest2`` do not
+    support test generators so ``@parameterized.expand`` must be used.
+
+Why not use ``@pytest.mark.parametrize``?
+    Because spelling is difficult. Also, ``parameterized`` doesn't require you
+    to repeat argument names, and (using ``param``) it supports optional
+    keyword arguments.
+
+Why do I get an ``AttributeError: 'function' object has no attribute 'expand'`` with ``@parameterized.expand``?
+    You've likely installed the ``parametrized`` (note the missing *e*)
+    package. Use ``parameterized`` (with the *e*) instead and you'll be all
+    set.

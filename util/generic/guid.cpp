@@ -48,6 +48,23 @@ void CreateGuid(TGUID* res) {
     WriteUnaligned<ui64>(&dw[1], RandomNumber<ui64>());
 }
 
+TGUID TGUID::CreateTimebased() {
+    TGUID result;
+    // GUID_EPOCH_OFFSET is the number of 100-ns intervals between the
+    // UUID epoch 1582-10-15 00:00:00 and the Unix epoch 1970-01-01 00:00:00.
+    constexpr ui64 GUID_EPOCH_OFFSET = 0x01b21dd213814000;
+    const ui64 timestamp = Now().NanoSeconds() / 100 + GUID_EPOCH_OFFSET;
+    result.dw[0] = ui32(timestamp & 0xffffffff); // time low
+    const ui32 timeMid = ui32((timestamp >> 32) & 0xffff);
+    constexpr ui32 UUID_VERSION = 1;
+    const ui32 timeHighAndVersion = ui16((timestamp >> 48) & 0x0fff) | (UUID_VERSION << 12);
+    result.dw[1] = (timeMid << 16) | timeHighAndVersion;
+    const ui32 clockSeq = RandomNumber<ui32>(0x3fff) | 0x8000;
+    result.dw[2] = (clockSeq << 16) | RandomNumber<ui16>();
+    result.dw[3] = RandomNumber<ui32>() | (1 << 24);
+    return result;
+}
+
 TString GetGuidAsString(const TGUID& g) {
     return g.AsGuidString();
 }

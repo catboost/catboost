@@ -45,6 +45,9 @@ const TString& GetTestParam(TStringBuf name);
 // @brief return test parameter by name. If not exists, return specified default value
 const TString& GetTestParam(TStringBuf name, const TString& def);
 
+// @brief return path to global resource. If not exists, aborts the test run
+const TString& GetGlobalResource(TStringBuf name);
+
 // @brief return path to the gdb
 const TString& GdbPath();
 
@@ -76,6 +79,7 @@ namespace NPrivate {
         TString GdbPath;
         TString CoreSearchFile;
         std::unordered_map<TString, TString> TestParameters;
+        std::unordered_map<TString, TString> GlobalResources;
     };
 
     TString GetCwd();

@@ -3,7 +3,7 @@
 #include <iterator>
 
 #include <util/datetime/base.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/defaults.h>
 #include <util/system/event.h>
 #include <util/system/guard.h>

@@ -17,10 +17,18 @@
     #include "winint.h"
 #endif
 
+#include <limits>
+
 void LockMemory(const void* addr, size_t len) {
 #if defined(_unix_)
+    if (0 == len) {
+        return;
+    }
+    Y_ASSERT(static_cast<ssize_t>(len) > 0);
     const size_t pageSize = NSystemInfo::GetPageSize();
-    if (mlock(AlignDown(addr, pageSize), AlignUp(len, pageSize))) {
+    const char* begin = AlignDown(static_cast<const char*>(addr), pageSize);
+    const char* end = AlignUp(static_cast<const char*>(addr) + len, pageSize);
+    if (mlock(begin, end - begin)) {
         ythrow yexception() << LastSystemErrorText();
     }
 #elif defined(_win_)
@@ -37,7 +45,14 @@ void LockMemory(const void* addr, size_t len) {
 
 void UnlockMemory(const void* addr, size_t len) {
 #if defined(_unix_)
-    if (munlock(addr, len)) {
+    if (0 == len) {
+        return;
+    }
+    Y_ASSERT(static_cast<ssize_t>(len) > 0);
+    const size_t pageSize = NSystemInfo::GetPageSize();
+    const char* begin = AlignDown(static_cast<const char*>(addr), pageSize);
+    const char* end = AlignUp(static_cast<const char*>(addr) + len, pageSize);
+    if (munlock(begin, end - begin)) {
         ythrow yexception() << LastSystemErrorText();
     }
 #elif defined(_win_)

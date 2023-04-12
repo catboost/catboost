@@ -4,12 +4,12 @@
 
     Lexer for Smart Game Format (sgf) file format.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, bygroups
-from pygments.token import Name, Literal, String, Text, Punctuation
+from pygments.token import Name, Literal, String, Text, Punctuation, Whitespace
 
 __all__ = ["SmartGameFormatLexer"]
 
@@ -20,18 +20,17 @@ class SmartGameFormatLexer(RegexLexer):
 
     The format is used to store game records of board games for two players
     (mainly Go game).
-    For more information about the definition of the format, see:
-    https://www.red-bean.com/sgf/
 
     .. versionadded:: 2.4
     """
     name = 'SmartGameFormat'
+    url = 'https://www.red-bean.com/sgf/'
     aliases = ['sgf']
     filenames = ['*.sgf']
 
     tokens = {
         'root': [
-            (r'[\s():;]', Punctuation),
+            (r'[():;]+', Punctuation),
             # tokens:
             (r'(A[BW]|AE|AN|AP|AR|AS|[BW]L|BM|[BW]R|[BW]S|[BW]T|CA|CH|CP|CR|'
              r'DD|DM|DO|DT|EL|EV|EX|FF|FG|G[BW]|GC|GM|GN|HA|HO|ID|IP|IT|IY|KM|'
@@ -55,6 +54,7 @@ class SmartGameFormatLexer(RegexLexer):
             (r'(\[)([\w\s#()+,\-.:?]+)(\])',
              bygroups(Punctuation, String, Punctuation)),
             (r'(\[)(\s.*)(\])',
-             bygroups(Punctuation, Text, Punctuation)),
+             bygroups(Punctuation, Whitespace, Punctuation)),
+            (r'\s+', Whitespace)
         ],
     }

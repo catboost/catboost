@@ -22,19 +22,22 @@ Here is a simple "Hello, world" example app:
 
 .. testcode::
 
-    import tornado.ioloop
+    import asyncio
     import tornado.web
 
     class MainHandler(tornado.web.RequestHandler):
         def get(self):
             self.write("Hello, world")
 
-    if __name__ == "__main__":
+    async def main():
         application = tornado.web.Application([
             (r"/", MainHandler),
         ])
         application.listen(8888)
-        tornado.ioloop.IOLoop.current().start()
+        await asyncio.Event().wait()
+
+    if __name__ == "__main__":
+        asyncio.run(main())
 
 .. testoutput::
    :hide:
@@ -72,6 +75,7 @@ import mimetypes
 import numbers
 import os.path
 import re
+import socket
 import sys
 import threading
 import time
@@ -90,6 +94,7 @@ from tornado import iostream
 import tornado.locale
 from tornado import locale
 from tornado.log import access_log, app_log, gen_log
+import tornado.netutil
 from tornado import template
 from tornado.escape import utf8, _unicode
 from tornado.routing import (
@@ -118,6 +123,7 @@ from typing import (
     Iterable,
     Generator,
     Type,
+    TypeVar,
     cast,
     overload,
 )
@@ -399,14 +405,10 @@ class RequestHandler(object):
         # cases are covered by the first match for str.
         if isinstance(value, str):
             retval = value
-        elif isinstance(value, bytes):  # py3
+        elif isinstance(value, bytes):
             # Non-ascii characters in headers are not well supported,
             # but if you pass bytes, use latin1 so they pass through as-is.
             retval = value.decode("latin1")
-        elif isinstance(value, unicode_type):  # py2
-            # TODO: This is inconsistent with the use of latin1 above,
-            # but it's been that way for a long time. Should it change?
-            retval = escape.utf8(value)
         elif isinstance(value, numbers.Integral):
             # return immediately since we know the converted value will be safe
             return str(value)
@@ -996,7 +998,7 @@ class RequestHandler(object):
         if not template_path:
             frame = sys._getframe(0)
             web_file = frame.f_code.co_filename
-            while frame.f_code.co_filename == web_file:
+            while frame.f_code.co_filename == web_file and frame.f_back is not None:
                 frame = frame.f_back
             assert frame.f_code.co_filename is not None
             template_path = os.path.dirname(frame.f_code.co_filename)
@@ -1290,14 +1292,17 @@ class RequestHandler(object):
             locales = []
             for language in languages:
                 parts = language.strip().split(";")
-                if len(parts) > 1 and parts[1].startswith("q="):
+                if len(parts) > 1 and parts[1].strip().startswith("q="):
                     try:
-                        score = float(parts[1][2:])
+                        score = float(parts[1].strip()[2:])
+                        if score < 0:
+                            raise ValueError()
                     except (ValueError, TypeError):
                         score = 0.0
                 else:
                     score = 1.0
-                locales.append((parts[0], score))
+                if score > 0:
+                    locales.append((parts[0], score))
             if locales:
                 locales.sort(key=lambda pair: pair[1], reverse=True)
                 codes = [loc[0] for loc in locales]
@@ -1671,11 +1676,15 @@ class RequestHandler(object):
             )
             # If XSRF cookies are turned on, reject form submissions without
             # the proper cookie
-            if self.request.method not in (
-                "GET",
-                "HEAD",
-                "OPTIONS",
-            ) and self.application.settings.get("xsrf_cookies"):
+            if (
+                self.request.method
+                not in (
+                    "GET",
+                    "HEAD",
+                    "OPTIONS",
+                )
+                and self.application.settings.get("xsrf_cookies")
+            ):
                 self.check_xsrf_cookie()
 
             result = self.prepare()
@@ -1818,7 +1827,10 @@ class RequestHandler(object):
             self.clear_header(h)
 
 
-def stream_request_body(cls: Type[RequestHandler]) -> Type[RequestHandler]:
+_RequestHandlerType = TypeVar("_RequestHandlerType", bound=RequestHandler)
+
+
+def stream_request_body(cls: Type[_RequestHandlerType]) -> Type[_RequestHandlerType]:
     """Apply to `RequestHandler` subclasses to enable streaming body support.
 
     This decorator implies the following changes:
@@ -1957,7 +1969,6 @@ class Application(ReversibleRouter):
         ])
         http_server = httpserver.HTTPServer(application)
         http_server.listen(8080)
-        ioloop.IOLoop.current().start()
 
     The constructor for this class takes in a list of `~.routing.Rule`
     objects or tuples of values corresponding to the arguments of
@@ -2086,27 +2097,48 @@ class Application(ReversibleRouter):
 
             autoreload.start()
 
-    def listen(self, port: int, address: str = "", **kwargs: Any) -> HTTPServer:
+    def listen(
+        self,
+        port: int,
+        address: Optional[str] = None,
+        *,
+        family: socket.AddressFamily = socket.AF_UNSPEC,
+        backlog: int = tornado.netutil._DEFAULT_BACKLOG,
+        flags: Optional[int] = None,
+        reuse_port: bool = False,
+        **kwargs: Any
+    ) -> HTTPServer:
         """Starts an HTTP server for this application on the given port.
 
-        This is a convenience alias for creating an `.HTTPServer`
-        object and calling its listen method.  Keyword arguments not
-        supported by `HTTPServer.listen <.TCPServer.listen>` are passed to the
-        `.HTTPServer` constructor.  For advanced uses
-        (e.g. multi-process mode), do not use this method; create an
-        `.HTTPServer` and call its
+        This is a convenience alias for creating an `.HTTPServer` object and
+        calling its listen method.  Keyword arguments not supported by
+        `HTTPServer.listen <.TCPServer.listen>` are passed to the `.HTTPServer`
+        constructor.  For advanced uses (e.g. multi-process mode), do not use
+        this method; create an `.HTTPServer` and call its
         `.TCPServer.bind`/`.TCPServer.start` methods directly.
 
         Note that after calling this method you still need to call
-        ``IOLoop.current().start()`` to start the server.
+        ``IOLoop.current().start()`` (or run within ``asyncio.run``) to start
+        the server.
 
         Returns the `.HTTPServer` object.
 
         .. versionchanged:: 4.3
            Now returns the `.HTTPServer` object.
+
+        .. versionchanged:: 6.2
+           Added support for new keyword arguments in `.TCPServer.listen`,
+           including ``reuse_port``.
         """
         server = HTTPServer(self, **kwargs)
-        server.listen(port, address)
+        server.listen(
+            port,
+            address=address,
+            family=family,
+            backlog=backlog,
+            flags=flags,
+            reuse_port=reuse_port,
+        )
         return server
 
     def add_handlers(self, host_pattern: str, host_handlers: _RuleList) -> None:
@@ -2304,7 +2336,10 @@ class _HandlerDelegate(httputil.HTTPMessageDelegate):
                 for loader in RequestHandler._template_loaders.values():
                     loader.reset()
         if not self.application.settings.get("static_hash_cache", True):
-            StaticFileHandler.reset()
+            static_handler_class = self.application.settings.get(
+                "static_handler_class", StaticFileHandler
+            )
+            static_handler_class.reset()
 
         self.handler = self.handler_class(
             self.application, self.request, **self.handler_kwargs

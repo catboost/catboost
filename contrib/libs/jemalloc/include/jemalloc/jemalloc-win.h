@@ -4,6 +4,9 @@
 extern "C" {
 #endif
 
+#define JEMALLOC_FALLTHROUGH JEMALLOC_ATTR(fallthrough)
+#define JEMALLOC_COLD JEMALLOC_ATTR(__cold__)
+
 /* Defined if __attribute__((...)) syntax is supported. */
 /* #undef JEMALLOC_HAVE_ATTR */
 
@@ -88,13 +91,13 @@ extern "C" {
 #include <limits.h>
 #include <strings.h>
 
-#define JEMALLOC_VERSION "5.2.1-0-gea6b3e973b477b8061e0076bb257dbd7f3faa756"
+#define JEMALLOC_VERSION "5.3.0-0-g54eaed1d8b56b1aa528be3bdd1877e59c56fa90c"
 #define JEMALLOC_VERSION_MAJOR 5
-#define JEMALLOC_VERSION_MINOR 2
-#define JEMALLOC_VERSION_BUGFIX 1
+#define JEMALLOC_VERSION_MINOR 3
+#define JEMALLOC_VERSION_BUGFIX 0
 #define JEMALLOC_VERSION_NREV 0
-#define JEMALLOC_VERSION_GID "ea6b3e973b477b8061e0076bb257dbd7f3faa756"
-#define JEMALLOC_VERSION_GID_IDENT ea6b3e973b477b8061e0076bb257dbd7f3faa756
+#define JEMALLOC_VERSION_GID "54eaed1d8b56b1aa528be3bdd1877e59c56fa90c"
+#define JEMALLOC_VERSION_GID_IDENT 54eaed1d8b56b1aa528be3bdd1877e59c56fa90c
 
 #define MALLOCX_LG_ALIGN(la)	((int)(la))
 #if LG_SIZEOF_PTR == 2
@@ -140,6 +143,8 @@ extern "C" {
 #else
 #  define JEMALLOC_CXX_THROW
 #endif
+
+#define JEMALLOC_EXPORT
 
 #if defined(_MSC_VER)
 #  define JEMALLOC_ATTR(s)

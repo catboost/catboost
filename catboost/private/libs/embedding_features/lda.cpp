@@ -116,7 +116,7 @@ namespace NCB {
                     &embed[0], 1,
                     0.0,
                     &proj[0], 1);
-        if (ComputeProbabilities) {
+        if (IsClassification && ComputeProbabilities) {
             std::vector<float> likehoods(NumClasses);
             float likehood = 0;
             for (int classId = 0; classId < NumClasses; ++classId) {
@@ -160,11 +160,11 @@ namespace NCB {
                     1.0, result->data(), TotalDimension);
     }
 
-    void TLinearDACalcerVisitor::Update(ui32 classId, const TEmbeddingsArray& embed,
+    void TLinearDACalcerVisitor::Update(float target, const TEmbeddingsArray& embed,
                                         TEmbeddingFeatureCalcer* featureCalcer) {
         auto lda = dynamic_cast<TLinearDACalcer*>(featureCalcer);
         Y_ASSERT(lda);
-        lda->ClassesDist[classId].AddVector(embed);
+        lda->ClassesDist[lda->IsClassification ? (size_t)target : 0].AddVector(embed);
         ++lda->Size;
         if (2 * LastFlush <= lda->Size) {
             Flush(featureCalcer);
@@ -176,16 +176,20 @@ namespace NCB {
         auto lda = dynamic_cast<TLinearDACalcer*>(featureCalcer);
         Y_ASSERT(lda);
         ui32 dim = lda->TotalDimension;
-        lda->BetweenMatrix.assign(dim * dim, 0);
         TVector<float> totalScatter(dim * dim, 0);
         lda->TotalScatterCalculation(&totalScatter);
-        for (int classIdx = 0; classIdx < lda->NumClasses; ++classIdx) {
-            float weight = lda->ClassesDist[classIdx].TotalSize() / lda->Size;
-            std::transform(lda->BetweenMatrix.begin(), lda->BetweenMatrix.end(),
-                           lda->ClassesDist[classIdx].ScatterMatrix.begin(),
-                           lda->BetweenMatrix.begin(), [weight](float x, float y) {
-                               return x + weight * y;
-                           });
+        if (lda->IsClassification) {
+            lda->BetweenMatrix.assign(dim * dim, 0);
+            for (size_t classIdx = 0; classIdx < lda->ClassesDist.size(); ++classIdx) {
+                float weight = lda->ClassesDist[classIdx].TotalSize() / lda->Size;
+                std::transform(lda->BetweenMatrix.begin(), lda->BetweenMatrix.end(),
+                               lda->ClassesDist[classIdx].ScatterMatrix.begin(),
+                               lda->BetweenMatrix.begin(), [weight](float x, float y) {
+                                   return x + weight * y;
+                               });
+            }
+        } else {
+            lda->BetweenMatrix = lda->ClassesDist[0].ScatterMatrix;
         }
         for (ui32 idx = 0; idx < lda->BetweenMatrix.size(); idx+= dim + 1) {
             lda->BetweenMatrix[idx] += lda->RegParam;
@@ -195,7 +199,7 @@ namespace NCB {
                             &lda->ProjectionMatrix,
                             &lda->EigenValues,
                             &lda->ProjectionCalculationCache);
-        if (lda->ComputeProbabilities) {
+        if (lda->IsClassification && lda->ComputeProbabilities) {
             InverseMatrix(&lda->BetweenMatrix, lda->TotalDimension);
         }
     }
@@ -213,7 +217,8 @@ namespace NCB {
             NumClasses,
             ProjectionDimension,
             ComputeProbabilities,
-            fbProjectionMatrix
+            fbProjectionMatrix,
+            IsClassification
         );
         return TEmbeddingCalcerFbs(TAnyEmbeddingCalcer_TLDA, fbLDA.Union());
     }
@@ -230,6 +235,8 @@ namespace NCB {
 
         ProjectionMatrix.yresize(projection->size());
         Copy(projection->begin(), projection->end(), ProjectionMatrix.begin());
+
+        IsClassification = fbLDA->IsClassification();
     }
 
     void TLinearDACalcer::SaveLargeParameters(IOutputStream*) const {

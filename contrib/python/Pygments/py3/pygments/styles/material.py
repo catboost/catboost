@@ -6,7 +6,7 @@
 
     https://github.com/material-theme/vsc-material-theme
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -35,7 +35,6 @@ class MaterialStyle(Style):
     foreground = '#EEFFFF'
     faded = '#546E7A'
 
-    default_style = ""
     background_color = dark_teal
     highlight_color = '#2C3B41'
     line_number_color = '#37474F'

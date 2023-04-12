@@ -4,7 +4,7 @@
 
     Lexer for Robot Framework.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -54,15 +54,16 @@ def normalize(string, remove=''):
 
 class RobotFrameworkLexer(Lexer):
     """
-    For `Robot Framework <http://robotframework.org>`_ test data.
+    For Robot Framework test data.
 
     Supports both space and pipe separated plain text formats.
 
     .. versionadded:: 1.6
     """
     name = 'RobotFramework'
+    url = 'http://robotframework.org'
     aliases = ['robotframework']
-    filenames = ['*.robot']
+    filenames = ['*.robot', '*.resource']
     mimetypes = ['text/x-robotframework']
 
     def __init__(self, **options):
@@ -99,7 +100,7 @@ class VariableTokenizer:
         yield var.identifier + '{', SYNTAX
         yield from self.tokenize(var.base, VARIABLE)
         yield '}', SYNTAX
-        if var.index:
+        if var.index is not None:
             yield '[', SYNTAX
             yield from self.tokenize(var.index, VARIABLE)
             yield ']', SYNTAX
@@ -285,7 +286,7 @@ class KeywordCall(Tokenizer):
 
 
 class GherkinTokenizer:
-    _gherkin_prefix = re.compile('^(Given|When|Then|And) ', re.IGNORECASE)
+    _gherkin_prefix = re.compile('^(Given|When|Then|And|But) ', re.IGNORECASE)
 
     def tokenize(self, value, token):
         match = self._gherkin_prefix.match(value)

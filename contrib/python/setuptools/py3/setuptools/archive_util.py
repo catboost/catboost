@@ -8,7 +8,7 @@ import posixpath
 import contextlib
 from distutils.errors import DistutilsError
 
-from pkg_resources import ensure_directory
+from ._path import ensure_directory
 
 __all__ = [
     "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
@@ -100,29 +100,37 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
         raise UnrecognizedFormat("%s is not a zip file" % (filename,))
 
     with zipfile.ZipFile(filename) as z:
-        for info in z.infolist():
-            name = info.filename
+        _unpack_zipfile_obj(z, extract_dir, progress_filter)
 
-            # don't extract absolute paths or ones with .. in them
-            if name.startswith('/') or '..' in name.split('/'):
-                continue
 
-            target = os.path.join(extract_dir, *name.split('/'))
-            target = progress_filter(name, target)
-            if not target:
-                continue
-            if name.endswith('/'):
-                # directory
-                ensure_directory(target)
-            else:
-                # file
-                ensure_directory(target)
-                data = z.read(info.filename)
-                with open(target, 'wb') as f:
-                    f.write(data)
-            unix_attributes = info.external_attr >> 16
-            if unix_attributes:
-                os.chmod(target, unix_attributes)
+def _unpack_zipfile_obj(zipfile_obj, extract_dir, progress_filter=default_filter):
+    """Internal/private API used by other parts of setuptools.
+    Similar to ``unpack_zipfile``, but receives an already opened :obj:`zipfile.ZipFile`
+    object instead of a filename.
+    """
+    for info in zipfile_obj.infolist():
+        name = info.filename
+
+        # don't extract absolute paths or ones with .. in them
+        if name.startswith('/') or '..' in name.split('/'):
+            continue
+
+        target = os.path.join(extract_dir, *name.split('/'))
+        target = progress_filter(name, target)
+        if not target:
+            continue
+        if name.endswith('/'):
+            # directory
+            ensure_directory(target)
+        else:
+            # file
+            ensure_directory(target)
+            data = zipfile_obj.read(info.filename)
+            with open(target, 'wb') as f:
+                f.write(data)
+        unix_attributes = info.external_attr >> 16
+        if unix_attributes:
+            os.chmod(target, unix_attributes)
 
 
 def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):

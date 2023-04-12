@@ -164,7 +164,6 @@ namespace {
             double sx = 0;
             double sy = 0;
             double sxx = 0;
-            double syy = 0;
             double sxy = 0;
 
             for (size_t i = 0; i < n; ++i) {
@@ -174,7 +173,6 @@ namespace {
                 sx += x;
                 sy += y;
                 sxx += x * x;
-                syy += y * y;
                 sxy += x * y;
             }
 

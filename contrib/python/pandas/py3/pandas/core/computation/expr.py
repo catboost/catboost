@@ -18,6 +18,7 @@ from typing import (
 import numpy as np
 
 from pandas.compat import PY39
+from pandas.errors import UndefinedVariableError
 
 import pandas.core.common as com
 from pandas.core.computation.ops import (
@@ -35,7 +36,6 @@ from pandas.core.computation.ops import (
     Op,
     Term,
     UnaryOp,
-    UndefinedVariableError,
     is_term,
 )
 from pandas.core.computation.parsing import (
@@ -253,7 +253,6 @@ _msg = f"cannot both support and not support {intersection}"
 assert not intersection, _msg
 
 
-# TODO: Python 3.6.2: replace Callable[..., None] with Callable[..., NoReturn]
 def _node_not_implemented(node_name: str) -> Callable[..., None]:
     """
     Return a function that raises a NotImplementedError with a passed node name.
@@ -265,7 +264,10 @@ def _node_not_implemented(node_name: str) -> Callable[..., None]:
     return f
 
 
-_T = TypeVar("_T", bound="BaseExprVisitor")
+# should be bound by BaseExprVisitor but that creates a circular dependency:
+# _T is used in disallow, but disallow is used to define BaseExprVisitor
+# https://github.com/microsoft/pyright/issues/2315
+_T = TypeVar("_T")
 
 
 def disallow(nodes: set[str]) -> Callable[[type[_T]], type[_T]]:
@@ -279,11 +281,13 @@ def disallow(nodes: set[str]) -> Callable[[type[_T]], type[_T]]:
     """
 
     def disallowed(cls: type[_T]) -> type[_T]:
-        cls.unsupported_nodes = ()
+        # error: "Type[_T]" has no attribute "unsupported_nodes"
+        cls.unsupported_nodes = ()  # type: ignore[attr-defined]
         for node in nodes:
             new_method = _node_not_implemented(node)
             name = f"visit_{node}"
-            cls.unsupported_nodes += (name,)
+            # error: "Type[_T]" has no attribute "unsupported_nodes"
+            cls.unsupported_nodes += (name,)  # type: ignore[attr-defined]
             setattr(cls, name, new_method)
         return cls
 
@@ -389,7 +393,7 @@ class BaseExprVisitor(ast.NodeVisitor):
 
     unsupported_nodes: tuple[str, ...]
 
-    def __init__(self, env, engine, parser, preparser=_preparse):
+    def __init__(self, env, engine, parser, preparser=_preparse) -> None:
         self.env = env
         self.engine = engine
         self.parser = parser
@@ -544,13 +548,13 @@ class BaseExprVisitor(ast.NodeVisitor):
     def visit_Name(self, node, **kwargs):
         return self.term_type(node.id, self.env, **kwargs)
 
-    def visit_NameConstant(self, node, **kwargs):
+    def visit_NameConstant(self, node, **kwargs) -> Term:
         return self.const_type(node.value, self.env)
 
-    def visit_Num(self, node, **kwargs):
+    def visit_Num(self, node, **kwargs) -> Term:
         return self.const_type(node.n, self.env)
 
-    def visit_Constant(self, node, **kwargs):
+    def visit_Constant(self, node, **kwargs) -> Term:
         return self.const_type(node.n, self.env)
 
     def visit_Str(self, node, **kwargs):
@@ -702,7 +706,8 @@ class BaseExprVisitor(ast.NodeVisitor):
                 if key.arg:
                     kwargs[key.arg] = self.visit(key.value).value
 
-            return self.const_type(res(*new_args, **kwargs), self.env)
+            name = self.env.add_tmp(res(*new_args, **kwargs))
+            return self.term_type(name=name, env=self.env)
 
     def translate_In(self, op):
         return op
@@ -763,13 +768,15 @@ class PandasExprVisitor(BaseExprVisitor):
             _preparse,
             f=_compose(_replace_locals, _replace_booleans, clean_backtick_quoted_toks),
         ),
-    ):
+    ) -> None:
         super().__init__(env, engine, parser, preparser)
 
 
 @disallow(_unsupported_nodes | _python_not_supported | frozenset(["Not"]))
 class PythonExprVisitor(BaseExprVisitor):
-    def __init__(self, env, engine, parser, preparser=lambda x: x):
+    def __init__(
+        self, env, engine, parser, preparser=lambda source, f=None: source
+    ) -> None:
         super().__init__(env, engine, parser, preparser=preparser)
 
 
@@ -797,7 +804,7 @@ class Expr:
         parser: str = "pandas",
         env: Scope | None = None,
         level: int = 0,
-    ):
+    ) -> None:
         self.expr = expr
         self.env = env or Scope(level=level + 1)
         self.engine = engine

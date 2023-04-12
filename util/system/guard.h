@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/generic/noncopyable.h>
+#include <util/system/defaults.h>
 
 template <class T>
 struct TCommonLockOps {

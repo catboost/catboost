@@ -74,7 +74,7 @@ namespace NCatboostCuda {
             while (!nodes.empty()) {
                 const auto current = nodes.back();
                 const auto& currentNode = Nodes[nodes.back()];
-                Y_VERIFY(currentNode.LeftSubtree >= 1 && currentNode.RightSubtree >= 1);
+                CB_ENSURE(currentNode.LeftSubtree >= 1 && currentNode.RightSubtree >= 1, "Left and/or right subtree is missing");
 
                 if (unwind) {
                     if (current + currentNode.LeftSubtree != prev) {

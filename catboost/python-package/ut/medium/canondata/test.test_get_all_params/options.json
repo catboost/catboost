@@ -15,6 +15,7 @@
     "ctr_leaf_count_limit": 18446744073709551615,
     "ctr_target_border_count": 1,
     "depth": 6,
+    "eval_fraction": 0,
     "eval_metric": "RMSE",
     "feature_border_type": "GreedyLogSum",
     "fold_permutation_block": 0,

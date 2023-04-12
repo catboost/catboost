@@ -1,6 +1,7 @@
 #include <library/cpp/testing/unittest/registar.h>
 
 #include "atexit.h"
+#include <util/generic/singleton.h>
 
 #include <errno.h>
 
@@ -83,3 +84,21 @@ class TAtExitTest: public TTestBase {
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TAtExitTest);
+
+Y_UNIT_TEST_SUITE(TestAtExit) {
+
+    Y_UNIT_TEST(CreateUponDestruction) {
+
+        struct T1 {
+        };
+
+        struct T2 {
+            ~T2() {
+                Singleton<T1>();
+            }
+        };
+
+        Singleton<T2>();
+
+    }
+}

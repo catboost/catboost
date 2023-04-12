@@ -12,9 +12,9 @@
 namespace NCoro::NStack::NBenchmark {
 
     const char* TestCoroName = "any_name";
-    constexpr uint64_t BigCoroSize = PageSize * 25;
-    constexpr uint64_t SmallCoroSize = PageSize * 4;
-    constexpr uint64_t ManyStacks = 4096;
+    constexpr size_t BigCoroSize = PageSize * 25;
+    constexpr size_t SmallCoroSize = PageSize * 4;
+    constexpr size_t ManyStacks = 4096;
 
     void BasicOperations(TStackHolder& stack) {
         Y_VERIFY(!stack.Get().empty());
@@ -27,7 +27,7 @@ namespace NCoro::NStack::NBenchmark {
         Y_VERIFY(!memory.empty());
         stack.LowerCanaryOk();
         stack.UpperCanaryOk();
-        for (uint64_t i = PageSize / 2; i < memory.size(); i += PageSize * 2) {
+        for (size_t i = PageSize / 2; i < memory.size(); i += PageSize * 2) {
             memory[i] = 42;
         }
     }
@@ -87,7 +87,7 @@ namespace NCoro::NStack::NBenchmark {
         settings.StacksPerChunk = state.range(2);
         auto allocator = GetAllocator(settings, (EGuard)state.range(0));
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 TStackHolder stack(*allocator, state.range(1), TestCoroName);
                 BasicOperations(stack);
             }
@@ -106,7 +106,7 @@ namespace NCoro::NStack::NBenchmark {
     static void BM_DefaultAllocatorManyStacksOneAtTime(benchmark::State& state) {
         auto allocator = GetAllocator(Nothing(), (EGuard)state.range(0));
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 TStackHolder stack(*allocator, state.range(1), TestCoroName);
                 BasicOperations(stack);
             }
@@ -125,7 +125,7 @@ namespace NCoro::NStack::NBenchmark {
         TVector<TStackHolder> stacks; // store stacks during benchmark
         stacks.reserve(ManyStacks);
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.emplace_back(*allocator, state.range(1), TestCoroName);
                 BasicOperations(stacks.back());
             }
@@ -146,7 +146,7 @@ namespace NCoro::NStack::NBenchmark {
         TVector<TStackHolder> stacks; // store stacks during benchmark
         stacks.reserve(ManyStacks);
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.push_back(TStackHolder(*allocator, state.range(1), TestCoroName));
                 BasicOperations(stacks.back());
             }
@@ -166,7 +166,7 @@ namespace NCoro::NStack::NBenchmark {
         TVector<TStackHolder> stacks; // store stacks during benchmark
         stacks.reserve(ManyStacks);
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.emplace_back(*allocator, state.range(1), TestCoroName);
                 BasicOperations(stacks.back());
             }
@@ -188,7 +188,7 @@ namespace NCoro::NStack::NBenchmark {
         TVector<TStackHolder> stacks; // store stacks during benchmark
         stacks.reserve(ManyStacks);
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.push_back(TStackHolder(*allocator, state.range(1), TestCoroName));
                 BasicOperations(stacks.back());
             }
@@ -209,12 +209,12 @@ namespace NCoro::NStack::NBenchmark {
         TVector<TStackHolder> stacks; // store stacks during benchmark
         stacks.reserve(ManyStacks);
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.emplace_back(*allocator, state.range(1), TestCoroName);
                 BasicOperations(stacks.back());
             }
             stacks.clear();
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.emplace_back(*allocator, state.range(1), TestCoroName);
                 BasicOperations(stacks.back());
             }
@@ -239,12 +239,12 @@ namespace NCoro::NStack::NBenchmark {
         TVector<TStackHolder> stacks; // store stacks during benchmark
         stacks.reserve(ManyStacks);
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.push_back(TStackHolder(*allocator, state.range(1), TestCoroName));
                 BasicOperations(stacks.back());
             }
             stacks.clear();
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.push_back(TStackHolder(*allocator, state.range(1), TestCoroName));
                 BasicOperations(stacks.back());
             }
@@ -264,12 +264,12 @@ namespace NCoro::NStack::NBenchmark {
         TVector<TStackHolder> stacks; // store stacks during benchmark
         stacks.reserve(ManyStacks);
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.emplace_back(*allocator, state.range(1), TestCoroName);
                 WriteStack(stacks.back());
             }
             stacks.clear();
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.emplace_back(*allocator, state.range(1), TestCoroName);
                 WriteStack(stacks.back());
             }
@@ -294,12 +294,12 @@ namespace NCoro::NStack::NBenchmark {
         TVector<TStackHolder> stacks; // store stacks during benchmark
         stacks.reserve(ManyStacks);
         for (auto _ : state) {
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.push_back(TStackHolder(*allocator, state.range(1), TestCoroName));
                 WriteStack(stacks.back());
             }
             stacks.clear();
-            for (uint64_t i = 0; i < ManyStacks; ++i) {
+            for (size_t i = 0; i < ManyStacks; ++i) {
                 stacks.push_back(TStackHolder(*allocator, state.range(1), TestCoroName));
                 WriteStack(stacks.back());
             }

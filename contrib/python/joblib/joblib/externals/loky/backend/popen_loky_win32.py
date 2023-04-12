@@ -1,34 +1,21 @@
 import os
 import sys
+import msvcrt
+import _winapi
 from pickle import load
 from multiprocessing import process, util
+from multiprocessing.context import get_spawning_popen, set_spawning_popen
+from multiprocessing.popen_spawn_win32 import Popen as _Popen
+from multiprocessing.reduction import duplicate
 
-from . import spawn
-from . import reduction
-from .context import get_spawning_popen, set_spawning_popen
+from . import reduction, spawn
 
-if sys.platform == "win32":
-    # Avoid import error by code introspection tools such as test runners
-    # trying to import this module while running on non-Windows systems.
-    import msvcrt
-    from .compat_win32 import _winapi
-    from .compat_win32 import Popen as _Popen
-    from .reduction import duplicate
-else:
-    _Popen = object
-
-if sys.version_info[:2] < (3, 3):
-    from os import fdopen as open
 
 __all__ = ['Popen']
 
 #
 #
 #
-
-TERMINATE = 0x10000
-WINEXE = (sys.platform == 'win32' and getattr(sys, 'frozen', False))
-WINSERVICE = sys.executable.lower().endswith("pythonservice.exe")
 
 
 def _path_eq(p1, p2):
@@ -61,13 +48,12 @@ class Popen(_Popen):
         os.close(rfd)
 
         cmd = get_command_line(parent_pid=os.getpid(), pipe_handle=rhandle)
-        cmd = ' '.join('"%s"' % x for x in cmd)
+        cmd = ' '.join(f'"{x}"' for x in cmd)
 
         python_exe = spawn.get_executable()
 
         # copy the environment variables to set in the child process
-        child_env = os.environ.copy()
-        child_env.update(process_obj.env)
+        child_env = {**os.environ, **process_obj.env}
 
         # bpo-35797: When running in a venv, we bypass the redirect
         # executor and launch our base Python.
@@ -87,7 +73,7 @@ class Popen(_Popen):
                     # the cleaner multiprocessing.reduction.steal_handle should
                     # be used instead.
                     inherit = True
-                    hp, ht, pid, tid = _winapi.CreateProcess(
+                    hp, ht, pid, _ = _winapi.CreateProcess(
                         python_exe, cmd,
                         None, None, inherit, 0,
                         child_env, None, None)
@@ -105,22 +91,19 @@ class Popen(_Popen):
 
                 # send information to child
                 set_spawning_popen(self)
-                if sys.version_info[:2] < (3, 4):
-                    Popen._tls.process_handle = int(hp)
                 try:
                     reduction.dump(prep_data, to_child)
                     reduction.dump(process_obj, to_child)
                 finally:
                     set_spawning_popen(None)
-                    if sys.version_info[:2] < (3, 4):
-                        del Popen._tls.process_handle
         except IOError as exc:
             # IOError 22 happens when the launched subprocess terminated before
             # wfd.close is called. Thus we can safely ignore it.
             if exc.errno != 22:
                 raise
-            util.debug("While starting {}, ignored a IOError 22"
-                       .format(process_obj._name))
+            util.debug(
+                f"While starting {process_obj._name}, ignored a IOError 22"
+            )
 
     def duplicate_for_child(self, handle):
         assert self is get_spawning_popen()
@@ -132,12 +115,12 @@ def get_command_line(pipe_handle, **kwds):
     Returns prefix of command line used for spawning a child process
     '''
     if getattr(sys, 'frozen', False):
-        return ([sys.executable, '--multiprocessing-fork', pipe_handle])
+        return [sys.executable, '--multiprocessing-fork', pipe_handle]
     else:
         prog = 'from joblib.externals.loky.backend.popen_loky_win32 import main; main()'
         opts = util._args_from_interpreter_flags()
-        return [spawn.get_executable()] + opts + [
-            '-c', prog, '--multiprocessing-fork', pipe_handle]
+        return [spawn.get_executable(), *opts,
+                '-c', prog, '--multiprocessing-fork', pipe_handle]
 
 
 def is_forking(argv):

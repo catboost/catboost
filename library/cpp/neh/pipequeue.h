@@ -4,6 +4,7 @@
 
 #include <library/cpp/coroutine/engine/impl.h>
 #include <library/cpp/coroutine/engine/network.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/pipe.h>
 
 #ifdef _linux_

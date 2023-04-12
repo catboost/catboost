@@ -11,9 +11,9 @@ import re
 import textwrap
 import marshal
 
-from pkg_resources import get_build_platform, Distribution, ensure_directory
 from setuptools.extension import Library
 from setuptools import Command
+from .._path import ensure_directory
 
 from sysconfig import get_path, get_python_version
 
@@ -63,7 +63,7 @@ class bdist_egg(Command):
         ('bdist-dir=', 'b',
          "temporary directory for creating the distribution"),
         ('plat-name=', 'p', "platform name to embed in generated filenames "
-                            "(default: %s)" % get_build_platform()),
+                            "(by default uses `pkg_resources.get_build_platform()`)"),
         ('exclude-source-files', None,
          "remove all .py files from the generated egg"),
         ('keep-temp', 'k',
@@ -97,18 +97,18 @@ class bdist_egg(Command):
             self.bdist_dir = os.path.join(bdist_base, 'egg')
 
         if self.plat_name is None:
+            from pkg_resources import get_build_platform
+
             self.plat_name = get_build_platform()
 
         self.set_undefined_options('bdist', ('dist_dir', 'dist_dir'))
 
         if self.egg_output is None:
-
             # Compute filename of the output egg
-            basename = Distribution(
-                None, None, ei_cmd.egg_name, ei_cmd.egg_version,
-                get_python_version(),
-                self.distribution.has_ext_modules() and self.plat_name
-            ).egg_name()
+            basename = ei_cmd._get_egg_basename(
+                py_version=get_python_version(),
+                platform=self.distribution.has_ext_modules() and self.plat_name,
+            )
 
             self.egg_output = os.path.join(self.dist_dir, basename + '.egg')
 

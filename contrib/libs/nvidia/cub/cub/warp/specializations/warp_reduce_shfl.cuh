@@ -40,11 +40,7 @@
 
 #include <stdint.h>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -58,6 +54,9 @@ template <
     int         PTX_ARCH>               ///< The PTX compute capability for which to to specialize this collective
 struct WarpReduceShfl
 {
+    static_assert(PowerOfTwo<LOGICAL_WARP_THREADS>::VALUE,
+                  "LOGICAL_WARP_THREADS must be a power of two");
+
     //---------------------------------------------------------------------
     // Constants and type definitions
     //---------------------------------------------------------------------
@@ -113,16 +112,13 @@ struct WarpReduceShfl
     /// Constructor
     __device__ __forceinline__ WarpReduceShfl(
         TempStorage &/*temp_storage*/)
+        : lane_id(static_cast<int>(LaneId()))
+        , warp_id(IS_ARCH_WARP ? 0 : (lane_id / LOGICAL_WARP_THREADS))
+        , member_mask(WarpMask<LOGICAL_WARP_THREADS, PTX_ARCH>(warp_id))
     {
-        lane_id = static_cast<int>(LaneId());
-        warp_id = 0;
-        member_mask = 0xffffffffu >> (CUB_WARP_THREADS(PTX_ARCH) - LOGICAL_WARP_THREADS);
-
         if (!IS_ARCH_WARP)
         {
-            warp_id = lane_id / LOGICAL_WARP_THREADS;
             lane_id = lane_id % LOGICAL_WARP_THREADS;
-            member_mask = member_mask << (warp_id * LOGICAL_WARP_THREADS);
         }
     }
 
@@ -538,5 +534,4 @@ struct WarpReduceShfl
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

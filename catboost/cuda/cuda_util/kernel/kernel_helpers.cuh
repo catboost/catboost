@@ -1,7 +1,6 @@
 #pragma once
-#include <library/cpp/cuda/wrappers/cub_include.h>
-#include _CUB_INCLUDE(cub/thread/thread_load.cuh)
-#include _CUB_INCLUDE(cub/thread/thread_store.cuh)
+#include <contrib/libs/nvidia/cub/cub/thread/thread_load.cuh>
+#include <contrib/libs/nvidia/cub/cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
 
@@ -249,5 +248,9 @@ namespace NKernel {
             #endif
         }
     };
+
+    static __forceinline__ __host__ bool IsGridEmpty(const dim3& grid) {
+        return grid.x == 0 || grid.y == 0 || grid.z == 0;
+    }
 
 }

@@ -65,15 +65,15 @@ class JsonEscaping {
 
   // The minimum value of a unicode supplementary code point.
   // See http://www.unicode.org/glossary/#supplementary_code_point
-  static constexpr uint32_t kMinSupplementaryCodePoint = 0x010000;
+  static constexpr arc_ui32 kMinSupplementaryCodePoint = 0x010000;
 
   // The minimum value of a unicode code point.
   // See http://www.unicode.org/glossary/#code_point
-  static constexpr uint32_t kMinCodePoint = 0x000000;
+  static constexpr arc_ui32 kMinCodePoint = 0x000000;
 
   // The maximum value of a unicode code point.
   // See http://www.unicode.org/glossary/#code_point
-  static constexpr uint32_t kMaxCodePoint = 0x10ffff;
+  static constexpr arc_ui32 kMaxCodePoint = 0x10ffff;
 
   JsonEscaping() {}
   virtual ~JsonEscaping() {}

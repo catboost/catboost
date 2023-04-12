@@ -52,7 +52,13 @@ namespace NCatboostCuda {
         TVector<double> weights;
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
-        TMirrorBuffer<float> featureWeights;
+        TMirrorBuffer<float> catFeatureWeights;
+
+        const auto featureCount = FeaturesManager.GetFeatureCount();
+        const auto& featureWeightsCpu = ExpandFeatureWeights(TreeConfig.FeaturePenalties.Get(), featureCount);
+        TMirrorBuffer<float> featureWeights = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(featureCount));
+        featureWeights.Write(featureWeightsCpu);
+        double scoreBeforeSplit = 0.0;
 
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
             {
@@ -65,7 +71,7 @@ namespace NCatboostCuda {
             //all reduce through master will implicitly sync
             //                manager.WaitComplete();
 
-            UpdateFeatureWeightsForBestSplits(FeaturesManager, TreeConfig.ModelSizeReg, featureWeights);
+            UpdateFeatureWeightsForBestSplits(FeaturesManager, TreeConfig.ModelSizeReg, catFeatureWeights);
 
             TBinarySplit bestSplit;
             {
@@ -83,13 +89,17 @@ namespace NCatboostCuda {
                 {
                     if (featuresScoreCalcer) {
                         featuresScoreCalcer->ComputeOptimalSplit(reducedPartStats.AsConstBuf(),
+                                                                 catFeatureWeights.AsConstBuf(),
                                                                  featureWeights.AsConstBuf(),
+                                                                 scoreBeforeSplit,
                                                                  scoreStdDevMult,
                                                                  random.NextUniformL());
                     }
                     if (simpleCtrScoreCalcer) {
                         simpleCtrScoreCalcer->ComputeOptimalSplit(reducedPartStats.AsConstBuf(),
+                                                                  catFeatureWeights.AsConstBuf(),
                                                                   featureWeights.AsConstBuf(),
+                                                                  scoreBeforeSplit,
                                                                   scoreStdDevMult,
                                                                   random.NextUniformL());
                     }
@@ -98,6 +108,7 @@ namespace NCatboostCuda {
 
             TBestSplitProperties bestSplitProp = {static_cast<ui32>(-1),
                                                   0,
+                                                  std::numeric_limits<float>::infinity(),
                                                   std::numeric_limits<float>::infinity()};
 
             if (featuresScoreCalcer) {
@@ -107,6 +118,7 @@ namespace NCatboostCuda {
             if (simpleCtrScoreCalcer) {
                 bestSplitProp = TakeBest(bestSplitProp, simpleCtrScoreCalcer->ReadOptimalSplit());
             }
+            scoreBeforeSplit = bestSplitProp.Score;
 
             CB_ENSURE(bestSplitProp.FeatureId != static_cast<ui32>(-1),
                       TStringBuilder() << "Error: something went wrong, best split is NaN with score"

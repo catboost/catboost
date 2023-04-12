@@ -18,10 +18,9 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 struct use_default {};
 
-} // end thrust
+THRUST_NAMESPACE_END
 

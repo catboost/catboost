@@ -19,13 +19,10 @@
 #include <thrust/detail/config.h>
 
 // #include the host system's execution_policy header
-#define __THRUST_HOST_SYSTEM_TAG_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/execution_policy.h>
-#include __THRUST_HOST_SYSTEM_TAG_HEADER
-#undef __THRUST_HOST_SYSTEM_TAG_HEADER
+#include <thrust/system/cpp/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-typedef thrust::system::__THRUST_HOST_SYSTEM_NAMESPACE::tag host_system_tag;
+typedef thrust::system::cpp::tag host_system_tag;
 
-} // end thrust
+THRUST_NAMESPACE_END

@@ -330,8 +330,9 @@ bool IsPrepareTreesCalcShapValues(
             double treesAverageLeafCount = forest.GetModelTreeData()->GetLeafValues().size() / treeCount;
             return treesAverageLeafCount < *datasetObjectCount;
         }
+        default:
+            CB_ENSURE(false, "Unexpected type of SHAP precalculation");
     }
-    Y_UNREACHABLE();
 }
 
 static bool AreApproxesZeroForLastClass(
@@ -466,12 +467,13 @@ static void InitLeafWeights(
 
 static void InitLeafWeights(
     const TFullModel& model,
+    bool fstrOnTrainPool,
     const TDataProvider* dataset,
     NPar::ILocalExecutor* localExecutor,
     TVector<double>* leafWeights
 ) {
     const auto leafWeightsOfModels = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
-    const bool needSumModelAndDatasetWeights = HasNonZeroApproxForZeroWeightLeaf(model);
+    const bool needSumModelAndDatasetWeights = !fstrOnTrainPool && HasNonZeroApproxForZeroWeightLeaf(model);
 
     TVector<double> leafWeightsFromDataset;
     if (leafWeightsOfModels.empty() || needSumModelAndDatasetWeights) {
@@ -535,10 +537,11 @@ TShapPreparedTrees PrepareTrees(
     NPar::ILocalExecutor* localExecutor,
     bool calcInternalValues,
     ECalcTypeShapValues calcType,
-    EExplainableModelOutput modelOutputType
+    EExplainableModelOutput modelOutputType,
+    bool fstrOnTrainPool
 ) {
     TShapPreparedTrees preparedTrees;
-    InitLeafWeights(model, dataset, localExecutor, &preparedTrees.LeafWeightsForAllTrees);
+    InitLeafWeights(model, fstrOnTrainPool, dataset, localExecutor, &preparedTrees.LeafWeightsForAllTrees);
     InitPreparedTreesWithoutIndependent(
         model,
         dataset ? TMaybe<ui32>(dataset->GetObjectCount()) : Nothing(),

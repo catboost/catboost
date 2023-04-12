@@ -24,20 +24,11 @@ import pexpect
 
 # Our own
 from ._process_common import getoutput, arg_split
-from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 
 #-----------------------------------------------------------------------------
 # Function definitions
 #-----------------------------------------------------------------------------
-
-def _find_cmd(cmd):
-    """Find the full path to a command using which."""
-
-    path = sp.Popen(['/usr/bin/env', 'which', cmd],
-                    stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
-    return py3compat.decode(path)
-
 
 class ProcessHandler(object):
     """Execute subprocesses under the control of pexpect.
@@ -82,12 +73,12 @@ class ProcessHandler(object):
         Parameters
         ----------
         cmd : str
-          A command to be executed in the system shell.
+            A command to be executed in the system shell.
 
         Returns
         -------
         output : str
-          A string containing the combination of stdout and stderr from the
+            A string containing the combination of stdout and stderr from the
         subprocess, in whatever order the subprocess originally wrote to its
         file descriptors (so the order of the information in this string is the
         correct order as would be seen if running the command in a terminal).
@@ -103,12 +94,12 @@ class ProcessHandler(object):
         Parameters
         ----------
         cmd : str
-          A command to be executed in the system shell.
+            A command to be executed in the system shell.
 
         Returns
         -------
         output : str
-          A string containing the combination of stdout and stderr from the
+            A string containing the combination of stdout and stderr from the
         subprocess, in whatever order the subprocess originally wrote to its
         file descriptors (so the order of the information in this string is the
         correct order as would be seen if running the command in a terminal).
@@ -124,7 +115,7 @@ class ProcessHandler(object):
         Parameters
         ----------
         cmd : str
-          A command to be executed in the system shell.
+            A command to be executed in the system shell.
 
         Returns
         -------

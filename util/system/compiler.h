@@ -1,5 +1,17 @@
 #pragma once
 
+#if defined(_MSC_VER) && defined(__clang__)
+    #define _compiler_clang_cl_
+#elif defined(_MSC_VER)
+    #define _compiler_msvc_
+#elif defined(__clang__)
+    #define _compiler_clang_
+#elif defined(__GNUC__)
+    #define _compiler_gcc_
+#else
+    #warning("Current compiler is not supported by " __FILE__)
+#endif
+
 #if defined(_MSC_VER)
     #include <intrin.h>
 #endif
@@ -157,10 +169,10 @@
     #define Y_UNLIKELY(Cond) (Cond)
 #endif
 
-#ifdef __GNUC__
-    #define _packed __attribute__((packed))
+#if defined(_compiler_clang_) || defined(_compiler_clang_cl_) || defined(_compiler_gcc_)
+    #define Y_PACKED __attribute__((packed))
 #else
-    #define _packed
+    #define Y_PACKED
 #endif
 
 #if defined(__GNUC__)
@@ -318,13 +330,6 @@ _YandexAbort();
     #define Y_CUDA_AT_LEAST(x, y) (__CUDACC_VER_MAJOR__ > x || (__CUDACC_VER_MAJOR__ == x && __CUDACC_VER_MINOR__ >= y))
 #else
     #define Y_CUDA_AT_LEAST(x, y) 0
-#endif
-
-// NVidia CUDA C++ Compiler did not know about noexcept keyword until version 9.0
-#if !Y_CUDA_AT_LEAST(9, 0)
-    #if defined(__CUDACC__) && !defined(noexcept)
-        #define noexcept throw()
-    #endif
 #endif
 
 #if defined(__GNUC__)
@@ -624,6 +629,12 @@ _YandexAbort();
         } while (0)
 #endif
 
+#if defined(__clang__) && Y_CUDA_AT_LEAST(11, 0)
+    #define Y_REINITIALIZES_OBJECT [[clang::reinitializes]]
+#else
+    #define Y_REINITIALIZES_OBJECT
+#endif
+
 #ifdef __cplusplus
 
 void UseCharPointerImpl(volatile const char*);
@@ -643,8 +654,8 @@ Y_FORCE_INLINE void DoNotOptimizeAway(T&& datum) {
 }
 
     /**
- * Use this macro to prevent unused variables elimination.
- */
+     * Use this macro to prevent unused variables elimination.
+     */
     #define Y_DO_NOT_OPTIMIZE_AWAY(X) ::DoNotOptimizeAway(X)
 
 #endif

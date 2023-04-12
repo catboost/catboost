@@ -192,6 +192,7 @@ d[bytes] = _deepcopy_atomic
 d[str] = _deepcopy_atomic
 d[types.CodeType] = _deepcopy_atomic
 d[type] = _deepcopy_atomic
+d[range] = _deepcopy_atomic
 d[types.BuiltinFunctionType] = _deepcopy_atomic
 d[types.FunctionType] = _deepcopy_atomic
 d[weakref.ref] = _deepcopy_atomic
@@ -257,7 +258,7 @@ def _keep_alive(x, memo):
 
 def _reconstruct(x, memo, func, args,
                  state=None, listiter=None, dictiter=None,
-                 deepcopy=deepcopy):
+                 *, deepcopy=deepcopy):
     deep = memo is not None
     if deep and args:
         args = (deepcopy(arg, memo) for arg in args)

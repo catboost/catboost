@@ -58,10 +58,10 @@ class CatBoostRegressor(iterations=None,
                         per_feature_ctr=None,
                         ctr_target_border_count=None,
                         task_type=None,
-                        device_config=None,                        
+                        device_config=None,
                         devices=None,
                         bootstrap_type=None,
-                        subsample=None,                        
+                        subsample=None,
                         sampling_unit=None,
                         dev_score_calc_obj_block_size=None,
                         max_depth=None,
@@ -96,7 +96,8 @@ class CatBoostRegressor(iterations=None,
                         langevin=None,
                         diffusion_temperature=None,
                         posterior_sampling=None,
-                        boost_from_average=None)
+                        boost_from_average=None,
+                        fixed_binary_splits=None)
 ```
 
 ## {{ dl--purpose }} {#purpose}

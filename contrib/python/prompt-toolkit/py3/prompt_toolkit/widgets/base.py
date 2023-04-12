@@ -195,6 +195,7 @@ class TextArea:
         preview_search: FilterOrBool = True,
         prompt: AnyFormattedText = "",
         input_processors: Optional[List[Processor]] = None,
+        name: str = "",
     ) -> None:
 
         if search_field is None:
@@ -226,6 +227,7 @@ class TextArea:
             auto_suggest=DynamicAutoSuggest(lambda: self.auto_suggest),
             accept_handler=accept_handler,
             history=history,
+            name=name,
         )
 
         self.control = BufferControl(
@@ -343,6 +345,10 @@ class Label:
         width: AnyDimension = None,
         dont_extend_height: bool = True,
         dont_extend_width: bool = False,
+        align: Union[WindowAlign, Callable[[], WindowAlign]] = WindowAlign.LEFT,
+        # There is no cursor navigation in a label, so it makes sense to always
+        # wrap lines by default.
+        wrap_lines: FilterOrBool = True,
     ) -> None:
 
         self.text = text
@@ -368,6 +374,8 @@ class Label:
             style="class:label " + style,
             dont_extend_height=dont_extend_height,
             dont_extend_width=dont_extend_width,
+            align=align,
+            wrap_lines=wrap_lines,
         )
 
     def __pt_container__(self) -> Container:
@@ -431,7 +439,7 @@ class Button:
         width = self.width - (
             get_cwidth(self.left_symbol) + get_cwidth(self.right_symbol)
         )
-        text = ("{{:^{}}}".format(width)).format(self.text)
+        text = (f"{{:^{width}}}").format(self.text)
 
         def handler(mouse_event: MouseEvent) -> None:
             if (
@@ -684,15 +692,32 @@ class _DialogList(Generic[_T]):
     multiple_selection: bool = False
     show_scrollbar: bool = True
 
-    def __init__(self, values: Sequence[Tuple[_T, AnyFormattedText]]) -> None:
+    def __init__(
+        self,
+        values: Sequence[Tuple[_T, AnyFormattedText]],
+        default_values: Optional[Sequence[_T]] = None,
+    ) -> None:
         assert len(values) > 0
+        default_values = default_values or []
 
         self.values = values
         # current_values will be used in multiple_selection,
         # current_value will be used otherwise.
-        self.current_values: List[_T] = []
-        self.current_value: _T = values[0][0]
-        self._selected_index = 0
+        keys: List[_T] = [value for (value, _) in values]
+        self.current_values: List[_T] = [
+            value for value in default_values if value in keys
+        ]
+        self.current_value: _T = (
+            default_values[0]
+            if len(default_values) and default_values[0] in keys
+            else values[0][0]
+        )
+
+        # Cursor index: take first selected item or first item otherwise.
+        if len(self.current_values) > 0:
+            self._selected_index = keys.index(self.current_values[0])
+        else:
+            self._selected_index = 0
 
         # Key bindings.
         kb = KeyBindings()
@@ -830,6 +855,18 @@ class RadioList(_DialogList[_T]):
     checked_style = "class:radio-checked"
     multiple_selection = False
 
+    def __init__(
+        self,
+        values: Sequence[Tuple[_T, AnyFormattedText]],
+        default: Optional[_T] = None,
+    ) -> None:
+        if default is None:
+            default_values = None
+        else:
+            default_values = [default]
+
+        super().__init__(values, default_values=default_values)
+
 
 class CheckboxList(_DialogList[_T]):
     """
@@ -857,7 +894,7 @@ class Checkbox(CheckboxList[str]):
 
     def __init__(self, text: AnyFormattedText = "", checked: bool = False) -> None:
         values = [("value", text)]
-        CheckboxList.__init__(self, values)
+        super().__init__(values=values)
         self.checked = checked
 
     @property
@@ -872,7 +909,7 @@ class Checkbox(CheckboxList[str]):
             self.current_values = []
 
 
-class VerticalLine(object):
+class VerticalLine:
     """
     A simple vertical line with a width of 1.
     """
@@ -941,7 +978,7 @@ class ProgressBar:
     @percentage.setter
     def percentage(self, value: int) -> None:
         self._percentage = value
-        self.label.text = "{0}%".format(value)
+        self.label.text = f"{value}%"
 
     def __pt_container__(self) -> Container:
         return self.container

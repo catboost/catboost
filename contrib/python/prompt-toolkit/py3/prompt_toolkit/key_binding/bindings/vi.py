@@ -3,7 +3,7 @@ import codecs
 import string
 from enum import Enum
 from itertools import accumulate
-from typing import Callable, Iterable, List, Optional, Tuple, TypeVar, Union, cast
+from typing import Callable, Iterable, List, Optional, Tuple, TypeVar, Union
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.buffer import Buffer, indent, reshape_text, unindent
@@ -1861,7 +1861,7 @@ def load_vi_bindings() -> KeyBindingsBase:
         )
         def _arg(event: E) -> None:
             """
-            Always handle numberics in navigation mode as arg.
+            Always handle numerics in navigation mode as arg.
             """
             event.append_to_arg_count(event.data)
 

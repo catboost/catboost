@@ -160,3 +160,16 @@ TEST(Runtime, WatchProcessCore) {
 )json";
     EXPECT_EQ(expected, data);
 }
+
+TEST(Runtime, GlobalResources) {
+    TString context = R"json({
+        "resources": {
+            "global": {
+                "TOOL_NAME_RESOURCE_GLOBAL": "path"
+            }
+        }
+    })json";
+
+    auto filename = ReInitializeContext(context);
+    EXPECT_EQ("path", GetGlobalResource("TOOL_NAME_RESOURCE_GLOBAL"));
+}

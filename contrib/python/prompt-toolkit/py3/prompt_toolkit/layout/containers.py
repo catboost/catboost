@@ -826,7 +826,7 @@ class FloatContainer(Container):
 
             if postpone:
                 new_z_index = (
-                    number + 10 ** 8
+                    number + 10**8
                 )  # Draw as late as possible, but keep the order.
                 screen.draw_with_z_index(
                     z_index=new_z_index,
@@ -1365,7 +1365,7 @@ class ScrollOffsets:
         return to_int(self._right)
 
     def __repr__(self) -> str:
-        return "ScrollOffsets(top=%r, bottom=%r, left=%r, right=%r)" % (
+        return "ScrollOffsets(top={!r}, bottom={!r}, left={!r}, right={!r})".format(
             self._top,
             self._bottom,
             self._left,
@@ -2059,7 +2059,7 @@ class Window(Container):
                             return x, y  # Break out of all for loops.
 
                     # Set character in screen and shift 'x'.
-                    if x >= 0 and y >= 0 and x < write_position.width:
+                    if x >= 0 and y >= 0 and x < width:
                         new_buffer_row[x + xpos] = char
 
                         # When we print a multi width character, make sure
@@ -2627,7 +2627,7 @@ class ConditionalContainer(Container):
         self.filter = to_filter(filter)
 
     def __repr__(self) -> str:
-        return "ConditionalContainer(%r, filter=%r)" % (self.content, self.filter)
+        return f"ConditionalContainer({self.content!r}, filter={self.filter!r})"
 
     def reset(self) -> None:
         self.content.reset()
@@ -2730,7 +2730,7 @@ def to_container(container: AnyContainer) -> Container:
     elif hasattr(container, "__pt_container__"):
         return to_container(container.__pt_container__())
     else:
-        raise ValueError("Not a container object: %r" % (container,))
+        raise ValueError(f"Not a container object: {container!r}")
 
 
 def to_window(container: AnyContainer) -> Window:
@@ -2742,7 +2742,7 @@ def to_window(container: AnyContainer) -> Window:
     elif hasattr(container, "__pt_container__"):
         return to_window(cast("MagicContainer", container).__pt_container__())
     else:
-        raise ValueError("Not a Window object: %r." % (container,))
+        raise ValueError(f"Not a Window object: {container!r}.")
 
 
 def is_container(value: object) -> "TypeGuard[AnyContainer]":

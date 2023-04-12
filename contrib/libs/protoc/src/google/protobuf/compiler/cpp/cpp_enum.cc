@@ -53,13 +53,13 @@ namespace {
 // is kint32max, GOOGLE_ARRAYSIZE will overflow. In such cases we should omit the
 // generation of the GOOGLE_ARRAYSIZE constant.
 bool ShouldGenerateArraySize(const EnumDescriptor* descriptor) {
-  int32_t max_value = descriptor->value(0)->number();
+  arc_i32 max_value = descriptor->value(0)->number();
   for (int i = 0; i < descriptor->value_count(); i++) {
     if (descriptor->value(i)->number() > max_value) {
       max_value = descriptor->value(i)->number();
     }
   }
-  return max_value != std::numeric_limits<int32_t>::max();
+  return max_value != std::numeric_limits<arc_i32>::max();
 }
 
 // Returns the number of unique numeric enum values. This is less than
@@ -95,7 +95,7 @@ EnumGenerator::~EnumGenerator() {}
 
 void EnumGenerator::GenerateDefinition(io::Printer* printer) {
   Formatter format(printer, variables_);
-  format("enum ${1$$classname$$}$ {\n", descriptor_);
+  format("enum ${1$$classname$$}$ : int {\n", descriptor_);
   format.Indent();
 
   const EnumValueDescriptor* min_value = descriptor_->value(0);
@@ -409,10 +409,10 @@ void EnumGenerator::GenerateMethods(int idx, io::Printer* printer) {
     TProtoStringType parent = ClassName(descriptor_->containing_type(), false);
     // Before C++17, we must define the static constants which were
     // declared in the header, to give the linker a place to put them.
-    // But pre-2015 MSVC++ insists that we not.
+    // But MSVC++ pre-2015 and post-2017 (version 15.5+) insists that we not.
     format(
         "#if (__cplusplus < 201703) && "
-        "(!defined(_MSC_VER) || _MSC_VER >= 1900)\n");
+        "(!defined(_MSC_VER) || (_MSC_VER >= 1900 && _MSC_VER < 1912))\n");
 
     for (int i = 0; i < descriptor_->value_count(); i++) {
       format("constexpr $classname$ $1$::$2$;\n", parent,
@@ -428,7 +428,7 @@ void EnumGenerator::GenerateMethods(int idx, io::Printer* printer) {
 
     format(
         "#endif  // (__cplusplus < 201703) && "
-        "(!defined(_MSC_VER) || _MSC_VER >= 1900)\n");
+        "(!defined(_MSC_VER) || (_MSC_VER >= 1900 && _MSC_VER < 1912))\n");
   }
 }
 

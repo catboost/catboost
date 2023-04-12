@@ -251,9 +251,17 @@ public:
 
         e.data.ptr = data;
 
-        if ((what & CONT_POLL_MODIFY) || epoll_ctl(Fd_, EPOLL_CTL_ADD, fd, &e) == -1) {
+        if (what & CONT_POLL_MODIFY) {
             if (epoll_ctl(Fd_, EPOLL_CTL_MOD, fd, &e) == -1) {
-                ythrow TSystemError() << "epoll add failed";
+                ythrow TSystemError() << "epoll modify failed (fd=" << fd << ", what=" << what << ")";
+            }
+        } else if (epoll_ctl(Fd_, EPOLL_CTL_ADD, fd, &e) == -1) {
+            if (LastSystemError() != EEXIST) {
+                ythrow TSystemError() << "epoll add failed (fd=" << fd << ", what=" << what << ")";
+            }
+
+            if (epoll_ctl(Fd_, EPOLL_CTL_MOD, fd, &e) == -1) {
+                ythrow TSystemError() << "epoll modify failed (fd=" << fd << ", what=" << what << ")";
             }
         }
     }
@@ -626,6 +634,7 @@ private:
         TCommand(SOCKET fd, int filter)
             : Fd_(fd)
             , Filter_(filter)
+            , Cookie_(nullptr)
         {
         }
     };

@@ -247,7 +247,7 @@ private[spark] class ProcessRowsOutputIterator(
     val processRowCallback: (Array[Any], Int) => Array[Any], // add necessary data to row
     var objectIdx : Int = 0
 ) extends Iterator[Row] {
-  def next : Row = {
+  def next() : Row = {
     val dstRow = processRowCallback(dstRows(objectIdx), objectIdx)
     dstRows(objectIdx) = null // to speed up cleanup
     objectIdx = objectIdx + 1
@@ -1221,7 +1221,7 @@ private[spark] object DataHelpers {
     }
     val (columnIndexMap, selectedColumnNames, _, estimatedFeatureCount) = selectColumnsAndReturnIndex(
       data.srcPool,
-      columnTypeNames,
+      columnTypeNames.toSeq,
       includeEstimatedFeatures,
       includeDatasetIdx=includeDatasetIdx && data.isInstanceOf[UsualDatasetForTraining]
     )
@@ -1349,7 +1349,7 @@ private[spark] object DataHelpers {
     val mainDataProvider = mainDataProviders.get(0)
     val tmpMainFilePath = Files.createTempFile(tmpFilePrefix, tmpFileSuffix)
     tmpMainFilePath.toFile.deleteOnExit
-    native_impl.SaveQuantizedPoolWrapper(mainDataProvider, tmpMainFilePath.toString)
+    native_impl.SaveQuantizedPool(mainDataProvider, tmpMainFilePath.toString)
     
     var tmpPairsDataFilePath : Option[Path] = None
     if (data.isInstanceOf[DatasetForTrainingWithPairs]) {
@@ -1362,7 +1362,7 @@ private[spark] object DataHelpers {
     if (estimatedFeatureCount.isDefined) {
       tmpEstimatedFilePath = Some(Files.createTempFile(tmpFilePrefix, tmpFileSuffix))
       tmpEstimatedFilePath.get.toFile.deleteOnExit
-      native_impl.SaveQuantizedPoolWrapper(estimatedDataProviders.get(0), tmpEstimatedFilePath.get.toString)
+      native_impl.SaveQuantizedPool(estimatedDataProviders.get(0), tmpEstimatedFilePath.get.toString)
     }
 
     log.info(s"${dataPartName}: save loaded data to files: finish")

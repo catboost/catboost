@@ -3,18 +3,21 @@ import importlib
 import sys
 import inspect
 
-from pytest import hookimpl
+import yatest.common as yc
 
-from .fixtures import metrics, links  # noqa
+from pytest import hookimpl
+from yatest_lib.ya import Ya
+
+from library.python.pytest.plugins.fixtures import metrics, links  # noqa
 
 orig_getfile = inspect.getfile
 
 
 def getfile(object):
-    res = orig_getfile(object)
-    if inspect.ismodule(object):
-        if not res and getattr(object, '__orig_file__'):
-            res = object.__orig_file__
+    if inspect.ismodule(object) and getattr(object, '__orig_file__', None):
+        res = object.__orig_file__
+    else:
+        res = orig_getfile(object)
     return res
 
 inspect.getfile = getfile
@@ -23,7 +26,12 @@ conftest_modules = []
 
 @hookimpl(trylast=True)
 def pytest_load_initial_conftests(early_config, parser, args):
-    conftests = filter(lambda name: name.endswith(".conftest"), sys.extra_modules)
+    yc.runtime._set_ya_config(ya=Ya())
+
+    if hasattr(sys, 'extra_modules'):
+        conftests = filter(lambda name: name.endswith(".conftest"), sys.extra_modules)
+    else:
+        conftests = []
 
     def conftest_key(name):
         if not name.startswith("__tests__."):

@@ -2,11 +2,15 @@ LIBRARY()
 
 WITHOUT_LICENSE_TEXTS()
 
-LICENSE(MIT)
+LICENSE(YandexOpen)
 
 # Placeholders for new GCC 4.9.2 C++ ABI which is not present on older systems
 
-
+OWNER(
+    somov
+    g:contrib
+    g:cpp-contrib
+)
 
 IF (NOT OS_WINDOWS)
     SRCS(

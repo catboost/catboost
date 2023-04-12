@@ -44,11 +44,7 @@
 #include "../iterator/cache_modified_input_iterator.cuh"
 #include "../iterator/constant_input_iterator.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -99,68 +95,71 @@ struct AgentSegmentFixup
     //---------------------------------------------------------------------
 
     // Data type of key-value input iterator
-    typedef typename std::iterator_traits<PairsInputIteratorT>::value_type KeyValuePairT;
+    using KeyValuePairT = cub::detail::value_t<PairsInputIteratorT>;
 
     // Value type
-    typedef typename KeyValuePairT::Value ValueT;
+    using ValueT = typename KeyValuePairT::Value;
 
     // Tile status descriptor interface type
-    typedef ReduceByKeyScanTileState<ValueT, OffsetT> ScanTileStateT;
+    using ScanTileStateT = ReduceByKeyScanTileState<ValueT, OffsetT>;
 
     // Constants
     enum
     {
-        BLOCK_THREADS       = AgentSegmentFixupPolicyT::BLOCK_THREADS,
-        ITEMS_PER_THREAD    = AgentSegmentFixupPolicyT::ITEMS_PER_THREAD,
-        TILE_ITEMS          = BLOCK_THREADS * ITEMS_PER_THREAD,
+      BLOCK_THREADS    = AgentSegmentFixupPolicyT::BLOCK_THREADS,
+      ITEMS_PER_THREAD = AgentSegmentFixupPolicyT::ITEMS_PER_THREAD,
+      TILE_ITEMS       = BLOCK_THREADS * ITEMS_PER_THREAD,
 
-        // Whether or not do fixup using RLE + global atomics
-        USE_ATOMIC_FIXUP    = (CUB_PTX_ARCH >= 350) && 
-                                (Equals<ValueT, float>::VALUE || 
-                                 Equals<ValueT, int>::VALUE ||
-                                 Equals<ValueT, unsigned int>::VALUE ||
-                                 Equals<ValueT, unsigned long long>::VALUE),
+      // Whether or not do fixup using RLE + global atomics
+      USE_ATOMIC_FIXUP = (CUB_PTX_ARCH >= 350) &&
+                         (std::is_same<ValueT, float>::value ||
+                          std::is_same<ValueT, int>::value ||
+                          std::is_same<ValueT, unsigned int>::value ||
+                          std::is_same<ValueT, unsigned long long>::value),
 
-        // Whether or not the scan operation has a zero-valued identity value (true if we're performing addition on a primitive type)
-        HAS_IDENTITY_ZERO   = (Equals<ReductionOpT, cub::Sum>::VALUE) && (Traits<ValueT>::PRIMITIVE),
+      // Whether or not the scan operation has a zero-valued identity value
+      // (true if we're performing addition on a primitive type)
+      HAS_IDENTITY_ZERO = (std::is_same<ReductionOpT, cub::Sum>::value) &&
+                          (Traits<ValueT>::PRIMITIVE),
     };
 
     // Cache-modified Input iterator wrapper type (for applying cache modifier) for keys
-    typedef typename If<IsPointer<PairsInputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentSegmentFixupPolicyT::LOAD_MODIFIER, KeyValuePairT, OffsetT>,    // Wrap the native input pointer with CacheModifiedValuesInputIterator
-            PairsInputIteratorT>::Type                                                                      // Directly use the supplied input iterator type
-        WrappedPairsInputIteratorT;
+    // Wrap the native input pointer with CacheModifiedValuesInputIterator
+    // or directly use the supplied input iterator type
+    using WrappedPairsInputIteratorT = cub::detail::conditional_t<
+      std::is_pointer<PairsInputIteratorT>::value,
+      CacheModifiedInputIterator<AgentSegmentFixupPolicyT::LOAD_MODIFIER,
+                                 KeyValuePairT,
+                                 OffsetT>,
+      PairsInputIteratorT>;
 
     // Cache-modified Input iterator wrapper type (for applying cache modifier) for fixup values
-    typedef typename If<IsPointer<AggregatesOutputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentSegmentFixupPolicyT::LOAD_MODIFIER, ValueT, OffsetT>,    // Wrap the native input pointer with CacheModifiedValuesInputIterator
-            AggregatesOutputIteratorT>::Type                                                        // Directly use the supplied input iterator type
-        WrappedFixupInputIteratorT;
+    // Wrap the native input pointer with CacheModifiedValuesInputIterator
+    // or directly use the supplied input iterator type
+    using WrappedFixupInputIteratorT = cub::detail::conditional_t<
+      std::is_pointer<AggregatesOutputIteratorT>::value,
+      CacheModifiedInputIterator<AgentSegmentFixupPolicyT::LOAD_MODIFIER,
+                                 ValueT,
+                                 OffsetT>,
+      AggregatesOutputIteratorT>;
 
     // Reduce-value-by-segment scan operator
-    typedef ReduceByKeyOp<cub::Sum> ReduceBySegmentOpT;
+    using ReduceBySegmentOpT = ReduceByKeyOp<cub::Sum>;
 
     // Parameterized BlockLoad type for pairs
-    typedef BlockLoad<
-            KeyValuePairT,
-            BLOCK_THREADS,
-            ITEMS_PER_THREAD,
-            AgentSegmentFixupPolicyT::LOAD_ALGORITHM>
-        BlockLoadPairs;
+    using BlockLoadPairs = BlockLoad<KeyValuePairT,
+                                     BLOCK_THREADS,
+                                     ITEMS_PER_THREAD,
+                                     AgentSegmentFixupPolicyT::LOAD_ALGORITHM>;
 
     // Parameterized BlockScan type
-    typedef BlockScan<
-            KeyValuePairT,
-            BLOCK_THREADS,
-            AgentSegmentFixupPolicyT::SCAN_ALGORITHM>
-        BlockScanT;
+    using BlockScanT = BlockScan<KeyValuePairT,
+                                 BLOCK_THREADS,
+                                 AgentSegmentFixupPolicyT::SCAN_ALGORITHM>;
 
     // Callback type for obtaining tile prefix during block scan
-    typedef TilePrefixCallbackOp<
-            KeyValuePairT,
-            ReduceBySegmentOpT,
-            ScanTileStateT>
-        TilePrefixCallbackOpT;
+    using TilePrefixCallbackOpT =
+      TilePrefixCallbackOp<KeyValuePairT, ReduceBySegmentOpT, ScanTileStateT>;
 
     // Shared memory type for this thread block
     union _TempStorage
@@ -370,6 +369,5 @@ struct AgentSegmentFixup
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

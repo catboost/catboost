@@ -289,6 +289,9 @@ namespace NKernel
             const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
             numBlocks.x = (fCount + 3) / 4;\
             numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));\
+            if (IsGridEmpty(numBlocks)) {\
+                return;\
+            }\
             using THist = TPointHistOneByte<Bits, blockSize>;\
             ComputeSplitPropertiesDirectLoadsImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
                             features,\
@@ -351,6 +354,9 @@ namespace NKernel
         const int groupCount = (fCount + 3) / 4;\
         numBlocks.x = groupCount;\
         numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
+        if (IsGridEmpty(numBlocks)) {\
+            return;\
+        }\
         using THist = TPointHistOneByte<Bits, blockSize>;\
         ComputeSplitPropertiesGatherImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
                         features,\
@@ -420,6 +426,9 @@ namespace NKernel
             const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
             numBlocks.x = (fCount + 3) / 4;\
             numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));\
+            if (IsGridEmpty(numBlocks)) {\
+                return;\
+            }\
             using THist = TPointHistOneByte<Bits, blockSize>;\
             ComputeSplitPropertiesDirectLoadsImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
                             features,\
@@ -479,6 +488,9 @@ namespace NKernel
         const int groupCount = (fCount + 3) / 4;\
         numBlocks.x = groupCount;\
         numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
+        if (IsGridEmpty(numBlocks)) {\
+            return;\
+        }\
         using THist = TPointHistOneByte<Bits, blockSize>;\
         ComputeSplitPropertiesGatherImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
                         features,\

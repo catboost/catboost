@@ -91,7 +91,7 @@ Unfortunately using the tzinfo argument of the standard datetime
 constructors ''does not work'' with pytz for many timezones.
 
 >>> datetime(2002, 10, 27, 12, 0, 0, tzinfo=amsterdam).strftime(fmt)  # /!\ Does not work this way!
-'2002-10-27 12:00:00 LMT+0020'
+'2002-10-27 12:00:00 LMT+0018'
 
 It is safe for timezones without daylight saving transitions though, such
 as UTC:
@@ -519,9 +519,10 @@ Internationalization - i18n/l10n
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pytz is an interface to the IANA database, which uses ASCII names. The `Unicode  Consortium's Unicode Locales (CLDR) <http://cldr.unicode.org>`_
-project provides translations. Thomas Khyn's
-`l18n <https://pypi.org/project/l18n/>`_ package can be used to access
-these translations from Python.
+project provides translations. Python packages such as
+`Babel <https://babel.pocoo.org/en/latest/api/dates.html#timezone-functionality>`_
+and Thomas Khyn's `l18n <https://pypi.org/project/l18n/>`_ package can be used
+to access these translations from Python.
 
 
 License
@@ -585,7 +586,7 @@ Further Reading
 ~~~~~~~~~~~~~~~
 
 More info than you want to know about timezones:
-http://www.twinsun.com/tz/tz-link.htm
+https://data.iana.org/time-zones/tz-link.html
 
 
 Contact

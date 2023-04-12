@@ -180,7 +180,13 @@ static inline bool AsciiEqualsIgnoreCase(const char* s1, const char* s2) noexcep
  * @return                              true iff @c s1 ans @c s2 are case-insensitively equal.
  */
 static inline bool AsciiEqualsIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
-    return (s1.size() == s2.size()) && strnicmp(s1.data(), s2.data(), s1.size()) == 0;
+    if (s1.size() != s2.size()) {
+        return false;
+    }
+    if (s1.empty()) {
+        return true;
+    }
+    return strnicmp(s1.data(), s2.data(), s1.size()) == 0;
 }
 
 /**
@@ -227,21 +233,21 @@ static inline bool AsciiHasPrefix(const TStringBuf s1, const TStringBuf s2) noex
 }
 
 /**
-  * ASCII case-insensitive string comparison (for proper UTF8 strings
-  * case-insensitive comparison consider using @c library/cpp/charset).
-  *
-  * @return                              true iff @c s2 are case-insensitively prefix of @c s1.
-  */
+ * ASCII case-insensitive string comparison (for proper UTF8 strings
+ * case-insensitive comparison consider using @c library/cpp/charset).
+ *
+ * @return                              true iff @c s2 are case-insensitively prefix of @c s1.
+ */
 static inline bool AsciiHasPrefixIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
     return (s1.size() >= s2.size()) && strnicmp(s1.data(), s2.data(), s2.size()) == 0;
 }
 
 /**
-  * ASCII case-insensitive string comparison (for proper UTF8 strings
-  * case-insensitive comparison consider using @c library/cpp/charset).
-  *
-  * @return                              true iff @c s2 are case-insensitively suffix of @c s1.
-  */
+ * ASCII case-insensitive string comparison (for proper UTF8 strings
+ * case-insensitive comparison consider using @c library/cpp/charset).
+ *
+ * @return                              true iff @c s2 are case-insensitively suffix of @c s1.
+ */
 static inline bool AsciiHasSuffixIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
     return (s1.size() >= s2.size()) && strnicmp((s1.data() + (s1.size() - s2.size())), s2.data(), s2.size()) == 0;
 }

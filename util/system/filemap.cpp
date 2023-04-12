@@ -3,7 +3,6 @@
 #include "defaults.h"
 #include "hi_lo.h"
 
-#include <util/generic/buffer.h>
 #include <util/generic/yexception.h>
 #include <util/generic/singleton.h>
 
@@ -71,8 +70,9 @@ namespace {
 #define GRANULARITY (TSysInfo::Instance().GRANULARITY_)
 #define PAGE_SIZE (TSysInfo::Instance().PAGE_SIZE_)
 
-TString TMemoryMapCommon::UnknownFileName() {
-    return "Unknown_file_name";
+const TString& TMemoryMapCommon::UnknownFileName() {
+    static const TString unknownFileName = "Unknown_file_name";
+    return unknownFileName;
 }
 
 static inline i64 DownToGranularity(i64 offset) noexcept {
@@ -196,9 +196,9 @@ public:
         CreateMapping();
     }
 
-    inline TImpl(const TFile& file, EOpenMode om, TString dbgName)
+    inline TImpl(const TFile& file, EOpenMode om, const TString& dbgName)
         : File_(file)
-        , DbgName_(File_.GetName() ? File_.GetName() : std::move(dbgName))
+        , DbgName_(File_.GetName() ? File_.GetName() : dbgName)
         , Length_(File_.GetLength())
         , Mode_(om)
     {
@@ -371,13 +371,13 @@ TMemoryMap::TMemoryMap(FILE* f, EOpenMode om, TString dbgName)
 {
 }
 
-TMemoryMap::TMemoryMap(const TFile& file, TString dbgName)
-    : Impl_(new TImpl(file, EOpenModeFlag::oRdOnly, std::move(dbgName)))
+TMemoryMap::TMemoryMap(const TFile& file, const TString& dbgName)
+    : Impl_(new TImpl(file, EOpenModeFlag::oRdOnly, dbgName))
 {
 }
 
-TMemoryMap::TMemoryMap(const TFile& file, EOpenMode om, TString dbgName)
-    : Impl_(new TImpl(file, om, std::move(dbgName)))
+TMemoryMap::TMemoryMap(const TFile& file, EOpenMode om, const TString& dbgName)
+    : Impl_(new TImpl(file, om, dbgName))
 {
 }
 
@@ -460,11 +460,11 @@ TFileMap::TFileMap(const TString& name, i64 length, EOpenMode om)
 }
 
 TFileMap::TFileMap(FILE* f, EOpenMode om, TString dbgName)
-    : Map_(f, om, dbgName)
+    : Map_(f, om, std::move(dbgName))
 {
 }
 
-TFileMap::TFileMap(const TFile& file, EOpenMode om, TString dbgName)
+TFileMap::TFileMap(const TFile& file, EOpenMode om, const TString& dbgName)
     : Map_(file, om, dbgName)
 {
 }
@@ -576,7 +576,7 @@ void TMappedAllocation::Dealloc() {
     Size_ = 0;
 }
 
-void TMappedAllocation::swap(TMappedAllocation& with) {
+void TMappedAllocation::swap(TMappedAllocation& with) noexcept {
     DoSwap(Ptr_, with.Ptr_);
     DoSwap(Size_, with.Size_);
 #if defined(_win_)

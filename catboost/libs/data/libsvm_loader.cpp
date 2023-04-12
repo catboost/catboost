@@ -265,7 +265,7 @@ namespace NCB {
                                 floatFeatureIndices.push_back(*floatFeatureIdx);
                                 floatFeatureValues.yresize(floatFeatureIndices.size());
 
-                                if (!TryParseFloatFeatureValue(right, &floatFeatureValues.back())) {
+                                if (!TryFloatFromString(right, /*parseNonFinite*/true, &floatFeatureValues.back())) {
                                     CB_ENSURE(
                                         false,
                                         "Feature value \"" << right << "\" cannot be parsed as float."
@@ -400,6 +400,7 @@ namespace NCB {
             switch (column.Type) {
                 case EColumn::Categ:
                     catFeatures->push_back(columnIdx - featuresStartColumn);
+                    [[fallthrough]];
                 case EColumn::Num:
                     featureNames->push_back(column.Id);
                     break;
@@ -417,6 +418,6 @@ namespace NCB {
         TExistsCheckerFactory::TRegistrator<TFSExistsChecker> LibSvmExistsCheckerReg("libsvm");
         TLineDataReaderFactory::TRegistrator<TFileLineDataReader> LibSvmLineDataReaderReg("libsvm");
         TDatasetLoaderFactory::TRegistrator<TLibSvmDataLoader> LibSvmDataLoaderReg("libsvm");
+        TDatasetLineDataLoaderFactory::TRegistrator<TLibSvmDataLoader> LibSvmLineDataLoader("libsvm");
     }
 }
-

@@ -23,7 +23,7 @@ within the statement. This lowers memory usage and cpu time and reduces the
 complexity of the ``Parser`` (there's another parser sitting inside
 ``Statement``, which produces ``Array`` and ``Call``).
 """
-from typing import Dict
+from typing import Dict, Type
 
 from parso import tree
 from parso.pgen2.generator import ReservedString
@@ -110,10 +110,10 @@ class BaseParser:
     When a syntax error occurs, error_recovery() is called.
     """
 
-    node_map: Dict[str, type] = {}
+    node_map: Dict[str, Type[tree.BaseNode]] = {}
     default_node = tree.Node
 
-    leaf_map: Dict[str, type] = {}
+    leaf_map: Dict[str, Type[tree.Leaf]] = {}
     default_leaf = tree.Leaf
 
     def __init__(self, pgen_grammar, start_nonterminal='file_input', error_recovery=False):
@@ -156,8 +156,6 @@ class BaseParser:
             node = self.node_map[nonterminal](children)
         except KeyError:
             node = self.default_node(nonterminal, children)
-        for c in children:
-            c.parent = node
         return node
 
     def convert_leaf(self, type_, value, prefix, start_pos):

@@ -15,6 +15,7 @@ import numpy as np
 from pandas._config import get_option
 
 from pandas._typing import FuncType
+from pandas.util._exceptions import find_stack_level
 
 from pandas.core.computation.check import NUMEXPR_INSTALLED
 from pandas.core.ops import roperator
@@ -38,7 +39,7 @@ _ALLOWED_DTYPES = {
 _MIN_ELEMENTS = 1_000_000
 
 
-def set_use_numexpr(v=True):
+def set_use_numexpr(v=True) -> None:
     # set/unset to use numexpr
     global USE_NUMEXPR
     if NUMEXPR_INSTALLED:
@@ -51,7 +52,7 @@ def set_use_numexpr(v=True):
     _where = _where_numexpr if USE_NUMEXPR else _where_standard
 
 
-def set_numexpr_threads(n=None):
+def set_numexpr_threads(n=None) -> None:
     # if we are using numexpr, set the threads to n
     # otherwise reset
     if NUMEXPR_INSTALLED and USE_NUMEXPR:
@@ -144,9 +145,9 @@ _op_str_mapping = {
     roperator.rfloordiv: None,
     # we require Python semantics for mod of negative for backwards compatibility
     # see https://github.com/pydata/numexpr/issues/365
-    # so sticking with unaccelerated for now
+    # so sticking with unaccelerated for now GH#36552
     operator.mod: None,
-    roperator.rmod: "%",
+    roperator.rmod: None,
     operator.pow: "**",
     roperator.rpow: "**",
     operator.eq: "==",
@@ -214,7 +215,8 @@ def _bool_arith_fallback(op_str, a, b):
             warnings.warn(
                 f"evaluating in Python space because the {repr(op_str)} "
                 "operator is not supported by numexpr for the bool dtype, "
-                f"use {repr(_BOOL_OP_UNSUPPORTED[op_str])} instead"
+                f"use {repr(_BOOL_OP_UNSUPPORTED[op_str])} instead.",
+                stacklevel=find_stack_level(),
             )
             return True
     return False

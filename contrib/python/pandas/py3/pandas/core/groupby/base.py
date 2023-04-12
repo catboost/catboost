@@ -5,9 +5,18 @@ SeriesGroupBy and the DataFrameGroupBy objects.
 """
 from __future__ import annotations
 
-import collections
+import dataclasses
+from typing import (
+    Hashable,
+    Literal,
+)
 
-OutputKey = collections.namedtuple("OutputKey", ["label", "position"])
+
+@dataclasses.dataclass(order=True, frozen=True)
+class OutputKey:
+    label: Hashable
+    position: int
+
 
 # special case to prevent duplicate plots when catching exceptions when
 # forwarding methods from NDFrames
@@ -64,7 +73,6 @@ reduction_kernels = frozenset(
         "mean",
         "median",
         "min",
-        "ngroup",
         "nth",
         "nunique",
         "prod",
@@ -84,6 +92,17 @@ reduction_kernels = frozenset(
 # List of transformation functions.
 # a transformation is a function that, for each group,
 # produces a result that has the same shape as the group.
+
+
+# TODO(2.0) Remove after pad/backfill deprecation enforced
+def maybe_normalize_deprecated_kernels(kernel) -> Literal["bfill", "ffill"]:
+    if kernel == "backfill":
+        kernel = "bfill"
+    elif kernel == "pad":
+        kernel = "ffill"
+    return kernel
+
+
 transformation_kernels = frozenset(
     [
         "backfill",
@@ -96,6 +115,7 @@ transformation_kernels = frozenset(
         "diff",
         "ffill",
         "fillna",
+        "ngroup",
         "pad",
         "pct_change",
         "rank",
@@ -137,6 +157,7 @@ groupby_other_methods = frozenset(
         "take",
         "transform",
         "sample",
+        "value_counts",
     ]
 )
 # Valid values  of `name` for `groupby.transform(name)`

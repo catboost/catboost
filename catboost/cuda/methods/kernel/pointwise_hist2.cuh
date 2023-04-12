@@ -8,7 +8,7 @@
 //hist2 is sums for 2 elements.
 namespace NKernel {
 
-    bool UpdatePointwiseHistograms(float* histograms,
+    void UpdatePointwiseHistograms(float* histograms,
                                    int firstBinFeature, int binFeatureCount,
                                    int partCount,
                                    int foldCount,

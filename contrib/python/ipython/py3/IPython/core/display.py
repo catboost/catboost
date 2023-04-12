@@ -5,12 +5,12 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-from binascii import b2a_hex, b2a_base64, hexlify
+from binascii import b2a_base64, hexlify
+import html
 import json
 import mimetypes
 import os
 import struct
-import sys
 import warnings
 from copy import deepcopy
 from os.path import splitext
@@ -18,14 +18,37 @@ from pathlib import Path, PurePath
 
 from IPython.utils.py3compat import cast_unicode
 from IPython.testing.skipdoctest import skip_doctest
+from . import display_functions
 
-__all__ = ['display', 'display_pretty', 'display_html', 'display_markdown',
-'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
-'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
-'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'ProgressBar', 'JSON',
-'GeoJSON', 'Javascript', 'Image', 'clear_output', 'set_matplotlib_formats',
-'set_matplotlib_close', 'publish_display_data', 'update_display', 'DisplayHandle',
-'Video']
+
+__all__ = ['display_pretty', 'display_html', 'display_markdown',
+           'display_svg', 'display_png', 'display_jpeg', 'display_latex', 'display_json',
+           'display_javascript', 'display_pdf', 'DisplayObject', 'TextDisplayObject',
+           'Pretty', 'HTML', 'Markdown', 'Math', 'Latex', 'SVG', 'ProgressBar', 'JSON',
+           'GeoJSON', 'Javascript', 'Image', 'set_matplotlib_formats',
+           'set_matplotlib_close',
+           'Video']
+
+_deprecated_names = ["display", "clear_output", "publish_display_data", "update_display", "DisplayHandle"]
+
+__all__ = __all__ + _deprecated_names
+
+
+# ----- warn to import from IPython.display -----
+
+from warnings import warn
+
+
+def __getattr__(name):
+    if name in _deprecated_names:
+        warn(f"Importing {name} from IPython.core.display is deprecated since IPython 7.14, please import from IPython display", DeprecationWarning, stacklevel=2)
+        return getattr(display_functions, name)
+
+    if name in globals().keys():
+        return globals()[name]
+    else:
+        raise AttributeError(f"module {__name__} has no attribute {name}")
+
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -38,17 +61,6 @@ def _safe_exists(path):
     except Exception:
         return False
 
-def _merge(d1, d2):
-    """Like update, but merges sub-dicts instead of clobbering at the top level.
-
-    Updates d1 in-place
-    """
-
-    if not isinstance(d2, dict) or not isinstance(d1, dict):
-        return d2
-    for key, value in d2.items():
-        d1[key] = _merge(d1.get(key), value)
-    return d1
 
 def _display_mimetype(mimetype, objs, raw=False, metadata=None):
     """internal implementation of all display_foo methods
@@ -71,333 +83,11 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
     if raw:
         # turn list of pngdata into list of { 'image/png': pngdata }
         objs = [ {mimetype: obj} for obj in objs ]
-    display(*objs, raw=raw, metadata=metadata, include=[mimetype])
+    display_functions.display(*objs, raw=raw, metadata=metadata, include=[mimetype])
 
 #-----------------------------------------------------------------------------
 # Main functions
 #-----------------------------------------------------------------------------
-
-# use * to indicate transient is keyword-only
-def publish_display_data(data, metadata=None, source=None, *, transient=None, **kwargs):
-    """Publish data and metadata to all frontends.
-
-    See the ``display_data`` message in the messaging documentation for
-    more details about this message type.
-
-    Keys of data and metadata can be any mime-type.
-
-    Parameters
-    ----------
-    data : dict
-        A dictionary having keys that are valid MIME types (like
-        'text/plain' or 'image/svg+xml') and values that are the data for
-        that MIME type. The data itself must be a JSON'able data
-        structure. Minimally all data should have the 'text/plain' data,
-        which can be displayed by all frontends. If more than the plain
-        text is given, it is up to the frontend to decide which
-        representation to use.
-    metadata : dict
-        A dictionary for metadata related to the data. This can contain
-        arbitrary key, value pairs that frontends can use to interpret
-        the data. mime-type keys matching those in data can be used
-        to specify metadata about particular representations.
-    source : str, deprecated
-        Unused.
-    transient : dict, keyword-only
-        A dictionary of transient data, such as display_id.
-        """
-    from IPython.core.interactiveshell import InteractiveShell
-
-    display_pub = InteractiveShell.instance().display_pub
-
-    # only pass transient if supplied,
-    # to avoid errors with older ipykernel.
-    # TODO: We could check for ipykernel version and provide a detailed upgrade message.
-    if transient:
-        kwargs['transient'] = transient
-
-    display_pub.publish(
-        data=data,
-        metadata=metadata,
-        **kwargs
-    )
-
-
-def _new_id():
-    """Generate a new random text id with urandom"""
-    return b2a_hex(os.urandom(16)).decode('ascii')
-
-
-def display(*objs, include=None, exclude=None, metadata=None, transient=None, display_id=None, **kwargs):
-    """Display a Python object in all frontends.
-
-    By default all representations will be computed and sent to the frontends.
-    Frontends can decide which representation is used and how.
-
-    In terminal IPython this will be similar to using :func:`print`, for use in richer
-    frontends see Jupyter notebook examples with rich display logic.
-
-    Parameters
-    ----------
-    *objs : object
-        The Python objects to display.
-    raw : bool, optional
-        Are the objects to be displayed already mimetype-keyed dicts of raw display data,
-        or Python objects that need to be formatted before display? [default: False]
-    include : list, tuple or set, optional
-        A list of format type strings (MIME types) to include in the
-        format data dict. If this is set *only* the format types included
-        in this list will be computed.
-    exclude : list, tuple or set, optional
-        A list of format type strings (MIME types) to exclude in the format
-        data dict. If this is set all format types will be computed,
-        except for those included in this argument.
-    metadata : dict, optional
-        A dictionary of metadata to associate with the output.
-        mime-type keys in this dictionary will be associated with the individual
-        representation formats, if they exist.
-    transient : dict, optional
-        A dictionary of transient data to associate with the output.
-        Data in this dict should not be persisted to files (e.g. notebooks).
-    display_id : str, bool optional
-        Set an id for the display.
-        This id can be used for updating this display area later via update_display.
-        If given as `True`, generate a new `display_id`
-    clear : bool, optional
-        Should the output area be cleared before displaying anything? If True,
-        this will wait for additional output before clearing. [default: False]
-    kwargs: additional keyword-args, optional
-        Additional keyword-arguments are passed through to the display publisher.
-
-    Returns
-    -------
-
-    handle: DisplayHandle
-        Returns a handle on updatable displays for use with :func:`update_display`,
-        if `display_id` is given. Returns :any:`None` if no `display_id` is given
-        (default).
-
-    Examples
-    --------
-
-    >>> class Json(object):
-    ...     def __init__(self, json):
-    ...         self.json = json
-    ...     def _repr_pretty_(self, pp, cycle):
-    ...         import json
-    ...         pp.text(json.dumps(self.json, indent=2))
-    ...     def __repr__(self):
-    ...         return str(self.json)
-    ...
-
-    >>> d = Json({1:2, 3: {4:5}})
-
-    >>> print(d)
-    {1: 2, 3: {4: 5}}
-
-    >>> display(d)
-    {
-      "1": 2,
-      "3": {
-        "4": 5
-      }
-    }
-
-    >>> def int_formatter(integer, pp, cycle):
-    ...     pp.text('I'*integer)
-
-    >>> plain = get_ipython().display_formatter.formatters['text/plain']
-    >>> plain.for_type(int, int_formatter)
-    <function _repr_pprint at 0x...>
-    >>> display(7-5)
-    II
-
-    >>> del plain.type_printers[int]
-    >>> display(7-5)
-    2
-
-    See Also
-    --------
-
-    :func:`update_display`
-
-    Notes
-    -----
-
-    In Python, objects can declare their textual representation using the
-    `__repr__` method. IPython expands on this idea and allows objects to declare
-    other, rich representations including:
-
-      - HTML
-      - JSON
-      - PNG
-      - JPEG
-      - SVG
-      - LaTeX
-
-    A single object can declare some or all of these representations; all are
-    handled by IPython's display system.
-
-    The main idea of the first approach is that you have to implement special
-    display methods when you define your class, one for each representation you
-    want to use. Here is a list of the names of the special methods and the
-    values they must return:
-
-      - `_repr_html_`: return raw HTML as a string, or a tuple (see below).
-      - `_repr_json_`: return a JSONable dict, or a tuple (see below).
-      - `_repr_jpeg_`: return raw JPEG data, or a tuple (see below).
-      - `_repr_png_`: return raw PNG data, or a tuple (see below).
-      - `_repr_svg_`: return raw SVG data as a string, or a tuple (see below).
-      - `_repr_latex_`: return LaTeX commands in a string surrounded by "$",
-                        or a tuple (see below).
-      - `_repr_mimebundle_`: return a full mimebundle containing the mapping
-                             from all mimetypes to data.
-                             Use this for any mime-type not listed above.
-
-    The above functions may also return the object's metadata alonside the
-    data.  If the metadata is available, the functions will return a tuple
-    containing the data and metadata, in that order.  If there is no metadata
-    available, then the functions will return the data only.
-
-    When you are directly writing your own classes, you can adapt them for
-    display in IPython by following the above approach. But in practice, you
-    often need to work with existing classes that you can't easily modify.
-
-    You can refer to the documentation on integrating with the display system in
-    order to register custom formatters for already existing types
-    (:ref:`integrating_rich_display`).
-
-    .. versionadded:: 5.4 display available without import
-    .. versionadded:: 6.1 display available without import
-
-    Since IPython 5.4 and 6.1 :func:`display` is automatically made available to
-    the user without import. If you are using display in a document that might
-    be used in a pure python context or with older version of IPython, use the
-    following import at the top of your file::
-
-        from IPython.display import display
-
-    """
-    from IPython.core.interactiveshell import InteractiveShell
-    
-    if not InteractiveShell.initialized():
-        # Directly print objects.
-        print(*objs)
-        return
-
-    raw = kwargs.pop("raw", False)
-    clear = kwargs.pop("clear", False)
-    if transient is None:
-        transient = {}
-    if metadata is None:
-        metadata={}
-    if display_id:
-        if display_id is True:
-            display_id = _new_id()
-        transient['display_id'] = display_id
-    if kwargs.get('update') and 'display_id' not in transient:
-        raise TypeError('display_id required for update_display')
-    if transient:
-        kwargs['transient'] = transient
-
-    if not objs and display_id:
-        # if given no objects, but still a request for a display_id,
-        # we assume the user wants to insert an empty output that
-        # can be updated later
-        objs = [{}]
-        raw = True
-
-    if not raw:
-        format = InteractiveShell.instance().display_formatter.format
-
-    if clear:
-        clear_output(wait=True)
-
-    for obj in objs:
-        if raw:
-            publish_display_data(data=obj, metadata=metadata, **kwargs)
-        else:
-            format_dict, md_dict = format(obj, include=include, exclude=exclude)
-            if not format_dict:
-                # nothing to display (e.g. _ipython_display_ took over)
-                continue
-            if metadata:
-                # kwarg-specified metadata gets precedence
-                _merge(md_dict, metadata)
-            publish_display_data(data=format_dict, metadata=md_dict, **kwargs)
-    if display_id:
-        return DisplayHandle(display_id)
-
-
-# use * for keyword-only display_id arg
-def update_display(obj, *, display_id, **kwargs):
-    """Update an existing display by id
-
-    Parameters
-    ----------
-
-    obj:
-        The object with which to update the display
-    display_id: keyword-only
-        The id of the display to update
-
-    See Also
-    --------
-
-    :func:`display`
-    """
-    kwargs['update'] = True
-    display(obj, display_id=display_id, **kwargs)
-
-
-class DisplayHandle(object):
-    """A handle on an updatable display
-
-    Call `.update(obj)` to display a new object.
-
-    Call `.display(obj`) to add a new instance of this display,
-    and update existing instances.
-
-    See Also
-    --------
-
-        :func:`display`, :func:`update_display`
-
-    """
-
-    def __init__(self, display_id=None):
-        if display_id is None:
-            display_id = _new_id()
-        self.display_id = display_id
-
-    def __repr__(self):
-        return "<%s display_id=%s>" % (self.__class__.__name__, self.display_id)
-
-    def display(self, obj, **kwargs):
-        """Make a new display with my id, updating existing instances.
-        
-        Parameters
-        ----------
-        
-        obj:
-            object to display
-        **kwargs:
-            additional keyword arguments passed to display
-        """
-        display(obj, display_id=self.display_id, **kwargs)
-
-    def update(self, obj, **kwargs):
-        """Update existing displays with my id
-        
-        Parameters
-        ----------
-        
-        obj:
-            object to display
-        **kwargs:
-            additional keyword arguments passed to update_display
-        """
-        update_display(obj, display_id=self.display_id, **kwargs)
 
 
 def display_pretty(*objs, **kwargs):
@@ -659,7 +349,8 @@ class DisplayObject(object):
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.filename is not None:
-            with open(self.filename, self._read_flags) as f:
+            encoding = None if "b" in self._read_flags else "utf-8"
+            with open(self.filename, self._read_flags, encoding=encoding) as f:
                 self.data = f.read()
         elif self.url is not None:
             # Deferred import
@@ -679,7 +370,11 @@ class DisplayObject(object):
                 if 'gzip' in response.headers['content-encoding']:
                     import gzip
                     from io import BytesIO
-                    with gzip.open(BytesIO(data), 'rt', encoding=encoding) as fp:
+
+                    # assume utf-8 if encoding is not specified
+                    with gzip.open(
+                        BytesIO(data), "rt", encoding=encoding or "utf-8"
+                    ) as fp:
                         encoding = None
                         data = fp.read()
 
@@ -694,7 +389,19 @@ class DisplayObject(object):
 
 
 class TextDisplayObject(DisplayObject):
-    """Validate that display data is text"""
+    """Create a text display object given raw data.
+
+    Parameters
+    ----------
+    data : str or unicode
+        The raw data or a URL or file to load the data from.
+    url : unicode
+        A URL to download the data from.
+    filename : unicode
+        Path to a local file to load the data from.
+    metadata : dict
+        Dict of metadata associated to be the object when displayed
+    """
     def _check_data(self):
         if self.data is not None and not isinstance(self.data, str):
             raise TypeError("%s expects text, not %r" % (self.__class__.__name__, self.data))
@@ -792,16 +499,16 @@ class SVG(DisplayObject):
             pass
         svg = cast_unicode(svg)
         self._data = svg
-    
+
     def _repr_svg_(self):
         return self._data_and_metadata()
 
 class ProgressBar(DisplayObject):
-    """Progressbar supports displaying a progressbar like element 
+    """Progressbar supports displaying a progressbar like element
     """
     def __init__(self, total):
         """Creates a new progressbar
-        
+
         Parameters
         ----------
         total : int
@@ -827,10 +534,10 @@ class ProgressBar(DisplayObject):
             self.html_width, self.total, self.progress)
 
     def display(self):
-        display(self, display_id=self._display_id)
+        display_functions.display(self, display_id=self._display_id)
 
     def update(self):
-        display(self, display_id=self._display_id, update=True)
+        display_functions.display(self, display_id=self._display_id, update=True)
 
     @property
     def progress(self):
@@ -878,10 +585,10 @@ class JSON(DisplayObject):
             Path to a local file to load the data from.
         expanded : boolean
             Metadata to control whether a JSON display component is expanded.
-        metadata: dict
+        metadata : dict
             Specify extra metadata to attach to the json display object.
         root : str
-            The name of the root element of the JSON tree 
+            The name of the root element of the JSON tree
         """
         self.metadata = {
             'expanded': expanded,
@@ -918,8 +625,9 @@ class JSON(DisplayObject):
     def _repr_json_(self):
         return self._data_and_metadata()
 
+
 _css_t = """var link = document.createElement("link");
-	link.ref = "stylesheet";
+	link.rel = "stylesheet";
 	link.type = "text/css";
 	link.href = "%s";
 	document.head.appendChild(link);
@@ -944,7 +652,7 @@ class GeoJSON(JSON):
 
     Scalar types (None, number, string) are not allowed, only dict containers.
     """
-    
+
     def __init__(self, *args, **kwargs):
         """Create a GeoJSON display object given raw data.
 
@@ -962,12 +670,11 @@ class GeoJSON(JSON):
             A URL to download the data from.
         filename : unicode
             Path to a local file to load the data from.
-        metadata: dict
+        metadata : dict
             Specify extra metadata to attach to the json display object.
 
         Examples
         --------
-
         The following will display an interactive map of Mars with a point of
         interest on frontend that do support GeoJSON display.
 
@@ -993,7 +700,7 @@ class GeoJSON(JSON):
         the GeoJSON object.
 
         """
-        
+
         super(GeoJSON, self).__init__(*args, **kwargs)
 
 
@@ -1005,7 +712,7 @@ class GeoJSON(JSON):
         metadata = {
             'application/geo+json': self.metadata
         }
-        display(bundle, metadata=metadata, raw=True)
+        display_functions.display(bundle, metadata=metadata, raw=True)
 
 class Javascript(TextDisplayObject):
 
@@ -1034,7 +741,7 @@ class Javascript(TextDisplayObject):
             running the source code. The full URLs of the libraries should
             be given. A single Javascript library URL can also be given as a
             string.
-        css: : list or str
+        css : list or str
             A sequence of css files to load before running the source code.
             The full URLs of the css files should be given. A single css URL
             can also be given as a string.
@@ -1112,9 +819,20 @@ class Image(DisplayObject):
         _FMT_GIF: 'image/gif',
     }
 
-    def __init__(self, data=None, url=None, filename=None, format=None,
-                 embed=None, width=None, height=None, retina=False,
-                 unconfined=False, metadata=None):
+    def __init__(
+        self,
+        data=None,
+        url=None,
+        filename=None,
+        format=None,
+        embed=None,
+        width=None,
+        height=None,
+        retina=False,
+        unconfined=False,
+        metadata=None,
+        alt=None,
+    ):
         """Create a PNG/JPEG/GIF image object given raw data.
 
         When this object is returned by an input cell or passed to the
@@ -1126,15 +844,19 @@ class Image(DisplayObject):
         data : unicode, str or bytes
             The raw image data or a URL or filename to load the data from.
             This always results in embedded image data.
+
         url : unicode
             A URL to download the data from. If you specify `url=`,
             the image data will not be embedded unless you also specify `embed=True`.
+
         filename : unicode
             Path to a local file to load the data from.
             Images from a file are always embedded.
+
         format : unicode
             The format of the image data (png/jpeg/jpg/gif). If a filename or URL is given
             for format will be inferred from the filename extension.
+
         embed : bool
             Should the image data be embedded using a data URI (True) or be
             loaded using an <img> tag. Set this to True if you want the image
@@ -1144,10 +866,13 @@ class Image(DisplayObject):
             default value is `False`.
 
             Note that QtConsole is not able to display images if `embed` is set to `False`
+
         width : int
             Width in pixels to which to constrain the image in html
+
         height : int
             Height in pixels to which to constrain the image in html
+
         retina : bool
             Automatically set the width and height to half of the measured
             width and height.
@@ -1155,25 +880,38 @@ class Image(DisplayObject):
             from image data.
             For non-embedded images, you can just set the desired display width
             and height directly.
-        unconfined: bool
+
+        unconfined : bool
             Set unconfined=True to disable max-width confinement of the image.
-        metadata: dict
+
+        metadata : dict
             Specify extra metadata to attach to the image.
+
+        alt : unicode
+            Alternative text for the image, for use by screen readers.
 
         Examples
         --------
-        # embedded image data, works in qtconsole and notebook
-        # when passed positionally, the first arg can be any of raw image data,
-        # a URL, or a filename from which to load image data.
-        # The result is always embedding image data for inline images.
-        Image('http://www.google.fr/images/srpr/logo3w.png')
-        Image('/path/to/image.jpg')
-        Image(b'RAW_PNG_DATA...')
+        embedded image data, works in qtconsole and notebook
+        when passed positionally, the first arg can be any of raw image data,
+        a URL, or a filename from which to load image data.
+        The result is always embedding image data for inline images.
 
-        # Specifying Image(url=...) does not embed the image data,
-        # it only generates `<img>` tag with a link to the source.
-        # This will not work in the qtconsole or offline.
-        Image(url='http://www.google.fr/images/srpr/logo3w.png')
+        >>> Image('https://www.google.fr/images/srpr/logo3w.png') # doctest: +SKIP
+        <IPython.core.display.Image object>
+
+        >>> Image('/path/to/image.jpg')
+        <IPython.core.display.Image object>
+
+        >>> Image(b'RAW_PNG_DATA...')
+        <IPython.core.display.Image object>
+
+        Specifying Image(url=...) does not embed the image data,
+        it only generates ``<img>`` tag with a link to the source.
+        This will not work in the qtconsole or offline.
+
+        >>> Image(url='https://www.google.fr/images/srpr/logo3w.png')
+        <IPython.core.display.Image object>
 
         """
         if isinstance(data, (Path, PurePath)):
@@ -1228,7 +966,8 @@ class Image(DisplayObject):
         self.height = height
         self.retina = retina
         self.unconfined = unconfined
-        super(Image, self).__init__(data=data, url=url, filename=filename, 
+        self.alt = alt
+        super(Image, self).__init__(data=data, url=url, filename=filename,
                 metadata=metadata)
 
         if self.width is None and self.metadata.get('width', {}):
@@ -1236,6 +975,9 @@ class Image(DisplayObject):
 
         if self.height is None and self.metadata.get('height', {}):
             self.height = metadata['height']
+
+        if self.alt is None and self.metadata.get("alt", {}):
+            self.alt = metadata["alt"]
 
         if retina:
             self._retina_shape()
@@ -1266,18 +1008,21 @@ class Image(DisplayObject):
 
     def _repr_html_(self):
         if not self.embed:
-            width = height = klass = ''
+            width = height = klass = alt = ""
             if self.width:
                 width = ' width="%d"' % self.width
             if self.height:
                 height = ' height="%d"' % self.height
             if self.unconfined:
                 klass = ' class="unconfined"'
-            return u'<img src="{url}"{width}{height}{klass}/>'.format(
+            if self.alt:
+                alt = ' alt="%s"' % html.escape(self.alt)
+            return '<img src="{url}"{width}{height}{klass}{alt}/>'.format(
                 url=self.url,
                 width=width,
                 height=height,
                 klass=klass,
+                alt=alt,
             )
 
     def _repr_mimebundle_(self, include=None, exclude=None):
@@ -1298,9 +1043,9 @@ class Image(DisplayObject):
         """shortcut for returning metadata with shape information, if defined"""
         try:
             b64_data = b2a_base64(self.data).decode('ascii')
-        except TypeError:
+        except TypeError as e:
             raise FileNotFoundError(
-                "No such file or directory: '%s'" % (self.data))
+                "No such file or directory: '%s'" % (self.data)) from e
         md = {}
         if self.metadata:
             md.update(self.metadata)
@@ -1310,6 +1055,8 @@ class Image(DisplayObject):
             md['height'] = self.height
         if self.unconfined:
             md['unconfined'] = self.unconfined
+        if self.alt:
+            md["alt"] = self.alt
         if md or always_both:
             return b64_data, md
         else:
@@ -1348,12 +1095,15 @@ class Video(DisplayObject):
         data : unicode, str or bytes
             The raw video data or a URL or filename to load the data from.
             Raw data will require passing ``embed=True``.
+
         url : unicode
             A URL for the video. If you specify ``url=``,
             the image data will not be embedded.
+
         filename : unicode
             Path to a local file containing the video.
             Will be interpreted as a local URL unless ``embed=True``.
+
         embed : bool
             Should the video be embedded using a data URI (True) or be
             loaded using a <video> tag (False).
@@ -1365,15 +1115,18 @@ class Video(DisplayObject):
 
                 Video('./video.mp4')
 
-        mimetype: unicode
+        mimetype : unicode
             Specify the mimetype for embedded videos.
             Default will be guessed from file extension, if available.
+
         width : int
             Width in pixels to which to constrain the video in HTML.
             If not supplied, defaults to the width of the video.
+
         height : int
             Height in pixels to which to constrain the video in html.
             If not supplied, defaults to the height of the video.
+
         html_attributes : str
             Attributes for the HTML ``<video>`` block.
             Default: ``"controls"`` to get video controls.
@@ -1382,7 +1135,6 @@ class Video(DisplayObject):
 
         Examples
         --------
-
         ::
 
             Video('https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_small.mp4')
@@ -1397,7 +1149,7 @@ class Video(DisplayObject):
         if url is None and isinstance(data, str) and data.startswith(('http:', 'https:')):
             url = data
             data = None
-        elif os.path.exists(data):
+        elif data is not None and os.path.exists(data):
             filename = data
             data = None
 
@@ -1459,23 +1211,6 @@ class Video(DisplayObject):
         pass
 
 
-def clear_output(wait=False):
-    """Clear the output of the current cell receiving output.
-
-    Parameters
-    ----------
-    wait : bool [default: false]
-        Wait to clear the output until new output is available to replace it."""
-    from IPython.core.interactiveshell import InteractiveShell
-    if InteractiveShell.initialized():
-        InteractiveShell.instance().display_pub.clear_output(wait)
-    else:
-        print('\033[2K\r', end='')
-        sys.stdout.flush()
-        print('\033[2K\r', end='')
-        sys.stderr.flush()
-
-
 @skip_doctest
 def set_matplotlib_formats(*formats, **kwargs):
     """
@@ -1498,7 +1233,7 @@ def set_matplotlib_formats(*formats, **kwargs):
     ----------
     *formats : strs
         One or more figure formats to enable: 'png', 'retina', 'jpeg', 'svg', 'pdf'.
-    **kwargs :
+    **kwargs
         Keyword args will be relayed to ``figure.canvas.print_figure``.
     """
     warnings.warn(
@@ -1520,7 +1255,6 @@ def set_matplotlib_close(close=True):
     .. deprecated:: 7.23
 
         use `matplotlib_inline.backend_inline.set_matplotlib_close()`
-
 
     Set whether the inline backend closes all figures automatically or not.
 

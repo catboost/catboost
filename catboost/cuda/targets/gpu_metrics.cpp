@@ -249,6 +249,14 @@ namespace NCatboostCuda {
                     const double multiplier = (metricType == ELossFunction::MAE ? 2.0 : 1.0);
                     return MakeSimpleAdditiveStatistic(-result[0] * multiplier, totalWeight);
                 }
+                case ELossFunction::RMSEWithUncertainty: {
+                    CB_ENSURE(NumClasses == 2, "Expect two-dimensional predictions");
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    RMSEWithUncertaintyValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                                          &tmp, (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
+                }
                 case ELossFunction::MultiClass: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     MultiLogitValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
@@ -260,6 +268,19 @@ namespace NCatboostCuda {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     MultiClassOneVsAllValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
                                                   NumClasses, &tmp, (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
+                }
+                case ELossFunction::MultiCrossEntropy:
+                case ELossFunction::MultiLogloss: {
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    MultiCrossEntropyValueAndDer(
+                        target,
+                        weights,
+                        cursor,
+                        (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                        &tmp,
+                        (TVec*)nullptr);
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
@@ -491,9 +512,9 @@ namespace NCatboostCuda {
 
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
-        const auto numClasses = approxDim == 1 ? 2 : approxDim;
         const bool isMulticlass = IsMultiClassOnlyMetric(targetObjective);
-        if (isMulticlass) {
+        const bool isRMSEWithUncertainty = targetObjective == ELossFunction::RMSEWithUncertainty;
+        if (isMulticlass || IsMultiLabelObjective(targetObjective) || isRMSEWithUncertainty) {
             CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
         } else {
             CB_ENSURE(approxDim == 1, "Error: non-multiclass output dim should be equal to  1");
@@ -501,20 +522,20 @@ namespace NCatboostCuda {
 
         auto metricType = metricDescription.GetLossFunction();
         const TLossParams& params = metricDescription.GetLossParams();
-        TSet<TString> unusedValidParams;
-
-        TMetricConfig config(metricType, params, approxDim, &unusedValidParams);
 
         switch (metricType) {
             case ELossFunction::Logloss:
             case ELossFunction::CrossEntropy:
             case ELossFunction::RMSE:
+            case ELossFunction::RMSEWithUncertainty:
             case ELossFunction::Lq:
             case ELossFunction::Quantile:
             case ELossFunction::MAE:
             case ELossFunction::LogLinQuantile:
             case ELossFunction::MultiClass:
             case ELossFunction::MultiClassOneVsAll:
+            case ELossFunction::MultiCrossEntropy:
+            case ELossFunction::MultiLogloss:
             case ELossFunction::MAPE:
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
@@ -532,22 +553,23 @@ namespace NCatboostCuda {
             case ELossFunction::Recall:
             case ELossFunction::F1: {
                 auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
+                const auto numClasses = approxDim == 1 ? 2 : approxDim;
                 for (ui32 i = 0; i < approxDim; ++i) {
                     result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[i]), i, numClasses, isMulticlass, metricDescription));
                 }
                 break;
             }
             case ELossFunction::AUC: {
-                if (approxDim == 1) {
-                    if (IsClassificationObjective(targetObjective) || targetObjective == ELossFunction::QueryCrossEntropy) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(params), 1, 2, isMulticlass, metricDescription));
-                    } else {
-                        result.emplace_back(new TCpuFallbackMetric(MakeBinClassAucMetric(params), metricDescription));
-                    }
+                auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
+                if ((approxDim == 1) && (IsClassificationObjective(targetObjective) || targetObjective == ELossFunction::QueryCrossEntropy)) {
+                    CB_ENSURE_INTERNAL(
+                        cpuMetrics.size() == 1,
+                        "CreateMetricFromDescription for AUC for binclass should return one-element vector"
+                    );
+                    result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[0]), 1, 2, isMulticlass, metricDescription));
                 } else {
                     CATBOOST_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
 
-                    auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
                     for (auto& cpuMetric : cpuMetrics) {
                         result.emplace_back(new TCpuFallbackMetric(std::move(cpuMetric), metricDescription));
                     }

@@ -74,6 +74,8 @@ def inputhook(context):
         )
         try:
             # connect the callback we care about before we turn it on
+            # lambda is necessary as PyQT inspect the function signature to know
+            # what arguments to pass to. See https://github.com/ipython/ipython/pull/12355
             notifier.activated.connect(lambda: event_loop.exit())
             notifier.setEnabled(True)
             # only start the event loop we are not already flipped

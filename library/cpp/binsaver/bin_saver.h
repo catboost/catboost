@@ -133,7 +133,7 @@ private:
             data.clear();
             TStoredSize nSize;
             Add(3, &nSize);
-            TVector<typename AM::key_type, typename AM::allocator_type::template rebind<typename AM::key_type>::other> indices;
+            TVector<typename AM::key_type, typename std::allocator_traits<typename AM::allocator_type>::template rebind_alloc<typename AM::key_type>> indices;
             indices.resize(nSize);
             for (TStoredSize i = 0; i < nSize; ++i)
                 Add(1, &indices[i]);
@@ -144,7 +144,7 @@ private:
             CheckOverflow(nSize, data.size());
             Add(3, &nSize);
 
-            TVector<typename AM::key_type, typename AM::allocator_type::template rebind<typename AM::key_type>::other> indices;
+            TVector<typename AM::key_type, typename std::allocator_traits<typename AM::allocator_type>::template rebind_alloc<typename AM::key_type>> indices;
             indices.resize(nSize);
             TStoredSize i = 1;
             for (auto pos = data.begin(); pos != data.end(); ++pos, ++i)
@@ -163,7 +163,7 @@ private:
             data.clear();
             TStoredSize nSize;
             Add(3, &nSize);
-            TVector<typename AMM::key_type, typename AMM::allocator_type::template rebind<typename AMM::key_type>::other> indices;
+            TVector<typename AMM::key_type, typename std::allocator_traits<typename AMM::allocator_type>::template rebind_alloc<typename AMM::key_type>> indices;
             indices.resize(nSize);
             for (TStoredSize i = 0; i < nSize; ++i)
                 Add(1, &indices[i]);

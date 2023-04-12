@@ -17,7 +17,7 @@
 #include <util/stream/file.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/event.h>
 #include <util/system/info.h>
 #include <util/system/spin_wait.h>
@@ -40,11 +40,11 @@ static NPar::TNetworkAddress CreateAddress(const TString& server) {
     NPar::TNetworkAddress::TPortNum port = 0;
     TString addr;
     if (server.Contains('[')) { // handle ipv6 address
-        Y_ENSURE(server.Contains(']'), "invalid v6 address" << server);
+        CB_ENSURE(server.Contains(']'), "invalid v6 address" << server);
         auto pos = server.rfind(']');
         addr = server.substr(0, pos + 1);
         if (pos != server.size() - 1) { // we have port
-            Y_ENSURE(server[pos + 1] == ':' && server.size() > pos + 2, "invalid v6 address" << server);
+            CB_ENSURE(server[pos + 1] == ':' && server.size() > pos + 2, "invalid v6 address" << server);
             port = FromString<NPar::TNetworkAddress::TPortNum>(server.substr(pos + 2));
         }
     } else {

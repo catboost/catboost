@@ -134,7 +134,7 @@ namespace NCatboostDistributed {
             /*taskType*/ETaskType::CPU,
             poolLoadOptions,
             params->ObjectsOrder,
-            /*readTest*/false,
+            /*readTest*/true,
             GetSubsetForWorker(workerCount, hostId, params->LearnObjectsGrouping),
             testDatasetSubsets,
             catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
@@ -1259,7 +1259,7 @@ namespace NCatboostDistributed {
                     const auto pivot = pivots[dimension][leaf];
                     const auto& exactDiff = localData.ExactDiff[dimension][leaf];
                     double sumWeights = 0;
-                    for (const auto [diff, weight] : exactDiff) {
+                    for (const auto& [diff, weight] : exactDiff) {
                         if (diff == pivot) {
                             sumWeights += weight;
                         }

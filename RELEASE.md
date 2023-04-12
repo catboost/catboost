@@ -1,3 +1,132 @@
+# Release 1.1.1
+## New features
+* Support building for Linux on aarch64 from sources using CMake (no prebuilt binaries or PyPI packages yet). #1981
+* [C/C++ applier] Support embedding features. #2172
+* [C/C++ applier] Add `GetModelUsedFeaturesNames`. #2204
+* [Python] Add text features to `utils.create_cd`. #2193
+* [Spark] Full support for Apache Spark 3.3
+* [Spark] Read/write PySpark's DataFrame-like API for Pool. #2030
+* [Spark] Allow to specify trainingDriver and worker listening ports. #2181
+
+## Bugfixes
+* Fix prediction dimension check for RMSEWithUncertainty and MultiQuantile. #2155
+* [C/C++ applier] Fix segmentation fault in prediction for multiple objects for multiple dimension models.
+* [JVM applier] Fix catboost-common dependency version in catboost-prediction (Fixes JVM applier on macOS). #2121
+* [Python] Update for pandas 1.5.0: iteritems -> items (Fixes annoying deprecation warning). #2179
+* [Python] Fix segmentation fault when target is `np.ndarray` with `dtype=object`. #2201
+* [Python] Fix specifying `feature_names` in `utils.create_cd`. #2211
+
+
+# Release 1.1
+## New features
+* Multiquantile regression
+
+  Now it's possible to train models with shared tree structure and multiple predicted quantile values in each leaf. Currently this approach doesn't give a strong guarantee for predicted quantile values consistency, but it still provides more consistency than training multiple independent models for each quantile. You can read [short description in the documentation](https://catboost.ai/en/docs/concepts/loss-functions-regression#MultiQuantile). Short example for Python: `loss_function='MultiQuantile:alpha=0.2,0.4'`. Supported only on CPU for now.
+* Support text and embedding features for regression and ranking.
+* Spark: Read/write Spark's Dataset-like API for Pool. #2030
+* Support HashedCateg column type. This allows to use externally prehashed categorical features both in training and prediction.
+* New option `plot_file` in Python functions with `plot` parameter allows to save plots to file. #758
+* Add eval_fraction parameter. #1500
+* Non-symmetric trees model summation.
+* `init_model` parameter now works with non-symmetric trees.
+* Partial support for Apache Spark 3.3 (only for Scala 2.12 and without PySpark).
+
+## Speedups
+* 2x speedup DCG, nDCG and FilteredDCG metrics calculation for groups with >= 50 objects and with top=-1 (all objects from each group, default value)
+* Fixed 2x slowdown of PairLogit and other ranking losses on CPU introduced in release 0.23
+
+## Bugfixes
+* Fix for pandas integer array. #2096
+* Save feature names to json format. #2102
+* Fix feature weights on CPU
+* Use feature weights on GPU
+* Fix gradient calculation for QueryRMSE on GPU
+* Fix ranking metrics with group weights in calc_metrics
+* Fix JVM applier on data with text features. #2132
+
+
+# Release 1.0.6
+## New features
+
+* Fixed splits for binary features on gpu for non-symmetric trees -- specify the set of splits to start each tree in the model with `--fixed-binary-splits` or `fixed_binary_splits` in Python package (by default, there are no fixed splits)
+
+
+## Documentation
+
+* New sections on [MultiRMSEWithMissingValues](https://catboost.ai/en/docs/concepts/loss-functions-multiregression#MultiRMSEWithMissingValues)
+and [LogCosh](https://catboost.ai/en/docs/concepts/loss-functions-regression#LogCosh)
+* New section on [get_embedding_feature_indices](https://catboost.ai/en/docs/concepts/python-reference_pool_get_embedding_feature_indices)
+* Add info on gpu support for metrics
+
+
+## Bug-fixes
+
+* Fix warning about resetting logger when logging to sys.stdout & sys.stderr from different threads #1855
+* Fix model summation in CatBoost for Apache Spark
+* Fix performance and scalability of query auc for ranking (1m samples, query size 2, 8 cpu cores 0.55s -> 0.04s)
+* Fix support for text features and embeddings in Java applier #2043
+* Fix nan/inf split scores with yeti rank pairwise loss
+* Fix nan/inf feature strengths in pair logit on cpu
+
+
+# Release 1.0.5
+## New features
+
+* Support Apple Darwin arm64 architecture. #1526.
+* Support feature tags in feature selection.
+* Support for Apache Spark 3.2.
+* Model sum in Apache Spark.
+
+## Python package
+
+* Accommodate multiple target-platform arguments used to build universal binaries.
+* Add grid creation function to utils.py
+* Custom multilabel eval metrics by @ELitvinova
+* Metrics plotter by @evgenabramov
+* Fbeta score by @ELitvinova
+
+## Bugfixes
+
+* Fix group weights in metrics calculation.
+* Fix `fit` for PySpark estimators. #1976.
+* Fix predict on GPU. #1901, #1923.
+* Disable exact leafs calculation for `MAE`, `MAPE`, `Quantile` on GPU.
+* Fix counter description for plotting. #1973.
+* Allow weights in `BrierScore`. #1967.
+* Disable AUC calculation for learn by default on GPU as well.
+* Fix `plot_tree` example in documentation.
+* Fix plots in `cv`.
+* Fix ui32 overflows in pairwise losses on GPU.
+* Fix for multiclass in nodejs evaluator. #1903.
+* Fix CatBoost R package installation on Monterey. #1912.
+* Fix CUDA error 700 caused by data race in mimalloc and CUDA driver.
+* Fix slow compilation with CUDA 11.2+.
+* Fix 2nd derivative in RMSEWithUncertainty.
+
+
+# Release 1.0.4
+
+## New features
+* Add `sort` param to `FilteredDCG` metric.
+* Add `StochasticRank` for `FilteredDCG`.
+
+## Python package
+* add is_max/minimizable methods. #1915
+* Support custom metric in select_features #1920
+
+## R package
+* Register functions from libcatboostr natively in R, removing one of CRAN notes.
+
+## Bugfixes
+* Fix apply for models without main `loss_function`.
+* Fix text calcer options specification. #1916
+* Fix `calc_feature_statistics`
+* Fix Multi-approx support in CLI `calc_metrics` mode.
+* Fix processing for text options. #1930
+* Fix snapshot saving in feature selection.
+* Fix CatBoost models serialization inside pipeline models in PySpark. #1936
+
+
 # Release 1.0.3
 
 ## CatBoost for Apache Spark

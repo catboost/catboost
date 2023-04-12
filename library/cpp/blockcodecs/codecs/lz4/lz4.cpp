@@ -4,7 +4,6 @@
 
 #include <contrib/libs/lz4/lz4.h>
 #include <contrib/libs/lz4/lz4hc.h>
-#include <contrib/libs/lz4/generated/iface.h>
 
 using namespace NBlockCodecs;
 
@@ -18,12 +17,11 @@ namespace {
     struct TLz4FastCompress {
         inline TLz4FastCompress(int memory)
             : Memory(memory)
-            , Methods(LZ4Methods(Memory))
         {
         }
 
         inline size_t DoCompress(const TData& in, void* buf) const {
-            return Methods->LZ4CompressLimited(in.data(), (char*)buf, in.size(), LZ4_compressBound(in.size()));
+            return LZ4_compress_default(in.data(), (char*)buf, in.size(), LZ4_compressBound(in.size()));
         }
 
         inline TString CPrefix() {
@@ -31,7 +29,6 @@ namespace {
         }
 
         const int Memory;
-        const TLZ4Methods* Methods;
     };
 
     struct TLz4BestCompress {
@@ -93,20 +90,15 @@ namespace {
 
     struct TLz4Registrar {
         TLz4Registrar() {
-            for (int i = 0; i < 30; ++i) {
+            for (int i = 10; i <= 20; ++i) {
                 typedef TLz4Codec<TLz4FastCompress, TLz4FastDecompress> T1;
                 typedef TLz4Codec<TLz4FastCompress, TLz4SafeDecompress> T2;
 
                 THolder<T1> t1(new T1(i));
                 THolder<T2> t2(new T2(i));
 
-                if (t1->Methods) {
-                    RegisterCodec(std::move(t1));
-                }
-
-                if (t2->Methods) {
-                    RegisterCodec(std::move(t2));
-                }
+                RegisterCodec(std::move(t1));
+                RegisterCodec(std::move(t2));
             }
 
             RegisterCodec(MakeHolder<TLz4Codec<TLz4BestCompress, TLz4FastDecompress>>());

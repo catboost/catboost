@@ -4,13 +4,11 @@
 # Distributed under the terms of the BSD 3-Clause License.
 
 import matplotlib
-from matplotlib.backends.backend_agg import (  # noqa
-    new_figure_manager,
-    FigureCanvasAgg,
-    new_figure_manager_given_figure,
-)
 from matplotlib import colors
+from matplotlib.backends import backend_agg
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib._pylab_helpers import Gcf
+from matplotlib.figure import Figure
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.core.getipython import get_ipython
@@ -18,6 +16,57 @@ from IPython.core.pylabtools import select_figure_formats
 from IPython.display import display
 
 from .config import InlineBackend
+
+
+def new_figure_manager(num, *args, FigureClass=Figure, **kwargs):
+    """
+    Return a new figure manager for a new figure instance.
+
+    This function is part of the API expected by Matplotlib backends.
+    """
+    return new_figure_manager_given_figure(num, FigureClass(*args, **kwargs))
+
+
+def new_figure_manager_given_figure(num, figure):
+    """
+    Return a new figure manager for a given figure instance.
+
+    This function is part of the API expected by Matplotlib backends.
+    """
+    manager = backend_agg.new_figure_manager_given_figure(num, figure)
+
+    # Hack: matplotlib FigureManager objects in interacive backends (at least
+    # in some of them) monkeypatch the figure object and add a .show() method
+    # to it.  This applies the same monkeypatch in order to support user code
+    # that might expect `.show()` to be part of the official API of figure
+    # objects.  For further reference:
+    # https://github.com/ipython/ipython/issues/1612
+    # https://github.com/matplotlib/matplotlib/issues/835
+
+    if not hasattr(figure, 'show'):
+        # Queue up `figure` for display
+        figure.show = lambda *a: display(
+            figure, metadata=_fetch_figure_metadata(figure))
+
+    # If matplotlib was manually set to non-interactive mode, this function
+    # should be a no-op (otherwise we'll generate duplicate plots, since a user
+    # who set ioff() manually expects to make separate draw/show calls).
+    if not matplotlib.is_interactive():
+        return manager
+
+    # ensure current figure will be drawn, and each subsequent call
+    # of draw_if_interactive() moves the active figure to ensure it is
+    # drawn last
+    try:
+        show._to_draw.remove(figure)
+    except ValueError:
+        # ensure it only appears in the draw list once
+        pass
+    # Queue up the figure for drawing in next show() call
+    show._to_draw.append(figure)
+    show._draw_called = True
+
+    return manager
 
 
 def show(close=None, block=None):
@@ -56,51 +105,6 @@ show._draw_called = False
 show._to_draw = []
 
 
-def draw_if_interactive():
-    """
-    Is called after every pylab drawing command
-    """
-    # signal that the current active figure should be sent at the end of
-    # execution.  Also sets the _draw_called flag, signaling that there will be
-    # something to send.  At the end of the code execution, a separate call to
-    # flush_figures() will act upon these values
-    manager = Gcf.get_active()
-    if manager is None:
-        return
-    fig = manager.canvas.figure
-
-    # Hack: matplotlib FigureManager objects in interacive backends (at least
-    # in some of them) monkeypatch the figure object and add a .show() method
-    # to it.  This applies the same monkeypatch in order to support user code
-    # that might expect `.show()` to be part of the official API of figure
-    # objects.
-    # For further reference:
-    # https://github.com/ipython/ipython/issues/1612
-    # https://github.com/matplotlib/matplotlib/issues/835
-
-    if not hasattr(fig, 'show'):
-        # Queue up `fig` for display
-        fig.show = lambda *a: display(fig, metadata=_fetch_figure_metadata(fig))
-
-    # If matplotlib was manually set to non-interactive mode, this function
-    # should be a no-op (otherwise we'll generate duplicate plots, since a user
-    # who set ioff() manually expects to make separate draw/show calls).
-    if not matplotlib.is_interactive():
-        return
-
-    # ensure current figure will be drawn, and each subsequent call
-    # of draw_if_interactive() moves the active figure to ensure it is
-    # drawn last
-    try:
-        show._to_draw.remove(fig)
-    except ValueError:
-        # ensure it only appears in the draw list once
-        pass
-    # Queue up the figure for drawing in next show() call
-    show._to_draw.append(fig)
-    show._draw_called = True
-
-
 def flush_figures():
     """Send all figures that changed
 
@@ -115,19 +119,20 @@ def flush_figures():
     if not show._draw_called:
         return
 
-    if InlineBackend.instance().close_figures:
-        # ignore the tracking, just draw and close all figures
-        try:
-            return show(True)
-        except Exception as e:
-            # safely show traceback if in IPython, else raise
-            ip = get_ipython()
-            if ip is None:
-                raise e
-            else:
-                ip.showtraceback()
-                return
     try:
+        if InlineBackend.instance().close_figures:
+            # ignore the tracking, just draw and close all figures
+            try:
+                return show(True)
+            except Exception as e:
+                # safely show traceback if in IPython, else raise
+                ip = get_ipython()
+                if ip is None:
+                    raise e
+                else:
+                    ip.showtraceback()
+                    return
+
         # exclude any figures that were closed:
         active = set([fm.canvas.figure for fm in Gcf.get_all_fig_managers()])
         for fig in [fig for fig in show._to_draw if fig in active]:

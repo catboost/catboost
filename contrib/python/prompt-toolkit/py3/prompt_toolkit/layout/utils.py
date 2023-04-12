@@ -28,7 +28,7 @@ class _ExplodedList(List[_T]):
     def extend(self, lst: Iterable[_T]) -> None:
         super().extend(explode_text_fragments(lst))
 
-    def insert(self, index: int, item: _T) -> None:
+    def insert(self, index: "SupportsIndex", item: _T) -> None:
         raise NotImplementedError  # TODO
 
     # TODO: When creating a copy() or [:], return also an _ExplodedList.
@@ -73,8 +73,8 @@ def explode_text_fragments(fragments: Iterable[_T]) -> _ExplodedList[_T]:
 
     result: List[_T] = []
 
-    for style, string, *rest in fragments:  # type: ignore
-        for c in string:  # type: ignore
+    for style, string, *rest in fragments:
+        for c in string:
             result.append((style, c, *rest))  # type: ignore
 
     return _ExplodedList(result)

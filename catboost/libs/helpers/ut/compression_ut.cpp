@@ -17,7 +17,7 @@ using namespace NCB;
 Y_UNIT_TEST_SUITE(Compression) {
     template <class T>
     TVector<T> GenerateRandomVector(ui32 size, ui32 bitsPerKey) {
-        Y_VERIFY((bitsPerKey > 0) && (bitsPerKey <= CHAR_BIT * sizeof(T)));
+        CB_ENSURE((bitsPerKey > 0) && (bitsPerKey <= CHAR_BIT * sizeof(T)));
 
         const ui64 upperBound = ui64(1) << bitsPerKey;
 

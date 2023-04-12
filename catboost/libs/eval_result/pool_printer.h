@@ -25,13 +25,17 @@ namespace NCB {
         virtual ~IPoolColumnsPrinter() = default;
         virtual std::type_index GetOutputFeatureType(ui32 featureId) = 0;
         bool HasDocIdColumn = false;
-    private:
-        // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
-        THashMap<EColumn, ui32> FromColumnTypeToColumnId; // Only for DSV pools
     };
 
     // pass this struct to to IPoolColumnsPrinter constructor
-    struct TPoolColumnsPrinterPushArgs {
+    struct TPoolColumnsPrinterPullArgs {
+        TPathWithScheme PoolPath;
+        const TDsvFormatOptions Format;
+        const TMaybe<TDataColumnsMetaInfo> ColumnsMetaInfo;
+    };
+
+    // pass this struct to to IPoolColumnsPrinter constructor
+    struct TLineDataPoolColumnsPrinterPushArgs {
         THolder<ILineDataReader> Reader;
         const TDsvFormatOptions Format;
         const TMaybe<TDataColumnsMetaInfo> ColumnsMetaInfo;
@@ -40,16 +44,12 @@ namespace NCB {
 
     class TDSVPoolColumnsPrinter : public IPoolColumnsPrinter {
     public:
-        TDSVPoolColumnsPrinter(TPoolColumnsPrinterPushArgs&& args);
-        TDSVPoolColumnsPrinter(
-            const TPathWithScheme& testSetPath,
-            const TDsvFormatOptions& format,
-            const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
-        );
+        TDSVPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args);
+        TDSVPoolColumnsPrinter(TLineDataPoolColumnsPrinterPushArgs&& args);
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) override;
         void UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) override;
-        std::type_index GetOutputFeatureType(ui32 columnId) override;
+        std::type_index GetOutputFeatureType(ui32 featureId) override;
 
     private:
         const TString& GetCell(ui64 docId, ui32 colId);
@@ -65,7 +65,7 @@ namespace NCB {
 
     class TQuantizedPoolColumnsPrinter : public IPoolColumnsPrinter {
     public:
-        TQuantizedPoolColumnsPrinter(const TPathWithScheme& testSetPath);
+        TQuantizedPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args);
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) override;
         std::type_index GetOutputFeatureType(ui32 featureId) override;
@@ -90,6 +90,6 @@ namespace NCB {
     using TPoolColumnsPrinterLoaderFactory =
     NObjectFactory::TParametrizedObjectFactory<IPoolColumnsPrinter,
         TString,
-        TPoolColumnsPrinterPushArgs>;
+        TPoolColumnsPrinterPullArgs>;
 
 } // namespace NCB

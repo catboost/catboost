@@ -166,7 +166,7 @@ TConditionsFeatureFraction::TConditionsFeatureFraction(
                 break;
             }
             default: {
-                Y_UNREACHABLE();
+                CB_ENSURE(false, "Unexpected SHAP mode");
             }
         }
     }

@@ -25,7 +25,7 @@ inline ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>
     } else {
         CB_ENSURE(
             indicesFromNames.contains(nameOrIndex),
-            "String " + nameOrIndex + " is not a feature name");
+            "String '" + nameOrIndex + "' is not a feature name");
         return indicesFromNames.at(nameOrIndex);
     }
 }
@@ -108,6 +108,7 @@ void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInf
 void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
+void ConvertFixedBinarySplitsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
 
 template <typename TSource>
 void ConvertFeaturesForSelectFromStringToIndices(const TSource& stringsToIndicesMatchingSource, NJson::TJsonValue* featuresSelectJsonOptions) {
@@ -128,10 +129,21 @@ void ConvertFeaturesForSelectFromStringToIndices(const TSource& stringsToIndices
 
 template <typename TSource>
 void ConvertParamsToCanonicalFormat(const TSource& stringsToIndicesMatchingSource, NJson::TJsonValue* catBoostJsonOptions) {
-    ConvertMonotoneConstraintsToCanonicalFormat(catBoostJsonOptions);
+    if (!catBoostJsonOptions->Has("tree_learner_options")) {
+        return;
+    }
+    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
+    ConvertMonotoneConstraintsToCanonicalFormat(&treeOptions);
     ConvertMonotoneConstraintsFromStringToIndices(stringsToIndicesMatchingSource, catBoostJsonOptions);
-    NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(catBoostJsonOptions);
+    if (treeOptions.Has("penalties")) {
+        NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(&treeOptions["penalties"]);
+    }
     ConvertAllFeaturePenaltiesFromStringToIndices(stringsToIndicesMatchingSource, catBoostJsonOptions);
+    if (catBoostJsonOptions->Has("flat_params")) {
+        auto& flatParams = (*catBoostJsonOptions)["flat_params"];
+        ConvertMonotoneConstraintsToCanonicalFormat(&flatParams);
+        NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(&flatParams);
+    }
 }
 
 // feature names - dependent params are returned in result and removed from catBoostJsonOptions

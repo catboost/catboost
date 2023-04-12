@@ -3,9 +3,9 @@ parso - A Python Parser
 ###################################################################
 
 
-.. image:: https://travis-ci.org/davidhalter/parso.svg?branch=master
-    :target: https://travis-ci.org/davidhalter/parso
-    :alt: Travis CI build status
+.. image:: https://github.com/davidhalter/parso/workflows/Build/badge.svg?branch=master
+    :target: https://github.com/davidhalter/parso/actions
+    :alt: GitHub Actions build status
 
 .. image:: https://coveralls.io/repos/github/davidhalter/parso/badge.svg?branch=master
     :target: https://coveralls.io/github/davidhalter/parso?branch=master

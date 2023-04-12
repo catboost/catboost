@@ -1,5 +1,4 @@
 import platform
-import ctypes
 
 
 def windows_only(func):
@@ -17,6 +16,7 @@ def hide_file(path):
 
     `path` must be text.
     """
+    import ctypes
     __import__('ctypes.wintypes')
     SetFileAttributes = ctypes.windll.kernel32.SetFileAttributesW
     SetFileAttributes.argtypes = ctypes.wintypes.LPWSTR, ctypes.wintypes.DWORD

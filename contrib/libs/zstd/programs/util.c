@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Przemyslaw Skibinski, Yann Collet, Facebook, Inc.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -66,6 +66,27 @@ extern "C" {
 #define UTIL_DISPLAY(...)         fprintf(stderr, __VA_ARGS__)
 #define UTIL_DISPLAYLEVEL(l, ...) { if (g_utilDisplayLevel>=l) { UTIL_DISPLAY(__VA_ARGS__); } }
 
+static int g_traceDepth = 0;
+int g_traceFileStat = 0;
+
+#define UTIL_TRACE_CALL(...)                                         \
+    {                                                                \
+        if (g_traceFileStat) {                                       \
+            UTIL_DISPLAY("Trace:FileStat: %*s> ", g_traceDepth, ""); \
+            UTIL_DISPLAY(__VA_ARGS__);                               \
+            UTIL_DISPLAY("\n");                                      \
+            ++g_traceDepth;                                          \
+        }                                                            \
+    }
+
+#define UTIL_TRACE_RET(ret)                                                     \
+    {                                                                           \
+        if (g_traceFileStat) {                                                  \
+            --g_traceDepth;                                                     \
+            UTIL_DISPLAY("Trace:FileStat: %*s< %d\n", g_traceDepth, "", (ret)); \
+        }                                                                      \
+    }
+
 /* A modified version of realloc().
  * If UTIL_realloc() fails the original block is freed.
  */
@@ -100,7 +121,7 @@ int UTIL_requireUserConfirmation(const char* prompt, const char* abortMsg,
     ch = getchar();
     result = 0;
     if (strchr(acceptableLetters, ch) == NULL) {
-        UTIL_DISPLAY("%s", abortMsg);
+        UTIL_DISPLAY("%s \n", abortMsg);
         result = 1;
     }
     /* flush the rest */
@@ -121,21 +142,34 @@ int UTIL_requireUserConfirmation(const char* prompt, const char* abortMsg,
 *  Functions
 ***************************************/
 
+void UTIL_traceFileStat(void)
+{
+    g_traceFileStat = 1;
+}
+
 int UTIL_stat(const char* filename, stat_t* statbuf)
 {
+    int ret;
+    UTIL_TRACE_CALL("UTIL_stat(%s)", filename);
 #if defined(_MSC_VER)
-    return !_stat64(filename, statbuf);
+    ret = !_stat64(filename, statbuf);
 #elif defined(__MINGW32__) && defined (__MSVCRT__)
-    return !_stati64(filename, statbuf);
+    ret = !_stati64(filename, statbuf);
 #else
-    return !stat(filename, statbuf);
+    ret = !stat(filename, statbuf);
 #endif
+    UTIL_TRACE_RET(ret);
+    return ret;
 }
 
 int UTIL_isRegularFile(const char* infilename)
 {
     stat_t statbuf;
-    return UTIL_stat(infilename, &statbuf) && UTIL_isRegularFileStat(&statbuf);
+    int ret;
+    UTIL_TRACE_CALL("UTIL_isRegularFile(%s)", infilename);
+    ret = UTIL_stat(infilename, &statbuf) && UTIL_isRegularFileStat(&statbuf);
+    UTIL_TRACE_RET(ret);
+    return ret;
 }
 
 int UTIL_isRegularFileStat(const stat_t* statbuf)
@@ -151,23 +185,32 @@ int UTIL_isRegularFileStat(const stat_t* statbuf)
 int UTIL_chmod(char const* filename, const stat_t* statbuf, mode_t permissions)
 {
     stat_t localStatBuf;
+    UTIL_TRACE_CALL("UTIL_chmod(%s, %#4o)", filename, (unsigned)permissions);
     if (statbuf == NULL) {
-        if (!UTIL_stat(filename, &localStatBuf)) return 0;
+        if (!UTIL_stat(filename, &localStatBuf)) {
+            UTIL_TRACE_RET(0);
+            return 0;
+        }
         statbuf = &localStatBuf;
     }
-    if (!UTIL_isRegularFileStat(statbuf)) return 0; /* pretend success, but don't change anything */
-    return chmod(filename, permissions);
+    if (!UTIL_isRegularFileStat(statbuf)) {
+        UTIL_TRACE_RET(0);
+        return 0; /* pretend success, but don't change anything */
+    }
+    UTIL_TRACE_CALL("chmod");
+    {
+        int const ret = chmod(filename, permissions);
+        UTIL_TRACE_RET(ret);
+        UTIL_TRACE_RET(ret);
+        return ret;
+    }
 }
 
-int UTIL_setFileStat(const char *filename, const stat_t *statbuf)
+/* set access and modification times */
+int UTIL_utime(const char* filename, const stat_t *statbuf)
 {
-    int res = 0;
-
-    stat_t curStatBuf;
-    if (!UTIL_stat(filename, &curStatBuf) || !UTIL_isRegularFileStat(&curStatBuf))
-        return -1;
-
-    /* set access and modification times */
+    int ret;
+    UTIL_TRACE_CALL("UTIL_utime(%s)", filename);
     /* We check that st_mtime is a macro here in order to give us confidence
      * that struct stat has a struct timespec st_mtim member. We need this
      * check because there are some platforms that claim to be POSIX 2008
@@ -177,40 +220,79 @@ int UTIL_setFileStat(const char *filename, const stat_t *statbuf)
         /* (atime, mtime) */
         struct timespec timebuf[2] = { {0, UTIME_NOW} };
         timebuf[1] = statbuf->st_mtim;
-        res += utimensat(AT_FDCWD, filename, timebuf, 0);
+        ret = utimensat(AT_FDCWD, filename, timebuf, 0);
     }
 #else
     {
         struct utimbuf timebuf;
         timebuf.actime = time(NULL);
         timebuf.modtime = statbuf->st_mtime;
-        res += utime(filename, &timebuf);
+        ret = utime(filename, &timebuf);
     }
 #endif
+    errno = 0;
+    UTIL_TRACE_RET(ret);
+    return ret;
+}
+
+int UTIL_setFileStat(const char *filename, const stat_t *statbuf)
+{
+    int res = 0;
+    stat_t curStatBuf;
+    UTIL_TRACE_CALL("UTIL_setFileStat(%s)", filename);
+
+    if (!UTIL_stat(filename, &curStatBuf) || !UTIL_isRegularFileStat(&curStatBuf)) {
+        UTIL_TRACE_RET(-1);
+        return -1;
+    }
+
+    /* set access and modification times */
+    res += UTIL_utime(filename, statbuf);
+
+    /* Mimic gzip's behavior:
+     *
+     * "Change the group first, then the permissions, then the owner.
+     * That way, the permissions will be correct on systems that allow
+     * users to give away files, without introducing a security hole.
+     * Security depends on permissions not containing the setuid or
+     * setgid bits." */
 
 #if !defined(_WIN32)
-    res += chown(filename, statbuf->st_uid, statbuf->st_gid);  /* Copy ownership */
+    res += chown(filename, -1, statbuf->st_gid);  /* Apply group ownership */
 #endif
 
-    res += UTIL_chmod(filename, &curStatBuf, statbuf->st_mode & 07777);  /* Copy file permissions */
+    res += UTIL_chmod(filename, &curStatBuf, statbuf->st_mode & 0777);  /* Copy file permissions */
+
+#if !defined(_WIN32)
+    res += chown(filename, statbuf->st_uid, -1);  /* Apply user ownership */
+#endif
 
     errno = 0;
+    UTIL_TRACE_RET(-res);
     return -res; /* number of errors is returned */
 }
 
 int UTIL_isDirectory(const char* infilename)
 {
     stat_t statbuf;
-    return UTIL_stat(infilename, &statbuf) && UTIL_isDirectoryStat(&statbuf);
+    int ret;
+    UTIL_TRACE_CALL("UTIL_isDirectory(%s)", infilename);
+    ret = UTIL_stat(infilename, &statbuf) && UTIL_isDirectoryStat(&statbuf);
+    UTIL_TRACE_RET(ret);
+    return ret;
 }
 
 int UTIL_isDirectoryStat(const stat_t* statbuf)
 {
+    int ret;
+    UTIL_TRACE_CALL("UTIL_isDirectoryStat()");
 #if defined(_MSC_VER)
-    return (statbuf->st_mode & _S_IFDIR) != 0;
+    ret = (statbuf->st_mode & _S_IFDIR) != 0;
 #else
-    return S_ISDIR(statbuf->st_mode) != 0;
+    ret = S_ISDIR(statbuf->st_mode) != 0;
 #endif
+    UTIL_TRACE_RET(ret);
+    return ret;
 }
 
 int UTIL_compareStr(const void *p1, const void *p2) {
@@ -219,33 +301,68 @@ int UTIL_compareStr(const void *p1, const void *p2) {
 
 int UTIL_isSameFile(const char* fName1, const char* fName2)
 {
+    int ret;
     assert(fName1 != NULL); assert(fName2 != NULL);
+    UTIL_TRACE_CALL("UTIL_isSameFile(%s, %s)", fName1, fName2);
 #if defined(_MSC_VER) || defined(_WIN32)
     /* note : Visual does not support file identification by inode.
      *        inode does not work on Windows, even with a posix layer, like msys2.
      *        The following work-around is limited to detecting exact name repetition only,
      *        aka `filename` is considered different from `subdir/../filename` */
-    return !strcmp(fName1, fName2);
+    ret = !strcmp(fName1, fName2);
 #else
     {   stat_t file1Stat;
         stat_t file2Stat;
-        return UTIL_stat(fName1, &file1Stat)
+        ret =  UTIL_stat(fName1, &file1Stat)
             && UTIL_stat(fName2, &file2Stat)
-            && (file1Stat.st_dev == file2Stat.st_dev)
-            && (file1Stat.st_ino == file2Stat.st_ino);
+            && UTIL_isSameFileStat(fName1, fName2, &file1Stat, &file2Stat);
     }
 #endif
+    UTIL_TRACE_RET(ret);
+    return ret;
+}
+
+int UTIL_isSameFileStat(
+        const char* fName1, const char* fName2,
+        const stat_t* file1Stat, const stat_t* file2Stat)
+{
+    int ret;
+    assert(fName1 != NULL); assert(fName2 != NULL);
+    UTIL_TRACE_CALL("UTIL_isSameFileStat(%s, %s)", fName1, fName2);
+#if defined(_MSC_VER) || defined(_WIN32)
+    /* note : Visual does not support file identification by inode.
+     *        inode does not work on Windows, even with a posix layer, like msys2.
+     *        The following work-around is limited to detecting exact name repetition only,
+     *        aka `filename` is considered different from `subdir/../filename` */
+    (void)file1Stat;
+    (void)file2Stat;
+    ret = !strcmp(fName1, fName2);
+#else
+    {
+        ret =  (file1Stat->st_dev == file2Stat->st_dev)
+            && (file1Stat->st_ino == file2Stat->st_ino);
+    }
+#endif
+    UTIL_TRACE_RET(ret);
+    return ret;
 }
 
 /* UTIL_isFIFO : distinguish named pipes */
 int UTIL_isFIFO(const char* infilename)
 {
+    UTIL_TRACE_CALL("UTIL_isFIFO(%s)", infilename);
 /* macro guards, as defined in : https://linux.die.net/man/2/lstat */
 #if PLATFORM_POSIX_VERSION >= 200112L
-    stat_t statbuf;
-    if (UTIL_stat(infilename, &statbuf) && UTIL_isFIFOStat(&statbuf)) return 1;
+    {
+        stat_t statbuf;
+        if (UTIL_stat(infilename, &statbuf) && UTIL_isFIFOStat(&statbuf)) {
+            UTIL_TRACE_RET(1);
+            return 1;
+        }
+    }
 #endif
     (void)infilename;
+    UTIL_TRACE_RET(0);
     return 0;
 }
 
@@ -273,21 +390,69 @@ int UTIL_isBlockDevStat(const stat_t* statbuf)
 
 int UTIL_isLink(const char* infilename)
 {
+    UTIL_TRACE_CALL("UTIL_isLink(%s)", infilename);
 /* macro guards, as defined in : https://linux.die.net/man/2/lstat */
 #if PLATFORM_POSIX_VERSION >= 200112L
-    stat_t statbuf;
-    int const r = lstat(infilename, &statbuf);
-    if (!r && S_ISLNK(statbuf.st_mode)) return 1;
+    {
+        stat_t statbuf;
+        int const r = lstat(infilename, &statbuf);
+        if (!r && S_ISLNK(statbuf.st_mode)) {
+            UTIL_TRACE_RET(1);
+            return 1;
+        }
+    }
 #endif
     (void)infilename;
+    UTIL_TRACE_RET(0);
     return 0;
+}
+
+static int g_fakeStdinIsConsole = 0;
+static int g_fakeStderrIsConsole = 0;
+static int g_fakeStdoutIsConsole = 0;
+
+int UTIL_isConsole(FILE* file)
+{
+    int ret;
+    UTIL_TRACE_CALL("UTIL_isConsole(%d)", fileno(file));
+    if (file == stdin && g_fakeStdinIsConsole)
+        ret = 1;
+    else if (file == stderr && g_fakeStderrIsConsole)
+        ret = 1;
+    else if (file == stdout && g_fakeStdoutIsConsole)
+        ret = 1;
+    else
+        ret = IS_CONSOLE(file);
+    UTIL_TRACE_RET(ret);
+    return ret;
+}
+
+void UTIL_fakeStdinIsConsole(void)
+{
+    g_fakeStdinIsConsole = 1;
+}
+void UTIL_fakeStdoutIsConsole(void)
+{
+    g_fakeStdoutIsConsole = 1;
+}
+void UTIL_fakeStderrIsConsole(void)
+{
+    g_fakeStderrIsConsole = 1;
 }
 
 U64 UTIL_getFileSize(const char* infilename)
 {
     stat_t statbuf;
-    if (!UTIL_stat(infilename, &statbuf)) return UTIL_FILESIZE_UNKNOWN;
-    return UTIL_getFileSizeStat(&statbuf);
+    UTIL_TRACE_CALL("UTIL_getFileSize(%s)", infilename);
+    if (!UTIL_stat(infilename, &statbuf)) {
+        UTIL_TRACE_RET(-1);
+        return UTIL_FILESIZE_UNKNOWN;
+    }
+    {
+        U64 const size = UTIL_getFileSizeStat(&statbuf);
+        UTIL_TRACE_RET((int)size);
+        return size;
+    }
 }
 
 U64 UTIL_getFileSizeStat(const stat_t* statbuf)
@@ -303,16 +468,77 @@ U64 UTIL_getFileSizeStat(const stat_t* statbuf)
     return (U64)statbuf->st_size;
 }
 
+UTIL_HumanReadableSize_t UTIL_makeHumanReadableSize(U64 size)
+{
+    UTIL_HumanReadableSize_t hrs;
+
+    if (g_utilDisplayLevel > 3) {
+        /* In verbose mode, do not scale sizes down, except in the case of
+         * values that exceed the integral precision of a double. */
+        if (size >= (1ull << 53)) {
+            hrs.value = (double)size / (1ull << 20);
+            hrs.suffix = " MiB";
+            /* At worst, a double representation of a maximal size will be
+             * accurate to better than tens of kilobytes. */
+            hrs.precision = 2;
+        } else {
+            hrs.value = (double)size;
+            hrs.suffix = " B";
+            hrs.precision = 0;
+        }
+    } else {
+        /* In regular mode, scale sizes down and use suffixes. */
+        if (size >= (1ull << 60)) {
+            hrs.value = (double)size / (1ull << 60);
+            hrs.suffix = " EiB";
+        } else if (size >= (1ull << 50)) {
+            hrs.value = (double)size / (1ull << 50);
+            hrs.suffix = " PiB";
+        } else if (size >= (1ull << 40)) {
+            hrs.value = (double)size / (1ull << 40);
+            hrs.suffix = " TiB";
+        } else if (size >= (1ull << 30)) {
+            hrs.value = (double)size / (1ull << 30);
+            hrs.suffix = " GiB";
+        } else if (size >= (1ull << 20)) {
+            hrs.value = (double)size / (1ull << 20);
+            hrs.suffix = " MiB";
+        } else if (size >= (1ull << 10)) {
+            hrs.value = (double)size / (1ull << 10);
+            hrs.suffix = " KiB";
+        } else {
+            hrs.value = (double)size;
+            hrs.suffix = " B";
+        }
+
+        if (hrs.value >= 100 || (U64)hrs.value == size) {
+            hrs.precision = 0;
+        } else if (hrs.value >= 10) {
+            hrs.precision = 1;
+        } else if (hrs.value > 1) {
+            hrs.precision = 2;
+        } else {
+            hrs.precision = 3;
+        }
+    }
+
+    return hrs;
+}
 
 U64 UTIL_getTotalFileSize(const char* const * fileNamesTable, unsigned nbFiles)
 {
     U64 total = 0;
     unsigned n;
+    UTIL_TRACE_CALL("UTIL_getTotalFileSize(%u)", nbFiles);
     for (n=0; n<nbFiles; n++) {
         U64 const size = UTIL_getFileSize(fileNamesTable[n]);
-        if (size == UTIL_FILESIZE_UNKNOWN) return UTIL_FILESIZE_UNKNOWN;
+        if (size == UTIL_FILESIZE_UNKNOWN) {
+            UTIL_TRACE_RET(-1);
+            return UTIL_FILESIZE_UNKNOWN;
+        }
         total += size;
     }
+    UTIL_TRACE_RET((int)total);
     return total;
 }
 
@@ -357,7 +583,7 @@ readLinesFromFile(void* dst, size_t dstCapacity,
     while ( !feof(inputFile) ) {
         size_t const lineLength = readLineFromFile(buf+pos, dstCapacity-pos, inputFile);
         if (lineLength == 0) break;
-        assert(pos + lineLength < dstCapacity);
+        assert(pos + lineLength <= dstCapacity); /* '=' for inputFile not terminated with '\n' */
         pos += lineLength;
         ++nbFiles;
     }
@@ -448,6 +674,16 @@ FileNamesTable* UTIL_allocateFileNamesTable(size_t tableSize)
     return fnt;
 }
 
+int UTIL_searchFileNamesTable(FileNamesTable* table, char const* name) {
+    size_t i;
+    for(i=0 ;i < table->tableSize; i++) {
+        if(!strcmp(table->fileNames[i], name)) {
+            return (int)i;
+        }
+    }
+    return -1;
+}
+
 void UTIL_refFilename(FileNamesTable* fnt, const char* filename)
 {
     assert(fnt->tableSize < fnt->tableCapacity);
@@ -498,7 +734,7 @@ UTIL_mergeFileNamesTable(FileNamesTable* table1, FileNamesTable* table2)
         for( idx2=0 ; (idx2 < table2->tableSize) && table2->fileNames[idx2] && (pos < newTotalTableSize) ; ++idx2, ++newTableIdx) {
             size_t const curLen = strlen(table2->fileNames[idx2]);
             memcpy(buf+pos, table2->fileNames[idx2], curLen);
-            assert(newTableIdx <= newTable->tableSize);
+            assert(newTableIdx < newTable->tableSize);
             newTable->fileNames[newTableIdx] = buf+pos;
             pos += curLen+1;
     }   }
@@ -622,8 +858,11 @@ static int UTIL_prepareFileList(const char *dirName,
                 ptrdiff_t newListSize = (*bufEnd - *bufStart) + LIST_SIZE_INCREASE;
                 assert(newListSize >= 0);
                 *bufStart = (char*)UTIL_realloc(*bufStart, (size_t)newListSize);
-                *bufEnd = *bufStart + newListSize;
-                if (*bufStart == NULL) { free(path); closedir(dir); return 0; }
+                if (*bufStart != NULL) {
+                    *bufEnd = *bufStart + newListSize;
+                } else {
+                    free(path); closedir(dir); return 0;
+                }
             }
             if (*bufStart + *pos + pathLength < *bufEnd) {
                 memcpy(*bufStart + *pos, path, pathLength + 1);  /* with final \0 */
@@ -809,30 +1048,30 @@ static const char * trimPath(const char *pathname)
 
 static char* mallocAndJoin2Dir(const char *dir1, const char *dir2)
 {
-    const size_t dir1Size = strlen(dir1);
-    const size_t dir2Size = strlen(dir2);
-    char *outDirBuffer, *buffer, trailingChar;
-
     assert(dir1 != NULL && dir2 != NULL);
-    outDirBuffer = (char *) malloc(dir1Size + dir2Size + 2);
-    CONTROL(outDirBuffer != NULL);
+    {   const size_t dir1Size = strlen(dir1);
+        const size_t dir2Size = strlen(dir2);
+        char *outDirBuffer, *buffer;
 
-    memcpy(outDirBuffer, dir1, dir1Size);
-    outDirBuffer[dir1Size] = '\0';
+        outDirBuffer = (char *) malloc(dir1Size + dir2Size + 2);
+        CONTROL(outDirBuffer != NULL);
 
-    if (dir2[0] == '.')
+        memcpy(outDirBuffer, dir1, dir1Size);
+        outDirBuffer[dir1Size] = '\0';
+
+        if (dir2[0] == '.')
+            return outDirBuffer;
+
+        buffer = outDirBuffer + dir1Size;
+        if (dir1Size > 0 && *(buffer - 1) != PATH_SEP) {
+            *buffer = PATH_SEP;
+            buffer++;
+        }
+        memcpy(buffer, dir2, dir2Size);
+        buffer[dir2Size] = '\0';
+
         return outDirBuffer;
-
-    buffer = outDirBuffer + dir1Size;
-    trailingChar = *(buffer - 1);
-    if (trailingChar != PATH_SEP) {
-        *buffer = PATH_SEP;
-        buffer++;
     }
-    memcpy(buffer, dir2, dir2Size);
-    buffer[dir2Size] = '\0';
-
-    return outDirBuffer;
 }
 
 /* this function will return NULL if input srcFileName is not valid name for mirrored output path */
@@ -931,15 +1170,15 @@ makeUniqueMirroredDestDirs(char** srcDirNames, unsigned nbFile, const char* outD
         char* prevDirName = srcDirNames[i - 1];
         char* currDirName = srcDirNames[i];
 
-        /* note: we alwasy compare trimmed path, i.e.:
+        /* note: we always compare trimmed path, i.e.:
          * src dir of "./foo" and "/foo" will be both saved into:
          * "outDirName/foo/" */
         if (!firstIsParentOrSameDirOfSecond(trimPath(prevDirName),
                                             trimPath(currDirName)))
             uniqueDirNr++;
 
-        /* we need maintain original src dir name instead of trimmed
-         * dir, so we can retrive the original src dir's mode_t */
+        /* we need to maintain original src dir name instead of trimmed
+         * dir, so we can retrieve the original src dir's mode_t */
         uniqueDirNames[uniqueDirNr - 1] = currDirName;
     }
 
@@ -1048,7 +1287,7 @@ FileNamesTable* UTIL_createFNT_fromROTable(const char** filenames, size_t nbFile
 
 
 /*-****************************************
-*  count the number of physical cores
+*  count the number of cores
 ******************************************/
 
 #if defined(_WIN32) || defined(WIN32)
@@ -1057,10 +1296,26 @@ FileNamesTable* UTIL_createFNT_fromROTable(const char** filenames, size_t nbFile
 
 typedef BOOL(WINAPI* LPFN_GLPI)(PSYSTEM_LOGICAL_PROCESSOR_INFORMATION, PDWORD);
 
-int UTIL_countPhysicalCores(void)
+DWORD CountSetBits(ULONG_PTR bitMask)
 {
-    static int numPhysicalCores = 0;
-    if (numPhysicalCores != 0) return numPhysicalCores;
+    DWORD LSHIFT = sizeof(ULONG_PTR)*8 - 1;
+    DWORD bitSetCount = 0;
+    ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;
+    DWORD i;
+
+    for (i = 0; i <= LSHIFT; ++i)
+    {
+        bitSetCount += ((bitMask & bitTest)?1:0);
+        bitTest/=2;
+    }
+
+    return bitSetCount;
+}
+
+int UTIL_countCores(int logical)
+{
+    static int numCores = 0;
+    if (numCores != 0) return numCores;
 
     {   LPFN_GLPI glpi;
         BOOL done = FALSE;
@@ -1106,7 +1361,10 @@ int UTIL_countPhysicalCores(void)
         while (byteOffset + sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= returnLength) {
 
             if (ptr->Relationship == RelationProcessorCore) {
-                numPhysicalCores++;
+                if (logical)
+                    numCores += CountSetBits(ptr->ProcessorMask);
+                else
+                    numCores++;
             }
 
             ptr++;
@@ -1115,17 +1373,17 @@ int UTIL_countPhysicalCores(void)
 
         free(buffer);
 
-        return numPhysicalCores;
+        return numCores;
     }
 
 failed:
     /* try to fall back on GetSystemInfo */
     {   SYSTEM_INFO sysinfo;
         GetSystemInfo(&sysinfo);
-        numPhysicalCores = sysinfo.dwNumberOfProcessors;
-        if (numPhysicalCores == 0) numPhysicalCores = 1; /* just in case */
+        numCores = sysinfo.dwNumberOfProcessors;
+        if (numCores == 0) numCores = 1; /* just in case */
     }
-    return numPhysicalCores;
+    return numCores;
 }
 
 #elif defined(__APPLE__)
@@ -1134,24 +1392,24 @@ failed:
 
 /* Use apple-provided syscall
  * see: man 3 sysctl */
-int UTIL_countPhysicalCores(void)
+int UTIL_countCores(int logical)
 {
-    static S32 numPhysicalCores = 0; /* apple specifies int32_t */
-    if (numPhysicalCores != 0) return numPhysicalCores;
+    static S32 numCores = 0; /* apple specifies int32_t */
+    if (numCores != 0) return numCores;
 
     {   size_t size = sizeof(S32);
-        int const ret = sysctlbyname("hw.physicalcpu", &numPhysicalCores, &size, NULL, 0);
+        int const ret = sysctlbyname(logical ? "hw.logicalcpu" : "hw.physicalcpu", &numCores, &size, NULL, 0);
         if (ret != 0) {
             if (errno == ENOENT) {
                 /* entry not present, fall back on 1 */
-                numPhysicalCores = 1;
+                numCores = 1;
             } else {
-                perror("zstd: can't get number of physical cpus");
+                perror("zstd: can't get number of cpus");
                 exit(1);
             }
         }
 
-        return numPhysicalCores;
+        return numCores;
     }
 }
 
@@ -1160,16 +1418,16 @@ int UTIL_countPhysicalCores(void)
 /* parse /proc/cpuinfo
  * siblings / cpu cores should give hyperthreading ratio
  * otherwise fall back on sysconf */
-int UTIL_countPhysicalCores(void)
+int UTIL_countCores(int logical)
 {
-    static int numPhysicalCores = 0;
+    static int numCores = 0;
 
-    if (numPhysicalCores != 0) return numPhysicalCores;
+    if (numCores != 0) return numCores;
 
-    numPhysicalCores = (int)sysconf(_SC_NPROCESSORS_ONLN);
-    if (numPhysicalCores == -1) {
+    numCores = (int)sysconf(_SC_NPROCESSORS_ONLN);
+    if (numCores == -1) {
         /* value not queryable, fall back on 1 */
-        return numPhysicalCores = 1;
+        return numCores = 1;
     }
 
     /* try to determine if there's hyperthreading */
@@ -1183,7 +1441,7 @@ int UTIL_countPhysicalCores(void)
 
         if (cpuinfo == NULL) {
             /* fall back on the sysconf value */
-            return numPhysicalCores;
+            return numCores;
         }
 
         /* assume the cpu cores/siblings values will be constant across all
@@ -1216,13 +1474,13 @@ int UTIL_countPhysicalCores(void)
             ratio = siblings / cpu_cores;
         }
 
-        if (ratio && numPhysicalCores > ratio) {
-            numPhysicalCores = numPhysicalCores / ratio;
+        if (ratio && numCores > ratio && !logical) {
+            numCores = numCores / ratio;
         }
 
 failed:
         fclose(cpuinfo);
-        return numPhysicalCores;
+        return numCores;
     }
 }
 
@@ -1233,58 +1491,89 @@ failed:
 
 /* Use physical core sysctl when available
  * see: man 4 smp, man 3 sysctl */
-int UTIL_countPhysicalCores(void)
+int UTIL_countCores(int logical)
 {
-    static int numPhysicalCores = 0; /* freebsd sysctl is native int sized */
-    if (numPhysicalCores != 0) return numPhysicalCores;
+    static int numCores = 0; /* freebsd sysctl is native int sized */
+#if __FreeBSD_version >= 1300008
+    static int perCore = 1;
+#endif
+    if (numCores != 0) return numCores;
 
 #if __FreeBSD_version >= 1300008
-    {   size_t size = sizeof(numPhysicalCores);
-        int ret = sysctlbyname("kern.smp.cores", &numPhysicalCores, &size, NULL, 0);
-        if (ret == 0) return numPhysicalCores;
+    {   size_t size = sizeof(numCores);
+        int ret = sysctlbyname("kern.smp.cores", &numCores, &size, NULL, 0);
+        if (ret == 0) {
+            if (logical) {
+                ret = sysctlbyname("kern.smp.threads_per_core", &perCore, &size, NULL, 0);
+                /* default to physical cores if logical cannot be read */
+                if (ret == 0)
+                    numCores *= perCore;
+            }
+
+            return numCores;
+        }
         if (errno != ENOENT) {
-            perror("zstd: can't get number of physical cpus");
+            perror("zstd: can't get number of cpus");
             exit(1);
         }
         /* sysctl not present, fall through to older sysconf method */
     }
+#else
+    /* suppress unused parameter warning */
+    (void) logical;
 #endif
 
-    numPhysicalCores = (int)sysconf(_SC_NPROCESSORS_ONLN);
-    if (numPhysicalCores == -1) {
+    numCores = (int)sysconf(_SC_NPROCESSORS_ONLN);
+    if (numCores == -1) {
         /* value not queryable, fall back on 1 */
-        numPhysicalCores = 1;
+        numCores = 1;
     }
-    return numPhysicalCores;
+    return numCores;
 }
 
 #elif defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__CYGWIN__)
 
 /* Use POSIX sysconf
  * see: man 3 sysconf */
-int UTIL_countPhysicalCores(void)
+int UTIL_countCores(int logical)
 {
-    static int numPhysicalCores = 0;
+    static int numCores = 0;
 
-    if (numPhysicalCores != 0) return numPhysicalCores;
+    /* suppress unused parameter warning */
+    (void)logical;
 
-    numPhysicalCores = (int)sysconf(_SC_NPROCESSORS_ONLN);
-    if (numPhysicalCores == -1) {
+    if (numCores != 0) return numCores;
+
+    numCores = (int)sysconf(_SC_NPROCESSORS_ONLN);
+    if (numCores == -1) {
         /* value not queryable, fall back on 1 */
-        return numPhysicalCores = 1;
+        return numCores = 1;
     }
-    return numPhysicalCores;
+    return numCores;
 }
 
 #else
 
-int UTIL_countPhysicalCores(void)
+int UTIL_countCores(int logical)
 {
+    /* suppress unused parameter warning */
+    (void)logical;
+
     /* assume 1 */
     return 1;
 }
 
 #endif
+
+int UTIL_countPhysicalCores(void)
+{
+    return UTIL_countCores(0);
+}
+
+int UTIL_countLogicalCores(void)
+{
+    return UTIL_countCores(1);
+}
 
 #if defined (__cplusplus)
 }

@@ -1,16 +1,15 @@
-#include <library/cpp/testing/benchmark/bench.h>
+#include <benchmark/benchmark.h>
+
 #include <library/cpp/digest/md5/md5.h>
 
-#include <util/generic/xrange.h>
-
 #define MD5_DEF(N)                                                  \
-    Y_CPU_BENCHMARK(MD5_##N, iface) {                               \
+    static void MD5Benchmark_##N(benchmark::State& st) {            \
         char buf[N];                                                \
-        for (const auto i : xrange(iface.Iterations())) {           \
-            Y_UNUSED(i);                                            \
+        for (auto _ : st) {                                         \
             Y_DO_NOT_OPTIMIZE_AWAY(MD5().Update(buf, sizeof(buf))); \
         }                                                           \
-    }
+    }                                                               \
+    BENCHMARK(MD5Benchmark_##N);
 
 MD5_DEF(32)
 MD5_DEF(64)

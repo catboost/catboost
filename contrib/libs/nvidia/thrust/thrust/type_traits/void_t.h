@@ -1,5 +1,5 @@
 /*
- *  Copyright 2018 NVIDIA Corporation
+ *  Copyright 2018-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-/*! \file void_t.h
- *  \brief C++17's `void_t`. 
+/*! \file
+ *  \brief C++17's `void_t`.
  */
 
 #pragma once
@@ -26,8 +26,15 @@
 #  include <type_traits>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
+/*! \addtogroup utility
+ *  \{
+ */
+
+/*! \addtogroup type_traits Type Traits
+ *  \{
+ */
 
 #if THRUST_CPP_DIALECT >= 2011
 
@@ -60,5 +67,11 @@ struct voider
 
 #endif
 
-} // end namespace thrust
+/*! \} // type traits
+ */
+
+/*! \} // utility
+ */
+
+THRUST_NAMESPACE_END
 

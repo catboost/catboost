@@ -1,4 +1,6 @@
-#include "tls.h"
+#if defined(_win_)
+    #include "tls.h"
+#endif
 #include "thread.h"
 #include "thread.i"
 
@@ -9,12 +11,25 @@
 #include "yassert.h"
 #include <utility>
 
-#if !defined(_win_)
+#if defined(_linux_)
+    #include <sys/prctl.h>
+#endif
+
+#if defined(_glibc_)
+    #if !__GLIBC_PREREQ(2, 30)
+        #include <sys/syscall.h>
+    #endif
+#endif
+
+#if defined(_unix_)
     #include <pthread.h>
-#else
+    #include <sys/types.h>
+#elif defined(_win_)
     #include "dynlib.h"
     #include <util/charset/wide.h>
     #include <util/generic/scope.h>
+#else
+    #error "FIXME"
 #endif
 
 bool SetHighestThreadPriority() {
@@ -25,6 +40,21 @@ bool SetHighestThreadPriority() {
     memset(&sch, 0, sizeof(sch));
     sch.sched_priority = 31;
     return pthread_setschedparam(pthread_self(), SCHED_RR, &sch) == 0;
+#endif
+}
+
+bool SetLowestThreadPriority() {
+#ifdef _win_
+    return SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
+#else
+    struct sched_param sch;
+    memset(&sch, 0, sizeof(sch));
+    sch.sched_priority = 0;
+    #ifdef _darwin_
+    return pthread_setschedparam(pthread_self(), SCHED_RR, &sch) == 0;
+    #else
+    return pthread_setschedparam(pthread_self(), SCHED_IDLE, &sch) == 0;
+    #endif
 #endif
 }
 
@@ -317,6 +347,30 @@ TThread::TId TThread::Id() const noexcept {
 
 TThread::TId TThread::CurrentThreadId() noexcept {
     return SystemCurrentThreadId();
+}
+
+TThread::TId TThread::CurrentThreadNumericId() noexcept {
+#if defined(_win_)
+    return GetCurrentThreadId();
+#elif defined(_darwin_)
+    // There is no gettid() on MacOS and SYS_gettid returns completely unrelated numbers.
+    // See: http://elliotth.blogspot.com/2012/04/gettid-on-mac-os.html
+    uint64_t threadId;
+    pthread_threadid_np(nullptr, &threadId);
+    return threadId;
+#elif defined(_musl_) || defined(_bionic_)
+    // both musl and android libc provide gettid() function
+    return gettid();
+#elif defined(_glibc_)
+    #if __GLIBC_PREREQ(2, 30)
+    return gettid();
+    #else
+    // gettid() was introduced in glibc=2.30, previous versions lack neat syscall wrapper
+    return syscall(SYS_gettid);
+    #endif
+#else
+    #error "Implement me"
+#endif
 }
 
 TThread::TId TThread::ImpossibleThreadId() noexcept {

@@ -27,8 +27,8 @@ from pytz.tzinfo import DstTzInfo, StaticTzInfo  # noqa
 
 # I test for expected version to ensure the correct version of pytz is
 # actually being tested.
-EXPECTED_VERSION = '2021.3'
-EXPECTED_OLSON_VERSION = '2021c'
+EXPECTED_VERSION = '2023.2'
+EXPECTED_OLSON_VERSION = '2023b'
 
 fmt = '%Y-%m-%d %H:%M:%S %Z%z'
 
@@ -83,16 +83,16 @@ class BasicTest(unittest.TestCase):
 
     def testGMT(self):
         now = datetime.now(tz=GMT)
-        self.assertTrue(now.utcoffset() == NOTIME)
-        self.assertTrue(now.dst() == NOTIME)
-        self.assertTrue(now.timetuple() == now.utctimetuple())
-        self.assertTrue(now == now.replace(tzinfo=UTC))
+        self.assertEqual(now.utcoffset(), NOTIME)
+        self.assertEqual(now.dst(), NOTIME)
+        self.assertEqual(now.timetuple(), now.utctimetuple())
+        self.assertEqual(now, now.replace(tzinfo=UTC))
 
     def testReferenceUTC(self):
         now = datetime.now(tz=UTC)
-        self.assertTrue(now.utcoffset() == NOTIME)
-        self.assertTrue(now.dst() == NOTIME)
-        self.assertTrue(now.timetuple() == now.utctimetuple())
+        self.assertEqual(now.utcoffset(), NOTIME)
+        self.assertEqual(now.dst(), NOTIME)
+        self.assertEqual(now.timetuple(), now.utctimetuple())
 
     def testUnknownOffsets(self):
         # This tzinfo behavior is required to make
@@ -102,8 +102,8 @@ class BasicTest(unittest.TestCase):
 
         # This information is not known when we don't have a date,
         # so return None per API.
-        self.assertTrue(dst_tz.utcoffset(None) is None)
-        self.assertTrue(dst_tz.dst(None) is None)
+        self.assertIsNone(dst_tz.utcoffset(None))
+        self.assertIsNone(dst_tz.dst(None))
         # We don't know the abbreviation, but this is still a valid
         # tzname per the Python documentation.
         self.assertEqual(dst_tz.tzname(None), 'US/Eastern')
@@ -117,17 +117,17 @@ class BasicTest(unittest.TestCase):
         # returned.
         self.clearCache()
         eastern = pytz.timezone(unicode('US/Eastern'))
-        self.assertTrue(eastern is pytz.timezone('US/Eastern'))
+        self.assertIs(eastern, pytz.timezone('US/Eastern'))
 
         self.clearCache()
         eastern = pytz.timezone('US/Eastern')
-        self.assertTrue(eastern is pytz.timezone(unicode('US/Eastern')))
+        self.assertIs(eastern, pytz.timezone(unicode('US/Eastern')))
 
     def testStaticTzInfo(self):
         # Ensure that static timezones are correctly detected,
         # per lp:1602807
         static = pytz.timezone('Etc/GMT-4')
-        self.assertTrue(isinstance(static, StaticTzInfo))
+        self.assertIsInstance(static, StaticTzInfo)
 
 
 class PicklingTest(unittest.TestCase):
@@ -135,7 +135,7 @@ class PicklingTest(unittest.TestCase):
     def _roundtrip_tzinfo(self, tz):
         p = pickle.dumps(tz)
         unpickled_tz = pickle.loads(p)
-        self.assertTrue(tz is unpickled_tz, '%s did not roundtrip' % tz.zone)
+        self.assertIs(tz, unpickled_tz, '%s did not roundtrip' % tz.zone)
 
     def _roundtrip_datetime(self, dt):
         # Ensure that the tzinfo attached to a datetime instance
@@ -145,7 +145,7 @@ class PicklingTest(unittest.TestCase):
         p = pickle.dumps(dt)
         unpickled_dt = pickle.loads(p)
         unpickled_tz = unpickled_dt.tzinfo
-        self.assertTrue(tz is unpickled_tz, '%s did not roundtrip' % tz.zone)
+        self.assertIs(tz, unpickled_tz, '%s did not roundtrip' % tz.zone)
 
     def testDst(self):
         tz = pytz.timezone('Europe/Amsterdam')
@@ -173,7 +173,7 @@ class PicklingTest(unittest.TestCase):
         )
         self.assertNotEqual(p, hacked_p)
         unpickled_tz = pickle.loads(hacked_p)
-        self.assertTrue(tz is unpickled_tz)
+        self.assertIs(tz, unpickled_tz)
 
         # Simulate a database correction. In this case, the incorrect
         # data will continue to be used.
@@ -196,7 +196,7 @@ class PicklingTest(unittest.TestCase):
         self.assertNotEqual(p, hacked_p)
         unpickled_tz = pickle.loads(hacked_p)
         self.assertEqual(unpickled_tz._utcoffset.seconds, new_utcoffset)
-        self.assertTrue(tz is not unpickled_tz)
+        self.assertIsNot(tz, unpickled_tz)
 
     def testOldPickles(self):
         # Ensure that applications serializing pytz instances as pickles
@@ -210,7 +210,7 @@ class PicklingTest(unittest.TestCase):
         )
         east2 = pytz.timezone('US/Eastern').localize(
             datetime(2006, 1, 1)).tzinfo
-        self.assertTrue(east1 is east2)
+        self.assertIs(east1, east2)
 
         # Confirm changes in name munging between 2006j and 2007c cause
         # no problems.
@@ -219,12 +219,12 @@ class PicklingTest(unittest.TestCase):
             "\np2\nI-17340\nI0\nS'PPMT'\np3\ntRp4\n."))
         pap2 = pytz.timezone('America/Port-au-Prince').localize(
             datetime(1910, 1, 1)).tzinfo
-        self.assertTrue(pap1 is pap2)
+        self.assertIs(pap1, pap2)
 
         gmt1 = pickle.loads(_byte_string(
             "cpytz\n_p\np1\n(S'Etc/GMT_plus_10'\np2\ntRp3\n."))
         gmt2 = pytz.timezone('Etc/GMT+10')
-        self.assertTrue(gmt1 is gmt2)
+        self.assertIs(gmt1, gmt2)
 
 
 class USEasternDSTStartTestCase(unittest.TestCase):
@@ -612,33 +612,6 @@ class ReferenceUSEasternDSTEndTestCase(USEasternDSTEndTestCase):
 
 class LocalTestCase(unittest.TestCase):
     def testLocalize(self):
-        loc_tz = pytz.timezone('Europe/Amsterdam')
-
-        loc_time = loc_tz.localize(datetime(1930, 5, 10, 0, 0, 0))
-        # Actually +00:19:32, but Python datetime rounds this
-        self.assertEqual(loc_time.strftime('%Z%z'), 'AMT+0020')
-
-        loc_time = loc_tz.localize(datetime(1930, 5, 20, 0, 0, 0))
-        # Actually +00:19:32, but Python datetime rounds this
-        self.assertEqual(loc_time.strftime('%Z%z'), 'NST+0120')
-
-        loc_time = loc_tz.localize(datetime(1940, 5, 10, 0, 0, 0))
-        # pre-2017a, abbreviation was NCT
-        self.assertEqual(loc_time.strftime('%Z%z'), '+0020+0020')
-
-        loc_time = loc_tz.localize(datetime(1940, 5, 20, 0, 0, 0))
-        self.assertEqual(loc_time.strftime('%Z%z'), 'CEST+0200')
-
-        loc_time = loc_tz.localize(datetime(2004, 2, 1, 0, 0, 0))
-        self.assertEqual(loc_time.strftime('%Z%z'), 'CET+0100')
-
-        loc_time = loc_tz.localize(datetime(2004, 4, 1, 0, 0, 0))
-        self.assertEqual(loc_time.strftime('%Z%z'), 'CEST+0200')
-
-        loc_time = loc_tz.localize(datetime(1943, 3, 29, 1, 59, 59))
-        self.assertEqual(loc_time.strftime('%Z%z'), 'CET+0100')
-
-        # Switch to US
         loc_tz = pytz.timezone('US/Eastern')
 
         # End of DST ambiguity check
@@ -712,26 +685,6 @@ class LocalTestCase(unittest.TestCase):
             '2004-04-04 01:50:00 EST-0500'
         )
 
-    def testPartialMinuteOffsets(self):
-        # utcoffset in Amsterdam was not a whole minute until 1937
-        # However, we fudge this by rounding them, as the Python
-        # datetime library
-        tz = pytz.timezone('Europe/Amsterdam')
-        utc_dt = datetime(1914, 1, 1, 13, 40, 28, tzinfo=UTC)  # correct
-        utc_dt = utc_dt.replace(second=0)  # But we need to fudge it
-        loc_dt = utc_dt.astimezone(tz)
-        self.assertEqual(
-            loc_dt.strftime('%Y-%m-%d %H:%M:%S %Z%z'),
-            '1914-01-01 14:00:00 AMT+0020'
-        )
-
-        # And get back...
-        utc_dt = loc_dt.astimezone(UTC)
-        self.assertEqual(
-            utc_dt.strftime('%Y-%m-%d %H:%M:%S %Z%z'),
-            '1914-01-01 13:40:00 UTC+0000'
-        )
-
     def no_testCreateLocaltime(self):
         # It would be nice if this worked, but it doesn't.
         tz = pytz.timezone('Europe/Amsterdam')
@@ -750,18 +703,17 @@ class CommonTimezonesTestCase(unittest.TestCase):
         # but I'm hesitant to pay the startup cost as loading the list
         # on demand whilst remaining backwards compatible seems
         # difficult.
-        self.assertTrue('Europe/Bratislava' in pytz.common_timezones)
-        self.assertTrue('Europe/Bratislava' in pytz.common_timezones_set)
+        self.assertIn('Europe/Bratislava', pytz.common_timezones)
+        self.assertIn('Europe/Bratislava', pytz.common_timezones_set)
 
     def test_us_eastern(self):
-        self.assertTrue('US/Eastern' in pytz.common_timezones)
-        self.assertTrue('US/Eastern' in pytz.common_timezones_set)
+        self.assertIn('US/Eastern', pytz.common_timezones)
+        self.assertIn('US/Eastern', pytz.common_timezones_set)
 
     def test_belfast(self):
-        # Belfast uses London time.
-        self.assertTrue('Europe/Belfast' in pytz.all_timezones_set)
-        self.assertFalse('Europe/Belfast' in pytz.common_timezones)
-        self.assertFalse('Europe/Belfast' in pytz.common_timezones_set)
+        self.assertIn('Europe/Belfast', pytz.all_timezones_set)
+        self.assertNotIn('Europe/Belfast', pytz.common_timezones)
+        self.assertNotIn('Europe/Belfast', pytz.common_timezones_set)
 
 
 class ZoneCaseInsensitivityTestCase(unittest.TestCase):
@@ -785,7 +737,7 @@ class BaseTzInfoTestCase:
     tz_class = None  # override
 
     def test_expectedclass(self):
-        self.assertTrue(isinstance(self.tz, self.tz_class))
+        self.assertIsInstance(self.tz, self.tz_class)
 
     def test_fromutc(self):
         # naive datetime.
@@ -803,33 +755,33 @@ class BaseTzInfoTestCase:
 
         # localized datetime, different timezone.
         new_tz = pytz.timezone('Europe/Paris')
-        self.assertTrue(self.tz is not new_tz)
+        self.assertIsNot(self.tz, new_tz)
         dt3 = new_tz.localize(dt1)
         self.assertRaises(ValueError, self.tz.fromutc, dt3)
 
     def test_normalize(self):
         other_tz = pytz.timezone('Europe/Paris')
-        self.assertTrue(self.tz is not other_tz)
+        self.assertIsNot(self.tz, other_tz)
 
         dt = datetime(2012, 3, 26, 12, 0)
         other_dt = other_tz.localize(dt)
 
         local_dt = self.tz.normalize(other_dt)
 
-        self.assertTrue(local_dt.tzinfo is not other_dt.tzinfo)
+        self.assertIsNot(local_dt.tzinfo, other_dt.tzinfo)
         self.assertNotEqual(
             local_dt.replace(tzinfo=None), other_dt.replace(tzinfo=None))
 
     def test_astimezone(self):
         other_tz = pytz.timezone('Europe/Paris')
-        self.assertTrue(self.tz is not other_tz)
+        self.assertIsNot(self.tz, other_tz)
 
         dt = datetime(2012, 3, 26, 12, 0)
         other_dt = other_tz.localize(dt)
 
         local_dt = other_dt.astimezone(self.tz)
 
-        self.assertTrue(local_dt.tzinfo is not other_dt.tzinfo)
+        self.assertIsNot(local_dt.tzinfo, other_dt.tzinfo)
         self.assertNotEqual(
             local_dt.replace(tzinfo=None), other_dt.replace(tzinfo=None))
 

@@ -263,11 +263,26 @@ template <class R, class T, class... Args>
 struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&&>: std::true_type {
 };
 
+namespace NPrivate {
+    template <template <typename...> class TBase, class TDerived>
+    struct TIsBaseOfTemplateHelper {
+        template <typename... Ts>
+        static constexpr std::true_type Check(const TBase<Ts...>*);
+
+        static constexpr std::false_type Check(...);
+
+        using TType = decltype(Check(std::declval<TDerived*>()));
+    };
+}
+
 template <template <class...> class T, class U>
 struct TIsSpecializationOf: std::false_type {};
 
 template <template <class...> class T, class... Ts>
 struct TIsSpecializationOf<T, T<Ts...>>: std::true_type {};
+
+template <template <typename...> class TBase, class TDerived>
+using TIsTemplateBaseOf = typename ::NPrivate::TIsBaseOfTemplateHelper<TBase, TDerived>::TType;
 
 /*
  * TDependentFalse is a constant dependent on a template parameter.

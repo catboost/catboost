@@ -6,7 +6,7 @@
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/generic/ylimits.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/guard.h>
 #include <util/system/spinlock.h>
 #include <util/system/yassert.h>

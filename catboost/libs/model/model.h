@@ -1018,14 +1018,16 @@ public:
      * @param[in] floatFeatures
      * @param[in] catFeatures hashed cat feature values
      * @param[in] textFeatures
+     * @param[in] embeddingFeatures
      * @param[in] treeStart
      * @param[in] treeEnd
      * @param[out] results results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void CalcWithHashedCatAndText(
+    void CalcWithHashedCatAndTextAndEmbeddings(
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         TConstArrayRef<TConstArrayRef<int>> catFeatures,
         TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
         size_t treeStart,
         size_t treeEnd,
         TArrayRef<double> results,
@@ -1036,16 +1038,18 @@ public:
      * @param floatFeatures
      * @param catFeatures hashed cat feature values
      * @param textFeatures
+     * @param[in] embeddingFeatures
      * @param results results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void CalcWithHashedCatAndText(
+    void CalcWithHashedCatAndTextAndEmbeddings(
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         TConstArrayRef<TConstArrayRef<int>> catFeatures,
         TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
         TArrayRef<double> results,
         const TFeatureLayout* featureInfo = nullptr
     ) const {
-        CalcWithHashedCatAndText(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
+        CalcWithHashedCatAndTextAndEmbeddings(floatFeatures, catFeatures, textFeatures, embeddingFeatures, 0, GetTreeCount(), results, featureInfo);
     }
 
     /**
@@ -1131,6 +1135,46 @@ public:
         const TFeatureLayout* featureInfo = nullptr
     ) const {
         Calc(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
+    }
+
+    /**
+     * Evaluate raw formula predictions for objects. Uses all model trees.
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @param textFeatures vector of vector of TStringBuf with features containing text as strings
+     * @param embeddingFeatures vector of vector of vectors of embeddings
+     * @param treeStart
+     * @param treeEnd
+     * @param results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const;
+
+    /**
+     * Evaluate raw formula predictions for objects. Uses all model trees.
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @param textFeatures vector of vector of TStringBuf with features containing text as strings
+     * @param embeddingFeatures vector of vector of vectors of embeddings
+     * @param results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        Calc(floatFeatures, catFeatures, textFeatures, embeddingFeatures, 0, GetTreeCount(), results, featureInfo);
     }
 
     /**
@@ -1300,6 +1344,7 @@ void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullMod
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
+    const TVector<TString>& modelParamsPrefixes = TVector<TString>(), // can be empty - in this case default prefixes will be used
     ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
 
 void SaveModelBorders(

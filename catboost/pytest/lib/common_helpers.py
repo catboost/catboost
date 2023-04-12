@@ -1,7 +1,6 @@
 import collections
 import csv
 import json
-import itertools
 import os
 import random
 import shutil
@@ -157,7 +156,7 @@ def generate_random_labeled_dataset(
                 value = features_range[0] + (features_range[1] - features_range[0]) * (v1 / features_density)
             features[sample_idx, feature_idx] = features_dtype(value)
 
-    labels = [random.choice(labels) for _ in range(n_samples)]
+    labels = [random.choice(tuple(labels)) for _ in range(n_samples)]
 
     return (features, labels)
 
@@ -302,21 +301,37 @@ def compare_evals(fit_eval, calc_eval, skip_header=False):
 
 
 def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, atol=1e-8, skip_last_column_in_fit=True):
-    array_fit = np.loadtxt(fit_eval, delimiter='\t', skiprows=1, ndmin=2)
-    array_calc = np.loadtxt(calc_eval, delimiter='\t', skiprows=1, ndmin=2)
-    header_fit = open(fit_eval, "r").readline().split()
-    header_calc = open(calc_eval, "r").readline().split()
+    df_fit = read_csv(fit_eval, sep='\t')
     if skip_last_column_in_fit:
-        array_fit = np.delete(array_fit, np.s_[-1], 1)
-        header_fit = header_fit[:-1]
-    if header_fit != header_calc:
+        df_fit = df_fit.iloc[:, :-1]
+
+    df_calc = read_csv(calc_eval, sep='\t')
+
+    if np.any(df_fit.columns != df_calc.columns):
+        sys.stderr.write('column sets differ: {}, {}'.format(df_fit.columns, df_calc.columns))
         return False
-    is_close = np.isclose(array_fit, array_calc, rtol=rtol, atol=atol)
-    if np.all(is_close):
-        return True
-    for i, _ in itertools.islice(filter(lambda x: not np.all(x[1]), enumerate(is_close)), 100):
-        sys.stderr.write("index: {} {} != {}\n".format(i, array_fit[i], array_calc[i]))
-    return False
+
+    def print_diff(column, row_idx):
+        sys.stderr.write(
+            "column: {}, index: {} {} != {}\n".format(
+                column,
+                row_idx,
+                df_fit[column][row_idx],
+                df_calc[column][row_idx]
+            )
+        )
+
+    for column in df_fit.columns:
+        if column in ['SampleId', 'Label']:
+            if (df_fit[column] != df_calc[column]).any():
+                print_diff(column, np.where(df_fit[column] != df_calc[column])[0])
+                return False
+        else:
+            is_close = np.isclose(df_fit[column].to_numpy(), df_calc[column].to_numpy(), rtol=rtol, atol=atol)
+            if np.any(is_close == 0):
+                print_diff(column, np.where(is_close == 0)[0])
+                return False
+    return True
 
 
 def compare_fit_evals_with_precision(fit_eval_1, fit_eval_2, rtol=1e-6, atol=1e-8):

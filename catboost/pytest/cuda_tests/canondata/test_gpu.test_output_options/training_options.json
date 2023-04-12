@@ -164,6 +164,7 @@
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
         },
+        "eval_fraction" : 0,
         "classes_count" : 0,
         "ignored_features" : [ ],
         "text_processing_options" : {
@@ -264,10 +265,17 @@
         },
         "dev_max_ctr_complexity_for_borders_cache" : 1,
         "observations_to_bootstrap" : "TestOnly",
+        "fixed_binary_splits" : [ ],
         "depth" : 6,
         "max_leaves" : 64,
         "rsm" : 1,
         "leaf_estimation_backtracking" : "AnyImprovement",
+        "penalties" : {
+            "per_object_feature_penalties" : { },
+            "first_feature_use_penalties" : { },
+            "feature_weights" : { },
+            "penalties_coefficient" : 1
+        },
         "leaf_estimation_iterations" : 1
     },
     "task_type" : "GPU",

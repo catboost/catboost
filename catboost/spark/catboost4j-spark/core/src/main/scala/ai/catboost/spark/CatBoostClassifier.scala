@@ -84,10 +84,8 @@ class CatBoostClassificationModel (
   )
 
   override def copy(extra: ParamMap): CatBoostClassificationModel = {
-    val newModel = defaultCopy[CatBoostClassificationModel](extra)
-    newModel.nativeModel = this.nativeModel
-    newModel.nativeDimension = this.nativeDimension
-    newModel
+    val that = new CatBoostClassificationModel(this.uid, this.nativeModel, this.nativeDimension)
+    this.copyValues(that, extra).asInstanceOf[CatBoostClassificationModel]
   }
 
   override def numClasses: Int = {
@@ -102,13 +100,13 @@ class CatBoostClassificationModel (
         s" numClasses=$numClasses, but thresholds has length ${$(thresholds).length}")
     }
 
-    transformImpl(dataset)
+    transformCatBoostImpl(dataset)
   }
 
   /**
    * Prefer batch computations operating on datasets as a whole for efficiency
    */
-  override protected def predictRaw(features: Vector): Vector = {
+  override def predictRaw(features: Vector): Vector = {
     val nativePredictions = predictRawImpl(features)
     if (nativeDimension == 1) {
       Vectors.dense(-nativePredictions(0), nativePredictions(0))
@@ -255,8 +253,16 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
     fileName: String, 
     format: EModelType = native_impl.EModelType.CatboostBinary
   ): CatBoostClassificationModel = {
-    new CatBoostClassificationModel(native_impl.native_impl.ReadModelWrapper(fileName, format))
+    new CatBoostClassificationModel(native_impl.native_impl.ReadModel(fileName, format))
   }
+
+  def sum(
+    models: Array[CatBoostClassificationModel],
+    weights: Array[Double] = null,
+    ctrMergePolicy: ECtrTableMergePolicy = native_impl.ECtrTableMergePolicy.IntersectingCountersAverage
+  ): CatBoostClassificationModel = {
+    new CatBoostClassificationModel(CatBoostModel.sum(models.toArray[CatBoostModelTrait[CatBoostClassificationModel]], weights, ctrMergePolicy))
+  } 
 }
 
 

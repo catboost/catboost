@@ -3,11 +3,9 @@
 #include "neh.h"
 #include "rpc.h"
 
-#include "factory.h"
 #include "https.h"
 
 #include <library/cpp/testing/unittest/registar.h>
-#include <library/cpp/testing/unittest/env.h>
 #include <library/cpp/testing/unittest/tests_data.h>
 
 #include <util/generic/buffer.h>
@@ -15,7 +13,6 @@
 #include <util/network/socket.h>
 #include <util/stream/str.h>
 #include <util/string/builder.h>
-#include <util/system/platform.h>
 #include <util/generic/scope.h>
 
 using namespace NNeh;

@@ -98,6 +98,9 @@ namespace NKernel {
         numBlocks.x = (featureCount * 32 + buildHistogramBlockSize - 1) / buildHistogramBlockSize;
         numBlocks.y = fullPass ? partCount : partCount / 4;
         numBlocks.z = fullPass ? 1 : 3;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         if (fullPass) {
             BuildBinaryFeatureHistograms<true><< <numBlocks, buildHistogramBlockSize, 0, stream >> > (features, featureCount, partition, partitionStats, histLineSize, histogram);
@@ -186,6 +189,9 @@ namespace NKernel {
         numBlocks.x = (featureCount + blockSize - 1) / blockSize;
         numBlocks.y = partCount / 4;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
         UpdatePairwiseHistogramsImpl<< <numBlocks, blockSize, 0, stream>>>(firstFeatureId, featureCount, dataParts, histLineSize, histograms);
     }
 
@@ -206,6 +212,9 @@ namespace NKernel {
         scanBlocks.x = (featureCount * 32 + scanBlockSize - 1) / scanBlockSize;
         scanBlocks.y = fullPass ? partCount : partCount * 3 / 4;
         scanBlocks.z = 1;
+        if (IsGridEmpty(scanBlocks)) {
+            return;
+        }
 
         ScanHistogramsImpl<scanBlockSize, 4> << < scanBlocks, scanBlockSize, 0, stream >> > (features, featureCount, histLineSize, binSums + histOffset);
     }

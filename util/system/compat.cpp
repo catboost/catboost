@@ -1,13 +1,7 @@
 #include "compat.h"
-#include "defaults.h"
 #include "progname.h"
 
-#include <cctype>
-#include <cerrno>
-#include <cstdio>
-#include <cstring>
-#include <cstdarg>
-#include <cstdlib>
+#include <util/generic/string.h>
 
 #ifdef _win_
     #include "winint.h"

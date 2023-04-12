@@ -14,7 +14,23 @@
 #include "mutex.h"
 #include <sys/types.h>
 
+#include <atomic>
+
 class TShellCommandOptions {
+    class TCopyableAtomicBool: public std::atomic<bool> {
+    public:
+        using std::atomic<bool>::atomic;
+        TCopyableAtomicBool(const TCopyableAtomicBool& other)
+            : std::atomic<bool>(other.load(std::memory_order_acquire))
+        {
+        }
+
+        TCopyableAtomicBool& operator=(const TCopyableAtomicBool& other) {
+            this->store(other.load(std::memory_order_acquire), std::memory_order_release);
+            return *this;
+        }
+    };
+
 public:
     struct TUserOptions {
         TString Name;
@@ -42,7 +58,7 @@ public:
         : ClearSignalMask(false)
         , CloseAllFdsOnExec(false)
         , AsyncMode(false)
-        , PollDelayMs(DefaultSyncPollDelay)
+        , PollDelayMs(DefaultSyncPollDelayMs)
         , UseShell(true)
         , QuoteArguments(true)
         , DetachSession(true)
@@ -168,35 +184,35 @@ public:
     }
 
     /**
-    * @brief set if Finish() should be called on user-supplied streams
-    * if process is run in async mode Finish will be called in process' thread
-    * @param val if Finish() should be called
-    * @return self
-    */
+     * @brief set if Finish() should be called on user-supplied streams
+     * if process is run in async mode Finish will be called in process' thread
+     * @param val if Finish() should be called
+     * @return self
+     */
     inline TShellCommandOptions& SetCloseStreams(bool val) {
         CloseStreams = val;
         return *this;
     }
 
     /**
-    * @brief set if input stream should be closed after all data is read
-    * call SetCloseInput(false) for interactive process
-    * @param val if input stream should be closed
-    * @return self
-    */
+     * @brief set if input stream should be closed after all data is read
+     * call SetCloseInput(false) for interactive process
+     * @param val if input stream should be closed
+     * @return self
+     */
     inline TShellCommandOptions& SetCloseInput(bool val) {
-        ShouldCloseInput = val;
+        ShouldCloseInput.store(val);
         return *this;
     }
 
     /**
-    * @brief set if command should be interpreted by OS shell (/bin/sh or cmd.exe)
-    * shell is enabled by default
-    * call SetUseShell(false) for command to be sent to OS verbatim
-    * @note shell operators > < | && || will not work if this option is off
-    * @param useShell if command should be run in shell
-    * @return self
-    */
+     * @brief set if command should be interpreted by OS shell (/bin/sh or cmd.exe)
+     * shell is enabled by default
+     * call SetUseShell(false) for command to be sent to OS verbatim
+     * @note shell operators > < | && || will not work if this option is off
+     * @param useShell if command should be run in shell
+     * @return self
+     */
     inline TShellCommandOptions& SetUseShell(bool useShell) {
         UseShell = useShell;
         if (!useShell)
@@ -230,7 +246,7 @@ public:
      * @note currently ignored on windows
      * @param detach if command should be run in new session
      * @return self
-    */
+     */
     inline TShellCommandOptions& SetDetachSession(bool detach) {
         DetachSession = detach;
         return *this;
@@ -241,7 +257,7 @@ public:
      * @note currently ignored on windows
      * @param function function to be called after fork
      * @return self
-    */
+     */
     inline TShellCommandOptions& SetFuncAfterFork(const std::function<void()>& function) {
         FuncAfterFork = function;
         return *this;
@@ -296,6 +312,9 @@ public:
     }
 
 public:
+    static constexpr size_t DefaultSyncPollDelayMs = 1000;
+
+public:
     bool ClearSignalMask = false;
     bool CloseAllFdsOnExec = false;
     bool AsyncMode = false;
@@ -304,7 +323,7 @@ public:
     bool QuoteArguments = false;
     bool DetachSession = false;
     bool CloseStreams = false;
-    bool ShouldCloseInput = false;
+    TCopyableAtomicBool ShouldCloseInput = false;
     EHandleMode InputMode = HANDLE_STREAM;
     EHandleMode OutputMode = HANDLE_STREAM;
     EHandleMode ErrorMode = HANDLE_STREAM;
@@ -321,7 +340,6 @@ public:
     THashMap<TString, TString> Environment;
     int Nice = 0;
 
-    static const size_t DefaultSyncPollDelay = 1000; // ms
     std::function<void()> FuncAfterFork = {};
 };
 

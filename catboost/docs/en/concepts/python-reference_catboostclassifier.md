@@ -10,7 +10,7 @@ class CatBoostClassifier(iterations=None,
                          loss_function=None,
                          border_count=None,
                          feature_border_type=None,
-                         per_float_feature_quantization=None,                         
+                         per_float_feature_quantization=None,
                          input_borders=None,
                          output_borders=None,
                          fold_permutation_block=None,
@@ -34,6 +34,7 @@ class CatBoostClassifier(iterations=None,
                          allow_const_label=None,
                          classes_count=None,
                          class_weights=None,
+                         auto_class_weights=None,
                          one_hot_max_size=None,
                          random_strength=None,
                          name=None,
@@ -101,7 +102,8 @@ class CatBoostClassifier(iterations=None,
                          tokenizers=None,
                          dictionaries=None,
                          feature_calcers=None,
-                         text_processing=None)
+                         text_processing=None,
+                         fixed_binary_splits=None)
 ```
 
 ## {{ dl--purpose }} {#purpose}
@@ -298,6 +300,12 @@ Return a proxy object with metadata from the model's internal key-value string s
 {% include [sections-with-methods-desc-get_params--purpose](../_includes/work_src/reusage/get_params--purpose.md) %}
 
 
+### [get_probability_threshold](python-reference_catboostclassifier_get_probability_threshold.md)
+
+
+Get a threshold for class separation in binary classification task for a trained model.
+
+
 ### [get_scale_and_bias](python-reference_catboostclassifier_get_scale_and_bias.md)
 
 
@@ -392,6 +400,12 @@ Select the best features from the dataset using the [Recursive Feature Eliminati
 
 
 {% include [sections-with-methods-desc-set_params--purpose](../_includes/work_src/reusage/set_params--purpose.md) %}
+
+
+### [set_probability_threshold](python-reference_catboostclassifier_set_probability_threshold.md)
+
+
+Set a threshold for class separation in binary classification task for a trained model.
 
 
 ### [set_scale_and_bias](python-reference_catboostregressor_set_scale_and_bias.md)

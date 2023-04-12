@@ -2,6 +2,7 @@
 
 #include <library/cpp/blockcodecs/stream.h>
 #include <library/cpp/blockcodecs/codecs.h>
+#include <library/cpp/streams/brotli/brotli.h>
 
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
@@ -268,7 +269,11 @@ bool THttpParser::DecodeContent() {
 
     TMemoryInput in(Content_.data(), Content_.size());
     if (ContentEncoding_ == "gzip") {
-        DecodedContent_ = TZLibDecompress(&in, ZLib::GZip).ReadAll();
+        auto decompressor = TZLibDecompress(&in, ZLib::GZip);
+        if (!GzipAllowMultipleStreams_) {
+            decompressor.SetAllowMultipleStreams(false);
+        }
+        DecodedContent_ = decompressor.ReadAll();
     } else if (ContentEncoding_ == "deflate") {
 
         //https://tools.ietf.org/html/rfc1950
@@ -304,6 +309,12 @@ bool THttpParser::DecodeContent() {
             throw THttpParseException() << "Unsupported content-encoding method: " << exc.AsStrBuf();
         }
         NBlockCodecs::TDecodedInput decoder(&in, codec);
+        DecodedContent_ = decoder.ReadAll();
+    } else if (ContentEncoding_ == "lz4") {
+        const auto* codec = NBlockCodecs::Codec(TStringBuf(ContentEncoding_));
+        DecodedContent_ = codec->Decode(Content_);
+    } else if (ContentEncoding_ == "br") {
+        TBrotliDecompress decoder(&in);
         DecodedContent_ = decoder.ReadAll();
     } else {
         throw THttpParseException() << "Unsupported content-encoding method: " << ContentEncoding_;

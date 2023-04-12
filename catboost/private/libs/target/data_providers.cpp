@@ -134,7 +134,9 @@ namespace NCB {
         NPar::ILocalExecutor* localExecutor)
     {
         CheckDataSize(classWeights.size(), (size_t)classCount, "class weights size", true, "class count");
-        Y_VERIFY(!targetClasses || ((size_t)rawWeights.GetSize() == targetClasses->size()));
+        CB_ENSURE(
+            !targetClasses || ((size_t)rawWeights.GetSize() == targetClasses->size()),
+            "Number of classes and class weights mismatch");
 
         if (classWeights.empty() && rawGroupWeights.IsTrivial()) {
             if (isForGpu && rawWeights.IsTrivial()) {
@@ -361,6 +363,10 @@ namespace NCB {
         bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
         bool hasMultiRegressionOrSurvivalMetrics = isAnyOfMetrics(IsMultiRegressionMetric)
                                                 || isAnyOfMetrics(IsSurvivalRegressionMetric);
+        bool hasRMSEWithUncertainty = isAnyOfMetrics(
+            [] (auto metric) { return metric == ELossFunction::RMSEWithUncertainty; });
+        bool hasMultiQuantile = isAnyOfMetrics(
+            [] (auto metric) { return metric == ELossFunction::MultiQuantile; });
         bool hasMultiLabelOnlyMetrics = isAnyOfMetrics(IsMultiLabelOnlyMetric);
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
@@ -399,12 +405,15 @@ namespace NCB {
                 for (const auto& metricDescription : metricDescriptions) {
                     auto metricLossFunction = metricDescription.GetLossFunction();
                     CB_ENSURE(
-                        IsMultiClassCompatibleMetric(metricLossFunction) || IsMultiTargetMetric(metricLossFunction),
-                        "Non-Multiclassification and Non-MultiTarget compatible metric (" << metricLossFunction
-                        << ") specified for a multidimensional model"
+                        IsMultiClassCompatibleMetric(metricLossFunction)
+                        || IsMultiTargetMetric(metricLossFunction)
+                        || hasRMSEWithUncertainty || hasMultiQuantile,
+                        "Metric " << metricLossFunction << " is incompatible with multi-dimensional predictions "
+                        "(should be RMSEWithUncertainty, MultiQuantile, or a multi-classification metric, "
+                        " or a multi-target metric)"
                     );
                 }
-                multiClassTargetData = !hasMultiRegressionOrSurvivalMetrics;
+                multiClassTargetData = !hasMultiRegressionOrSurvivalMetrics && !hasRMSEWithUncertainty && !hasMultiQuantile;
                 if (multiClassTargetData && !knownClassCount) {
                     classTargetData = true;
 

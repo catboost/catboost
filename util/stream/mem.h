@@ -26,7 +26,13 @@ public:
      * @param len                       Size of the memory block.
      */
     TMemoryInput(const void* buf, size_t len) noexcept;
+    TMemoryInput(TString&&) = delete;
     explicit TMemoryInput(const TStringBuf buf) noexcept;
+    explicit TMemoryInput(const char* zstr)
+        : TMemoryInput(TStringBuf(zstr))
+    {
+    }
+
     ~TMemoryInput() override;
 
     TMemoryInput(const TMemoryInput& other) noexcept

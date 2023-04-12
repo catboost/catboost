@@ -116,13 +116,16 @@ namespace NCatboostCuda {
         static void WriteToLazyCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
                                            const NCB::TLazyQuantizedFloatValuesHolder* lazyQuantizedColumn,
                                            ui32 featureId,
+                                           TMaybe<ui16> baseValue,
                                            const NCudaLib::TStripeMapping& docsMapping,
                                            TStripeBuffer<ui32>* compressedIndex) {
             WriteLazyCompressedFeature(
                 feature,
                 docsMapping,
-                lazyQuantizedColumn->GetPoolPathWithScheme(),
+                lazyQuantizedColumn->GetPathWithScheme(),
+                lazyQuantizedColumn->GetId(),
                 featureId,
+                baseValue,
                 *compressedIndex);
         }
     };

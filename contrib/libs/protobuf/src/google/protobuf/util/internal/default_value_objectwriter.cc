@@ -86,7 +86,7 @@ DefaultValueObjectWriter* DefaultValueObjectWriter::RenderBool(
 }
 
 DefaultValueObjectWriter* DefaultValueObjectWriter::RenderInt32(
-    StringPiece name, int32_t value) {
+    StringPiece name, arc_i32 value) {
   if (current_ == nullptr) {
     ow_->RenderInt32(name, value);
   } else {
@@ -96,7 +96,7 @@ DefaultValueObjectWriter* DefaultValueObjectWriter::RenderInt32(
 }
 
 DefaultValueObjectWriter* DefaultValueObjectWriter::RenderUint32(
-    StringPiece name, uint32_t value) {
+    StringPiece name, arc_ui32 value) {
   if (current_ == nullptr) {
     ow_->RenderUint32(name, value);
   } else {
@@ -106,7 +106,7 @@ DefaultValueObjectWriter* DefaultValueObjectWriter::RenderUint32(
 }
 
 DefaultValueObjectWriter* DefaultValueObjectWriter::RenderInt64(
-    StringPiece name, int64_t value) {
+    StringPiece name, arc_i64 value) {
   if (current_ == nullptr) {
     ow_->RenderInt64(name, value);
   } else {
@@ -116,7 +116,7 @@ DefaultValueObjectWriter* DefaultValueObjectWriter::RenderInt64(
 }
 
 DefaultValueObjectWriter* DefaultValueObjectWriter::RenderUint64(
-    StringPiece name, uint64_t value) {
+    StringPiece name, arc_ui64 value) {
   if (current_ == nullptr) {
     ow_->RenderUint64(name, value);
   } else {
@@ -220,8 +220,7 @@ DefaultValueObjectWriter::Node* DefaultValueObjectWriter::Node::FindChild(
   if (name.empty() || kind_ != OBJECT) {
     return nullptr;
   }
-  for (int i = 0; i < children_.size(); ++i) {
-    Node* child = children_[i];
+  for (Node* child : children_) {
     if (child->name() == name) {
       return child;
     }
@@ -265,8 +264,7 @@ void DefaultValueObjectWriter::Node::WriteTo(ObjectWriter* ow) {
 }
 
 void DefaultValueObjectWriter::Node::WriteChildren(ObjectWriter* ow) {
-  for (int i = 0; i < children_.size(); ++i) {
-    Node* child = children_[i];
+  for (Node* child : children_) {
     child->WriteTo(ow);
   }
 }
@@ -413,15 +411,28 @@ void DefaultValueObjectWriter::MaybePopulateChildrenOfAny(Node* node) {
 DataPiece DefaultValueObjectWriter::FindEnumDefault(
     const google::protobuf::Field& field, const TypeInfo* typeinfo,
     bool use_ints_for_enums) {
-  if (!field.default_value().empty())
-    return DataPiece(field.default_value(), true);
-
   const google::protobuf::Enum* enum_type =
       typeinfo->GetEnumByTypeUrl(field.type_url());
   if (!enum_type) {
     GOOGLE_LOG(WARNING) << "Could not find enum with type '" << field.type_url()
                  << "'";
     return DataPiece::NullData();
+  }
+  if (!field.default_value().empty()) {
+    if (!use_ints_for_enums) {
+      return DataPiece(field.default_value(), true);
+    } else {
+      const TProtoStringType& enum_default_value_name = field.default_value();
+      for (int enum_index = 0; enum_index < enum_type->enumvalue_size();
+           ++enum_index) {
+        auto& enum_value = enum_type->enumvalue(enum_index);
+        if (enum_value.name() == enum_default_value_name)
+          return DataPiece(enum_value.number());
+      }
+      GOOGLE_LOG(WARNING) << "Could not find enum value '" << enum_default_value_name
+                   << "' with type '" << field.type_url() << "'";
+      return DataPiece::NullData();
+    }
   }
   // We treat the first value as the default if none is specified.
   return enum_type->enumvalue_size() > 0
@@ -446,20 +457,20 @@ DataPiece DefaultValueObjectWriter::CreateDefaultDataPieceForField(
     case google::protobuf::Field::TYPE_INT64:
     case google::protobuf::Field::TYPE_SINT64:
     case google::protobuf::Field::TYPE_SFIXED64: {
-      return DataPiece(ConvertTo<int64_t>(
-          field.default_value(), &DataPiece::ToInt64, static_cast<int64_t>(0)));
+      return DataPiece(ConvertTo<arc_i64>(
+          field.default_value(), &DataPiece::ToInt64, static_cast<arc_i64>(0)));
     }
     case google::protobuf::Field::TYPE_UINT64:
     case google::protobuf::Field::TYPE_FIXED64: {
-      return DataPiece(ConvertTo<uint64_t>(field.default_value(),
+      return DataPiece(ConvertTo<arc_ui64>(field.default_value(),
                                            &DataPiece::ToUint64,
-                                           static_cast<uint64_t>(0)));
+                                           static_cast<arc_ui64>(0)));
     }
     case google::protobuf::Field::TYPE_INT32:
     case google::protobuf::Field::TYPE_SINT32:
     case google::protobuf::Field::TYPE_SFIXED32: {
-      return DataPiece(ConvertTo<int32_t>(
-          field.default_value(), &DataPiece::ToInt32, static_cast<int32_t>(0)));
+      return DataPiece(ConvertTo<arc_i32>(
+          field.default_value(), &DataPiece::ToInt32, static_cast<arc_i32>(0)));
     }
     case google::protobuf::Field::TYPE_BOOL: {
       return DataPiece(
@@ -473,9 +484,9 @@ DataPiece DefaultValueObjectWriter::CreateDefaultDataPieceForField(
     }
     case google::protobuf::Field::TYPE_UINT32:
     case google::protobuf::Field::TYPE_FIXED32: {
-      return DataPiece(ConvertTo<uint32_t>(field.default_value(),
+      return DataPiece(ConvertTo<arc_ui32>(field.default_value(),
                                            &DataPiece::ToUint32,
-                                           static_cast<uint32_t>(0)));
+                                           static_cast<arc_ui32>(0)));
     }
     case google::protobuf::Field::TYPE_ENUM: {
       return FindEnumDefault(field, typeinfo, use_ints_for_enums);

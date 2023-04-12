@@ -22,8 +22,8 @@ from pytz.tzfile import build_tzinfo
 
 
 # The IANA (nee Olson) database is updated several times a year.
-OLSON_VERSION = '2021c'
-VERSION = '2021.3'  # pip compatible version number.
+OLSON_VERSION = '2023b'
+VERSION = '2023.2'  # pip compatible version number.
 __version__ = VERSION
 
 OLSEN_VERSION = OLSON_VERSION  # Old releases had this misspelling
@@ -86,7 +86,7 @@ def open_resource(name):
     """
     name_parts = name.lstrip('/').split('/')
     for part in name_parts:
-        if part == os.path.pardir or os.path.sep in part:
+        if part == os.path.pardir or os.sep in part:
             raise ValueError('Bad path segment: %r' % part)
     zoneinfo_dir = os.environ.get('PYTZ_TZDATADIR', None)
     if zoneinfo_dir is not None:
@@ -202,7 +202,7 @@ def _case_insensitive_zone_lookup(zone):
     """case-insensitively matching timezone, else return zone unchanged"""
     global _all_timezones_lower_to_standard
     if _all_timezones_lower_to_standard is None:
-        _all_timezones_lower_to_standard = dict((tz.lower(), tz) for tz in all_timezones)  # noqa
+        _all_timezones_lower_to_standard = dict((tz.lower(), tz) for tz in _all_timezones_unchecked)  # noqa
     return _all_timezones_lower_to_standard.get(zone.lower()) or zone  # noqa
 
 
@@ -514,7 +514,7 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-all_timezones = \
+_all_timezones_unchecked = \
 ['Africa/Abidjan',
  'Africa/Accra',
  'Africa/Addis_Ababa',
@@ -610,6 +610,7 @@ all_timezones = \
  'America/Cayman',
  'America/Chicago',
  'America/Chihuahua',
+ 'America/Ciudad_Juarez',
  'America/Coral_Harbour',
  'America/Cordoba',
  'America/Costa_Rica',
@@ -964,6 +965,7 @@ all_timezones = \
  'Europe/Kaliningrad',
  'Europe/Kiev',
  'Europe/Kirov',
+ 'Europe/Kyiv',
  'Europe/Lisbon',
  'Europe/Ljubljana',
  'Europe/London',
@@ -1110,7 +1112,7 @@ all_timezones = \
  'WET',
  'Zulu']
 all_timezones = LazyList(
-        tz for tz in all_timezones if resource_exists(tz))
+        tz for tz in _all_timezones_unchecked if resource_exists(tz))
         
 all_timezones_set = LazySet(all_timezones)
 common_timezones = \
@@ -1203,6 +1205,7 @@ common_timezones = \
  'America/Cayman',
  'America/Chicago',
  'America/Chihuahua',
+ 'America/Ciudad_Juarez',
  'America/Costa_Rica',
  'America/Creston',
  'America/Cuiaba',
@@ -1266,7 +1269,6 @@ common_timezones = \
  'America/Montserrat',
  'America/Nassau',
  'America/New_York',
- 'America/Nipigon',
  'America/Nome',
  'America/Noronha',
  'America/North_Dakota/Beulah',
@@ -1275,7 +1277,6 @@ common_timezones = \
  'America/Nuuk',
  'America/Ojinaga',
  'America/Panama',
- 'America/Pangnirtung',
  'America/Paramaribo',
  'America/Phoenix',
  'America/Port-au-Prince',
@@ -1283,7 +1284,6 @@ common_timezones = \
  'America/Porto_Velho',
  'America/Puerto_Rico',
  'America/Punta_Arenas',
- 'America/Rainy_River',
  'America/Rankin_Inlet',
  'America/Recife',
  'America/Regina',
@@ -1304,7 +1304,6 @@ common_timezones = \
  'America/Swift_Current',
  'America/Tegucigalpa',
  'America/Thule',
- 'America/Thunder_Bay',
  'America/Tijuana',
  'America/Toronto',
  'America/Tortola',
@@ -1312,7 +1311,6 @@ common_timezones = \
  'America/Whitehorse',
  'America/Winnipeg',
  'America/Yakutat',
- 'America/Yellowknife',
  'Antarctica/Casey',
  'Antarctica/Davis',
  'Antarctica/DumontDUrville',
@@ -1456,8 +1454,8 @@ common_timezones = \
  'Europe/Istanbul',
  'Europe/Jersey',
  'Europe/Kaliningrad',
- 'Europe/Kiev',
  'Europe/Kirov',
+ 'Europe/Kyiv',
  'Europe/Lisbon',
  'Europe/Ljubljana',
  'Europe/London',
@@ -1485,7 +1483,6 @@ common_timezones = \
  'Europe/Tallinn',
  'Europe/Tirane',
  'Europe/Ulyanovsk',
- 'Europe/Uzhgorod',
  'Europe/Vaduz',
  'Europe/Vatican',
  'Europe/Vienna',
@@ -1493,7 +1490,6 @@ common_timezones = \
  'Europe/Volgograd',
  'Europe/Warsaw',
  'Europe/Zagreb',
- 'Europe/Zaporozhye',
  'Europe/Zurich',
  'GMT',
  'Indian/Antananarivo',

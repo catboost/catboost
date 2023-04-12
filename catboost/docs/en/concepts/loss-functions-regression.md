@@ -1,7 +1,7 @@
 # Regression: objectives and metrics
 
 - [Objectives and metrics](#objectives-and-metrics)
-- [{{ title__loss-functions__text__optimization }}](#used-for-optimization)
+- [{{ title__loss-functions__text__optimization }}](#usage-inforimation)
 
 ## Objectives and metrics
 
@@ -9,130 +9,131 @@
 
 $\frac{\sum\limits_{i=1}^{N} w_{i} | a_{i} - t_{i}| }{\sum\limits_{i=1}^{N} w_{i}}$
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function--MAPE }} {#MAPE}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \displaystyle\frac{|a_{i}- t_{i}|}{Max(1, |t_{i}|)}}{\sum\limits_{i=1}^{N}w_{i}}$
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function--Poisson }} {#Poisson}
 
-
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \left(e^{a_{i}} - a_{i}t_{i}\right)}{\sum\limits_{i=1}^{N}w_{i}}$
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
-
-_Default:_ {{ loss-functions__use_weights__default }}
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 
 ### {{ error-function--Quantile }} {#Quantile}
 
+$\displaystyle\frac{\sum\limits_{i=1}^{N} (\alpha - I(t_{i} \leq a_{i}))(t_{i} - a_{i}) w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} (\alpha - 1(t_{i} \leq a_{i}))(t_{i} - a_{i}) w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
-
-_Default:_ {{ loss-functions__use_weights__default }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 {% cut "{{ loss-functions__params__alpha }}" %}
 
 The coefficient used in quantile-based losses.
 
+_Default:_ {{ fit--alpha }}
+
 {% endcut %}
+
+### {{ error-function--MultiQuantile }} {#MultiQuantile}
+
+$\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \sum\limits_{q=1}^{Q} (\alpha_{q} - I(t_{i} \leq a_{i,q}))(t_{i} - a_{i,q}) }{\sum\limits_{i=1}^{N} w_{i}}$
+
+**{{ optimization }}** See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
+
+{% cut "{{ loss-functions__params__alpha }}" %}
+
+The vector of coefficients used in multi-quantile loss.
 
 _Default:_ {{ fit--alpha }}
 
-
+{% endcut %}
 
 ### {{ error-function--RMSE }} {#RMSE}
 
 $\displaystyle\sqrt{\displaystyle\frac{\sum\limits_{i=1}^N (a_{i}-t_{i})^2 w_{i}}{\sum\limits_{i=1}^{N}w_{i}}}$
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
-
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### RMSEWithUncertainty {#RMSEWithUncertainty}
 
-
-$-\frac{1}{N} \sum_{i=1}^N \log p(t_i \vert a_i) = -\frac{1}{N} \sum_{i=1}^N \log(\frac{1}{2 \pi\sigma^2} \exp(-\frac{(y-\mu)^2}{2\sigma^2})) = C +\frac{1}{N}\sum_{i=1}^N \left(a_{i,1} + \frac{1}{2} \exp(-2 a_{i,1} (t_i - a_{i, 0})^2) \right)$, where t is target, a 2-dimensional approx $a_0$ is target predict, $a_1$ is $\log \sigma$ predict, and $p$ has normal distribution $p(t \vert a) = N(y \vert a_0, e^{2a_1}) = N(y \vert \mu, \sigma^2) = \frac{1}{2 \pi\sigma^2} \exp(-\frac{(y-\mu)^2}{2\sigma^2})$
+$\displaystyle-\frac{\sum_{i=1}^N w_i \log N(t_{i} \vert a_{i,0}, e^{2a_{i,1}})}{\sum_{i=1}^{N}w_{i}} = \frac{1}{2}\log(2\pi) +\frac{\sum_{i=1}^N w_i\left(a_{i,1} + \frac{1}{2} e^{-2a_{i,1}}(t_i - a_{i, 0})^2 \right)}{\sum_{i=1}^{N}w_{i}}$,
+where $t$ is target, a 2-dimensional approx $a_0$ is target predict, $a_1$ is $\log \sigma$ predict, and $N(y\vert \mu,\sigma^2) = \frac{1}{\sqrt{2 \pi\sigma^2}} \exp(-\frac{(y-\mu)^2}{2\sigma^2})$ is the probability density function of the normal distribution.
 
 See the [Uncertainty section](../references/uncertainty.md) for more details.
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
-
-_Default:_ {{ loss-functions__use_weights__default }}
-
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function--LogLinQuantile }} {#LogLinQuantile}
-
 
 Depends on the condition for the ratio of the label value and the resulting value:
 $\begin{cases} \displaystyle\frac{\sum\limits_{i=1}^{N} \alpha |t_{i} - e^{a_{i}} | w_{i}}{\sum\limits_{i=1}^{N} w_{i}} & t_{i} > e^{a_{i}} \\ \displaystyle\frac{\sum\limits_{i=1}^{N} (1 - \alpha) |t_{i} - e^{a_{i}} | w_{i}}{\sum\limits_{i=1}^{N} w_{i}} & t_{i} \leq e^{a_{i}} \end{cases}$
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 {% cut "{{ loss-functions__params__alpha }}" %}
 
 The coefficient used in quantile-based losses.
 
-{% endcut %}
-
 _Default:_  {{ fit--alpha }}
 
-
+{% endcut %}
 
 ### {{ error-function__lq }} {#lq}
 
 $\displaystyle\frac{\sum\limits_{i=1}^N |a_{i} - t_{i}|^q w_i}{\sum\limits_{i=1}^N w_{i}}$
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 {% cut "{{ loss-functions__params__q }}" %}
 
 The power coefficient.<br/><br/>Valid values are real numbers in the following range:  $[1; +\infty)$
 
-{% endcut %}
-
 _Default:_ {{ loss-functions__params__q__default }}
+
+{% endcut %}
 
 
 ### {{ error-function__Huber }} {#Huber}
-
 
 $L(t, a) = \sum\limits_{i=0}^N l(t_i, a_i) \cdot w_{i} { , where}$
 
@@ -144,35 +145,34 @@ $l(t,a) = \begin{cases} \frac{1}{2} (t - a)^{2} { , } & |t -a| \leq \delta \\ \d
 
 The $\delta$ parameter of the {{ error-function__Huber }} metric.
 
-{% endcut %}
-
 _Default:_ {{ loss-functions__params__q__default }}
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+{% endcut %}
 
-_Default:_ {{ loss-functions__use_weights__default }}
+**{{ optimization }}** See [more](#usage-information).
 
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 
 ### {{ error-function__Expectile }} {#Expectile}
 
-
 $\displaystyle\frac{\sum\limits_{i=1}^{N} |\alpha - 1(t_{i} \leq a_{i})|(t_{i} - a_{i})^2 w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 {% cut "{{ loss-functions__params__alpha }}" %}
 
 The coefficient used in expectile-based losses.
 
-{% endcut %}
-
 _Default:_  {{ fit--alpha }}
 
+{% endcut %}
 
 ### {{ error-function__Tweedie }} {#Tweedie}
 
@@ -180,11 +180,11 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N}\left(\displaystyle\frac{e^{a_{i}(2-\la
 
 $\lambda$ is the value of the {{ loss-functions__params__variance_power }} parameter.
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 {% cut "{{ loss-functions__params__variance_power }}" %}
 
@@ -192,10 +192,19 @@ The variance of the Tweedie distribution.
 
 Supported values are in the range (1;2).
 
-{% endcut %}
-
 _Default:_ {{ loss-functions__params__q__default }}
 
+{% endcut %}
+
+### {{ error-function__LogCosh }} {#LogCosh}
+
+$\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
+
+**{{ optimization }}** See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 
 ### {{ error-function__FairLoss }} {#FairLoss}
@@ -204,20 +213,19 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} c^2(\frac{|t_{i} - a_{i} |}{c} - \ln(\
 
 $c$ is the value of the {{ loss-functions__params__smoothness }} parameter.
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ no-optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 {% cut "{{ loss-functions__params__use_weights }}" %}
 
 The smoothness coefficient. Valid values are real values in the following range $(0; +\infty)$.
 
-{% endcut %}
-
 _Default:_ {{ fit--smoothness }}
 
+{% endcut %}
 
 
 ### {{ error-function__NumErrors }} {#NumErrors}
@@ -232,29 +240,21 @@ $I\{x\} = \begin{cases} 1 { , } & |a_{i} - t_{i}| > greater\_than \\ 0 { , } & |
 
 Increase the numerator of the formula if the following inequality is met:<br/><br/>$|prediction - label|>value$
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ no-optimization }}** See [more](#usage-information).
 
-_Default:_ {{ loss-functions__use_weights__default }}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-
-
-
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function__SMAPE }} {#SMAPE}
 
-
 $\displaystyle\frac{100 \sum\limits_{i=1}^{N}\displaystyle\frac{w_{i} |a_{i} - t_{i} |}{(| t_{i} | + | a_{i} |) / 2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
+**{{ no-optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
-
-_Default:_ {{ loss-functions__use_weights__default }}
-
-
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function--R2 }} {#R2}
 
@@ -262,54 +262,54 @@ $1 - \displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (a_{i} - t_{i})^{2}}{\sum\li
 $\bar{t}$ is the average label value:
 $\bar{t} = \frac{1}{N}\sum\limits_{i=1}^{N}t_{i}$
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ no-optimization }}** See [more](#usage-information).
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+**{{ title__loss-functions__text__user-defined-params }}**
 
-_Default:_ {{ loss-functions__use_weights__default }}
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 
 ### {{ error-function__MSLE }} {#MSLE}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} (\log_{e} (1 + t_{i}) - \log_{e} (1 + a_{i}))^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
-{{ title__loss-functions__text__optimization }}: –
+**{{ no-optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
-
-_Default:_ {{ loss-functions__use_weights__default }}
 
 ### {{ error-function__MedianAbsoluteError }} {#MedianAbsoluteError}
 
 $median(|t_{1} - a_{1}|, ..., |t_{i} - a_{i}|)$
 
-{{ title__loss-functions__text__optimization }}: –
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}: –
+**{{ title__loss-functions__text__user-defined-params }}**
 
+No.
 
-## {{ title__loss-functions__text__optimization }}
+## {{ title__loss-functions__text__optimization }} {#usage-information}
 
-| Name                                                            | Optimization            |
-------------------------------------------------------------------|-------------------------|
-[{{ error-function--MAE }}](#MAE)                                 |     +                   |
-[{{ error-function--MAPE }}](#MAPE)                               |     +                   |
-[{{ error-function--Poisson }}](#Poisson)                         |     +                   |
-[{{ error-function--Quantile }}](#Quantile)                       |     +                   |
-[{{ error-function--RMSE }}](#RMSE)                               |     +                   |
-[RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |
-[{{ error-function--LogLinQuantile }}](#LogLinQuantile)           |     +                   |
-[{{ error-function__lq }}](#lq)                                   |     +                   |
-[{{ error-function__Huber }}](#Huber)                             |     +                   |
-[{{ error-function__Expectile }}](#Expectile)                     |     +                   |
-[{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |
-[{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |
-[{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |
-[{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |
-[{{ error-function--R2 }}](#R2)                                   |     -                   |
-[{{ error-function__MSLE }}](#MSLE)                               |     -                   |
-[{{ error-function__MedianAbsoluteError }}](#MedianAbsoluteError) |     -                   |
+| Name                                                            | Optimization            | GPU Support             |
+------------------------------------------------------------------|-------------------------|-------------------------|
+[{{ error-function--MAE }}](#MAE)                                 |     +                   |     -                   |
+[{{ error-function--MAPE }}](#MAPE)                               |     +                   |     +                   |
+[{{ error-function--Poisson }}](#Poisson)                         |     +                   |     +                   |
+[{{ error-function--Quantile }}](#Quantile)                       |     +                   |     +                   |
+[{{ error-function--MultiQuantile }}](#MultiQuantile)             |     +                   |     -                   |
+[{{ error-function--RMSE }}](#RMSE)                               |     +                   |     +                   |
+[RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |     -                   |
+[{{ error-function--LogLinQuantile }}](#LogLinQuantile)           |     +                   |     +                   |
+[{{ error-function__lq }}](#lq)                                   |     +                   |     +                   |
+[{{ error-function__Huber }}](#Huber)                             |     +                   |     +                   |
+[{{ error-function__Expectile }}](#Expectile)                     |     +                   |     +                   |
+[{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |     +                   |
+[{{ error-function__LogCosh }}](#LogCosh)                         |     +                   |     -                   |
+[{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |     -                   |
+[{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |     +                   |
+[{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |     -                   |
+[{{ error-function--R2 }}](#R2)                                   |     -                   |     -                   |
+[{{ error-function__MSLE }}](#MSLE)                               |     -                   |     -                   |
+[{{ error-function__MedianAbsoluteError }}](#MedianAbsoluteError) |     -                   |     -                   |

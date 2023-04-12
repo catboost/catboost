@@ -107,6 +107,10 @@ namespace NCatboostOptions {
             MetricPeriod.Set(period);
         }
 
+        bool IsMetricPeriodSet() const {
+            return MetricPeriod.IsSet();
+        }
+
         void SetTrainDir(const TString& trainDir) {
             TrainDir.Set(trainDir);
         }

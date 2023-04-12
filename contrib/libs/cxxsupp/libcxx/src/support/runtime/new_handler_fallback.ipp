@@ -11,7 +11,7 @@
 
 namespace std {
 
-_LIBCPP_SAFE_STATIC static std::new_handler __new_handler;
+static _LIBCPP_CONSTINIT std::new_handler __new_handler = nullptr;
 
 new_handler
 set_new_handler(new_handler handler) noexcept

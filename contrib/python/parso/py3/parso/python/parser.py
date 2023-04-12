@@ -96,8 +96,6 @@ class Parser(BaseParser):
                 # prefixes. Just ignore them.
                 children = [children[0]] + children[2:-1]
             node = self.default_node(nonterminal, children)
-        for c in children:
-            c.parent = node
         return node
 
     def convert_leaf(self, type, value, prefix, start_pos):
@@ -185,8 +183,6 @@ class Parser(BaseParser):
 
         if all_nodes:
             node = tree.PythonErrorNode(all_nodes)
-            for n in all_nodes:
-                n.parent = node
             self.stack[start_index - 1].nodes.append(node)
 
         self.stack[start_index:] = []

@@ -60,6 +60,12 @@ ABSL_CONST_INIT PageHeapAllocator<StackTraceTable::Bucket>
 ABSL_CONST_INIT std::atomic<bool> Static::inited_{false};
 ABSL_CONST_INIT bool Static::cpu_cache_active_ = false;
 ABSL_CONST_INIT bool Static::fork_support_enabled_ = false;
+ABSL_CONST_INIT Static::CreateSampleUserDataCallback*
+    Static::create_sample_user_data_callback_ = nullptr;
+ABSL_CONST_INIT Static::CopySampleUserDataCallback*
+    Static::copy_sample_user_data_callback_ = nullptr;
+ABSL_CONST_INIT Static::DestroySampleUserDataCallback*
+    Static::destroy_sample_user_data_callback_ = nullptr;
 ABSL_CONST_INIT Static::PageAllocatorStorage Static::page_allocator_;
 ABSL_CONST_INIT PageMap Static::pagemap_;
 ABSL_CONST_INIT absl::base_internal::SpinLock guarded_page_lock(

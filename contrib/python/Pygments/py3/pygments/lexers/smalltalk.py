@@ -4,7 +4,7 @@
 
     Lexers for Smalltalk and related languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,13 +17,14 @@ __all__ = ['SmalltalkLexer', 'NewspeakLexer']
 
 class SmalltalkLexer(RegexLexer):
     """
-    For `Smalltalk <http://www.smalltalk.org/>`_ syntax.
+    For Smalltalk syntax.
     Contributed by Stefan Matthias Aust.
     Rewritten by Nils Winter.
 
     .. versionadded:: 0.10
     """
     name = 'Smalltalk'
+    url = 'http://www.smalltalk.org/'
     filenames = ['*.st']
     aliases = ['smalltalk', 'squeak', 'st']
     mimetypes = ['text/x-smalltalk']
@@ -138,11 +139,12 @@ class SmalltalkLexer(RegexLexer):
 
 class NewspeakLexer(RegexLexer):
     """
-    For `Newspeak <http://newspeaklanguage.org/>`_ syntax.
+    For Newspeak syntax.
 
     .. versionadded:: 1.1
     """
     name = 'Newspeak'
+    url = 'http://newspeaklanguage.org/'
     filenames = ['*.ns2']
     aliases = ['newspeak', ]
     mimetypes = ['text/x-newspeak']

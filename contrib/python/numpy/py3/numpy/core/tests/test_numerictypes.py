@@ -357,7 +357,7 @@ class TestCommonType:
         assert_(res == 'f8')
 
 class TestMultipleFields:
-    def setup(self):
+    def setup_method(self):
         self.ary = np.array([(1, 2, 3, 4), (5, 6, 7, 8)], dtype='i4,f4,i2,c8')
 
     def _bad_call(self):
@@ -435,6 +435,13 @@ class TestSctypeDict:
     def test_longdouble(self):
         assert_(np.sctypeDict['f8'] is not np.longdouble)
         assert_(np.sctypeDict['c16'] is not np.clongdouble)
+
+    def test_ulong(self):
+        # Test that 'ulong' behaves like 'long'. np.sctypeDict['long'] is an
+        # alias for np.int_, but np.long is not supported for historical
+        # reasons (gh-21063)
+        assert_(np.sctypeDict['ulong'] is np.uint)
+        assert_(not hasattr(np, 'ulong'))
 
 
 class TestBitName:

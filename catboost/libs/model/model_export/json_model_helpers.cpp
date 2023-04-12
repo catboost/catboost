@@ -1,5 +1,6 @@
 #include "json_model_helpers.h"
 
+#include <catboost/libs/helpers/json_helpers.h>
 #include <catboost/libs/model/ctr_helpers.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 
@@ -18,67 +19,6 @@
 
 using namespace NJson;
 
-
-template <typename T>
-static TJsonValue VectorToJson(const TVector<T>& values) {
-    TJsonValue jsonValue;
-    for (const auto& value: values) {
-        jsonValue.AppendValue(value);
-    }
-    return jsonValue;
-}
-
-static void FromJson(const TJsonValue& value, TString* result) {
-    *result = value.GetString();
-}
-
-static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput, IOutputStream* out) {
-    TJsonWriterConfig config;
-    config.FormatOutput = formatOutput;
-    config.FloatNDigits = 9;
-    config.DoubleNDigits = 17;
-    config.SortKeys = true;
-    WriteJson(out, &value, config);
-}
-
-static TString WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput) {
-    TStringStream ss;
-    WriteJsonWithCatBoostPrecision(value, formatOutput, &ss);
-    return ss.Str();
-}
-
-template <typename T>
-static void FromJson(const TJsonValue& value, T* result) {
-    switch (value.GetType()) {
-        case EJsonValueType::JSON_INTEGER:
-            *result = T(value.GetInteger());
-            break;
-        case EJsonValueType::JSON_DOUBLE:
-            *result = T(value.GetDouble());
-            break;
-        case EJsonValueType::JSON_UINTEGER:
-            *result = T(value.GetUInteger());
-            break;
-        default:
-            Y_ASSERT(false);
-    }
-}
-
-template <typename T>
-static T FromJson(const TJsonValue& value) {
-    T result;
-    FromJson(value, &result);
-    return result;
-}
-
-template <typename T>
-static TVector<T> JsonToVector(const TJsonValue& jsonValue) {
-    TVector<T> result;
-    for (const auto& value: jsonValue.GetArray()) {
-        result.push_back(FromJson<T>(value));
-    }
-    return result;
-}
 
 static TJsonValue ToJson(const TFloatSplit& floatSplit) {
     TJsonValue jsonValue;
@@ -222,6 +162,7 @@ static TJsonValue ToJson(const TFloatFeature& floatFeature) {
     jsonValue.InsertValue("feature_index", floatFeature.Position.Index);
     jsonValue.InsertValue("flat_feature_index", floatFeature.Position.FlatIndex);
     jsonValue.InsertValue("borders", VectorToJson(floatFeature.Borders));
+    jsonValue.InsertValue("feature_id", floatFeature.FeatureId);
     switch (floatFeature.NanValueTreatment) {
         case TFloatFeature::ENanValueTreatment::AsIs:
             jsonValue.InsertValue("nan_value_treatment", "AsIs");
@@ -241,7 +182,8 @@ static TFloatFeature FloatFeatureFromJson(const TJsonValue& value) {
         value["has_nans"].GetBoolean(),
         value["feature_index"].GetInteger(),
         value["flat_feature_index"].GetInteger(),
-        JsonToVector<float>(value["borders"]));
+        JsonToVector<float>(value["borders"]),
+        value["feature_id"].GetString());
     feature.NanValueTreatment = FromString<TFloatFeature::ENanValueTreatment>(value["nan_value_treatment"].GetString());
     return feature;
 }
@@ -250,6 +192,7 @@ static TJsonValue ToJson(const TCatFeature& catFeature) {
     TJsonValue jsonValue;
     jsonValue.InsertValue("feature_index", catFeature.Position.Index);
     jsonValue.InsertValue("flat_feature_index", catFeature.Position.FlatIndex);
+    jsonValue.InsertValue("feature_id", catFeature.FeatureId);
     return jsonValue;
 }
 
@@ -257,6 +200,7 @@ static TCatFeature CatFeatureFromJson(const TJsonValue& value) {
     TCatFeature catFeature;
     catFeature.Position.Index = value["feature_index"].GetInteger();
     catFeature.Position.FlatIndex = value["flat_feature_index"].GetInteger();
+    catFeature.FeatureId = value["feature_id"].GetString();
     return catFeature;
 }
 

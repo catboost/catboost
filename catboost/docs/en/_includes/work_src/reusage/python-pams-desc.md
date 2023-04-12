@@ -1599,6 +1599,25 @@ are identical, given that the name of the feature indexed 2 is <q>Feature2</q> a
 
 {{ calcer_type__cpu }}
 
+## fixed_binary_splits
+
+**Type**
+
+{{ python-type--list }}
+
+#### Description
+
+
+A list of indices of binary features to put at the top of each tree; ignored if `grow_policy` is `Symmetric`.
+
+**Default value**
+
+ None
+
+**Supported processing units**
+
+ {{ calcer_type__gpu }}
+
 ### penalties_coefficient
 
 
@@ -1733,7 +1752,7 @@ Possible values:
 
 This parameter works with `dictionaries` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 Usage example
 
@@ -1786,7 +1805,7 @@ tokenizers = [{
 
 This parameter works with `tokenizers` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% endnote %}
 
@@ -1843,7 +1862,7 @@ dictionaries = [{
 
 This parameter works with `tokenizers` and `dictionaries` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 
@@ -2943,7 +2962,7 @@ The value of the `{{ ctr-types__TargetBorderCount }}` component overrides this p
 
 **Default value**
 
-{{ parameters__ctr-targer-border-count__default }}
+{{ parameters__ctr-target-border-count__default }}
 
 **Supported processing units**
 

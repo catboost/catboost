@@ -201,7 +201,7 @@ bool GetProtocAbsolutePath(TProtoStringType* path) {
   int len = 0;
 
   char dirtybuffer[PATH_MAX];
-  uint32_t size = sizeof(dirtybuffer);
+  arc_ui32 size = sizeof(dirtybuffer);
   if (_NSGetExecutablePath(dirtybuffer, &size) == 0) {
     realpath(dirtybuffer, buffer);
     len = strlen(buffer);
@@ -298,36 +298,36 @@ class CommandLineInterface::ErrorPrinter
 
   // implements MultiFileErrorCollector ------------------------------
   void AddError(const TProtoStringType& filename, int line, int column,
-                const TProtoStringType& message) {
+                const TProtoStringType& message) override {
     found_errors_ = true;
     AddErrorOrWarning(filename, line, column, message, "error", std::cerr);
   }
 
   void AddWarning(const TProtoStringType& filename, int line, int column,
-                  const TProtoStringType& message) {
+                  const TProtoStringType& message) override {
     found_warnings_ = true;
     AddErrorOrWarning(filename, line, column, message, "warning", std::clog);
   }
 
   // implements io::ErrorCollector -----------------------------------
-  void AddError(int line, int column, const TProtoStringType& message) {
+  void AddError(int line, int column, const TProtoStringType& message) override {
     AddError("input", line, column, message);
   }
 
-  void AddWarning(int line, int column, const TProtoStringType& message) {
+  void AddWarning(int line, int column, const TProtoStringType& message) override {
     AddErrorOrWarning("input", line, column, message, "warning", std::clog);
   }
 
   // implements DescriptorPool::ErrorCollector-------------------------
   void AddError(const TProtoStringType& filename, const TProtoStringType& element_name,
                 const Message* descriptor, ErrorLocation location,
-                const TProtoStringType& message) {
+                const TProtoStringType& message) override {
     AddErrorOrWarning(filename, -1, -1, message, "error", std::cerr);
   }
 
   void AddWarning(const TProtoStringType& filename, const TProtoStringType& element_name,
                   const Message* descriptor, ErrorLocation location,
-                  const TProtoStringType& message) {
+                  const TProtoStringType& message) override {
     AddErrorOrWarning(filename, -1, -1, message, "warning", std::clog);
   }
 
@@ -400,14 +400,14 @@ class CommandLineInterface::GeneratorContextImpl : public GeneratorContext {
   void GetOutputFilenames(std::vector<TProtoStringType>* output_filenames);
 
   // implements GeneratorContext --------------------------------------
-  io::ZeroCopyOutputStream* Open(const TProtoStringType& filename);
-  io::ZeroCopyOutputStream* OpenForAppend(const TProtoStringType& filename);
-  io::ZeroCopyOutputStream* OpenForInsert(const TProtoStringType& filename,
-                                          const TProtoStringType& insertion_point);
+  io::ZeroCopyOutputStream* Open(const TProtoStringType& filename) override;
+  io::ZeroCopyOutputStream* OpenForAppend(const TProtoStringType& filename) override;
+  io::ZeroCopyOutputStream* OpenForInsert(
+      const TProtoStringType& filename, const TProtoStringType& insertion_point) override;
   io::ZeroCopyOutputStream* OpenForInsertWithGeneratedCodeInfo(
       const TProtoStringType& filename, const TProtoStringType& insertion_point,
-      const google::protobuf::GeneratedCodeInfo& info);
-  void ListParsedFiles(std::vector<const FileDescriptor*>* output) {
+      const google::protobuf::GeneratedCodeInfo& info) override;
+  void ListParsedFiles(std::vector<const FileDescriptor*>* output) override {
     *output = parsed_files_;
   }
 
@@ -2149,7 +2149,7 @@ Parse PROTO_FILES and generate output based on the options given:
 }
 
 bool CommandLineInterface::EnforceProto3OptionalSupport(
-    const TProtoStringType& codegen_name, uint64_t supported_features,
+    const TProtoStringType& codegen_name, arc_ui64 supported_features,
     const std::vector<const FileDescriptor*>& parsed_files) const {
   bool supports_proto3_optional =
       supported_features & CodeGenerator::FEATURE_PROTO3_OPTIONAL;
@@ -2487,8 +2487,8 @@ bool CommandLineInterface::WriteDescriptorSet(
     to_output.insert(parsed_files.begin(), parsed_files.end());
     for (int i = 0; i < parsed_files.size(); i++) {
       const FileDescriptor* file = parsed_files[i];
-      for (int i = 0; i < file->dependency_count(); i++) {
-        const FileDescriptor* dependency = file->dependency(i);
+      for (int j = 0; j < file->dependency_count(); j++) {
+        const FileDescriptor* dependency = file->dependency(j);
         // if the dependency isn't in parsed files, mark it as already seen
         if (to_output.find(dependency) == to_output.end()) {
           already_seen.insert(dependency);

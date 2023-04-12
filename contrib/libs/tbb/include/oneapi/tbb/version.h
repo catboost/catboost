@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,13 +17,19 @@
 #ifndef __TBB_version_H
 #define __TBB_version_H
 
-#include "detail/_config.h"
-#include "detail/_namespace_injection.h"
+// Exclude all includes during .rc files compilation
+#ifndef RC_INVOKED
+    #include "detail/_config.h"
+    #include "detail/_namespace_injection.h"
+#else
+    #define __TBB_STRING_AUX(x) #x
+    #define __TBB_STRING(x) __TBB_STRING_AUX(x)
+#endif
 
 // Product version
 #define TBB_VERSION_MAJOR 2021
 // Update version
-#define TBB_VERSION_MINOR 2
+#define TBB_VERSION_MINOR 8
 // "Patch" version for custom releases
 #define TBB_VERSION_PATCH 0
 // Suffix string
@@ -34,7 +40,7 @@
 // OneAPI oneTBB specification version
 #define ONETBB_SPEC_VERSION "1.0"
 // Full interface version
-#define TBB_INTERFACE_VERSION 12020
+#define TBB_INTERFACE_VERSION 12080
 // Major interface version
 #define TBB_INTERFACE_VERSION_MAJOR (TBB_INTERFACE_VERSION/1000)
 // Minor interface version
@@ -96,13 +102,13 @@
  * The returned pointer is an address of a string in the shared library.
  * It can be different than the TBB_VERSION_STRING obtained at compile time.
  */
-extern "C" const char* __TBB_EXPORTED_FUNC TBB_runtime_version();
+extern "C" TBB_EXPORT const char* __TBB_EXPORTED_FUNC TBB_runtime_version();
 
 //! The function returns the interface version of the oneTBB shared library being used.
 /**
  * The returned version is determined at runtime, not at compile/link time.
  * It can be different than the value of TBB_INTERFACE_VERSION obtained at compile time.
  */
-extern "C" int __TBB_EXPORTED_FUNC TBB_runtime_interface_version();
+extern "C" TBB_EXPORT int __TBB_EXPORTED_FUNC TBB_runtime_interface_version();
 
 #endif // __TBB_version_H

@@ -4,13 +4,13 @@
 
     Lexer for Arrow.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, bygroups, default, include
 from pygments.token import Text, Operator, Keyword, Punctuation, Name, \
-    String, Number
+    String, Number, Whitespace
 
 __all__ = ['ArrowLexer']
 
@@ -21,18 +21,19 @@ DECL = TYPES + r'(\s+)' + IDENT
 
 class ArrowLexer(RegexLexer):
     """
-    Lexer for Arrow: https://pypi.org/project/py-arrow-lang/
+    Lexer for Arrow
 
     .. versionadded:: 2.7
     """
 
     name = 'Arrow'
+    url = 'https://pypi.org/project/py-arrow-lang/'
     aliases = ['arrow']
     filenames = ['*.arw']
 
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'^[|\s]+', Punctuation),
             include('blocks'),
             include('statements'),
@@ -42,8 +43,8 @@ class ArrowLexer(RegexLexer):
             (r'(function)(\n+)(/-->)(\s*)' +
              DECL +  # 4 groups
              r'(\()', bygroups(
-                 Keyword.Reserved, Text, Punctuation,
-                 Text, Keyword.Type, Punctuation, Text,
+                 Keyword.Reserved, Whitespace, Punctuation,
+                 Whitespace, Keyword.Type, Punctuation, Whitespace,
                  Name.Function, Punctuation
              ), 'fparams'),
             (r'/-->$|\\-->$|/--<|\\--<|\^', Punctuation),
@@ -56,7 +57,7 @@ class ArrowLexer(RegexLexer):
             (r'print', Keyword.Reserved, 'print'),
         ],
         'expressions': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[0-9]+', Number.Integer),
             (r'true|false', Keyword.Constant),
             (r"'", String.Char, 'char'),
@@ -65,7 +66,7 @@ class ArrowLexer(RegexLexer):
             (r'==|!=|<|>|\+|-|\*|/|%', Operator),
             (r'and|or|not|length', Operator.Word),
             (r'(input)(\s+)(int|char\[\])', bygroups(
-                Keyword.Reserved, Text, Keyword.Type
+                Keyword.Reserved, Whitespace, Keyword.Type
             )),
             (IDENT + r'(\()', bygroups(
                 Name.Function, Punctuation
@@ -81,7 +82,7 @@ class ArrowLexer(RegexLexer):
             default('#pop'),
         ],
         'fparams': [
-            (DECL, bygroups(Keyword.Type, Punctuation, Text, Name.Variable)),
+            (DECL, bygroups(Keyword.Type, Punctuation, Whitespace, Name.Variable)),
             (r',', Punctuation),
             (r'\)', Punctuation, '#pop'),
         ],

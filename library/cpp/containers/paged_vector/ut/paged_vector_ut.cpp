@@ -16,6 +16,8 @@ class TPagedVectorTest: public TTestBase {
     UNIT_TEST(TestAt)
     UNIT_TEST(TestAutoRef)
     UNIT_TEST(TestIterators)
+    UNIT_TEST(TestEmplaceBack1)
+    UNIT_TEST(TestEmplaceBack2)
     //UNIT_TEST(TestEbo)
     UNIT_TEST_SUITE_END();
 
@@ -339,6 +341,39 @@ private:
         //UNIT_ASSERT(vint.rbegin() != crvint.rend());
         //UNIT_ASSERT(crvint.rbegin() != vint.rend());
         UNIT_ASSERT(crvint.rbegin() != crvint.rend());
+    }
+
+    void TestEmplaceBack1() {
+        NPagedVector::TPagedVector<int, 3> vint;
+
+        for (int i = 0; i < 55; ++i) {
+            UNIT_ASSERT_EQUAL(vint.emplace_back(i), i);
+        }
+
+        UNIT_ASSERT_EQUAL(vint.size(), 55);
+
+        for (int i = 0; i < 55; ++i) {
+            UNIT_ASSERT_EQUAL(vint[i], i);
+        }
+    }
+
+    void TestEmplaceBack2() {
+        using TPair = std::pair<int, TString>;
+        NPagedVector::TPagedVector<TPair, 5> arr;
+
+        for (int i = 0; i < 55; ++i) {
+            auto s = ToString(i);
+            auto& element = arr.emplace_back(i, s);
+            UNIT_ASSERT_EQUAL(element, std::make_pair(i, s));
+            UNIT_ASSERT_UNEQUAL(element, std::make_pair(i + 1, s));
+        }
+
+        UNIT_ASSERT_EQUAL(arr.size(), 55);
+
+        for (int i = 0; i < 55; ++i) {
+            UNIT_ASSERT_EQUAL(arr[i].first, i);
+            UNIT_ASSERT_EQUAL(arr[i].second, ToString(i));
+        }
     }
 
     /* This test check a potential issue with empty base class

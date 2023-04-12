@@ -13,6 +13,7 @@ fit(X,
     y=None,
     cat_features=None,
     text_features=None,
+    embedding_features=None,
     pairs=None,
     sample_weight=None,
     group_id=None,
@@ -25,6 +26,7 @@ fit(X,
     verbose=None,
     logging_level=None,
     plot=False,
+    plot_file=None,
     column_description=None,
     verbose_eval=None,
     metric_period=None,
@@ -63,6 +65,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 {% endcut %}
 
 {% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+
 The input training dataset in the form of a two-dimensional feature matrix.
 
 {% endcut %}
@@ -169,6 +172,29 @@ None (all features are either considered numerical or of other types if specifie
 
 
 
+### embedding_features
+
+#### Description
+
+A one-dimensional array of embedding columns indices (specified as integers) or names (specified as strings).
+
+{% include [reusage-python__cat_features__description__non-catfeatures-text](../_includes/work_src/reusage/python__cat_features__description__non-catfeatures-text.md) %}
+
+**Possible types**
+
+- {{ python-type--list }}
+- {{ python-type--numpyarray }}
+
+**Default value**
+
+{% include [default-value-none](../_includes/concepts/default-value-none.md) %}
+
+**Supported processing units**
+
+{{ cpu-gpu }}
+
+
+
 ### pairs
 
 #### Description
@@ -266,7 +292,7 @@ The weights of all objects within the defined groups from the input data in the 
 
 Used for calculating the final values of trees. By default, it is set to 1 for all objects in all groups.
 
-{% include [group-params-python__group-and-group-weight__resctriction](../_includes/work_src/reusage/python__group-and-group-weight__resctriction.md) %}
+{% include [group-params-python__group-and-group-weight__restriction](../_includes/work_src/reusage/python__group-and-group-weight__restriction.md) %}
 
 
 **Possible types**
@@ -517,6 +543,26 @@ Plot the following information during training:
 **Supported processing units**
 
 {% include [reusage-python-cpu](../_includes/work_src/reusage-python/cpu.md) %}
+
+
+
+### plot_file
+
+#### Description
+
+Save a plot with the training progress information (metric values, custom loss values) to the file specified by this parameter.
+
+**Possible types**
+
+File-like object or {{ python-type--string }}
+
+**Default value**
+
+None
+
+**Supported processing units**
+
+{% include [reusage-python-cpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 
 

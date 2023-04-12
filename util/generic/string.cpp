@@ -6,7 +6,6 @@
 #include <util/charset/wide.h>
 
 #include <iostream>
-#include <cctype>
 
 alignas(32) const char NULL_STRING_REPR[128] = {0};
 

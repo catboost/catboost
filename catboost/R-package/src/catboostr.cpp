@@ -95,7 +95,7 @@ static TVector<T> GetVectorFromSEXP(SEXP arg) {
                 result[i] = static_cast<T>(LOGICAL(arg)[i]);
                 break;
             default:
-                Y_ENSURE(false, "unsupported vector type: int, real or logical is required");
+                CB_ENSURE(false, "unsupported vector type: int, real or logical is required");
         }
     }
     return result;
@@ -584,7 +584,7 @@ EXPORT_FUNCTION CatBoostSumModels_R(SEXP modelsParam,
         models.push_back(model);
     }
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
-    SumModels(models, weights, mergePolicy).Swap(*modelPtr);
+    SumModels(models, weights, /*modelParamsPrefixes*/{}, mergePolicy).Swap(*modelPtr);
     result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
     modelPtr.release();

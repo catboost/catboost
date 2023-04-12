@@ -4,7 +4,7 @@
 
     Port of the default trac highlighter design.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,8 +17,6 @@ class TracStyle(Style):
     """
     Port of the default trac highlighter design.
     """
-
-    default_style = ''
 
     styles = {
         Whitespace:             '#bbbbbb',

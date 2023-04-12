@@ -1,4 +1,5 @@
 #include "distribution_helpers.h"
+#include "exception.h"
 #include "wx_test.h"
 
 
@@ -12,7 +13,7 @@ static double NormalCDF(double x) {
 //w is Abs(wPlus-wMinus)
 // wMinus/wPlus are sums of rank with appropriate sign
 static double CalcLevelOfSignificanceWXMPSR(double w, int n) {
-    Y_VERIFY(n < 20);
+    CB_ENSURE(n < 20, "Size of sample is too large for CalcLevelOfSignificanceWXMPSR");
     // The total number of possible outcomes is 2**N
     int numberOfPossibilities = 1 << n;
 
@@ -48,7 +49,7 @@ TWxTestResult WxTest(const TVector<double>& baseline, const TVector<double>& tes
         const double i1 = baseline[i];
         const double i2 = test[i];
         const double diff = i1 - i2;
-        if (diff != 0) {
+        if (IsFinite(diff) && diff != 0) {
             diffs.push_back(diff);
         }
     }

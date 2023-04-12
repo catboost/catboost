@@ -2,10 +2,13 @@
 #include <library/cpp/cuda/wrappers/arch.cuh>
 
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
-#include <library/cpp/cuda/wrappers/cub_include.h>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
-#include _CUB_INCLUDE(cub/util_ptx.cuh)
+
+#include <util/generic/cast.h>
+
+#include <contrib/libs/nvidia/cub/cub/util_ptx.cuh>
+
 
 #include <cooperative_groups.h>
 
@@ -25,8 +28,8 @@ namespace NKernel {
                                                                      const float* targets,
                                                                      const float* weights,
                                                                      const float* values,
-                                                                     const int offset,
-                                                                     const int size,
+                                                                     const ui32 offset,
+                                                                     const ui32 size,
                                                                      const int* qids,
                                                                      const ui32* qOffsets,
                                                                      const float* approxScale,
@@ -63,16 +66,16 @@ namespace NKernel {
         }
 
         const float MAX_SHIFT = 20;
-        const int tid = threadIdx.x;
+        const ui32 tid = threadIdx.x;
 
-        const int loadIdx = tid < size ?  offset + tid : 0;
+        const ui32 loadIdx = tid < size ?  offset + tid : 0;
         const bool isSingleClass = tid < size ? isSingleClassFlags[tid] : true;
         const ui32 trueCount = tid < size && trueClassCount ? trueClassCount[tid] : 0;
-        const int tidQid = tid < size ? Ldg(qids + tid) : -1;
+        const ui32 tidQid = tid < size ? Ldg(qids + tid) : -1;
         const ui32 queryOffset = tid < size ? Ldg(qOffsets + tidQid) : 0;
 
-        const int querySize = tid < size ? Ldg(qOffsets + tidQid + 1) - queryOffset : 0;
-        const int localIdx = tid < size ? offset + tid - queryOffset : 0;
+        const ui32 querySize = tid < size ? Ldg(qOffsets + tidQid + 1) - queryOffset : 0;
+        const ui32 localIdx = tid < size ? offset + tid - queryOffset : 0;
 
         const float clazz = tid < size ? Ldg(targets + loadIdx) : 0;
         const float scale = querySize < approxScaleSize ? approxScale[querySize * approxScaleSize + trueCount]
@@ -245,7 +248,7 @@ namespace NKernel {
 
     template <int BlockSize>
     __global__ void  QueryCrossEntropyImpl(volatile int* qidCursor,
-                                           const int qCount,
+                                           const ui32 qCount,
                                            const float alpha,
                                            const float* targets,
                                            const float* weights,
@@ -257,7 +260,7 @@ namespace NKernel {
                                            const float defaultScale,
                                            const ui32 approxScaleSize,
                                            const ui32* trueClassCount,
-                                           const int size,
+                                           const ui32 size,
                                            float* functionValue,
                                            float* ders,
                                            float* ders2llp,
@@ -266,13 +269,13 @@ namespace NKernel {
 
         while (true) {
 
-            int taskQid = 0;
-            int offset = 0;
-            int nextTaskOffset = 0;
+            ui32 taskQid = 0;
+            ui32 offset = 0;
+            ui32 nextTaskOffset = 0;
             {
-                __shared__ int sharedTaskQid;
-                __shared__ int sharedTaskOffset;
-                __shared__ int sharedNextTaskOffset;
+                __shared__ ui32 sharedTaskQid;
+                __shared__ ui32 sharedTaskOffset;
+                __shared__ ui32 sharedNextTaskOffset;
 
                 if (threadIdx.x == 0) {
                     taskQid = qidCursor[0];
@@ -284,9 +287,9 @@ namespace NKernel {
 
                         offset = qOffsets[taskQid];
                         nextTaskOffset = min(offset + BlockSize, size);
-                        int nextTaskQid = nextTaskOffset < size ? qids[nextTaskOffset] : qCount;
+                        ui32 nextTaskQid = nextTaskOffset < size ? qids[nextTaskOffset] : qCount;
 
-                        int oldQid = atomicCAS(const_cast<int*>(qidCursor), taskQid, nextTaskQid);
+                        ui32 oldQid = atomicCAS(/*const_cast<int*>*/(ui32*)(qidCursor), taskQid, nextTaskQid);
                         if (oldQid == taskQid) {
                             nextTaskOffset = qOffsets[nextTaskQid];
                             break;
@@ -313,7 +316,7 @@ namespace NKernel {
                 return;
             }
 
-            const int blockSize = nextTaskOffset - offset;
+            const ui32 blockSize = nextTaskOffset - offset;
             //we assume, that docs are sorted by isSingleClass mask
             //otherwise will be slower for adv-pools
             //first part - queries with pairs
@@ -356,7 +359,7 @@ namespace NKernel {
         }
     }
 
-    void QueryCrossEntropy(int* qidCursor, const int qCount,
+    void QueryCrossEntropy(int* qidCursor, const ui32 qCount,
                            const float alpha,
                            const float* targets,
                            const float* weights,
@@ -368,7 +371,7 @@ namespace NKernel {
                            const float defaultScale,
                            const ui32 approxScaleSize,
                            const ui32* trueClassCount,
-                           const  int docCount,
+                           const  ui32 docCount,
                            float* functionValue,
                            float* ders,
                            float* ders2llp,
@@ -402,6 +405,7 @@ namespace NKernel {
                                                      ui32 qCount,
                                                      ui32* matrixSizes) {
 
+        //matrix count is qCount + 1 (for last index)
         const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         const bool isSingleClassFlag = i < qCount ? Ldg(isSingleClassQuery + queryOffsets[i]) : true;
         const ui32 qSize = (i < qCount && !isSingleClassFlag) ? queryOffsets[i + 1] - queryOffsets[i] : 0;
@@ -423,30 +427,30 @@ namespace NKernel {
     }
 
 
-    template <int BlockSize, int ThreadsPerQuery>
+    template <ui32 BlockSize, ui32 ThreadsPerQuery>
     __global__ void MakePairsQueryLogitImpl(const ui32* queryOffsets,
-                                            const ui32* matrixOffsets,
+                                            const ui64* matrixOffsets,
                                             const bool* isSingleClassQuery,
                                             ui32 queryCount,
                                             uint2* pairs) {
 
-        const int queriesPerBlock = BlockSize / ThreadsPerQuery;
-        const int localQid = threadIdx.x / ThreadsPerQuery;
-        const int qid = blockIdx.x * queriesPerBlock + localQid;
+        const ui32 queriesPerBlock = BlockSize / ThreadsPerQuery;
+        const ui32 localQid = threadIdx.x / ThreadsPerQuery;
+        const ui32 qid = blockIdx.x * queriesPerBlock + localQid;
 
 
         ui32 queryOffset = qid < queryCount ? queryOffsets[qid] : 0;
         const bool singleClassFlag = qid < queryCount ? isSingleClassQuery[queryOffset] : true;
 
-        ui32 querySize = (qid < queryCount && !singleClassFlag) ? queryOffsets[qid + 1] - queryOffset : 0;
-        ui32 matrixOffset = qid < queryCount ? matrixOffsets[qid] : 0;
+        ui32 querySize = (qid < queryCount && !singleClassFlag) ? queryOffsets[qid + 1] - queryOffset : 0; // queryCount == QueryOffsets.Size() - 1
+        ui64 matrixOffset = qid < queryCount ? matrixOffsets[qid] : 0;
 
-        const int x = threadIdx.x & (ThreadsPerQuery - 1);
+        const ui32 x = threadIdx.x & (ThreadsPerQuery - 1);
 
 
         const ui32 matrixSize = querySize * (querySize - 1) / 2;
         pairs += matrixOffset;
-        for (int i = x; i < matrixSize; i += ThreadsPerQuery) {
+        for (ui32 i = x; i < matrixSize; i += ThreadsPerQuery) {
             uint2 pair = GetPair(i);
             pair.x += queryOffset;
             pair.y += queryOffset;
@@ -455,17 +459,17 @@ namespace NKernel {
     }
 
     void MakeQueryLogitPairs(const ui32* qOffsets,
-                             const ui32* matrixOffset,
+                             const ui64* matrixOffset,
                              const bool* isSingleFlags,
                              double meanQuerySize,
                              ui32 qCount,
                              uint2* pairs,
                              TCudaStream stream) {
 
-        const int blockSize = 128;
+        const ui32 blockSize = 128;
 
         #define MAKE_PAIRS(threadsPerQuery) \
-        const int numBlocks = (qCount * threadsPerQuery +  blockSize - 1) / blockSize; \
+        const ui32 numBlocks = SafeIntegerCast<ui32>((((ui64)qCount + 1) * threadsPerQuery +  blockSize - 1) / blockSize); \
         if (numBlocks > 0) { \
             MakePairsQueryLogitImpl<blockSize, threadsPerQuery> <<< numBlocks, blockSize, 0, stream >>> (qOffsets, matrixOffset,  isSingleFlags, qCount, pairs); \
         }
@@ -502,7 +506,7 @@ namespace NKernel {
         __shared__ ui32 resultsCount[BlockSize];
 
         const int queryOffset = (qid < queryCount) ? (queryOffsets[qid] - bias) : 0;
-        const int querySize = (qid < queryCount) ? (queryOffsets[qid + 1] - bias - queryOffset) : 0;
+        const int querySize = (qid < queryCount) ? (queryOffsets[qid + 1] - bias - queryOffset) : 0; // queryCount == QueryOffsets.Size() - 1
 
         const ui32 firstIdx = qid < queryCount ? loadIndices[queryOffset] : 0;
         float firstTarget = Ldg(targets + firstIdx);
@@ -545,11 +549,11 @@ namespace NKernel {
                                 ui32* trueClassCount,
                                 TCudaStream stream) {
 
-        const int blockSize = 128;
+        const ui32 blockSize = 128;
 
 
         #define RUN_KERNEL(threadsPerQuery) \
-        const int numBlocks = (queryCount * threadsPerQuery +  blockSize - 1) / blockSize; \
+        const ui32 numBlocks = SafeIntegerCast<ui32>((((ui64)queryCount + 1) * threadsPerQuery +  blockSize - 1) / blockSize); \
         if (numBlocks > 0) { \
             MakeIsSingleClassFlagsImpl<blockSize, threadsPerQuery> <<< numBlocks, blockSize, 0, stream >>> ((int*)queryOffsets,  queryCount, loadIndices, targets, isSingleClassQuery, trueClassCount); \
         }
@@ -574,12 +578,12 @@ namespace NKernel {
                                                           const float* groupDers2,
                                                           const ui32* docIds,
                                                           const ui32* qids,
-                                                          ui32 pairCount,
+                                                          ui64 pairCount,
                                                           float* pairDer2,
                                                           uint2* pairs) {
 
-        const int tid = threadIdx.x;
-        const int i = blockIdx.x * blockDim.x + tid;
+        const ui32 tid = threadIdx.x;
+        const ui64 i = (ui64)blockIdx.x * blockDim.x + tid;
 
         if (i < pairCount) {
             uint2 pair = Ldg(pairs + i);
@@ -601,13 +605,13 @@ namespace NKernel {
                                            const float* groupDers2,
                                            const ui32* docIds,
                                            const ui32* qids,
-                                           ui32 pairCount,
+                                           ui64 pairCount,
                                            float* pairDer2,
                                            uint2* pairs,
                                            TCudaStream stream
     ) {
-        const int blockSize = 256;
-        const int numBlocks = (pairCount + blockSize - 1) / blockSize;
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = SafeIntegerCast<ui32>((pairCount + blockSize - 1) / blockSize); // cuda grid sizes are ui32
         if (numBlocks > 0) {
             FillPairDer2AndRemapPairDocumentsImpl<<< numBlocks, blockSize,0, stream >>>(ders2, groupDers2, docIds, qids, pairCount, pairDer2, pairs);
         }

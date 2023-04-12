@@ -22,8 +22,7 @@
 #include <thrust/detail/functional/operators/operator_adaptors.h>
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace functional
@@ -52,7 +51,8 @@ struct unary_plus
   template <typename T1>
   __host__ __device__
   constexpr auto operator()(T1&& t1) const
-  noexcept(noexcept(+THRUST_FWD(t1))) -> decltype(+THRUST_FWD(t1))
+  noexcept(noexcept(+THRUST_FWD(t1)))
+  THRUST_TRAILING_RETURN(decltype(+THRUST_FWD(t1)))
   {
     return +THRUST_FWD(t1);
   }
@@ -320,7 +320,8 @@ struct prefix_increment
   template <typename T1>
   __host__ __device__
   constexpr auto operator()(T1&& t1) const
-  noexcept(noexcept(++THRUST_FWD(t1))) -> decltype(++THRUST_FWD(t1))
+  noexcept(noexcept(++THRUST_FWD(t1)))
+  THRUST_TRAILING_RETURN(decltype(++THRUST_FWD(t1)))
   {
     return ++THRUST_FWD(t1);
   }
@@ -349,7 +350,8 @@ struct postfix_increment
   template <typename T1>
   __host__ __device__
   constexpr auto operator()(T1&& t1) const
-  noexcept(noexcept(THRUST_FWD(t1)++)) -> decltype(THRUST_FWD(t1)++)
+  noexcept(noexcept(THRUST_FWD(t1)++))
+  THRUST_TRAILING_RETURN(decltype(THRUST_FWD(t1)++))
   {
     return THRUST_FWD(t1)++;
   }
@@ -378,7 +380,8 @@ struct prefix_decrement
   template <typename T1>
   __host__ __device__
   constexpr auto operator()(T1&& t1) const
-  noexcept(noexcept(--THRUST_FWD(t1))) -> decltype(--THRUST_FWD(t1))
+  noexcept(noexcept(--THRUST_FWD(t1)))
+  THRUST_TRAILING_RETURN(decltype(--THRUST_FWD(t1)))
   {
     return --THRUST_FWD(t1);
   }
@@ -407,7 +410,8 @@ struct postfix_decrement
   template <typename T1>
   __host__ __device__
   constexpr auto operator()(T1&& t1) const
-  noexcept(noexcept(THRUST_FWD(t1)--)) -> decltype(THRUST_FWD(t1)--)
+  noexcept(noexcept(THRUST_FWD(t1)--))
+  THRUST_TRAILING_RETURN(decltype(THRUST_FWD(t1)--))
   {
     return THRUST_FWD(t1)--;
   }
@@ -428,5 +432,5 @@ operator--(const actor<Eval> &_1, int)
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

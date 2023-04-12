@@ -7,7 +7,7 @@ New versions are being developed in the "dev" branch,
 or in their own feature branch.
 When they are deemed ready for a release, they are merged into "release".
 
-As a consequences, all contributions must stage first through "dev"
+As a consequence, all contributions must stage first through "dev"
 or their own feature branch.
 
 ## Pull Requests
@@ -47,7 +47,7 @@ Our contribution process works in three main stages:
     * Topic and development:
         * Make a new branch on your fork about the topic you're developing for
         ```
-        # branch names should be consise but sufficiently informative
+        # branch names should be concise but sufficiently informative
         git checkout -b <branch-name>
         git push origin <branch-name>
         ```
@@ -68,8 +68,8 @@ Our contribution process works in three main stages:
             ```
 2. Code Review and CI tests
     * Ensure CI tests pass:
-        * Before sharing anything to the community, make sure that all CI tests pass on your local fork.
-        See our section on setting up your CI environment for more information on how to do this.
+        * Before sharing anything to the community, create a pull request in your own fork against the dev branch
+        and make sure that all GitHub Actions CI tests pass. See the Continuous Integration section below for more information.
         * Ensure that static analysis passes on your development machine. See the Static Analysis section
         below to see how to do this.
     * Create a pull request:
@@ -104,7 +104,7 @@ Our contribution process works in three main stages:
         issue at hand, then please indicate this by requesting that an issue be closed by commenting.
         * Just because your changes have been merged does not mean the topic or larger issue is complete. Remember
         that the change must make it to an official zstd release for it to be meaningful. We recommend
-        that contributers track the activity on their pull request and corresponding issue(s) page(s) until
+        that contributors track the activity on their pull request and corresponding issue(s) page(s) until
         their change makes it to the next release of zstd. Users will often discover bugs in your code or
         suggest ways to refine and improve your initial changes even after the pull request is merged.
 
@@ -134,11 +134,47 @@ It can be useful to look at additional static analyzers once in a while (and we 
 - Static analyzers are full of false positive. The signal to noise ratio is actually pretty low.
 - A good CI policy is "zero-warning tolerance". That means that all issues must be solved, including false positives. This quickly becomes a tedious workload.
 - Multiple static analyzers will feature multiple kind of false positives, sometimes applying to the same code but in different ways leading to :
-   + torteous code, trying to please multiple constraints, hurting readability and therefore maintenance. Sometimes, such complexity introduce other more subtle bugs, that are just out of scope of the analyzers.
+   + tortuous code, trying to please multiple constraints, hurting readability and therefore maintenance. Sometimes, such complexity introduce other more subtle bugs, that are just out of scope of the analyzers.
    + sometimes, these constraints are mutually exclusive : if one try to solve one, the other static analyzer will complain, they can't be both happy at the same time.
 - As if that was not enough, the list of false positives change with each version. It's hard enough to follow one static analyzer, but multiple ones with their own update agenda, this quickly becomes a massive velocity reducer.
 
-This is different from running a static analyzer once in a while, looking at the output, and __cherry picking__ a few warnings that seem helpful, either because they detected a genuine risk of bug, or because it helps expressing the code in a way which is more readable or more difficult to misuse. These kind of reports can be useful, and are accepted.
+This is different from running a static analyzer once in a while, looking at the output, and __cherry picking__ a few warnings that seem helpful, either because they detected a genuine risk of bug, or because it helps expressing the code in a way which is more readable or more difficult to misuse. These kinds of reports can be useful, and are accepted.
+
+## Continuous Integration
+CI tests run every time a pull request (PR) is created or updated. The exact tests
+that get run will depend on the destination branch you specify. Some tests take
+longer to run than others. Currently, our CI is set up to run a short
+series of tests when creating a PR to the dev branch and a longer series of tests
+when creating a PR to the release branch. You can look in the configuration files
+of the respective CI platform for more information on what gets run when.
+
+Most people will just want to create a PR with the destination set to their local dev
+branch of zstd. You can then find the status of the tests on the PR's page. You can also
+re-run tests and cancel running tests from the PR page or from the respective CI's dashboard.
+
+Almost all of zstd's CI runs on GitHub Actions (configured at `.github/workflows`), which will automatically run on PRs to your
+own fork. A small number of tests run on other services (e.g. Travis CI, Circle CI, Appveyor).
+These require work to set up on your local fork, and (at least for Travis CI) cost money.
+Therefore, if the PR on your local fork passes GitHub Actions, feel free to submit a PR
+against the main repo.
+
+### Third-party CI
+A small number of tests cannot run on GitHub Actions, or have yet to be migrated.
+For these, we use a variety of third-party services (listed below). It is not necessary to set
+these up on your fork in order to contribute to zstd; however, we do link to instructions for those
+who want earlier signal.
+
+| Service   | Purpose                                                                                                    | Setup Links                                                                                                                                            | Config Path            |
+|-----------|------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------|
+| Travis CI | Used for testing on non-x86 architectures such as PowerPC                                                  | https://docs.travis-ci.com/user/tutorial/#to-get-started-with-travis-ci-using-github <br> https://github.com/marketplace/travis-ci                     | `.travis.yml`          |
+| AppVeyor  | Used for some Windows testing (e.g. cygwin, mingw)                                                         | https://www.appveyor.com/blog/2018/10/02/github-apps-integration/ <br> https://github.com/marketplace/appveyor                                         | `appveyor.yml`         |
+| Cirrus CI | Used for testing on FreeBSD                                                                                | https://github.com/marketplace/cirrus-ci/                                                                                                              | `.cirrus.yml`          |
+| Circle CI | Historically was used to provide faster signal,<br/> but we may be able to migrate these to Github Actions | https://circleci.com/docs/2.0/getting-started/#setting-up-circleci <br> https://youtu.be/Js3hMUsSZ2c <br> https://circleci.com/docs/2.0/enable-checks/ | `.circleci/config.yml` |
+
+Note: the instructions linked above mostly cover how to set up a repository with CI from scratch. 
+The general idea should be the same for setting up CI on your fork of zstd, but you may have to 
+follow slightly different steps. In particular, please ignore any instructions related to setting up
+config files (since zstd already has configs for each of these services).
 
 ## Performance
 Performance is extremely important for zstd and we only merge pull requests whose performance
@@ -161,7 +197,7 @@ something subtle merged is extensive benchmarking. You will be doing us a great 
 take the time to run extensive, long-duration, and potentially cross-(os, platform, process, etc)
 benchmarks on your end before submitting a PR. Of course, you will not be able to benchmark
 your changes on every single processor and os out there (and neither will we) but do that best
-you can:) We've adding some things to think about when benchmarking below in the Benchmarking
+you can:) We've added some things to think about when benchmarking below in the Benchmarking
 Performance section which might be helpful for you.
 3. Optimizing performance for a certain OS, processor vendor, compiler, or network system is a perfectly
 legitimate thing to do as long as it does not harm the overall performance health of Zstd.
@@ -237,7 +273,7 @@ for that options you have just provided. If you want to look at the internals of
 benchmarking script works, you can check out programs/benchzstd.c
 
 For example: say you have made a change that you believe improves the speed of zstd level 1. The
-very first thing you should use to asses whether you actually achieved any sort of improvement
+very first thing you should use to assess whether you actually achieved any sort of improvement
 is `zstd -b`. You might try to do something like this. Note: you can use the `-i` option to
 specify a running time for your benchmark in seconds (default is 3 seconds).
 Usually, the longer the running time, the more stable your results will be.
@@ -263,24 +299,24 @@ this method of evaluation will not be sufficient.
 ### Profiling
 There are a number of great profilers out there. We're going to briefly mention how you can
 profile your code using `instruments` on mac, `perf` on linux and `visual studio profiler`
-on windows.
+on Windows.
 
 Say you have an idea for a change that you think will provide some good performance gains
 for level 1 compression on Zstd. Typically this means, you have identified a section of
 code that you think can be made to run faster.
 
 The first thing you will want to do is make sure that the piece of code is actually taking up
-a notable amount of time to run. It is usually not worth optimzing something which accounts for less than
+a notable amount of time to run. It is usually not worth optimizing something which accounts for less than
 0.0001% of the total running time. Luckily, there are tools to help with this.
 Profilers will let you see how much time your code spends inside a particular function.
-If your target code snippit is only part of a function, it might be worth trying to
-isolate that snippit by moving it to its own function (this is usually not necessary but
+If your target code snippet is only part of a function, it might be worth trying to
+isolate that snippet by moving it to its own function (this is usually not necessary but
 might be).
 
-Most profilers (including the profilers dicusssed below) will generate a call graph of
-functions for you. Your goal will be to find your function of interest in this call grapch
-and then inspect the time spent inside of it. You might also want to to look at the
-annotated assembly which most profilers will provide you with.
+Most profilers (including the profilers discussed below) will generate a call graph of
+functions for you. Your goal will be to find your function of interest in this call graph
+and then inspect the time spent inside of it. You might also want to look at the annotated
+assembly which most profilers will provide you with.
 
 #### Instruments
 We will once again consider the scenario where you think you've identified a piece of code
@@ -294,23 +330,23 @@ Instruments.
     * You will want a benchmark that runs for at least a few seconds (5 seconds will
     usually be long enough). This way the profiler will have something to work with
     and you will have ample time to attach your profiler to this process:)
-    * I will just use benchzstd as my bencharmking script for this example:
+    * I will just use benchzstd as my benchmarmking script for this example:
 ```
 $ zstd -b1 -i5 <my-data> # this will run for 5 seconds
 ```
 5. Once you run your benchmarking script, switch back over to instruments and attach your
 process to the time profiler. You can do this by:
     * Clicking on the `All Processes` drop down in the top left of the toolbar.
-    * Selecting your process from the dropdown. In my case, it is just going to be labled
+    * Selecting your process from the dropdown. In my case, it is just going to be labeled
     `zstd`
     * Hitting the bright red record circle button on the top left of the toolbar
-6. You profiler will now start collecting metrics from your bencharking script. Once
+6. You profiler will now start collecting metrics from your benchmarking script. Once
 you think you have collected enough samples (usually this is the case after 3 seconds of
 recording), stop your profiler.
 7. Make sure that in toolbar of the bottom window, `profile` is selected.
 8. You should be able to see your call graph.
     * If you don't see the call graph or an incomplete call graph, make sure you have compiled
-    zstd and your benchmarking scripg using debug flags. On mac and linux, this just means
+    zstd and your benchmarking script using debug flags. On mac and linux, this just means
     you will have to supply the `-g` flag alone with your build script. You might also
     have to provide the `-fno-omit-frame-pointer` flag
 9. Dig down the graph to find your function call and then inspect it by double clicking
@@ -329,7 +365,7 @@ Some general notes on perf:
 counter statistics. Perf uses a high resolution timer and this is likely one
 of the first things your team will run when assessing your PR.
 * Perf has a long list of hardware counters that can be viewed with `perf --list`.
-When measuring optimizations, something worth trying is to make sure the handware
+When measuring optimizations, something worth trying is to make sure the hardware
 counters you expect to be impacted by your change are in fact being so. For example,
 if you expect the L1 cache misses to decrease with your change, you can look at the
 counter `L1-dcache-load-misses`
@@ -338,57 +374,6 @@ counter `L1-dcache-load-misses`
 #### Visual Studio
 
 TODO
-
-
-## Setting up continuous integration (CI) on your fork
-Zstd uses a number of different continuous integration (CI) tools to ensure that new changes
-are well tested before they make it to an official release. Specifically, we use the platforms
-travis-ci, circle-ci, and appveyor.
-
-Changes cannot be merged into the main dev branch unless they pass all of our CI tests.
-The easiest way to run these CI tests on your own before submitting a PR to our dev branch
-is to configure your personal fork of zstd with each of the CI platforms. Below, you'll find
-instructions for doing this.
-
-### travis-ci
-Follow these steps to link travis-ci with your github fork of zstd
-
-1. Make sure you are logged into your github account
-2. Go to https://travis-ci.org/
-3. Click 'Sign in with Github' on the top right
-4. Click 'Authorize travis-ci'
-5. Click 'Activate all repositories using Github Apps'
-6. Select 'Only select repositories' and select your fork of zstd from the drop down
-7. Click 'Approve and Install'
-8. Click 'Sign in with Github' again. This time, it will be for travis-pro (which will let you view your tests on the web dashboard)
-9. Click 'Authorize travis-pro'
-10. You should have travis set up on your fork now.
-
-### circle-ci
-TODO
-
-### appveyor
-Follow these steps to link circle-ci with your girhub fork of zstd
-
-1. Make sure you are logged into your github account
-2. Go to https://www.appveyor.com/
-3. Click 'Sign in' on the top right
-4. Select 'Github' on the left panel
-5. Click 'Authorize appveyor'
-6. You might be asked to select which repositories you want to give appveyor permission to. Select your fork of zstd if you're prompted
-7. You should have appveyor set up on your fork now.
-
-### General notes on CI
-CI tests run every time a pull request (PR) is created or updated. The exact tests
-that get run will depend on the destination branch you specify. Some tests take
-longer to run than others. Currently, our CI is set up to run a short
-series of tests when creating a PR to the dev branch and a longer series of tests
-when creating a PR to the release branch. You can look in the configuration files
-of the respective CI platform for more information on what gets run when.
-
-Most people will just want to create a PR with the destination set to their local dev
-branch of zstd. You can then find the status of the tests on the PR's page. You can also
-re-run tests and cancel running tests from the PR page or from the respective CI's dashboard.
 
 ## Issues
 We use GitHub issues to track public bugs. Please ensure your description is
@@ -470,7 +455,7 @@ This design requirement is fundamental to preserve the portability of the code b
   Any variable that can be `const` (aka. read-only) **must** be `const`.
   Any pointer which content will not be modified must be `const`.
   This property is then controlled at compiler level.
-  `const` variables are an important signal to readers that this variable isn’t modified.
+  `const` variables are an important signal to readers that this variable isn't modified.
   Conversely, non-const variables are a signal to readers to watch out for modifications later on in the function.
 * If a function must be inlined, mention it explicitly,
   using project's own portable macros, such as `FORCE_INLINE_ATTR`,

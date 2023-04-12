@@ -19,6 +19,9 @@ public:
 
     void LoadFullFromFile(const Napi::CallbackInfo& info);
 
+    // Set model predictions postprocessing type.
+    void SetPredictionType(const Napi::CallbackInfo& info);
+
     // Calculate prediction for matrices of numeric and categorial features.
     Napi::Value CalcPrediction(const Napi::CallbackInfo& info);
 
@@ -30,6 +33,7 @@ public:
     Napi::Value GetModelCatFeaturesCount(const Napi::CallbackInfo& info);
     Napi::Value GetModelTreeCount(const Napi::CallbackInfo& info);
     Napi::Value GetModelDimensionsCount(const Napi::CallbackInfo& info);
+    Napi::Value GetPredictionDimensionsCount(const Napi::CallbackInfo& info);
 
 private:
     ModelCalcerHandle* Handle = nullptr;

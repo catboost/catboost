@@ -1,15 +1,15 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
-from fnmatch import fnmatchcase
 import functools
 import os
 import re
+import warnings
 
 import _distutils_hack.override  # noqa: F401
 
 import distutils.core
 from distutils.errors import DistutilsOptionError
-from distutils.util import convert_path
+from distutils.util import convert_path as _convert_path
 
 from ._deprecation_warning import SetuptoolsDeprecationWarning
 
@@ -17,7 +17,9 @@ import setuptools.version
 from setuptools.extension import Extension
 from setuptools.dist import Distribution
 from setuptools.depends import Require
+from setuptools.discovery import PackageFinder, PEP420PackageFinder
 from . import monkey
+from . import logging
 
 
 __all__ = [
@@ -36,85 +38,6 @@ __version__ = setuptools.version.__version__
 bootstrap_install_from = None
 
 
-class PackageFinder:
-    """
-    Generate a list of all Python packages found within a directory
-    """
-
-    @classmethod
-    def find(cls, where='.', exclude=(), include=('*',)):
-        """Return a list all Python packages found within directory 'where'
-
-        'where' is the root directory which will be searched for packages.  It
-        should be supplied as a "cross-platform" (i.e. URL-style) path; it will
-        be converted to the appropriate local path syntax.
-
-        'exclude' is a sequence of package names to exclude; '*' can be used
-        as a wildcard in the names, such that 'foo.*' will exclude all
-        subpackages of 'foo' (but not 'foo' itself).
-
-        'include' is a sequence of package names to include.  If it's
-        specified, only the named packages will be included.  If it's not
-        specified, all found packages will be included.  'include' can contain
-        shell style wildcard patterns just like 'exclude'.
-        """
-
-        return list(
-            cls._find_packages_iter(
-                convert_path(where),
-                cls._build_filter('ez_setup', '*__pycache__', *exclude),
-                cls._build_filter(*include),
-            )
-        )
-
-    @classmethod
-    def _find_packages_iter(cls, where, exclude, include):
-        """
-        All the packages found in 'where' that pass the 'include' filter, but
-        not the 'exclude' filter.
-        """
-        for root, dirs, files in os.walk(where, followlinks=True):
-            # Copy dirs to iterate over it, then empty dirs.
-            all_dirs = dirs[:]
-            dirs[:] = []
-
-            for dir in all_dirs:
-                full_path = os.path.join(root, dir)
-                rel_path = os.path.relpath(full_path, where)
-                package = rel_path.replace(os.path.sep, '.')
-
-                # Skip directory trees that are not valid packages
-                if '.' in dir or not cls._looks_like_package(full_path):
-                    continue
-
-                # Should this package be included?
-                if include(package) and not exclude(package):
-                    yield package
-
-                # Keep searching subdirectories, as there may be more packages
-                # down there, even if the parent was excluded.
-                dirs.append(dir)
-
-    @staticmethod
-    def _looks_like_package(path):
-        """Does a directory look like a package?"""
-        return os.path.isfile(os.path.join(path, '__init__.py'))
-
-    @staticmethod
-    def _build_filter(*patterns):
-        """
-        Given a list of patterns, return a callable that will be true only if
-        the input matches at least one of the patterns.
-        """
-        return lambda name: any(fnmatchcase(name, pat=pat) for pat in patterns)
-
-
-class PEP420PackageFinder(PackageFinder):
-    @staticmethod
-    def _looks_like_package(path):
-        return True
-
-
 find_packages = PackageFinder.find
 find_namespace_packages = PEP420PackageFinder.find
 
@@ -131,7 +54,17 @@ def _install_setup_requires(attrs):
         def __init__(self, attrs):
             _incl = 'dependency_links', 'setup_requires'
             filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
-            distutils.core.Distribution.__init__(self, filtered)
+            super().__init__(filtered)
+            # Prevent accidentally triggering discovery with incomplete set of attrs
+            self.set_defaults._disable()
+
+        def _get_project_config_files(self, filenames=None):
+            """Ignore ``pyproject.toml``, they are not related to setup_requires"""
+            try:
+                cfg, toml = super()._split_standard_project_metadata(filenames)
+                return cfg, ()
+            except Exception:
+                return filenames, ()
 
         def finalize_options(self):
             """
@@ -144,11 +77,33 @@ def _install_setup_requires(attrs):
     # Honor setup.cfg's options.
     dist.parse_config_files(ignore_option_errors=True)
     if dist.setup_requires:
+        _fetch_build_eggs(dist)
+
+
+def _fetch_build_eggs(dist):
+    try:
         dist.fetch_build_eggs(dist.setup_requires)
+    except Exception as ex:
+        msg = """
+        It is possible a package already installed in your system
+        contains an version that is invalid according to PEP 440.
+        You can try `pip install --use-pep517` as a workaround for this problem,
+        or rely on a new virtual environment.
+
+        If the problem refers to a package that is not installed yet,
+        please contact that package's maintainers or distributors.
+        """
+        if "InvalidVersion" in ex.__class__.__name__:
+            if hasattr(ex, "add_note"):
+                ex.add_note(msg)  # PEP 678
+            else:
+                dist.announce(f"\n{msg}\n")
+        raise
 
 
 def setup(**attrs):
     # Make sure we have any requirements needed to interpret 'attrs'.
+    logging.configure()
     _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
 
@@ -160,7 +115,59 @@ _Command = monkey.get_unpatched(distutils.core.Command)
 
 
 class Command(_Command):
-    __doc__ = _Command.__doc__
+    """
+    Setuptools internal actions are organized using a *command design pattern*.
+    This means that each action (or group of closely related actions) executed during
+    the build should be implemented as a ``Command`` subclass.
+
+    These commands are abstractions and do not necessarily correspond to a command that
+    can (or should) be executed via a terminal, in a CLI fashion (although historically
+    they would).
+
+    When creating a new command from scratch, custom defined classes **SHOULD** inherit
+    from ``setuptools.Command`` and implement a few mandatory methods.
+    Between these mandatory methods, are listed:
+
+    .. method:: initialize_options(self)
+
+        Set or (reset) all options/attributes/caches used by the command
+        to their default values. Note that these values may be overwritten during
+        the build.
+
+    .. method:: finalize_options(self)
+
+        Set final values for all options/attributes used by the command.
+        Most of the time, each option/attribute/cache should only be set if it does not
+        have any value yet (e.g. ``if self.attr is None: self.attr = val``).
+
+    .. method:: run(self)
+
+        Execute the actions intended by the command.
+        (Side effects **SHOULD** only take place when ``run`` is executed,
+        for example, creating new files or writing to the terminal output).
+
+    A useful analogy for command classes is to think of them as subroutines with local
+    variables called "options".  The options are "declared" in ``initialize_options()``
+    and "defined" (given their final values, aka "finalized") in ``finalize_options()``,
+    both of which must be defined by every command class. The "body" of the subroutine,
+    (where it does all the work) is the ``run()`` method.
+    Between ``initialize_options()`` and ``finalize_options()``, ``setuptools`` may set
+    the values for options/attributes based on user's input (or circumstance),
+    which means that the implementation should be careful to not overwrite values in
+    ``finalize_options`` unless necessary.
+
+    Please note that other commands (or other parts of setuptools) may also overwrite
+    the values of the command's options/attributes multiple times during the build
+    process.
+    Therefore it is important to consistently implement ``initialize_options()`` and
+    ``finalize_options()``. For example, all derived attributes (or attributes that
+    depend on the value of other attributes) **SHOULD** be recomputed in
+    ``finalize_options``.
+
+    When overwriting existing commands, custom defined classes **MUST** abide by the
+    same APIs implemented by the original class. They also **SHOULD** inherit from the
+    original class.
+    """
 
     command_consumes_arguments = False
 
@@ -169,7 +176,7 @@ class Command(_Command):
         Construct the command for dist, updating
         vars(self) with any keyword parameters.
         """
-        _Command.__init__(self, dist)
+        super().__init__(dist)
         vars(self).update(kw)
 
     def _ensure_stringlike(self, option, what, default=None):
@@ -188,6 +195,12 @@ class Command(_Command):
         currently a string, we split it either on /,\s*/ or /\s+/, so
         "foo bar baz", "foo,bar,baz", and "foo,   bar baz" all become
         ["foo", "bar", "baz"].
+
+        ..
+           TODO: This method seems to be similar to the one in ``distutils.cmd``
+           Probably it is just here for backward compatibility with old Python versions?
+
+        :meta private:
         """
         val = getattr(self, option)
         if val is None:
@@ -232,6 +245,19 @@ def findall(dir=os.curdir):
         make_rel = functools.partial(os.path.relpath, start=dir)
         files = map(make_rel, files)
     return list(files)
+
+
+@functools.wraps(_convert_path)
+def convert_path(pathname):
+    from inspect import cleandoc
+
+    msg = """
+    The function `convert_path` is considered internal and not part of the public API.
+    Its direct usage by 3rd-party packages is considered deprecated and the function
+    may be removed in the future.
+    """
+    warnings.warn(cleandoc(msg), SetuptoolsDeprecationWarning)
+    return _convert_path(pathname)
 
 
 class sic(str):

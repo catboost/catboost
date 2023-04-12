@@ -214,7 +214,7 @@ namespace NYson {
             }
 
             bool ReadVarint32Fallback(ui32* value) {
-                if (BeginByte() + MaxVarint32Bytes <= EndByte() ||
+                if (BeginByte() + MaxVarintBytes <= EndByte() ||
                     // Optimization:  If the Varint ends at exactly the end of the buffer,
                     // we can detect that and still use the fast path.
                     (BeginByte() < EndByte() && !(EndByte()[-1] & 0x80)))

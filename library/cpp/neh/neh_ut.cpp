@@ -120,6 +120,7 @@ Y_UNIT_TEST_SUITE(Neh) {
         }
 
         UNIT_ASSERT_C(svs.Get(), err.data());
+        UNIT_ASSERT_VALUES_EQUAL(svsInfo.size(), protocols.size());
 
         const TString request = "request_data";
 
@@ -245,6 +246,30 @@ Y_UNIT_TEST_SUITE(Neh) {
                 UNIT_ASSERT_C(srv.Canceled, svsInfo[i].Addr.Str());
                 srv.ResetLastReqState();
             }
+        }
+
+
+        //check multirequester
+        {
+            auto requester = CreateRequester();
+
+            UNIT_ASSERT(requester->IsEmpty());
+
+            for (size_t i = 0; i < svsInfo.size(); ++i) {
+                auto handle = Request(TMessage(svsInfo[i].Addr.Str(), request));
+                requester->Add(handle);
+            }
+
+            UNIT_ASSERT(!requester->IsEmpty());
+
+            for (size_t i = 0; i < svsInfo.size(); ++i) {
+                THandleRef tmp;
+                bool waitRes = requester->Wait(tmp);
+                UNIT_ASSERT(waitRes);
+                UNIT_ASSERT(tmp);
+            }
+
+            UNIT_ASSERT(requester->IsEmpty());
         }
     }
 

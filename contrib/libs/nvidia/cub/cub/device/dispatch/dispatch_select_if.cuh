@@ -47,11 +47,7 @@
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /******************************************************************************
  * Kernel entry points
@@ -133,13 +129,11 @@ struct DispatchSelectIf
      * Types and constants
      ******************************************************************************/
 
-    // The output value type
-    typedef typename If<(Equals<typename std::iterator_traits<SelectedOutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<InputIteratorT>::value_type,                                                  // ... then the input iterator's value type,
-        typename std::iterator_traits<SelectedOutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
+    // The input value type
+    using InputT = cub::detail::value_t<InputIteratorT>;
 
     // The flag value type
-    typedef typename std::iterator_traits<FlagsInputIteratorT>::value_type FlagT;
+    using FlagT = cub::detail::value_t<FlagsInputIteratorT>;
 
     enum
     {
@@ -159,7 +153,7 @@ struct DispatchSelectIf
     {
         enum {
             NOMINAL_4B_ITEMS_PER_THREAD = 10,
-            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(OutputT)))),
+            ITEMS_PER_THREAD            = CUB_MIN(NOMINAL_4B_ITEMS_PER_THREAD, CUB_MAX(1, (NOMINAL_4B_ITEMS_PER_THREAD * 4 / sizeof(InputT)))),
         };
 
         typedef AgentSelectIfPolicy<
@@ -247,7 +241,7 @@ struct DispatchSelectIf
         typename                    SelectIfKernelPtrT>             ///< Function type of cub::SelectIfKernelPtrT
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                       d_temp_storage,                 ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,                 ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                     temp_storage_bytes,             ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT              d_in,                           ///< [in] Pointer to the input sequence of data items
         FlagsInputIteratorT         d_flags,                        ///< [in] Pointer to the input sequence of selection flags (if applicable)
@@ -292,10 +286,6 @@ struct DispatchSelectIf
             int device_ordinal;
             if (CubDebug(error = cudaGetDevice(&device_ordinal))) break;
 
-            // Get SM count
-            int sm_count;
-            if (CubDebug(error = cudaDeviceGetAttribute (&sm_count, cudaDevAttrMultiProcessorCount, device_ordinal))) break;
-
             // Number of input tiles
             int tile_size = select_if_config.block_threads * select_if_config.items_per_thread;
             int num_tiles = static_cast<int>(cub::DivideAndRoundUp(num_items, tile_size));
@@ -322,7 +312,7 @@ struct DispatchSelectIf
             if (debug_synchronous) _CubLog("Invoking scan_init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
 
             // Invoke scan_init_kernel to initialize tile descriptors
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 init_grid_size, INIT_KERNEL_THREADS, 0, stream
             ).doit(scan_init_kernel,
                 tile_status,
@@ -339,16 +329,9 @@ struct DispatchSelectIf
             if (num_items == 0)
                 break;
 
-            // Get SM occupancy for select_if_kernel
-            int range_select_sm_occupancy;
-            if (CubDebug(error = MaxSmOccupancy(
-                range_select_sm_occupancy,            // out
-                select_if_kernel,
-                select_if_config.block_threads))) break;
-
             // Get max x-dimension of grid
             int max_dim_x;
-            if (CubDebug(error = cudaDeviceGetAttribute(&max_dim_x, cudaDevAttrMaxGridDimX, device_ordinal))) break;;
+            if (CubDebug(error = cudaDeviceGetAttribute(&max_dim_x, cudaDevAttrMaxGridDimX, device_ordinal))) break;
 
             // Get grid size for scanning tiles
             dim3 scan_grid_size;
@@ -357,11 +340,30 @@ struct DispatchSelectIf
             scan_grid_size.x = CUB_MIN(num_tiles, max_dim_x);
 
             // Log select_if_kernel configuration
-            if (debug_synchronous) _CubLog("Invoking select_if_kernel<<<{%d,%d,%d}, %d, 0, %lld>>>(), %d items per thread, %d SM occupancy\n",
-                scan_grid_size.x, scan_grid_size.y, scan_grid_size.z, select_if_config.block_threads, (long long) stream, select_if_config.items_per_thread, range_select_sm_occupancy);
+            if (debug_synchronous)
+            {
+              // Get SM occupancy for select_if_kernel
+              int range_select_sm_occupancy;
+              if (CubDebug(error = MaxSmOccupancy(range_select_sm_occupancy, // out
+                                                  select_if_kernel,
+                                                  select_if_config.block_threads)))
+              {
+                break;
+              }
+
+              _CubLog("Invoking select_if_kernel<<<{%d,%d,%d}, %d, 0, "
+                      "%lld>>>(), %d items per thread, %d SM occupancy\n",
+                      scan_grid_size.x,
+                      scan_grid_size.y,
+                      scan_grid_size.z,
+                      select_if_config.block_threads,
+                      (long long)stream,
+                      select_if_config.items_per_thread,
+                      range_select_sm_occupancy);
+            }
 
             // Invoke select_if_kernel
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 scan_grid_size, select_if_config.block_threads, 0, stream
             ).doit(select_if_kernel,
                 d_in,
@@ -393,7 +395,7 @@ struct DispatchSelectIf
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                       d_temp_storage,                 ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,                 ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                     temp_storage_bytes,             ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT              d_in,                           ///< [in] Pointer to the input sequence of data items
         FlagsInputIteratorT         d_flags,                        ///< [in] Pointer to the input sequence of selection flags (if applicable)
@@ -441,7 +443,4 @@ struct DispatchSelectIf
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
-
-
+CUB_NAMESPACE_END

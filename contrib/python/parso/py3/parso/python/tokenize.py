@@ -548,7 +548,7 @@ def tokenize_lines(
                     additional_prefix = prefix + token
                 new_line = True
             elif initial == '#':  # Comments
-                assert not token.endswith("\n")
+                assert not token.endswith("\n") and not token.endswith("\r")
                 if fstring_stack and fstring_stack[-1].is_in_expr():
                     # `#` is not allowed in f-string expressions
                     yield PythonToken(ERRORTOKEN, initial, spos, prefix)

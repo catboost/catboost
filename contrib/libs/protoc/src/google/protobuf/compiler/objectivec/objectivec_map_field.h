@@ -45,7 +45,7 @@ class MapFieldGenerator : public RepeatedFieldGenerator {
                                               const Options& options);
 
  public:
-  virtual void FinishInitialization(void);
+  virtual void FinishInitialization(void) override;
 
   MapFieldGenerator(const MapFieldGenerator&) = delete;
   MapFieldGenerator& operator=(const MapFieldGenerator&) = delete;
@@ -55,9 +55,9 @@ class MapFieldGenerator : public RepeatedFieldGenerator {
   virtual ~MapFieldGenerator();
 
   virtual void DetermineObjectiveCClassDefinitions(
-      std::set<TProtoStringType>* fwd_decls) const;
+      std::set<TProtoStringType>* fwd_decls) const override;
   virtual void DetermineForwardDeclarations(
-      std::set<TProtoStringType>* fwd_decls) const;
+      std::set<TProtoStringType>* fwd_decls) const override;
 
  private:
   std::unique_ptr<FieldGenerator> value_field_generator_;

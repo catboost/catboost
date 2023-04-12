@@ -29,6 +29,7 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/feature_eval_options.h>
 #include <catboost/private/libs/options/output_file_options.h>
+#include <catboost/private/libs/options/path_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <util/generic/algorithm.h>
@@ -639,11 +640,11 @@ static void LoadOptions(
     catBoostOptions->Load(jsonParams);
     outputFileOptions->Load(outputJsonParams);
 
-    if (outputFileOptions->GetMetricPeriod() > 1) {
+    if (outputFileOptions->IsMetricPeriodSet() && outputFileOptions->GetMetricPeriod() > 1) {
         CATBOOST_WARNING_LOG << "Warning: metric_period is ignored because "
             "feature evaluation needs metric values on each iteration" << Endl;
-        outputFileOptions->SetMetricPeriod(1);
     }
+    outputFileOptions->SetMetricPeriod(1);
 }
 
 
@@ -1094,13 +1095,6 @@ static void EvaluateFeaturesImpl(
     }
 }
 
-static TString MakeAbsolutePath(const TString& path) {
-    if (TFsPath(path).IsAbsolute()) {
-        return path;
-    }
-    return JoinFsPaths(TFsPath::Cwd(), path);
-}
-
 static ui32 GetSamplingUnitCount(const NCB::TObjectsGrouping& objectsGrouping, bool isObjectwise) {
     return isObjectwise ? objectsGrouping.GetObjectCount() : objectsGrouping.GetGroupCount();
 }
@@ -1119,6 +1113,9 @@ static void CountDisjointFolds(
         samplingUnitsCount = GetSamplingUnitCount(objectsGrouping, isObjectwise);
     } else {
         const auto timestamps = *data->ObjectsData->GetTimestamp();
+        CB_ENSURE(
+            data->ObjectsData->GetGroupIds(),
+            "Timestamps require group ids");
         const auto timesplitQuantileTimestamp = FindQuantileTimestamp(
             *data->ObjectsData->GetGroupIds(),
             timestamps,

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-------------------------- typeinfo ----------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -68,7 +68,7 @@ public:
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 #if defined(_LIBCPP_ABI_VCRUNTIME)
@@ -249,7 +249,7 @@ struct __type_info_implementations {
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_ALWAYS_INLINE
     static size_t __hash(__type_name_t __v) _NOEXCEPT {
       if (__is_type_name_unique(__v))
-        return reinterpret_cast<size_t>(__v);
+        return __v;
       return __non_unique_impl::__hash(__type_name_to_string(__v));
     }
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_ALWAYS_INLINE
@@ -379,7 +379,7 @@ public:
 #endif
 };
 
-}  // std
+} // namespace std
 
 #ifdef _LIBCPP_ABI_MICROSOFT
 class type_info : public std::type_info {};

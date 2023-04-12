@@ -4,7 +4,7 @@
 
     Lexers for Ruby and related languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -29,13 +29,14 @@ RUBY_OPERATORS = (
 
 class RubyLexer(ExtendedRegexLexer):
     """
-    For `Ruby <http://www.ruby-lang.org>`_ source code.
+    For Ruby source code.
     """
 
     name = 'Ruby'
+    url = 'http://www.ruby-lang.org'
     aliases = ['ruby', 'rb', 'duby']
     filenames = ['*.rb', '*.rbw', 'Rakefile', '*.rake', '*.gemspec',
-                 '*.rbx', '*.duby', 'Gemfile']
+                 '*.rbx', '*.duby', 'Gemfile', 'Vagrantfile']
     mimetypes = ['text/x-ruby', 'application/x-ruby']
 
     flags = re.DOTALL | re.MULTILINE
@@ -439,7 +440,7 @@ class RubyConsoleLexer(Lexer):
 
 class FancyLexer(RegexLexer):
     """
-    Pygments Lexer For `Fancy <http://www.fancy-lang.org/>`_.
+    Pygments Lexer For Fancy.
 
     Fancy is a self-hosted, pure object-oriented, dynamic,
     class-based, concurrent general-purpose programming language
@@ -448,6 +449,7 @@ class FancyLexer(RegexLexer):
     .. versionadded:: 1.5
     """
     name = 'Fancy'
+    url = 'https://github.com/bakkdoor/fancy'
     filenames = ['*.fy', '*.fancypack']
     aliases = ['fancy', 'fy']
     mimetypes = ['text/x-fancysrc']

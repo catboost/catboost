@@ -1,12 +1,15 @@
+from __future__ import annotations
 
-# THIS FILE IS GENERATED FROM NUMPY SETUP.PY
-#
-# To compare versions robustly, use `numpy.lib.NumpyVersion`
-short_version = '1.19.5'
-version = '1.19.5'
-full_version = '1.19.5'
-git_revision = '8f4b73a0d04f7bebb06a154b43e5ef5b5980052f'
-release = True
+from ._version import get_versions
 
-if not release:
-    version = full_version
+__ALL__ = ['version', '__version__', 'full_version', 'git_revision', 'release']
+
+vinfo: dict[str, str] = get_versions()
+version = vinfo["version"]
+__version__ = vinfo.get("closest-tag", vinfo["version"])
+full_version = vinfo['version']
+git_revision = vinfo['full-revisionid']
+release = 'dev0' not in version and '+' not in version
+short_version = vinfo['version'].split("+")[0]
+
+del get_versions, vinfo

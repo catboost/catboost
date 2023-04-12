@@ -468,6 +468,21 @@ void MallocExtension::EnableForkSupport() {
 #endif
 }
 
+void MallocExtension::SetSampleUserDataCallbacks(
+    CreateSampleUserDataCallback create,
+    CopySampleUserDataCallback copy,
+    DestroySampleUserDataCallback destroy) {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  if (&MallocExtension_SetSampleUserDataCallbacks != nullptr) {
+    MallocExtension_SetSampleUserDataCallbacks(create, copy, destroy);
+  }
+#else
+  (void)create;
+  (void)copy;
+  (void)destroy;
+#endif
+}
+
 }  // namespace tcmalloc
 
 // Default implementation just returns size. The expectation is that

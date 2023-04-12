@@ -947,7 +947,7 @@
   #define THRUST_PP_IIF_IMPL1(id) id
 #else
   #define THRUST_PP_IIF_IMPL0(bit, t, f)                                      \
-    THRUST_PP_CAT2(THRUST_PP_IIF_IMPL_TAG, bit(t, f))                         
+    THRUST_PP_CAT2(THRUST_PP_IIF_IMPL_TAG, bit(t, f))
     /**/
 #endif
 
@@ -1103,8 +1103,8 @@
   /**/
 
 /// \def THRUST_PP_DISPATCH(basename, ...)
-/// \brief Expands to <code>basenameN(...)</code>, where <code>N</code> is the
-///        number of variadic arguments that \a THRUST_PP_DISPATCH was called 
+/// \brief Expands to <tt>basenameN(...)</tt>, where <tt>N</tt> is the
+///        number of variadic arguments that \a THRUST_PP_DISPATCH was called
 ///        with. This macro can be used to implement "macro overloading".
 ///
 /// \par <b>Example</b>:

@@ -3,7 +3,7 @@
 # $ # this message
 # $ # =======================
 # $     # comments (all commentaries should starts with some number of spaces and # symbol)
-# ${action} {license id} {license text hash}
+# ${action} {license spdx} {license text hash}
 # $BELONGS ./ya/make/file/relative/path/1/ya.make ./ya/make/2/ya.make
 # ${all_file_action} filename
 # $ # user commentaries (many lines)
@@ -44,6 +44,7 @@ BELONGS ya.make
 KEEP     BSD-2-Clause         8cedb6171c06f89f0e6eefd60e5f79d5
 BELONGS ya.make
 FILE_INCLUDE COPYRIGHT found in files: auxhelper.cc at line 14, auxhelper.cc at line 17, dwarf_eh.h at line 14, dwarf_eh.h at line 17, dynamic_cast.cc at line 14, dynamic_cast.cc at line 17, exception.cc at line 14, exception.cc at line 17, guard.cc at line 14, guard.cc at line 17, memory.cc at line 14, memory.cc at line 17, stdexcept.cc at line 14, stdexcept.cc at line 17, stdexcept.h at line 14, stdexcept.h at line 17, typeinfo.cc at line 14, typeinfo.cc at line 17, typeinfo.h at line 14, typeinfo.h at line 17
+    # list - just word, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: BSD-2-Clause
@@ -66,6 +67,7 @@ KEEP     MIT                  8ee097b6bcb3429ad39c4dbd5cc0e35e
 BELONGS ya.make
 FILE_INCLUDE AUTHORS found in files: cxxabi.h at line 17
 FILE_INCLUDE COPYRIGHT found in files: cxxabi.h at line 17
+    # any - just word, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: MIT
@@ -78,6 +80,7 @@ FILE_INCLUDE COPYRIGHT found in files: cxxabi.h at line 17
 KEEP     BSD-2-Clause-Views   fa822847a0868c8922cbd110b73455fc
 BELONGS ya.make
 FILE_INCLUDE COPYRIGHT found in files: LICENSE at line 12
+    # list - just word, not file reference
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: BSD-2-Clause-Views

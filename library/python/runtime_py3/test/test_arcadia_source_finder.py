@@ -1,5 +1,7 @@
+import stat
 import unittest
 import yaml
+from collections import namedtuple
 from unittest.mock import patch
 from parameterized import parameterized
 
@@ -17,9 +19,9 @@ class ImporterMocks(object):
         self._patchers = [
             patch('__res.iter_keys', wraps=self._iter_keys),
             patch('__res.__resource.find', wraps=self._resource_find),
-            patch('__res._path_isdir', wraps=self._path_isdir),
             patch('__res._path_isfile', wraps=self._path_isfile),
             patch('__res._os.listdir', wraps=self._os_listdir),
+            patch('__res._os.lstat', wraps=self._os_lstat),
         ]
         for patcher in self._patchers:
             patcher.start()
@@ -51,9 +53,10 @@ class ImporterMocks(object):
         f = self._lookup_mock_fs(filename)
         return isinstance(f, str)
 
-    def _path_isdir(self, filename):
+    def _os_lstat(self, filename):
         f = self._lookup_mock_fs(filename)
-        return isinstance(f, dict)
+        mode = stat.S_IFDIR if isinstance(f, dict) else stat.S_IFREG
+        return namedtuple('fake_stat_type', 'st_mode')(st_mode=mode)
 
     def _os_listdir(self, dirname):
         f = self._lookup_mock_fs(dirname)
@@ -315,3 +318,27 @@ class TestEmptyResources(ArcadiaSourceFinderTestCase):
 
     def test_iter_modules(self):
         assert [] == list(self.arcadia_source_finder.iter_modules('', 'PFX.'))
+
+
+class TestDictionaryChangedSizeDuringIteration(ArcadiaSourceFinderTestCase):
+    def _get_mock_fs(self):
+        return '''
+           home:
+             arcadia:
+               project:
+                 lib1:
+                   mod1.py: ''
+                 lib2:
+                   mod2.py: ''
+        '''
+
+    def _get_mock_resources(self):
+        return {
+            b'py/namespace/unique_prefix1/project/lib1': b'project.lib1.',
+            b'py/namespace/unique_prefix1/project/lib2': b'project.lib2.',
+        }
+
+    def test_no_crash_on_recusive_iter_modules(self):
+        for package in self.arcadia_source_finder.iter_modules('project.', ''):
+            for _ in self.arcadia_source_finder.iter_modules(package[0], ''):
+                pass

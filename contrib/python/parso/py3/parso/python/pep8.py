@@ -4,7 +4,7 @@ from typing import Tuple
 
 from parso.python.errors import ErrorFinder, ErrorFinderConfig
 from parso.normalizer import Rule
-from parso.python.tree import search_ancestor, Flow, Scope
+from parso.python.tree import Flow, Scope
 
 
 _IMPORT_TYPES = ('import_name', 'import_from')
@@ -74,7 +74,7 @@ class BracketNode(IndentationNode):
         parent_indentation = n.indentation
 
         next_leaf = leaf.get_next_leaf()
-        if '\n' in next_leaf.prefix:
+        if '\n' in next_leaf.prefix or '\r' in next_leaf.prefix:
             # This implies code like:
             # foobarbaz(
             #     a,
@@ -116,7 +116,7 @@ class ImplicitNode(BracketNode):
         self.type = IndentationTypes.IMPLICIT
 
         next_leaf = leaf.get_next_leaf()
-        if leaf == ':' and '\n' not in next_leaf.prefix:
+        if leaf == ':' and '\n' not in next_leaf.prefix and '\r' not in next_leaf.prefix:
             self.indentation += ' '
 
 
@@ -124,7 +124,7 @@ class BackslashNode(IndentationNode):
     type = IndentationTypes.BACKSLASH
 
     def __init__(self, config, parent_indentation, containing_leaf, spacing, parent=None):
-        expr_stmt = search_ancestor(containing_leaf, 'expr_stmt')
+        expr_stmt = containing_leaf.search_ancestor('expr_stmt')
         if expr_stmt is not None:
             equals = expr_stmt.children[-2]
 
@@ -216,8 +216,8 @@ class PEP8Normalizer(ErrorFinder):
             endmarker = node.children[-1]
             prev = endmarker.get_previous_leaf()
             prefix = endmarker.prefix
-            if (not prefix.endswith('\n') and (
-                    prefix or prev is None or prev.value != '\n')):
+            if (not prefix.endswith('\n') and not prefix.endswith('\r') and (
+                    prefix or prev is None or prev.value not in {'\n', '\r\n', '\r'})):
                 self.add_issue(endmarker, 292, "No newline at end of file")
 
         if typ in _IMPORT_TYPES:
@@ -465,7 +465,8 @@ class PEP8Normalizer(ErrorFinder):
                             + self._config.indentation:
                         self.add_issue(part, 129, "Line with same indent as next logical block")
                     elif indentation != should_be_indentation:
-                        if not self._check_tabs_spaces(spacing) and part.value != '\n':
+                        if not self._check_tabs_spaces(spacing) and part.value not in \
+                                {'\n', '\r\n', '\r'}:
                             if value in '])}':
                                 if node.type == IndentationTypes.VERTICAL_BRACKET:
                                     self.add_issue(
@@ -652,7 +653,8 @@ class PEP8Normalizer(ErrorFinder):
             else:
                 prev_spacing = self._previous_spacing
                 if prev in _ALLOW_SPACE and spaces != prev_spacing.value \
-                        and '\n' not in self._previous_leaf.prefix:
+                        and '\n' not in self._previous_leaf.prefix \
+                        and '\r' not in self._previous_leaf.prefix:
                     message = "Whitespace before operator doesn't match with whitespace after"
                     self.add_issue(spacing, 229, message)
 
@@ -724,11 +726,11 @@ class PEP8Normalizer(ErrorFinder):
 
     def add_issue(self, node, code, message):
         if self._previous_leaf is not None:
-            if search_ancestor(self._previous_leaf, 'error_node') is not None:
+            if self._previous_leaf.search_ancestor('error_node') is not None:
                 return
             if self._previous_leaf.type == 'error_leaf':
                 return
-        if search_ancestor(node, 'error_node') is not None:
+        if node.search_ancestor('error_node') is not None:
             return
         if code in (901, 903):
             # 901 and 903 are raised by the ErrorFinder.

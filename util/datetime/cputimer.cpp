@@ -9,9 +9,6 @@
 #if defined(_unix_)
     #include <unistd.h>
     #include <sched.h>
-    #include <sys/types.h>
-    #include <sys/resource.h>
-    #include <sys/param.h>
 #elif defined(_win_)
     #include <util/system/winint.h>
 #endif
@@ -52,8 +49,25 @@ TDuration CyclesToDuration(ui64 cycles) {
     return TDuration::MicroSeconds(cycles * 1000000 / GetCyclesPerSecond());
 }
 
+TDuration CyclesToDurationSafe(ui64 cycles)
+{
+    constexpr ui64 cyclesLimit = std::numeric_limits<ui64>::max() / 1000000;
+    if (cycles <= cyclesLimit) {
+        return CyclesToDuration(cycles);
+    }
+    return TDuration::MicroSeconds(cycles / GetCyclesPerSecond() * 1000000);
+}
+
 ui64 DurationToCycles(TDuration duration) {
     return duration.MicroSeconds() * GetCyclesPerSecond() / 1000000;
+}
+
+ui64 DurationToCyclesSafe(TDuration duration)
+{
+    if (duration.MicroSeconds() <= std::numeric_limits<ui64>::max() / GetCyclesPerSecond()) {
+        return DurationToCycles(duration);
+    }
+    return duration.MicroSeconds() / 1000000 * GetCyclesPerSecond();
 }
 
 TPrecisionTimer::TPrecisionTimer()

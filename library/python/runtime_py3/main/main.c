@@ -5,10 +5,11 @@
 #include <string.h>
 #include <locale.h>
 
-void Py_InitArgcArgv(int argc, wchar_t **argv);
 char* GetPyMain();
+int IsYaIdeVenv();
 
 static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
+static const char* main_entry_point = ":main";
 static const char* env_bytes_warning = "Y_PYTHON_BYTES_WARNING";
 
 #ifdef _MSC_VER
@@ -16,8 +17,8 @@ extern char** environ;
 
 void unsetenv(const char* name) {
     const int n = strlen(name);
-    const char** dst = environ;
-    for (const char** src = environ; *src; src++)
+    char** dst = environ;
+    for (char** src = environ; *src; src++)
         if (strncmp(*src, name, n) || (*src)[n] != '=')
             *dst++ = *src;
     *dst = NULL;
@@ -74,64 +75,40 @@ static int RunModule(const char *modname)
 }
 
 static int pymain(int argc, char** argv) {
+    if (IsYaIdeVenv()) {
+        return Py_BytesMain(argc, argv);
+    }
+
     PyStatus status = _PyRuntime_Initialize();
     if (PyStatus_Exception(status)) {
         Py_ExitStatusException(status);
     }
 
-    int i, sts = 1;
-    char* oldloc = NULL;
-    wchar_t** argv_copy = NULL;
-    /* We need a second copies, as Python might modify the first one. */
-    wchar_t** argv_copy2 = NULL;
+    int sts = 1;
     char* entry_point_copy = NULL;
-
-    if (argc > 0) {
-        argv_copy = PyMem_RawMalloc(sizeof(wchar_t*) * argc);
-        argv_copy2 = PyMem_RawMalloc(sizeof(wchar_t*) * argc);
-        if (!argv_copy || !argv_copy2) {
-            fprintf(stderr, "out of memory\n");
-            goto error;
-        }
-    }
 
     PyConfig config;
     PyConfig_InitPythonConfig(&config);
-    config.pathconfig_warnings = 0;   /* Suppress errors from getpath.c */
+    // Suppress errors from getpath.c
+    config.pathconfig_warnings = 0;
+    // Disable parsing command line arguments
+    config.parse_argv = 0;
 
     const char* bytes_warning = getenv(env_bytes_warning);
     if (bytes_warning) {
         config.bytes_warning = atoi(bytes_warning);
     }
 
-    oldloc = _PyMem_RawStrdup(setlocale(LC_ALL, NULL));
-    if (!oldloc) {
-        fprintf(stderr, "out of memory\n");
-        goto error;
-    }
-
-    setlocale(LC_ALL, "");
-    for (i = 0; i < argc; i++) {
-        argv_copy[i] = Py_DecodeLocale(argv[i], NULL);
-        argv_copy2[i] = argv_copy[i];
-        if (!argv_copy[i]) {
-            fprintf(stderr, "Unable to decode the command line argument #%i\n",
-                            i + 1);
-            argc = i;
+    if (argc > 0 && argv) {
+        status = PyConfig_SetBytesString(&config, &config.program_name, argv[0]);
+        if (PyStatus_Exception(status)) {
             goto error;
         }
-    }
-    setlocale(LC_ALL, oldloc);
-    PyMem_RawFree(oldloc);
-    oldloc = NULL;
 
-    if (argc >= 1)
-        Py_SetProgramName(argv_copy[0]);
-
-    status = Py_InitializeFromConfig(&config);
-    PyConfig_Clear(&config);
-    if (PyStatus_Exception(status)) {
-        Py_ExitStatusException(status);
+        status = PyConfig_SetBytesArgv(&config, argc, argv);
+        if (PyStatus_Exception(status)) {
+            goto error;
+        }
     }
 
     const char* entry_point = getenv(env_entry_point);
@@ -150,15 +127,23 @@ static int pymain(int argc, char** argv) {
         goto error;
     }
 
-    if (entry_point_copy && !strcmp(entry_point_copy, ":main")) {
+    if (entry_point_copy && !strcmp(entry_point_copy, main_entry_point)) {
         unsetenv(env_entry_point);
-        sts = Py_Main(argc, argv_copy);
+        // Py_InitializeFromConfig freeze environ, so we need to finish all manipulations with environ before
+    }
+
+    status = Py_InitializeFromConfig(&config);
+
+    PyConfig_Clear(&config);
+    if (PyStatus_Exception(status)) {
+        Py_ExitStatusException(status);
+    }
+
+    if (entry_point_copy && !strcmp(entry_point_copy, main_entry_point)) {
+        sts = Py_BytesMain(argc, argv);
         free(entry_point_copy);
         return sts;
     }
-
-    Py_InitArgcArgv(argc, argv_copy);
-    PySys_SetArgv(argc, argv_copy);
 
     {
         PyObject* module = PyImport_ImportModule("library.python.runtime_py3.entry_points");
@@ -214,13 +199,6 @@ static int pymain(int argc, char** argv) {
 
 error:
     free(entry_point_copy);
-    PyMem_RawFree(argv_copy);
-    if (argv_copy2) {
-        for (i = 0; i < argc; i++)
-            PyMem_RawFree(argv_copy2[i]);
-        PyMem_RawFree(argv_copy2);
-    }
-    PyMem_RawFree(oldloc);
     return sts;
 }
 

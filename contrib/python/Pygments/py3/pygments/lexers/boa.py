@@ -4,7 +4,7 @@
 
     Lexers for the Boa language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, words
 from pygments.token import String, Comment, Keyword, Name, Number, Text, \
-    Operator, Punctuation
+    Operator, Punctuation, Whitespace
 
 __all__ = ['BoaLexer']
 
@@ -96,6 +96,6 @@ class BoaLexer(RegexLexer):
             (words(string_sep), String.Delimiter),
             (r'[a-zA-Z_]+', Name.Variable),
             (r'[0-9]+', Number.Integer),
-            (r'\s+?', Text),  # Whitespace
+            (r'\s+', Whitespace),  # Whitespace
         ]
     }

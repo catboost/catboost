@@ -4,7 +4,7 @@
 
     Pygments lexers for JVM languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -13,7 +13,7 @@ import re
 from pygments.lexer import Lexer, RegexLexer, include, bygroups, using, \
     this, combined, default, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 from pygments.util import shebang_matches
 from pygments import unistring as uni
 
@@ -25,20 +25,23 @@ __all__ = ['JavaLexer', 'ScalaLexer', 'GosuLexer', 'GosuTemplateLexer',
 
 class JavaLexer(RegexLexer):
     """
-    For `Java <https://www.oracle.com/technetwork/java/>`_ source code.
+    For Java source code.
     """
 
     name = 'Java'
+    url = 'https://www.oracle.com/technetwork/java/'
     aliases = ['java']
     filenames = ['*.java']
     mimetypes = ['text/x-java']
 
-    flags = re.MULTILINE | re.DOTALL | re.UNICODE
+    flags = re.MULTILINE | re.DOTALL
 
     tokens = {
         'root': [
-            (r'[^\S\n]+', Text),
-            (r'//.*?\n', Comment.Single),
+            (r'(^\s*)((?:(?:public|private|protected|static|strictfp)(?:\s+))*)(record)\b',
+             bygroups(Whitespace, using(this), Keyword.Declaration), 'class'),
+            (r'[^\S\n]+', Whitespace),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/\*.*?\*/', Comment.Multiline),
             # keywords: go before method names to avoid lexing "throw new XYZ"
             # as a method signature
@@ -49,27 +52,26 @@ class JavaLexer(RegexLexer):
             (r'((?:(?:[^\W\d]|\$)[\w.\[\]$<>]*\s+)+?)'  # return arguments
              r'((?:[^\W\d]|\$)[\w$]*)'                  # method name
              r'(\s*)(\()',                              # signature start
-             bygroups(using(this), Name.Function, Text, Punctuation)),
+             bygroups(using(this), Name.Function, Whitespace, Punctuation)),
             (r'@[^\W\d][\w.]*', Name.Decorator),
             (r'(abstract|const|enum|extends|final|implements|native|private|'
-             r'protected|public|static|strictfp|super|synchronized|throws|'
-             r'transient|volatile)\b', Keyword.Declaration),
+             r'protected|public|sealed|static|strictfp|super|synchronized|throws|'
+             r'transient|volatile|yield)\b', Keyword.Declaration),
             (r'(boolean|byte|char|double|float|int|long|short|void)\b',
              Keyword.Type),
-            (r'(package)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+            (r'(package)(\s+)', bygroups(Keyword.Namespace, Whitespace), 'import'),
             (r'(true|false|null)\b', Keyword.Constant),
-            (r'(class|interface)(\s+)', bygroups(Keyword.Declaration, Text),
-             'class'),
-            (r'(var)(\s+)', bygroups(Keyword.Declaration, Text),
-             'var'),
-            (r'(import(?:\s+static)?)(\s+)', bygroups(Keyword.Namespace, Text),
+            (r'(class|interface)\b', Keyword.Declaration, 'class'),
+            (r'(var)(\s+)', bygroups(Keyword.Declaration, Whitespace), 'var'),
+            (r'(import(?:\s+static)?)(\s+)', bygroups(Keyword.Namespace, Whitespace),
              'import'),
+            (r'"""\n', String, 'multiline_string'),
             (r'"', String, 'string'),
             (r"'\\.'|'[^\\]'|'\\u[0-9a-fA-F]{4}'", String.Char),
             (r'(\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Punctuation,
                                                      Name.Attribute)),
-            (r'^(\s*)(default)(:)', bygroups(Text, Keyword, Punctuation)),
-            (r'^(\s*)((?:[^\W\d]|\$)[\w$]*)(:)', bygroups(Text, Name.Label,
+            (r'^(\s*)(default)(:)', bygroups(Whitespace, Keyword, Punctuation)),
+            (r'^(\s*)((?:[^\W\d]|\$)[\w$]*)(:)', bygroups(Whitespace, Name.Label,
                                                           Punctuation)),
             (r'([^\W\d]|\$)[\w$]*', Name),
             (r'([0-9][0-9_]*\.([0-9][0-9_]*)?|'
@@ -86,9 +88,10 @@ class JavaLexer(RegexLexer):
             (r'0|[1-9][0-9_]*[lL]?', Number.Integer),
             (r'[~^*!%&\[\]<>|+=/?-]', Operator),
             (r'[{}();:.,]', Punctuation),
-            (r'\n', Text)
+            (r'\n', Whitespace)
         ],
         'class': [
+            (r'\s+', Text),
             (r'([^\W\d]|\$)[\w$]*', Name.Class, '#pop')
         ],
         'var': [
@@ -96,6 +99,11 @@ class JavaLexer(RegexLexer):
         ],
         'import': [
             (r'[\w.]+\*?', Name.Namespace, '#pop')
+        ],
+        'multiline_string': [
+            (r'"""', String, '#pop'),
+            (r'"', String),
+            include('string')
         ],
         'string': [
             (r'[^\\"]+', String),
@@ -109,12 +117,13 @@ class JavaLexer(RegexLexer):
 
 class AspectJLexer(JavaLexer):
     """
-    For `AspectJ <http://www.eclipse.org/aspectj/>`_ source code.
+    For AspectJ source code.
 
     .. versionadded:: 1.6
     """
 
     name = 'AspectJ'
+    url = 'http://www.eclipse.org/aspectj/'
     aliases = ['aspectj']
     filenames = ['*.aj']
     mimetypes = ['text/x-aspectj']
@@ -148,10 +157,11 @@ class AspectJLexer(JavaLexer):
 
 class ScalaLexer(RegexLexer):
     """
-    For `Scala <http://www.scala-lang.org>`_ source code.
+    For Scala source code.
     """
 
     name = 'Scala'
+    url = 'http://www.scala-lang.org'
     aliases = ['scala']
     filenames = ['*.scala']
     mimetypes = ['text/x-scala']
@@ -219,7 +229,7 @@ class ScalaLexer(RegexLexer):
 
         # Includes:
         'whitespace': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
         'comments': [
             (r'//.*?\n', Comment.Single),
@@ -229,12 +239,12 @@ class ScalaLexer(RegexLexer):
             (r'^#!([^\n]*)$', Comment.Hashbang),
         ],
         'imports': [
-            (r'\b(import)(\s+)', bygroups(Keyword, Text), 'import-path'),
+            (r'\b(import)(\s+)', bygroups(Keyword, Whitespace), 'import-path'),
         ],
         'exports': [
             (r'\b(export)(\s+)(given)(\s+)',
-                bygroups(Keyword, Text, Keyword, Text), 'export-path'),
-            (r'\b(export)(\s+)', bygroups(Keyword, Text), 'export-path'),
+                bygroups(Keyword, Whitespace, Keyword, Whitespace), 'export-path'),
+            (r'\b(export)(\s+)', bygroups(Keyword, Whitespace), 'export-path'),
         ],
         'storage-modifiers': [
             (words(storage_modifiers, prefix=r'\b', suffix=r'\b'), Keyword),
@@ -251,56 +261,56 @@ class ScalaLexer(RegexLexer):
         'using': [
             # using is a soft keyword, can only be used in the first position of
             # a parameter or argument list.
-            (r'(\()(\s*)(using)(\s)', bygroups(Punctuation, Text, Keyword, Text)),
+            (r'(\()(\s*)(using)(\s)', bygroups(Punctuation, Whitespace, Keyword, Whitespace)),
         ],
         'declarations': [
             (r'\b(def)\b(\s*)%s(%s)?' % (notStartOfComment, anyId),
-             bygroups(Keyword, Text, Name.Function)),
+             bygroups(Keyword, Whitespace, Name.Function)),
             (r'\b(trait)\b(\s*)%s(%s)?' % (notStartOfComment, anyId),
-                bygroups(Keyword, Text, Name.Class)),
+                bygroups(Keyword, Whitespace, Name.Class)),
             (r'\b(?:(case)(\s+))?(class|object|enum)\b(\s*)%s(%s)?' %
                 (notStartOfComment, anyId),
-                bygroups(Keyword, Text, Keyword, Text, Name.Class)),
+                bygroups(Keyword, Whitespace, Keyword, Whitespace, Name.Class)),
             (r'(?<!\.)\b(type)\b(\s*)%s(%s)?' % (notStartOfComment, anyId),
-                bygroups(Keyword, Text, Name.Class)),
+                bygroups(Keyword, Whitespace, Name.Class)),
             (r'\b(val|var)\b', Keyword.Declaration),
             (r'\b(package)(\s+)(object)\b(\s*)%s(%s)?' %
                 (notStartOfComment, anyId),
-                bygroups(Keyword, Text, Keyword, Text, Name.Namespace)),
-            (r'\b(package)(\s+)', bygroups(Keyword, Text), 'package'),
+                bygroups(Keyword, Whitespace, Keyword, Whitespace, Name.Namespace)),
+            (r'\b(package)(\s+)', bygroups(Keyword, Whitespace), 'package'),
             (r'\b(given)\b(\s*)(%s)' % idUpper,
-                bygroups(Keyword, Text, Name.Class)),
+                bygroups(Keyword, Whitespace, Name.Class)),
             (r'\b(given)\b(\s*)(%s)?' % anyId, 
-                bygroups(Keyword, Text, Name)),
+                bygroups(Keyword, Whitespace, Name)),
         ],
         'inheritance': [
             (r'\b(extends|with|derives)\b(\s*)'
              r'(%s|%s|(?=\([^\)]+=>)|(?=%s)|(?="))?' %
                 (idUpper, backQuotedId, plainid),
-                bygroups(Keyword, Text, Name.Class)),
+                bygroups(Keyword, Whitespace, Name.Class)),
         ],
         'extension': [
-            (r'\b(extension)(\s+)(?=[\[\(])', bygroups(Keyword, Text)),
+            (r'\b(extension)(\s+)(?=[\[\(])', bygroups(Keyword, Whitespace)),
         ],
         'end': [
             # end is a soft keyword, should only be highlighted in certain cases
             (r'\b(end)(\s+)(if|while|for|match|new|extension|val|var)\b',
-                bygroups(Keyword, Text, Keyword)),
+                bygroups(Keyword, Whitespace, Keyword)),
             (r'\b(end)(\s+)(%s)%s' % (idUpper, endOfLineMaybeWithComment),
-                bygroups(Keyword, Text, Name.Class)),
+                bygroups(Keyword, Whitespace, Name.Class)),
             (r'\b(end)(\s+)(%s|%s)?%s' %
                 (backQuotedId, plainid, endOfLineMaybeWithComment),
-                bygroups(Keyword, Text, Name.Namespace)),
+                bygroups(Keyword, Whitespace, Name.Namespace)),
         ],
         'punctuation': [
             (r'[{}()\[\];,.]', Punctuation),
-            (r'(?<!:):(?!:)', Punctuation),  
+            (r'(?<!:):(?!:)', Punctuation),
         ],
         'keywords': [
             (words(keywords, prefix=r'\b', suffix=r'\b'), Keyword),
         ],
         'operators': [
-            (r'(%s{2,})(\s+)' % opchar, bygroups(Operator, Text)),
+            (r'(%s{2,})(\s+)' % opchar, bygroups(Operator, Whitespace)),
             (r'/(?![/*])', Operator),
             (words(operators), Operator),
             (r'(?<!%s)(!|&&|\|\|)(?!%s)' % (opchar, opchar), Operator),
@@ -332,7 +342,7 @@ class ScalaLexer(RegexLexer):
             (r'(\.)(type)\b', bygroups(Punctuation, Keyword)),
         ],
         'inline': [
-            # inline is a soft modifer, only highlighted if followed by if, 
+            # inline is a soft modifier, only highlighted if followed by if,
             # match or parameters.
             (r'\b(inline)(?=\s+(%s|%s)\s*:)' % (plainid, backQuotedId),
                 Keyword),
@@ -420,7 +430,7 @@ class ScalaLexer(RegexLexer):
             (r'(%s)(\.)' % anyId, bygroups(Name.Namespace, Punctuation)),
             (r'\.', Punctuation),
             (anyId, Name),
-            (r'[^\S\n]+', Text),
+            (r'[^\S\n]+', Whitespace),
         ],
         'interpolated-string-common': [
             (r'[^"$\\]+', String),
@@ -453,8 +463,8 @@ class GosuLexer(RegexLexer):
             (r'^(\s*(?:[a-zA-Z_][\w.\[\]]*\s+)+?)'  # modifiers etc.
              r'([a-zA-Z_]\w*)'                       # method name
              r'(\s*)(\()',                           # signature start
-             bygroups(using(this), Name.Function, Text, Operator)),
-            (r'[^\S\n]+', Text),
+             bygroups(using(this), Name.Function, Whitespace, Operator)),
+            (r'[^\S\n]+', Whitespace),
             (r'//.*?\n', Comment.Single),
             (r'/\*.*?\*/', Comment.Multiline),
             (r'@[a-zA-Z_][\w.]*', Name.Decorator),
@@ -465,15 +475,15 @@ class GosuLexer(RegexLexer):
             (r'(var|delegate|construct|function|private|internal|protected|'
              r'public|abstract|override|final|static|extends|transient|'
              r'implements|represents|readonly)\b', Keyword.Declaration),
-            (r'(property\s+)(get|set)?', Keyword.Declaration),
+            (r'(property)(\s+)(get|set)?', bygroups(Keyword.Declaration, Whitespace, Keyword.Declaration)),
             (r'(boolean|byte|char|double|float|int|long|short|void|block)\b',
              Keyword.Type),
-            (r'(package)(\s+)', bygroups(Keyword.Namespace, Text)),
+            (r'(package)(\s+)', bygroups(Keyword.Namespace, Whitespace)),
             (r'(true|false|null|NaN|Infinity)\b', Keyword.Constant),
             (r'(class|interface|enhancement|enum)(\s+)([a-zA-Z_]\w*)',
-             bygroups(Keyword.Declaration, Text, Name.Class)),
+             bygroups(Keyword.Declaration, Whitespace, Name.Class)),
             (r'(uses)(\s+)([\w.]+\*?)',
-             bygroups(Keyword.Namespace, Text, Name.Namespace)),
+             bygroups(Keyword.Namespace, Whitespace, Name.Namespace)),
             (r'"', String, 'string'),
             (r'(\??[.#])([a-zA-Z_]\w*)',
              bygroups(Operator, Name.Attribute)),
@@ -483,7 +493,7 @@ class GosuLexer(RegexLexer):
             (r'and|or|not|[\\~^*!%&\[\](){}<>|+=:;,./?-]', Operator),
             (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'[0-9]+', Number.Integer),
-            (r'\n', Text)
+            (r'\n', Whitespace)
         ],
         'templateText': [
             (r'(\\<)|(\\\$)', String),
@@ -532,12 +542,13 @@ class GosuTemplateLexer(Lexer):
 
 class GroovyLexer(RegexLexer):
     """
-    For `Groovy <http://groovy.codehaus.org/>`_ source code.
+    For Groovy source code.
 
     .. versionadded:: 1.5
     """
 
     name = 'Groovy'
+    url = 'https://groovy-lang.org/'
     aliases = ['groovy']
     filenames = ['*.groovy','*.gradle']
     mimetypes = ['text/x-groovy']
@@ -551,8 +562,8 @@ class GroovyLexer(RegexLexer):
             default('base'),
         ],
         'base': [
-            (r'[^\S\n]+', Text),
-            (r'//.*?\n', Comment.Single),
+            (r'[^\S\n]+', Whitespace),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/\*.*?\*/', Comment.Multiline),
             # keywords: go before method names to avoid lexing "throw new XYZ"
             # as a method signature
@@ -567,18 +578,18 @@ class GroovyLexer(RegexLexer):
              r"|'(?:\\\\|\\[^\\]|[^'\\])*'"         # or single-quoted method name
              r')'
              r'(\s*)(\()',                          # signature start
-             bygroups(using(this), Name.Function, Text, Operator)),
+             bygroups(using(this), Name.Function, Whitespace, Operator)),
             (r'@[a-zA-Z_][\w.]*', Name.Decorator),
             (r'(abstract|const|enum|extends|final|implements|native|private|'
              r'protected|public|static|strictfp|super|synchronized|throws|'
              r'transient|volatile)\b', Keyword.Declaration),
             (r'(def|boolean|byte|char|double|float|int|long|short|void)\b',
              Keyword.Type),
-            (r'(package)(\s+)', bygroups(Keyword.Namespace, Text)),
+            (r'(package)(\s+)', bygroups(Keyword.Namespace, Whitespace)),
             (r'(true|false|null)\b', Keyword.Constant),
-            (r'(class|interface)(\s+)', bygroups(Keyword.Declaration, Text),
+            (r'(class|interface)(\s+)', bygroups(Keyword.Declaration, Whitespace),
              'class'),
-            (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+            (r'(import)(\s+)', bygroups(Keyword.Namespace, Whitespace), 'import'),
             (r'""".*?"""', String.Double),
             (r"'''.*?'''", String.Single),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
@@ -593,7 +604,7 @@ class GroovyLexer(RegexLexer):
             (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'0x[0-9a-fA-F]+', Number.Hex),
             (r'[0-9]+L?', Number.Integer),
-            (r'\n', Text)
+            (r'\n', Whitespace)
         ],
         'class': [
             (r'[a-zA-Z_]\w*', Name.Class, '#pop')
@@ -609,12 +620,13 @@ class GroovyLexer(RegexLexer):
 
 class IokeLexer(RegexLexer):
     """
-    For `Ioke <http://ioke.org/>`_ (a strongly typed, dynamic,
+    For Ioke (a strongly typed, dynamic,
     prototype based programming language) source.
 
     .. versionadded:: 1.4
     """
     name = 'Ioke'
+    url = 'https://ioke.org/'
     filenames = ['*.ik']
     aliases = ['ioke', 'ik']
     mimetypes = ['text/x-iokesrc']
@@ -663,8 +675,8 @@ class IokeLexer(RegexLexer):
         ],
 
         'root': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
 
             # Comments
             (r';(.*?)\n', Comment),
@@ -682,7 +694,7 @@ class IokeLexer(RegexLexer):
             # Documentation
             (r'((?<=fn\()|(?<=fnx\()|(?<=method\()|(?<=macro\()|(?<=lecro\()'
              r'|(?<=syntax\()|(?<=dmacro\()|(?<=dlecro\()|(?<=dlecrox\()'
-             r'|(?<=dsyntax\())\s*"', String.Doc, 'documentation'),
+             r'|(?<=dsyntax\())(\s*)"', String.Doc, 'documentation'),
 
             # Text
             (r'"', String, 'text'),
@@ -800,13 +812,14 @@ class IokeLexer(RegexLexer):
 
 class ClojureLexer(RegexLexer):
     """
-    Lexer for `Clojure <http://clojure.org/>`_ source code.
+    Lexer for Clojure source code.
 
     .. versionadded:: 0.11
     """
     name = 'Clojure'
+    url = 'http://clojure.org/'
     aliases = ['clojure', 'clj']
-    filenames = ['*.clj']
+    filenames = ['*.clj', '*.cljc']
     mimetypes = ['text/x-clojure', 'application/x-clojure']
 
     special_forms = (
@@ -887,10 +900,12 @@ class ClojureLexer(RegexLexer):
             (r';.*$', Comment.Single),
 
             # whitespaces - usually not relevant
-            (r'[,\s]+', Text),
+            (r',+', Text),
+            (r'\s+', Whitespace),
 
             # numbers
             (r'-?\d+\.\d+', Number.Float),
+            (r'-?\d+/\d+', Number),
             (r'-?\d+', Number.Integer),
             (r'0x-?[abcdef\d]+', Number.Hex),
 
@@ -938,12 +953,12 @@ class ClojureLexer(RegexLexer):
 
 class ClojureScriptLexer(ClojureLexer):
     """
-    Lexer for `ClojureScript <http://clojure.org/clojurescript>`_
-    source code.
+    Lexer for ClojureScript source code.
 
     .. versionadded:: 2.0
     """
     name = 'ClojureScript'
+    url = 'http://clojure.org/clojurescript'
     aliases = ['clojurescript', 'cljs']
     filenames = ['*.cljs']
     mimetypes = ['text/x-clojurescript', 'application/x-clojurescript']
@@ -951,7 +966,7 @@ class ClojureScriptLexer(ClojureLexer):
 
 class TeaLangLexer(RegexLexer):
     """
-    For `Tea <http://teatrove.org/>`_ source code. Only used within a
+    For Tea source code. Only used within a
     TeaTemplateLexer.
 
     .. versionadded:: 1.5
@@ -965,17 +980,17 @@ class TeaLangLexer(RegexLexer):
             (r'^(\s*(?:[a-zA-Z_][\w\.\[\]]*\s+)+?)'  # return arguments
              r'([a-zA-Z_]\w*)'                       # method name
              r'(\s*)(\()',                           # signature start
-             bygroups(using(this), Name.Function, Text, Operator)),
-            (r'[^\S\n]+', Text),
-            (r'//.*?\n', Comment.Single),
+             bygroups(using(this), Name.Function, Whitespace, Operator)),
+            (r'[^\S\n]+', Whitespace),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/\*.*?\*/', Comment.Multiline),
             (r'@[a-zA-Z_][\w\.]*', Name.Decorator),
             (r'(and|break|else|foreach|if|in|not|or|reverse)\b',
              Keyword),
             (r'(as|call|define)\b', Keyword.Declaration),
             (r'(true|false|null)\b', Keyword.Constant),
-            (r'(template)(\s+)', bygroups(Keyword.Declaration, Text), 'template'),
-            (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+            (r'(template)(\s+)', bygroups(Keyword.Declaration, Whitespace), 'template'),
+            (r'(import)(\s+)', bygroups(Keyword.Namespace, Whitespace), 'import'),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
             (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'(\.)([a-zA-Z_]\w*)', bygroups(Operator, Name.Attribute)),
@@ -985,7 +1000,7 @@ class TeaLangLexer(RegexLexer):
             (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'0x[0-9a-fA-F]+', Number.Hex),
             (r'[0-9]+L?', Number.Integer),
-            (r'\n', Text)
+            (r'\n', Whitespace)
         ],
         'template': [
             (r'[a-zA-Z_]\w*', Name.Class, '#pop')
@@ -998,12 +1013,13 @@ class TeaLangLexer(RegexLexer):
 
 class CeylonLexer(RegexLexer):
     """
-    For `Ceylon <http://ceylon-lang.org/>`_ source code.
+    For Ceylon source code.
 
     .. versionadded:: 1.6
     """
 
     name = 'Ceylon'
+    url = 'http://ceylon-lang.org/'
     aliases = ['ceylon']
     filenames = ['*.ceylon']
     mimetypes = ['text/x-ceylon']
@@ -1019,9 +1035,9 @@ class CeylonLexer(RegexLexer):
             (r'^(\s*(?:[a-zA-Z_][\w.\[\]]*\s+)+?)'  # return arguments
              r'([a-zA-Z_]\w*)'                      # method name
              r'(\s*)(\()',                          # signature start
-             bygroups(using(this), Name.Function, Text, Operator)),
-            (r'[^\S\n]+', Text),
-            (r'//.*?\n', Comment.Single),
+             bygroups(using(this), Name.Function, Whitespace, Operator)),
+            (r'[^\S\n]+', Whitespace),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/\*', Comment.Multiline, 'comment'),
             (r'(shared|abstract|formal|default|actual|variable|deprecated|small|'
              r'late|literal|doc|by|see|throws|optional|license|tagged|final|native|'
@@ -1033,11 +1049,11 @@ class CeylonLexer(RegexLexer):
              r'super|given|of|out|assign)\b', Keyword.Declaration),
             (r'(function|value|void|new)\b',
              Keyword.Type),
-            (r'(assembly|module|package)(\s+)', bygroups(Keyword.Namespace, Text)),
+            (r'(assembly|module|package)(\s+)', bygroups(Keyword.Namespace, Whitespace)),
             (r'(true|false|null)\b', Keyword.Constant),
             (r'(class|interface|object|alias)(\s+)',
-             bygroups(Keyword.Declaration, Text), 'class'),
-            (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+             bygroups(Keyword.Declaration, Whitespace), 'class'),
+            (r'(import)(\s+)', bygroups(Keyword.Namespace, Whitespace), 'import'),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             (r"'\\.'|'[^\\]'|'\\\{#[0-9a-fA-F]{4}\}'", String.Char),
             (r'(\.)([a-z_]\w*)',
@@ -1057,7 +1073,7 @@ class CeylonLexer(RegexLexer):
             (r'\$[01]+', Number.Bin),
             (r'\d{1,3}(_\d{3})+[kMGTP]?', Number.Integer),
             (r'[0-9]+[kMGTP]?', Number.Integer),
-            (r'\n', Text)
+            (r'\n', Whitespace)
         ],
         'class': [
             (r'[A-Za-z_]\w*', Name.Class, '#pop')
@@ -1077,18 +1093,18 @@ class CeylonLexer(RegexLexer):
 
 class KotlinLexer(RegexLexer):
     """
-    For `Kotlin <http://kotlinlang.org/>`_
-    source code.
+    For Kotlin source code.
 
     .. versionadded:: 1.5
     """
 
     name = 'Kotlin'
+    url = 'http://kotlinlang.org/'
     aliases = ['kotlin']
     filenames = ['*.kt', '*.kts']
     mimetypes = ['text/x-kotlin']
 
-    flags = re.MULTILINE | re.DOTALL | re.UNICODE
+    flags = re.MULTILINE | re.DOTALL
 
     kt_name = ('@?[_' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Nl') + ']' +
                '[' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Nl', 'Nd', 'Pc', 'Cf',
@@ -1104,18 +1120,18 @@ class KotlinLexer(RegexLexer):
     modifiers = (r'actual|abstract|annotation|companion|const|crossinline|'
                 r'data|enum|expect|external|final|infix|inline|inner|'
                 r'internal|lateinit|noinline|open|operator|override|private|'
-                r'protected|public|sealed|suspend|tailrec')
+                r'protected|public|sealed|suspend|tailrec|value')
 
     tokens = {
         'root': [
             # Whitespaces
-            (r'[^\S\n]+', Text),
-            (r'\s+', Text),
-            (r'\\\n', Text),  # line continuation
-            (r'\n', Text),
+            (r'[^\S\n]+', Whitespace),
+            (r'\s+', Whitespace),
+            (r'\\$', String.Escape),  # line continuation
+            (r'\n', Whitespace),
             # Comments
-            (r'//.*?\n', Comment.Single),
-            (r'^#!/.+?\n', Comment.Single),  # shebang for kotlin scripts
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
+            (r'^(#!/.+?)(\n)', bygroups(Comment.Single, Whitespace)),  # shebang for kotlin scripts
             (r'/[*].*?[*]/', Comment.Multiline),
             # Keywords
             (r'as\?', Keyword),
@@ -1131,7 +1147,7 @@ class KotlinLexer(RegexLexer):
             # Constants
             (r'(true|false|null)\b', Keyword.Constant),
             # Imports
-            (r'(package|import)(\s+)(\S+)', bygroups(Keyword, Text, Name.Namespace)),
+            (r'(package|import)(\s+)(\S+)', bygroups(Keyword, Whitespace, Name.Namespace)),
             # Dot access
             (r'(\?\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Operator, Name.Attribute)),
             (r'(\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Punctuation, Name.Attribute)),
@@ -1140,18 +1156,18 @@ class KotlinLexer(RegexLexer):
             # Labels
             (r'[^\W\d][\w.]+@', Name.Decorator),
             # Object expression
-            (r'(object)(\s+)(:)(\s+)', bygroups(Keyword, Text, Punctuation, Text), 'class'),
+            (r'(object)(\s+)(:)(\s+)', bygroups(Keyword, Whitespace, Punctuation, Whitespace), 'class'),
             # Types
             (r'((?:(?:' + modifiers + r'|fun)\s+)*)(class|interface|object)(\s+)',
-             bygroups(using(this, state='modifiers'), Keyword.Declaration, Text), 'class'),
+             bygroups(using(this, state='modifiers'), Keyword.Declaration, Whitespace), 'class'),
             # Variables
-            (r'(var|val)(\s+)(\()', bygroups(Keyword.Declaration, Text, Punctuation),
+            (r'(var|val)(\s+)(\()', bygroups(Keyword.Declaration, Whitespace, Punctuation),
              'destructuring_assignment'),
             (r'((?:(?:' + modifiers + r')\s+)*)(var|val)(\s+)',
-             bygroups(using(this, state='modifiers'), Keyword.Declaration, Text), 'variable'),
+             bygroups(using(this, state='modifiers'), Keyword.Declaration, Whitespace), 'variable'),
             # Functions
             (r'((?:(?:' + modifiers + r')\s+)*)(fun)(\s+)',
-             bygroups(using(this, state='modifiers'), Keyword.Declaration, Text), 'function'),
+             bygroups(using(this, state='modifiers'), Keyword.Declaration, Whitespace), 'function'),
             # Operators
             (r'::|!!|\?[:.]', Operator),
             (r'[~^*!%&\[\]<>|+=/?-]', Operator),
@@ -1175,9 +1191,9 @@ class KotlinLexer(RegexLexer):
         ],
         'destructuring_assignment': [
             (r',', Punctuation),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (kt_id, Name.Variable),
-            (r'(:)(\s+)(' + kt_id + ')', bygroups(Punctuation, Text, Name)),
+            (r'(:)(\s+)(' + kt_id + ')', bygroups(Punctuation, Whitespace, Name)),
             (r'<', Operator, 'generic'),
             (r'\)', Punctuation, '#pop')
         ],
@@ -1187,16 +1203,16 @@ class KotlinLexer(RegexLexer):
             (kt_id, Name.Function, '#pop')
         ],
         'generic': [
-            (r'(>)(\s*)', bygroups(Operator, Text), '#pop'),
+            (r'(>)(\s*)', bygroups(Operator, Whitespace), '#pop'),
             (r':', Punctuation),
             (r'(reified|out|in)\b', Keyword),
             (r',', Punctuation),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (kt_id, Name)
         ],
         'modifiers': [
             (r'\w+', Keyword.Declaration),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             default('#pop')
         ],
         'string': [
@@ -1211,7 +1227,7 @@ class KotlinLexer(RegexLexer):
         'string_common': [
             (r'\\\\', String),  # escaped backslash
             (r'\\"', String),  # escaped quote
-            (r'\\', String),  # bare backslash 
+            (r'\\', String),  # bare backslash
             (r'\$\{', String.Interpol, 'interpolation'),
             (r'(\$)(\w+)', bygroups(String.Interpol, Name)),
             (r'[^\\"$]+', String)
@@ -1233,12 +1249,13 @@ class KotlinLexer(RegexLexer):
 
 class XtendLexer(RegexLexer):
     """
-    For `Xtend <http://xtend-lang.org/>`_ source code.
+    For Xtend source code.
 
     .. versionadded:: 1.6
     """
 
     name = 'Xtend'
+    url = 'https://www.eclipse.org/xtend/'
     aliases = ['xtend']
     filenames = ['*.xtend']
     mimetypes = ['text/x-xtend']
@@ -1251,9 +1268,9 @@ class XtendLexer(RegexLexer):
             (r'^(\s*(?:[a-zA-Z_][\w.\[\]]*\s+)+?)'  # return arguments
              r'([a-zA-Z_$][\w$]*)'                  # method name
              r'(\s*)(\()',                          # signature start
-             bygroups(using(this), Name.Function, Text, Operator)),
-            (r'[^\S\n]+', Text),
-            (r'//.*?\n', Comment.Single),
+             bygroups(using(this), Name.Function, Whitespace, Operator)),
+            (r'[^\S\n]+', Whitespace),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/\*.*?\*/', Comment.Multiline),
             (r'@[a-zA-Z_][\w.]*', Name.Decorator),
             (r'(assert|break|case|catch|continue|default|do|else|finally|for|'
@@ -1265,11 +1282,11 @@ class XtendLexer(RegexLexer):
              r'transient|volatile)\b', Keyword.Declaration),
             (r'(boolean|byte|char|double|float|int|long|short|void)\b',
              Keyword.Type),
-            (r'(package)(\s+)', bygroups(Keyword.Namespace, Text)),
+            (r'(package)(\s+)', bygroups(Keyword.Namespace, Whitespace)),
             (r'(true|false|null)\b', Keyword.Constant),
-            (r'(class|interface)(\s+)', bygroups(Keyword.Declaration, Text),
+            (r'(class|interface)(\s+)', bygroups(Keyword.Declaration, Whitespace),
              'class'),
-            (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+            (r'(import)(\s+)', bygroups(Keyword.Namespace, Whitespace), 'import'),
             (r"(''')", String, 'template'),
             (r'(\u00BB)', String, 'template'),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
@@ -1280,7 +1297,7 @@ class XtendLexer(RegexLexer):
             (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'0x[0-9a-fA-F]+', Number.Hex),
             (r'[0-9]+L?', Number.Integer),
-            (r'\n', Text)
+            (r'\n', Whitespace)
         ],
         'class': [
             (r'[a-zA-Z_]\w*', Name.Class, '#pop')
@@ -1298,12 +1315,13 @@ class XtendLexer(RegexLexer):
 
 class PigLexer(RegexLexer):
     """
-    For `Pig Latin <https://pig.apache.org/>`_ source code.
+    For Pig Latin source code.
 
     .. versionadded:: 2.0
     """
 
     name = 'Pig'
+    url = 'https://pig.apache.org/'
     aliases = ['pig']
     filenames = ['*.pig']
     mimetypes = ['text/x-pig']
@@ -1312,10 +1330,10 @@ class PigLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'--.*', Comment),
             (r'/\*[\w\W]*?\*/', Comment.Multiline),
-            (r'\\\n', Text),
+            (r'\\$', String.Escape),
             (r'\\', Text),
             (r'\'(?:\\[ntbrf\\\']|\\u[0-9a-f]{4}|[^\'\\\n\r])*\'', String),
             include('keywords'),
@@ -1326,9 +1344,9 @@ class PigLexer(RegexLexer):
             (r'[0-9]*\.[0-9]+(e[0-9]+)?[fd]?', Number.Float),
             (r'0x[0-9a-f]+', Number.Hex),
             (r'[0-9]+L?', Number.Integer),
-            (r'\n', Text),
+            (r'\n', Whitespace),
             (r'([a-z_]\w*)(\s*)(\()',
-             bygroups(Name.Function, Text, Punctuation)),
+             bygroups(Name.Function, Whitespace, Punctuation)),
             (r'[()#:]', Text),
             (r'[^(:#\'")\s]+', Text),
             (r'\S+\s+', Text)   # TODO: make tests pass without \s+
@@ -1365,18 +1383,19 @@ class PigLexer(RegexLexer):
 
 class GoloLexer(RegexLexer):
     """
-    For `Golo <http://golo-lang.org/>`_ source code.
+    For Golo source code.
 
     .. versionadded:: 2.0
     """
 
     name = 'Golo'
+    url = 'http://golo-lang.org/'
     filenames = ['*.golo']
     aliases = ['golo']
 
     tokens = {
         'root': [
-            (r'[^\S\n]+', Text),
+            (r'[^\S\n]+', Whitespace),
 
             (r'#.*$', Comment),
 
@@ -1388,19 +1407,19 @@ class GoloLexer(RegexLexer):
             (r'[]{}|(),[]', Punctuation),
 
             (r'(module|import)(\s+)',
-                bygroups(Keyword.Namespace, Text),
+                bygroups(Keyword.Namespace, Whitespace),
                 'modname'),
             (r'\b([a-zA-Z_][\w$.]*)(::)',  bygroups(Name.Namespace, Punctuation)),
             (r'\b([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)+)\b', Name.Namespace),
 
             (r'(let|var)(\s+)',
-                bygroups(Keyword.Declaration, Text),
+                bygroups(Keyword.Declaration, Whitespace),
                 'varname'),
             (r'(struct)(\s+)',
-                bygroups(Keyword.Declaration, Text),
+                bygroups(Keyword.Declaration, Whitespace),
                 'structname'),
             (r'(function)(\s+)',
-                bygroups(Keyword.Declaration, Text),
+                bygroups(Keyword.Declaration, Whitespace),
                 'funcname'),
 
             (r'(null|true|false)\b', Keyword.Constant),
@@ -1478,12 +1497,13 @@ class GoloLexer(RegexLexer):
 
 class JasminLexer(RegexLexer):
     """
-    For `Jasmin <http://jasmin.sourceforge.net/>`_ assembly code.
+    For Jasmin assembly code.
 
     .. versionadded:: 2.0
     """
 
     name = 'Jasmin'
+    url = 'http://jasmin.sourceforge.net/'
     aliases = ['jasmin', 'jasminxt']
     filenames = ['*.j']
 
@@ -1496,12 +1516,12 @@ class JasminLexer(RegexLexer):
 
     tokens = {
         'default': [
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
             (r"'", String.Single, ('#pop', 'quote')),
             (r'"', String.Double, 'string'),
             (r'=', Punctuation),
             (r':', Punctuation, 'label'),
-            (_ws, Text),
+            (_ws, Whitespace),
             (r';.*', Comment.Single),
             (r'(\$[-+])?0x-?[\da-fA-F]+%s' % _break, Number.Hex),
             (r'(\$[-+]|\+)?-?\d+%s' % _break, Number.Integer),
@@ -1589,27 +1609,27 @@ class JasminLexer(RegexLexer):
             (r'[^"\\]+', String.Double)
         ],
         'root': [
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             (r"'", String.Single, 'quote'),
             include('default'),
             (r'(%s)([ \t\r]*)(:)' % _name,
-             bygroups(Name.Label, Text, Punctuation)),
+             bygroups(Name.Label, Whitespace, Punctuation)),
             (_name, String.Other)
         ],
         'annotation': [
-            (r'\n', Text, ('#pop', 'annotation-body')),
+            (r'\n', Whitespace, ('#pop', 'annotation-body')),
             (r'default%s' % _break, Keyword.Reserved,
              ('#pop', 'annotation-default')),
             include('default')
         ],
         'annotation-body': [
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             (r'\.end%s' % _break, Keyword.Reserved, '#pop'),
             include('default'),
             (_name, String.Other, ('annotation-items', 'descriptor/no-dots'))
         ],
         'annotation-default': [
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             (r'\.end%s' % _break, Keyword.Reserved, '#pop'),
             include('default'),
             default(('annotation-items', 'descriptor/no-dots'))
@@ -1663,7 +1683,7 @@ class JasminLexer(RegexLexer):
             default('descriptor/convert-dots')
         ],
         'enclosing-method': [
-            (_ws, Text),
+            (_ws, Whitespace),
             (r'(?=[^%s]*\()' % _separator, Text, ('#pop', 'invocation')),
             default(('#pop', 'class/convert-dots'))
         ],
@@ -1709,7 +1729,7 @@ class JasminLexer(RegexLexer):
              bygroups(Name.Namespace, Name.Class, Name.Variable.Class), '#pop')
         ],
         'table': [
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             (r'default%s' % _break, Keyword.Reserved, '#pop'),
             include('default'),
             (_name, Name.Label)
@@ -1742,12 +1762,13 @@ class JasminLexer(RegexLexer):
 
 class SarlLexer(RegexLexer):
     """
-    For `SARL <http://www.sarl.io>`_ source code.
+    For SARL source code.
 
     .. versionadded:: 2.4
     """
 
     name = 'SARL'
+    url = 'http://www.sarl.io'
     aliases = ['sarl']
     filenames = ['*.sarl']
     mimetypes = ['text/x-sarl']
@@ -1760,9 +1781,9 @@ class SarlLexer(RegexLexer):
             (r'^(\s*(?:[a-zA-Z_][\w.\[\]]*\s+)+?)'  # return arguments
              r'([a-zA-Z_$][\w$]*)'                      # method name
              r'(\s*)(\()',                             # signature start
-             bygroups(using(this), Name.Function, Text, Operator)),
-            (r'[^\S\n]+', Text),
-            (r'//.*?\n', Comment.Single),
+             bygroups(using(this), Name.Function, Whitespace, Operator)),
+            (r'[^\S\n]+', Whitespace),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/\*.*?\*/', Comment.Multiline),
             (r'@[a-zA-Z_][\w.]*', Name.Decorator),
             (r'(as|break|case|catch|default|do|else|extends|extension|finally|'
@@ -1774,12 +1795,12 @@ class SarlLexer(RegexLexer):
              Keyword.Declaration),
             (r'(boolean|byte|char|double|float|int|long|short|void)\b',
              Keyword.Type),
-            (r'(package)(\s+)', bygroups(Keyword.Namespace, Text)),
+            (r'(package)(\s+)', bygroups(Keyword.Namespace, Whitespace)),
             (r'(false|it|null|occurrence|this|true|void)\b', Keyword.Constant),
             (r'(agent|annotation|artifact|behavior|capacity|class|enum|event|'
-             r'interface|skill|space)(\s+)', bygroups(Keyword.Declaration, Text),
+             r'interface|skill|space)(\s+)', bygroups(Keyword.Declaration, Whitespace),
              'class'),
-            (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+            (r'(import)(\s+)', bygroups(Keyword.Namespace, Whitespace), 'import'),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
             (r"'(\\\\|\\[^\\]|[^'\\])*'", String.Single),
             (r'[a-zA-Z_]\w*:', Name.Label),
@@ -1788,7 +1809,7 @@ class SarlLexer(RegexLexer):
             (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
             (r'0x[0-9a-fA-F]+', Number.Hex),
             (r'[0-9]+L?', Number.Integer),
-            (r'\n', Text)
+            (r'\n', Whitespace)
         ],
         'class': [
             (r'[a-zA-Z_]\w*', Name.Class, '#pop')

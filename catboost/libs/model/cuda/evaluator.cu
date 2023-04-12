@@ -6,6 +6,8 @@
 #include <library/cpp/cuda/wrappers/arch.cuh>
 #include <library/cpp/cuda/wrappers/kernel_helpers.cuh>
 
+#include <util/string/cast.h>
+
 #include <cuda_runtime.h>
 #include <assert.h>
 
@@ -130,10 +132,11 @@ TTreeIndex __device__ __forceinline__ CalcIndexesUnwrapped(const TGPURepackedBin
     for (int depth = 0; depth < TreeDepth; ++depth) {
         const TGPURepackedBin bin = Ldg(curRepackedBinPtr + depth);
         TCudaQuantizationBucket buckets = __ldg(quantizedFeatures + bin.FeatureIdx);
-        result.x |= ((buckets.x) >= bin.FeatureVal) << depth;
-        result.y |= ((buckets.y) >= bin.FeatureVal) << depth;
-        result.z |= ((buckets.z) >= bin.FeatureVal) << depth;
-        result.w |= ((buckets.w) >= bin.FeatureVal) << depth;
+        // |= operator fails (MLTOOLS-6839 on a100)
+        result.x += ((buckets.x) >= bin.FeatureVal) << depth;
+        result.y += ((buckets.y) >= bin.FeatureVal) << depth;
+        result.z += ((buckets.z) >= bin.FeatureVal) << depth;
+        result.w += ((buckets.w) >= bin.FeatureVal) << depth;
     }
     return result;
 }
@@ -143,10 +146,11 @@ TTreeIndex __device__ CalcIndexesBase(int TreeDepth, const TGPURepackedBin* cons
     for (int depth = 0; depth < TreeDepth; ++depth) {
         const TGPURepackedBin bin = Ldg(curRepackedBinPtr + depth);
         TCudaQuantizationBucket vals = __ldg(quantizedFeatures + bin.FeatureIdx);
-        bins.x |= ((vals.x) >= bin.FeatureVal) << depth;
-        bins.y |= ((vals.y) >= bin.FeatureVal) << depth;
-        bins.z |= ((vals.z) >= bin.FeatureVal) << depth;
-        bins.w |= ((vals.w) >= bin.FeatureVal) << depth;
+        // |= operator fails (MLTOOLS-6839 on a100)
+        bins.x += ((vals.x) >= bin.FeatureVal) << depth;
+        bins.y += ((vals.y) >= bin.FeatureVal) << depth;
+        bins.z += ((vals.z) >= bin.FeatureVal) << depth;
+        bins.w += ((vals.w) >= bin.FeatureVal) << depth;
     }
     return bins;
 }
@@ -315,7 +319,8 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
         break;
     case NCB::NModelEvaluation::EPredictionType::Exponent:
     case NCB::NModelEvaluation::EPredictionType::RMSEWithUncertainty:
-        ythrow yexception() << "Unimplemented on GPU";
+    case NCB::NModelEvaluation::EPredictionType::MultiProbability:
+        ythrow yexception() << "Unimplemented on GPU: prediction type " << ToString(predictionType);
         break;
     case NCB::NModelEvaluation::EPredictionType::Probability:
         ProcessResults<NCB::NModelEvaluation::EPredictionType::Probability, true><<<1, 256, 0, Stream>>> (

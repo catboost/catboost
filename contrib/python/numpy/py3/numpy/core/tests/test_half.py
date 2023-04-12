@@ -17,7 +17,7 @@ def assert_raises_fpe(strmatch, callable, *args, **kwargs):
                 "Did not raise floating point %s error" % strmatch)
 
 class TestHalf:
-    def setup(self):
+    def setup_method(self):
         # An array of all possible float16 values
         self.all_f16 = np.arange(0x10000, dtype=uint16)
         self.all_f16.dtype = float16
@@ -66,6 +66,21 @@ class TestHalf:
         i_f16 = np.array(i_int, dtype=float16)
         j = np.array(i_f16, dtype=int)
         assert_equal(i_int, j)
+
+    @pytest.mark.parametrize("string_dt", ["S", "U"])
+    def test_half_conversion_to_string(self, string_dt):
+        # Currently uses S/U32 (which is sufficient for float32)
+        expected_dt = np.dtype(f"{string_dt}32")
+        assert np.promote_types(np.float16, string_dt) == expected_dt
+        assert np.promote_types(string_dt, np.float16) == expected_dt
+
+        arr = np.ones(3, dtype=np.float16).astype(string_dt)
+        assert arr.dtype == expected_dt
+
+    @pytest.mark.parametrize("string_dt", ["S", "U"])
+    def test_half_conversion_from_string(self, string_dt):
+        string = np.array("3.1416", dtype=string_dt)
+        assert string.astype(np.float16) == np.array(3.1416, dtype=np.float16)
 
     @pytest.mark.parametrize("offset", [None, "up", "down"])
     @pytest.mark.parametrize("shift", [None, "up", "down"])

@@ -5,6 +5,7 @@ class Pool(data,
            label=None,
            cat_features=None,
            text_features=None,
+           embedding_features=None,
            column_description=None,
            pairs=None,
            delimiter='\t',
@@ -138,6 +139,23 @@ A one-dimensional array of text columns indices (specified as integers) or names
 
 {% include [default-value-none](../_includes/concepts/default-value-none.md) %}
 
+### embedding_features
+
+#### Description
+
+A one-dimensional array of embedding columns indices (specified as integers) or names (specified as strings).
+
+{% include [reusage-python__cat_features__description__non-catfeatures-text](../_includes/work_src/reusage/python__cat_features__description__non-catfeatures-text.md) %}
+
+**Possible types**
+
+- {{ python-type--list }}
+- {{ python-type--numpyarray }}
+
+**Default value**
+
+{% include [default-value-none](../_includes/concepts/default-value-none.md) %}
+
 ### column_description
 
 #### Description
@@ -236,7 +254,7 @@ The weight of each object in the input data in the form of a one-dimensional arr
 
 By default, it is set to 1 for all objects.
 
-{% include [group-params-python__group-and-group-weight__resctriction](../_includes/work_src/reusage/python__group-and-group-weight__resctriction.md) %}
+{% include [group-params-python__group-and-group-weight__restriction](../_includes/work_src/reusage/python__group-and-group-weight__restriction.md) %}
 
 **Possible types**
 
@@ -255,7 +273,7 @@ The weights of all objects within the defined groups from the input data in the 
 
 Used for calculating the final values of trees. By default, it is set to 1 for all objects in all groups.
 
-{% include [group-params-python__group-and-group-weight__resctriction](../_includes/work_src/reusage/python__group-and-group-weight__resctriction.md) %}
+{% include [group-params-python__group-and-group-weight__restriction](../_includes/work_src/reusage/python__group-and-group-weight__restriction.md) %}
 
 **Possible types**
 
@@ -431,6 +449,12 @@ Use only when the dataset is read from an input file.
 #### Description
 
 {% include [get-cat-feature-indices-get_cat_feature_indices-desc](../_includes/work_src/reusage-python/get_cat_feature_indices-desc.md) %}
+
+**Method:** [get_embedding_feature_indices](python-reference_pool_get_embedding_feature_indices.md)
+
+#### Description
+
+{% include [get-embedding-feature-indices-get_embedding_feature_indices-desc](../_includes/work_src/reusage-python/get_embedding_feature_indices-desc.md) %}
 
 **Method:** [get_features](python-reference_pool_get_features.md)
 

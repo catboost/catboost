@@ -109,7 +109,7 @@ void SetCommonFieldVariables(const FieldDescriptor* descriptor,
   (*variables)["dataTypeSpecific_value"] = "Nil";
 
   (*variables)["storage_offset_value"] =
-      "(uint32_t)offsetof(" + classname + "__storage_, " + camel_case_name + ")";
+      "(arc_ui32)offsetof(" + classname + "__storage_, " + camel_case_name + ")";
   (*variables)["storage_offset_comment"] = "";
 
   // Clear some common things so they can be set just when needed.

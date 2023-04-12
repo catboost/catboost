@@ -155,7 +155,7 @@ TProtoStringType GetOneofStoredType(const FieldDescriptor* field);
 // Whether we should generate multiple java files for messages.
 inline bool MultipleJavaFiles(const FileDescriptor* descriptor,
                               bool immutable) {
-  (void) immutable;
+  (void)immutable;
   return descriptor->options().java_multiple_files();
 }
 
@@ -426,12 +426,12 @@ inline TProtoStringType GeneratedCodeVersionSuffix() {
   return "V3";
 }
 
-void WriteUInt32ToUtf16CharSequence(uint32_t number,
+void WriteUInt32ToUtf16CharSequence(arc_ui32 number,
                                     std::vector<uint16_t>* output);
 
 inline void WriteIntToUtf16CharSequence(int value,
                                         std::vector<uint16_t>* output) {
-  WriteUInt32ToUtf16CharSequence(static_cast<uint32_t>(value), output);
+  WriteUInt32ToUtf16CharSequence(static_cast<arc_ui32>(value), output);
 }
 
 // Escape a UTF-16 character so it can be embedded in a Java string literal.

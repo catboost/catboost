@@ -4,6 +4,7 @@
 
 #include <util/generic/yexception.h>
 #include <util/string/cast.h>
+#include <util/string/escape.h>
 #include <util/system/compiler.h>
 #include <util/system/file.h>
 #include <util/system/fs.h>
@@ -12,6 +13,17 @@ struct TFsPath::TSplit: public TAtomicRefCount<TSplit>, public TPathSplit {
     inline TSplit(const TStringBuf path)
         : TPathSplit(path)
     {
+    }
+    inline TSplit(const TSplit& that, const TString& path, const TString& other) {
+        for (const auto& part : that) {
+            emplace_back(path.begin() + (part.data() - other.begin()), part.size());
+        }
+
+        if (!that.Drive.empty()) {
+            Drive = TStringBuf(path.begin() + (that.Drive.data() - other.begin()), that.Drive.size());
+        }
+
+        IsAbsolute = that.IsAbsolute;
     }
 };
 
@@ -186,8 +198,16 @@ TFsPath::TSplit& TFsPath::GetSplit() const {
     return *Split_;
 }
 
+void TFsPath::CopySplitFrom(const TFsPath& that) const {
+    if (that.Split_) {
+        Split_ = new TSplit(*that.Split_, Path_, that.Path_);
+    } else {
+        Split_ = that.Split_;
+    }
+}
+
 static Y_FORCE_INLINE void VerifyPath(const TStringBuf path) {
-    Y_VERIFY(!path.Contains('\0'), "wrong format of TFsPath");
+    Y_VERIFY(!path.Contains('\0'), "wrong format of TFsPath: %s", EscapeC(path).c_str());
 }
 
 TFsPath::TFsPath() {
@@ -208,6 +228,18 @@ TFsPath::TFsPath(const TStringBuf path)
 TFsPath::TFsPath(const char* path)
     : Path_(path)
 {
+}
+
+TFsPath::TFsPath(const TFsPath& that)
+    : Path_(that.Path_)
+{
+    CopySplitFrom(that);
+}
+
+TFsPath& TFsPath::operator=(const TFsPath& that) {
+    Path_ = that.Path_;
+    CopySplitFrom(that);
+    return *this;
 }
 
 TFsPath TFsPath::Child(const TString& name) const {

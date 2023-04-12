@@ -43,6 +43,18 @@ namespace NCB {
         static TDatasetSubset MakeColumns(bool hasFeatures = true) {
             return {hasFeatures, {0u, Max<ui64>()}};
         }
+
+        size_t GetHash() const {
+            return MultiHash(HasFeatures, Range.Begin, Range.End);
+        }
+
+        bool operator==(const TDatasetSubset& rhs) const {
+            return std::tie(HasFeatures, Range) == std::tie(rhs.HasFeatures, rhs.Range);
+        }
+
+        bool operator!=(const TDatasetSubset& rhs) const {
+            return !(rhs == *this);
+        }
     };
 
     struct TDatasetLoaderCommonArgs {
@@ -140,12 +152,11 @@ namespace NCB {
         NObjectFactory::TParametrizedObjectFactory<IDatasetLoader,
                                                    TString,
                                                    TDatasetLoaderPullArgs>;
-    using TLineDataReaderDatasetLoaderFactory =
+
+    using TDatasetLineDataLoaderFactory =
         NObjectFactory::TParametrizedObjectFactory<IDatasetLoader,
                                                    TString,
                                                    TLineDataLoaderPushArgs>;
-
-
 
     ///////////////////////////////////////////////////////////////////////////
     // Common functionality used in IDatasetLoader implementations
@@ -301,5 +312,12 @@ namespace NCB {
      */
     bool IsMissingValue(const TStringBuf& s);
 
-    bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value);
+    bool TryFloatFromString(TStringBuf token, bool parseNonFinite, float* value);
 }
+
+template <>
+struct THash<NCB::TDatasetSubset> {
+    inline size_t operator()(const NCB::TDatasetSubset& value) const {
+        return value.GetHash();
+    }
+};

@@ -116,6 +116,7 @@ void SetSocketToS(SOCKET s, int tos);
 void SetSocketToS(SOCKET s, const NAddr::IRemoteAddr* addr, int tos);
 int GetSocketToS(SOCKET s);
 int GetSocketToS(SOCKET s, const NAddr::IRemoteAddr* addr);
+void SetSocketPriority(SOCKET s, int priority);
 void SetTcpFastOpen(SOCKET s, int qlen);
 /**
  * Deprecated, consider using HasSocketDataToRead instead.

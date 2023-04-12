@@ -1,7 +1,0 @@
-
-
-RECURSE(
-    generic
-    lib
-    uneven
-)

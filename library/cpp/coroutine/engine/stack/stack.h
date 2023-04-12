@@ -22,7 +22,7 @@ namespace NDetails {
          *  guard: guard to protect this stack
          *  name: name of coroutine for which this stack is allocated
          */
-        TStack(void* rawMemory, void* alignedMemory, uint64_t alignedSize, const char* name);
+        TStack(void* rawMemory, void* alignedMemory, size_t alignedSize, const char* name);
         TStack(TStack&& rhs) noexcept;
         TStack& operator=(TStack&& rhs) noexcept;
 
@@ -35,7 +35,7 @@ namespace NDetails {
         }
 
         //! Stack size (includes memory for guard)
-        uint64_t GetSize() const noexcept {
+        size_t GetSize() const noexcept {
             return Size_;
         }
 
@@ -45,7 +45,7 @@ namespace NDetails {
     private:
         char* RawMemory_ = nullptr; // not owned
         char* AlignedMemory_ = nullptr; // not owned
-        uint64_t Size_ = 0;
+        size_t Size_ = 0;
     };
 
 } // namespace NDetails
@@ -61,7 +61,7 @@ namespace NDetails {
         char* GetAlignedMemory() const noexcept {
             return Stack_.GetAlignedMemory();
         }
-        uint64_t GetSize() const noexcept {
+        size_t GetSize() const noexcept {
             return Stack_.GetSize();
         }
 

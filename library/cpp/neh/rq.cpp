@@ -297,53 +297,11 @@ namespace {
     };
 }
 
-#if defined(_linux_)
-#include <sys/syscall.h>
-#include <linux/futex.h>
-
-namespace {
-    inline int sys_futex(int* uaddr, int op, int val, const struct timespec* timeout, int* uaddr2, int val3) {
-        return syscall(SYS_futex, uaddr, op, val, timeout, uaddr2, val3);
-    }
-
-    inline int FutexWake(int* addr, int nthr) {
-        return sys_futex(addr, FUTEX_WAKE, nthr, nullptr, nullptr, 0);
-    }
-
-    inline void FutexWait(int* addr, int val) {
-        sys_futex(addr, FUTEX_WAIT, val, nullptr, nullptr, 0);
-    }
-
-    struct TFutexEvent {
-        inline TFutexEvent()
-            : Val1(0)
-            , Val2(0)
-        {
-        }
-
-        inline bool Signal() {
-            ++Val1;
-
-            return FutexWake((int*)&Val1, 1) > 0;
-        }
-
-        inline void Wait() {
-            FutexWait((int*)&Val1, Val2);
-            Val2 = Val1;
-        }
-
-        volatile int Val1;
-        volatile int Val2;
-    };
-}
-#endif
-
 IRequestQueueRef NNeh::CreateRequestQueue() {
 //return new TCondVarRequestQueue();
 //return new TSleepRequestQueue();
 //return new TBusyRequestQueue();
 //return new TLFRequestQueue<TStupidEvent>();
-//return new TLFRequestQueue<TFutexEvent>();
 #if defined(_freebsd_)
     return new TFdRequestQueue();
 #endif
@@ -351,5 +309,4 @@ IRequestQueueRef NNeh::CreateRequestQueue() {
     return new TLazyEventRequestQueue<TAutoEvent>();
     //return new TEventRequestQueue<TAutoEvent>();
     //return new TEventRequestQueue<TNehFdEvent>();
-    //return new TEventRequestQueue<TFutexEvent>();
 }

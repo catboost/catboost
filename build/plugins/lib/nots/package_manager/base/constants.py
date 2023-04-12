@@ -1,5 +1,0 @@
-PACKAGE_JSON_FILENAME = "package.json"
-NODE_MODULES_BUNDLE_FILENAME = "node_modules.tar"
-NPM_REGISTRY_URL = "http://npm.yandex-team.ru"
-PNPM_WS_FILENAME = "pnpm-workspace.yaml"
-PNPM_LOCKFILE_FILENAME = "pnpm-lock.yaml"

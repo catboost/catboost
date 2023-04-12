@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "status.h"
 #include <assert.h>
 #include "onnx/string_utils.h"
@@ -5,13 +9,12 @@
 namespace ONNX_NAMESPACE {
 namespace Common {
 
-Status::Status(StatusCategory category, int code, const TString& msg) {
+Status::Status(StatusCategory category, int code, const std::string& msg) {
   assert(static_cast<int>(StatusCode::OK) != code);
   state_.reset(new State(category, code, msg));
 }
 
-Status::Status(StatusCategory category, int code)
-    : Status(category, code, EmptyString()) {}
+Status::Status(StatusCategory category, int code) : Status(category, code, EmptyString()) {}
 
 bool Status::IsOK() const noexcept {
   return (state_ == NULL);
@@ -25,16 +28,16 @@ int Status::Code() const noexcept {
   return IsOK() ? static_cast<int>(StatusCode::OK) : state_->code;
 }
 
-const TString& Status::ErrorMessage() const {
+const std::string& Status::ErrorMessage() const {
   return IsOK() ? EmptyString() : state_->msg;
 }
 
-TString Status::ToString() const {
+std::string Status::ToString() const {
   if (state_ == nullptr) {
-    return TString("OK");
+    return std::string("OK");
   }
 
-  TString result;
+  std::string result;
 
   if (StatusCategory::CHECKER == state_->category) {
     result += "[CheckerError]";
@@ -44,7 +47,7 @@ TString Status::ToString() const {
 
   result += " : ";
   result += ONNX_NAMESPACE::to_string(Code());
-  TString msg;
+  std::string msg;
 
   switch (static_cast<StatusCode>(Code())) {
     case INVALID_ARGUMENT:
@@ -73,8 +76,8 @@ const Status& Status::OK() noexcept {
   return s_ok;
 }
 
-const TString& Status::EmptyString() {
-  static TString empty_str = "";
+const std::string& Status::EmptyString() {
+  static std::string empty_str;
   return empty_str;
 }
 

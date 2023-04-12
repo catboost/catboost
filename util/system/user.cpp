@@ -1,6 +1,4 @@
 #include "user.h"
-#include "platform.h"
-#include "defaults.h"
 #include "env.h"
 
 #include <util/generic/yexception.h>
@@ -8,7 +6,7 @@
 #ifdef _win_
     #include "winint.h"
 #else
-    #include <errno.h>
+    #include <cerrno>
     #include <pwd.h>
     #include <unistd.h>
 #endif

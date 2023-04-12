@@ -8,7 +8,7 @@
     A desaturated, somewhat subdued style created for the Lovelace interactive
     learning environment.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -32,8 +32,6 @@ class LovelaceStyle(Style):
     _ESCAPE_LIME =   '#709030'
     _LABEL_CYAN =    '#289870'
     _EXCEPT_YELLOW = '#908828'
-
-    default_style =  '#222222'
 
     styles = {
         Whitespace:          '#a89028',

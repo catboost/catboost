@@ -1,7 +1,9 @@
 #pragma once
 
+#include <util/system/platform.h>
+
 // Check platform bitness.
-#if !defined(__x86_64__) && !defined(_M_X64)
+#if !defined(_64_)
     #error YT requires 64-bit platform
 #endif
 
@@ -18,7 +20,6 @@
     // that some functions are called from particular threads.
     #define YT_ENABLE_THREAD_AFFINITY_CHECK
 
-
     // This define enables tracking of BIND callbacks location.
     #define YT_ENABLE_BIND_LOCATION_TRACKING
 
@@ -26,9 +27,8 @@
     // during serialization.
     #define YT_VALIDATE_REQUIRED_PROTO_FIELDS
 
-    // This define enables spinlock profiling that detects long-taking acquisitions of
-    // spinlocks declared with YT_DECLARE_SPINLOCK.
-    #define YT_ENABLE_SPINLOCK_PROFILING
+    // Detects deadlocks caused by recursive acquisitions of (non-recursive) spin locks.
+    #define YT_ENABLE_SPIN_LOCK_OWNERSHIP_TRACKING
 #endif
 
 // Configure SSE usage.
@@ -57,16 +57,12 @@
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-    #define PER_THREAD __thread
-    #define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+    #define YT_ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
     // Prevent GCC from throwing out functions in release builds.
-    #define ATTRIBUTE_USED __attribute__((used))
+    #define YT_ATTRIBUTE_USED __attribute__((used))
 #elif defined(_MSC_VER)
-    #define PER_THREAD __declspec(thread)
-    #define ATTRIBUTE_NO_SANITIZE_ADDRESS
-    #define ATTRIBUTE_USED
-    // VS does not support alignof natively yet.
-    #define alignof __alignof
+    #define YT_ATTRIBUTE_NO_SANITIZE_ADDRESS
+    #define YT_ATTRIBUTE_USED
 #else
     #error Unsupported compiler
 #endif

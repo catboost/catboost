@@ -4,7 +4,7 @@
 
     Lexers for interactive fiction languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,16 +21,17 @@ __all__ = ['Inform6Lexer', 'Inform6TemplateLexer', 'Inform7Lexer',
 
 class Inform6Lexer(RegexLexer):
     """
-    For `Inform 6 <http://inform-fiction.org/>`_ source code.
+    For Inform 6 source code.
 
     .. versionadded:: 2.0
     """
 
     name = 'Inform 6'
+    url = 'http://inform-fiction.org/'
     aliases = ['inform6', 'i6']
     filenames = ['*.inf']
 
-    flags = re.MULTILINE | re.DOTALL | re.UNICODE
+    flags = re.MULTILINE | re.DOTALL
 
     _name = r'[a-zA-Z_]\w*'
 
@@ -174,6 +175,10 @@ class Inform6Lexer(RegexLexer):
             # Other values
             (_name, Name, '#pop')
         ],
+        'value?': [
+            include('value'),
+            default('#pop')
+        ],
         # Strings
         'dictionary-word': [
             (r'[~^]+', String.Escape),
@@ -190,8 +195,8 @@ class Inform6Lexer(RegexLexer):
             (r'\\', String.Escape),
             (r'@(\\\s*[%s]\s*)*@((\\\s*[%s]\s*)*[0-9])*' %
              (_newline, _newline), String.Escape),
-            (r'@(\\\s*[%s]\s*)*\{((\\\s*[%s]\s*)*[0-9a-fA-F])*'
-             r'(\\\s*[%s]\s*)*\}' % (_newline, _newline, _newline),
+            (r'@(\\\s*[%s]\s*)*[({]((\\\s*[%s]\s*)*[0-9a-zA-Z_])*'
+             r'(\\\s*[%s]\s*)*[)}]' % (_newline, _newline, _newline),
              String.Escape),
             (r'@(\\\s*[%s]\s*)*.(\\\s*[%s]\s*)*.' % (_newline, _newline),
              String.Escape),
@@ -208,6 +213,13 @@ class Inform6Lexer(RegexLexer):
             include('_whitespace'),
             (_name, Name.Constant, '#pop'),
             include('value')
+        ],
+        'constant*': [
+            include('_whitespace'),
+            (r',', Punctuation),
+            (r'=', Punctuation, 'value?'),
+            (_name, Name.Constant, 'value?'),
+            default('#pop')
         ],
         '_global': [
             include('_whitespace'),
@@ -251,7 +263,7 @@ class Inform6Lexer(RegexLexer):
             (r'(?i)class\b', Keyword,
              ('object-body', 'duplicates', 'class-name')),
             (r'(?i)(constant|default)\b', Keyword,
-             ('default', 'expression', '_constant')),
+             ('default', 'constant*')),
             (r'(?i)(end\b)(.*)', bygroups(Keyword, Text)),
             (r'(?i)(extend|verb)\b', Keyword, 'grammar'),
             (r'(?i)fake_action\b', Keyword, ('default', '_constant')),
@@ -381,10 +393,10 @@ class Inform6Lexer(RegexLexer):
             include('_whitespace'),
             (words((
                 'additive', 'alias', 'buffer', 'class', 'creature', 'data', 'error', 'fatalerror',
-                'first', 'has', 'held', 'initial', 'initstr', 'last', 'long', 'meta', 'multi',
-                'multiexcept', 'multiheld', 'multiinside', 'noun', 'number', 'only', 'private',
-                'replace', 'reverse', 'scope', 'score', 'special', 'string', 'table', 'terminating',
-                'time', 'topic', 'warning', 'with'), suffix=r'\b'),
+                'first', 'has', 'held', 'individual', 'initial', 'initstr', 'last', 'long', 'meta',
+                'multi', 'multiexcept', 'multiheld', 'multiinside', 'noun', 'number', 'only',
+                'private', 'replace', 'reverse', 'scope', 'score', 'special', 'string', 'table',
+                'terminating', 'time', 'topic', 'warning', 'with'), suffix=r'\b'),
              Keyword, '#pop'),
             (r'static\b', Keyword),
             (r'[%s]{1,2}>|[+=]' % _dash, Punctuation, '#pop')
@@ -399,7 +411,8 @@ class Inform6Lexer(RegexLexer):
         ],
         'property-keyword*': [
             include('_whitespace'),
-            (r'(additive|long)\b', Keyword),
+            (words(('additive', 'individual', 'long'), suffix=r'\b(?!(\s*|(![^%s]*))*;)' % _newline),
+             Keyword),
             default('#pop')
         ],
         'trace-keyword?': [
@@ -527,16 +540,17 @@ class Inform6Lexer(RegexLexer):
 
 class Inform7Lexer(RegexLexer):
     """
-    For `Inform 7 <http://inform7.com/>`_ source code.
+    For Inform 7 source code.
 
     .. versionadded:: 2.0
     """
 
     name = 'Inform 7'
+    url = 'http://inform7.com/'
     aliases = ['inform7', 'i7']
     filenames = ['*.ni', '*.i7x']
 
-    flags = re.MULTILINE | re.DOTALL | re.UNICODE
+    flags = re.MULTILINE | re.DOTALL
 
     _dash = Inform6Lexer._dash
     _dquote = Inform6Lexer._dquote
@@ -730,8 +744,7 @@ class Inform7Lexer(RegexLexer):
 
 class Inform6TemplateLexer(Inform7Lexer):
     """
-    For `Inform 6 template
-    <http://inform7.com/sources/src/i6template/Woven/index.html>`_ code.
+    For Inform 6 template code.
 
     .. versionadded:: 2.0
     """
@@ -746,7 +759,7 @@ class Inform6TemplateLexer(Inform7Lexer):
 
 class Tads3Lexer(RegexLexer):
     """
-    For `TADS 3 <http://www.tads.org/>`_ source code.
+    For TADS 3 source code.
     """
 
     name = 'TADS 3'

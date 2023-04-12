@@ -70,10 +70,10 @@ namespace NCatboostCuda {
 
         struct TBoostingCursors {
             using TCursor = TStripeBuffer<float>;
-            TVector<TCursor> Cursors;
+            TVector<TCursor> Cursors; // [permutationIdx]
             TVec TestCursor;
             THolder<TVec> BestTestCursor;
-            TMaybe<float> StartingPoint;
+            TMaybe<TVector<double>> StartingPoint;
 
             void CopyFrom(const TBoostingCursors& other) {
                 Cursors.resize(other.Cursors.size());
@@ -142,14 +142,16 @@ namespace NCatboostCuda {
             const ui32 permutationCount = inputData.Targets.size();
             const ui32 approxDim = inputData.Targets[0]->GetDim();
 
-            if (CatBoostOptions.BoostingOptions->BoostFromAverage.Get()) {
-                CB_ENSURE(!DataProvider->TargetData->GetBaseline(),
-                    "You can't use boost_from_average with baseline now.");
-                CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
-                    "You can't use boost_from_average with baseline now.");
-                cursors->StartingPoint = NCB::CalcOneDimensionalOptimumConstApprox(
+            const bool isBoostFromAverage = CatBoostOptions.BoostingOptions->BoostFromAverage.Get();
+            const bool isRMSEWithUncertainty = CatBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::RMSEWithUncertainty;
+            if (isBoostFromAverage || isRMSEWithUncertainty) {
+                CB_ENSURE(
+                    !DataProvider->TargetData->GetBaseline()
+                    && (!TestDataProvider || !TestDataProvider->TargetData->GetBaseline()),
+                    "You can't use boost_from_average or RMSEWithUncertainty with baseline now.");
+                cursors->StartingPoint = NCB::CalcOptimumConstApprox(
                     CatBoostOptions.LossFunctionDescription,
-                    DataProvider->TargetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
+                    *DataProvider->TargetData->GetTarget(),
                     GetWeights(*DataProvider->TargetData));
             }
 
@@ -175,7 +177,12 @@ namespace NCatboostCuda {
                         cursors->Cursors[i].ColumnView(dim).Write(baseline);
                     }
                 } else {
-                    FillBuffer(cursors->Cursors[i], cursors->StartingPoint.GetOrElse(0.0f));
+                    const auto sampleCount = DataProvider->GetObjectCount();
+                    for (ui32 dim = 0; dim < approxDim; ++dim) {
+                        const float value = cursors->StartingPoint ? (*cursors->StartingPoint)[dim] : 0.0;
+                        const TVector<float> start(sampleCount, value);
+                        cursors->Cursors[i].ColumnView(dim).Write(start);
+                    }
                 }
             }
 
@@ -198,12 +205,17 @@ namespace NCatboostCuda {
                         cursors->TestCursor.ColumnView(dim).Write(baseline);
                     }
                 } else {
-                    FillBuffer(cursors->TestCursor, cursors->StartingPoint.GetOrElse(0.0f));
+                    const auto sampleCount = TestDataProvider->GetObjectCount();
+                    for (ui32 dim = 0; dim < approxDim; ++dim) {
+                        const float value = cursors->StartingPoint ? (*cursors->StartingPoint)[dim] : 0.0;
+                        const TVector<float> start(sampleCount, value);
+                        cursors->TestCursor.ColumnView(dim).Write(start);
+                    }
                 }
             }
 
             if (ProgressTracker->NeedBestTestCursor()) {
-                Y_VERIFY(TestDataProvider);
+                CB_ENSURE(TestDataProvider, "Need test data provider");
                 cursors->BestTestCursor = MakeHolder<TStripeBuffer<float>>();
                 (*cursors->BestTestCursor) = TStripeBuffer<float>::CopyMappingAndColumnCount(cursors->TestCursor);
             }
@@ -398,7 +410,7 @@ namespace NCatboostCuda {
                 }
 
                 if (bestTestCursor && iterationProgressTracker.IsBestTestIteration()) {
-                    Y_VERIFY(testCursor);
+                    CB_ENSURE(testCursor, "Need cursor for test data");
                     bestTestCursor->Copy(*testCursor);
                 }
             }
@@ -507,7 +519,7 @@ namespace NCatboostCuda {
                 cursors->BestTestCursor.Get()
             );
             auto& modelToExport = models[inputData->GetEstimationPermutation()];
-            modelToExport.SetBias(cursors->StartingPoint.GetOrElse(0.0f));
+            modelToExport.SetBias(cursors->StartingPoint);
             return MakeHolder<TResultModel>(modelToExport);
         }
 

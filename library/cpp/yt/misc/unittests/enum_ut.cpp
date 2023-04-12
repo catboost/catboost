@@ -37,6 +37,11 @@ DEFINE_AMBIGUOUS_ENUM_WITH_UNDERLYING_TYPE(EMultipleNames, int,
     ((D2)(100))
 );
 
+DEFINE_ENUM(ECustomString,
+    ((A) (1) ("1_a"))
+    ((B) (2) ("1_b"))
+);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, size_t N>
@@ -47,7 +52,7 @@ std::vector<T> ToVector(std::array<T, N> array)
 
 TEST(TEnumTest, Domain)
 {
-    EXPECT_EQ(3, TEnumTraits<ESimple>::DomainSize);
+    EXPECT_EQ(3, TEnumTraits<ESimple>::GetDomainSize());
     std::vector<ESimple> v {
         ESimple::X,
         ESimple::Y,
@@ -96,16 +101,8 @@ TEST(TEnumTest, FromString)
 
     EXPECT_THROW(TEnumTraits<EColor>::FromString("Pink"), std::exception);
 
-    EColor color;
-    bool returnValue;
-
-    returnValue = TEnumTraits<EColor>::FindValueByLiteral("Red", &color);
-    EXPECT_EQ(EColor::Red, color);
-    EXPECT_TRUE(returnValue);
-
-    returnValue = TEnumTraits<EColor>::FindValueByLiteral("Pink", &color);
-    EXPECT_EQ(EColor::Red, color);
-    EXPECT_FALSE(returnValue);
+    EXPECT_EQ(EColor::Red, TEnumTraits<EColor>::FindValueByLiteral("Red"));
+    EXPECT_EQ(std::nullopt, TEnumTraits<EColor>::FindValueByLiteral("Pink"));
 }
 
 TEST(TEnumTest, Ordering)
@@ -177,8 +174,8 @@ TEST(TEnumTest, OrderingWithDomainValues)
 
 TEST(TEnumTest, DomainSize)
 {
-    EXPECT_EQ(3, TEnumTraits<ESimple>::DomainSize);
-    EXPECT_EQ(5, TEnumTraits<EColor>::DomainSize);
+    EXPECT_EQ(3, TEnumTraits<ESimple>::GetDomainSize());
+    EXPECT_EQ(5, TEnumTraits<EColor>::GetDomainSize());
 }
 
 TEST(TEnumTest, DomainValues)
@@ -241,6 +238,15 @@ TEST(TEnumTest, MultipleNames)
     EXPECT_EQ("C",  ToString(EMultipleNames::C));
     EXPECT_EQ("D1", ToString(EMultipleNames::D1));
     EXPECT_EQ("D1", ToString(EMultipleNames::D2));
+}
+
+TEST(TEnumTest, CustomString)
+{
+    EXPECT_EQ(ECustomString::A, TEnumTraits<ECustomString>::FromString("1_a"));
+    EXPECT_EQ(ECustomString::B, TEnumTraits<ECustomString>::FromString("1_b"));
+
+    EXPECT_EQ("1_a", ToString(ECustomString::A));
+    EXPECT_EQ("1_b", ToString(ECustomString::B));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

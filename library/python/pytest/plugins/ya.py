@@ -11,17 +11,28 @@ import json
 import time
 import traceback
 import collections
-import py
-import pytest
-import _pytest
-import _pytest.mark
 import signal
 import inspect
+import warnings
+
+import attr
+import faulthandler
+import py
+import pytest
 import six
 
-import faulthandler
+import _pytest
+import _pytest._io
+import _pytest.mark
+import _pytest.outcomes
+import _pytest.skipping
+
+from _pytest.warning_types import PytestUnhandledCoroutineWarning
 
 from yatest_lib import test_splitter
+import yatest.common as yatest_common
+
+from library.python.pytest.plugins.metrics import test_metrics
 
 try:
     import resource
@@ -44,6 +55,8 @@ import yatest_lib.tools
 
 import yatest_lib.external as canon
 
+import yatest_lib.ya
+
 from library.python.pytest import context
 
 console_logger = logging.getLogger("console")
@@ -53,12 +66,7 @@ yatest_logger = logging.getLogger("ya.test")
 _pytest.main.EXIT_NOTESTSCOLLECTED = 0
 SHUTDOWN_REQUESTED = False
 
-
-def to_str(s):
-    if six.PY2 and isinstance(s, six.text_type):
-        return s.encode('utf8')
-    return s
-
+pytest_config = None
 
 def configure_pdb_on_demand():
     import signal
@@ -71,13 +79,12 @@ def configure_pdb_on_demand():
         signal.signal(signal.SIGUSR1, on_signal)
 
 
-class TestMisconfigurationException(Exception):
-    pass
-
-
 class CustomImporter(object):
     def __init__(self, roots):
         self._roots = roots
+
+    def find_spec(self, fullname, path, target=None):
+        return None
 
     def find_module(self, fullname, package_path=None):
         for path in self._roots:
@@ -90,11 +97,6 @@ class CustomImporter(object):
 
     def _get_module_path(self, path, fullname):
         return os.path.join(path, *fullname.split('.'))
-
-
-class RunMode(object):
-    Run = "run"
-    List = "list"
 
 
 class YaTestLoggingFileHandler(logging.FileHandler):
@@ -153,7 +155,7 @@ def pytest_addoption(parser):
     parser.addoption("--test-file-filter", action="store", dest="test_file_filter", default=None, help="test file filter")
     parser.addoption("--test-param", action="append", dest="test_params", default=None, help="test parameters")
     parser.addoption("--test-log-level", action="store", dest="test_log_level", choices=["critical", "error", "warning", "info", "debug"], default="debug", help="test log level")
-    parser.addoption("--mode", action="store", choices=[RunMode.List, RunMode.Run], dest="mode", default=RunMode.Run, help="testing mode")
+    parser.addoption("--mode", action="store", choices=[yatest_lib.ya.RunMode.List, yatest_lib.ya.RunMode.Run], dest="mode", default=yatest_lib.ya.RunMode.Run, help="testing mode")
     parser.addoption("--test-list-file", action="store", dest="test_list_file")
     parser.addoption("--modulo", default=1, type=int)
     parser.addoption("--modulo-index", default=0, type=int)
@@ -183,13 +185,16 @@ def pytest_addoption(parser):
 def from_ya_test():
     return "YA_TEST_RUNNER" in os.environ
 
-
+@pytest.hookimpl(tryfirst=True)
 def pytest_configure(config):
+    global pytest_config
+    pytest_config = config
+
     config.option.continue_on_collection_errors = True
 
     config.from_ya_test = from_ya_test()
     config.test_logs = collections.defaultdict(dict)
-    config.test_metrics = {}
+    test_metrics.metrics = {}
     config.suite_metrics = {}
     config.configure_timestamp = time.time()
     context = {
@@ -201,7 +206,11 @@ def pytest_configure(config):
         "flags": config.option.flags,
         "sanitize": config.option.sanitize,
     }
-    config.ya = Ya(
+
+    if config.option.collectonly:
+        config.option.mode = yatest_lib.ya.RunMode.List
+
+    config.ya = yatest_lib.ya.Ya(
         config.option.mode,
         config.option.source_root,
         config.option.build_root,
@@ -241,9 +250,6 @@ def pytest_configure(config):
             if envvar + '_ORIGINAL' in os.environ:
                 os.environ[envvar] = os.environ[envvar + '_ORIGINAL']
 
-    if config.option.root_dir:
-        config.rootdir = config.invocation_dir = py.path.local(config.option.root_dir)
-
     extra_sys_path = []
     # Arcadia paths from the test DEPENDS section of ya.make
     extra_sys_path.append(os.path.join(config.option.source_root, config.option.project_path))
@@ -276,6 +282,7 @@ def pytest_configure(config):
     if config.option.pdb_on_sigusr1:
         configure_pdb_on_demand()
 
+    yatest_common.runtime._set_ya_config(config=config)
     # Dump python backtrace in case of any errors
     faulthandler.enable()
     if hasattr(signal, "SIGQUIT"):
@@ -285,15 +292,44 @@ def pytest_configure(config):
     if hasattr(signal, "SIGUSR2"):
         signal.signal(signal.SIGUSR2, _graceful_shutdown)
 
+    # register custom markers
+    config.addinivalue_line(
+        "markers", "xfaildiff: Allows to mark test which is expected to have a diff with canonical data"
+    )
+
+
+session_should_exit = False
+
+
+def _graceful_shutdown_on_log(should_exit):
+    if should_exit:
+        pytest.exit("Graceful shutdown requested")
+
+
+def pytest_runtest_logreport(report):
+    _graceful_shutdown_on_log(session_should_exit)
+
+
+def pytest_runtest_logstart(nodeid, location):
+    _graceful_shutdown_on_log(session_should_exit)
+
+
+def pytest_runtest_logfinish(nodeid, location):
+    _graceful_shutdown_on_log(session_should_exit)
+
 
 def _graceful_shutdown(*args):
+    global session_should_exit
+    session_should_exit = True
     try:
         import library.python.coverage
         library.python.coverage.stop_coverage_tracing()
     except ImportError:
         pass
     traceback.print_stack(file=sys.stderr)
-    pytest.exit("Graceful shutdown requested")
+    capman = pytest_config.pluginmanager.getplugin("capturemanager")
+    capman.suspend(in_=True)
+    _graceful_shutdown_on_log(not capman.is_globally_capturing())
 
 
 def _get_rusage():
@@ -303,7 +339,7 @@ def _get_rusage():
 def _collect_test_rusage(item):
     if resource and hasattr(item, "rusage"):
         finish_rusage = _get_rusage()
-        ya_inst = pytest.config.ya
+        ya_inst = pytest_config.ya
 
         def add_metric(attr_name, metric_name=None, modifier=None):
             if not metric_name:
@@ -337,35 +373,38 @@ def _collect_test_rusage(item):
 def _get_item_tags(item):
     tags = []
     for key, value in item.keywords.items():
-        if isinstance(value, _pytest.mark.MarkInfo) or isinstance(value, _pytest.mark.MarkDecorator):
+        if key == 'pytestmark' and isinstance(value, list):
+            for mark in value:
+                tags.append(mark.name)
+        elif isinstance(value, _pytest.mark.MarkDecorator):
             tags.append(key)
     return tags
 
 
 def pytest_runtest_setup(item):
     item.rusage = _get_rusage()
-    pytest.config.test_cores_count = 0
-    pytest.config.current_item_nodeid = item.nodeid
+    pytest_config.test_cores_count = 0
+    pytest_config.current_item_nodeid = item.nodeid
     class_name, test_name = tools.split_node_id(item.nodeid)
-    test_log_path = tools.get_test_log_file_path(pytest.config.ya.output_dir, class_name, test_name)
+    test_log_path = tools.get_test_log_file_path(pytest_config.ya.output_dir, class_name, test_name)
     setup_logging(
-        os.path.join(pytest.config.ya.output_dir, "run.log"),
-        pytest.config.option.test_log_level,
+        os.path.join(pytest_config.ya.output_dir, "run.log"),
+        pytest_config.option.test_log_level,
         test_log_path
     )
-    pytest.config.test_logs[item.nodeid]['log'] = test_log_path
-    pytest.config.test_logs[item.nodeid]['logsdir'] = pytest.config.ya.output_dir
-    pytest.config.current_test_log_path = test_log_path
-    pytest.config.current_test_name = "{}::{}".format(class_name, test_name)
+    pytest_config.test_logs[item.nodeid]['log'] = test_log_path
+    pytest_config.test_logs[item.nodeid]['logsdir'] = pytest_config.ya.output_dir
+    pytest_config.current_test_log_path = test_log_path
+    pytest_config.current_test_name = "{}::{}".format(class_name, test_name)
     separator = "#" * 100
     yatest_logger.info(separator)
     yatest_logger.info(test_name)
     yatest_logger.info(separator)
     yatest_logger.info("Test setup")
 
-    test_item = CrashedTestItem(item.nodeid, pytest.config.option.test_suffix)
-    pytest.config.ya_trace_reporter.on_start_test_class(test_item)
-    pytest.config.ya_trace_reporter.on_start_test_case(test_item)
+    test_item = CrashedTestItem(item.nodeid, item.location[0], pytest_config.option.test_suffix)
+    pytest_config.ya_trace_reporter.on_start_test_class(test_item)
+    pytest_config.ya_trace_reporter.on_start_test_case(test_item)
 
 
 def pytest_runtest_teardown(item, nextitem):
@@ -378,23 +417,23 @@ def pytest_runtest_call(item):
 
 
 def pytest_deselected(items):
-    config = pytest.config
+    config = pytest_config
     if config.option.report_deselected:
         for item in items:
-            deselected_item = DeselectedTestItem(item.nodeid, config.option.test_suffix)
+            deselected_item = DeselectedTestItem(item.nodeid, item.location[0], config.option.test_suffix)
             config.ya_trace_reporter.on_start_test_class(deselected_item)
             config.ya_trace_reporter.on_finish_test_case(deselected_item)
             config.ya_trace_reporter.on_finish_test_class(deselected_item)
 
 
-@pytest.mark.trylast
+@pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(items, config):
 
     def filter_items(filters):
         filtered_items = []
         deselected_items = []
         for item in items:
-            canonical_node_id = str(CustomTestItem(item.nodeid, pytest.config.option.test_suffix))
+            canonical_node_id = str(CustomTestItem(item.nodeid, item.location[0], pytest_config.option.test_suffix))
             matched = False
             for flt in filters:
                 if "::" not in flt and "*" not in flt:
@@ -457,16 +496,16 @@ def pytest_collection_modifyitems(items, config):
                 items.extend(item)
             yatest_logger.info("Modulo %s tests are: %s", modulo_index, chunk_items)
 
-    if config.option.mode == RunMode.Run:
+    if config.option.mode == yatest_lib.ya.RunMode.Run:
         for item in items:
-            test_item = NotLaunchedTestItem(item.nodeid, config.option.test_suffix)
+            test_item = NotLaunchedTestItem(item.nodeid, item.location[0], config.option.test_suffix)
             config.ya_trace_reporter.on_start_test_class(test_item)
             config.ya_trace_reporter.on_finish_test_case(test_item)
             config.ya_trace_reporter.on_finish_test_class(test_item)
-    elif config.option.mode == RunMode.List:
+    elif config.option.mode == yatest_lib.ya.RunMode.List:
         tests = []
         for item in items:
-            item = CustomTestItem(item.nodeid, pytest.config.option.test_suffix, item.keywords)
+            item = CustomTestItem(item.nodeid, item.location[0], pytest_config.option.test_suffix, item.keywords)
             record = {
                 "class": item.class_name,
                 "test": item.test_name,
@@ -482,131 +521,72 @@ def pytest_collection_modifyitems(items, config):
 
 def pytest_collectreport(report):
     if not report.passed:
-        if hasattr(pytest.config, 'ya_trace_reporter'):
-            test_item = TestItem(report, None, pytest.config.option.test_suffix)
-            pytest.config.ya_trace_reporter.on_error(test_item)
+        if hasattr(pytest_config, 'ya_trace_reporter'):
+            test_item = TestItem(report, None, None, pytest_config.option.test_suffix)
+            pytest_config.ya_trace_reporter.on_error(test_item)
         else:
             sys.stderr.write(yatest_lib.tools.to_utf8(report.longrepr))
 
 
-@pytest.mark.tryfirst
+@pytest.hookimpl(tryfirst=True)
 def pytest_pyfunc_call(pyfuncitem):
     testfunction = pyfuncitem.obj
-    if pyfuncitem._isyieldedfunction():
-        retval = testfunction(*pyfuncitem._args)
-    else:
-        funcargs = pyfuncitem.funcargs
-        testargs = {}
-        for arg in pyfuncitem._fixtureinfo.argnames:
-            testargs[arg] = funcargs[arg]
-        retval = testfunction(**testargs)
-    pyfuncitem.retval = retval
+    iscoroutinefunction = getattr(inspect, "iscoroutinefunction", None)
+    if iscoroutinefunction is not None and iscoroutinefunction(testfunction):
+        msg = "Coroutine functions are not natively supported and have been skipped.\n"
+        msg += "You need to install a suitable plugin for your async framework, for example:\n"
+        msg += "  - pytest-asyncio\n"
+        msg += "  - pytest-trio\n"
+        msg += "  - pytest-tornasync"
+        warnings.warn(PytestUnhandledCoroutineWarning(msg.format(pyfuncitem.nodeid)))
+        _pytest.outcomes.skip(msg="coroutine function and no async plugin installed (see warnings)")
+    funcargs = pyfuncitem.funcargs
+    testargs = {arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames}
+    pyfuncitem.retval = testfunction(**testargs)
     return True
 
 
+@pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
+    def logreport(report, result, call, markers):
+        test_item = TestItem(report, item.location[0], result, pytest_config.option.test_suffix, markers=markers)
+        if not pytest_config.suite_metrics and context.Ctx.get("YA_PYTEST_START_TIMESTAMP"):
+            pytest_config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
+            pytest_config.ya_trace_reporter.dump_suite_metrics()
 
-    def makereport(item, call):
-        when = call.when
-        duration = call.stop-call.start
-        keywords = item.keywords
-        excinfo = call.excinfo
-        sections = []
-        if not call.excinfo:
-            outcome = "passed"
-            longrepr = None
-        else:
-            if not isinstance(excinfo, _pytest._code.code.ExceptionInfo):
-                outcome = "failed"
-                longrepr = excinfo
-            elif excinfo.errisinstance(pytest.skip.Exception):
-                outcome = "skipped"
-                r = excinfo._getreprcrash()
-                longrepr = (str(r.path), r.lineno, r.message)
-            else:
-                outcome = "failed"
-                if call.when == "call":
-                    longrepr = item.repr_failure(excinfo)
-                else:  # exception in setup or teardown
-                    longrepr = item._repr_failure_py(excinfo, style=item.config.option.tbstyle)
-        for rwhen, key, content in item._report_sections:
-            sections.append(("Captured std%s %s" % (key, rwhen), content))
-        if outcome == "failed":
-            yatest_logger.error(longrepr)
-        return _pytest.runner.TestReport(item.nodeid, item.location, keywords, outcome, longrepr, when, sections, duration)
+        pytest_config.ya_trace_reporter.on_log_report(test_item)
 
-    def logreport(report, result, call):
-        test_item = TestItem(report, result, pytest.config.option.test_suffix)
-        if not pytest.config.suite_metrics and context.Ctx.get("YA_PYTEST_START_TIMESTAMP"):
-            pytest.config.suite_metrics["pytest_startup_duration"] = call.start - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
-            pytest.config.ya_trace_reporter.dump_suite_metrics()
+        if report.outcome == "failed":
+            yatest_logger.error(report.longrepr)
 
-        pytest.config.ya_trace_reporter.on_log_report(test_item)
         if report.when == "call":
             _collect_test_rusage(item)
-            pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
+            pytest_config.ya_trace_reporter.on_finish_test_case(test_item)
         elif report.when == "setup":
-            pytest.config.ya_trace_reporter.on_start_test_class(test_item)
+            pytest_config.ya_trace_reporter.on_start_test_class(test_item)
             if report.outcome != "passed":
-                pytest.config.ya_trace_reporter.on_start_test_case(test_item)
-                pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
+                pytest_config.ya_trace_reporter.on_start_test_case(test_item)
+                pytest_config.ya_trace_reporter.on_finish_test_case(test_item)
             else:
-                pytest.config.ya_trace_reporter.on_start_test_case(test_item)
+                pytest_config.ya_trace_reporter.on_start_test_case(test_item)
         elif report.when == "teardown":
             if report.outcome == "failed":
-                pytest.config.ya_trace_reporter.on_start_test_case(test_item)
-                pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
+                pytest_config.ya_trace_reporter.on_start_test_case(test_item)
+                pytest_config.ya_trace_reporter.on_finish_test_case(test_item)
             else:
-                pytest.config.ya_trace_reporter.on_finish_test_case(test_item, duration_only=True)
-            pytest.config.ya_trace_reporter.on_finish_test_class(test_item)
+                pytest_config.ya_trace_reporter.on_finish_test_case(test_item, duration_only=True)
+            pytest_config.ya_trace_reporter.on_finish_test_class(test_item)
 
-    rep = makereport(item, call)
+    outcome = yield
+    rep = outcome.get_result()
+    result = None
     if hasattr(item, 'retval') and item.retval is not None:
         result = item.retval
-        if not pytest.config.from_ya_test:
-            ti = TestItem(rep, result, pytest.config.option.test_suffix)
-            tr = pytest.config.pluginmanager.getplugin('terminalreporter')
+        if not pytest_config.from_ya_test:
+            ti = TestItem(rep, item.location[0], result, pytest_config.option.test_suffix)
+            tr = pytest_config.pluginmanager.getplugin('terminalreporter')
             tr.write_line("{} - Validating canonical data is not supported when running standalone binary".format(ti), yellow=True, bold=True)
-    else:
-        result = None
-
-    # taken from arcadia/contrib/python/pytest/_pytest/skipping.py
-    try:
-        # unitttest special case, see setting of _unexpectedsuccess
-        if hasattr(item, '_unexpectedsuccess'):
-            if rep.when == "call":
-                # we need to translate into how pytest encodes xpass
-                rep.wasxfail = "reason: " + repr(item._unexpectedsuccess)
-                rep.outcome = "failed"
-            return rep
-        if not (call.excinfo and call.excinfo.errisinstance(pytest.xfail.Exception)):
-            evalxfail = getattr(item, '_evalxfail', None)
-            if not evalxfail:
-                return
-        if call.excinfo and call.excinfo.errisinstance(pytest.xfail.Exception):
-            if not item.config.getvalue("runxfail"):
-                rep.wasxfail = "reason: " + call.excinfo.value.msg
-                rep.outcome = "skipped"
-                return rep
-        evalxfail = item._evalxfail
-        if not rep.skipped:
-            if not item.config.option.runxfail:
-                if evalxfail.wasvalid() and evalxfail.istrue():
-                    if call.excinfo:
-                        if evalxfail.invalidraise(call.excinfo.value):
-                            rep.outcome = "failed"
-                            return rep
-                        else:
-                            rep.outcome = "skipped"
-                    elif call.when == "call":
-                        rep.outcome = "failed"
-                    else:
-                        return rep
-                    rep.wasxfail = evalxfail.getexplanation()
-                    return rep
-    finally:
-        logreport(rep, result, call)
-    return rep
+    logreport(rep, result, call, item.own_markers)
 
 
 def pytest_make_parametrize_id(config, val, argname):
@@ -629,9 +609,12 @@ def get_formatted_error(report):
 
 def colorize(longrepr):
     # use default pytest colorization
-    if pytest.config.option.tbstyle != "short":
+    if pytest_config.option.tbstyle != "short":
         io = py.io.TextIO()
-        writer = py.io.TerminalWriter(file=io)
+        if six.PY2:
+            writer = py.io.TerminalWriter(file=io)
+        else:
+            writer = _pytest._io.TerminalWriter(file=io)
         # enable colorization
         writer.hasmarkup = True
 
@@ -640,56 +623,51 @@ def colorize(longrepr):
             return io.getvalue().strip()
         return yatest_lib.tools.to_utf8(longrepr)
 
+    # Use arcadia style colorization
     text = yatest_lib.tools.to_utf8(longrepr)
-    pos = text.find("E   ")
-    if pos == -1:
-        return text
-
-    bt, error = text[:pos], text[pos:]
-    filters = [
-        # File path, line number and function name
-        (re.compile(r"^(.*?):(\d+): in (\S+)", flags=re.MULTILINE), r"[[unimp]]\1[[rst]]:[[alt2]]\2[[rst]]: in [[alt1]]\3[[rst]]"),
-    ]
-    for regex, substitution in filters:
-        bt = regex.sub(substitution, bt)
-    return "{}[[bad]]{}".format(bt, error)
+    return tools.colorize_pytest_error(text)
 
 
 class TestItem(object):
 
-    def __init__(self, report, result, test_suffix):
+    def __init__(self, report, location, result, test_suffix, markers=None):
         self._result = result
         self.nodeid = report.nodeid
         self._class_name, self._test_name = tools.split_node_id(self.nodeid, test_suffix)
-        self._error = None
+        self._error = ""
         self._status = None
-        self._process_report(report)
+        self._location = location
         self._duration = hasattr(report, 'duration') and report.duration or 0
         self._keywords = getattr(report, "keywords", {})
+        self._xfaildiff = any(m.name == 'xfaildiff' for m in (markers or []))
+        self._process_report(report)
 
     def _process_report(self, report):
         if report.longrepr:
             self.set_error(report)
             if hasattr(report, 'when') and report.when != "call":
                 self.set_error(report.when + " failed:\n" + self._error)
+
+        report_teststatus = _pytest.skipping.pytest_report_teststatus(report)
+        if report_teststatus is not None:
+            report_teststatus = report_teststatus[0]
+
+        if report_teststatus == 'xfailed':
+            self._status = 'xfail'
+            self.set_error(report.wasxfail or 'test was marked as xfail', 'imp')
+        elif report_teststatus == 'xpassed':
+            self._status = 'xpass'
+            self.set_error("Test unexpectedly passed")
+        elif report.skipped:
+            self._status = 'skipped'
+            self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
+        elif report.passed:
+            if self._xfaildiff:
+                self._status = 'xfaildiff'
+            else:
+                self._status = 'good'
         else:
-            self.set_error("")
-        if report.outcome == "passed":
-            self._status = 'good'
-            self.set_error("")
-        elif report.outcome == "skipped":
-            if hasattr(report, 'wasxfail'):
-                self._status = 'xfail'
-                self.set_error(report.wasxfail, 'imp')
-            else:
-                self._status = 'skipped'
-                self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
-        elif report.outcome == "failed":
-            if hasattr(report, 'wasxfail'):
-                self._status = 'xpass'
-                self.set_error("Test unexpectedly passed")
-            else:
-                self._status = 'fail'
+            self._status = 'fail'
 
     @property
     def status(self):
@@ -710,11 +688,16 @@ class TestItem(object):
     def error(self):
         return self._error
 
+    @property
+    def location(self):
+        return self._location
+
     def set_error(self, entry, marker='bad'):
+        assert entry != ""
         if isinstance(entry, _pytest.reports.BaseReport):
             self._error = get_formatted_error(entry)
         else:
-            self._error = "[[{}]]{}".format(to_str(marker), to_str(entry))
+            self._error = "[[{}]]{}".format(yatest_lib.tools.to_str(marker), yatest_lib.tools.to_str(entry))
 
     @property
     def duration(self):
@@ -736,9 +719,10 @@ class TestItem(object):
 
 class CustomTestItem(TestItem):
 
-    def __init__(self, nodeid, test_suffix, keywords=None):
+    def __init__(self, nodeid, location, test_suffix, keywords=None):
         self._result = None
         self.nodeid = nodeid
+        self._location = location
         self._class_name, self._test_name = tools.split_node_id(nodeid, test_suffix)
         self._duration = 0
         self._error = ""
@@ -747,22 +731,22 @@ class CustomTestItem(TestItem):
 
 class NotLaunchedTestItem(CustomTestItem):
 
-    def __init__(self, nodeid, test_suffix):
-        super(NotLaunchedTestItem, self).__init__(nodeid, test_suffix)
+    def __init__(self, nodeid, location, test_suffix):
+        super(NotLaunchedTestItem, self).__init__(nodeid, location, test_suffix)
         self._status = "not_launched"
 
 
 class CrashedTestItem(CustomTestItem):
 
-    def __init__(self, nodeid, test_suffix):
-        super(CrashedTestItem, self).__init__(nodeid, test_suffix)
+    def __init__(self, nodeid, location, test_suffix):
+        super(CrashedTestItem, self).__init__(nodeid, location, test_suffix)
         self._status = "crashed"
 
 
 class DeselectedTestItem(CustomTestItem):
 
-    def __init__(self, nodeid, test_suffix):
-        super(DeselectedTestItem, self).__init__(nodeid, test_suffix)
+    def __init__(self, nodeid, location, test_suffix):
+        super(DeselectedTestItem, self).__init__(nodeid, location, test_suffix)
         self._status = "deselected"
 
 
@@ -823,14 +807,12 @@ class TraceReportGenerator(object):
             pass
 
     def on_start_test_class(self, test_item):
-        pytest.config.ya.set_test_item_node_id(test_item.nodeid)
+        pytest_config.ya.set_test_item_node_id(test_item.nodeid)
         class_name = test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name
         self._current_test = (class_name, None)
-        self.trace('test-started', {'class': class_name})
 
     def on_finish_test_class(self, test_item):
-        pytest.config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-finished', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
+        pytest_config.ya.set_test_item_node_id(test_item.nodeid)
 
     def on_start_test_case(self, test_item):
         class_name = yatest_lib.tools.to_utf8(test_item.class_name)
@@ -839,9 +821,12 @@ class TraceReportGenerator(object):
             'class': class_name,
             'subtest': subtest_name,
         }
-        if test_item.nodeid in pytest.config.test_logs:
-            message['logs'] = pytest.config.test_logs[test_item.nodeid]
-        pytest.config.ya.set_test_item_node_id(test_item.nodeid)
+        # Enable when CI is ready, see YA-465
+        if False and test_item.location:
+            message['path'] = test_item.location
+        if test_item.nodeid in pytest_config.test_logs:
+            message['logs'] = pytest_config.test_logs[test_item.nodeid]
+        pytest_config.ya.set_test_item_node_id(test_item.nodeid)
         self._current_test = (class_name, subtest_name)
         self.trace('subtest-started', message)
 
@@ -868,12 +853,15 @@ class TraceReportGenerator(object):
                 'status': test_item.status,
                 'comment': comment,
                 'result': result,
-                'metrics': pytest.config.test_metrics.get(test_item.nodeid),
+                'metrics': test_metrics.get(test_item.nodeid),
                 'is_diff_test': 'diff_test' in test_item.keywords,
                 'tags': _get_item_tags(test_item),
             }
-            if test_item.nodeid in pytest.config.test_logs:
-                message['logs'] = pytest.config.test_logs[test_item.nodeid]
+            # Enable when CI is ready, see YA-465
+            if False and test_item.location:
+                message['path'] = test_item.location
+            if test_item.nodeid in pytest_config.test_logs:
+                message['logs'] = pytest_config.test_logs[test_item.nodeid]
 
         message['time'] = self._test_duration.get(test_item.nodeid, test_item.duration)
 
@@ -881,8 +869,8 @@ class TraceReportGenerator(object):
         self._test_messages[test_item.nodeid] = message
 
     def dump_suite_metrics(self):
-        message = {"metrics": pytest.config.suite_metrics}
-        self.trace("suite-event", message)
+        message = {"metrics": pytest_config.suite_metrics}
+        self.trace("chunk_event", message)
 
     def on_error(self, test_item):
         self.trace('chunk_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
@@ -907,7 +895,7 @@ class TraceReportGenerator(object):
             'name': name
         }
 
-        data = to_str(json.dumps(event, ensure_ascii=False))
+        data = yatest_lib.tools.to_str(json.dumps(event, ensure_ascii=False))
         self._file.write(data + '\n')
         self._file.flush()
 
@@ -980,182 +968,3 @@ class DryTraceReportGenerator(TraceReportGenerator):
 
     def trace(self, name, value):
         pass
-
-
-class Ya(object):
-    """
-    Adds integration with ya, helps in finding dependencies
-    """
-
-    def __init__(self, mode, source_root, build_root, dep_roots, output_dir, test_params, context, python_path, valgrind_path, gdb_path, data_root):
-        context_file_path = os.environ.get("YA_TEST_CONTEXT_FILE", None)
-        if context_file_path:
-            with open(context_file_path, 'r') as afile:
-                test_context = json.load(afile)
-            context_runtime = test_context["runtime"]
-        else:
-            context_runtime = {}
-        self._mode = mode
-        self._build_root = to_str(context_runtime.get("build_root", "")) or build_root
-        self._source_root = to_str(context_runtime.get("source_root", "")) or source_root or self._detect_source_root()
-        self._output_dir = to_str(context_runtime.get("output_path", "")) or output_dir or  self._detect_output_root()
-        if not self._output_dir:
-            raise Exception("Run ya make -t before running test binary")
-        if not self._source_root:
-            logging.warning("Source root was not set neither determined, use --source-root to set it explicitly")
-        if not self._build_root:
-            if self._source_root:
-                self._build_root = self._source_root
-            else:
-                logging.warning("Build root was not set neither determined, use --build-root to set it explicitly")
-
-        if data_root:
-            self._data_root = data_root
-        elif self._source_root:
-            self._data_root = os.path.abspath(os.path.join(self._source_root, "..", "arcadia_tests_data"))
-
-        self._dep_roots = dep_roots
-
-        self._python_path = to_str(context_runtime.get("python_bin", "")) or python_path
-        self._valgrind_path = valgrind_path
-        self._gdb_path = to_str(context_runtime.get("gdb_bin", "")) or gdb_path
-        self._test_params = {}
-        self._context = {}
-        self._test_item_node_id = None
-
-        ram_drive_path = to_str(context_runtime.get("ram_drive_path", ""))
-        if ram_drive_path:
-            self._test_params["ram_drive_path"] = ram_drive_path
-        if test_params:
-            self._test_params.update(dict(x.split('=', 1) for x in test_params))
-        self._test_params.update(context_runtime.get("test_params", {}))
-
-        self._context.update(context)
-
-    @property
-    def source_root(self):
-        return self._source_root
-
-    @property
-    def data_root(self):
-        return self._data_root
-
-    @property
-    def build_root(self):
-        return self._build_root
-
-    @property
-    def dep_roots(self):
-        return self._dep_roots
-
-    @property
-    def output_dir(self):
-        return self._output_dir
-
-    @property
-    def python_path(self):
-        return self._python_path or sys.executable
-
-    @property
-    def valgrind_path(self):
-        if not self._valgrind_path:
-            raise ValueError("path to valgrind was not pass correctly, use --valgrind-path to fix it")
-        return self._valgrind_path
-
-    @property
-    def gdb_path(self):
-        return self._gdb_path
-
-    def get_binary(self, *path):
-        assert self._build_root, "Build root was not set neither determined, use --build-root to set it explicitly"
-        path = list(path)
-        if os.name == "nt":
-            if not path[-1].endswith(".exe"):
-                path[-1] += ".exe"
-
-        target_dirs = [self.build_root]
-        # Search for binaries within PATH dirs to be able to get path to the binaries specified by basename for exectests
-        if 'PATH' in os.environ:
-            target_dirs += os.environ['PATH'].split(':')
-
-        for target_dir in target_dirs:
-            binary_path = os.path.join(target_dir, *path)
-            if os.path.exists(binary_path):
-                yatest_logger.debug("Binary was found by %s", binary_path)
-                return binary_path
-
-        error_message = "Cannot find binary '{binary}': make sure it was added in the DEPENDS section".format(binary=path)
-        yatest_logger.debug(error_message)
-        if self._mode == RunMode.Run:
-            raise TestMisconfigurationException(error_message)
-
-    def file(self, path, diff_tool=None, local=False, diff_file_name=None, diff_tool_timeout=None):
-        return canon.ExternalDataInfo.serialize_file(path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout)
-
-    def get_param(self, key, default=None):
-        return self._test_params.get(key, default)
-
-    def get_param_dict_copy(self):
-        return dict(self._test_params)
-
-    def get_context(self, key):
-        return self._context[key]
-
-    def _detect_source_root(self):
-        root = None
-        try:
-            import library.python.find_root
-            # try to determine source root from cwd
-            cwd = os.getcwd()
-            root = library.python.find_root.detect_root(cwd)
-
-            if not root:
-                # try to determine root pretending we are in the test work dir made from --keep-temps run
-                env_subdir = os.path.join("environment", "arcadia")
-                root = library.python.find_root.detect_root(cwd, detector=lambda p: os.path.exists(os.path.join(p, env_subdir)))
-        except ImportError:
-            logging.warning("Unable to import library.python.find_root")
-
-        return root
-
-    def _detect_output_root(self):
-
-        # if run from kept test working dir
-        if os.path.exists(tools.TESTING_OUT_DIR_NAME):
-            return tools.TESTING_OUT_DIR_NAME
-
-        # if run from source dir
-        if sys.version_info.major == 3:
-            test_results_dir = "py3test"
-        else:
-            test_results_dir = "pytest"
-
-        test_results_output_path = os.path.join("test-results", test_results_dir, tools.TESTING_OUT_DIR_NAME)
-        if os.path.exists(test_results_output_path):
-            return test_results_output_path
-
-        if os.path.exists(os.path.dirname(test_results_output_path)):
-            os.mkdir(test_results_output_path)
-            return test_results_output_path
-
-        return None
-
-    def set_test_item_node_id(self, node_id):
-        self._test_item_node_id = node_id
-
-    def get_test_item_node_id(self):
-        assert self._test_item_node_id
-        return self._test_item_node_id
-
-    def set_metric_value(self, name, val):
-        node_id = self.get_test_item_node_id()
-        if node_id not in pytest.config.test_metrics:
-            pytest.config.test_metrics[node_id] = {}
-
-        pytest.config.test_metrics[node_id][name] = val
-
-    def get_metric_value(self, name, default=None):
-        res = pytest.config.test_metrics.get(self.get_test_item_node_id(), {}).get(name)
-        if res is None:
-            return default
-        return res

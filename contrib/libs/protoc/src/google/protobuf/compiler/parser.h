@@ -175,7 +175,7 @@ class PROTOBUF_EXPORT Parser {
   bool ConsumeSignedInteger(int* output, const char* error);
   // Consume a 64-bit integer and store its value in "output".  If the value
   // is greater than max_value, an error will be reported.
-  bool ConsumeInteger64(uint64_t max_value, uint64_t* output,
+  bool ConsumeInteger64(arc_ui64 max_value, arc_ui64* output,
                         const char* error);
   // Consume a number and store its value in "output".  This will accept
   // tokens of either INTEGER or FLOAT type.
@@ -327,8 +327,8 @@ class PROTOBUF_EXPORT Parser {
                     const LocationRecorder& root_location,
                     const FileDescriptorProto* containing_file);
   bool ParseImport(RepeatedPtrField<TProtoStringType>* dependency,
-                   RepeatedField<int32_t>* public_dependency,
-                   RepeatedField<int32_t>* weak_dependency,
+                   RepeatedField<arc_i32>* public_dependency,
+                   RepeatedField<arc_i32>* weak_dependency,
                    const LocationRecorder& root_location,
                    const FileDescriptorProto* containing_file);
 

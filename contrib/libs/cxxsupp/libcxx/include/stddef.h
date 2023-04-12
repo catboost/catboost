@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===--------------------------- stddef.h ---------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -11,7 +11,7 @@
     defined(__need_wchar_t) || defined(__need_NULL) || defined(__need_wint_t)
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
@@ -43,7 +43,7 @@ Types:
 #include <__config>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
@@ -54,12 +54,7 @@ typedef double max_align_t;
 #endif
 
 #ifdef __cplusplus
-
-extern "C++" {
-#include <__nullptr>
-using std::nullptr_t;
-}
-
+    typedef decltype(nullptr) nullptr_t;
 #endif
 
 #endif // _LIBCPP_STDDEF_H

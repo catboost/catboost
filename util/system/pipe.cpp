@@ -1,6 +1,5 @@
 #include "pipe.h"
 
-#include <util/stream/output.h>
 #include <util/generic/yexception.h>
 
 ssize_t TPipeHandle::Read(void* buffer, size_t byteCount) const noexcept {

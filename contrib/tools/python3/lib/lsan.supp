@@ -1,2 +1,0 @@
-leak:PyBytes_FromStringAndSize
-leak:PyUnicode_New

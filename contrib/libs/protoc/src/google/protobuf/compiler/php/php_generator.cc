@@ -50,26 +50,27 @@ const TProtoStringType kDescriptorMetadataFile =
 const TProtoStringType kDescriptorDirName = "Google/Protobuf/Internal";
 const TProtoStringType kDescriptorPackageName = "Google\\Protobuf\\Internal";
 const char* const kReservedNames[] = {
-    "abstract",   "and",        "array",        "as",           "break",
-    "callable",   "case",       "catch",        "class",        "clone",
-    "const",      "continue",   "declare",      "default",      "die",
-    "do",         "echo",       "else",         "elseif",       "empty",
-    "enddeclare", "endfor",     "endforeach",   "endif",        "endswitch",
-    "endwhile",   "eval",       "exit",         "extends",      "final",
-    "for",        "foreach",    "function",     "global",       "goto",
-    "if",         "implements", "include",      "include_once", "instanceof",
-    "insteadof",  "interface",  "isset",        "list",         "namespace",
-    "new",        "or",         "print",        "private",      "protected",
-    "public",     "require",    "require_once", "return",       "static",
-    "switch",     "throw",      "trait",        "try",          "unset",
-    "use",        "var",        "while",        "xor",          "int",
-    "float",      "bool",       "string",       "true",         "false",
-    "null",       "void",       "iterable"};
+    "abstract",     "and",        "array",      "as",         "break",
+    "callable",     "case",       "catch",      "class",      "clone",
+    "const",        "continue",   "declare",    "default",    "die",
+    "do",           "echo",       "else",       "elseif",     "empty",
+    "enddeclare",   "endfor",     "endforeach", "endif",      "endswitch",
+    "endwhile",     "eval",       "exit",       "extends",    "final",
+    "finally",      "fn",         "for",        "foreach",    "function",
+    "global",       "goto",       "if",         "implements", "include",
+    "include_once", "instanceof", "insteadof",  "interface",  "isset",
+    "list",         "match",      "namespace",  "new",        "or",
+    "print",        "private",    "protected",  "public",     "require",
+    "require_once", "return",     "static",     "switch",     "throw",
+    "trait",        "try",        "unset",      "use",        "var",
+    "while",        "xor",        "yield",      "int",        "float",
+    "bool",         "string",     "true",       "false",      "null",
+    "void",         "iterable"};
 const char* const kValidConstantNames[] = {
     "int",   "float", "bool", "string",   "true",
     "false", "null",  "void", "iterable",
 };
-const int kReservedNamesSize = 73;
+const int kReservedNamesSize = 77;
 const int kValidConstantNamesSize = 9;
 const int kFieldSetter = 1;
 const int kFieldGetter = 2;
@@ -1120,9 +1121,9 @@ void GenerateAddFilesToPool(const FileDescriptor* file, const Options& options,
       file, &nodes_without_dependency, &deps, &dependency_count);
 
   while (!nodes_without_dependency.empty()) {
-    auto file = *nodes_without_dependency.begin();
-    nodes_without_dependency.erase(file);
-    for (auto dependent : deps[file]) {
+    auto file_node = *nodes_without_dependency.begin();
+    nodes_without_dependency.erase(file_node);
+    for (auto dependent : deps[file_node]) {
       if (dependency_count[dependent] == 1) {
         dependency_count.erase(dependent);
         nodes_without_dependency.insert(dependent);
@@ -1131,11 +1132,11 @@ void GenerateAddFilesToPool(const FileDescriptor* file, const Options& options,
       }
     }
 
-    bool needs_aggregate = NeedsUnwrapping(file, options);
+    bool needs_aggregate = NeedsUnwrapping(file_node, options);
 
     if (needs_aggregate) {
       auto file_proto = sorted_file_set.add_file();
-      file->CopyTo(file_proto);
+      file_node->CopyTo(file_proto);
 
       // Filter out descriptor.proto as it cannot be depended on for now.
       RepeatedPtrField<TProtoStringType>* dependency =
@@ -1157,7 +1158,7 @@ void GenerateAddFilesToPool(const FileDescriptor* file, const Options& options,
         it->clear_extension();
       }
     } else {
-      TProtoStringType dependency_filename = GeneratedMetadataFileName(file, false);
+      TProtoStringType dependency_filename = GeneratedMetadataFileName(file_node, false);
       printer->Print(
           "\\^name^::initOnce();\n",
           "name", FilenameToClassname(dependency_filename));
@@ -1895,7 +1896,7 @@ void GenerateCEnum(const EnumDescriptor* desc, io::Printer* printer) {
       "  const upb_enumdef *e = upb_symtab_lookupenum(symtab, \"$name$\");\n"
       "  char *name = NULL;\n"
       "  size_t name_len;\n"
-      "  int32_t num;\n"
+      "  arc_i32 num;\n"
       "  if (zend_parse_parameters(ZEND_NUM_ARGS(), \"s\", &name,\n"
       "                            &name_len) == FAILURE) {\n"
       "    return;\n"

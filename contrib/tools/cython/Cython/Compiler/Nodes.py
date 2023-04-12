@@ -2637,8 +2637,11 @@ class CFuncDefNode(FuncDefNode):
         def put_into_closure(entry):
             if entry.in_closure and not arg.default:
                 code.putln('%s = %s;' % (entry.cname, entry.original_cname))
-                code.put_var_incref(entry)
-                code.put_var_giveref(entry)
+                if entry.type.is_memoryviewslice:
+                    code.put_incref_memoryviewslice(entry.cname, have_gil=True)
+                else:
+                    code.put_var_incref(entry)
+                    code.put_var_giveref(entry)
         for arg in self.args:
             put_into_closure(scope.lookup_here(arg.name))
 
@@ -3461,7 +3464,7 @@ class DefNodeWrapper(FuncDefNode):
                     docstr.as_c_string_literal()))
 
             if entry.is_special:
-                code.putln('#if CYTHON_COMPILING_IN_CPYTHON')
+                code.putln('#if CYTHON_UPDATE_DESCRIPTOR_DOC')
                 code.putln(
                     "struct wrapperbase %s;" % entry.wrapperbase_cname)
                 code.putln('#endif')
@@ -4957,7 +4960,7 @@ class CClassDefNode(ClassDefNode):
                     preprocessor_guard = slot.preprocessor_guard_code() if slot else None
                     if preprocessor_guard:
                         code.putln(preprocessor_guard)
-                    code.putln('#if CYTHON_COMPILING_IN_CPYTHON')
+                    code.putln('#if CYTHON_UPDATE_DESCRIPTOR_DOC')
                     code.putln("{")
                     code.putln(
                         'PyObject *wrapper = PyObject_GetAttrString((PyObject *)&%s, "%s"); %s' % (
@@ -7703,6 +7706,8 @@ class TryFinallyStatNode(StatNode):
     def generate_function_definitions(self, env, code):
         self.body.generate_function_definitions(env, code)
         self.finally_clause.generate_function_definitions(env, code)
+        if self.finally_except_clause:
+            self.finally_except_clause.generate_function_definitions(env, code)
 
     def put_error_catcher(self, code, temps_to_clean_up, exc_vars,
                           exc_lineno_cnames=None, exc_filename_cname=None):
@@ -7987,7 +7992,7 @@ class FromCImportStatNode(StatNode):
         if self.relative_level and self.relative_level > env.qualified_name.count('.'):
             error(self.pos, "relative cimport beyond main package is not allowed")
             return
-        module_scope = env.find_module(self.module_name, self.pos, relative_level=self.relative_level)
+        module_scope = env.find_module(self.module_name, self.pos, relative_level=self.relative_level, need_pxd=0)
         module_name = module_scope.qualified_name
         env.add_imported_module(module_scope)
         for pos, name, as_name, kind in self.imported_names:
@@ -8990,10 +8995,6 @@ class ParallelRangeNode(ParallelStatNode):
             self.index_type = PyrexTypes.c_py_ssize_t_type
         else:
             self.index_type = self.target.type
-            if not self.index_type.signed:
-                warning(self.target.pos,
-                        "Unsigned index type not allowed before OpenMP 3.0",
-                        level=2)
 
         # Setup start, stop and step, allocating temps if needed
         self.names = 'start', 'stop', 'step'

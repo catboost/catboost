@@ -8,7 +8,7 @@
     More information:
     https://datatracker.ietf.org/doc/rfc8610/
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -27,6 +27,7 @@ from pygments.token import (
     Punctuation,
     String,
     Text,
+    Whitespace,
 )
 
 
@@ -37,6 +38,7 @@ class CddlLexer(RegexLexer):
     .. versionadded:: 2.8
     """
     name = "CDDL"
+    url = 'https://datatracker.ietf.org/doc/rfc8610/'
     aliases = ["cddl"]
     filenames = ["*.cddl"]
     mimetypes = ["text/x-cddl"]
@@ -103,7 +105,8 @@ class CddlLexer(RegexLexer):
 
     _re_id = (
         r"[$@A-Z_a-z]"
-        r"(?:[\-\.]*[$@0-9A-Z_a-z]|[$@0-9A-Z_a-z])*"
+        r"(?:[\-\.]+(?=[$@0-9A-Z_a-z])|[$@0-9A-Z_a-z])*"
+
     )
 
     # While the spec reads more like "an int must not start with 0" we use a
@@ -112,15 +115,13 @@ class CddlLexer(RegexLexer):
     _re_uint = r"(?:0b[01]+|0x[0-9a-fA-F]+|[1-9]\d*|0(?!\d))"
     _re_int = r"-?" + _re_uint
 
-    flags = re.UNICODE | re.MULTILINE
-
     tokens = {
-        "commentsandwhitespace": [(r"\s+", Text), (r";.+$", Comment.Single)],
+        "commentsandwhitespace": [(r"\s+", Whitespace), (r";.+$", Comment.Single)],
         "root": [
             include("commentsandwhitespace"),
             # tag types
             (r"#(\d\.{uint})?".format(uint=_re_uint), Keyword.Type),  # type or any
-            # occurence
+            # occurrence
             (
                 r"({uint})?(\*)({uint})?".format(uint=_re_uint),
                 bygroups(Number, Operator, Number),
@@ -144,7 +145,7 @@ class CddlLexer(RegexLexer):
             # Token type is String as barewords are always interpreted as such.
             (
                 r"({bareword})(\s*)(:)".format(bareword=_re_id),
-                bygroups(String, Text, Punctuation),
+                bygroups(String, Whitespace, Punctuation),
             ),
             # predefined types
             (
@@ -185,6 +186,6 @@ class CddlLexer(RegexLexer):
         "bstr": [
             (r"'", String.Single, "#pop"),
             (r"\\.", String.Escape),
-            (r"[^']", String.Single),
+            (r"[^'\\]+", String.Single),
         ],
     }

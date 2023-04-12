@@ -1,8 +1,8 @@
 #pragma once
 
 #include <util/system/atexit.h>
-#include <util/system/atomic.h>
 
+#include <atomic>
 #include <new>
 #include <utility>
 
@@ -14,8 +14,8 @@ struct TSingletonTraits {
 namespace NPrivate {
     void FillWithTrash(void* ptr, size_t len);
 
-    void LockRecursive(TAtomic& lock) noexcept;
-    void UnlockRecursive(TAtomic& lock) noexcept;
+    void LockRecursive(std::atomic<size_t>& lock) noexcept;
+    void UnlockRecursive(std::atomic<size_t>& lock) noexcept;
 
     template <class T>
     void Destroyer(void* ptr) {
@@ -24,13 +24,13 @@ namespace NPrivate {
     }
 
     template <class T, size_t P, class... TArgs>
-    Y_NO_INLINE T* SingletonBase(T*& ptr, TArgs&&... args) {
+    Y_NO_INLINE T* SingletonBase(std::atomic<T*>& ptr, TArgs&&... args) {
         alignas(T) static char buf[sizeof(T)];
-        static TAtomic lock;
+        static std::atomic<size_t> lock;
 
         LockRecursive(lock);
 
-        auto ret = AtomicGet(ptr);
+        auto ret = ptr.load();
 
         try {
             if (!ret) {
@@ -44,7 +44,7 @@ namespace NPrivate {
                     throw;
                 }
 
-                AtomicSet(ptr, ret);
+                ptr.store(ret);
             }
         } catch (...) {
             UnlockRecursive(lock);
@@ -61,8 +61,8 @@ namespace NPrivate {
     T* SingletonInt(TArgs&&... args) {
         static_assert(sizeof(T) < 32000, "use HugeSingleton instead");
 
-        static T* ptr;
-        auto ret = AtomicGet(ptr);
+        static std::atomic<T*> ptr;
+        auto ret = ptr.load();
 
         if (Y_UNLIKELY(!ret)) {
             ret = SingletonBase<T, P>(ptr, std::forward<TArgs>(args)...);
@@ -108,7 +108,7 @@ namespace NPrivate {
     template <class T, size_t P, class... TArgs>    \
     friend T* ::NPrivate::SingletonInt(TArgs&&...); \
     template <class T, size_t P, class... TArgs>    \
-    friend T* ::NPrivate::SingletonBase(T*&, TArgs&&...);
+    friend T* ::NPrivate::SingletonBase(std::atomic<T*>&, TArgs&&...);
 
 template <class T, class... TArgs>
 T* Singleton(TArgs&&... args) {

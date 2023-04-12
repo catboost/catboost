@@ -62,6 +62,10 @@ void SetCyclesPerSecond(ui64 cycles);
 TDuration CyclesToDuration(ui64 cycles);
 ui64 DurationToCycles(TDuration duration);
 
+// NBS-3400 - CyclesToDuration and DurationToCycles may overflow for long running events
+TDuration CyclesToDurationSafe(ui64 cycles);
+ui64 DurationToCyclesSafe(TDuration duration);
+
 class TPrecisionTimer {
 private:
     ui64 Start = 0;

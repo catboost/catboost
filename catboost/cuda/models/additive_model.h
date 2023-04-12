@@ -8,13 +8,14 @@ namespace NCatboostCuda {
     template <class TInner>
     class TAdditiveModel {
     public:
-        double Bias = 0.0;
+        TMaybe<TVector<double>> Bias;
         TVector<TInner> WeakModels;
 
         TAdditiveModel() {
         }
 
         TAdditiveModel(const TAdditiveModel& other) = default;
+        TAdditiveModel& operator=(const TAdditiveModel& other) = default;
 
         template <class TDataSet, class TCursor>
         void Append(const TDataSet& ds,
@@ -30,7 +31,7 @@ namespace NCatboostCuda {
             }
         }
 
-        void SetBias(double bias) {
+        void SetBias(const TMaybe<TVector<double>>& bias) {
             Bias = bias;
         }
 

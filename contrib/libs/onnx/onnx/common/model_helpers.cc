@@ -1,5 +1,6 @@
-// Copyright (c) Facebook Inc. and Microsoft Corporation.
-// Licensed under the MIT license.
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include "onnx/common/model_helpers.h"
 #include "onnx/checker.h"
@@ -9,28 +10,25 @@
 namespace ONNX_NAMESPACE {
 
 Common::Status BuildNode(
-    const TString& name,
-    const TString& domain,
-    const TString& doc_string,
-    const TString& op_type,
-    std::vector<TString> const& inputs,
-    std::vector<TString> const& outputs,
+    const std::string& name,
+    const std::string& domain,
+    const std::string& doc_string,
+    const std::string& op_type,
+    std::vector<std::string> const& inputs,
+    std::vector<std::string> const& outputs,
     NodeProto* node) {
   if (node == NULL) {
-    return Common::Status(
-        Common::CHECKER,
-        Common::INVALID_ARGUMENT,
-        "node_proto should not be nullptr.");
+    return Common::Status(Common::CHECKER, Common::INVALID_ARGUMENT, "node_proto should not be nullptr.");
   }
-  node->set_name(name);
-  node->set_domain(domain);
-  node->set_doc_string(doc_string);
-  node->set_op_type(op_type);
+  node->set_name(TString{name});
+  node->set_domain(TString{domain});
+  node->set_doc_string(TString{doc_string});
+  node->set_op_type(TString{op_type});
   for (auto& input : inputs) {
-    node->add_input(input);
+    node->add_input(TString{input});
   }
   for (auto& output : outputs) {
-    node->add_output(output);
+    node->add_output(TString{output});
   }
 
   return Common::Status::OK();

@@ -2,6 +2,7 @@ import sys
 import subprocess
 import tempfile
 import os
+import shutil
 
 
 class Opts(object):
@@ -14,23 +15,35 @@ class Opts(object):
         self.output = args[5]
         auto_input = args[6:]
 
-        if self.arch_type == 'GNU_AR':
-            self.create_flags = ['rcs']
-            self.modify_flags = ['-M']
-        elif self.arch_type == 'LLVM_AR':
-            self.create_flags = ['rcs', '-format=%s' % self.llvm_ar_format]
-            self.modify_flags = ['-M']
-        elif self.arch_type == 'LIBTOOL':
-            self.create_flags = ['-static', '-o']
-            self.modify_flags = []
+        self.need_modify = False
+        self.extra_args = []
 
-        need_modify = self.arch_type != 'LIBTOOL' and any(item.endswith('.a') for item in auto_input)
-        if need_modify:
-            self.objs = filter(lambda x: x.endswith('.o'), auto_input)
-            self.libs = filter(lambda x: x.endswith('.a'), auto_input)
-        else:
+        if self.arch_type.endswith('_AR'):
+            if self.arch_type == 'GNU_AR':
+                self.create_flags = ['rcs']
+                self.modify_flags = ['-M']
+            elif self.arch_type == 'LLVM_AR':
+                self.create_flags = ['rcs', '--format=%s' % self.llvm_ar_format]
+                self.modify_flags = ['-M']
+            self.need_modify = any(item.endswith('.a') for item in auto_input)
+            if self.need_modify:
+                self.objs = list( filter(lambda x: x.endswith('.o'), auto_input) )
+                self.libs = list( filter(lambda x: x.endswith('.a'), auto_input) )
+            else:
+                self.objs = auto_input
+                self.libs = []
+            self.output_opts = [self.output]
+        elif self.arch_type == 'LIBTOOL':
+            self.create_flags = ['-static']
             self.objs = auto_input
             self.libs = []
+            self.output_opts = ['-o', self.output]
+        elif self.arch_type == 'LIB':
+            self.create_flags = []
+            self.extra_args = list( filter(lambda x: x.startswith('/'), auto_input) )
+            self.objs = list( filter(lambda x: not x.startswith('/'), auto_input) )
+            self.libs = []
+            self.output_opts = ['/OUT:' + self.output]
 
         self.plugin_flags = ['--plugin', self.plugin] if self.plugin != 'None' else []
 
@@ -61,10 +74,13 @@ if __name__ == "__main__":
     except OSError:
         pass
 
-    if not opts.libs:
-        cmd = [opts.archiver] + opts.create_flags + opts.plugin_flags + [opts.output] + opts.objs
+    if not opts.need_modify:
+        cmd = [opts.archiver] + opts.create_flags + opts.plugin_flags + opts.extra_args + opts.output_opts + opts.objs
         stdin = None
         exit_code = call()
+    elif len(opts.objs) == 0 and len(opts.libs) == 1:
+        shutil.copy(opts.libs[0], opts.output)
+        exit_code = 0
     else:
         temp = tempfile.NamedTemporaryFile(dir=os.path.dirname(opts.output), delete=False)
 

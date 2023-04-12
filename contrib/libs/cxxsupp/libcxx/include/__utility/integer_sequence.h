@@ -13,11 +13,8 @@
 #include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
-
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -42,7 +39,7 @@ template<size_t... _Ip>
 #if __has_builtin(__make_integer_seq) && !defined(_LIBCPP_TESTING_FALLBACK_MAKE_INTEGER_SEQUENCE)
 
 template <class _Tp, _Tp _Ep>
-using __make_integer_sequence _LIBCPP_NODEBUG_TYPE = __make_integer_seq<integer_sequence, _Tp, _Ep>;
+using __make_integer_sequence _LIBCPP_NODEBUG = __make_integer_seq<integer_sequence, _Tp, _Ep>;
 
 #else
 
@@ -55,7 +52,7 @@ struct __integer_sequence_convert<_Tp, __integer_sequence<_Tp2, _Values...>> {
     using type = integer_sequence<_Tp, _Values...>;
 };
 
-template<typename _Tp, _Tp _Np> using __make_integer_sequence_unchecked _LIBCPP_NODEBUG_TYPE =
+template<typename _Tp, _Tp _Np> using __make_integer_sequence_unchecked _LIBCPP_NODEBUG =
   typename __integer_sequence_convert<_Tp, typename __detail::__make<_Np>::type>::type;
 
 template <class _Tp, _Tp _Ep>
@@ -70,14 +67,14 @@ struct __make_integer_sequence_checked
 #endif
     // Workaround GCC bug by preventing bad installations when 0 <= _Ep
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68929
-    typedef _LIBCPP_NODEBUG_TYPE __make_integer_sequence_unchecked<_Tp, 0 <= _Ep ? _Ep : 0> type;
+    typedef _LIBCPP_NODEBUG __make_integer_sequence_unchecked<_Tp, 0 <= _Ep ? _Ep : 0> type;
 #ifdef _LIBCPP_COMPILER_MSVC
 #pragma warning ( pop )
 #endif
 };
 
 template <class _Tp, _Tp _Ep>
-using __make_integer_sequence _LIBCPP_NODEBUG_TYPE = typename __make_integer_sequence_checked<_Tp, _Ep>::type;
+using __make_integer_sequence _LIBCPP_NODEBUG = typename __make_integer_sequence_checked<_Tp, _Ep>::type;
 
 #endif
 
@@ -93,7 +90,5 @@ template<class... _Tp>
 #endif // _LIBCPP_STD_VER > 11
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___UTILITY_INTEGER_SEQUENCE_H

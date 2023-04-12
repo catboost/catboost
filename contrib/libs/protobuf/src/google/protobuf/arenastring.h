@@ -142,7 +142,7 @@ static_assert(std::is_trivial<TaggedPtr<TProtoStringType>>::value,
 //   free()/destructor-call list) as appropriate.
 //
 // - Pointer set to 'DonatedString' tag (LSB is 1): points to a TProtoStringType
-//   instance with a buffer on the arena (arena != NULL, always, in this case).
+//   instance with a buffer on the arena (arena is never nullptr in this case).
 //
 // For fields with a non-empty string default value, there are three distinct
 // states:
@@ -158,7 +158,7 @@ static_assert(std::is_trivial<TaggedPtr<TProtoStringType>>::value,
 //   free()/destructor-call list) as appropriate.
 //
 // - Pointer set to 'DonatedString' tag (LSB is 1): points to a TProtoStringType
-//   instance with a buffer on the arena (arena != NULL, always, in this case).
+//   instance with a buffer on the arena (arena is never nullptr in this case).
 //
 // Generated code and reflection code both ensure that ptr_ is never null for
 // fields with an empty default.
@@ -240,12 +240,12 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
   TProtoStringType* Mutable(const LazyString& default_value, ::google::protobuf::Arena* arena);
 
   // Release returns a TProtoStringType* instance that is heap-allocated and is not
-  // Own()'d by any arena. If the field is not set, this returns NULL. The
-  // caller retains ownership. Clears this field back to NULL state. Used to
+  // Own()'d by any arena. If the field is not set, this returns nullptr. The
+  // caller retains ownership. Clears this field back to nullptr state. Used to
   // implement release_<field>() methods on generated classes.
-  PROTOBUF_MUST_USE_RESULT TProtoStringType* Release(
-      const TProtoStringType* default_value, ::google::protobuf::Arena* arena);
-  PROTOBUF_MUST_USE_RESULT TProtoStringType* ReleaseNonDefault(
+  PROTOBUF_NODISCARD TProtoStringType* Release(const TProtoStringType* default_value,
+                                          ::google::protobuf::Arena* arena);
+  PROTOBUF_NODISCARD TProtoStringType* ReleaseNonDefault(
       const TProtoStringType* default_value, ::google::protobuf::Arena* arena);
 
   // Takes a TProtoStringType that is heap-allocated, and takes ownership. The
@@ -276,9 +276,9 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
   // string default.
   void ClearNonDefaultToEmpty();
 
-  // Clears content, but keeps allocated TProtoStringType if arena != NULL, to avoid
-  // the overhead of heap operations. After this returns, the content (as seen
-  // by the user) will always be equal to |default_value|.
+  // Clears content, but keeps allocated TProtoStringType if arena != nullptr, to
+  // avoid the overhead of heap operations. After this returns, the content
+  // (as seen by the user) will always be equal to |default_value|.
   void ClearToDefault(const LazyString& default_value, ::google::protobuf::Arena* arena);
 
   // Called from generated code / reflection runtime only. Resets value to point
@@ -352,12 +352,15 @@ inline void ArenaStringPtr::UnsafeSetDefault(const TProtoStringType* value) {
   tagged_ptr_.Set(const_cast<TProtoStringType*>(value));
 }
 
+// Make sure rhs_arena allocated rhs, and lhs_arena allocated lhs.
 inline PROTOBUF_NDEBUG_INLINE void ArenaStringPtr::InternalSwap(  //
     const TProtoStringType* default_value,                             //
     ArenaStringPtr* rhs, Arena* rhs_arena,                        //
     ArenaStringPtr* lhs, Arena* lhs_arena) {
+  // Silence unused variable warnings in release buildls.
   (void)default_value;
-  std::swap(lhs_arena, rhs_arena);
+  (void)rhs_arena;
+  (void)lhs_arena;
   std::swap(lhs->tagged_ptr_, rhs->tagged_ptr_);
 #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
   auto force_realloc = [default_value](ArenaStringPtr* p, Arena* arena) {
@@ -370,8 +373,10 @@ inline PROTOBUF_NDEBUG_INLINE void ArenaStringPtr::InternalSwap(  //
     if (arena == nullptr) delete old_value;
     p->tagged_ptr_.Set(new_value);
   };
-  force_realloc(lhs, lhs_arena);
-  force_realloc(rhs, rhs_arena);
+  // Because, at this point, tagged_ptr_ has been swapped, arena should also be
+  // swapped.
+  force_realloc(lhs, rhs_arena);
+  force_realloc(rhs, lhs_arena);
 #endif  // PROTOBUF_FORCE_COPY_IN_SWAP
 }
 

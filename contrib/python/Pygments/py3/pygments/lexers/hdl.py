@@ -4,7 +4,7 @@
 
     Lexers for hardware descriptor languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, bygroups, include, using, this, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['VerilogLexer', 'SystemVerilogLexer', 'VhdlLexer']
 
@@ -34,9 +34,8 @@ class VerilogLexer(RegexLexer):
     tokens = {
         'root': [
             (r'^\s*`define', Comment.Preproc, 'macro'),
-            (r'\n', Text),
-            (r'\s+', Text),
-            (r'\\\n', Text),  # line continuation
+            (r'\s+', Whitespace),
+            (r'(\\)(\n)', bygroups(String.Escape, Whitespace)),  # line continuation
             (r'/(\\\n)?/(\n|(.|\n)*?[^\\]\n)', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'[{}#@]', Punctuation),
@@ -54,8 +53,8 @@ class VerilogLexer(RegexLexer):
             (r'[()\[\],.;\']', Punctuation),
             (r'`[a-zA-Z_]\w*', Name.Constant),
 
-            (r'^(\s*)(package)(\s+)', bygroups(Text, Keyword.Namespace, Text)),
-            (r'^(\s*)(import)(\s+)', bygroups(Text, Keyword.Namespace, Text),
+            (r'^(\s*)(package)(\s+)', bygroups(Whitespace, Keyword.Namespace, Text)),
+            (r'^(\s*)(import)(\s+)', bygroups(Whitespace, Keyword.Namespace, Text),
              'import'),
 
             (words((
@@ -114,7 +113,7 @@ class VerilogLexer(RegexLexer):
             (r'"', String, '#pop'),
             (r'\\([\\abfnrtv"\']|x[a-fA-F0-9]{2,4}|[0-7]{1,3})', String.Escape),
             (r'[^\\"\n]+', String),  # all other characters
-            (r'\\\n', String),  # line continuation
+            (r'(\\)(\n)', bygroups(String.Escape, Whitespace)),  # line continuation
             (r'\\', String),  # stray backslash
         ],
         'macro': [
@@ -123,7 +122,7 @@ class VerilogLexer(RegexLexer):
             (r'//.*?\n', Comment.Single, '#pop'),
             (r'/', Comment.Preproc),
             (r'(?<=\\)\n', Comment.Preproc),
-            (r'\n', Comment.Preproc, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'import': [
             (r'[\w:]+\*?', Name.Namespace, '#pop')
@@ -161,13 +160,12 @@ class SystemVerilogLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^\s*`define', Comment.Preproc, 'macro'),
-            (r'^(\s*)(package)(\s+)', bygroups(Text, Keyword.Namespace, Text)),
-            (r'^(\s*)(import)(\s+)', bygroups(Text, Keyword.Namespace, Text), 'import'),
+            (r'^(\s*)(`define)', bygroups(Whitespace, Comment.Preproc), 'macro'),
+            (r'^(\s*)(package)(\s+)', bygroups(Whitespace, Keyword.Namespace, Whitespace)),
+            (r'^(\s*)(import)(\s+)', bygroups(Whitespace, Keyword.Namespace, Whitespace), 'import'),
 
-            (r'\n', Text),
-            (r'\s+', Text),
-            (r'\\\n', Text),  # line continuation
+            (r'\s+', Whitespace),
+            (r'(\\)(\n)', bygroups(String.Escape, Whitespace)),  # line continuation
             (r'/(\\\n)?/(\n|(.|\n)*?[^\\]\n)', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'[{}#@]', Punctuation),
@@ -240,11 +238,11 @@ class SystemVerilogLexer(RegexLexer):
              Keyword),
 
             (r'(class)(\s+)([a-zA-Z_]\w*)',
-             bygroups(Keyword.Declaration, Text, Name.Class)),
+             bygroups(Keyword.Declaration, Whitespace, Name.Class)),
             (r'(extends)(\s+)([a-zA-Z_]\w*)',
-             bygroups(Keyword.Declaration, Text, Name.Class)),
+             bygroups(Keyword.Declaration, Whitespace, Name.Class)),
             (r'(endclass\b)(?:(\s*)(:)(\s*)([a-zA-Z_]\w*))?',
-             bygroups(Keyword.Declaration, Text, Punctuation, Text, Name.Class)),
+             bygroups(Keyword.Declaration, Whitespace, Punctuation, Whitespace, Name.Class)),
 
             (words((
                 # Variable types
@@ -355,16 +353,16 @@ class SystemVerilogLexer(RegexLexer):
             (r'"', String, '#pop'),
             (r'\\([\\abfnrtv"\']|x[a-fA-F0-9]{2,4}|[0-7]{1,3})', String.Escape),
             (r'[^\\"\n]+', String),  # all other characters
-            (r'\\\n', String),  # line continuation
+            (r'(\\)(\n)', bygroups(String.Escape, Whitespace)),  # line continuation
             (r'\\', String),  # stray backslash
         ],
         'macro': [
             (r'[^/\n]+', Comment.Preproc),
             (r'/[*](.|\n)*?[*]/', Comment.Multiline),
-            (r'//.*?\n', Comment.Single, '#pop'),
+            (r'//.*?$', Comment.Single, '#pop'),
             (r'/', Comment.Preproc),
             (r'(?<=\\)\n', Comment.Preproc),
-            (r'\n', Comment.Preproc, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'import': [
             (r'[\w:]+\*?', Name.Namespace, '#pop')
@@ -386,9 +384,8 @@ class VhdlLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\n', Text),
-            (r'\s+', Text),
-            (r'\\\n', Text),  # line continuation
+            (r'\s+', Whitespace),
+            (r'(\\)(\n)', bygroups(String.Escape, Whitespace)),  # line continuation
             (r'--.*?$', Comment.Single),
             (r"'(U|X|0|1|Z|W|L|H|-)'", String.Char),
             (r'[~!%^&*+=|?:<>/-]', Operator),
@@ -397,25 +394,25 @@ class VhdlLexer(RegexLexer):
             (r'"[^\n\\"]*"', String),
 
             (r'(library)(\s+)([a-z_]\w*)',
-             bygroups(Keyword, Text, Name.Namespace)),
-            (r'(use)(\s+)(entity)', bygroups(Keyword, Text, Keyword)),
+             bygroups(Keyword, Whitespace, Name.Namespace)),
+            (r'(use)(\s+)(entity)', bygroups(Keyword, Whitespace, Keyword)),
             (r'(use)(\s+)([a-z_][\w.]*\.)(all)',
-             bygroups(Keyword, Text, Name.Namespace, Keyword)),
+             bygroups(Keyword, Whitespace, Name.Namespace, Keyword)),
             (r'(use)(\s+)([a-z_][\w.]*)',
-             bygroups(Keyword, Text, Name.Namespace)),
+             bygroups(Keyword, Whitespace, Name.Namespace)),
             (r'(std|ieee)(\.[a-z_]\w*)',
              bygroups(Name.Namespace, Name.Namespace)),
             (words(('std', 'ieee', 'work'), suffix=r'\b'),
              Name.Namespace),
             (r'(entity|component)(\s+)([a-z_]\w*)',
-             bygroups(Keyword, Text, Name.Class)),
+             bygroups(Keyword, Whitespace, Name.Class)),
             (r'(architecture|configuration)(\s+)([a-z_]\w*)(\s+)'
              r'(of)(\s+)([a-z_]\w*)(\s+)(is)',
-             bygroups(Keyword, Text, Name.Class, Text, Keyword, Text,
-                      Name.Class, Text, Keyword)),
+             bygroups(Keyword, Whitespace, Name.Class, Whitespace, Keyword, Whitespace,
+                      Name.Class, Whitespace, Keyword)),
             (r'([a-z_]\w*)(:)(\s+)(process|for)',
-             bygroups(Name.Class, Operator, Text, Keyword)),
-            (r'(end)(\s+)', bygroups(using(this), Text), 'endblock'),
+             bygroups(Name.Class, Operator, Whitespace, Keyword)),
+            (r'(end)(\s+)', bygroups(using(this), Whitespace), 'endblock'),
 
             include('types'),
             include('keywords'),
@@ -426,7 +423,7 @@ class VhdlLexer(RegexLexer):
         'endblock': [
             include('keywords'),
             (r'[a-z_]\w*', Name.Class),
-            (r'(\s+)', Text),
+            (r'\s+', Whitespace),
             (r';', Punctuation, '#pop'),
         ],
         'types': [

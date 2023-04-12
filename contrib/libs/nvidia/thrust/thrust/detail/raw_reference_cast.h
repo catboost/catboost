@@ -29,8 +29,7 @@
 // raw_reference_cast depends on metafunctions such as is_unwrappable and raw_reference
 // we need to be sure that these metafunctions are completely defined (including specializations) before they are instantiated by raw_reference_cast
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -111,7 +110,7 @@ template<typename T>
 
 
 template<typename T>
-  struct raw_reference : 
+  struct raw_reference :
     raw_reference_detail::raw_reference_impl<T>
 {};
 
@@ -329,5 +328,5 @@ raw_reference_cast(thrust::detail::tuple_of_iterator_references<Ts...> t)
 } // end raw_reference_cast
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

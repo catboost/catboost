@@ -295,6 +295,20 @@ namespace NLastGetopt {
             else
                 return defaultValue;
         }
+
+        /**
+         * @return returns the argv with which the parser was started
+         */
+        const char** GetSourceArgv() {
+            return Parser_ ? Parser_->Argv_ : nullptr;
+        }
+
+        /**
+         * @returns the argc with which the parser was started
+         */
+        size_t GetSourceArgc() {
+            return Parser_ ? Parser_->Argc_ : 0;
+        }
     };
 
     /**

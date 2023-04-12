@@ -1,26 +1,23 @@
-import cython
-from cython import Py_ssize_t
+cimport cython
+from cython cimport Py_ssize_t
 import numpy as np
 
 cimport numpy as cnp
 from numpy cimport (
-    float32_t,
-    float64_t,
-    int8_t,
-    int16_t,
-    int32_t,
     int64_t,
     intp_t,
     ndarray,
-    uint8_t,
-    uint16_t,
-    uint32_t,
     uint64_t,
 )
 
 cnp.import_array()
 
 from pandas._libs.algos import groupsort_indexer
+
+from pandas._libs.dtypes cimport (
+    numeric_object_t,
+    numeric_t,
+)
 
 
 @cython.wraparound(False)
@@ -96,10 +93,13 @@ def left_outer_join(const intp_t[:] left, const intp_t[:] right,
     with nogil:
         # First pass, determine size of result set, do not use the NA group
         for i in range(1, max_groups + 1):
-            if right_count[i] > 0:
-                count += left_count[i] * right_count[i]
+            lc = left_count[i]
+            rc = right_count[i]
+
+            if rc > 0:
+                count += lc * rc
             else:
-                count += left_count[i]
+                count += lc
 
     left_indexer = np.empty(count, dtype=np.intp)
     right_indexer = np.empty(count, dtype=np.intp)
@@ -233,6 +233,8 @@ cdef void _get_result_indexer(intp_t[::1] sorter, intp_t[::1] indexer) nogil:
         indexer[:] = -1
 
 
+@cython.wraparound(False)
+@cython.boundscheck(False)
 def ffill_indexer(const intp_t[:] indexer) -> np.ndarray:
     cdef:
         Py_ssize_t i, n = len(indexer)
@@ -257,28 +259,23 @@ def ffill_indexer(const intp_t[:] indexer) -> np.ndarray:
 # left_join_indexer, inner_join_indexer, outer_join_indexer
 # ----------------------------------------------------------------------
 
-ctypedef fused join_t:
-    float64_t
-    float32_t
-    object
-    int8_t
-    int16_t
-    int32_t
-    int64_t
-    uint64_t
-
-
 # Joins on ordered, unique indices
 
 # right might contain non-unique values
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def left_join_indexer_unique(ndarray[join_t] left, ndarray[join_t] right):
+def left_join_indexer_unique(
+    ndarray[numeric_object_t] left,
+    ndarray[numeric_object_t] right
+):
+    """
+    Both left and right are strictly monotonic increasing.
+    """
     cdef:
         Py_ssize_t i, j, nleft, nright
         ndarray[intp_t] indexer
-        join_t lval, rval
+        numeric_object_t lval, rval
 
     i = 0
     j = 0
@@ -319,19 +316,23 @@ def left_join_indexer_unique(ndarray[join_t] left, ndarray[join_t] right):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def left_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
+def left_join_indexer(ndarray[numeric_object_t] left, ndarray[numeric_object_t] right):
     """
     Two-pass algorithm for monotonic indexes. Handles many-to-one merges.
+
+    Both left and right are monotonic increasing, but at least one of them
+    is non-unique (if both were unique we'd use left_join_indexer_unique).
     """
     cdef:
         Py_ssize_t i, j, k, nright, nleft, count
-        join_t lval, rval
+        numeric_object_t lval, rval
         ndarray[intp_t] lindexer, rindexer
-        ndarray[join_t] result
+        ndarray[numeric_object_t] result
 
     nleft = len(left)
     nright = len(right)
 
+    # First pass is to find the size 'count' of our output indexers.
     i = 0
     j = 0
     count = 0
@@ -345,6 +346,8 @@ def left_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
             rval = right[j]
 
             if lval == rval:
+                # This block is identical across
+                #  left_join_indexer, inner_join_indexer, outer_join_indexer
                 count += 1
                 if i < nleft - 1:
                     if j < nright - 1 and right[j + 1] == rval:
@@ -409,12 +412,14 @@ def left_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
                     # end of the road
                     break
             elif lval < rval:
+                # i.e. lval not in right; we keep for left_join_indexer
                 lindexer[count] = i
                 rindexer[count] = -1
-                result[count] = left[i]
+                result[count] = lval
                 count += 1
                 i += 1
             else:
+                # i.e. rval not in left; we discard for left_join_indexer
                 j += 1
 
     return result, lindexer, rindexer
@@ -422,19 +427,22 @@ def left_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def inner_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
+def inner_join_indexer(ndarray[numeric_object_t] left, ndarray[numeric_object_t] right):
     """
     Two-pass algorithm for monotonic indexes. Handles many-to-one merges.
+
+    Both left and right are monotonic increasing but not necessarily unique.
     """
     cdef:
         Py_ssize_t i, j, k, nright, nleft, count
-        join_t lval, rval
+        numeric_object_t lval, rval
         ndarray[intp_t] lindexer, rindexer
-        ndarray[join_t] result
+        ndarray[numeric_object_t] result
 
     nleft = len(left)
     nright = len(right)
 
+    # First pass is to find the size 'count' of our output indexers.
     i = 0
     j = 0
     count = 0
@@ -464,8 +472,10 @@ def inner_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
                     # end of the road
                     break
             elif lval < rval:
+                # i.e. lval not in right; we discard for inner_indexer
                 i += 1
             else:
+                # i.e. rval not in left; we discard for inner_indexer
                 j += 1
 
     # do it again now that result size is known
@@ -489,7 +499,7 @@ def inner_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
             if lval == rval:
                 lindexer[count] = i
                 rindexer[count] = j
-                result[count] = rval
+                result[count] = lval
                 count += 1
                 if i < nleft - 1:
                     if j < nright - 1 and right[j + 1] == rval:
@@ -506,8 +516,10 @@ def inner_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
                     # end of the road
                     break
             elif lval < rval:
+                # i.e. lval not in right; we discard for inner_indexer
                 i += 1
             else:
+                # i.e. rval not in left; we discard for inner_indexer
                 j += 1
 
     return result, lindexer, rindexer
@@ -515,16 +527,22 @@ def inner_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def outer_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
+def outer_join_indexer(ndarray[numeric_object_t] left, ndarray[numeric_object_t] right):
+    """
+    Both left and right are monotonic increasing but not necessarily unique.
+    """
     cdef:
         Py_ssize_t i, j, nright, nleft, count
-        join_t lval, rval
+        numeric_object_t lval, rval
         ndarray[intp_t] lindexer, rindexer
-        ndarray[join_t] result
+        ndarray[numeric_object_t] result
 
     nleft = len(left)
     nright = len(right)
 
+    # First pass is to find the size 'count' of our output indexers.
+    # count will be length of left plus the number of elements of right not in
+    # left (counting duplicates)
     i = 0
     j = 0
     count = 0
@@ -627,12 +645,14 @@ def outer_join_indexer(ndarray[join_t] left, ndarray[join_t] right):
                     # end of the road
                     break
             elif lval < rval:
+                # i.e. lval not in right; we keep for outer_join_indexer
                 lindexer[count] = i
                 rindexer[count] = -1
                 result[count] = lval
                 count += 1
                 i += 1
             else:
+                # i.e. rval not in left; we keep for outer_join_indexer
                 lindexer[count] = -1
                 rindexer[count] = j
                 result[count] = rval
@@ -653,37 +673,26 @@ from pandas._libs.hashtable cimport (
     UInt64HashTable,
 )
 
-ctypedef fused asof_t:
-    uint8_t
-    uint16_t
-    uint32_t
-    uint64_t
-    int8_t
-    int16_t
-    int32_t
-    int64_t
-    float
-    float64_t
-
 ctypedef fused by_t:
     object
     int64_t
     uint64_t
 
 
-def asof_join_backward_on_X_by_Y(asof_t[:] left_values,
-                                 asof_t[:] right_values,
+def asof_join_backward_on_X_by_Y(numeric_t[:] left_values,
+                                 numeric_t[:] right_values,
                                  by_t[:] left_by_values,
                                  by_t[:] right_by_values,
                                  bint allow_exact_matches=True,
-                                 tolerance=None):
+                                 tolerance=None,
+                                 bint use_hashtable=True):
 
     cdef:
         Py_ssize_t left_pos, right_pos, left_size, right_size, found_right_pos
         ndarray[intp_t] left_indexer, right_indexer
         bint has_tolerance = False
-        asof_t tolerance_ = 0
-        asof_t diff = 0
+        numeric_t tolerance_ = 0
+        numeric_t diff = 0
         HashTable hash_table
         by_t by_value
 
@@ -698,12 +707,13 @@ def asof_join_backward_on_X_by_Y(asof_t[:] left_values,
     left_indexer = np.empty(left_size, dtype=np.intp)
     right_indexer = np.empty(left_size, dtype=np.intp)
 
-    if by_t is object:
-        hash_table = PyObjectHashTable(right_size)
-    elif by_t is int64_t:
-        hash_table = Int64HashTable(right_size)
-    elif by_t is uint64_t:
-        hash_table = UInt64HashTable(right_size)
+    if use_hashtable:
+        if by_t is object:
+            hash_table = PyObjectHashTable(right_size)
+        elif by_t is int64_t:
+            hash_table = Int64HashTable(right_size)
+        elif by_t is uint64_t:
+            hash_table = UInt64HashTable(right_size)
 
     right_pos = 0
     for left_pos in range(left_size):
@@ -715,19 +725,25 @@ def asof_join_backward_on_X_by_Y(asof_t[:] left_values,
         if allow_exact_matches:
             while (right_pos < right_size and
                    right_values[right_pos] <= left_values[left_pos]):
-                hash_table.set_item(right_by_values[right_pos], right_pos)
+                if use_hashtable:
+                    hash_table.set_item(right_by_values[right_pos], right_pos)
                 right_pos += 1
         else:
             while (right_pos < right_size and
                    right_values[right_pos] < left_values[left_pos]):
-                hash_table.set_item(right_by_values[right_pos], right_pos)
+                if use_hashtable:
+                    hash_table.set_item(right_by_values[right_pos], right_pos)
                 right_pos += 1
         right_pos -= 1
 
         # save positions as the desired index
-        by_value = left_by_values[left_pos]
-        found_right_pos = (hash_table.get_item(by_value)
-                           if by_value in hash_table else -1)
+        if use_hashtable:
+            by_value = left_by_values[left_pos]
+            found_right_pos = (hash_table.get_item(by_value)
+                               if by_value in hash_table else -1)
+        else:
+            found_right_pos = right_pos
+
         left_indexer[left_pos] = left_pos
         right_indexer[left_pos] = found_right_pos
 
@@ -740,19 +756,20 @@ def asof_join_backward_on_X_by_Y(asof_t[:] left_values,
     return left_indexer, right_indexer
 
 
-def asof_join_forward_on_X_by_Y(asof_t[:] left_values,
-                                asof_t[:] right_values,
+def asof_join_forward_on_X_by_Y(numeric_t[:] left_values,
+                                numeric_t[:] right_values,
                                 by_t[:] left_by_values,
                                 by_t[:] right_by_values,
                                 bint allow_exact_matches=1,
-                                tolerance=None):
+                                tolerance=None,
+                                bint use_hashtable=True):
 
     cdef:
         Py_ssize_t left_pos, right_pos, left_size, right_size, found_right_pos
         ndarray[intp_t] left_indexer, right_indexer
         bint has_tolerance = False
-        asof_t tolerance_ = 0
-        asof_t diff = 0
+        numeric_t tolerance_ = 0
+        numeric_t diff = 0
         HashTable hash_table
         by_t by_value
 
@@ -767,12 +784,13 @@ def asof_join_forward_on_X_by_Y(asof_t[:] left_values,
     left_indexer = np.empty(left_size, dtype=np.intp)
     right_indexer = np.empty(left_size, dtype=np.intp)
 
-    if by_t is object:
-        hash_table = PyObjectHashTable(right_size)
-    elif by_t is int64_t:
-        hash_table = Int64HashTable(right_size)
-    elif by_t is uint64_t:
-        hash_table = UInt64HashTable(right_size)
+    if use_hashtable:
+        if by_t is object:
+            hash_table = PyObjectHashTable(right_size)
+        elif by_t is int64_t:
+            hash_table = Int64HashTable(right_size)
+        elif by_t is uint64_t:
+            hash_table = UInt64HashTable(right_size)
 
     right_pos = right_size - 1
     for left_pos in range(left_size - 1, -1, -1):
@@ -784,19 +802,26 @@ def asof_join_forward_on_X_by_Y(asof_t[:] left_values,
         if allow_exact_matches:
             while (right_pos >= 0 and
                    right_values[right_pos] >= left_values[left_pos]):
-                hash_table.set_item(right_by_values[right_pos], right_pos)
+                if use_hashtable:
+                    hash_table.set_item(right_by_values[right_pos], right_pos)
                 right_pos -= 1
         else:
             while (right_pos >= 0 and
                    right_values[right_pos] > left_values[left_pos]):
-                hash_table.set_item(right_by_values[right_pos], right_pos)
+                if use_hashtable:
+                    hash_table.set_item(right_by_values[right_pos], right_pos)
                 right_pos -= 1
         right_pos += 1
 
         # save positions as the desired index
-        by_value = left_by_values[left_pos]
-        found_right_pos = (hash_table.get_item(by_value)
-                           if by_value in hash_table else -1)
+        if use_hashtable:
+            by_value = left_by_values[left_pos]
+            found_right_pos = (hash_table.get_item(by_value)
+                               if by_value in hash_table else -1)
+        else:
+            found_right_pos = (right_pos
+                               if right_pos != right_size else -1)
+
         left_indexer[left_pos] = left_pos
         right_indexer[left_pos] = found_right_pos
 
@@ -809,23 +834,20 @@ def asof_join_forward_on_X_by_Y(asof_t[:] left_values,
     return left_indexer, right_indexer
 
 
-def asof_join_nearest_on_X_by_Y(asof_t[:] left_values,
-                                asof_t[:] right_values,
+def asof_join_nearest_on_X_by_Y(numeric_t[:] left_values,
+                                numeric_t[:] right_values,
                                 by_t[:] left_by_values,
                                 by_t[:] right_by_values,
                                 bint allow_exact_matches=True,
-                                tolerance=None):
+                                tolerance=None,
+                                bint use_hashtable=True):
 
     cdef:
-        Py_ssize_t left_size, right_size, i
-        ndarray[intp_t] left_indexer, right_indexer, bli, bri, fli, fri
-        asof_t bdiff, fdiff
+        ndarray[intp_t] bli, bri, fli, fri
 
-    left_size = len(left_values)
-    right_size = len(right_values)
-
-    left_indexer = np.empty(left_size, dtype=np.intp)
-    right_indexer = np.empty(left_size, dtype=np.intp)
+        ndarray[intp_t] left_indexer, right_indexer
+        Py_ssize_t left_size, i
+        numeric_t bdiff, fdiff
 
     # search both forward and backward
     bli, bri = asof_join_backward_on_X_by_Y(
@@ -835,6 +857,7 @@ def asof_join_nearest_on_X_by_Y(asof_t[:] left_values,
         right_by_values,
         allow_exact_matches,
         tolerance,
+        use_hashtable
     )
     fli, fri = asof_join_forward_on_X_by_Y(
         left_values,
@@ -843,153 +866,13 @@ def asof_join_nearest_on_X_by_Y(asof_t[:] left_values,
         right_by_values,
         allow_exact_matches,
         tolerance,
+        use_hashtable
     )
 
-    for i in range(len(bri)):
-        # choose timestamp from right with smaller difference
-        if bri[i] != -1 and fri[i] != -1:
-            bdiff = left_values[bli[i]] - right_values[bri[i]]
-            fdiff = right_values[fri[i]] - left_values[fli[i]]
-            right_indexer[i] = bri[i] if bdiff <= fdiff else fri[i]
-        else:
-            right_indexer[i] = bri[i] if bri[i] != -1 else fri[i]
-        left_indexer[i] = bli[i]
-
-    return left_indexer, right_indexer
-
-
-# ----------------------------------------------------------------------
-# asof_join
-# ----------------------------------------------------------------------
-
-def asof_join_backward(asof_t[:] left_values,
-                       asof_t[:] right_values,
-                       bint allow_exact_matches=True,
-                       tolerance=None):
-
-    cdef:
-        Py_ssize_t left_pos, right_pos, left_size, right_size
-        ndarray[intp_t] left_indexer, right_indexer
-        bint has_tolerance = False
-        asof_t tolerance_ = 0
-        asof_t diff = 0
-
-    # if we are using tolerance, set our objects
-    if tolerance is not None:
-        has_tolerance = True
-        tolerance_ = tolerance
-
+    # choose the smaller timestamp
     left_size = len(left_values)
-    right_size = len(right_values)
-
     left_indexer = np.empty(left_size, dtype=np.intp)
     right_indexer = np.empty(left_size, dtype=np.intp)
-
-    right_pos = 0
-    for left_pos in range(left_size):
-        # restart right_pos if it went negative in a previous iteration
-        if right_pos < 0:
-            right_pos = 0
-
-        # find last position in right whose value is less than left's
-        if allow_exact_matches:
-            while (right_pos < right_size and
-                   right_values[right_pos] <= left_values[left_pos]):
-                right_pos += 1
-        else:
-            while (right_pos < right_size and
-                   right_values[right_pos] < left_values[left_pos]):
-                right_pos += 1
-        right_pos -= 1
-
-        # save positions as the desired index
-        left_indexer[left_pos] = left_pos
-        right_indexer[left_pos] = right_pos
-
-        # if needed, verify that tolerance is met
-        if has_tolerance and right_pos != -1:
-            diff = left_values[left_pos] - right_values[right_pos]
-            if diff > tolerance_:
-                right_indexer[left_pos] = -1
-
-    return left_indexer, right_indexer
-
-
-def asof_join_forward(asof_t[:] left_values,
-                      asof_t[:] right_values,
-                      bint allow_exact_matches=True,
-                      tolerance=None):
-
-    cdef:
-        Py_ssize_t left_pos, right_pos, left_size, right_size
-        ndarray[intp_t] left_indexer, right_indexer
-        bint has_tolerance = False
-        asof_t tolerance_ = 0
-        asof_t diff = 0
-
-    # if we are using tolerance, set our objects
-    if tolerance is not None:
-        has_tolerance = True
-        tolerance_ = tolerance
-
-    left_size = len(left_values)
-    right_size = len(right_values)
-
-    left_indexer = np.empty(left_size, dtype=np.intp)
-    right_indexer = np.empty(left_size, dtype=np.intp)
-
-    right_pos = right_size - 1
-    for left_pos in range(left_size - 1, -1, -1):
-        # restart right_pos if it went over in a previous iteration
-        if right_pos == right_size:
-            right_pos = right_size - 1
-
-        # find first position in right whose value is greater than left's
-        if allow_exact_matches:
-            while (right_pos >= 0 and
-                   right_values[right_pos] >= left_values[left_pos]):
-                right_pos -= 1
-        else:
-            while (right_pos >= 0 and
-                   right_values[right_pos] > left_values[left_pos]):
-                right_pos -= 1
-        right_pos += 1
-
-        # save positions as the desired index
-        left_indexer[left_pos] = left_pos
-        right_indexer[left_pos] = (right_pos
-                                   if right_pos != right_size else -1)
-
-        # if needed, verify that tolerance is met
-        if has_tolerance and right_pos != right_size:
-            diff = right_values[right_pos] - left_values[left_pos]
-            if diff > tolerance_:
-                right_indexer[left_pos] = -1
-
-    return left_indexer, right_indexer
-
-
-def asof_join_nearest(asof_t[:] left_values,
-                      asof_t[:] right_values,
-                      bint allow_exact_matches=True,
-                      tolerance=None):
-
-    cdef:
-        Py_ssize_t left_size, right_size, i
-        ndarray[intp_t] left_indexer, right_indexer, bli, bri, fli, fri
-        asof_t bdiff, fdiff
-
-    left_size = len(left_values)
-    right_size = len(right_values)
-
-    left_indexer = np.empty(left_size, dtype=np.intp)
-    right_indexer = np.empty(left_size, dtype=np.intp)
-
-    # search both forward and backward
-    bli, bri = asof_join_backward(left_values, right_values,
-                                  allow_exact_matches, tolerance)
-    fli, fri = asof_join_forward(left_values, right_values,
-                                 allow_exact_matches, tolerance)
 
     for i in range(len(bri)):
         # choose timestamp from right with smaller difference

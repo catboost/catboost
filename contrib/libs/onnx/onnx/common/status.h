@@ -1,11 +1,11 @@
-// Copyright (c) Facebook Inc. and Microsoft Corporation.
-// Licensed under the MIT license.
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #pragma once
 
-#include <util/generic/string.h>
-
 #include <memory>
+#include <ostream>
 #include <string>
 
 namespace ONNX_NAMESPACE {
@@ -28,7 +28,7 @@ class Status {
  public:
   Status() noexcept {}
 
-  Status(StatusCategory category, int code, const TString& msg);
+  Status(StatusCategory category, int code, const std::string& msg);
 
   Status(StatusCategory category, int code);
 
@@ -56,9 +56,9 @@ class Status {
 
   StatusCategory Category() const noexcept;
 
-  const TString& ErrorMessage() const;
+  const std::string& ErrorMessage() const;
 
-  TString ToString() const;
+  std::string ToString() const;
 
   bool operator==(const Status& other) const {
     return (this->state_ == other.state_) || (ToString() == other.ToString());
@@ -72,15 +72,14 @@ class Status {
 
  private:
   struct State {
-    State(StatusCategory cat_, int code_, const TString& msg_)
-        : category(cat_), code(code_), msg(msg_) {}
+    State(StatusCategory cat_, int code_, std::string msg_) : category(cat_), code(code_), msg(std::move(msg_)) {}
 
     StatusCategory category = StatusCategory::NONE;
     int code = 0;
-    TString msg;
+    std::string msg;
   };
 
-  static const TString& EmptyString();
+  static const std::string& EmptyString();
 
   // state_ == nullptr when if status code is OK.
   std::unique_ptr<State> state_;

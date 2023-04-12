@@ -5,7 +5,6 @@ import re
 from contextlib import contextmanager
 
 from parso.normalizer import Normalizer, NormalizerConfig, Issue, Rule
-from parso.python.tree import search_ancestor
 from parso.python.tokenize import _get_token_collection
 
 _BLOCK_STMTS = ('if_stmt', 'while_stmt', 'for_stmt', 'try_stmt', 'with_stmt')
@@ -231,7 +230,7 @@ def _any_fstring_error(version, node):
     elif node.type == "fstring":
         return True
     else:
-        return search_ancestor(node, "fstring")
+        return node.search_ancestor("fstring")
 
 
 class _Context:
@@ -1265,7 +1264,7 @@ class _NamedExprRule(_CheckAssignmentRule):
         def search_all_comp_ancestors(node):
             has_ancestors = False
             while True:
-                node = search_ancestor(node, 'testlist_comp', 'dictorsetmaker')
+                node = node.search_ancestor('testlist_comp', 'dictorsetmaker')
                 if node is None:
                     break
                 for child in node.children:

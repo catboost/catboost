@@ -33,19 +33,13 @@
 
 #include "defaults.h"
 
-#include <sys/types.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #ifdef _win32_
     #include "winint.h"
     #include <util/folder/dirut.h>
-#else
-    #include <unistd.h>
 #endif
 
 #include <util/random/random.h>

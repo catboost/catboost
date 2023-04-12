@@ -5,7 +5,7 @@
 #include "udp_http.h"
 #include "udp_socket.h"
 
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/hp_timer.h>
 #include <util/thread/lfqueue.h>
 #include <util/system/thread.h>
@@ -17,6 +17,7 @@
 #endif
 #include "block_chain.h"
 #include <util/system/shmat.h>
+#include <util/generic/hash_multi_map.h>
 #include <exception>
 
 #include <atomic>

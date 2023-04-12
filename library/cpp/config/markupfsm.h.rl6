@@ -1,0 +1,81 @@
+%%{
+    machine ParseXml;
+
+    action startText {
+        l = p;
+    }
+
+    action endText {
+        cb->DoText(TStringBuf(l + 1, p));
+    }
+
+    action startSTag {
+        l = p;
+    }
+
+    action endSTag {
+        cb->DoTagOpen(TStringBuf(l, p));
+    }
+
+    action startETag {
+        l = p;
+    }
+
+    action endETag {
+        cb->DoTagClose(TStringBuf(l, p));
+    }
+
+    action startKey {
+        l = p;
+    }
+
+    action endKey {
+        cb->DoAttrKey(TStringBuf(l, p));
+    }
+
+    action startValue {
+        l = p;
+    }
+
+    action endValue {
+        cb->DoAttrValue(TStringBuf(l, p));
+    }
+
+    spacesym = [ \r\n\t];
+    gsym     = (spacesym | '<' | '>' | '/');
+    sym      = any -- gsym;
+    asym     = sym -- ('=' | '"');
+    tag      = sym+;
+    xattrkey = asym+;
+    xattrval = asym*;
+    xspace   = spacesym*;
+    mspace   = spacesym+;
+    attr     = (xattrkey >startKey %endKey) '=' '"' (xattrval >startValue %endValue) '"';
+    attrs    = (mspace attr)*;
+    text     = ('>' (any -- '<')*) >startText %endText;
+    stag     = '<' xspace (tag >startSTag %endSTag) attrs xspace;
+    etag     = '<' xspace '/' xspace (tag >startETag %endETag) xspace;
+
+    main    := spacesym* ((stag | etag) text)*;
+}%%
+
+#if defined(MACHINE_DATA)
+#undef MACHINE_DATA
+%%{
+    write data;
+}%%
+#endif
+
+#if defined(MACHINE_INIT)
+#undef MACHINE_INIT
+%%{
+    write init;
+}%%
+#endif
+
+#if defined(MACHINE_EXEC)
+#undef MACHINE_EXEC
+%%{
+    write exec;
+}%%
+#endif

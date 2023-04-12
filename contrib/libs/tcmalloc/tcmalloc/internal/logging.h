@@ -67,6 +67,8 @@ struct StackTrace {
   // between the previous sample and this one
   size_t weight;
 
+  void* user_data;
+
   template <typename H>
   friend H AbslHashValue(H h, const StackTrace& t) {
     // As we use StackTrace as a key-value node in StackTraceTable, we only

@@ -290,11 +290,11 @@ static TProtoStringType CanonicalizePath(TProtoStringType path) {
   std::vector<TProtoStringType> canonical_parts;
   std::vector<TProtoStringType> parts = Split(
       path, "/", true);  // Note:  Removes empty parts.
-  for (int i = 0; i < parts.size(); i++) {
-    if (parts[i] == ".") {
+  for (const TProtoStringType& part : parts) {
+    if (part == ".") {
       // Ignore.
     } else {
-      canonical_parts.push_back(parts[i]);
+      canonical_parts.push_back(part);
     }
   }
   TProtoStringType result = Join(canonical_parts, "/");
@@ -464,10 +464,10 @@ io::ZeroCopyInputStream* DiskSourceTree::OpenVirtualFile(
     return NULL;
   }
 
-  for (int i = 0; i < mappings_.size(); i++) {
+  for (const auto& mapping : mappings_) {
     TProtoStringType temp_disk_file;
-    if (ApplyMapping(virtual_file, mappings_[i].virtual_path,
-                     mappings_[i].disk_path, &temp_disk_file)) {
+    if (ApplyMapping(virtual_file, mapping.virtual_path, mapping.disk_path,
+                     &temp_disk_file)) {
       io::ZeroCopyInputStream* stream = OpenDiskFile(temp_disk_file);
       if (stream != NULL) {
         if (disk_file != NULL) {

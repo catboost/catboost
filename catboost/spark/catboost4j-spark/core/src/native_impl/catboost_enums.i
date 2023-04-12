@@ -32,5 +32,11 @@ enum class EModelType {
     CPUSnapshot = 7,
 };
 
+enum class ECtrTableMergePolicy {
+    FailIfCtrIntersects,
+    LeaveMostDiversifiedTable,
+    IntersectingCountersAverage
+};
+
 %include <catboost/private/libs/options/enums.h>
 %include <catboost/libs/logging/logging_level.h>

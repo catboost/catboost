@@ -501,9 +501,11 @@ class UtilityCode(UtilityCodeBase):
 
     def specialize(self, pyrex_type=None, **data):
         # Dicts aren't hashable...
+        name = self.name
         if pyrex_type is not None:
             data['type'] = pyrex_type.empty_declaration_code()
             data['type_name'] = pyrex_type.specialization_name()
+            name = "%s[%s]" % (name, data['type_name'])
         key = tuple(sorted(data.items()))
         try:
             return self._cache[key]
@@ -519,7 +521,9 @@ class UtilityCode(UtilityCodeBase):
                 self.none_or_sub(self.init, data),
                 self.none_or_sub(self.cleanup, data),
                 requires,
-                self.proto_block)
+                self.proto_block,
+                name,
+            )
 
             self.specialize_list.append(s)
             return s
@@ -1555,7 +1559,7 @@ class GlobalState(object):
 
             init_globals = self.parts['init_globals']
             init_globals.putln(
-                "if (__Pyx_InitStrings(%s) < 0) %s;" % (
+                "if (__Pyx_InitStrings(%s) < 0) %s" % (
                     Naming.stringtab_cname,
                     init_globals.error_goto(self.module_pos)))
 
@@ -2229,8 +2233,8 @@ class CCodeWriter(object):
         method_flags = entry.signature.method_flags()
         if not method_flags:
             return
-        if entry.is_special:
-            from . import TypeSlots
+        from . import TypeSlots
+        if entry.is_special or TypeSlots.is_reverse_number_slot(entry.name):
             method_flags += [TypeSlots.method_coexist]
         func_ptr = wrapper_code_writer.put_pymethoddef_wrapper(entry) if wrapper_code_writer else entry.func_cname
         # Add required casts, but try not to shadow real warnings.

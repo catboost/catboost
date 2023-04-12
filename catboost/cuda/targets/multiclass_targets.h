@@ -139,14 +139,22 @@ namespace NCatboostCuda {
         void Init(const NCatboostOptions::TLossDescription& targetOptions,
                   const NCB::TTrainingDataProvider& dataProvider) {
             auto targetClassCount = dataProvider.TargetData->GetTargetClassCount();
-            CB_ENSURE_INTERNAL(targetClassCount,
-                               "dataProvider.TargetData must contain class count for target");
-            NumClasses = *targetClassCount;
+            if (targetClassCount) {
+                NumClasses = *targetClassCount;
+                if (!IsMultiLabelObjective(targetOptions.GetLossFunction())) {
+                    TConstArrayRef<float> target = *dataProvider.TargetData->GetOneDimensionalTarget();
+                    TVector<float> tmp(target.begin(), target.end());
+                    SortUnique(tmp);
+                    CB_ENSURE(
+                        NumClasses >= tmp.size(),
+                        "Number of classes (" << NumClasses << ") should be >= number of unique labels (" << tmp.size() << ")");
+                }
+            } else {
+                CB_ENSURE_INTERNAL(targetOptions.GetLossFunction() == ELossFunction::RMSEWithUncertainty,
+                                "dataProvider.TargetData must contain class count, or loss function must be RMSEWithUncertainty");
+                NumClasses = 2;
+            }
 
-            TConstArrayRef<float> target = *dataProvider.TargetData->GetOneDimensionalTarget();
-            TVector<float> tmp(target.begin(), target.end());
-            SortUnique(tmp);
-            Y_VERIFY(NumClasses >= tmp.size());
             CATBOOST_DEBUG_LOG << "Num classes " << NumClasses << Endl;
             Type = targetOptions.GetLossFunction();
             MetricName = ToString(targetOptions);

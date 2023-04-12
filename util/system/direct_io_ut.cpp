@@ -13,7 +13,7 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
     Y_UNIT_TEST(TestDirectFile) {
         TDirectIOBufferedFile file(FileName_, RdWr | Direct | Seq | CreateAlways, 1 << 15);
         TVector<ui64> data((1 << 15) + 1);
-        TVector<ui64> readed(data.size());
+        TVector<ui64> readResult(data.size());
         for (auto& i : data) {
             i = RandomNumber<ui64>();
         }
@@ -24,10 +24,10 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
             size_t readPos = RandomNumber(writePos);
             size_t readCount = RandomNumber(writePos - readPos);
             UNIT_ASSERT_VALUES_EQUAL(
-                file.Pread(&readed[0], readCount * sizeof(ui64), readPos * sizeof(ui64)),
+                file.Pread(&readResult[0], readCount * sizeof(ui64), readPos * sizeof(ui64)),
                 readCount * sizeof(ui64));
             for (size_t i = 0; i < readCount; ++i) {
-                UNIT_ASSERT_VALUES_EQUAL(readed[i], data[i + readPos]);
+                UNIT_ASSERT_VALUES_EQUAL(readResult[i], data[i + readPos]);
             }
         }
         file.Finish();
@@ -36,18 +36,18 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
             size_t readPos = RandomNumber(data.size());
             size_t readCount = RandomNumber(data.size() - readPos);
             UNIT_ASSERT_VALUES_EQUAL(
-                fileNew.Pread(&readed[0], readCount * sizeof(ui64), readPos * sizeof(ui64)),
+                fileNew.Pread(&readResult[0], readCount * sizeof(ui64), readPos * sizeof(ui64)),
                 readCount * sizeof(ui64));
             for (size_t j = 0; j < readCount; ++j) {
-                UNIT_ASSERT_VALUES_EQUAL(readed[j], data[j + readPos]);
+                UNIT_ASSERT_VALUES_EQUAL(readResult[j], data[j + readPos]);
             }
         }
         size_t readCount = data.size();
         UNIT_ASSERT_VALUES_EQUAL(
-            fileNew.Pread(&readed[0], readCount * sizeof(ui64), 0),
+            fileNew.Pread(&readResult[0], readCount * sizeof(ui64), 0),
             readCount * sizeof(ui64));
         for (size_t i = 0; i < readCount; ++i) {
-            UNIT_ASSERT_VALUES_EQUAL(readed[i], data[i]);
+            UNIT_ASSERT_VALUES_EQUAL(readResult[i], data[i]);
         }
         NFs::Remove(FileName_);
     }

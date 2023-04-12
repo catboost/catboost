@@ -55,6 +55,7 @@ void PeakHeapTracker::MaybeSaveSample() {
   StackTrace *t = peak_sampled_span_stacks_, *next = nullptr;
   while (t != nullptr) {
     next = reinterpret_cast<StackTrace*>(t->stack[kMaxStackDepth - 1]);
+    Static::DestroySampleUserData(t->user_data);
     Static::stacktrace_allocator().Delete(t);
     t = next;
   }
@@ -63,7 +64,9 @@ void PeakHeapTracker::MaybeSaveSample() {
   for (Span* s : Static::sampled_objects_) {
     t = Static::stacktrace_allocator().New();
 
-    *t = *s->sampled_stack();
+    StackTrace* sampled_stack = s->sampled_stack();
+    *t = *sampled_stack;
+    t->user_data = Static::CopySampleUserData(sampled_stack->user_data);
     if (t->depth == kMaxStackDepth) {
       t->depth = kMaxStackDepth - 1;
     }

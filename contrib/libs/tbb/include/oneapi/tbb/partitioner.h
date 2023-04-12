@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ class affinity_partitioner_base: no_copy {
     friend class affinity_partitioner;
     friend class affinity_partition_type;
     //! Array that remembers affinities of tree positions to affinity_id.
-    /** NULL if my_size==0. */
+    /** nullptr if my_size==0. */
     slot_id* my_array;
     //! Number of elements in my_array.
     std::size_t my_size;
@@ -265,7 +265,7 @@ struct partition_type_base {
 
     template<typename StartType, typename Range>
     void work_balance(StartType &start, Range &range, const execution_data&) {
-        start.run_body( range ); // simple partitioner goes always here
+        start.run_body( range ); // static partitioner goes here
     }
 
     template<typename StartType, typename Range>
@@ -301,33 +301,16 @@ struct adaptive_mode : partition_type_base<Partition> {
     static const unsigned factor = 1;
     adaptive_mode() : my_divisor(get_initial_auto_partitioner_divisor() / 4 * my_partition::factor) {}
     adaptive_mode(adaptive_mode &src, split) : my_divisor(do_split(src, split())) {}
+    adaptive_mode(adaptive_mode&, const proportional_split&) : my_divisor(0)
+    {
+        // left blank as my_divisor gets overridden in the successors' constructors
+    }
     /*! Override do_split methods in order to specify splitting strategy */
     std::size_t do_split(adaptive_mode &src, split) {
         return src.my_divisor /= 2u;
     }
 };
 
-//! Helper type for checking availability of proportional_split constructor
-template <typename T> using supports_proportional_splitting = typename std::is_constructible<T, T&, proportional_split&>;
-
-//! A helper class to create a proportional_split object for a given type of Range.
-/** If the Range has proportional_split constructor,
-    then created object splits a provided value in an implemenation-defined proportion;
-    otherwise it represents equal-size split. */
-// TODO: check if this helper can be a nested class of proportional_mode.
-template <typename Range, typename = void>
-struct proportion_helper {
-    static proportional_split get_split(std::size_t) { return proportional_split(1,1); }
-};
-
-template <typename Range>
-struct proportion_helper<Range, typename std::enable_if<supports_proportional_splitting<Range>::value>::type> {
-    static proportional_split get_split(std::size_t n) {
-        std::size_t right = n / 2;
-        std::size_t left  = n - right;
-        return proportional_split(left, right);
-    }
-};
 
 //! Provides proportional splitting strategy for partition objects
 template <typename Partition>
@@ -337,7 +320,11 @@ struct proportional_mode : adaptive_mode<Partition> {
 
     proportional_mode() : adaptive_mode<Partition>() {}
     proportional_mode(proportional_mode &src, split) : adaptive_mode<Partition>(src, split()) {}
-    proportional_mode(proportional_mode &src, const proportional_split& split_obj) { self().my_divisor = do_split(src, split_obj); }
+    proportional_mode(proportional_mode &src, const proportional_split& split_obj)
+        : adaptive_mode<Partition>(src, split_obj)
+    {
+        self().my_divisor = do_split(src, split_obj);
+    }
     std::size_t do_split(proportional_mode &src, const proportional_split& split_obj) {
         std::size_t portion = split_obj.right() * my_partition::factor;
         portion = (portion + my_partition::factor/2) & (0ul - my_partition::factor);
@@ -349,8 +336,16 @@ struct proportional_mode : adaptive_mode<Partition> {
     }
     template <typename Range>
     proportional_split get_split() {
-        // Create a proportion for the number of threads expected to handle "this" subrange
-        return proportion_helper<Range>::get_split( self().my_divisor / my_partition::factor );
+        // Create the proportion from partitioner internal resources (threads) that would be used:
+        // - into proportional_mode constructor to split the partitioner
+        // - if Range supports the proportional_split constructor it would use proposed proportion,
+        //   otherwise, the tbb::proportional_split object will be implicitly (for Range implementor)
+        //   casted to tbb::split
+
+        std::size_t n = self().my_divisor / my_partition::factor;
+        std::size_t right = n / 2;
+        std::size_t left  = n - right;
+        return proportional_split(left, right);
     }
 };
 
@@ -430,13 +425,13 @@ struct dynamic_grainsize_mode : Mode {
     }
     depth_t max_depth() { return my_max_depth; }
     void align_depth(depth_t base) {
-        __TBB_ASSERT(base <= my_max_depth, 0);
+        __TBB_ASSERT(base <= my_max_depth, nullptr);
         my_max_depth -= base;
     }
     template<typename StartType, typename Range>
     void work_balance(StartType &start, Range &range, execution_data& ed) {
         if( !range.is_divisible() || !self().max_depth() ) {
-            start.run_body( range ); // simple partitioner goes always here
+            start.run_body( range );
         }
         else { // do range pool
             range_vector<Range, range_pool_size> range_pool(range);
@@ -478,8 +473,7 @@ struct dynamic_grainsize_mode : Mode {
 
 class auto_partition_type: public dynamic_grainsize_mode<adaptive_mode<auto_partition_type> > {
 public:
-    auto_partition_type( const auto_partitioner& )
-        : dynamic_grainsize_mode<adaptive_mode<auto_partition_type> >() {
+    auto_partition_type( const auto_partitioner& ) {
         my_divisor *= __TBB_INITIAL_CHUNKS;
     }
     auto_partition_type( auto_partition_type& src, split)
@@ -525,8 +519,7 @@ public:
 class static_partition_type : public linear_affinity_mode<static_partition_type> {
 public:
     typedef detail::proportional_split split_type;
-    static_partition_type( const static_partitioner& )
-        : linear_affinity_mode<static_partition_type>() {}
+    static_partition_type( const static_partitioner& ) {}
     static_partition_type( static_partition_type& p, const proportional_split& split_obj )
         : linear_affinity_mode<static_partition_type>(p, split_obj) {}
 };
@@ -537,13 +530,12 @@ class affinity_partition_type : public dynamic_grainsize_mode<linear_affinity_mo
 public:
     static const unsigned factor = 1 << factor_power; // number of slots in affinity array per task
     typedef detail::proportional_split split_type;
-    affinity_partition_type( affinity_partitioner_base& ap )
-        : dynamic_grainsize_mode<linear_affinity_mode<affinity_partition_type> >() {
+    affinity_partition_type( affinity_partitioner_base& ap ) {
         __TBB_ASSERT( (factor&(factor-1))==0, "factor must be power of two" );
         ap.resize(factor);
         my_array = ap.my_array;
         my_max_depth = factor_power + 1;
-        __TBB_ASSERT( my_max_depth < __TBB_RANGE_POOL_CAPACITY, 0 );
+        __TBB_ASSERT( my_max_depth < __TBB_RANGE_POOL_CAPACITY, nullptr );
     }
     affinity_partition_type(affinity_partition_type& p, split)
         : dynamic_grainsize_mode<linear_affinity_mode<affinity_partition_type> >(p, split())

@@ -16,8 +16,22 @@ Documentation
 
 ... can be found online at https://pygments.org/ or created with Sphinx by ::
 
-   cd doc
-   make html
+   make docs
+
+By default, the documentation does not include the demo page, as it requires
+having Docker installed for building Pyodide. To build the documentation with
+the demo page, use ::
+
+   WEBSITE_BUILD=1 make docs
+
+The initial build might take some time, but subsequent ones should be instant
+because of Docker caching.
+
+To view the generated documentation, serve it using Python's ``http.server``
+module (this step is required for the demo to work) ::
+
+   python3 -m http.server --directory doc/_build/html
+
 
 Development
 -----------
@@ -29,6 +43,10 @@ Continuous testing runs on GitHub workflows:
 
 .. image:: https://github.com/pygments/pygments/workflows/Pygments/badge.svg
    :target: https://github.com/pygments/pygments/actions?query=workflow%3APygments
+
+Contribution guidelines are found in Contributing.md_.
+
+.. _Contributing.md: https://github.com/pygments/pygments/blob/master/Contributing.md
 
 The authors
 -----------

@@ -147,7 +147,7 @@ new reference -- accepts NULL for mintype
 This function is only used in one place within NumPy and should
 generally be avoided. It is provided mainly for backward compatibility.
 
-The user of the function has to free the returned array.
+The user of the function has to free the returned array with PyDataMem_FREE.
 
 ::
 
@@ -1586,7 +1586,7 @@ TO BE REMOVED - NOT USED INTERNALLY.
                                      , npy_timedeltastruct
                                      *NPY_UNUSED(d) )
 
-Create a timdelta value from a filled timedelta struct and resolution unit.
+Create a timedelta value from a filled timedelta struct and resolution unit.
 
 TO BE REMOVED - NOT USED INTERNALLY.
 
@@ -1634,7 +1634,12 @@ Makes a copy of the iterator
   int
   NpyIter_Deallocate(NpyIter *iter)
 
-Deallocate an iterator
+Deallocate an iterator.
+
+To correctly work when an error is in progress, we have to check
+`PyErr_Occurred()`. This is necessary when buffers are not finalized
+or WritebackIfCopy is used. We could avoid that check by exposing a new
+function which is passed in whether or not a Python error is already set.
 
 ::
 
@@ -1682,10 +1687,14 @@ This function may be safely called without holding the Python GIL.
 
 Resets the iterator to its initial state
 
+The use of errmsg is discouraged, it cannot be guaranteed that the GIL
+will not be grabbed on casting errors even when this is passed.
+
 If errmsg is non-NULL, it should point to a variable which will
 receive the error message, and no Python exception will be set.
 This is so that the function can be called from code not holding
-the GIL.
+the GIL. Note that cast errors may still lead to the GIL being
+grabbed temporarily.
 
 ::
 
@@ -1699,7 +1708,8 @@ This function requires great caution.
 If errmsg is non-NULL, it should point to a variable which will
 receive the error message, and no Python exception will be set.
 This is so that the function can be called from code not holding
-the GIL.
+the GIL. Note that cast errors may still lead to the GIL being
+grabbed temporarily.
 
 ::
 
@@ -1712,7 +1722,8 @@ Resets the iterator to a new iterator index range
 If errmsg is non-NULL, it should point to a variable which will
 receive the error message, and no Python exception will be set.
 This is so that the function can be called from code not holding
-the GIL.
+the GIL. Note that cast errors may still lead to the GIL being
+grabbed temporarily.
 
 ::
 
@@ -2061,21 +2072,22 @@ Otherwise, returns the array's data type.
 ::
 
   PyArray_Descr *
-  PyArray_ResultType(npy_intp narrs, PyArrayObject **arr, npy_intp
-                     ndtypes, PyArray_Descr **dtypes)
+  PyArray_ResultType(npy_intp narrs, PyArrayObject *arrs[] , npy_intp
+                     ndtypes, PyArray_Descr *descrs[] )
 
-Produces the result type of a bunch of inputs, using the UFunc
-type promotion rules. Use this function when you have a set of
-input arrays, and need to determine an output array dtype.
 
-If all the inputs are scalars (have 0 dimensions) or the maximum "kind"
-of the scalars is greater than the maximum "kind" of the arrays, does
-a regular type promotion.
+Produces the result type of a bunch of inputs, using the same rules
+as `np.result_type`.
 
-Otherwise, does a type promotion on the MinScalarType
-of all the inputs.  Data types passed directly are treated as array
-types.
+NOTE: This function is expected to through a transitional period or
+change behaviour.  DTypes should always be strictly enforced for
+0-D arrays, while "weak DTypes" will be used to represent Python
+integers, floats, and complex in all cases.
+(Within this function, these are currently flagged on the array
+object to work through `np.result_type`, this may change.)
 
+Until a time where this transition is complete, we probably cannot
+add new "weak DTypes" or allow users to create their own.
 
 ::
 
@@ -2169,12 +2181,16 @@ dtype->subarray is true, dtype will be decrefed.
 ::
 
   int
-  PyArray_GetArrayParamsFromObject(PyObject *op, PyArray_Descr
-                                   *requested_dtype, npy_bool
-                                   writeable, PyArray_Descr
-                                   **out_dtype, int *out_ndim, npy_intp
-                                   *out_dims, PyArrayObject
-                                   **out_arr, PyObject *context)
+  PyArray_GetArrayParamsFromObject(PyObject *NPY_UNUSED(op)
+                                   , PyArray_Descr
+                                   *NPY_UNUSED(requested_dtype)
+                                   , npy_bool NPY_UNUSED(writeable)
+                                   , PyArray_Descr
+                                   **NPY_UNUSED(out_dtype) , int
+                                   *NPY_UNUSED(out_ndim) , npy_intp
+                                   *NPY_UNUSED(out_dims) , PyArrayObject
+                                   **NPY_UNUSED(out_arr) , PyObject
+                                   *NPY_UNUSED(context) )
 
 
 ::
@@ -2262,7 +2278,6 @@ validate this!
 If an axis flagged for removal has a shape larger than one,
 the aligned flag (and in the future the contiguous flags),
 may need explicit update.
-(check also NPY_RELAXED_STRIDES_CHECKING)
 
 For example, this can be used to remove the reduction axes
 from a reduction result once its computation is complete.
@@ -2281,30 +2296,21 @@ low-level C issues.
   PyArray_FailUnlessWriteable(PyArrayObject *obj, const char *name)
 
 
-This function does nothing if obj is writeable, and raises an exception
-(and returns -1) if obj is not writeable. It may also do other
-house-keeping, such as issuing warnings on arrays which are transitioning
-to become views. Always call this function at some point before writing to
-an array.
+This function does nothing and returns 0 if *obj* is writeable.
+It raises an exception and returns -1 if *obj* is not writeable.
+It may also do other house-keeping, such as issuing warnings on
+arrays which are transitioning to become views. Always call this
+function at some point before writing to an array.
 
-'name' is a name for the array, used to give better error
-messages. Something like "assignment destination", "output array", or even
-just "array".
+name* is a name for the array, used to give better error messages.
+It can be something like "assignment destination", "output array",
+or even just "array".
 
 ::
 
   int
   PyArray_SetUpdateIfCopyBase(PyArrayObject *arr, PyArrayObject *base)
 
-
-Precondition: 'arr' is a copy of 'base' (though possibly with different
-strides, ordering, etc.). This function sets the UPDATEIFCOPY flag and the
-->base pointer on 'arr', so that when 'arr' is destructed, it will copy any
-changes back to 'base'. DEPRECATED, use PyArray_SetWritebackIfCopyBase
-
-Steals a reference to 'base'.
-
-Returns 0 on success, -1 on failure.
 
 ::
 
@@ -2352,12 +2358,22 @@ operations that might cause new allocation events (such as the
 creation/destruction numpy objects, or creating/destroying Python
 objects which might cause a gc)
 
+Deprecated in 1.23
+
 ::
 
   void
   PyArray_MapIterSwapAxes(PyArrayMapIterObject *mit, PyArrayObject
                           **ret, int getmap)
 
+
+Swap the axes to or from their inserted form. MapIter always puts the
+advanced (array) indices first in the iteration. But if they are
+consecutive, will insert/transpose them back before returning.
+This is stored as `mit->consec != 0` (the place where they are inserted)
+For assignments, the opposite happens: The values to be assigned are
+transposed (getmap=1 instead of getmap=0). `getmap=0` and `getmap=1`
+undo the other operation.
 
 ::
 
@@ -2404,7 +2420,7 @@ Convert object to select kind
 ::
 
   void *
-  PyDataMem_NEW_ZEROED(size_t size, size_t elsize)
+  PyDataMem_NEW_ZEROED(size_t nmemb, size_t size)
 
 Allocates zeroed memory for array data.
 
@@ -2413,7 +2429,7 @@ Allocates zeroed memory for array data.
   int
   PyArray_CheckAnyScalarExact(PyObject *obj)
 
-return true an object is exactly a numpy scalar
+return 1 if an object is exactly a numpy scalar
 
 ::
 
@@ -2429,7 +2445,7 @@ Same as PyArray_MapIterArray, but:
 If copy_if_overlap != 0, check if `a` has memory overlap with any of the
 arrays in `index` and with `extra_op`. If yes, make copies as appropriate
 to avoid problems if `a` is modified during the iteration.
-`iter->array` may contain a copied array (UPDATEIFCOPY/WRITEBACKIFCOPY set).
+`iter->array` may contain a copied array (WRITEBACKIFCOPY set).
 
 ::
 
@@ -2456,4 +2472,23 @@ changes back to 'base' before deallocating the array.
 Steals a reference to 'base'.
 
 Returns 0 on success, -1 on failure.
+
+::
+
+  PyObject *
+  PyDataMem_SetHandler(PyObject *handler)
+
+Set a new allocation policy. If the input value is NULL, will reset
+the policy to the default. Return the previous policy, or
+return NULL if an error has occurred. We wrap the user-provided
+functions so they will still call the python and numpy
+memory management callback hooks.
+
+::
+
+  PyObject *
+  PyDataMem_GetHandler()
+
+Return the policy that will be used to allocate data
+for the next PyArrayObject. On failure, return NULL.
 

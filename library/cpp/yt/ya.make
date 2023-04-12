@@ -1,5 +1,0 @@
-IF (NOT OS_WINDOWS)
-    RECURSE(
-    misc
-)
-ENDIF()

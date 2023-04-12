@@ -130,7 +130,7 @@ class StoreBackendBase(metaclass=ABCMeta):
         verbose: int
             The level of verbosity of the store
         backend_options: dict
-            Contains a dictionnary of named paremeters used to configure the
+            Contains a dictionary of named parameters used to configure the
             store backend.
         """
 

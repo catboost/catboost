@@ -9,7 +9,7 @@ using namespace testing;
 
 namespace NCoro::NStack::Tests {
 
-    constexpr uint64_t StackSizeInPages = 4;
+    constexpr size_t StackSizeInPages = 4;
 
     template <class TGuard>
     class TStackFixture : public Test {
@@ -34,7 +34,7 @@ namespace NCoro::NStack::Tests {
 
     protected: // data
         const TGuard& Guard_;
-        const uint64_t StackSize_ = 0;
+        const size_t StackSize_ = 0;
         char* RawMemory_ = nullptr;
         char* AlignedMemory_ = nullptr;
         THolder<NDetails::TStack> Stack_;
@@ -51,7 +51,7 @@ namespace NCoro::NStack::Tests {
 
     TYPED_TEST(TStackFixture, WriteStack) {
         auto workspace = this->Guard_.GetWorkspace(this->Stack_->GetAlignedMemory(), this->Stack_->GetSize());
-        for (uint64_t i = 0; i < workspace.size(); i += 512) {
+        for (size_t i = 0; i < workspace.size(); i += 512) {
             workspace[i] = 42;
         }
         EXPECT_TRUE(this->Guard_.CheckOverride(this->Stack_->GetAlignedMemory(), this->Stack_->GetSize()));
