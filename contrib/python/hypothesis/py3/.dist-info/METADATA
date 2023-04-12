@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: hypothesis
-Version: 6.70.0
+Version: 6.70.1
 Summary: A library for property-based testing
 Home-page: https://hypothesis.works
 Author: David R. MacIver and Zac Hatfield-Dodds
@@ -53,7 +53,7 @@ Requires-Dist: redis (>=3.0.0) ; extra == 'all'
 Requires-Dist: rich (>=9.0.0) ; extra == 'all'
 Requires-Dist: importlib-metadata (>=3.6) ; (python_version < "3.8") and extra == 'all'
 Requires-Dist: backports.zoneinfo (>=0.2.1) ; (python_version < "3.9") and extra == 'all'
-Requires-Dist: tzdata (>=2022.7) ; (sys_platform == "win32") and extra == 'all'
+Requires-Dist: tzdata (>=2023.2) ; (sys_platform == "win32") and extra == 'all'
 Provides-Extra: cli
 Requires-Dist: click (>=7.0) ; extra == 'cli'
 Requires-Dist: black (>=19.10b0) ; extra == 'cli'
@@ -82,7 +82,7 @@ Provides-Extra: redis
 Requires-Dist: redis (>=3.0.0) ; extra == 'redis'
 Provides-Extra: zoneinfo
 Requires-Dist: backports.zoneinfo (>=0.2.1) ; (python_version < "3.9") and extra == 'zoneinfo'
-Requires-Dist: tzdata (>=2022.7) ; (sys_platform == "win32") and extra == 'zoneinfo'
+Requires-Dist: tzdata (>=2023.2) ; (sys_platform == "win32") and extra == 'zoneinfo'
 
 ==========
 Hypothesis
