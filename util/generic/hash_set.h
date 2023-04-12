@@ -3,6 +3,8 @@
 #include "fwd.h"
 #include "hash.h"
 
+#include <util/system/compiler.h>
+
 #include <initializer_list>
 #include <utility>
 
@@ -227,13 +229,13 @@ public:
     void erase(iterator f, iterator l) {
         rep.erase(f, l);
     }
-    void clear() {
+    Y_REINITIALIZES_OBJECT void clear() {
         rep.clear();
     }
-    void clear(size_t downsize_hint) {
+    Y_REINITIALIZES_OBJECT void clear(size_t downsize_hint) {
         rep.clear(downsize_hint);
     }
-    void basic_clear() {
+    Y_REINITIALIZES_OBJECT void basic_clear() {
         rep.basic_clear();
     }
     void release_nodes() {
@@ -435,13 +437,13 @@ public:
     void erase(iterator f, iterator l) {
         rep.erase(f, l);
     }
-    void clear() {
+    Y_REINITIALIZES_OBJECT void clear() {
         rep.clear();
     }
-    void clear(size_t downsize_hint) {
+    Y_REINITIALIZES_OBJECT void clear(size_t downsize_hint) {
         rep.clear(downsize_hint);
     }
-    void basic_clear() {
+    Y_REINITIALIZES_OBJECT void basic_clear() {
         rep.basic_clear();
     }
     void release_nodes() {

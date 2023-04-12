@@ -17,6 +17,7 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    Coroutine,
     Deque,
     Iterable,
     List,
@@ -41,6 +42,7 @@ from .completion import (
     get_common_complete_suffix,
 )
 from .document import Document
+from .eventloop import aclosing
 from .filters import FilterOrBool, to_filter
 from .history import History, InMemoryHistory
 from .search import SearchDirection, SearchState
@@ -95,7 +97,7 @@ class CompletionState:
         self.complete_index = complete_index  # Position in the `_completions` array.
 
     def __repr__(self) -> str:
-        return "%s(%r, <%r> completions, index=%r)" % (
+        return "{}({!r}, <{!r}> completions, index={!r})".format(
             self.__class__.__name__,
             self.original_document,
             len(self.completions),
@@ -160,7 +162,7 @@ class YankNthArgState:
         self.n = n
 
     def __repr__(self) -> str:
-        return "%s(history_position=%r, n=%r, previous_inserted_word=%r)" % (
+        return "{}(history_position={!r}, n={!r}, previous_inserted_word={!r})".format(
             self.__class__.__name__,
             self.history_position,
             self.n,
@@ -317,7 +319,7 @@ class Buffer:
         else:
             text = self.text[:12] + "..."
 
-        return "<Buffer(name=%r, text=%r) at %r>" % (self.name, text, id(self))
+        return f"<Buffer(name={self.name!r}, text={text!r}) at {id(self)!r}>"
 
     def reset(
         self, document: Optional[Document] = None, append_to_history: bool = False
@@ -967,7 +969,7 @@ class Buffer:
                         if i == self.working_index:
                             display_meta = "Current, line %s" % (j + 1)
                         else:
-                            display_meta = "History %s, line %s" % (i + 1, j + 1)
+                            display_meta = f"History {i + 1}, line {j + 1}"
 
                         completions.append(
                             Completion(
@@ -1692,7 +1694,7 @@ class Buffer:
             )
         )
 
-    def _create_completer_coroutine(self) -> Callable[..., Awaitable[None]]:
+    def _create_completer_coroutine(self) -> Callable[..., Coroutine[Any, Any, None]]:
         """
         Create function for asynchronous autocompletion.
 
@@ -1735,15 +1737,41 @@ class Buffer:
                 while generating completions."""
                 return self.complete_state == complete_state
 
-            async for completion in self.completer.get_completions_async(
-                document, complete_event
-            ):
-                complete_state.completions.append(completion)
-                self.on_completions_changed.fire()
+            refresh_needed = asyncio.Event()
 
-                # If the input text changes, abort.
-                if not proceed():
-                    break
+            async def refresh_while_loading() -> None:
+                """Background loop to refresh the UI at most 3 times a second
+                while the completion are loading. Calling
+                `on_completions_changed.fire()` for every completion that we
+                receive is too expensive when there are many completions. (We
+                could tune `Application.max_render_postpone_time` and
+                `Application.min_redraw_interval`, but having this here is a
+                better approach.)
+                """
+                while True:
+                    self.on_completions_changed.fire()
+                    refresh_needed.clear()
+                    await asyncio.sleep(0.3)
+                    await refresh_needed.wait()
+
+            refresh_task = asyncio.ensure_future(refresh_while_loading())
+            try:
+                # Load.
+                async with aclosing(
+                    self.completer.get_completions_async(document, complete_event)
+                ) as async_generator:
+                    async for completion in async_generator:
+                        complete_state.completions.append(completion)
+                        refresh_needed.set()
+
+                        # If the input text changes, abort.
+                        if not proceed():
+                            break
+            finally:
+                refresh_task.cancel()
+
+                # Refresh one final time after we got everything.
+                self.on_completions_changed.fire()
 
             completions = complete_state.completions
 
@@ -1822,7 +1850,7 @@ class Buffer:
 
         return async_completer
 
-    def _create_auto_suggest_coroutine(self) -> Callable[[], Awaitable[None]]:
+    def _create_auto_suggest_coroutine(self) -> Callable[[], Coroutine[Any, Any, None]]:
         """
         Create function for asynchronous auto suggestion.
         (This can be in another thread.)
@@ -1849,7 +1877,9 @@ class Buffer:
 
         return async_suggestor
 
-    def _create_auto_validate_coroutine(self) -> Callable[[], Awaitable[None]]:
+    def _create_auto_validate_coroutine(
+        self,
+    ) -> Callable[[], Coroutine[Any, Any, None]]:
         """
         Create a function for asynchronous validation while typing.
         (This can be in another thread.)

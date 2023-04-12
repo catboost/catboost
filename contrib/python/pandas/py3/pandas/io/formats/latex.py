@@ -8,6 +8,7 @@ from abc import (
     abstractmethod,
 )
 from typing import (
+    TYPE_CHECKING,
     Iterator,
     Sequence,
 )
@@ -16,7 +17,8 @@ import numpy as np
 
 from pandas.core.dtypes.generic import ABCMultiIndex
 
-from pandas.io.formats.format import DataFrameFormatter
+if TYPE_CHECKING:
+    from pandas.io.formats.format import DataFrameFormatter
 
 
 def _split_into_full_short_caption(
@@ -74,7 +76,7 @@ class RowStringConverter(ABC):
         multicolumn: bool = False,
         multicolumn_format: str | None = None,
         multirow: bool = False,
-    ):
+    ) -> None:
         self.fmt = formatter
         self.frame = self.fmt.frame
         self.multicolumn = multicolumn
@@ -336,7 +338,7 @@ class TableBuilderAbstract(ABC):
         short_caption: str | None = None,
         label: str | None = None,
         position: str | None = None,
-    ):
+    ) -> None:
         self.fmt = formatter
         self.column_format = column_format
         self.multicolumn = multicolumn
@@ -358,7 +360,7 @@ class TableBuilderAbstract(ABC):
             self.bottom_separator,
             self.env_end,
         ]
-        result = "\n".join(item for item in elements if item)
+        result = "\n".join([item for item in elements if item])
         trailing_newline = "\n"
         result += trailing_newline
         return result
@@ -488,9 +490,8 @@ class GenericTableBuilder(TableBuilderAbstract):
 class LongTableBuilder(GenericTableBuilder):
     """Concrete table builder for longtable.
 
-    >>> from pandas import DataFrame
     >>> from pandas.io.formats import format as fmt
-    >>> df = DataFrame({"a": [1, 2], "b": ["b1", "b2"]})
+    >>> df = pd.DataFrame({"a": [1, 2], "b": ["b1", "b2"]})
     >>> formatter = fmt.DataFrameFormatter(df)
     >>> builder = LongTableBuilder(formatter, caption='a long table',
     ...                            label='tab:long', column_format='lrl')
@@ -527,13 +528,13 @@ class LongTableBuilder(GenericTableBuilder):
             f"\\begin{{longtable}}{self._position_macro}{{{self.column_format}}}"
         )
         elements = [first_row, f"{self._caption_and_label()}"]
-        return "\n".join(item for item in elements if item)
+        return "\n".join([item for item in elements if item])
 
     def _caption_and_label(self) -> str:
         if self.caption or self.label:
             double_backslash = "\\\\"
             elements = [f"{self._caption_macro}", f"{self._label_macro}"]
-            caption_and_label = "\n".join(item for item in elements if item)
+            caption_and_label = "\n".join([item for item in elements if item])
             caption_and_label += double_backslash
             return caption_and_label
         else:
@@ -578,9 +579,8 @@ class LongTableBuilder(GenericTableBuilder):
 class RegularTableBuilder(GenericTableBuilder):
     """Concrete table builder for regular table.
 
-    >>> from pandas import DataFrame
     >>> from pandas.io.formats import format as fmt
-    >>> df = DataFrame({"a": [1, 2], "b": ["b1", "b2"]})
+    >>> df = pd.DataFrame({"a": [1, 2], "b": ["b1", "b2"]})
     >>> formatter = fmt.DataFrameFormatter(df)
     >>> builder = RegularTableBuilder(formatter, caption='caption', label='lab',
     ...                               column_format='lrc')
@@ -611,7 +611,7 @@ class RegularTableBuilder(GenericTableBuilder):
             f"{self._label_macro}",
             f"\\begin{{tabular}}{{{self.column_format}}}",
         ]
-        return "\n".join(item for item in elements if item)
+        return "\n".join([item for item in elements if item])
 
     @property
     def bottom_separator(self) -> str:
@@ -625,9 +625,8 @@ class RegularTableBuilder(GenericTableBuilder):
 class TabularBuilder(GenericTableBuilder):
     """Concrete table builder for tabular environment.
 
-    >>> from pandas import DataFrame
     >>> from pandas.io.formats import format as fmt
-    >>> df = DataFrame({"a": [1, 2], "b": ["b1", "b2"]})
+    >>> df = pd.DataFrame({"a": [1, 2], "b": ["b1", "b2"]})
     >>> formatter = fmt.DataFrameFormatter(df)
     >>> builder = TabularBuilder(formatter, column_format='lrc')
     >>> table = builder.get_result()
@@ -700,7 +699,7 @@ class LatexFormatter:
         caption: str | tuple[str, str] | None = None,
         label: str | None = None,
         position: str | None = None,
-    ):
+    ) -> None:
         self.fmt = formatter
         self.frame = self.fmt.frame
         self.longtable = longtable

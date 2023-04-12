@@ -20,6 +20,7 @@
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/metric_options.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/quantization/grid_creator.h>
@@ -119,15 +120,6 @@ namespace NCatboostCuda {
         }
     }
 
-    inline NCudaLib::TDeviceRequestConfig CreateDeviceRequestConfig(const NCatboostOptions::TCatBoostOptions& options) {
-        NCudaLib::TDeviceRequestConfig config;
-        const auto& systemOptions = options.SystemOptions.Get();
-        config.DeviceConfig = systemOptions.Devices;
-        config.PinnedMemorySize = ParseMemorySizeDescription(systemOptions.PinnedMemorySize.Get());
-        config.GpuMemoryPartByWorker = systemOptions.GpuRamPart;
-        return config;
-    }
-
     static inline bool NeedPriorEstimation(const TVector<NCatboostOptions::TCtrDescription>& descriptions) {
         for (const auto& description : descriptions) {
             if (description.PriorEstimation != EPriorEstimation::No) {
@@ -151,8 +143,7 @@ namespace NCatboostCuda {
 
         const auto& featuresLayout = *dataProvider.MetaInfo.FeaturesLayout;
 
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetOneDimensionalTarget(), ENanMode::Forbidden, borders);
-
+        auto binarizedTarget = NCB::BinarizeLine<ui8>((*dataProvider.TargetData->GetTarget())[0], ENanMode::Forbidden, borders); // espetrov: fix for multi-target + ctr
         TAdaptiveLock lock;
 
         //TODO(noxoomo): locks here are ugly and error prone
@@ -215,6 +206,39 @@ namespace NCatboostCuda {
         EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams, localExecutor);
         UpdateDataPartitionType(featuresManager, catBoostOptions);
         UpdatePinnedMemorySizeOption(dataProvider, testProvider, featuresManager, catBoostOptions);
+    }
+
+    static void UpdateDefaultMetricPeriod(
+        const NCatboostOptions::TCatBoostOptions& trainOptions,
+        NCatboostOptions::TOutputFilesOptions* outputOptions
+    ) {
+        if (outputOptions->IsMetricPeriodSet()) {
+            return;
+        }
+        const auto& metricOptions = trainOptions.MetricOptions;
+        TSet<ELossFunction> cpuOnlyMetrics;
+        if (!HasGpuImplementation(metricOptions->EvalMetric->GetLossFunction())) {
+            cpuOnlyMetrics.insert(metricOptions->EvalMetric->GetLossFunction());
+        }
+        if (!HasGpuImplementation(metricOptions->ObjectiveMetric->GetLossFunction())) {
+            cpuOnlyMetrics.insert(metricOptions->ObjectiveMetric->GetLossFunction());
+        }
+        for (const auto& metric : metricOptions->CustomMetrics.Get()) {
+            if (!HasGpuImplementation(metric.GetLossFunction())) {
+                cpuOnlyMetrics.insert(metric.GetLossFunction());
+            }
+        }
+        if (cpuOnlyMetrics.size() > 0) {
+            constexpr ui32 HeavyMetricPeriod = 5;
+            const auto someMetric = *cpuOnlyMetrics.begin();
+            cpuOnlyMetrics.erase(someMetric);
+            CATBOOST_WARNING_LOG << "Default metric period is " << HeavyMetricPeriod << " because " << ToString(someMetric);
+            for (auto metric : cpuOnlyMetrics) {
+                CATBOOST_WARNING_LOG << ", " << ToString(metric);
+            }
+            CATBOOST_WARNING_LOG << " is/are not implemented for GPU" << Endl;
+            outputOptions->SetMetricPeriod(HeavyMetricPeriod);
+        }
     }
 
     static void ConfigureCudaProfiler(bool isProfile, NCudaLib::TCudaProfiler* profiler) {
@@ -322,12 +346,12 @@ namespace NCatboostCuda {
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             CB_ENSURE(!precomputedSingleOnlineCtrDataForSingleFold,
                       "Precomputed online CTR data for GPU is not yet supported");
-            Y_VERIFY(evalResultPtrs.empty() || (evalResultPtrs.size() == trainingData.Test.size()));
+            CB_ENSURE(
+                evalResultPtrs.empty() || (evalResultPtrs.size() == trainingData.Test.size()),
+                "Need test dataset to evaluate resulting model");
             CB_ENSURE(!initModel && !initLearnProgress, "Training continuation for GPU is not yet supported");
             Y_UNUSED(initModelApplyCompatiblePools);
             CB_ENSURE_INTERNAL(!dstLearnProgress, "Returning learn progress for GPU is not yet supported");
-            CB_ENSURE(!IsMultiTargetObjective(catboostOptions.LossFunctionDescription->LossFunction),
-                      "Catboost does not support multitarget on GPU yet");
 
             NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
 
@@ -358,7 +382,11 @@ namespace NCatboostCuda {
                                                       quantizedFeaturesInfo,
                                                       objectsCount,
                                                       /*enableShuffling*/internalOptions.HaveLearnFeatureInMemory);
-
+            CB_ENSURE(
+                !IsMultiTargetObjective(lossFunction)
+                || (EqualToOneOf(lossFunction, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)
+                && featuresManager.GetCtrsCount() == 0),
+                "Catboost does not support " << ToString(lossFunction) << " on GPU yet for categorical features");
 
             SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,
@@ -378,12 +406,9 @@ namespace NCatboostCuda {
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    *trainingData.Learn->TargetData->GetOneDimensionalTarget())(featuresManager.GetTargetBinarizationDescription()));
+                    (*trainingData.Learn->TargetData->GetTarget())[0])(featuresManager.GetTargetBinarizationDescription())); // esp: fix for multi-target
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
-            auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
-            auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
-                                                         updatedCatboostOptions.LoggingLevel);
 
             ui32 approxDimension = GetApproxDimension(
                 updatedCatboostOptions,
@@ -395,10 +420,13 @@ namespace NCatboostCuda {
 
             CheckMetrics(updatedCatboostOptions.MetricOptions);
 
+            NCatboostOptions::TOutputFilesOptions updatedOutputOptions(outputOptions);
+            UpdateDefaultMetricPeriod(updatedCatboostOptions, &updatedOutputOptions);
+
             TGpuTrainResult gpuFormatModel = TrainModelImpl(
                 internalOptions,
                 updatedCatboostOptions,
-                outputOptions,
+                updatedOutputOptions,
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
                 *trainingData.FeatureEstimators,
@@ -544,7 +572,7 @@ namespace NCatboostCuda {
                     *trainingData.Learn->TargetData->GetOneDimensionalTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
-            auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
+            auto deviceRequestConfig = NCudaLib::CreateDeviceRequestConfig(updatedCatboostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                          updatedCatboostOptions.LoggingLevel);
 

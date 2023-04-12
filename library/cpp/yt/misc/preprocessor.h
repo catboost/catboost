@@ -2,7 +2,7 @@
 
 /*!
  * \file preprocesor.h
- * \brief Preprocessor metaprogramming macroses
+ * \brief Preprocessor metaprogramming macros
  */
 
 #if !defined(_MSC_VER) && !defined(__GNUC__)
@@ -10,7 +10,7 @@
 #endif
 
 /*!
- * \defgroup yt_pp Preprocessor metaprogramming macroses
+ * \defgroup yt_pp Preprocessor metaprogramming macros
  * \ingroup yt_commons
  *
  * This is collection of macro definitions for various metaprogramming tasks
@@ -50,6 +50,15 @@
 #define PP_RIGHT_PARENTHESIS )
 #define PP_COMMA() ,
 #define PP_EMPTY()
+//! \endcond
+
+//! Removes the enclosing parens, if any.
+#define PP_DEPAREN(...) PP_DEPAREN_A(PP_DEPAREN_C __VA_ARGS__)
+//! \cond Implementation
+#define PP_DEPAREN_C(...) PP_DEPAREN_C __VA_ARGS__
+#define PP_DEPAREN_A(...) PP_DEPAREN_B(__VA_ARGS__)
+#define PP_DEPAREN_B(...) PP_DEPAREN_D_ ## __VA_ARGS__
+#define PP_DEPAREN_D_PP_DEPAREN_C
 //! \endcond
 
 //! Performs (non-lazy) conditional expansion.
@@ -121,4 +130,3 @@
 //! \endcond
 
 /*! \} */
-

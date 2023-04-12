@@ -58,7 +58,8 @@ class VendorImporter:
         """Return a module spec for vendored names."""
         return (
             importlib.util.spec_from_loader(fullname, self)
-            if self._module_matches_namespace(fullname) else None
+            if self._module_matches_namespace(fullname)
+            else None
         )
 
     def install(self):
@@ -69,5 +70,11 @@ class VendorImporter:
             sys.meta_path.append(self)
 
 
-names = 'packaging', 'pyparsing', 'appdirs'
+names = (
+    'packaging',
+    'platformdirs',
+    'jaraco',
+    'importlib_resources',
+    'more_itertools',
+)
 VendorImporter(__name__, names).install()

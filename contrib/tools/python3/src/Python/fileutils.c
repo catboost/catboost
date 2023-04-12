@@ -1,11 +1,14 @@
 #include "Python.h"
-#include "pycore_fileutils.h"
+#include "pycore_fileutils.h"     // fileutils definitions
+#include "pycore_runtime.h"       // _PyRuntime
 #include "osdefs.h"               // SEP
 #include <locale.h>
+#include <stdlib.h>               // mbstowcs()
 
 #ifdef MS_WINDOWS
 #  include <malloc.h>
 #  include <windows.h>
+#  include <pathcch.h>            // PathCchCombineEx
 extern int winerror_to_errno(int);
 #endif
 
@@ -65,9 +68,6 @@ get_surrogateescape(_Py_error_handler errors, int *surrogateescape)
 PyObject *
 _Py_device_encoding(int fd)
 {
-#if defined(MS_WINDOWS)
-    UINT cp;
-#endif
     int valid;
     Py_BEGIN_ALLOW_THREADS
     _Py_BEGIN_SUPPRESS_IPH
@@ -78,6 +78,7 @@ _Py_device_encoding(int fd)
         Py_RETURN_NONE;
 
 #if defined(MS_WINDOWS)
+    UINT cp;
     if (fd == 0)
         cp = GetConsoleCP();
     else if (fd == 1 || fd == 2)
@@ -86,16 +87,18 @@ _Py_device_encoding(int fd)
         cp = 0;
     /* GetConsoleCP() and GetConsoleOutputCP() return 0 if the application
        has no console */
-    if (cp != 0)
-        return PyUnicode_FromFormat("cp%u", (unsigned int)cp);
-#elif defined(CODESET)
-    {
-        char *codeset = nl_langinfo(CODESET);
-        if (codeset != NULL && codeset[0] != 0)
-            return PyUnicode_FromString(codeset);
+    if (cp == 0) {
+        Py_RETURN_NONE;
     }
+
+    return PyUnicode_FromFormat("cp%u", (unsigned int)cp);
+#else
+    if (_PyRuntime.preconfig.utf8_mode) {
+        _Py_DECLARE_STR(utf_8, "utf-8");
+        return Py_NewRef(&_Py_STR(utf_8));
+    }
+    return _Py_GetLocaleEncodingObject();
 #endif
-    Py_RETURN_NONE;
 }
 
 
@@ -871,6 +874,68 @@ _Py_EncodeLocaleEx(const wchar_t *text, char **str,
                             current_locale, errors);
 }
 
+
+// Get the current locale encoding name:
+//
+// - Return "utf-8" if _Py_FORCE_UTF8_LOCALE macro is defined (ex: on Android)
+// - Return "utf-8" if the UTF-8 Mode is enabled
+// - On Windows, return the ANSI code page (ex: "cp1250")
+// - Return "utf-8" if nl_langinfo(CODESET) returns an empty string.
+// - Otherwise, return nl_langinfo(CODESET).
+//
+// Return NULL on memory allocation failure.
+//
+// See also config_get_locale_encoding()
+wchar_t*
+_Py_GetLocaleEncoding(void)
+{
+#ifdef _Py_FORCE_UTF8_LOCALE
+    // On Android langinfo.h and CODESET are missing,
+    // and UTF-8 is always used in mbstowcs() and wcstombs().
+    return _PyMem_RawWcsdup(L"utf-8");
+#else
+
+#ifdef MS_WINDOWS
+    wchar_t encoding[23];
+    unsigned int ansi_codepage = GetACP();
+    swprintf(encoding, Py_ARRAY_LENGTH(encoding), L"cp%u", ansi_codepage);
+    encoding[Py_ARRAY_LENGTH(encoding) - 1] = 0;
+    return _PyMem_RawWcsdup(encoding);
+#else
+    const char *encoding = nl_langinfo(CODESET);
+    if (!encoding || encoding[0] == '\0') {
+        // Use UTF-8 if nl_langinfo() returns an empty string. It can happen on
+        // macOS if the LC_CTYPE locale is not supported.
+        return _PyMem_RawWcsdup(L"utf-8");
+    }
+
+    wchar_t *wstr;
+    int res = decode_current_locale(encoding, &wstr, NULL,
+                                    NULL, _Py_ERROR_SURROGATEESCAPE);
+    if (res < 0) {
+        return NULL;
+    }
+    return wstr;
+#endif  // !MS_WINDOWS
+
+#endif  // !_Py_FORCE_UTF8_LOCALE
+}
+
+
+PyObject *
+_Py_GetLocaleEncodingObject(void)
+{
+    wchar_t *encoding = _Py_GetLocaleEncoding();
+    if (encoding == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    PyObject *str = PyUnicode_FromWideChar(encoding, -1);
+    PyMem_RawFree(encoding);
+    return str;
+}
+
 #ifdef HAVE_NON_UNICODE_WCHAR_T_REPRESENTATION
 
 /* Check whether current locale uses Unicode as internal wchar_t form. */
@@ -891,7 +956,7 @@ static wchar_t *
 _Py_ConvertWCharForm(const wchar_t *source, Py_ssize_t size,
                      const char *tocode, const char *fromcode)
 {
-    Py_BUILD_ASSERT(sizeof(wchar_t) == 4);
+    static_assert(sizeof(wchar_t) == 4, "wchar_t must be 32-bit");
 
     /* Ensure we won't overflow the size. */
     if (size > (PY_SSIZE_T_MAX / (Py_ssize_t)sizeof(wchar_t))) {
@@ -1061,9 +1126,7 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
     HANDLE h;
     int type;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    h = (HANDLE)_get_osfhandle(fd);
-    _Py_END_SUPPRESS_IPH
+    h = _Py_get_osfhandle_noraise(fd);
 
     if (h == INVALID_HANDLE_VALUE) {
         /* errno is already set by _get_osfhandle, but we also set
@@ -1144,6 +1207,31 @@ _Py_fstat(int fd, struct _Py_stat_struct *status)
     return 0;
 }
 
+/* Like _Py_stat() but with a raw filename. */
+int
+_Py_wstat(const wchar_t* path, struct stat *buf)
+{
+    int err;
+#ifdef MS_WINDOWS
+    struct _stat wstatbuf;
+    err = _wstat(path, &wstatbuf);
+    if (!err) {
+        buf->st_mode = wstatbuf.st_mode;
+    }
+#else
+    char *fname;
+    fname = _Py_EncodeLocaleRaw(path, NULL);
+    if (fname == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+    err = stat(fname, buf);
+    PyMem_RawFree(fname);
+#endif
+    return err;
+}
+
+
 /* Call _wstat() on Windows, or encode the path to the filesystem encoding and
    call stat() otherwise. Only fill st_mode attribute on Windows.
 
@@ -1155,19 +1243,19 @@ _Py_stat(PyObject *path, struct stat *statbuf)
 {
 #ifdef MS_WINDOWS
     int err;
-    struct _stat wstatbuf;
-    const wchar_t *wpath;
 
-_Py_COMP_DIAG_PUSH
-_Py_COMP_DIAG_IGNORE_DEPR_DECLS
-    wpath = _PyUnicode_AsUnicode(path);
-_Py_COMP_DIAG_POP
+#if USE_UNICODE_WCHAR_CACHE
+    const wchar_t *wpath = _PyUnicode_AsUnicode(path);
+#else /* USE_UNICODE_WCHAR_CACHE */
+    wchar_t *wpath = PyUnicode_AsWideCharString(path, NULL);
+#endif /* USE_UNICODE_WCHAR_CACHE */
     if (wpath == NULL)
         return -2;
 
-    err = _wstat(wpath, &wstatbuf);
-    if (!err)
-        statbuf->st_mode = wstatbuf.st_mode;
+    err = _Py_wstat(wpath, statbuf);
+#if !USE_UNICODE_WCHAR_CACHE
+    PyMem_Free(wpath);
+#endif /* USE_UNICODE_WCHAR_CACHE */
     return err;
 #else
     int ret;
@@ -1199,9 +1287,7 @@ get_inheritable(int fd, int raise)
     HANDLE handle;
     DWORD flags;
 
-    _Py_BEGIN_SUPPRESS_IPH
-    handle = (HANDLE)_get_osfhandle(fd);
-    _Py_END_SUPPRESS_IPH
+    handle = _Py_get_osfhandle_noraise(fd);
     if (handle == INVALID_HANDLE_VALUE) {
         if (raise)
             PyErr_SetFromErrno(PyExc_OSError);
@@ -1272,9 +1358,7 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
     }
 
 #ifdef MS_WINDOWS
-    _Py_BEGIN_SUPPRESS_IPH
-    handle = (HANDLE)_get_osfhandle(fd);
-    _Py_END_SUPPRESS_IPH
+    handle = _Py_get_osfhandle_noraise(fd);
     if (handle == INVALID_HANDLE_VALUE) {
         if (raise)
             PyErr_SetFromErrno(PyExc_OSError);
@@ -1545,33 +1629,6 @@ _Py_wfopen(const wchar_t *path, const wchar_t *mode)
     return f;
 }
 
-/* Wrapper to fopen().
-
-   The file descriptor is created non-inheritable.
-
-   If interrupted by a signal, fail with EINTR. */
-FILE*
-_Py_fopen(const char *pathname, const char *mode)
-{
-    PyObject *pathname_obj = PyUnicode_DecodeFSDefault(pathname);
-    if (pathname_obj == NULL) {
-        return NULL;
-    }
-    if (PySys_Audit("open", "Osi", pathname_obj, mode, 0) < 0) {
-        Py_DECREF(pathname_obj);
-        return NULL;
-    }
-    Py_DECREF(pathname_obj);
-
-    FILE *f = fopen(pathname, mode);
-    if (f == NULL)
-        return NULL;
-    if (make_non_inheritable(fileno(f)) < 0) {
-        fclose(f);
-        return NULL;
-    }
-    return f;
-}
 
 /* Open a file. Call _wfopen() on Windows, or encode the path to the filesystem
    encoding and call fopen() otherwise.
@@ -1592,7 +1649,6 @@ _Py_fopen_obj(PyObject *path, const char *mode)
     FILE *f;
     int async_err = 0;
 #ifdef MS_WINDOWS
-    const wchar_t *wpath;
     wchar_t wmode[10];
     int usize;
 
@@ -1607,10 +1663,11 @@ _Py_fopen_obj(PyObject *path, const char *mode)
                      Py_TYPE(path));
         return NULL;
     }
-_Py_COMP_DIAG_PUSH
-_Py_COMP_DIAG_IGNORE_DEPR_DECLS
-    wpath = _PyUnicode_AsUnicode(path);
-_Py_COMP_DIAG_POP
+#if USE_UNICODE_WCHAR_CACHE
+    const wchar_t *wpath = _PyUnicode_AsUnicode(path);
+#else /* USE_UNICODE_WCHAR_CACHE */
+    wchar_t *wpath = PyUnicode_AsWideCharString(path, NULL);
+#endif /* USE_UNICODE_WCHAR_CACHE */
     if (wpath == NULL)
         return NULL;
 
@@ -1618,6 +1675,9 @@ _Py_COMP_DIAG_POP
                                 wmode, Py_ARRAY_LENGTH(wmode));
     if (usize == 0) {
         PyErr_SetFromWindowsErr(0);
+#if !USE_UNICODE_WCHAR_CACHE
+        PyMem_Free(wpath);
+#endif /* USE_UNICODE_WCHAR_CACHE */
         return NULL;
     }
 
@@ -1627,6 +1687,9 @@ _Py_COMP_DIAG_POP
         Py_END_ALLOW_THREADS
     } while (f == NULL
              && errno == EINTR && !(async_err = PyErr_CheckSignals()));
+#if !USE_UNICODE_WCHAR_CACHE
+    PyMem_Free(wpath);
+#endif /* USE_UNICODE_WCHAR_CACHE */
 #else
     PyObject *bytes;
     const char *path_bytes;
@@ -1937,13 +2000,28 @@ _Py_wrealpath(const wchar_t *path,
 #endif
 
 
-#ifndef MS_WINDOWS
 int
 _Py_isabs(const wchar_t *path)
 {
+#ifdef MS_WINDOWS
+    const wchar_t *tail;
+    HRESULT hr = PathCchSkipRoot(path, &tail);
+    if (FAILED(hr) || path == tail) {
+        return 0;
+    }
+    if (tail == &path[1] && (path[0] == SEP || path[0] == ALTSEP)) {
+        // Exclude paths with leading SEP
+        return 0;
+    }
+    if (tail == &path[2] && path[1] == L':') {
+        // Exclude drive-relative paths (e.g. C:filename.ext)
+        return 0;
+    }
+    return 1;
+#else
     return (path[0] == SEP);
-}
 #endif
+}
 
 
 /* Get an absolute path.
@@ -1954,49 +2032,25 @@ _Py_isabs(const wchar_t *path)
 int
 _Py_abspath(const wchar_t *path, wchar_t **abspath_p)
 {
-#ifdef MS_WINDOWS
-    wchar_t woutbuf[MAX_PATH], *woutbufp = woutbuf;
-    DWORD result;
-
-    result = GetFullPathNameW(path,
-                              Py_ARRAY_LENGTH(woutbuf), woutbuf,
-                              NULL);
-    if (!result) {
-        return -1;
-    }
-
-    if (result > Py_ARRAY_LENGTH(woutbuf)) {
-        if ((size_t)result <= (size_t)PY_SSIZE_T_MAX / sizeof(wchar_t)) {
-            woutbufp = PyMem_RawMalloc((size_t)result * sizeof(wchar_t));
-        }
-        else {
-            woutbufp = NULL;
-        }
-        if (!woutbufp) {
-            *abspath_p = NULL;
-            return 0;
-        }
-
-        result = GetFullPathNameW(path, result, woutbufp, NULL);
-        if (!result) {
-            PyMem_RawFree(woutbufp);
+    if (path[0] == '\0' || !wcscmp(path, L".")) {
+        wchar_t cwd[MAXPATHLEN + 1];
+        cwd[Py_ARRAY_LENGTH(cwd) - 1] = 0;
+        if (!_Py_wgetcwd(cwd, Py_ARRAY_LENGTH(cwd) - 1)) {
+            /* unable to get the current directory */
             return -1;
         }
-    }
-
-    if (woutbufp != woutbuf) {
-        *abspath_p = woutbufp;
+        *abspath_p = _PyMem_RawWcsdup(cwd);
         return 0;
     }
 
-    *abspath_p = _PyMem_RawWcsdup(woutbufp);
-    return 0;
-#else
     if (_Py_isabs(path)) {
         *abspath_p = _PyMem_RawWcsdup(path);
         return 0;
     }
 
+#ifdef MS_WINDOWS
+    return _PyOS_getfullpathname(path, abspath_p);
+#else
     wchar_t cwd[MAXPATHLEN + 1];
     cwd[Py_ARRAY_LENGTH(cwd) - 1] = 0;
     if (!_Py_wgetcwd(cwd, Py_ARRAY_LENGTH(cwd) - 1)) {
@@ -2030,6 +2084,220 @@ _Py_abspath(const wchar_t *path, wchar_t **abspath_p)
     *abspath = 0;
     return 0;
 #endif
+}
+
+
+// The caller must ensure "buffer" is big enough.
+static int
+join_relfile(wchar_t *buffer, size_t bufsize,
+             const wchar_t *dirname, const wchar_t *relfile)
+{
+#ifdef MS_WINDOWS
+    if (FAILED(PathCchCombineEx(buffer, bufsize, dirname, relfile,
+        PATHCCH_ALLOW_LONG_PATHS))) {
+        return -1;
+    }
+#else
+    assert(!_Py_isabs(relfile));
+    size_t dirlen = wcslen(dirname);
+    size_t rellen = wcslen(relfile);
+    size_t maxlen = bufsize - 1;
+    if (maxlen > MAXPATHLEN || dirlen >= maxlen || rellen >= maxlen - dirlen) {
+        return -1;
+    }
+    if (dirlen == 0) {
+        // We do not add a leading separator.
+        wcscpy(buffer, relfile);
+    }
+    else {
+        if (dirname != buffer) {
+            wcscpy(buffer, dirname);
+        }
+        size_t relstart = dirlen;
+        if (dirlen > 1 && dirname[dirlen - 1] != SEP) {
+            buffer[dirlen] = SEP;
+            relstart += 1;
+        }
+        wcscpy(&buffer[relstart], relfile);
+    }
+#endif
+    return 0;
+}
+
+/* Join the two paths together, like os.path.join().  Return NULL
+   if memory could not be allocated.  The caller is responsible
+   for calling PyMem_RawFree() on the result. */
+wchar_t *
+_Py_join_relfile(const wchar_t *dirname, const wchar_t *relfile)
+{
+    assert(dirname != NULL && relfile != NULL);
+#ifndef MS_WINDOWS
+    assert(!_Py_isabs(relfile));
+#endif
+    size_t maxlen = wcslen(dirname) + 1 + wcslen(relfile);
+    size_t bufsize = maxlen + 1;
+    wchar_t *filename = PyMem_RawMalloc(bufsize * sizeof(wchar_t));
+    if (filename == NULL) {
+        return NULL;
+    }
+    assert(wcslen(dirname) < MAXPATHLEN);
+    assert(wcslen(relfile) < MAXPATHLEN - wcslen(dirname));
+    join_relfile(filename, bufsize, dirname, relfile);
+    return filename;
+}
+
+/* Join the two paths together, like os.path.join().
+     dirname: the target buffer with the dirname already in place,
+              including trailing NUL
+     relfile: this must be a relative path
+     bufsize: total allocated size of the buffer
+   Return -1 if anything is wrong with the path lengths. */
+int
+_Py_add_relfile(wchar_t *dirname, const wchar_t *relfile, size_t bufsize)
+{
+    assert(dirname != NULL && relfile != NULL);
+    assert(bufsize > 0);
+    return join_relfile(dirname, bufsize, dirname, relfile);
+}
+
+
+size_t
+_Py_find_basename(const wchar_t *filename)
+{
+    for (size_t i = wcslen(filename); i > 0; --i) {
+        if (filename[i] == SEP) {
+            return i + 1;
+        }
+    }
+    return 0;
+}
+
+/* In-place path normalisation. Returns the start of the normalized
+   path, which will be within the original buffer. Guaranteed to not
+   make the path longer, and will not fail. 'size' is the length of
+   the path, if known. If -1, the first null character will be assumed
+   to be the end of the path. */
+wchar_t *
+_Py_normpath(wchar_t *path, Py_ssize_t size)
+{
+    if (!path[0] || size == 0) {
+        return path;
+    }
+    wchar_t *pEnd = size >= 0 ? &path[size] : NULL;
+    wchar_t *p1 = path;     // sequentially scanned address in the path
+    wchar_t *p2 = path;     // destination of a scanned character to be ljusted
+    wchar_t *minP2 = path;  // the beginning of the destination range
+    wchar_t lastC = L'\0';  // the last ljusted character, p2[-1] in most cases
+
+#define IS_END(x) (pEnd ? (x) == pEnd : !*(x))
+#ifdef ALTSEP
+#define IS_SEP(x) (*(x) == SEP || *(x) == ALTSEP)
+#else
+#define IS_SEP(x) (*(x) == SEP)
+#endif
+#define SEP_OR_END(x) (IS_SEP(x) || IS_END(x))
+
+    // Skip leading '.\'
+    if (p1[0] == L'.' && IS_SEP(&p1[1])) {
+        path = &path[2];
+        while (IS_SEP(path) && !IS_END(path)) {
+            path++;
+        }
+        p1 = p2 = minP2 = path;
+        lastC = SEP;
+    }
+#ifdef MS_WINDOWS
+    // Skip past drive segment and update minP2
+    else if (p1[0] && p1[1] == L':') {
+        *p2++ = *p1++;
+        *p2++ = *p1++;
+        minP2 = p2;
+        lastC = L':';
+    }
+    // Skip past all \\-prefixed paths, including \\?\, \\.\,
+    // and network paths, including the first segment.
+    else if (IS_SEP(&p1[0]) && IS_SEP(&p1[1])) {
+        int sepCount = 2;
+        *p2++ = SEP;
+        *p2++ = SEP;
+        p1 += 2;
+        for (; !IS_END(p1) && sepCount; ++p1) {
+            if (IS_SEP(p1)) {
+                --sepCount;
+                *p2++ = lastC = SEP;
+            } else {
+                *p2++ = lastC = *p1;
+            }
+        }
+        if (sepCount) {
+            minP2 = p2;      // Invalid path
+        } else {
+            minP2 = p2 - 1;  // Absolute path has SEP at minP2
+        }
+    }
+#else
+    // Skip past two leading SEPs
+    else if (IS_SEP(&p1[0]) && IS_SEP(&p1[1]) && !IS_SEP(&p1[2])) {
+        *p2++ = *p1++;
+        *p2++ = *p1++;
+        minP2 = p2 - 1;  // Absolute path has SEP at minP2
+        lastC = SEP;
+    }
+#endif /* MS_WINDOWS */
+
+    /* if pEnd is specified, check that. Else, check for null terminator */
+    for (; !IS_END(p1); ++p1) {
+        wchar_t c = *p1;
+#ifdef ALTSEP
+        if (c == ALTSEP) {
+            c = SEP;
+        }
+#endif
+        if (lastC == SEP) {
+            if (c == L'.') {
+                int sep_at_1 = SEP_OR_END(&p1[1]);
+                int sep_at_2 = !sep_at_1 && SEP_OR_END(&p1[2]);
+                if (sep_at_2 && p1[1] == L'.') {
+                    wchar_t *p3 = p2;
+                    while (p3 != minP2 && *--p3 == SEP) { }
+                    while (p3 != minP2 && *(p3 - 1) != SEP) { --p3; }
+                    if (p2 == minP2
+                        || (p3[0] == L'.' && p3[1] == L'.' && IS_SEP(&p3[2])))
+                    {
+                        // Previous segment is also ../, so append instead.
+                        // Relative path does not absorb ../ at minP2 as well.
+                        *p2++ = L'.';
+                        *p2++ = L'.';
+                        lastC = L'.';
+                    } else if (p3[0] == SEP) {
+                        // Absolute path, so absorb segment
+                        p2 = p3 + 1;
+                    } else {
+                        p2 = p3;
+                    }
+                    p1 += 1;
+                } else if (sep_at_1) {
+                } else {
+                    *p2++ = lastC = c;
+                }
+            } else if (c == SEP) {
+            } else {
+                *p2++ = lastC = c;
+            }
+        } else {
+            *p2++ = lastC = c;
+        }
+    }
+    *p2 = L'\0';
+    if (p2 != minP2) {
+        while (--p2 != minP2 && *p2 == SEP) {
+            *p2 = L'\0';
+        }
+    }
+#undef SEP_OR_END
+#undef IS_SEP
+#undef IS_END
+    return path;
 }
 
 
@@ -2080,13 +2348,9 @@ _Py_dup(int fd)
     assert(PyGILState_Check());
 
 #ifdef MS_WINDOWS
-    _Py_BEGIN_SUPPRESS_IPH
-    handle = (HANDLE)_get_osfhandle(fd);
-    _Py_END_SUPPRESS_IPH
-    if (handle == INVALID_HANDLE_VALUE) {
-        PyErr_SetFromErrno(PyExc_OSError);
+    handle = _Py_get_osfhandle(fd);
+    if (handle == INVALID_HANDLE_VALUE)
         return -1;
-    }
 
     Py_BEGIN_ALLOW_THREADS
     _Py_BEGIN_SUPPRESS_IPH
@@ -2115,7 +2379,7 @@ _Py_dup(int fd)
         return -1;
     }
 
-#else
+#elif HAVE_DUP
     Py_BEGIN_ALLOW_THREADS
     _Py_BEGIN_SUPPRESS_IPH
     fd = dup(fd);
@@ -2132,6 +2396,10 @@ _Py_dup(int fd)
         _Py_END_SUPPRESS_IPH
         return -1;
     }
+#else
+    errno = ENOTSUP;
+    PyErr_SetFromErrno(PyExc_OSError);
+    return -1;
 #endif
     return fd;
 }
@@ -2164,7 +2432,9 @@ _Py_get_blocking(int fd)
 int
 _Py_set_blocking(int fd, int blocking)
 {
-#if defined(HAVE_SYS_IOCTL_H) && defined(FIONBIO)
+/* bpo-41462: On VxWorks, ioctl(FIONBIO) only works on sockets.
+   Use fcntl() instead. */
+#if defined(HAVE_SYS_IOCTL_H) && defined(FIONBIO) && !defined(__VXWORKS__)
     int arg = !blocking;
     if (ioctl(fd, FIONBIO, &arg) < 0)
         goto error;
@@ -2194,8 +2464,47 @@ error:
     PyErr_SetFromErrno(PyExc_OSError);
     return -1;
 }
-#endif
+#else   /* MS_WINDOWS */
+void*
+_Py_get_osfhandle_noraise(int fd)
+{
+    void *handle;
+    _Py_BEGIN_SUPPRESS_IPH
+    handle = (void*)_get_osfhandle(fd);
+    _Py_END_SUPPRESS_IPH
+    return handle;
+}
 
+void*
+_Py_get_osfhandle(int fd)
+{
+    void *handle = _Py_get_osfhandle_noraise(fd);
+    if (handle == INVALID_HANDLE_VALUE)
+        PyErr_SetFromErrno(PyExc_OSError);
+
+    return handle;
+}
+
+int
+_Py_open_osfhandle_noraise(void *handle, int flags)
+{
+    int fd;
+    _Py_BEGIN_SUPPRESS_IPH
+    fd = _open_osfhandle((intptr_t)handle, flags);
+    _Py_END_SUPPRESS_IPH
+    return fd;
+}
+
+int
+_Py_open_osfhandle(void *handle, int flags)
+{
+    int fd = _Py_open_osfhandle_noraise(handle, flags);
+    if (fd == -1)
+        PyErr_SetFromErrno(PyExc_OSError);
+
+    return fd;
+}
+#endif  /* MS_WINDOWS */
 
 int
 _Py_GetLocaleconvNumeric(struct lconv *lc,
@@ -2273,4 +2582,81 @@ done:
     return res;
 
 #undef GET_LOCALE_STRING
+}
+
+/* Our selection logic for which function to use is as follows:
+ * 1. If close_range(2) is available, always prefer that; it's better for
+ *    contiguous ranges like this than fdwalk(3) which entails iterating over
+ *    the entire fd space and simply doing nothing for those outside the range.
+ * 2. If closefrom(2) is available, we'll attempt to use that next if we're
+ *    closing up to sysconf(_SC_OPEN_MAX).
+ * 2a. Fallback to fdwalk(3) if we're not closing up to sysconf(_SC_OPEN_MAX),
+ *    as that will be more performant if the range happens to have any chunk of
+ *    non-opened fd in the middle.
+ * 2b. If fdwalk(3) isn't available, just do a plain close(2) loop.
+ */
+#ifdef __FreeBSD__
+#  define USE_CLOSEFROM
+#endif /* __FreeBSD__ */
+
+#ifdef HAVE_FDWALK
+#  define USE_FDWALK
+#endif /* HAVE_FDWALK */
+
+#ifdef USE_FDWALK
+static int
+_fdwalk_close_func(void *lohi, int fd)
+{
+    int lo = ((int *)lohi)[0];
+    int hi = ((int *)lohi)[1];
+
+    if (fd >= hi) {
+        return 1;
+    }
+    else if (fd >= lo) {
+        /* Ignore errors */
+        (void)close(fd);
+    }
+    return 0;
+}
+#endif /* USE_FDWALK */
+
+/* Closes all file descriptors in [first, last], ignoring errors. */
+void
+_Py_closerange(int first, int last)
+{
+    first = Py_MAX(first, 0);
+    _Py_BEGIN_SUPPRESS_IPH
+#ifdef HAVE_CLOSE_RANGE
+    if (close_range(first, last, 0) == 0) {
+        /* close_range() ignores errors when it closes file descriptors.
+         * Possible reasons of an error return are lack of kernel support
+         * or denial of the underlying syscall by a seccomp sandbox on Linux.
+         * Fallback to other methods in case of any error. */
+    }
+    else
+#endif /* HAVE_CLOSE_RANGE */
+#ifdef USE_CLOSEFROM
+    if (last >= sysconf(_SC_OPEN_MAX)) {
+        /* Any errors encountered while closing file descriptors are ignored */
+        closefrom(first);
+    }
+    else
+#endif /* USE_CLOSEFROM */
+#ifdef USE_FDWALK
+    {
+        int lohi[2];
+        lohi[0] = first;
+        lohi[1] = last + 1;
+        fdwalk(_fdwalk_close_func, lohi);
+    }
+#else
+    {
+        for (int i = first; i <= last; i++) {
+            /* Ignore errors */
+            (void)close(i);
+        }
+    }
+#endif /* USE_FDWALK */
+    _Py_END_SUPPRESS_IPH
 }

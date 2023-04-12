@@ -36,7 +36,7 @@ class observer_list;
 /** For local observers the method can be used only when the current thread
 has the task scheduler initialized or is attached to an arena.
 Repeated calls with the same state are no-ops. **/
-void __TBB_EXPORTED_FUNC observe(d1::task_scheduler_observer&, bool state = true);
+TBB_EXPORT void __TBB_EXPORTED_FUNC observe(d1::task_scheduler_observer&, bool state = true);
 }
 
 namespace d1 {
@@ -88,7 +88,7 @@ public:
        It is recommended to disable observation before destructor of a derived class starts,
        otherwise it can lead to concurrent notification callback on partly destroyed object **/
     virtual ~task_scheduler_observer() {
-        if (my_proxy.load(std::memory_order_relaxed)) {
+        if (my_proxy.load(std::memory_order_acquire)) {
             observe(false);
         }
     }

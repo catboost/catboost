@@ -265,7 +265,7 @@ namespace NKernel {
 
         __shared__ float localHist[128 * BlockSize];
 
-        const int maxBinCount = GetMaxBinCount(feature, fCount, (int*) &localHist[0]);
+        const ui32 maxBinCount = GetMaxBinCount(feature, fCount, (ui32*) &localHist[0]);
 
         if (maxBinCount > 128  || (maxBinCount <= 64)) {
             return;
@@ -371,7 +371,7 @@ namespace NKernel {
             return;
         }
 
-        if (sevenBitsFeatureCount > 0) {
+        if (sevenBitsFeatureCount > 0 && partCount / (fullPass ? 1 : 4)) {
             const int blockSize = 96;
             dim3 numBlocks;
             numBlocks.x = (sevenBitsFeatureCount + 3) / 4;

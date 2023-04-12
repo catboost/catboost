@@ -29,8 +29,8 @@
     #include <type_traits> // For `std::alignment_of` and `std::aligned_storage`.
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -226,5 +226,5 @@ inline std::size_t aligned_storage_size(std::size_t n, std::size_t align)
 }
 
 } // end namespace detail
-} // end namespace thrust
 
+THRUST_NAMESPACE_END

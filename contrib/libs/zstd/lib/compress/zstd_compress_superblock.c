@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Yann Collet, Facebook, Inc.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -36,13 +36,14 @@
  *      If it is set_compressed, first sub-block's literals section will be Treeless_Literals_Block
  *      and the following sub-blocks' literals sections will be Treeless_Literals_Block.
  *  @return : compressed size of literals section of a sub-block
- *            Or 0 if it unable to compress.
+ *            Or 0 if unable to compress.
  *            Or error code */
-static size_t ZSTD_compressSubBlock_literal(const HUF_CElt* hufTable,
-                                    const ZSTD_hufCTablesMetadata_t* hufMetadata,
-                                    const BYTE* literals, size_t litSize,
-                                    void* dst, size_t dstSize,
-                                    const int bmi2, int writeEntropy, int* entropyWritten)
+static size_t
+ZSTD_compressSubBlock_literal(const HUF_CElt* hufTable,
+                              const ZSTD_hufCTablesMetadata_t* hufMetadata,
+                              const BYTE* literals, size_t litSize,
+                              void* dst, size_t dstSize,
+                              const int bmi2, int writeEntropy, int* entropyWritten)
 {
     size_t const header = writeEntropy ? 200 : 0;
     size_t const lhSize = 3 + (litSize >= (1 KB - header)) + (litSize >= (16 KB - header));
@@ -52,8 +53,6 @@ static size_t ZSTD_compressSubBlock_literal(const HUF_CElt* hufTable,
     U32 const singleStream = lhSize == 3;
     symbolEncodingType_e hType = writeEntropy ? hufMetadata->hType : set_repeat;
     size_t cLitSize = 0;
-
-    (void)bmi2; /* TODO bmi2... */
 
     DEBUGLOG(5, "ZSTD_compressSubBlock_literal (litSize=%zu, lhSize=%zu, writeEntropy=%d)", litSize, lhSize, writeEntropy);
 
@@ -76,9 +75,9 @@ static size_t ZSTD_compressSubBlock_literal(const HUF_CElt* hufTable,
         DEBUGLOG(5, "ZSTD_compressSubBlock_literal (hSize=%zu)", hufMetadata->hufDesSize);
     }
 
-    /* TODO bmi2 */
-    {   const size_t cSize = singleStream ? HUF_compress1X_usingCTable(op, oend-op, literals, litSize, hufTable)
-                                          : HUF_compress4X_usingCTable(op, oend-op, literals, litSize, hufTable);
+    {   int const flags = bmi2 ? HUF_flags_bmi2 : 0;
+        const size_t cSize = singleStream ? HUF_compress1X_usingCTable(op, oend-op, literals, litSize, hufTable, flags)
+                                          : HUF_compress4X_usingCTable(op, oend-op, literals, litSize, hufTable, flags);
         op += cSize;
         cLitSize += cSize;
         if (cSize == 0 || ERR_isError(cSize)) {
@@ -126,12 +125,17 @@ static size_t ZSTD_compressSubBlock_literal(const HUF_CElt* hufTable,
     return op-ostart;
 }
 
-static size_t ZSTD_seqDecompressedSize(seqStore_t const* seqStore, const seqDef* sequences, size_t nbSeq, size_t litSize, int lastSequence) {
+static size_t
+ZSTD_seqDecompressedSize(seqStore_t const* seqStore,
+                   const seqDef* sequences, size_t nbSeq,
+                         size_t litSize, int lastSequence)
+{
     const seqDef* const sstart = sequences;
     const seqDef* const send = sequences + nbSeq;
     const seqDef* sp = sstart;
     size_t matchLengthSum = 0;
     size_t litLengthSum = 0;
+    (void)(litLengthSum); /* suppress unused variable warning on some environments */
     while (send-sp > 0) {
         ZSTD_sequenceLength const seqLen = ZSTD_getSequenceLength(seqStore, sp);
         litLengthSum += seqLen.litLength;
@@ -155,13 +159,14 @@ static size_t ZSTD_seqDecompressedSize(seqStore_t const* seqStore, const seqDef*
  *  @return : compressed size of sequences section of a sub-block
  *            Or 0 if it is unable to compress
  *            Or error code. */
-static size_t ZSTD_compressSubBlock_sequences(const ZSTD_fseCTables_t* fseTables,
-                                              const ZSTD_fseCTablesMetadata_t* fseMetadata,
-                                              const seqDef* sequences, size_t nbSeq,
-                                              const BYTE* llCode, const BYTE* mlCode, const BYTE* ofCode,
-                                              const ZSTD_CCtx_params* cctxParams,
-                                              void* dst, size_t dstCapacity,
-                                              const int bmi2, int writeEntropy, int* entropyWritten)
+static size_t
+ZSTD_compressSubBlock_sequences(const ZSTD_fseCTables_t* fseTables,
+                                const ZSTD_fseCTablesMetadata_t* fseMetadata,
+                                const seqDef* sequences, size_t nbSeq,
+                                const BYTE* llCode, const BYTE* mlCode, const BYTE* ofCode,
+                                const ZSTD_CCtx_params* cctxParams,
+                                void* dst, size_t dstCapacity,
+                                const int bmi2, int writeEntropy, int* entropyWritten)
 {
     const int longOffsets = cctxParams->cParams.windowLog > STREAM_ACCUMULATOR_MIN;
     BYTE* const ostart = (BYTE*)dst;
@@ -324,7 +329,7 @@ static size_t ZSTD_estimateSubBlockSize_literal(const BYTE* literals, size_t lit
 static size_t ZSTD_estimateSubBlockSize_symbolType(symbolEncodingType_e type,
                         const BYTE* codeTable, unsigned maxCode,
                         size_t nbSeq, const FSE_CTable* fseCTable,
-                        const U32* additionalBits,
+                        const U8* additionalBits,
                         short const* defaultNorm, U32 defaultNormLog, U32 defaultMax,
                         void* workspace, size_t wkspSize)
 {
@@ -474,7 +479,7 @@ static size_t ZSTD_compressSubBlock_multi(const seqStore_t* seqStorePtr,
         /* I think there is an optimization opportunity here.
          * Calling ZSTD_estimateSubBlockSize for every sequence can be wasteful
          * since it recalculates estimate from scratch.
-         * For example, it would recount literal distribution and symbol codes everytime.
+         * For example, it would recount literal distribution and symbol codes every time.
          */
         cBlockSizeEstimate = ZSTD_estimateSubBlockSize(lp, litSize, ofCodePtr, llCodePtr, mlCodePtr, seqCount,
                                                        &nextCBlock->entropy, entropyMetadata,
@@ -538,7 +543,7 @@ static size_t ZSTD_compressSubBlock_multi(const seqStore_t* seqStorePtr,
             repcodes_t rep;
             ZSTD_memcpy(&rep, prevCBlock->rep, sizeof(rep));
             for (seq = sstart; seq < sp; ++seq) {
-                rep = ZSTD_updateRep(rep.rep, seq->offset - 1, ZSTD_getSequenceLength(seqStorePtr, seq).litLength == 0);
+                ZSTD_updateRep(rep.rep, seq->offBase, ZSTD_getSequenceLength(seqStorePtr, seq).litLength == 0);
             }
             ZSTD_memcpy(nextCBlock->rep, &rep, sizeof(rep));
         }

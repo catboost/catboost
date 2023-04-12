@@ -130,7 +130,7 @@ def _store_backend_factory(backend, location, verbose=0, backend_options=None):
         return obj
     elif location is not None:
         warnings.warn(
-            "Instanciating a backend using a {} as a location is not "
+            "Instantiating a backend using a {} as a location is not "
             "supported by joblib. Returning None instead.".format(
                 location.__class__.__name__), UserWarning)
 
@@ -196,7 +196,7 @@ class MemorizedResult(Logger):
 
     func: function or str
         function whose output is cached. The string case is intended only for
-        instanciation based on the output of repr() on another instance.
+        instantiation based on the output of repr() on another instance.
         (namely eval(repr(memorized_instance)) works).
 
     argument_hash: str
@@ -487,7 +487,7 @@ class MemorizedFunc(Logger):
         metadata = None
         msg = None
 
-        # Wether or not the memorized function must be called
+        # Whether or not the memorized function must be called
         must_call = False
 
         # FIXME: The statements below should be try/excepted
@@ -563,8 +563,8 @@ class MemorizedFunc(Logger):
             # (which should be called once on self) gets called in the process
             # in which self.func was defined, this caching mechanism prevents
             # undesired cache clearing when the cached function is called in
-            # an environement where the introspection utilities get_func_code
-            # relies on do not work (typicially, in joblib child processes).
+            # an environment where the introspection utilities get_func_code
+            # relies on do not work (typically, in joblib child processes).
             # See #1035 for  more info
             # TODO (pierreglaser): do the same with get_func_name?
             self._func_code_info = get_func_code(self.func)
@@ -876,12 +876,6 @@ class Memory(Logger):
             The 'local' backend is using regular filesystem operations to
             manipulate data (open, mv, etc) in the backend.
 
-        cachedir: str or None, optional
-
-            .. deprecated: 0.12
-                'cachedir' has been deprecated in 0.12 and will be
-                removed in 0.14. Use the 'location' parameter instead.
-
         mmap_mode: {None, 'r+', 'r', 'w+', 'c'}, optional
             The memmapping mode used when loading from cache
             numpy arrays. See numpy.load for the meaning of the
@@ -906,17 +900,16 @@ class Memory(Logger):
             actually reduce the cache size to be less than ``bytes_limit``.
 
         backend_options: dict, optional
-            Contains a dictionnary of named parameters used to configure
+            Contains a dictionary of named parameters used to configure
             the store backend.
     """
     # ------------------------------------------------------------------------
     # Public interface
     # ------------------------------------------------------------------------
 
-    def __init__(self, location=None, backend='local', cachedir=None,
+    def __init__(self, location=None, backend='local',
                  mmap_mode=None, compress=False, verbose=1, bytes_limit=None,
                  backend_options=None):
-        # XXX: Bad explanation of the None value of cachedir
         Logger.__init__(self)
         self._verbose = verbose
         self.mmap_mode = mmap_mode
@@ -931,22 +924,6 @@ class Memory(Logger):
         if compress and mmap_mode is not None:
             warnings.warn('Compressed results cannot be memmapped',
                           stacklevel=2)
-        if cachedir is not None:
-            if location is not None:
-                raise ValueError(
-                    'You set both "location={0!r} and "cachedir={1!r}". '
-                    "'cachedir' has been deprecated in version "
-                    "0.12 and will be removed in version 0.14.\n"
-                    'Please only set "location={0!r}"'.format(
-                        location, cachedir))
-
-            warnings.warn(
-                "The 'cachedir' parameter has been deprecated in version "
-                "0.12 and will be removed in version 0.14.\n"
-                'You provided "cachedir={0!r}", '
-                'use "location={0!r}" instead.'.format(cachedir),
-                DeprecationWarning, stacklevel=2)
-            location = cachedir
 
         self.location = location
         if isinstance(location, str):
@@ -956,17 +933,6 @@ class Memory(Logger):
             backend, location, verbose=self._verbose,
             backend_options=dict(compress=compress, mmap_mode=mmap_mode,
                                  **backend_options))
-
-    @property
-    def cachedir(self):
-        warnings.warn(
-            "The 'cachedir' attribute has been deprecated in version 0.12 "
-            "and will be removed in version 0.14.\n"
-            "Use os.path.join(memory.location, 'joblib') attribute instead.",
-            DeprecationWarning, stacklevel=2)
-        if self.location is None:
-            return None
-        return os.path.join(self.location, 'joblib')
 
     def cache(self, func=None, ignore=None, verbose=None, mmap_mode=False):
         """ Decorates the given function func to only compute its return
@@ -1020,6 +986,12 @@ class Memory(Logger):
             self.warn('Flushing completely the cache')
         if self.store_backend is not None:
             self.store_backend.clear()
+
+            # As the cache in completely clear, make sure the _FUNCTION_HASHES
+            # cache is also reset. Else, for a function that is present in this
+            # table, results cached after this clear will be have cache miss
+            # as the function code is not re-written.
+            _FUNCTION_HASHES.clear()
 
     def reduce_size(self):
         """Remove cache elements to make cache size fit in ``bytes_limit``."""

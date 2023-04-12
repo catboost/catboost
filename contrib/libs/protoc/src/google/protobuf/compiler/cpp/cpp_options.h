@@ -33,6 +33,7 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_CPP_OPTIONS_H__
 #define GOOGLE_PROTOBUF_COMPILER_CPP_OPTIONS_H__
 
+#include <set>
 #include <string>
 #include <google/protobuf/stubs/port.h>
 
@@ -50,6 +51,11 @@ enum class EnforceOptimizeMode {
   kLiteRuntime,
 };
 
+struct FieldListenerOptions {
+  bool inject_field_listener_events = false;
+  std::set<TProtoStringType> forbidden_field_listener_events;
+};
+
 // Generator options (see generator.cc for a description of each):
 struct Options {
   TProtoStringType dllexport_decl;
@@ -65,6 +71,8 @@ struct Options {
   bool opensource_runtime = false;
   bool annotate_accessor = false;
   bool unused_field_stripping = false;
+  bool profile_driven_inline_string = true;
+  bool force_inline_string = false;
   TProtoStringType runtime_include_base;
   int num_cc_files = 0;
   TProtoStringType annotation_pragma_name;
@@ -75,7 +83,7 @@ struct Options {
     kTCTableGuarded,
     kTCTableAlways
   } tctable_mode = kTCTableNever;
-  bool inject_field_listener_events = false;
+  FieldListenerOptions field_listener_options;
   bool eagerly_verified_lazy = false;
   bool force_eagerly_verified_lazy = false;
 };

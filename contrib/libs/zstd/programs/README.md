@@ -156,7 +156,7 @@ Arguments :
 
 Advanced arguments :
  -V     : display Version number and exit
- -c     : force write to standard output, even if it is the console
+ -c     : write to standard output (even if it is the console)
  -v     : verbose mode; specify multiple times to increase verbosity
  -q     : suppress warnings; specify twice to suppress errors too
 --no-progress : do not display the progress counter
@@ -164,6 +164,7 @@ Advanced arguments :
 --filelist FILE : read list of files to operate upon from FILE
 --output-dir-flat DIR : processed files are stored into DIR
 --output-dir-mirror DIR : processed files are stored into DIR respecting original directory structure
+--[no-]asyncio : use asynchronous IO (default: enabled)
 --[no-]check : during compression, add XXH64 integrity checksum to frame (default: enabled). If specified with -d, decompressor will ignore/validate checksums in compressed frame (default: validate).
 --      : All arguments after "--" are treated as files
 
@@ -172,6 +173,7 @@ Advanced compression arguments :
 --long[=#]: enable long distance matching with given window log (default: 27)
 --fast[=#]: switch to very fast compression levels (default: 1)
 --adapt : dynamically adapt compression level to I/O conditions
+--patch-from=FILE : specify the file to be used as a reference point for zstd's diff engine
  -T#    : spawns # compression threads (default: 1, 0==# cores)
  -B#    : select size of each job (default: 0==automatic)
 --single-thread : use a single thread for both I/O and compression (result slightly different than -T1)
@@ -207,7 +209,7 @@ Benchmark arguments :
  -b#    : benchmark file(s), using # compression level (default: 3)
  -e#    : test all compression levels successively from -b# to -e# (default: 1)
  -i#    : minimum evaluation time in seconds (default: 3s)
- -B#    : cut file into independent blocks of size # (default: no block)
+ -B#    : cut file into independent chunks of size # (default: no chunking)
  -S     : output one benchmark result per input file (default: consolidated result)
 --priority=rt : set process priority to real-time
 ```
@@ -274,7 +276,7 @@ compression speed (for lower levels) with minimal change in compression ratio.
 
 The below table illustrates this on the [Silesia compression corpus].
 
-[Silesia compression corpus]: http://sun.aei.polsl.pl/~sdeor/index.php?page=silesia
+[Silesia compression corpus]: https://sun.aei.polsl.pl//~sdeor/index.php?page=silesia
 
 | Method | Compression ratio | Compression speed | Decompression speed  |
 |:-------|------------------:|------------------:|---------------------:|

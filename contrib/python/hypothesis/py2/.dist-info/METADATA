@@ -1,0 +1,125 @@
+Metadata-Version: 2.1
+Name: hypothesis
+Version: 4.57.1
+Summary: A library for property-based testing
+Home-page: https://github.com/HypothesisWorks/hypothesis/tree/master/hypothesis-python
+Author: David R. MacIver
+Author-email: david@drmaciver.com
+License: MPL v2
+Project-URL: Website, https://hypothesis.works
+Project-URL: Documentation, https://hypothesis.readthedocs.io
+Project-URL: Issues, https://github.com/HypothesisWorks/hypothesis/issues
+Keywords: python testing fuzzing property-based-testing
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Framework :: Hypothesis
+Classifier: Framework :: Pytest
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)
+Classifier: Operating System :: Unix
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Education :: Testing
+Classifier: Topic :: Software Development :: Testing
+Classifier: Typing :: Typed
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*
+Description-Content-Type: text/x-rst
+Requires-Dist: attrs (>=19.2.0)
+Requires-Dist: sortedcontainers (<3.0.0,>=2.1.0)
+Requires-Dist: enum34 ; python_version == "2.7"
+Provides-Extra: all
+Requires-Dist: django (>=1.11) ; extra == 'all'
+Requires-Dist: dpcontracts (>=0.4) ; extra == 'all'
+Requires-Dist: lark-parser (>=0.6.5) ; extra == 'all'
+Requires-Dist: numpy (>=1.9.0) ; extra == 'all'
+Requires-Dist: pandas (>=0.19) ; extra == 'all'
+Requires-Dist: pytest (>=4.3) ; extra == 'all'
+Requires-Dist: python-dateutil (>=1.4) ; extra == 'all'
+Requires-Dist: pytz (>=2014.1) ; extra == 'all'
+Provides-Extra: dateutil
+Requires-Dist: python-dateutil (>=1.4) ; extra == 'dateutil'
+Provides-Extra: django
+Requires-Dist: pytz (>=2014.1) ; extra == 'django'
+Requires-Dist: django (>=1.11) ; extra == 'django'
+Provides-Extra: dpcontracts
+Requires-Dist: dpcontracts (>=0.4) ; extra == 'dpcontracts'
+Provides-Extra: lark
+Requires-Dist: lark-parser (>=0.6.5) ; extra == 'lark'
+Provides-Extra: numpy
+Requires-Dist: numpy (>=1.9.0) ; extra == 'numpy'
+Provides-Extra: pandas
+Requires-Dist: pandas (>=0.19) ; extra == 'pandas'
+Provides-Extra: pytest
+Requires-Dist: pytest (>=4.3) ; extra == 'pytest'
+Provides-Extra: pytz
+Requires-Dist: pytz (>=2014.1) ; extra == 'pytz'
+
+==========
+Hypothesis
+==========
+
+Hypothesis is an advanced testing library for Python. It lets you write tests which
+are parametrized by a source of examples, and then generates simple and comprehensible
+examples that make your tests fail. This lets you find more bugs in your code with less
+work.
+
+e.g.
+
+.. code-block:: python
+
+  @given(st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=1))
+  def test_mean(xs):
+      assert min(xs) <= mean(xs) <= max(xs)
+
+.. code-block::
+
+  Falsifying example: test_mean(
+    xs=[1.7976321109618856e+308, 6.102390043022755e+303]
+  )
+
+Hypothesis is extremely practical and advances the state of the art of
+unit testing by some way. It's easy to use, stable, and powerful. If
+you're not using Hypothesis to test your project then you're missing out.
+
+------------------------
+Quick Start/Installation
+------------------------
+If you just want to get started:
+
+.. code-block::
+
+  pip install hypothesis
+
+
+-----------------
+Links of interest
+-----------------
+
+The main Hypothesis site is at `hypothesis.works <https://hypothesis.works/>`_, and contains a lot
+of good introductory and explanatory material.
+
+Extensive documentation and examples of usage are `available at readthedocs <https://hypothesis.readthedocs.io/en/latest/>`_.
+
+If you want to talk to people about using Hypothesis, `we have both an IRC channel
+and a mailing list <https://hypothesis.readthedocs.io/en/latest/community.html>`_.
+
+If you want to receive occasional updates about Hypothesis, including useful tips and tricks, there's a
+`TinyLetter mailing list to sign up for them <https://tinyletter.com/DRMacIver/>`_.
+
+If you want to contribute to Hypothesis, `instructions are here <https://github.com/HypothesisWorks/hypothesis-python/blob/master/CONTRIBUTING.rst>`_.
+
+If you want to hear from people who are already using Hypothesis, some of them `have written
+about it <https://hypothesis.readthedocs.io/en/latest/endorsements.html>`_.
+
+If you want to create a downstream package of Hypothesis, please read `these guidelines for packagers <https://hypothesis.readthedocs.io/en/latest/packaging.html>`_.
+
+

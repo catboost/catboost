@@ -11,6 +11,7 @@
 #include "progname.h"
 
 bool SetHighestThreadPriority();
+bool SetLowestThreadPriority();
 
 class TThread {
     template <typename Callable>
@@ -103,6 +104,12 @@ public:
 
     static TId ImpossibleThreadId() noexcept;
     static TId CurrentThreadId() noexcept;
+
+    /*
+     * Returns numeric thread id, as visible in e. g. htop.
+     * Consider using this value for logging.
+     */
+    static TId CurrentThreadNumericId() noexcept;
 
     // NOTE: Content of `name` will be copied.
     //

@@ -514,7 +514,7 @@ static void GatherImpl(
     const TCudaBuffer<T, TMapping>& src,
     const TCudaBuffer<U, TMapping>& map,
     ui32 stream) {
-    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, std::remove_const_t<U> >;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather);
 }
 
@@ -528,6 +528,8 @@ static void GatherImpl(
         const TCudaBuffer<T, TMapping>& src,                 \
         const TCudaBuffer<U, TMapping>& map,                 \
         ui32 stream) {                                       \
+        CB_ENSURE(src.GetObjectsSlice().Size() <= static_cast<U>(-1),      \
+            "Source is too large for " << sizeof(U) * 8 << "-bit gather"); \
         ::GatherImpl(dst, src, map, stream);                 \
     }
 
@@ -542,7 +544,6 @@ Y_MAP_ARGS(
     (ui32, TMirrorMapping, ui32),
     (ui32, TMirrorMapping, const ui32),
     (const ui32, TMirrorMapping, const ui32),
-    (uint2, TMirrorMapping, ui32),
     (const uint2, TMirrorMapping, ui32),
     (bool, TMirrorMapping, ui32))
 
@@ -557,13 +558,13 @@ Y_MAP_ARGS(
     (ui32, TSingleMapping, ui32),
     (ui32, TSingleMapping, const ui32),
     (const ui32, TSingleMapping, const ui32),
-    (uint2, TSingleMapping, ui32),
     (const uint2, TSingleMapping, ui32),
     (bool, TSingleMapping, ui32));
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (float, TStripeMapping, ui32),
+    (float, TStripeMapping, ui64),
     (float, TStripeMapping, const ui32),
     (const float, TStripeMapping, ui32),
     (const float, TStripeMapping, const ui32),
@@ -572,8 +573,9 @@ Y_MAP_ARGS(
     (ui32, TStripeMapping, ui32),
     (ui32, TStripeMapping, const ui32),
     (const ui32, TStripeMapping, const ui32),
-    (uint2, TStripeMapping, ui32),
     (const uint2, TStripeMapping, ui32),
+    (const uint2, TStripeMapping, ui64),
+    (uint2, TStripeMapping, ui64),
     (bool, TStripeMapping, ui32));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
@@ -587,7 +589,7 @@ static void GatherImpl(
     const TCudaBuffer<T, TMirrorMapping>& src,
     const TCudaBuffer<U, TStripeMapping>& map,
     ui32 stream) {
-    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, std::remove_const_t<U> >;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather);
 }
 
@@ -601,17 +603,21 @@ static void GatherImpl(
         const TCudaBuffer<T, TMirrorMapping>& src,                 \
         const TCudaBuffer<U, TStripeMapping>& map,                 \
         ui32 stream) {                                             \
+        CB_ENSURE(src.GetObjectsSlice().Size() <= static_cast<U>(-1),      \
+            "Source is too large for " << sizeof(U) * 8 << "-bit gather"); \
         ::GatherImpl(dst, src, map, stream);                       \
     }
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (float, ui32),
+    (float, ui64),
     (int, ui32),
     (ui8, ui32),
     (ui32, ui32),
     (ui32, const ui32),
     (uint2, ui32),
+    (uint2, ui64),
     (bool, ui32));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
@@ -626,7 +632,7 @@ static void GatherWithMaskImpl(
     const TCudaBuffer<U, TMapping>& map,
     ui32 mask,
     ui32 stream) {
-    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, std::remove_const_t<U> >;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather, mask);
 }
 
@@ -641,6 +647,8 @@ static void GatherWithMaskImpl(
         const TCudaBuffer<U, TMapping>& map,                 \
         ui32 mask,                                           \
         ui32 stream) {                                       \
+        CB_ENSURE(src.GetObjectsSlice().Size() <= static_cast<U>(-1),      \
+            "Source is too large for " << sizeof(U) * 8 << "-bit gather"); \
         ::GatherWithMaskImpl(dst, src, map, mask, stream);   \
     }
 
@@ -690,7 +698,7 @@ static void ScatterImpl(
     const TCudaBuffer<T, TMapping>& src,
     const TCudaBuffer<U, TMapping>& map,
     ui32 stream) {
-    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, std::remove_const_t<U> >;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Scatter);
 }
 
@@ -704,6 +712,8 @@ static void ScatterImpl(
         const TCudaBuffer<T, TMapping>& src,                 \
         const TCudaBuffer<U, TMapping>& map,                 \
         ui32 stream) {                                       \
+        CB_ENSURE(src.GetObjectsSlice().Size() <= static_cast<U>(-1),      \
+            "Source is too large for " << sizeof(U) * 8 << "-bit scatter"); \
         ::ScatterImpl(dst, src, map, stream);                \
     }
 
@@ -740,7 +750,7 @@ static void ScatterWithMaskImpl(
     const TCudaBuffer<U, TMapping>& map,
     ui32 mask,
     ui32 stream) {
-    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, std::remove_const_t<U> >;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Scatter, mask);
 }
 
@@ -755,6 +765,8 @@ static void ScatterWithMaskImpl(
         const TCudaBuffer<U, TMapping>& map,                 \
         ui32 mask,                                           \
         ui32 stream) {                                       \
+        CB_ENSURE(src.GetObjectsSlice().Size() <= static_cast<U>(-1),      \
+            "Source is too large for " << sizeof(U) * 8 << "-bit scatter"); \
         ::ScatterWithMaskImpl(dst, src, map, mask, stream);  \
     }
 
@@ -914,7 +926,7 @@ namespace {
             NKernel::PowVector(X.Get(), X.Size(), Base, Y.Get(), stream);
         }
 
-        Y_SAVELOAD_DEFINE(X, Base);
+        Y_SAVELOAD_DEFINE(X, Y, Base);
     };
 }
 
@@ -970,6 +982,8 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE_2(0x110012, TMapCopyKernel, ui32, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0x110013, TMapCopyKernel, uint2, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0x110014, TMapCopyKernel, bool, ui32);
+    REGISTER_KERNEL_TEMPLATE_2(0x110035, TMapCopyKernel, float, ui64);
+    REGISTER_KERNEL_TEMPLATE_2(0x110036, TMapCopyKernel, uint2, ui64);
 
     REGISTER_KERNEL_TEMPLATE(0x110015, TPowKernel, float);
     REGISTER_KERNEL_TEMPLATE(0x110021, TPowWithOutputKernel, float);

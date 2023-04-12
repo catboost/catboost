@@ -1,6 +1,6 @@
 # Text features
 
-{{ product }} supports numerical, categorical and text features.
+{{ product }} supports numerical, categorical, text, and embeddings features.
 
 Text features are used to build new numeric features. See the [Transforming text features to numerical features](../concepts/algorithm-main-stages_text-to-numeric.md) section for details.
 
@@ -46,7 +46,7 @@ Supported [training parameters](../references/training-parameters/index.md):
 
 This parameter works with `dictionaries` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% endnote %}
 
@@ -75,7 +75,7 @@ tokenizers = [{
 
 **Supported processing units**
 
-{% include [reusage-python-gpu](../_includes/work_src/reusage-python/gpu.md) %}
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 #### dictionaries
 
@@ -98,7 +98,7 @@ tokenizers = [{
 
 This parameter works with `tokenizers` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% endnote %}
 
@@ -129,7 +129,7 @@ dictionaries = [{
 
 **Supported processing units**
 
-{% include [reusage-python-gpu](../_includes/work_src/reusage-python/gpu.md) %}
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 #### feature_calcers
 
@@ -152,7 +152,7 @@ dictionaries = [{
 
 This parameter works with `tokenizers` and `dictionaries` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 
@@ -177,7 +177,7 @@ feature_calcers = [
 
 **Supported processing units**
 
-{% include [reusage-python-gpu](../_includes/work_src/reusage-python/gpu.md) %}
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 
 #### text_processing
@@ -210,7 +210,7 @@ Do not use this parameter with the following ones:
 
 **Supported processing units**
 
-{% include [reusage-python-gpu](../_includes/work_src/reusage-python/gpu.md) %}
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 ### Additional classes
 
@@ -283,7 +283,7 @@ DictionaryId[:option_name=option_value]
 
 This parameter works with `--tokenizers` and `--feature-calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 
@@ -316,7 +316,7 @@ FeatureCalcerName[:option_name=option_value]
 
 This parameter works with `--tokenizers` and `--dictionaries` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 

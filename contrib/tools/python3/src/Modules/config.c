@@ -58,7 +58,6 @@ extern PyObject* PyInit__multibytecodec(void); // _multibytecodec
 extern PyObject* PyInit__multiprocessing(void); // _multiprocessing
 extern PyObject* PyInit__opcode(void); // _opcode
 extern PyObject* PyInit__operator(void); // _operator
-extern PyObject* PyInit__peg_parser(void); // _peg_parser
 extern PyObject* PyInit__pickle(void); // _pickle
 extern PyObject* PyInit__posixshmem(void); // _posixshmem
 #if !defined(_MSC_VER)
@@ -95,16 +94,15 @@ extern PyObject* PyInit_faulthandler(void); // faulthandler
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_fcntl(void); // fcntl
 #endif
+#if defined(_MSC_VER)
+extern PyObject* PyInit_nt(void); // nt
+#endif
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_grp(void); // grp
 #endif
 extern PyObject* PyInit_itertools(void); // itertools
 extern PyObject* PyInit_math(void); // math
 extern PyObject* PyInit_mmap(void); // mmap
-#if defined(_MSC_VER)
-extern PyObject* PyInit_nt(void); // nt
-#endif
-extern PyObject* PyInit_parser(void); // parser
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_posix(void); // posix
 #endif
@@ -192,7 +190,6 @@ struct _inittab _PyImport_Inittab[] = {
     {"_multiprocessing", PyInit__multiprocessing},
     {"_opcode", PyInit__opcode},
     {"_operator", PyInit__operator},
-    {"_peg_parser", PyInit__peg_parser},
     {"_pickle", PyInit__pickle},
     {"_posixshmem", PyInit__posixshmem},
 #if !defined(_MSC_VER)
@@ -225,6 +222,9 @@ struct _inittab _PyImport_Inittab[] = {
     {"binascii", PyInit_binascii},
     {"cmath", PyInit_cmath},
     {"errno", PyInit_errno},
+#if defined(_MSC_VER)
+    {"nt", PyInit_nt},
+#endif
     {"faulthandler", PyInit_faulthandler},
 #if !defined(_MSC_VER)
     {"fcntl", PyInit_fcntl},
@@ -235,10 +235,6 @@ struct _inittab _PyImport_Inittab[] = {
     {"itertools", PyInit_itertools},
     {"math", PyInit_math},
     {"mmap", PyInit_mmap},
-#if defined(_MSC_VER)
-    {"nt", PyInit_nt},
-#endif
-    {"parser", PyInit_parser},
 #if !defined(_MSC_VER)
     {"posix", PyInit_posix},
 #endif

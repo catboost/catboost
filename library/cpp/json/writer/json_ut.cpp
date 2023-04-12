@@ -265,43 +265,4 @@ Y_UNIT_TEST_SUITE(JsonWriter) {
             UNIT_ASSERT_STRINGS_EQUAL(buf.Str(), R"({"\u003C\u003E&":"Ololo","<>&":"Ololo2"})");
         }
     }
-
-    Y_UNIT_TEST(WriteUninitializedBoolDoesntCrashProgram) {
-        // makes sense only in release build w/ address sanitizer
-        //
-        // passing uninitialized boolean into WriteBool can make cleverly optimized code which is emitted by compiler crash program
-        // https://stackoverflow.com/questions/54120862/does-the-c-standard-allow-for-an-uninitialized-bool-to-crash-a-program
-
-        // looks like compiler can detect UB at compile time in simple cases, but not in this one
-        class  TSensorConf {
-        public:
-            class TAggrRuleItem {
-            public:
-                TVector<TString> Cond;
-                TVector<TString> Target;
-            };
-
-            TString ToString() const {
-                NJson::TJsonValue jsonValue;
-                NJsonWriter::TBuf jsonOutput;
-                jsonOutput.BeginObject()
-                    .WriteKey("rawDataMemOnly").WriteBool(RawDataMemOnly)
-                    .WriteKey("aggrRules").BeginList();
-
-                jsonOutput.EndList()
-                    .EndObject();
-
-                return jsonOutput.Str();
-            }
-
-            TVector<TAggrRuleItem> AggrRules;
-            bool RawDataMemOnly;
-        };
-
-        TSensorConf s;
-        NSan::Unpoison(&s.RawDataMemOnly, sizeof(s.RawDataMemOnly));
-        auto p = s.ToString();
-        // doesn't really matter
-        UNIT_ASSERT(!p.empty());
-    }
 }

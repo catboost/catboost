@@ -15,9 +15,10 @@
  **                            INCLUDES                                     **
  *****************************************************************************
  */
-#define NPY_NO_DEPRECATED_API NPY_API_VERSION
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
-#include "Python.h"
+#define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
 #include "numpy/npy_math.h"
@@ -67,9 +68,22 @@
  *****************************************************************************
  */
 
+static void
+always_error_loop(
+        char **NPY_UNUSED(args), npy_intp const *NPY_UNUSED(dimensions),
+        npy_intp const *NPY_UNUSED(steps), void *NPY_UNUSED(func))
+{
+    NPY_ALLOW_C_API_DEF
+    NPY_ALLOW_C_API;
+    PyErr_SetString(PyExc_RuntimeError, "How unexpected :)!");
+    NPY_DISABLE_C_API;
+    return;
+}
+
+
 char *inner1d_signature = "(i),(i)->()";
 
-#line 67
+#line 81
 
 /*
  *  This implements the function
@@ -96,7 +110,7 @@ LONG_inner1d(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 67
+#line 81
 
 /*
  *  This implements the function
@@ -126,7 +140,7 @@ DOUBLE_inner1d(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 char *innerwt_signature = "(i),(i),(i)->()";
 
-#line 101
+#line 115
 
 
 /*
@@ -155,7 +169,7 @@ LONG_innerwt(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 101
+#line 115
 
 
 /*
@@ -189,7 +203,7 @@ char *matrix_multiply_signature = "(m,n),(n,p)->(m,p)";
 /* for use with matrix_multiply code, but different signature */
 char *matmul_signature = "(m?,n),(n,p?)->(m?,p?)";
 
-#line 139
+#line 153
 
 /*
  *  This implements the function
@@ -250,7 +264,7 @@ FLOAT_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 139
+#line 153
 
 /*
  *  This implements the function
@@ -311,7 +325,7 @@ DOUBLE_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *
 }
 
 
-#line 139
+#line 153
 
 /*
  *  This implements the function
@@ -375,7 +389,7 @@ LONG_matrix_multiply(char **args, npy_intp const *dimensions, npy_intp const *st
 
 char *cross1d_signature = "(3),(3)->(3)";
 
-#line 207
+#line 221
 
 /*
  *  This implements the cross product:
@@ -407,7 +421,7 @@ LONG_cross1d(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 }
 
 
-#line 207
+#line 221
 
 /*
  *  This implements the cross product:
@@ -442,7 +456,7 @@ DOUBLE_cross1d(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 
 char *euclidean_pdist_signature = "(n,d)->(p)";
 
-#line 247
+#line 261
 
 /*
  *  This implements the function
@@ -492,7 +506,7 @@ FLOAT_euclidean_pdist(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 247
+#line 261
 
 /*
  *  This implements the function
@@ -550,7 +564,7 @@ char *cumsum_signature = "(i)->(i)";
  *        out[n] = sum_i^n in[i]
  */
 
-#line 309
+#line 323
 
 static void
 LONG_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
@@ -570,7 +584,7 @@ LONG_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 }
 
 
-#line 309
+#line 323
 
 static void
 DOUBLE_cumsum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
@@ -612,6 +626,9 @@ defdict = {
 
 */
 
+static PyUFuncGenericFunction always_error_functions[] = { always_error_loop };
+static void *always_error_data[] = { (void *)NULL };
+static char always_error_signatures[] = { NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE };
 static PyUFuncGenericFunction inner1d_functions[] = { LONG_inner1d, DOUBLE_inner1d };
 static void *inner1d_data[] = { (void *)NULL, (void *)NULL };
 static char inner1d_signatures[] = { NPY_LONG, NPY_LONG, NPY_LONG, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE };
@@ -639,6 +656,25 @@ static int
 addUfuncs(PyObject *dictionary) {
     PyObject *f;
 
+    f = PyUFunc_FromFuncAndData(always_error_functions, always_error_data,
+            always_error_signatures, 1, 2, 1, PyUFunc_None, "always_error",
+            "simply, broken, ufunc that sets an error (but releases the GIL).",
+            0);
+    if (f == NULL) {
+        return -1;
+    }
+    PyDict_SetItemString(dictionary, "always_error", f);
+    Py_DECREF(f);
+    f = PyUFunc_FromFuncAndDataAndSignature(always_error_functions,
+            always_error_data, always_error_signatures, 1, 2, 1, PyUFunc_None,
+            "always_error_gufunc",
+            "simply, broken, gufunc that sets an error (but releases the GIL).",
+            0, "(i),()->()");
+    if (f == NULL) {
+        return -1;
+    }
+    PyDict_SetItemString(dictionary, "always_error_gufunc", f);
+    Py_DECREF(f);
     f = PyUFunc_FromFuncAndDataAndSignature(inner1d_functions, inner1d_data,
                     inner1d_signatures, 2, 2, 1, PyUFunc_None, "inner1d",
                     "inner on the last dimension and broadcast on the rest \n"
@@ -726,6 +762,15 @@ addUfuncs(PyObject *dictionary) {
     PyDict_SetItemString(dictionary, "cross1d", f);
     Py_DECREF(f);
 
+    f = PyUFunc_FromFuncAndDataAndSignature(NULL, NULL,
+            NULL, 0, 0, 0, PyUFunc_None, "_pickleable_module_global.ufunc",
+            "A dotted name for pickle testing, does nothing.", 0, NULL);
+    if (f == NULL) {
+        return -1;
+    }
+    PyDict_SetItemString(dictionary, "_pickleable_module_global_ufunc", f);
+    Py_DECREF(f);
+
     return 0;
 }
 
@@ -745,7 +790,7 @@ UMath_Tests_test_signature(PyObject *NPY_UNUSED(dummy), PyObject *args)
         return NULL;
     }
 
-    if (PyString_Check(signature)) {
+    if (PyBytes_Check(signature)) {
         sig_str = signature;
     } else if (PyUnicode_Check(signature)) {
         sig_str = PyUnicode_AsUTF8String(signature);
@@ -758,7 +803,7 @@ UMath_Tests_test_signature(PyObject *NPY_UNUSED(dummy), PyObject *args)
         NULL, NULL, NULL,
         0, nin, nout, PyUFunc_None, "no name",
         "doc:none",
-        1, PyString_AS_STRING(sig_str));
+        1, PyBytes_AS_STRING(sig_str));
     if (sig_str != signature) {
         Py_DECREF(sig_str);
     }
@@ -788,7 +833,7 @@ UMath_Tests_test_signature(PyObject *NPY_UNUSED(dummy), PyObject *args)
     }
     if (f->core_dim_ixs != NULL) {
         core_dim_ixs = PyTuple_New(core_num_ixs);
-        if (core_num_dims == NULL) {
+        if (core_dim_ixs == NULL) {
             goto fail;
         }
         for (i = 0; i < core_num_ixs; i++) {
@@ -841,6 +886,72 @@ fail:
     return NULL;
 }
 
+// Testing the utilities of the CPU dispatcher
+#ifndef NPY_DISABLE_OPTIMIZATION
+    #include "_umath_tests.dispatch.h"
+#endif
+NPY_CPU_DISPATCH_DECLARE(extern const char *_umath_tests_dispatch_var)
+NPY_CPU_DISPATCH_DECLARE(const char *_umath_tests_dispatch_func, (void))
+NPY_CPU_DISPATCH_DECLARE(void _umath_tests_dispatch_attach, (PyObject *list))
+
+static PyObject *
+UMath_Tests_test_dispatch(PyObject *NPY_UNUSED(dummy), PyObject *NPY_UNUSED(dummy2))
+{
+    const char *highest_func, *highest_var;
+    NPY_CPU_DISPATCH_CALL(highest_func = _umath_tests_dispatch_func, ());
+    NPY_CPU_DISPATCH_CALL(highest_var  = _umath_tests_dispatch_var);
+    const char *highest_func_xb = "nobase", *highest_var_xb = "nobase";
+    NPY_CPU_DISPATCH_CALL_XB(highest_func_xb = _umath_tests_dispatch_func, ());
+    NPY_CPU_DISPATCH_CALL_XB(highest_var_xb  = _umath_tests_dispatch_var);
+
+    PyObject *dict = PyDict_New(), *item;
+    if (dict == NULL) {
+        return NULL;
+    }
+    #line 649
+    item = PyUnicode_FromString(highest_func);
+    if (item == NULL || PyDict_SetItemString(dict, "func", item) < 0) {
+        goto err;
+    }
+    Py_DECREF(item);
+    
+#line 649
+    item = PyUnicode_FromString(highest_var);
+    if (item == NULL || PyDict_SetItemString(dict, "var", item) < 0) {
+        goto err;
+    }
+    Py_DECREF(item);
+    
+#line 649
+    item = PyUnicode_FromString(highest_func_xb);
+    if (item == NULL || PyDict_SetItemString(dict, "func_xb", item) < 0) {
+        goto err;
+    }
+    Py_DECREF(item);
+    
+#line 649
+    item = PyUnicode_FromString(highest_var_xb);
+    if (item == NULL || PyDict_SetItemString(dict, "var_xb", item) < 0) {
+        goto err;
+    }
+    Py_DECREF(item);
+    
+    item = PyList_New(0);
+    if (item == NULL || PyDict_SetItemString(dict, "all", item) < 0) {
+        goto err;
+    }
+    NPY_CPU_DISPATCH_CALL_ALL(_umath_tests_dispatch_attach, (item));
+    Py_SETREF(item, NULL);
+    if (PyErr_Occurred()) {
+        goto err;
+    }
+    return dict;
+err:
+    Py_XDECREF(item);
+    Py_DECREF(dict);
+    return NULL;
+}
+
 static PyMethodDef UMath_TestsMethods[] = {
     {"test_signature",  UMath_Tests_test_signature, METH_VARARGS,
      "Test signature parsing of ufunc. \n"
@@ -848,6 +959,7 @@ static PyMethodDef UMath_TestsMethods[] = {
      "If fails, it returns NULL. Otherwise it returns a tuple of ufunc "
      "internals. \n",
      },
+    {"test_dispatch", UMath_Tests_test_dispatch, METH_NOARGS, NULL},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -869,6 +981,11 @@ PyMODINIT_FUNC PyInit__umath_tests(void) {
     PyObject *d;
     PyObject *version;
 
+    // Initialize CPU features
+    if (npy_cpu_init() < 0) {
+        return NULL;
+    }
+
     m = PyModule_Create(&moduledef);
     if (m == NULL) {
         return NULL;
@@ -885,7 +1002,7 @@ PyMODINIT_FUNC PyInit__umath_tests(void) {
 
     d = PyModule_GetDict(m);
 
-    version = PyString_FromString("0.1");
+    version = PyUnicode_FromString("0.1");
     PyDict_SetItemString(d, "__version__", version);
     Py_DECREF(version);
 
@@ -897,7 +1014,6 @@ PyMODINIT_FUNC PyInit__umath_tests(void) {
                         "cannot load _umath_tests module.");
         return NULL;
     }
-
     return m;
 }
 

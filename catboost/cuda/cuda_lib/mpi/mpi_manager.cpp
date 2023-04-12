@@ -164,7 +164,7 @@ namespace NCudaLib {
                     if (!SendCommands.IsEmpty()) {
                         hasWorkToDo = true;
                         TSendTaskRequest request;
-                        Y_VERIFY(SendCommands.Dequeue(request));
+                        CB_ENSURE(SendCommands.Dequeue(request), "Dequeue of send command failed");
                         const auto& deviceId = request.DeviceId;
 
                         const int size = static_cast<const int>(request.Task.Size());
@@ -194,8 +194,8 @@ namespace NCudaLib {
                     hasWorkToDo = true;
                     TMemcpyReceiveRequest readRequest;
                     const auto rc = ReceiveRequests.Dequeue(readRequest);
-                    Y_VERIFY(rc);
-                    Y_VERIFY(readRequest.Request != nullptr);
+                    CB_ENSURE(rc, "Dequeue from receive requests failed");
+                    CB_ENSURE(readRequest.Request != nullptr, "Dequeued read request is nullptr");
                     Y_ASSERT(readRequest.Request->GetState() == TMpiRequest::EState::Created);
 
                     MPI_SAFE_CALL(MPI_Irecv(readRequest.Data, readRequest.DataSize,
@@ -213,8 +213,8 @@ namespace NCudaLib {
                     hasWorkToDo = true;
                     TMemcpySendRequest writeRequest;
                     const auto rc = SendRequests.Dequeue(writeRequest);
-                    Y_VERIFY(rc);
-                    Y_VERIFY(writeRequest.Request != nullptr);
+                    CB_ENSURE(rc, "Dequeue from send requests failed");
+                    CB_ENSURE(writeRequest.Request != nullptr, "Dequeued write request is nullptr");
                     Y_ASSERT(writeRequest.Request->GetState() == TMpiRequest::EState::Created);
 
                     MPI_SAFE_CALL(MPI_Issend(writeRequest.Data, writeRequest.DataSize,

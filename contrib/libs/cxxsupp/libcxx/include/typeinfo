@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-------------------------- typeinfo ----------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -68,7 +68,7 @@ public:
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 #if defined(_LIBCPP_ABI_VCRUNTIME)
@@ -379,7 +379,7 @@ public:
 #endif
 };
 
-}  // std
+} // namespace std
 
 #ifdef _LIBCPP_ABI_MICROSOFT
 class type_info : public std::type_info {};

@@ -141,7 +141,7 @@ namespace NCB {
         for (TStringBuf part: StringSplitter(token).Split(delimiter)) {
             float value;
             CB_ENSURE(
-                TryParseFloatFeatureValue(part, &value),
+                TryFloatFromString(part, /*parseNonFinite*/true, &value),
                 "Sub-field #" << fieldIdx << " of numeric vector for feature " << featureId
                 << " cannot be parsed as float. Check data contents or column description"
             );
@@ -157,7 +157,7 @@ namespace NCB {
 
         auto& columnsDescription = DataMetaInfo.ColumnsInfo->Columns;
 
-        auto parseBlock = [&](TString& line, int lineIdx) {
+        auto parseLine = [&](TString& line, int lineIdx) {
             const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
 
             ui32 featureId = 0;
@@ -196,10 +196,28 @@ namespace NCB {
                                 ++featureId;
                                 break;
                             }
+                            case EColumn::HashedCateg: {
+                                if (!FeatureIgnored[featureId]) {
+                                    if (!TryFromString<ui32>(
+                                            token,
+                                            catFeatures[featuresLayout.GetInternalFeatureIdx(featureId)]
+                                        ))
+                                    {
+                                        CB_ENSURE(
+                                            false,
+                                            "Factor " << featureId << "=" << token << " cannot be parsed as hashed categorical value."
+                                            " Try correcting column description file."
+                                        );
+                                    }
+                                }
+                                ++featureId;
+                                break;
+                            }
                             case EColumn::Num: {
                                 if (!FeatureIgnored[featureId]) {
-                                    if (!TryParseFloatFeatureValue(
+                                    if (!TryFloatFromString(
                                             token,
+                                            /*parseNonFinite*/true,
                                             &floatFeatures[featuresLayout.GetInternalFeatureIdx(featureId)]
                                          ))
                                     {
@@ -318,7 +336,7 @@ namespace NCB {
             }
         };
 
-        AsyncRowProcessor.ProcessBlock(parseBlock);
+        AsyncRowProcessor.ProcessBlock(parseLine);
 
         if (BaselineReader.Inited()) {
             auto parseBaselineBlock = [&](TString &line, int inBlockIdx) {
@@ -347,6 +365,7 @@ namespace NCB {
     namespace {
         TDatasetLoaderFactory::TRegistrator<TCBDsvDataLoader> DefDataLoaderReg("");
         TDatasetLoaderFactory::TRegistrator<TCBDsvDataLoader> CBDsvDataLoaderReg("dsv");
+
+        TDatasetLineDataLoaderFactory::TRegistrator<TCBDsvDataLoader> CBDsvLineDataLoader("dsv");
     }
 }
-

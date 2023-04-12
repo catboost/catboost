@@ -33,6 +33,8 @@
 
 #pragma once
 
+#include "detail/device_synchronize.cuh"
+
 #include "util_type.cuh"
 #include "util_arch.cuh"
 #include "util_debug.cuh"
@@ -40,17 +42,11 @@
 #include "util_namespace.cuh"
 #include "util_macro.cuh"
 
-#if CUB_CPP_DIALECT >= 2011 // C++11 and later.
 #include <atomic>
 #include <array>
 #include <cassert>
-#endif
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -67,8 +63,8 @@ namespace cub {
 template <int ALLOCATIONS>
 __host__ __device__ __forceinline__
 cudaError_t AliasTemporaries(
-    void    *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-    size_t& temp_storage_bytes,                ///< [in,out] Size in bytes of \t d_temp_storage allocation
+    void    *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+    size_t& temp_storage_bytes,                 ///< [in,out] Size in bytes of \t d_temp_storage allocation
     void*   (&allocations)[ALLOCATIONS],        ///< [in,out] Pointers to device allocations needed
     size_t  (&allocation_sizes)[ALLOCATIONS])   ///< [in] Sizes in bytes of device allocations needed
 {
@@ -375,11 +371,9 @@ CUB_RUNTIME_FUNCTION inline cudaError_t PtxVersionUncached(int& ptx_version)
        #if CUB_INCLUDE_HOST_CODE
             cudaFuncAttributes empty_kernel_attrs;
 
-            do {
-                if (CubDebug(result = cudaFuncGetAttributes(&empty_kernel_attrs, empty_kernel)))
-                    break;
-            }
-            while(0);
+            result = cudaFuncGetAttributes(&empty_kernel_attrs,
+                                           reinterpret_cast<void*>(empty_kernel));
+            CubDebug(result);
 
             ptx_version = empty_kernel_attrs.ptxVersion * 10;
         #endif
@@ -402,6 +396,7 @@ CUB_RUNTIME_FUNCTION inline cudaError_t PtxVersionUncached(int& ptx_version)
 __host__ inline cudaError_t PtxVersionUncached(int& ptx_version, int device)
 {
     SwitchDevice sd(device);
+    (void)sd;
     return PtxVersionUncached(ptx_version);
 }
 
@@ -569,7 +564,7 @@ CUB_RUNTIME_FUNCTION inline cudaError_t SyncStream(cudaStream_t stream)
             #if defined(CUB_RUNTIME_ENABLED) // Device code with the CUDA runtime.
                 (void)stream;
                 // Device can't yet sync on a specific stream
-                result = CubDebug(cudaDeviceSynchronize());
+                result = CubDebug(cub::detail::device_synchronize());
             #else // Device code without the CUDA runtime.
                 (void)stream;
                 // CUDA API calls are not supported from this device.
@@ -618,7 +613,7 @@ cudaError_t MaxSmOccupancy(
     int&                max_sm_occupancy,          ///< [out] maximum number of thread blocks that can reside on a single SM
     KernelPtr           kernel_ptr,                 ///< [in] Kernel pointer for which to compute SM occupancy
     int                 block_threads,              ///< [in] Number of threads per thread block
-    int                 dynamic_smem_bytes = 0)
+    int                 dynamic_smem_bytes = 0)	    ///< [in] Dynamically allocated shared memory in bytes. Default is 0.
 {
 #ifndef CUB_RUNTIME_ENABLED
 
@@ -677,19 +672,22 @@ struct KernelConfig
 template <int PTX_VERSION, typename PolicyT, typename PrevPolicyT>
 struct ChainedPolicy
 {
-   /// The policy for the active compiler pass
-   typedef typename If<(CUB_PTX_ARCH < PTX_VERSION), typename PrevPolicyT::ActivePolicy, PolicyT>::Type ActivePolicy;
+  /// The policy for the active compiler pass
+  using ActivePolicy =
+    cub::detail::conditional_t<(CUB_PTX_ARCH < PTX_VERSION),
+                               typename PrevPolicyT::ActivePolicy,
+                               PolicyT>;
 
-   /// Specializes and dispatches op in accordance to the first policy in the chain of adequate PTX version
-   template <typename FunctorT>
-   CUB_RUNTIME_FUNCTION __forceinline__
-   static cudaError_t Invoke(int ptx_version, FunctorT& op)
-   {
-       if (ptx_version < PTX_VERSION) {
-           return PrevPolicyT::Invoke(ptx_version, op);
-       }
-       return op.template Invoke<PolicyT>();
-   }
+  /// Specializes and dispatches op in accordance to the first policy in the chain of adequate PTX version
+  template <typename FunctorT>
+  CUB_RUNTIME_FUNCTION __forceinline__
+  static cudaError_t Invoke(int ptx_version, FunctorT& op)
+  {
+      if (ptx_version < PTX_VERSION) {
+          return PrevPolicyT::Invoke(ptx_version, op);
+      }
+      return op.template Invoke<PolicyT>();
+  }
 };
 
 /// Helper for dispatching into a policy chain (end-of-chain specialization)
@@ -712,5 +710,4 @@ struct ChainedPolicy<PTX_VERSION, PolicyT, PolicyT>
 
 /** @} */       // end group UtilMgmt
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

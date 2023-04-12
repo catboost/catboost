@@ -123,6 +123,7 @@ TShapPreparedTrees PrepareTrees(
     NPar::ILocalExecutor* localExecutor,
     bool calcInternalValues = false,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
-    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
+    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw,
+    bool fstrOnTrainPool=false
 );
 

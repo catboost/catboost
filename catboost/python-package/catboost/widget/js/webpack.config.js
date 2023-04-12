@@ -11,7 +11,7 @@ module.exports = [
         entry: './src/extension.js',
         output: {
             filename: 'extension.js',
-            path: path.resolve(__dirname, '..', 'nbextension'),
+            path: path.resolve(__dirname, 'nbextension'),
             libraryTarget: 'amd',
             publicPath: ''
         },
@@ -20,7 +20,7 @@ module.exports = [
         entry: './src/index.js',
         output: {
             filename: 'index.js',
-            path: path.resolve(__dirname, '..', 'nbextension'),
+            path: path.resolve(__dirname, 'nbextension'),
             libraryTarget: 'amd',
             publicPath: '',
         },

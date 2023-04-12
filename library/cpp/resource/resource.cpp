@@ -30,6 +30,10 @@ void NResource::FindMatch(const TStringBuf subkey, TResources* out) {
     CommonStore()->FindMatch(subkey, m);
 }
 
+bool NResource::Has(const TStringBuf key) {
+    return CommonStore()->Has(key);
+}
+
 TString NResource::Find(const TStringBuf key) {
     TString ret;
 

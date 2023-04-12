@@ -1,8 +1,7 @@
 # Translated from the reference implementation
 # at https://github.com/veorq/SipHash
 
-import cython
-
+cimport cython
 from libc.stdlib cimport (
     free,
     malloc,
@@ -21,9 +20,6 @@ from numpy cimport (
 import_array()
 
 from pandas._libs.util cimport is_nan
-
-DEF cROUNDS = 2
-DEF dROUNDS = 4
 
 
 @cython.boundscheck(False)
@@ -52,8 +48,8 @@ def hash_object_array(
     mixed array types will raise TypeError.
     """
     cdef:
-        Py_ssize_t i, l, n
-        uint64_t[:] result
+        Py_ssize_t i, n
+        uint64_t[::1] result
         bytes data, k
         uint8_t *kb
         uint64_t *lens
@@ -97,8 +93,7 @@ def hash_object_array(
                 "must be string or null"
             )
 
-        l = len(data)
-        lens[i] = l
+        lens[i] = len(data)
         cdata = data
 
         # keep the references alive through the end of the
@@ -118,13 +113,6 @@ def hash_object_array(
 
 cdef inline uint64_t _rotl(uint64_t x, uint64_t b) nogil:
     return (x << b) | (x >> (64 - b))
-
-
-cdef inline void u32to8_le(uint8_t* p, uint32_t v) nogil:
-    p[0] = <uint8_t>(v)
-    p[1] = <uint8_t>(v >> 8)
-    p[2] = <uint8_t>(v >> 16)
-    p[3] = <uint8_t>(v >> 24)
 
 
 cdef inline uint64_t u8to64_le(uint8_t* p) nogil:
@@ -171,6 +159,8 @@ cdef uint64_t low_level_siphash(uint8_t* data, size_t datalen,
     cdef uint8_t* end = data + datalen - (datalen % sizeof(uint64_t))
     cdef int left = datalen & 7
     cdef int left_byte
+    cdef int cROUNDS = 2
+    cdef int dROUNDS = 4
 
     b = (<uint64_t>datalen) << 56
     v3 ^= k1

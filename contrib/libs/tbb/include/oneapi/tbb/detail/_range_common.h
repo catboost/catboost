@@ -19,6 +19,10 @@
 
 #include "_config.h"
 #include "_utils.h"
+#if __TBB_CPP20_CONCEPTS_PRESENT
+#include <concepts>
+#endif
+#include <iterator>
 
 namespace tbb {
 namespace detail {
@@ -69,6 +73,56 @@ auto get_range_split_object( PartitionerSplitType& split_obj )
     return range_split_object_provider<Range>::get(split_obj);
 }
 
+template <typename Range>
+using range_iterator_type = decltype(std::begin(std::declval<Range&>()));
+
+#if __TBB_CPP20_CONCEPTS_PRESENT
+template <typename Iterator>
+using iterator_reference_type = typename std::iterator_traits<Iterator>::reference;
+
+template <typename Range>
+using range_reference_type = iterator_reference_type<range_iterator_type<Range>>;
+
+template <typename Value>
+concept blocked_range_value = std::copyable<Value> &&
+                              requires( const std::remove_reference_t<Value>& lhs, const std::remove_reference_t<Value>& rhs ) {
+                                  { lhs < rhs } -> relaxed_convertible_to<bool>;
+                                  { lhs - rhs } -> std::convertible_to<std::size_t>;
+                                  { lhs + (rhs - lhs) } -> std::convertible_to<Value>;
+                              };
+
+template <typename T>
+concept splittable = std::constructible_from<T, T&, tbb::detail::split>;
+
+template <typename Range>
+concept tbb_range = std::copy_constructible<Range> &&
+                    splittable<Range> &&
+                    requires( const std::remove_reference_t<Range>& range ) {
+                        { range.empty() } -> relaxed_convertible_to<bool>;
+                        { range.is_divisible() } -> relaxed_convertible_to<bool>;
+                    };
+
+template <typename Iterator>
+constexpr bool iterator_concept_helper( std::input_iterator_tag ) {
+    return std::input_iterator<Iterator>;
+}
+
+template <typename Iterator>
+constexpr bool iterator_concept_helper( std::random_access_iterator_tag ) {
+    return std::random_access_iterator<Iterator>;
+}
+
+template <typename Iterator, typename IteratorTag>
+concept iterator_satisfies = requires (IteratorTag tag) {
+    requires iterator_concept_helper<Iterator>(tag);
+};
+
+template <typename Sequence, typename IteratorTag>
+concept container_based_sequence = requires( Sequence& seq ) {
+    { std::begin(seq) } -> iterator_satisfies<IteratorTag>;
+    { std::end(seq) } -> iterator_satisfies<IteratorTag>;
+};
+#endif // __TBB_CPP20_CONCEPTS_PRESENT
 } // namespace d0
 } // namespace detail
 } // namespace tbb

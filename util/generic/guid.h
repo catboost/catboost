@@ -29,18 +29,18 @@ struct TGUID {
     TString AsGuidString() const;
 
     /**
-    * RFC4122 GUID, which described in
-    * https://en.wikipedia.org/wiki/Universally_unique_identifier
-    * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    **/
+     * RFC4122 GUID, which described in
+     * https://en.wikipedia.org/wiki/Universally_unique_identifier
+     * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+     **/
     TString AsUuidString() const;
 
     static TGUID Create();
 
     /**
-    * Generate time based UUID version 1 RFC4122 GUID
-    * https://datatracker.ietf.org/doc/html/rfc4122#section-4.1
-    **/
+     * Generate time based UUID version 1 RFC4122 GUID
+     * https://datatracker.ietf.org/doc/html/rfc4122#section-4.1
+     **/
     static TGUID CreateTimebased();
 };
 
@@ -72,8 +72,8 @@ TGUID GetGuid(TStringBuf s);
 bool GetGuid(TStringBuf s, TGUID& result);
 
 /**
-* Functions for correct parsing RFC4122 GUID, which described in
-* https://en.wikipedia.org/wiki/Universally_unique_identifier
-**/
+ * Functions for correct parsing RFC4122 GUID, which described in
+ * https://en.wikipedia.org/wiki/Universally_unique_identifier
+ **/
 TGUID GetUuid(TStringBuf s);
 bool GetUuid(TStringBuf s, TGUID& result);

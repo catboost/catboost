@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "pathsplit.h"
 
 #include <util/generic/ptr.h>
@@ -32,6 +33,14 @@ public:
         : TFsPath(TStringBuf(path))
     {
     }
+
+    TFsPath(const TFsPath& that);
+    TFsPath(TFsPath&& that) = default;
+
+    TFsPath& operator=(const TFsPath& that);
+    TFsPath& operator=(TFsPath&& that) = default;
+
+    ~TFsPath() = default;
 
     void CheckDefined() const;
 
@@ -113,7 +122,7 @@ public:
         return that.IsSubpathOf(*this);
     }
 
-    TFsPath RelativeTo(const TFsPath& root) const; //must be subpath of root
+    TFsPath RelativeTo(const TFsPath& root) const; // must be subpath of root
 
     /**
      * @returns relative path or empty path if root equals to this.
@@ -204,6 +213,7 @@ public:
 private:
     void InitSplit() const;
     TSplit& GetSplit() const;
+    void CopySplitFrom(const TFsPath& that) const;
 
 private:
     TString Path_;

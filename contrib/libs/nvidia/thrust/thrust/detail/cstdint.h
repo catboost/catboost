@@ -16,12 +16,16 @@
 
 #pragma once
 
-#if (THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC) || (THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_CLANG)
+#include <thrust/detail/config.h>
+
+#if (THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_GCC) || \
+    (THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_CLANG) || \
+    (THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_INTEL)
 #include <stdint.h>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -75,5 +79,5 @@ typedef divine_intptr_t<>::type   intptr_t;
 typedef divine_uintptr_t<>::type  uintptr_t;
 
 } // end detail
-} // end thrust
 
+THRUST_NAMESPACE_END

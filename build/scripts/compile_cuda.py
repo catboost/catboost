@@ -22,8 +22,12 @@ def main():
         skip_nocxxinc = False
 
     spl = sys.argv.index('--cflags')
-    mtime0 = sys.argv[1]
-    command = sys.argv[2: spl]
+    cmd = 1
+    mtime0 = None
+    if sys.argv[1] == '--mtime':
+        mtime0 = sys.argv[2]
+        cmd = 3
+    command = sys.argv[cmd: spl]
     cflags = sys.argv[spl + 1:]
 
     dump_args = False
@@ -54,6 +58,14 @@ def main():
         '-Wno-c++17-extensions',
         '-flto',
         '-faligned-allocation',
+        '-fsized-deallocation',
+        # While it might be reasonable to compile host part of .cu sources with these optimizations enabled,
+        # nvcc passes these options down towards cicc which lacks x86_64 extensions support.
+        '-msse2',
+        '-msse3',
+        '-mssse3',
+        '-msse4.1',
+        '-msse4.2',
     ]
 
     if skip_nocxxinc:
@@ -69,15 +81,18 @@ def main():
         '-fsanitize-blacklist=',
         '--system-header-prefix',
     ]
-    for prefix in skip_prefix_list:
-        cflags = [i for i in cflags if not i.startswith(prefix)]
+    new_cflags = []
+    for flag in cflags:
+        if all(not flag.startswith(skip_prefix) for skip_prefix in skip_prefix_list):
+            if flag.startswith('-fopenmp-version='):
+                new_cflags.append('-fopenmp-version=45')  # Clang 11 only supports OpenMP 4.5, but the default is 5.0, so we need to forcefully redefine it.
+            else:
+                new_cflags.append(flag)
+    cflags = new_cflags
 
     if not is_clang(command):
         def good(arg):
             if arg.startswith('--target='):
-                return False
-            if arg in ('-Wno-exceptions',
-                       '-Wno-inconsistent-missing-override'):
                 return False
             return True
         cflags = filter(good, cflags)
@@ -138,7 +153,8 @@ def main():
     # time (converted to string in the local timezone) and the current working
     # directory.  To stabilize the names of these symbols we need to fix mtime,
     # timezone, and cwd.
-    os.environ['LD_PRELOAD'] = mtime0
+    if mtime0:
+        os.environ['LD_PRELOAD'] = mtime0
     os.environ['TZ'] = 'UTC0'  # POSIX fixed offset format.
     os.environ['TZDIR'] = '/var/empty'  # Against counterfeit /usr/share/zoneinfo/$TZ.
 

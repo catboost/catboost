@@ -16,12 +16,12 @@ def import_item(name):
     Parameters
     ----------
     name : string
-      The fully qualified name of the module/package being imported.
+        The fully qualified name of the module/package being imported.
 
     Returns
     -------
     mod : module object
-       The module that was imported.
+        The module that was imported.
     """
     
     parts = name.rsplit('.', 1)
@@ -31,8 +31,8 @@ def import_item(name):
         module = __import__(package, fromlist=[obj])
         try:
             pak = getattr(module, obj)
-        except AttributeError:
-            raise ImportError('No module named %s' % obj)
+        except AttributeError as e:
+            raise ImportError('No module named %s' % obj) from e
         return pak
     else:
         # called with un-dotted string

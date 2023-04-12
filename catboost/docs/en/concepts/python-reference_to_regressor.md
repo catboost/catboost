@@ -22,7 +22,7 @@ to_regressor(model)
 ## {{ input_data__title__example }} {#example}
 
 ```python
-from catboost import Pool, to_classifier, CatBoost
+from catboost import Pool, to_regressor, CatBoost
 
 train_data = [[0, 3],
               [4, 1],
@@ -38,7 +38,7 @@ model.fit(train_data,
           verbose=False)
 
 print("Source model type: ", type(model))
-converted_model = to_classifier(model)
+converted_model = to_regressor(model)
 print("Converted model type: ",  type(converted_model))
 
 ```

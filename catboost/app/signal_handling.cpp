@@ -1,7 +1,7 @@
 #include <catboost/private/libs/init/init_reg.h>
 #include <catboost/libs/helpers/interrupt.h>
 
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/compiler.h>
 #include <util/system/interrupt_signals.h>
 #include <util/system/yassert.h>

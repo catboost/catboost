@@ -11,6 +11,7 @@
 
 #include <util/charset/wide.h>
 #include <util/string/builder.h>
+#include <util/string/escape.h>
 #include <util/string/strip.h>
 #include <util/string/cast.h>
 #include <util/string/join.h>
@@ -129,7 +130,7 @@ static inline void CloseArray(TStringStream& out) {
 }
 
 static TString WrapStringBuf(const TStringBuf str) {
-    return TString::Join("TStringBuf(\"", str, "\")");
+    return TString::Join("\"", str, "\"sv");
 }
 
 void GenerateEnum(
@@ -174,7 +175,7 @@ void GenerateEnum(
     out << "namespace { namespace " << nsName << " {\n";
 
     TVector<TString> nameInitializerPairs;
-    TVector<TString> valueInitializerPairs;
+    TVector<std::pair<TString, TString>> valueInitializerPairsUnsorted;  // data, sort_key
     TVector<TString> cppNamesInitializer;
 
     TStringStream jItems;
@@ -197,18 +198,18 @@ void GenerateEnum(
             strValue = it.Aliases[0];
             OutKey(jEnumItem, "str_value", strValue);
         }
-        nameInitializerPairs.push_back("TNameBufs::EnumStringPair(" + outerScopeStr + it.CppName + ", " + WrapStringBuf(strValue) + ")");
+        nameInitializerPairs.push_back("TNameBufsBase::EnumStringPair(" + outerScopeStr + it.CppName + ", " + WrapStringBuf(strValue) + ")");
         cppNamesInitializer.push_back(WrapStringBuf(it.CppName));
 
         for (const auto& alias : it.Aliases) {
-            valueInitializerPairs.push_back("TNameBufs::EnumStringPair(" + outerScopeStr + it.CppName + ", " + WrapStringBuf(alias) + ")");
+            valueInitializerPairsUnsorted.emplace_back("TNameBufsBase::EnumStringPair(" + outerScopeStr + it.CppName + ", " + WrapStringBuf(alias) + ")", UnescapeC(alias));
             OutItem(jAliases, alias);
         }
         FinishItems(jAliases);
         CloseArray(jAliases);
 
         if (!it.Aliases) {
-            valueInitializerPairs.push_back("TNameBufs::EnumStringPair(" + outerScopeStr + it.CppName + ", " + WrapStringBuf(it.CppName) + ")");
+            valueInitializerPairsUnsorted.emplace_back("TNameBufsBase::EnumStringPair(" + outerScopeStr + it.CppName + ", " + WrapStringBuf(it.CppName) + ")", it.CppName);
         }
         OutKey(jEnumItem, "aliases", jAliases.Str(), false);
 
@@ -220,6 +221,8 @@ void GenerateEnum(
     FinishItems(jItems);
     CloseArray(jItems);
     OutKey(jEnum, "items", jItems.Str(), false);
+
+    const TString nsNameBufsClass = nsName + "::TNameBufs";
 
     auto defineConstArray = [&out, payloadCache = TMap<std::pair<TString, TVector<TString>>, TString>()](const TStringBuf indent, const TStringBuf elementType, const TStringBuf name, const TVector<TString>& items) mutable {
         if (items.empty()) { // ISO C++ forbids zero-size array
@@ -240,23 +243,29 @@ void GenerateEnum(
         out << "\n";
     };
 
-    out << "    class TNameBufs : public ::NEnumSerializationRuntime::TEnumDescription<" << name << "> {\n";
-    out << "    public:\n";
-    out << "        using TBase = ::NEnumSerializationRuntime::TEnumDescription<" << name << ">;\n\n";
-    out << "        inline TNameBufs();\n\n";
-
-    // Instance
-    out << "        static inline const TNameBufs& Instance() {\n";
-    out << "            return *SingletonWithPriority<TNameBufs, 0>();\n"; // destroy enum serializers last, because it may be used from destructor of another global object
-    out << "        }\n";
-    out << "    };\n\n";
+    out << "    using TNameBufsBase = ::NEnumSerializationRuntime::TEnumDescription<" << name << ">;\n\n";
 
     // Initialization data
-    defineConstArray("    ", "TNameBufs::TBase::TEnumStringPair", "NAMES_INITIALIZATION_PAIRS", nameInitializerPairs);
-    defineConstArray("    ", "TNameBufs::TBase::TEnumStringPair", "VALUES_INITIALIZATION_PAIRS", valueInitializerPairs);
+    {
+        out << "    static constexpr const std::array<TNameBufsBase::TEnumStringPair, " << nameInitializerPairs.size() << "> NAMES_INITIALIZATION_PAIRS_PAYLOAD = ::NEnumSerializationRuntime::TryStableSortKeys(";
+        out << "std::array<TNameBufsBase::TEnumStringPair, " << nameInitializerPairs.size() << ">{{\n";
+        for (const auto& it : nameInitializerPairs) {
+            out << "        " << it << ",\n";
+        }
+        out << "    }});\n";
+        out << "    " << "static constexpr const TArrayRef<const TNameBufsBase::TEnumStringPair> " << "NAMES_INITIALIZATION_PAIRS{NAMES_INITIALIZATION_PAIRS_PAYLOAD};\n\n";
+    }
+    {
+        StableSortBy(valueInitializerPairsUnsorted, [](const auto& pair) -> const TString& { return pair.second; });
+        TVector<TString> valueInitializerPairs(Reserve(valueInitializerPairsUnsorted.size()));
+        for (auto& [value, _] : valueInitializerPairsUnsorted) {
+            valueInitializerPairs.push_back(std::move(value));
+        }
+        defineConstArray("    ", "TNameBufsBase::TEnumStringPair", "VALUES_INITIALIZATION_PAIRS", valueInitializerPairs);
+    }
     defineConstArray("    ", "TStringBuf", "CPP_NAMES_INITIALIZATION_ARRAY", cppNamesInitializer);
 
-    out << "    static constexpr const TNameBufs::TInitializationData ENUM_INITIALIZATION_DATA{\n";
+    out << "    static constexpr const TNameBufsBase::TInitializationData ENUM_INITIALIZATION_DATA{\n";
     out << "        NAMES_INITIALIZATION_PAIRS,\n";
     out << "        VALUES_INITIALIZATION_PAIRS,\n";
     out << "        CPP_NAMES_INITIALIZATION_ARRAY,\n";
@@ -264,9 +273,31 @@ void GenerateEnum(
     out << "        " << WrapStringBuf(name) << "\n";
     out << "    };\n\n";
 
+    // Properties
+    out << "    static constexpr ::NEnumSerializationRuntime::ESortOrder NAMES_ORDER = ::NEnumSerializationRuntime::GetKeyFieldSortOrder(NAMES_INITIALIZATION_PAIRS);\n";
+    out << "    static constexpr ::NEnumSerializationRuntime::ESortOrder VALUES_ORDER = ::NEnumSerializationRuntime::GetNameFieldSortOrder(VALUES_INITIALIZATION_PAIRS);\n";
+    out << "\n";
+
+    // Data holder
+    out << "    class TNameBufs : public ::NEnumSerializationRuntime::TEnumDescription<" << name << "> {\n";
+    out << "    public:\n";
+    out << "        using TBase = ::NEnumSerializationRuntime::TEnumDescription<" << name << ">;\n\n";
+    out << "        inline TNameBufs();\n\n";
+
+    // Reference initialization data from class
+    out << "        static constexpr const TNameBufsBase::TInitializationData& EnumInitializationData = ENUM_INITIALIZATION_DATA;\n";
+    out << "        static constexpr ::NEnumSerializationRuntime::ESortOrder NamesOrder = NAMES_ORDER;\n";
+    out << "        static constexpr ::NEnumSerializationRuntime::ESortOrder ValuesOrder = VALUES_ORDER;\n\n";
+
+    // Instance
+    out << "        static inline const TNameBufs& Instance() {\n";
+    out << "            return *SingletonWithPriority<TNameBufs, 0>();\n"; // destroy enum serializers last, because it may be used from destructor of another global object
+    out << "        }\n";
+    out << "    };\n\n";
+
     // Constructor
     out << "    inline TNameBufs::TNameBufs()\n";
-    out << "        : TBase(ENUM_INITIALIZATION_DATA)\n";
+    out << "        : TBase(TNameBufs::EnumInitializationData)\n";
     out << "    {\n";
     out << "    }\n\n";
 
@@ -279,10 +310,25 @@ void GenerateEnum(
     // outer ToString
     if (headerOutPtr) {
         (*headerOutPtr) << "const TString& ToString(" << name << ");\n";
+        (*headerOutPtr) << "Y_FORCE_INLINE TStringBuf ToStringBuf(" << name << " e) {\n";
+        (*headerOutPtr) << "    return ::NEnumSerializationRuntime::ToStringBuf<" << name << ">(e);\n";
+        (*headerOutPtr) << "}\n";
     }
     out << "const TString& ToString(" << name << " x) {\n";
-    out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
+    out << "    const " << nsNameBufsClass << "& names = " << nsNameBufsClass << "::Instance();\n";
     out << "    return names.ToString(x);\n";
+    out << "}\n\n";
+
+    // specialization for internal FromStringImpl
+    out << "template<>\n";
+    out << name << " FromStringImpl<" << name << ">(const char* data, size_t len) {\n";
+    out << "    return ::NEnumSerializationRuntime::DispatchFromStringImplFn<" << nsNameBufsClass << ", " << name << ">(data, len);\n";
+    out << "}\n\n";
+
+    // specialization for internal TryFromStringImpl
+    out << "template<>\n";
+    out << "bool TryFromStringImpl<" << name << ">(const char* data, size_t len, " << name << "& result) {\n";
+    out << "    return ::NEnumSerializationRuntime::DispatchTryFromStringImplFn<" << nsNameBufsClass << ", " << name << ">(data, len, result);\n";
     out << "}\n\n";
 
     // outer FromString
@@ -290,8 +336,7 @@ void GenerateEnum(
         (*headerOutPtr) << "bool FromString(const TString& name, " << name << "& ret);\n";
     }
     out << "bool FromString(const TString& name, " << name << "& ret) {\n";
-    out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
-    out << "    return names.FromString(name, ret);\n";
+    out << "    return ::TryFromStringImpl<" << name << ">(name.data(), name.size(), ret);\n";
     out << "}\n\n";
 
     // outer FromString
@@ -299,57 +344,48 @@ void GenerateEnum(
         (*headerOutPtr) << "bool FromString(const TStringBuf& name, " << name << "& ret);\n";
     }
     out << "bool FromString(const TStringBuf& name, " << name << "& ret) {\n";
-    out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
-    out << "    return names.FromString(name, ret);\n";
-    out << "}\n\n";
-
-    // specialization for internal FromStringImpl
-    out << "template<>\n";
-    out << name << " FromStringImpl<" << name << ">(const char* data, size_t len) {\n";
-    out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
-    out << "    return names.FromString(TStringBuf(data, len));\n";
-    out << "}\n\n";
-
-    // specialization for internal TryFromStringImpl
-    out << "template<>\n";
-    out << "bool TryFromStringImpl<" << name << ">(const char* data, size_t len, " << name << "& result) {\n";
-    out << "    return FromString(TStringBuf(data, len), result);\n";
+    out << "    return ::TryFromStringImpl<" << name << ">(name.data(), name.size(), ret);\n";
     out << "}\n\n";
 
     // outer Out
     out << "template<>\n";
     out << "void Out<" << name << ">(IOutputStream& os, TTypeTraits<" << name << ">::TFuncParam n) {\n";
-    out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
-    out << "    return names.Out(&os, n);\n";
+    out << "    return ::NEnumSerializationRuntime::DispatchOutFn<" << nsNameBufsClass << ">(os, n);\n";
     out << "}\n\n";
 
     // specializations for NEnumSerializationRuntime function family
     out << "namespace NEnumSerializationRuntime {\n";
+    // template<> ToStringBuf
+    out << "    template<>\n";
+    out << "    TStringBuf ToStringBuf<" << name << ">(" << name << " e) {\n";
+    out << "        return ::NEnumSerializationRuntime::DispatchToStringBufFn<" << nsNameBufsClass << ">(e);\n";
+    out << "    }\n\n";
+
     // template<> GetEnumAllValues
     out << "    template<>\n";
     out << "    TMappedArrayView<" << name <<"> GetEnumAllValuesImpl<" << name << ">() {\n";
-    out << "        const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
+    out << "        const " << nsNameBufsClass << "& names = " << nsNameBufsClass << "::Instance();\n";
     out << "        return names.AllEnumValues();\n";
     out << "    }\n\n";
 
     // template<> GetEnumAllNames
     out << "    template<>\n";
     out << "    const TString& GetEnumAllNamesImpl<" << name << ">() {\n";
-    out << "        const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
+    out << "        const " << nsNameBufsClass << "& names = " << nsNameBufsClass << "::Instance();\n";
     out << "        return names.AllEnumNames();\n";
     out << "    }\n\n";
 
     // template<> GetEnumNames<EnumType>
     out << "    template<>\n";
     out << "    TMappedDictView<" << name << ", TString> GetEnumNamesImpl<" << name << ">() {\n";
-    out << "        const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
+    out << "        const " << nsNameBufsClass << "& names = " << nsNameBufsClass << "::Instance();\n";
     out << "        return names.EnumNames();\n";
     out << "    }\n\n";
 
     // template<> GetEnumAllCppNames, see IGNIETFERRO-534
     out << "    template<>\n";
     out << "    const TVector<TString>& GetEnumAllCppNamesImpl<" << name << ">() {\n";
-    out << "        const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
+    out << "        const " << nsNameBufsClass << "& names = " << nsNameBufsClass << "::Instance();\n";
     out << "        return names.AllEnumCppNames();\n";
     out << "    }\n";
 

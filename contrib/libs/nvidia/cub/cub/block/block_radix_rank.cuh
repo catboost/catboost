@@ -44,11 +44,7 @@
 #include "../util_type.cuh"
 
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -129,6 +125,14 @@ struct BlockRadixRankEmptyCallback
  *      {
  *
  *      \endcode
+ *
+ * \par Re-using dynamically allocating shared memory
+ * The following example under the examples/block folder illustrates usage of
+ * dynamically shared memory with BlockReduce and how to re-purpose
+ * the same memory region:
+ * <a href="../../examples/block/example_block_reduce_dyn_smem.cu">example_block_reduce_dyn_smem.cu</a>
+ *
+ * This example can be easily adapted to the storage required by BlockRadixRank.
  */
 template <
     int                     BLOCK_DIM_X,
@@ -152,9 +156,10 @@ private:
     typedef unsigned short DigitCounter;
 
     // Integer type for packing DigitCounters into columns of shared memory banks
-    typedef typename If<(SMEM_CONFIG == cudaSharedMemBankSizeEightByte),
-        unsigned long long,
-        unsigned int>::Type PackedCounter;
+    using PackedCounter =
+      cub::detail::conditional_t<SMEM_CONFIG == cudaSharedMemBankSizeEightByte,
+                                 unsigned long long,
+                                 unsigned int>;
 
     enum
     {
@@ -170,7 +175,7 @@ private:
         BYTES_PER_COUNTER           = sizeof(DigitCounter),
         LOG_BYTES_PER_COUNTER       = Log2<BYTES_PER_COUNTER>::VALUE,
 
-        PACKING_RATIO               = sizeof(PackedCounter) / sizeof(DigitCounter),
+        PACKING_RATIO               = static_cast<int>(sizeof(PackedCounter) / sizeof(DigitCounter)),
         LOG_PACKING_RATIO           = Log2<PACKING_RATIO>::VALUE,
 
         LOG_COUNTER_LANES           = CUB_MAX((int(RADIX_BITS) - int(LOG_PACKING_RATIO)), 0),                // Always at least one lane
@@ -742,7 +747,9 @@ public:
             temp_storage.aliasable.raking_grid[linear_tid][ITEM] = scan_counters[ITEM];
 
         CTA_SYNC();
-        if (!Equals<CountsCallback, BlockRadixRankEmptyCallback<BINS_TRACKED_PER_THREAD>>::VALUE)
+        if (!std::is_same<
+              CountsCallback,
+              BlockRadixRankEmptyCallback<BINS_TRACKED_PER_THREAD>>::value)
         {
             CallBack<KEYS_PER_THREAD>(callback);
         }
@@ -1120,7 +1127,6 @@ struct BlockRadixRankMatchEarlyCounts
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 

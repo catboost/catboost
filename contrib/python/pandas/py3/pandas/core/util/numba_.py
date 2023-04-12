@@ -2,17 +2,17 @@
 from __future__ import annotations
 
 import types
-from typing import Callable
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+)
 
 import numpy as np
 
 from pandas.compat._optional import import_optional_dependency
 from pandas.errors import NumbaUtilError
 
-from pandas.util.version import Version
-
 GLOBAL_USE_NUMBA: bool = False
-NUMBA_FUNC_CACHE: dict[tuple[Callable, str], Callable] = {}
 
 
 def maybe_use_numba(engine: str | None) -> bool:
@@ -29,7 +29,7 @@ def set_use_numba(enable: bool = False) -> None:
 
 def get_jit_arguments(
     engine_kwargs: dict[str, bool] | None = None, kwargs: dict | None = None
-) -> tuple[bool, bool, bool]:
+) -> dict[str, bool]:
     """
     Return arguments to pass to numba.JIT, falling back on pandas default JIT settings.
 
@@ -42,7 +42,7 @@ def get_jit_arguments(
 
     Returns
     -------
-    (bool, bool, bool)
+    dict[str, bool]
         nopython, nogil, parallel
 
     Raises
@@ -60,7 +60,7 @@ def get_jit_arguments(
         )
     nogil = engine_kwargs.get("nogil", False)
     parallel = engine_kwargs.get("parallel", False)
-    return nopython, nogil, parallel
+    return {"nopython": nopython, "nogil": nogil, "parallel": parallel}
 
 
 def jit_user_function(
@@ -85,14 +85,12 @@ def jit_user_function(
     function
         Numba JITed function
     """
-    numba = import_optional_dependency("numba")
-
-    if Version(numba.__version__) >= Version("0.49.0"):
-        is_jitted = numba.extending.is_jitted(func)
+    if TYPE_CHECKING:
+        import numba
     else:
-        is_jitted = isinstance(func, numba.targets.registry.CPUDispatcher)
+        numba = import_optional_dependency("numba")
 
-    if is_jitted:
+    if numba.extending.is_jitted(func):
         # Don't jit a user passed jitted function
         numba_func = func
     else:

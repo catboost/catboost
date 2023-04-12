@@ -63,7 +63,7 @@ def write_zfile(file_handle, data, compress=1):
     """Write the data in the given file as a Z-file.
 
     Z-files are raw data compressed with zlib used internally by joblib
-    for persistence. Backward compatibility is not guarantied. Do not
+    for persistence. Backward compatibility is not guaranteed. Do not
     use for external purposes.
     """
     file_handle.write(_ZFILE_PREFIX)
@@ -105,7 +105,7 @@ class NDArrayWrapper(object):
             kwargs["allow_pickle"] = True
         array = unpickler.np.load(filename, **kwargs)
 
-        # Detect byte order mis-match and swap as needed.
+        # Detect byte order mismatch and swap as needed.
         array = _ensure_native_byte_order(array)
 
         # Reconstruct subclasses. This does not work with old

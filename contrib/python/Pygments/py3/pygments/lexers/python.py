@@ -4,14 +4,15 @@
 
     Lexers for Python and related languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import re
+import keyword
 
 from pygments.lexer import Lexer, RegexLexer, include, bygroups, using, \
-    default, words, combined, do_insertions
+    default, words, combined, do_insertions, this
 from pygments.util import get_bool_opt, shebang_matches
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Generic, Other, Error
@@ -26,7 +27,7 @@ line_re = re.compile('.*?\n')
 
 class PythonLexer(RegexLexer):
     """
-    For `Python <http://www.python.org>`_ source code (version 3.x).
+    For Python source code (version 3.x).
 
     .. versionadded:: 0.10
 
@@ -36,6 +37,7 @@ class PythonLexer(RegexLexer):
     """
 
     name = 'Python'
+    url = 'http://www.python.org'
     aliases = ['python', 'py', 'sage', 'python3', 'py3']
     filenames = [
         '*.py',
@@ -59,8 +61,6 @@ class PythonLexer(RegexLexer):
     ]
     mimetypes = ['text/x-python', 'application/x-python',
                  'text/x-python3', 'application/x-python3']
-
-    flags = re.MULTILINE | re.UNICODE
 
     uni_name = "[%s][%s]*" % (uni.xid_start, uni.xid_continue)
 
@@ -110,6 +110,7 @@ class PythonLexer(RegexLexer):
             (r'\\\n', Text),
             (r'\\', Text),
             include('keywords'),
+            include('soft-keywords'),
             (r'(def)((?:\s|\\\s)+)', bygroups(Keyword, Text), 'funcname'),
             (r'(class)((?:\s|\\\s)+)', bygroups(Keyword, Text), 'classname'),
             (r'(from)((?:\s|\\\s)+)', bygroups(Keyword.Namespace, Text),
@@ -141,7 +142,7 @@ class PythonLexer(RegexLexer):
              combined('fstringescape', 'dqf')),
             ("([fF])(')", bygroups(String.Affix, String.Single),
              combined('fstringescape', 'sqf')),
-            # raw strings
+            # raw bytes and strings
             ('(?i)(rb|br|r)(""")',
              bygroups(String.Affix, String.Double), 'tdqs'),
             ("(?i)(rb|br|r)(''')",
@@ -151,14 +152,24 @@ class PythonLexer(RegexLexer):
             ("(?i)(rb|br|r)(')",
              bygroups(String.Affix, String.Single), 'sqs'),
             # non-raw strings
-            ('([uUbB]?)(""")', bygroups(String.Affix, String.Double),
+            ('([uU]?)(""")', bygroups(String.Affix, String.Double),
              combined('stringescape', 'tdqs')),
-            ("([uUbB]?)(''')", bygroups(String.Affix, String.Single),
+            ("([uU]?)(''')", bygroups(String.Affix, String.Single),
              combined('stringescape', 'tsqs')),
-            ('([uUbB]?)(")', bygroups(String.Affix, String.Double),
+            ('([uU]?)(")', bygroups(String.Affix, String.Double),
              combined('stringescape', 'dqs')),
-            ("([uUbB]?)(')", bygroups(String.Affix, String.Single),
+            ("([uU]?)(')", bygroups(String.Affix, String.Single),
              combined('stringescape', 'sqs')),
+            # non-raw bytes
+            ('([bB])(""")', bygroups(String.Affix, String.Double),
+             combined('bytesescape', 'tdqs')),
+            ("([bB])(''')", bygroups(String.Affix, String.Single),
+             combined('bytesescape', 'tsqs')),
+            ('([bB])(")', bygroups(String.Affix, String.Double),
+             combined('bytesescape', 'dqs')),
+            ("([bB])(')", bygroups(String.Affix, String.Single),
+             combined('bytesescape', 'sqs')),
+            
             (r'[^\S\n]+', Text),
             include('numbers'),
             (r'!=|==|<<|>>|:=|[-~+/*%=<>&^|.]', Operator),
@@ -207,10 +218,24 @@ class PythonLexer(RegexLexer):
              Keyword),
             (words(('True', 'False', 'None'), suffix=r'\b'), Keyword.Constant),
         ],
+        'soft-keywords': [
+            # `match`, `case` and `_` soft keywords
+            (r'(^[ \t]*)'              # at beginning of line + possible indentation
+             r'(match|case)\b'         # a possible keyword
+             r'(?![ \t]*(?:'           # not followed by...
+             r'[:,;=^&|@~)\]}]|(?:' +  # characters and keywords that mean this isn't
+             r'|'.join(keyword.kwlist) + r')\b))',                 # pattern matching
+             bygroups(Text, Keyword), 'soft-keywords-inner'),
+        ],
+        'soft-keywords-inner': [
+            # optional `_` keyword
+            (r'(\s+)([^\n_]*)(_\b)', bygroups(Text, using(this), Keyword)),
+            default('#pop')
+        ],
         'builtins': [
             (words((
                 '__import__', 'abs', 'all', 'any', 'bin', 'bool', 'bytearray',
-                'bytes', 'chr', 'classmethod', 'compile', 'complex',
+                'breakpoint', 'bytes', 'chr', 'classmethod', 'compile', 'complex',
                 'delattr', 'dict', 'dir', 'divmod', 'enumerate', 'eval', 'filter',
                 'float', 'format', 'frozenset', 'getattr', 'globals', 'hasattr',
                 'hash', 'hex', 'id', 'input', 'int', 'isinstance', 'issubclass',
@@ -243,7 +268,8 @@ class PythonLexer(RegexLexer):
                 'InterruptedError', 'IsADirectoryError', 'NotADirectoryError',
                 'PermissionError', 'ProcessLookupError', 'TimeoutError',
                 # others new in Python 3
-                'StopAsyncIteration', 'ModuleNotFoundError', 'RecursionError'),
+                'StopAsyncIteration', 'ModuleNotFoundError', 'RecursionError',
+                'EncodingWarning'),
                 prefix=r'(?<!\.)', suffix=r'\b'),
              Name.Exception),
         ],
@@ -327,9 +353,12 @@ class PythonLexer(RegexLexer):
             include('rfstringescape'),
             include('stringescape'),
         ],
+        'bytesescape': [
+            (r'\\([\\abfnrtv"\']|\n|x[a-fA-F0-9]{2}|[0-7]{1,3})', String.Escape)
+        ],
         'stringescape': [
-            (r'\\([\\abfnrtv"\']|\n|N\{.*?\}|u[a-fA-F0-9]{4}|'
-             r'U[a-fA-F0-9]{8}|x[a-fA-F0-9]{2}|[0-7]{1,3})', String.Escape)
+            (r'\\(N\{.*?\}|u[a-fA-F0-9]{4}|U[a-fA-F0-9]{8})', String.Escape),
+            include('bytesescape')
         ],
         'fstrings-single': fstring_rules(String.Single),
         'fstrings-double': fstring_rules(String.Double),
@@ -387,7 +416,7 @@ Python3Lexer = PythonLexer
 
 class Python2Lexer(RegexLexer):
     """
-    For `Python 2.x <http://www.python.org>`_ source code.
+    For Python 2.x source code.
 
     .. versionchanged:: 2.5
        This class has been renamed from ``PythonLexer``.  ``PythonLexer`` now
@@ -396,6 +425,7 @@ class Python2Lexer(RegexLexer):
     """
 
     name = 'Python 2.x'
+    url = 'http://www.python.org'
     aliases = ['python2', 'py2']
     filenames = []  # now taken over by PythonLexer (3.x)
     mimetypes = ['text/x-python2', 'application/x-python2']
@@ -739,7 +769,7 @@ class PythonTracebackLexer(RegexLexer):
             # Either `PEP 657 <https://www.python.org/dev/peps/pep-0657/>`
             # error locations in Python 3.11+, or single-caret markers
             # for syntax errors before that.
-            (r'^( {4,})(\^+)(\n)',
+            (r'^( {4,})([~^]+)(\n)',
              bygroups(Text, Punctuation.Marker, Text),
              '#pop'),
             default('#pop'),
@@ -800,12 +830,13 @@ class Python2TracebackLexer(RegexLexer):
 
 class CythonLexer(RegexLexer):
     """
-    For Pyrex and `Cython <http://cython.org>`_ source code.
+    For Pyrex and Cython source code.
 
     .. versionadded:: 1.1
     """
 
     name = 'Cython'
+    url = 'http://cython.org'
     aliases = ['cython', 'pyx', 'pyrex']
     filenames = ['*.pyx', '*.pxd', '*.pxi']
     mimetypes = ['text/x-cython', 'application/x-cython']
@@ -979,7 +1010,7 @@ class CythonLexer(RegexLexer):
 
 class DgLexer(RegexLexer):
     """
-    Lexer for `dg <http://pyos.github.com/dg>`_,
+    Lexer for dg,
     a functional and object-oriented programming language
     running on the CPython 3 VM.
 
@@ -1084,6 +1115,7 @@ class NumPyLexer(PythonLexer):
     """
 
     name = 'NumPy'
+    url = 'https://numpy.org/'
     aliases = ['numpy']
 
     # override the mimetypes to not inherit them from python

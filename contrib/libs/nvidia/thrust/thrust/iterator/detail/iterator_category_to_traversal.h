@@ -22,8 +22,7 @@
 #include <thrust/iterator/detail/iterator_category_to_system.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -127,5 +126,5 @@ template <typename CategoryOrTraversal>
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

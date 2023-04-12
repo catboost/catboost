@@ -119,12 +119,12 @@ class PROTOBUF_EXPORT JsonObjectWriter : public StructuredObjectWriter {
   JsonObjectWriter* StartList(StringPiece name) override;
   JsonObjectWriter* EndList() override;
   JsonObjectWriter* RenderBool(StringPiece name, bool value) override;
-  JsonObjectWriter* RenderInt32(StringPiece name, int32_t value) override;
+  JsonObjectWriter* RenderInt32(StringPiece name, arc_i32 value) override;
   JsonObjectWriter* RenderUint32(StringPiece name,
-                                 uint32_t value) override;
-  JsonObjectWriter* RenderInt64(StringPiece name, int64_t value) override;
+                                 arc_ui32 value) override;
+  JsonObjectWriter* RenderInt64(StringPiece name, arc_i64 value) override;
   JsonObjectWriter* RenderUint64(StringPiece name,
-                                 uint64_t value) override;
+                                 arc_ui64 value) override;
   JsonObjectWriter* RenderDouble(StringPiece name, double value) override;
   JsonObjectWriter* RenderFloat(StringPiece name, float value) override;
   JsonObjectWriter* RenderString(StringPiece name,

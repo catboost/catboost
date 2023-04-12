@@ -6,6 +6,8 @@
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/cuda_util/kernel/filter.cuh>
 
+#include <util/generic/cast.h>
+
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
@@ -16,16 +18,17 @@ using NKernelHost::TStatelessKernel;
 // NonZeroFilter
 
 namespace {
+    template <typename TStatus>
     class TFilterKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> Weights;
-        TCudaBufferPtr<ui32> Result;
+        TCudaBufferPtr<TStatus> Result;
 
     public:
         TFilterKernel() = default;
 
         TFilterKernel(TCudaBufferPtr<const float> weights,
-                      TCudaBufferPtr<ui32> result)
+                      TCudaBufferPtr<TStatus> result)
             : Weights(weights)
             , Result(result)
         {
@@ -34,37 +37,45 @@ namespace {
         Y_SAVELOAD_DEFINE(Weights, Result);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::Filter(Weights.Get(), (const ui32)Weights.Size(), Result.Get(), stream.GetStream());
+            NKernel::Filter(Weights.Get(), Weights.Size(), Result.Get(), stream.GetStream());
         }
     };
 }
 
-template <typename TMapping>
+template <typename TMapping, class TStatus>
 static void NonZeroFilterImpl(
     const TCudaBuffer<float, TMapping>& weights,
-    TCudaBuffer<ui32, TMapping>& status,
+    TCudaBuffer<TStatus, TMapping>& status,
     ui32 stream) {
-    using TKernel = TFilterKernel;
+    using TKernel = TFilterKernel<TStatus>;
     LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, weights, status);
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)              \
+#define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
+    Y_CATBOOST_CUDA_F_IMPL x
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping, TStatus)     \
     template <>                                       \
-    void NonZeroFilter<TMapping>(                     \
+    void NonZeroFilter<TMapping, TStatus>(            \
         const TCudaBuffer<float, TMapping>& weights,  \
-        TCudaBuffer<ui32, TMapping>& status,          \
+        TCudaBuffer<TStatus, TMapping>& status,       \
         ui32 stream) {                                \
         ::NonZeroFilterImpl(weights, status, stream); \
     }
 
 Y_MAP_ARGS(
-    Y_CATBOOST_CUDA_F_IMPL,
-    TMirrorMapping,
-    TSingleMapping,
-    TStripeMapping);
+    Y_CATBOOST_CUDA_F_IMPL_PROXY,
+    (TMirrorMapping, ui32),
+    (TSingleMapping, ui32),
+    (TStripeMapping, ui32),
+    (TMirrorMapping, ui64),
+    (TSingleMapping, ui64),
+    (TStripeMapping, ui64));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
+#undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
 namespace NCudaLib {
-    REGISTER_KERNEL(0xFF1F01, TFilterKernel);
+    REGISTER_KERNEL_TEMPLATE(0xFF1F01, TFilterKernel, ui32);
+    REGISTER_KERNEL_TEMPLATE(0xFF1F02, TFilterKernel, ui64);
 }

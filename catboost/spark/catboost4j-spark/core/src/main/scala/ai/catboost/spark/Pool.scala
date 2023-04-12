@@ -9,7 +9,7 @@ import concurrent.duration.Duration
 import concurrent.{Await,Future}
 import concurrent.ExecutionContext.Implicits.global
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer,ArrayBuilder}
 
@@ -40,7 +40,7 @@ private[spark] class QuantizedRowsOutputIterator(
     val quantizedRowAssembler : TQuantizedRowAssembler,
     val objectBlobSize : Int
 ) extends Iterator[Row] {
-  def next : Row = {
+  def next() : Row = {
     val quantizedFeaturesBlob = new Array[Byte](objectBlobSize)
     quantizedRowAssembler.AssembleObjectBlob(objectIdx, quantizedFeaturesBlob)
     val dstRow = dstRows(objectIdx)
@@ -214,6 +214,13 @@ object Pool {
     pool
   }
 
+  /**
+   * Returns a PoolReader that can be used to read Pool (API similar to Spark's DataFrameReader).
+   */
+  def read(spark: SparkSession) : PoolReader = {
+    new PoolReader(spark)
+  }
+
   private[spark] def setColumnParamsFromLoadedData(pool: Pool) {
     // CatBoost loaders always use standard names, column parameter name is taken by adding "Col" suffix
     for (name <- pool.data.columns) {
@@ -320,13 +327,14 @@ class Pool (
   extends Params with HasLabelCol with HasFeaturesCol with HasWeightCol with Logging {
 
   private[spark] def this(
+    uid: Option[String],
     data: DataFrame,
     pairsData: DataFrame,
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
     partitionedByGroups: Boolean
   ) =
     this(
-      Identifiable.randomUID("catboostPool"),
+      uid.getOrElse(Identifiable.randomUID("catboostPool")),
       data,
       if (quantizedFeaturesInfo != null) quantizedFeaturesInfo.GetFeaturesLayout() else null,
       quantizedFeaturesInfo,
@@ -367,7 +375,7 @@ class Pool (
    *   pool.data.show()
    * }}}
    */
-  def this(data: DataFrame) = this(data, null, null, false)
+  def this(data: DataFrame) = this(None, data, null, null, false)
 
   /** Construct [[Pool]] from [[DataFrame]] also specifying pairs data in an additional [[DataFrame]]
    * @example
@@ -419,7 +427,7 @@ class Pool (
    *   pool.pairsData.show()
    * }}}
    */
-  def this(data: DataFrame, pairsData: DataFrame) = this(data, pairsData, null, false)
+  def this(data: DataFrame, pairsData: DataFrame) = this(None, data, pairsData, null, false)
 
   def getFeaturesLayout : TFeaturesLayoutPtr = {
     if (featuresLayout == null) {
@@ -599,6 +607,7 @@ class Pool (
    */
   def cache() : Pool = {
     val result = new Pool(
+      None,
       this.data.cache(),
       if (this.pairsData != null) this.pairsData.cache() else null,
       this.quantizedFeaturesInfo,
@@ -616,6 +625,7 @@ class Pool (
    */
   def checkpoint(eager: Boolean) : Pool = {
     val result = new Pool(
+      None,
       this.data.checkpoint(eager),
       if (this.pairsData != null) this.pairsData.checkpoint(eager) else null,
       this.quantizedFeaturesInfo,
@@ -642,6 +652,7 @@ class Pool (
    */
   def localCheckpoint(eager: Boolean) : Pool = {
     val result = new Pool(
+      None,
       this.data.localCheckpoint(eager),
       if (this.pairsData != null) this.pairsData.localCheckpoint(eager) else null,
       this.quantizedFeaturesInfo,
@@ -666,6 +677,7 @@ class Pool (
    */
   def persist(storageLevel: StorageLevel) : Pool = {
     val result = new Pool(
+      None,
       this.data.persist(storageLevel),
       if (this.pairsData != null) this.pairsData.persist(storageLevel) else null,
       this.quantizedFeaturesInfo,
@@ -701,12 +713,20 @@ class Pool (
    */
   def unpersist(blocking: Boolean) : Pool = {
     val result = new Pool(
+      None,
       this.data.unpersist(blocking),
       if (this.pairsData != null) this.pairsData.unpersist(blocking) else null,
       this.quantizedFeaturesInfo,
       this.partitionedByGroups
     )
     copyValues(result)
+  }
+
+  /**
+   * Interface for saving the content out into external storage (API similar to Spark's Dataset).
+   */
+  def write() : PoolWriter = {
+    new PoolWriter(this)
   }
 
 
@@ -791,7 +811,7 @@ class Pool (
     nanModeAndBordersBuilder.SetSampleSize(dataForBuildBorders.count.toInt)
     
     log.info("calcNanModesAndBorders: reading data: start")
-    for (row <- dataForBuildBorders.toLocalIterator) {
+    for (row <- dataForBuildBorders.toLocalIterator.asScala) {
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
     log.info("calcNanModesAndBorders: reading data: end")
@@ -895,7 +915,7 @@ class Pool (
       }
     )(quantizedDataEncoder)
 
-    val quantizedPool = new Pool(quantizedData, pairsData, quantizedFeaturesInfo, partitionedByGroups)
+    val quantizedPool = new Pool(None, quantizedData, pairsData, quantizedFeaturesInfo, partitionedByGroups)
     copyValues(quantizedPool)
   }
 
@@ -999,7 +1019,7 @@ class Pool (
     } else {
       data.repartition(partitionCount)
     }
-    val result = new Pool(newData, pairsData, this.quantizedFeaturesInfo, partitionedByGroups)
+    val result = new Pool(None, newData, pairsData, this.quantizedFeaturesInfo, partitionedByGroups)
     copyValues(result)
   }
 
@@ -1033,6 +1053,7 @@ class Pool (
           }
         )
         new Pool(
+          None,
           spark.createDataFrame(sampledMainData, this.data.schema),
           spark.createDataFrame(sampledPairsData, this.pairsData.schema),
           this.quantizedFeaturesInfo,
@@ -1042,6 +1063,7 @@ class Pool (
         val sampledGroupedMainData = groupedMainData.sample(withReplacement=false, fraction=fraction)
         val sampledMainData = sampledGroupedMainData.flatMap(_._2)
         new Pool(
+          None,
           spark.createDataFrame(sampledMainData, this.data.schema),
           null,
           this.quantizedFeaturesInfo,
@@ -1049,7 +1071,7 @@ class Pool (
         )
       }
     } else {
-      new Pool(this.data.sample(fraction), null, this.quantizedFeaturesInfo, false)
+      new Pool(None, this.data.sample(fraction), null, this.quantizedFeaturesInfo, false)
     }
     this.copyValues(sampledPool)
   }
@@ -1070,7 +1092,7 @@ class Pool (
    * It is impossible to just write an external function for this because copyValues is protected
    */
   def copyWithModifiedData(modifiedData: DataFrame, partitionedByGroups: Boolean=false) : Pool = {
-    val result = new Pool(modifiedData, this.pairsData, this.quantizedFeaturesInfo, partitionedByGroups)
+    val result = new Pool(None, modifiedData, this.pairsData, this.quantizedFeaturesInfo, partitionedByGroups)
     copyValues(result)
   }
   
@@ -1143,8 +1165,8 @@ class Pool (
               dstRowLength
             )
             f(
-              dataProviders(0),
-              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders(0) } else { null },
+              dataProviders.get(0),
+              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders.get(0) } else { null },
               dstRows(0),
               localExecutor
             )
@@ -1174,8 +1196,8 @@ class Pool (
               dstRowLength
             )
             f(
-              dataProviders(0),
-              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders(0) } else { null },
+              dataProviders.get(0),
+              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders.get(0) } else { null },
               dstRows(0),
               localExecutor
             )

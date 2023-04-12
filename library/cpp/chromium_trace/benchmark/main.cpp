@@ -1,7 +1,11 @@
 #include <library/cpp/chromium_trace/interface.h>
 #include <library/cpp/chromium_trace/json.h>
 #include <library/cpp/chromium_trace/sync.h>
+
+#ifndef _MSC_VER
 #include <library/cpp/chromium_trace/yson.h>
+#endif
+
 #include <library/cpp/chromium_trace/saveload.h>
 
 #include <library/cpp/json/json_writer.h>
@@ -13,7 +17,10 @@
 #include <util/system/mutex.h>
 
 using namespace NChromiumTrace;
+
+#ifndef _MSC_VER
 using namespace NYT;
+#endif
 
 namespace {
     // Benchmark involve configuring singleton state, thus multi-threaded benchmarks
@@ -72,6 +79,9 @@ Y_CPU_BENCHMARK(JsonEmptySyncTracedFunction, iface) {
     }
 }
 
+
+#ifndef _MSC_VER
+
 Y_CPU_BENCHMARK(YsonEmptyTracedFunction, iface) {
     auto singletonGuard = Guard(SingletonBenchmarkLock);
 
@@ -93,6 +103,9 @@ Y_CPU_BENCHMARK(YsonEmptySyncTracedFunction, iface) {
         FnEmptyTraced(i);
     }
 }
+
+#endif
+
 
 Y_CPU_BENCHMARK(SaveLoadEmptyTracedFunction, iface) {
     auto singletonGuard = Guard(SingletonBenchmarkLock);

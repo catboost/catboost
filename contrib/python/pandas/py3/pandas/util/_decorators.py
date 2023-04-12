@@ -11,8 +11,12 @@ from typing import (
 )
 import warnings
 
-from pandas._libs.properties import cache_readonly  # noqa
-from pandas._typing import F
+from pandas._libs.properties import cache_readonly
+from pandas._typing import (
+    F,
+    T,
+)
+from pandas.util._exceptions import find_stack_level
 
 
 def deprecate(
@@ -51,7 +55,7 @@ def deprecate(
     """
     alt_name = alt_name or alternative.__name__
     klass = klass or FutureWarning
-    warning_msg = msg or f"{name} is deprecated, use {alt_name} instead"
+    warning_msg = msg or f"{name} is deprecated, use {alt_name} instead."
 
     @wraps(alternative)
     def wrapper(*args, **kwargs) -> Callable[..., Any]:
@@ -122,19 +126,19 @@ def deprecate_kwarg(
     >>> f(columns='should work ok')
     should work ok
 
-    >>> f(cols='should raise warning')
+    >>> f(cols='should raise warning')  # doctest: +SKIP
     FutureWarning: cols is deprecated, use columns instead
       warnings.warn(msg, FutureWarning)
     should raise warning
 
-    >>> f(cols='should error', columns="can\'t pass do both")
+    >>> f(cols='should error', columns="can\'t pass do both")  # doctest: +SKIP
     TypeError: Can only specify 'cols' or 'columns', not both
 
     >>> @deprecate_kwarg('old', 'new', {'yes': True, 'no': False})
     ... def f(new=False):
     ...     print('yes!' if new else 'no!')
     ...
-    >>> f(old='yes')
+    >>> f(old='yes')  # doctest: +SKIP
     FutureWarning: old='yes' is deprecated, use new=True instead
       warnings.warn(msg, FutureWarning)
     yes!
@@ -145,14 +149,14 @@ def deprecate_kwarg(
     ... def f(cols='', another_param=''):
     ...     print(cols)
     ...
-    >>> f(cols='should raise warning')
+    >>> f(cols='should raise warning')  # doctest: +SKIP
     FutureWarning: the 'cols' keyword is deprecated and will be removed in a
     future version please takes steps to stop use of 'cols'
     should raise warning
-    >>> f(another_param='should not raise warning')
+    >>> f(another_param='should not raise warning')  # doctest: +SKIP
     should not raise warning
 
-    >>> f(cols='should raise warning', another_param='')
+    >>> f(cols='should raise warning', another_param='')  # doctest: +SKIP
     FutureWarning: the 'cols' keyword is deprecated and will be removed in a
     future version please takes steps to stop use of 'cols'
     should raise warning
@@ -186,20 +190,20 @@ def deprecate_kwarg(
                     msg = (
                         f"the {old_arg_name}={repr(old_arg_value)} keyword is "
                         "deprecated, use "
-                        f"{new_arg_name}={repr(new_arg_value)} instead"
+                        f"{new_arg_name}={repr(new_arg_value)} instead."
                     )
                 else:
                     new_arg_value = old_arg_value
                     msg = (
                         f"the {repr(old_arg_name)}' keyword is deprecated, "
-                        f"use {repr(new_arg_name)} instead"
+                        f"use {repr(new_arg_name)} instead."
                     )
 
                 warnings.warn(msg, FutureWarning, stacklevel=stacklevel)
                 if kwargs.get(new_arg_name) is not None:
                     msg = (
                         f"Can only specify {repr(old_arg_name)} "
-                        f"or {repr(new_arg_name)}, not both"
+                        f"or {repr(new_arg_name)}, not both."
                     )
                     raise TypeError(msg)
                 else:
@@ -245,7 +249,7 @@ def _format_argument_list(allow_args: list[str]):
         return f" except for the argument '{allow_args[0]}'"
     else:
         last = allow_args[-1]
-        args = ", ".join("'" + x + "'" for x in allow_args[:-1])
+        args = ", ".join(["'" + x + "'" for x in allow_args[:-1]])
         return f" except for the arguments {args} and '{last}'"
 
 
@@ -260,7 +264,7 @@ def future_version_msg(version: str | None) -> str:
 def deprecate_nonkeyword_arguments(
     version: str | None,
     allowed_args: list[str] | None = None,
-    stacklevel: int = 2,
+    name: str | None = None,
 ) -> Callable[[F], F]:
     """
     Decorator to deprecate a use of non-keyword arguments of a function.
@@ -279,37 +283,56 @@ def deprecate_nonkeyword_arguments(
         defaults to list of all arguments not having the
         default value.
 
-    stacklevel : int, default=2
-        The stack level for warnings.warn
+    name : str, optional
+        The specific name of the function to show in the warning
+        message. If None, then the Qualified name of the function
+        is used.
     """
 
     def decorate(func):
+        old_sig = inspect.signature(func)
+
         if allowed_args is not None:
             allow_args = allowed_args
         else:
-            spec = inspect.getfullargspec(func)
+            allow_args = [
+                p.name
+                for p in old_sig.parameters.values()
+                if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
+                and p.default is p.empty
+            ]
 
-            # We must have some defaults if we are deprecating default-less
-            assert spec.defaults is not None  # for mypy
-            allow_args = spec.args[: -len(spec.defaults)]
+        new_params = [
+            p.replace(kind=p.KEYWORD_ONLY)
+            if (
+                p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
+                and p.name not in allow_args
+            )
+            else p
+            for p in old_sig.parameters.values()
+        ]
+        new_params.sort(key=lambda p: p.kind)
+        new_sig = old_sig.replace(parameters=new_params)
 
         num_allow_args = len(allow_args)
         msg = (
             f"{future_version_msg(version)} all arguments of "
-            f"{func.__qualname__}{{arguments}} will be keyword-only"
+            f"{name or func.__qualname__}{{arguments}} will be keyword-only."
         )
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            arguments = _format_argument_list(allow_args)
             if len(args) > num_allow_args:
                 warnings.warn(
-                    msg.format(arguments=arguments),
+                    msg.format(arguments=_format_argument_list(allow_args)),
                     FutureWarning,
-                    stacklevel=stacklevel,
+                    stacklevel=find_stack_level(),
                 )
             return func(*args, **kwargs)
 
+        # error: "Callable[[VarArg(Any), KwArg(Any)], Any]" has no
+        # attribute "__signature__"
+        wrapper.__signature__ = new_sig  # type: ignore[attr-defined]
         return wrapper
 
     return decorate
@@ -317,7 +340,7 @@ def deprecate_nonkeyword_arguments(
 
 def rewrite_axis_style_signature(
     name: str, extra_params: list[tuple[str, Any]]
-) -> Callable[..., Any]:
+) -> Callable[[F], F]:
     def decorate(func: F) -> F:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Callable[..., Any]:
@@ -385,10 +408,12 @@ def doc(*docstrings: str | Callable, **params) -> Callable[[F], F]:
 
         # formatting templates and concatenating docstring
         decorated.__doc__ = "".join(
-            component.format(**params)
-            if isinstance(component, str)
-            else dedent(component.__doc__ or "")
-            for component in docstring_components
+            [
+                component.format(**params)
+                if isinstance(component, str)
+                else dedent(component.__doc__ or "")
+                for component in docstring_components
+            ]
         )
 
         # error: "F" has no attribute "_docstring_components"
@@ -433,7 +458,7 @@ class Substitution:
         "%s %s wrote the Raven"
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         if args and kwargs:
             raise AssertionError("Only positional or keyword args are allowed")
 
@@ -473,14 +498,14 @@ class Appender:
 
     addendum: str | None
 
-    def __init__(self, addendum: str | None, join: str = "", indents: int = 0):
+    def __init__(self, addendum: str | None, join: str = "", indents: int = 0) -> None:
         if indents > 0:
             self.addendum = indent(addendum, indents=indents)
         else:
             self.addendum = addendum
         self.join = join
 
-    def __call__(self, func: F) -> F:
+    def __call__(self, func: T) -> T:
         func.__doc__ = func.__doc__ if func.__doc__ else ""
         self.addendum = self.addendum if self.addendum else ""
         docitems = [func.__doc__, self.addendum]
@@ -493,3 +518,16 @@ def indent(text: str | None, indents: int = 1) -> str:
         return ""
     jointext = "".join(["\n"] + ["    "] * indents)
     return jointext.join(text.split("\n"))
+
+
+__all__ = [
+    "Appender",
+    "cache_readonly",
+    "deprecate",
+    "deprecate_kwarg",
+    "deprecate_nonkeyword_arguments",
+    "doc",
+    "future_version_msg",
+    "rewrite_axis_style_signature",
+    "Substitution",
+]

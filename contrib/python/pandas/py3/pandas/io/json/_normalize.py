@@ -16,7 +16,10 @@ from typing import (
 import numpy as np
 
 from pandas._libs.writers import convert_json_to_lines
-from pandas._typing import Scalar
+from pandas._typing import (
+    IgnoreRaise,
+    Scalar,
+)
 from pandas.util._decorators import deprecate
 
 import pandas as pd
@@ -148,8 +151,9 @@ def _normalise_json(
             _normalise_json(
                 data=value,
                 # to avoid adding the separator to the start of every key
+                # GH#43831 avoid adding key if key_string blank
                 key_string=new_key
-                if new_key[len(separator) - 1] != separator
+                if new_key[: len(separator)] != separator
                 else new_key[len(separator) :],
                 normalized_dict=normalized_dict,
                 separator=separator,
@@ -243,7 +247,7 @@ def _json_normalize(
     meta: str | list[str | list[str]] | None = None,
     meta_prefix: str | None = None,
     record_prefix: str | None = None,
-    errors: str = "raise",
+    errors: IgnoreRaise = "raise",
     sep: str = ".",
     max_level: int | None = None,
 ) -> DataFrame:
@@ -380,14 +384,33 @@ def _json_normalize(
     Returns normalized data with columns prefixed with the given string.
     """
 
-    def _pull_field(js: dict[str, Any], spec: list | str) -> Scalar | Iterable:
+    def _pull_field(
+        js: dict[str, Any], spec: list | str, extract_record: bool = False
+    ) -> Scalar | Iterable:
         """Internal function to pull field"""
         result = js
-        if isinstance(spec, list):
-            for field in spec:
-                result = result[field]
-        else:
-            result = result[spec]
+        try:
+            if isinstance(spec, list):
+                for field in spec:
+                    if result is None:
+                        raise KeyError(field)
+                    result = result[field]
+            else:
+                result = result[spec]
+        except KeyError as e:
+            if extract_record:
+                raise KeyError(
+                    f"Key {e} not found. If specifying a record_path, all elements of "
+                    f"data should have the path."
+                ) from e
+            elif errors == "ignore":
+                return np.nan
+            else:
+                raise KeyError(
+                    f"Key {e} not found. To replace missing values of {e} with "
+                    f"np.nan, pass in errors='ignore'"
+                ) from e
+
         return result
 
     def _pull_records(js: dict[str, Any], spec: list | str) -> list:
@@ -396,7 +419,7 @@ def _json_normalize(
         _pull_field, but require to return list. And will raise error
         if has non iterable value.
         """
-        result = _pull_field(js, spec)
+        result = _pull_field(js, spec, extract_record=True)
 
         # GH 31507 GH 30145, GH 26284 if result is not list, raise TypeError if not
         # null, otherwise return an empty list
@@ -488,16 +511,7 @@ def _json_normalize(
                     if level + 1 > len(val):
                         meta_val = seen_meta[key]
                     else:
-                        try:
-                            meta_val = _pull_field(obj, val[level:])
-                        except KeyError as e:
-                            if errors == "ignore":
-                                meta_val = np.nan
-                            else:
-                                raise KeyError(
-                                    "Try running with errors='ignore' as key "
-                                    f"{e} is not always present"
-                                ) from e
+                        meta_val = _pull_field(obj, val[level:])
                     meta_vals[key].append(meta_val)
                 records.extend(recs)
 

@@ -74,8 +74,8 @@ namespace {
 
         inline void Listen() {
             Y_ENSURE(!HasLoop_ || !*HasLoop_);
-            RR_ = MultiRequester(ListenAddrs(), this);
             HasLoop_ = false;
+            RR_ = MultiRequester(ListenAddrs(), this);
         }
 
         inline void Loop(size_t threads) {

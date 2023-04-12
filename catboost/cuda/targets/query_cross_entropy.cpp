@@ -131,21 +131,24 @@ namespace NCatboostCuda {
                                     groupSumDer2);
     }
 
+    template <typename TMapping>
+    static TCudaBuffer<ui64, TMapping> CalcMatrixOffsets(
+        const TCudaBuffer<ui32, TMapping>& queryOffsets,
+        const TCudaBuffer<bool, TMapping>& queryFlags
+    ) {
+        auto matrixSizes = TCudaBuffer<ui32, TMapping>::CopyMapping(queryOffsets);
+        ComputeQueryLogitMatrixSizes(queryOffsets, queryFlags, &matrixSizes);
+        auto matrixOffsets = TCudaBuffer<ui64, TMapping>::CopyMapping(queryOffsets);
+        ScanVector(matrixSizes, matrixOffsets);
+
+        return matrixOffsets;
+    }
+
     void TQueryCrossEntropy<NCudaLib::TStripeMapping>::CreateSecondDerMatrix(
         NCudaLib::TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs) const {
         const auto& cachedData = GetCachedMetadata();
 
-        auto matrixOffsets = TCudaBuffer<ui32, TMapping>::CopyMapping(cachedData.FuncValueQidOffsets);
-
-        {
-            auto tmp = TCudaBuffer<ui32, TMapping>::CopyMapping(matrixOffsets);
-            ComputeQueryLogitMatrixSizes(cachedData.FuncValueQidOffsets,
-                                         cachedData.FuncValueFlags,
-                                         &tmp);
-
-            ScanVector(tmp,
-                       matrixOffsets);
-        }
+        auto matrixOffsets = CalcMatrixOffsets(cachedData.FuncValueQidOffsets, cachedData.FuncValueFlags);
 
         {
             auto guard = NCudaLib::GetProfiler().Profile("Make pairs");
@@ -167,8 +170,8 @@ namespace NCatboostCuda {
         const auto& samplesGrouping = TParent::GetSamplesGrouping();
 
         auto& sampledDocs = target->Docs;
-        auto& pairDer2 = target->PairDer2OrWeights;
-        auto& pairs = target->Pairs;
+        auto& pairDer2 = target->PairDer2OrWeights; // size can exceed 32-bits
+        auto& pairs = target->Pairs; // size can exceed 32-bits
 
         double queriesSampleRate = 1.0;
         if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Bernoulli) {
@@ -245,17 +248,7 @@ namespace NCatboostCuda {
                                             &groupDer2);
             }
 
-            auto matrixOffsets = TCudaBuffer<ui32, TMapping>::CopyMapping(sampledQidOffsets);
-
-            {
-                auto tmp = TCudaBuffer<ui32, TMapping>::CopyMapping(matrixOffsets);
-                ComputeQueryLogitMatrixSizes(sampledQidOffsets,
-                                             sampledFlags,
-                                             &tmp);
-
-                ScanVector(tmp,
-                           matrixOffsets);
-            }
+            auto matrixOffsets = CalcMatrixOffsets(sampledQidOffsets, sampledFlags);
 
             {
                 auto guard = NCudaLib::GetProfiler().Profile("Make pairs");

@@ -208,7 +208,7 @@ class UIContent:
             return self._line_heights_cache[key]
         except KeyError:
             if width == 0:
-                height = 10 ** 8
+                height = 10**8
             else:
                 # Calculate line width first.
                 line = fragment_list_to_text(self.get_line(lineno))[:slice_stop]
@@ -235,7 +235,7 @@ class UIContent:
                         prefix_width = get_cwidth(fragment_list_to_text(fragments2))
 
                         if prefix_width >= width:  # Prefix doesn't fit.
-                            height = 10 ** 8
+                            height = 10**8
                             break
 
                         text_width += prefix_width
@@ -244,7 +244,7 @@ class UIContent:
                     try:
                         quotient, remainder = divmod(text_width, width)
                     except ZeroDivisionError:
-                        height = 10 ** 8
+                        height = 10**8
                     else:
                         if remainder:
                             quotient += 1  # Like math.ceil.
@@ -336,7 +336,7 @@ class FormattedTextControl(UIControl):
         return self.focusable()
 
     def __repr__(self) -> str:
-        return "%s(%r)" % (self.__class__.__name__, self.text)
+        return f"{self.__class__.__name__}({self.text!r})"
 
     def _get_formatted_text_cached(self) -> StyleAndTextTuples:
         """
@@ -488,21 +488,17 @@ class DummyControl(UIControl):
             return []
 
         return UIContent(
-            get_line=get_line, line_count=100 ** 100
+            get_line=get_line, line_count=100**100
         )  # Something very big.
 
     def is_focusable(self) -> bool:
         return False
 
 
-_ProcessedLine = NamedTuple(
-    "_ProcessedLine",
-    [
-        ("fragments", StyleAndTextTuples),
-        ("source_to_display", Callable[[int], int]),
-        ("display_to_source", Callable[[int], int]),
-    ],
-)
+class _ProcessedLine(NamedTuple):
+    fragments: StyleAndTextTuples
+    source_to_display: Callable[[int], int]
+    display_to_source: Callable[[int], int]
 
 
 class BufferControl(UIControl):
@@ -573,7 +569,7 @@ class BufferControl(UIControl):
         self._last_get_processed_line: Optional[Callable[[int], _ProcessedLine]] = None
 
     def __repr__(self) -> str:
-        return "<%s buffer=%r at %r>" % (self.__class__.__name__, self.buffer, id(self))
+        return f"<{self.__class__.__name__} buffer={self.buffer!r} at {id(self)!r}>"
 
     @property
     def search_buffer_control(self) -> Optional["SearchBufferControl"]:

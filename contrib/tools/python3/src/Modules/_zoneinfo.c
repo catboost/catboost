@@ -1,4 +1,9 @@
+#ifndef Py_BUILD_CORE_BUILTIN
+#  define Py_BUILD_CORE_MODULE 1
+#endif
+
 #include "Python.h"
+#include "pycore_long.h"          // _PyLong_GetOne()
 #include "structmember.h"
 
 #include <ctype.h>
@@ -487,9 +492,7 @@ zoneinfo_tzname(PyObject *self, PyObject *dt)
     return tti->tzname;
 }
 
-#define HASTZINFO(p) (((_PyDateTime_BaseTZInfo *)(p))->hastzinfo)
-#define GET_DT_TZINFO(p) \
-    (HASTZINFO(p) ? ((PyDateTime_DateTime *)(p))->tzinfo : Py_None)
+#define GET_DT_TZINFO PyDateTime_DATE_GET_TZINFO
 
 static PyObject *
 zoneinfo_fromutc(PyObject *obj_self, PyObject *dt)
@@ -590,7 +593,7 @@ zoneinfo_fromutc(PyObject *obj_self, PyObject *dt)
             }
 
             dt = NULL;
-            if (!PyDict_SetItemString(kwargs, "fold", _PyLong_One)) {
+            if (!PyDict_SetItemString(kwargs, "fold", _PyLong_GetOne())) {
                 dt = PyObject_Call(replace, args, kwargs);
             }
 
@@ -727,17 +730,16 @@ zoneinfo__unpickle(PyTypeObject *cls, PyObject *args)
 static PyObject *
 load_timedelta(long seconds)
 {
-    PyObject *rv = NULL;
+    PyObject *rv;
     PyObject *pyoffset = PyLong_FromLong(seconds);
     if (pyoffset == NULL) {
         return NULL;
     }
-    int contains = PyDict_Contains(TIMEDELTA_CACHE, pyoffset);
-    if (contains == -1) {
-        goto error;
-    }
-
-    if (!contains) {
+    rv = PyDict_GetItemWithError(TIMEDELTA_CACHE, pyoffset);
+    if (rv == NULL) {
+        if (PyErr_Occurred()) {
+            goto error;
+        }
         PyObject *tmp = PyDateTimeAPI->Delta_FromDelta(
             0, seconds, 0, 1, PyDateTimeAPI->DeltaType);
 
@@ -748,12 +750,9 @@ load_timedelta(long seconds)
         rv = PyDict_SetDefault(TIMEDELTA_CACHE, pyoffset, tmp);
         Py_DECREF(tmp);
     }
-    else {
-        rv = PyDict_GetItem(TIMEDELTA_CACHE, pyoffset);
-    }
 
+    Py_XINCREF(rv);
     Py_DECREF(pyoffset);
-    Py_INCREF(rv);
     return rv;
 error:
     Py_DECREF(pyoffset);
@@ -1473,11 +1472,11 @@ parse_tz_str(PyObject *tz_str_obj, _tzrule *out)
     long std_offset = 1 << 20;
     long dst_offset = 1 << 20;
 
-    char *tz_str = PyBytes_AsString(tz_str_obj);
+    const char *tz_str = PyBytes_AsString(tz_str_obj);
     if (tz_str == NULL) {
         return -1;
     }
-    char *p = tz_str;
+    const char *p = tz_str;
 
     // Read the `std` abbreviation, which must be at least 3 characters long.
     Py_ssize_t num_chars = parse_abbr(p, &std_abbr);
@@ -2613,7 +2612,7 @@ static PyTypeObject PyZoneInfo_ZoneInfoType = {
 // Specify the _zoneinfo module
 static PyMethodDef module_methods[] = {{NULL, NULL}};
 static void
-module_free()
+module_free(void *m)
 {
     Py_XDECREF(_tzpath_find_tzfile);
     _tzpath_find_tzfile = NULL;
@@ -2653,8 +2652,9 @@ zoneinfomodule_exec(PyObject *m)
         goto error;
     }
 
-    Py_INCREF(&PyZoneInfo_ZoneInfoType);
-    PyModule_AddObject(m, "ZoneInfo", (PyObject *)&PyZoneInfo_ZoneInfoType);
+    if (PyModule_AddObjectRef(m, "ZoneInfo", (PyObject *)&PyZoneInfo_ZoneInfoType) < 0) {
+        goto error;
+    }
 
     /* Populate imports */
     PyObject *_tzpath_module = PyImport_ImportModule("zoneinfo._tzpath");

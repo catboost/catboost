@@ -1,20 +1,21 @@
 # Traitlets
 
 [![Tests](https://github.com/ipython/traitlets/actions/workflows/tests.yml/badge.svg)](https://github.com/ipython/traitlets/actions/workflows/tests.yml)
-[![Test downstream projects](https://github.com/ipython/traitlets/actions/workflows/downstream.yml/badge.svg)](https://github.com/ipython/traitlets/actions/workflows/downstream.yml)
 [![Documentation Status](https://readthedocs.org/projects/traitlets/badge/?version=latest)](https://traitlets.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/ipython/traitlets/branch/main/graph/badge.svg?token=HcsbLGEmI1)](https://codecov.io/gh/ipython/traitlets)
+[![Tidelift](https://tidelift.com/subscription/pkg/pypi-traitlets)](https://tidelift.com/badges/package/pypi/traitlets)
 
-|               |                                        |
-|---------------|----------------------------------------|
-| **home**      |   https://github.com/ipython/traitlets |
-| **pypi-repo** |   https://pypi.org/project/traitlets/  |
-| **docs**      |   https://traitlets.readthedocs.io/    |
-| **license**   |   Modified BSD License                 |
+|               |                                      |
+| ------------- | ------------------------------------ |
+| **home**      | https://github.com/ipython/traitlets |
+| **pypi-repo** | https://pypi.org/project/traitlets/  |
+| **docs**      | https://traitlets.readthedocs.io/    |
+| **license**   | Modified BSD License                 |
 
 Traitlets is a pure Python library enabling:
 
 - the enforcement of strong typing for attributes of Python objects
- (typed attributes are called *"traits"*);
+  (typed attributes are called _"traits"_);
 - dynamically calculated default values;
 - automatic validation and coercion of trait attributes when attempting a
   change;
@@ -25,7 +26,7 @@ Traitlets is a pure Python library enabling:
 
 Its implementation relies on the [descriptor](https://docs.python.org/howto/descriptor.html)
 pattern, and it is a lightweight pure-python alternative of the
-[*traits* library](https://docs.enthought.com/traits/).
+[_traits_ library](https://docs.enthought.com/traits/).
 
 Traitlets powers the configuration system of IPython and Jupyter
 and the declarative API of IPython interactive widgets.
@@ -54,6 +55,39 @@ pip install -e .
 pip install "traitlets[test]"
 py.test traitlets
 ```
+
+## Code Styling
+
+`traitlets` has adopted automatic code formatting so you shouldn't
+need to worry too much about your code style.
+As long as your code is valid,
+the pre-commit hook should take care of how it should look.
+
+To install `pre-commit` locally, run the following::
+
+```
+pip install pre-commit
+pre-commit install
+```
+
+You can invoke the pre-commit hook by hand at any time with::
+
+```
+pre-commit run
+```
+
+which should run any autoformatting on your code
+and tell you about any errors it couldn't fix automatically.
+You may also install [black integration](https://github.com/psf/black#editor-integration)
+into your text editor to format code automatically.
+
+If you have already committed files before setting up the pre-commit
+hook with `pre-commit install`, you can fix everything up using
+`pre-commit run --all-files`. You need to make the fixing commit
+yourself after that.
+
+Some of the hooks only run on CI by default, but you can invoke them by
+running with the `--hook-stage manual` argument.
 
 ## Usage
 
@@ -91,7 +125,7 @@ To do something when a trait attribute is changed, decorate a method with
 The method will be called with a single argument, a dictionary which contains
 an owner, new value, old value, name of the changed trait, and the event type.
 
-In this example, the `_num_changed` method is decorated with ``@observe(`num`)``:
+In this example, the `_num_changed` method is decorated with `` @observe(`num`) ``:
 
 ```Python
 from traitlets import HasTraits, Integer, observe
@@ -154,12 +188,3 @@ with parity_check.hold_trait_notifications():
 
 However, we **recommend** that custom cross-validators don't modify the state
 of the HasTraits instance.
-
-### Release build:
-
-Releases should be automatically build and pushed to Pypi when a tag is marked and pushed to GitHub.
-
-```bash
-$ pip install build
-$ python -m build .
-```

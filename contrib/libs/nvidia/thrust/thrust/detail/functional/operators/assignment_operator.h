@@ -22,8 +22,7 @@
 #include <thrust/detail/functional/operators/operator_adaptors.h>
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // XXX WAR circular inclusion with this forward declaration
 template<typename,typename,typename> struct binary_function;
@@ -46,7 +45,7 @@ struct assign
   __host__ __device__
   constexpr auto operator()(T1&& t1, T2&& t2) const
   noexcept(noexcept(THRUST_FWD(t1) = THRUST_FWD(t2)))
-      -> decltype(THRUST_FWD(t1) = THRUST_FWD(t2))
+  THRUST_TRAILING_RETURN(decltype(THRUST_FWD(t1) = THRUST_FWD(t2)))
   {
     return THRUST_FWD(t1) = THRUST_FWD(t2);
   }
@@ -76,5 +75,5 @@ template<typename Eval, typename T>
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

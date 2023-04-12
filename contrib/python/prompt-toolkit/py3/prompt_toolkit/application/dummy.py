@@ -24,6 +24,7 @@ class DummyApplication(Application[None]):
         self,
         pre_run: Optional[Callable[[], None]] = None,
         set_exception_handler: bool = True,
+        handle_sigint: bool = True,
         in_thread: bool = False,
     ) -> None:
         raise NotImplementedError("A DummyApplication is not supposed to run.")
@@ -32,6 +33,8 @@ class DummyApplication(Application[None]):
         self,
         pre_run: Optional[Callable[[], None]] = None,
         set_exception_handler: bool = True,
+        handle_sigint: bool = True,
+        slow_callback_duration: float = 0.5,
     ) -> None:
         raise NotImplementedError("A DummyApplication is not supposed to run.")
 

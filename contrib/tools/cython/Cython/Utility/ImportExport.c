@@ -228,9 +228,9 @@ bad:
 
 // PY_VERSION_HEX >= 0x03030000
 #if PY_MAJOR_VERSION >= 3 && !CYTHON_PEP489_MULTI_PHASE_INIT
-static int __Pyx_SetPackagePathFromImportLib(const char* parent_package_name, PyObject *module_name);
+static int __Pyx_SetPackagePathFromImportLib(PyObject *module_name);
 #else
-#define __Pyx_SetPackagePathFromImportLib(a, b) 0
+#define __Pyx_SetPackagePathFromImportLib(a) 0
 #endif
 
 /////////////// SetPackagePathFromImportLib ///////////////
@@ -239,32 +239,21 @@ static int __Pyx_SetPackagePathFromImportLib(const char* parent_package_name, Py
 
 // PY_VERSION_HEX >= 0x03030000
 #if PY_MAJOR_VERSION >= 3 && !CYTHON_PEP489_MULTI_PHASE_INIT
-static int __Pyx_SetPackagePathFromImportLib(const char* parent_package_name, PyObject *module_name) {
-    PyObject *importlib, *loader, *osmod, *ossep, *parts, *package_path;
-    PyObject *path = NULL, *file_path = NULL;
+static int __Pyx_SetPackagePathFromImportLib(PyObject *module_name) {
+    PyObject *importlib, *osmod, *ossep, *parts, *package_path;
+    PyObject *file_path = NULL;
     int result;
-    if (parent_package_name) {
-        PyObject *package = PyImport_ImportModule(parent_package_name);
-        if (unlikely(!package))
-            goto bad;
-        path = PyObject_GetAttrString(package, "__path__");
-        Py_DECREF(package);
-        if (unlikely(!path) || unlikely(path == Py_None))
-            goto bad;
-    } else {
-        path = Py_None; Py_INCREF(Py_None);
-    }
-    // package_path = [importlib.find_loader(module_name, path).path.rsplit(os.sep, 1)[0]]
-    importlib = PyImport_ImportModule("importlib");
+    PyObject *spec;
+    // package_path = [importlib.util.find_spec(module_name).origin.rsplit(os.sep, 1)[0]]
+    importlib = PyImport_ImportModule("importlib.util");
     if (unlikely(!importlib))
         goto bad;
-    loader = PyObject_CallMethod(importlib, "find_loader", "(OO)", module_name, path);
+    spec = PyObject_CallMethod(importlib, "find_spec", "(O)", module_name);
     Py_DECREF(importlib);
-    Py_DECREF(path); path = NULL;
-    if (unlikely(!loader))
+    if (unlikely(!spec))
         goto bad;
-    file_path = PyObject_GetAttrString(loader, "path");
-    Py_DECREF(loader);
+    file_path = PyObject_GetAttrString(spec, "origin");
+    Py_DECREF(spec);
     if (unlikely(!file_path))
         goto bad;
 
@@ -291,7 +280,6 @@ static int __Pyx_SetPackagePathFromImportLib(const char* parent_package_name, Py
 
 bad:
     PyErr_WriteUnraisable(module_name);
-    Py_XDECREF(path);
     Py_XDECREF(file_path);
 
     // set an empty path list on failure
@@ -658,7 +646,7 @@ static int __Pyx_MergeVtables(PyTypeObject *type) {
             base = base->tp_base;
         }
     }
-    base_vtables = (void**) malloc(sizeof(void*) * (base_depth + 1));
+    base_vtables = (void**) malloc(sizeof(void*) * (size_t)(base_depth + 1));
     base_vtables[0] = unknown;
     // Could do MRO resolution of individual methods in the future, assuming
     // compatible vtables, but for now simply require a common vtable base.

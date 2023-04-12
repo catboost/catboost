@@ -1,4 +1,5 @@
 #pragma once
+#include <catboost/libs/helpers/exception.h>
 
 #include <util/system/yassert.h>
 #include <util/ysaveload.h>
@@ -17,7 +18,7 @@ namespace NCudaLib {
             , DeviceId(deviceId)
         {
 #ifndef USE_MPI
-            Y_VERIFY(hostId == 0, "Remote device support is not enabled");
+            CB_ENSURE(hostId == 0, "Remote device support is not enabled");
 #endif
         }
 

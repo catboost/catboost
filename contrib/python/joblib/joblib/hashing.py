@@ -193,7 +193,7 @@ class NumpyHasher(Hasher):
                 obj_c_contiguous = obj.T
             else:
                 # Cater for non-single-segment arrays: this creates a
-                # copy, and thus aleviates this issue.
+                # copy, and thus alleviates this issue.
                 # XXX: There might be a more efficient way of doing this
                 obj_c_contiguous = obj.flatten()
 

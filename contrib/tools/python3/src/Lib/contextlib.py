@@ -1,5 +1,6 @@
 """Utilities for with-statement contexts.  See PEP 343."""
 import abc
+import os
 import sys
 import _collections_abc
 from collections import deque
@@ -9,7 +10,8 @@ from types import MethodType, GenericAlias
 __all__ = ["asynccontextmanager", "contextmanager", "closing", "nullcontext",
            "AbstractContextManager", "AbstractAsyncContextManager",
            "AsyncExitStack", "ContextDecorator", "ExitStack",
-           "redirect_stdout", "redirect_stderr", "suppress"]
+           "redirect_stdout", "redirect_stderr", "suppress", "aclosing",
+           "chdir"]
 
 
 class AbstractContextManager(abc.ABC):
@@ -80,6 +82,22 @@ class ContextDecorator(object):
         return inner
 
 
+class AsyncContextDecorator(object):
+    "A base class or mixin that enables async context managers to work as decorators."
+
+    def _recreate_cm(self):
+        """Return a recreated instance of self.
+        """
+        return self
+
+    def __call__(self, func):
+        @wraps(func)
+        async def inner(*args, **kwds):
+            async with self._recreate_cm():
+                return await func(*args, **kwds)
+        return inner
+
+
 class _GeneratorContextManagerBase:
     """Shared functionality for @contextmanager and @asynccontextmanager."""
 
@@ -143,6 +161,7 @@ class _GeneratorContextManager(
             except RuntimeError as exc:
                 # Don't re-raise the passed in exception. (issue27122)
                 if exc is value:
+                    exc.__traceback__ = traceback
                     return False
                 # Avoid suppressing if a StopIteration exception
                 # was passed to throw() and later wrapped into a RuntimeError
@@ -154,6 +173,7 @@ class _GeneratorContextManager(
                     isinstance(value, StopIteration)
                     and exc.__cause__ is value
                 ):
+                    value.__traceback__ = traceback
                     return False
                 raise
             except BaseException as exc:
@@ -165,12 +185,15 @@ class _GeneratorContextManager(
                 # and the __exit__() protocol.
                 if exc is not value:
                     raise
+                exc.__traceback__ = traceback
                 return False
             raise RuntimeError("generator didn't stop after throw()")
 
-
-class _AsyncGeneratorContextManager(_GeneratorContextManagerBase,
-                                    AbstractAsyncContextManager):
+class _AsyncGeneratorContextManager(
+    _GeneratorContextManagerBase,
+    AbstractAsyncContextManager,
+    AsyncContextDecorator,
+):
     """Helper for @asynccontextmanager decorator."""
 
     async def __aenter__(self):
@@ -178,14 +201,14 @@ class _AsyncGeneratorContextManager(_GeneratorContextManagerBase,
         # they are only needed for recreation, which is not possible anymore
         del self.args, self.kwds, self.func
         try:
-            return await self.gen.__anext__()
+            return await anext(self.gen)
         except StopAsyncIteration:
             raise RuntimeError("generator didn't yield") from None
 
     async def __aexit__(self, typ, value, traceback):
         if typ is None:
             try:
-                await self.gen.__anext__()
+                await anext(self.gen)
             except StopAsyncIteration:
                 return False
             else:
@@ -205,17 +228,19 @@ class _AsyncGeneratorContextManager(_GeneratorContextManagerBase,
             except RuntimeError as exc:
                 # Don't re-raise the passed in exception. (issue27122)
                 if exc is value:
+                    exc.__traceback__ = traceback
                     return False
                 # Avoid suppressing if a Stop(Async)Iteration exception
                 # was passed to athrow() and later wrapped into a RuntimeError
                 # (see PEP 479 for sync generators; async generators also
                 # have this behavior). But do this only if the exception wrapped
-                # by the RuntimeError is actully Stop(Async)Iteration (see
+                # by the RuntimeError is actually Stop(Async)Iteration (see
                 # issue29692).
                 if (
                     isinstance(value, (StopIteration, StopAsyncIteration))
                     and exc.__cause__ is value
                 ):
+                    value.__traceback__ = traceback
                     return False
                 raise
             except BaseException as exc:
@@ -227,6 +252,7 @@ class _AsyncGeneratorContextManager(_GeneratorContextManagerBase,
                 # and the __exit__() protocol.
                 if exc is not value:
                     raise
+                exc.__traceback__ = traceback
                 return False
             raise RuntimeError("generator didn't stop after athrow()")
 
@@ -320,6 +346,32 @@ class closing(AbstractContextManager):
         return self.thing
     def __exit__(self, *exc_info):
         self.thing.close()
+
+
+class aclosing(AbstractAsyncContextManager):
+    """Async context manager for safely finalizing an asynchronously cleaned-up
+    resource such as an async generator, calling its ``aclose()`` method.
+
+    Code like this:
+
+        async with aclosing(<module>.fetch(<arguments>)) as agen:
+            <block>
+
+    is equivalent to this:
+
+        agen = <module>.fetch(<arguments>)
+        try:
+            <block>
+        finally:
+            await agen.aclose()
+
+    """
+    def __init__(self, thing):
+        self.thing = thing
+    async def __aenter__(self):
+        return self.thing
+    async def __aexit__(self, *exc_info):
+        await self.thing.aclose()
 
 
 class _RedirectStream(AbstractContextManager):
@@ -443,9 +495,14 @@ class _BaseExitStack:
         """
         # We look up the special methods on the type to match the with
         # statement.
-        _cm_type = type(cm)
-        _exit = _cm_type.__exit__
-        result = _cm_type.__enter__(cm)
+        cls = type(cm)
+        try:
+            _enter = cls.__enter__
+            _exit = cls.__exit__
+        except AttributeError:
+            raise TypeError(f"'{cls.__module__}.{cls.__qualname__}' object does "
+                            f"not support the context manager protocol") from None
+        result = _enter(cm)
         self._push_cm_exit(cm, _exit)
         return result
 
@@ -570,9 +627,15 @@ class AsyncExitStack(_BaseExitStack, AbstractAsyncContextManager):
         If successful, also pushes its __aexit__ method as a callback and
         returns the result of the __aenter__ method.
         """
-        _cm_type = type(cm)
-        _exit = _cm_type.__aexit__
-        result = await _cm_type.__aenter__(cm)
+        cls = type(cm)
+        try:
+            _enter = cls.__aenter__
+            _exit = cls.__aexit__
+        except AttributeError:
+            raise TypeError(f"'{cls.__module__}.{cls.__qualname__}' object does "
+                            f"not support the asynchronous context manager protocol"
+                           ) from None
+        result = await _enter(cm)
         self._push_async_cm_exit(cm, _exit)
         return result
 
@@ -674,7 +737,7 @@ class AsyncExitStack(_BaseExitStack, AbstractAsyncContextManager):
         return received_exc and suppressed_exc
 
 
-class nullcontext(AbstractContextManager):
+class nullcontext(AbstractContextManager, AbstractAsyncContextManager):
     """Context manager that does no additional processing.
 
     Used as a stand-in for a normal context manager, when a particular
@@ -693,3 +756,24 @@ class nullcontext(AbstractContextManager):
 
     def __exit__(self, *excinfo):
         pass
+
+    async def __aenter__(self):
+        return self.enter_result
+
+    async def __aexit__(self, *excinfo):
+        pass
+
+
+class chdir(AbstractContextManager):
+    """Non thread-safe context manager to change the current working directory."""
+
+    def __init__(self, path):
+        self.path = path
+        self._old_cwd = []
+
+    def __enter__(self):
+        self._old_cwd.append(os.getcwd())
+        os.chdir(self.path)
+
+    def __exit__(self, *excinfo):
+        os.chdir(self._old_cwd.pop())

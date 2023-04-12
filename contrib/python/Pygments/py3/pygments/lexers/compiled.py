@@ -4,7 +4,7 @@
 
     Just export lexer classes previously contained in this module.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -16,7 +16,8 @@ from pygments.lexers.objective import ObjectiveCLexer, \
 from pygments.lexers.go import GoLexer
 from pygments.lexers.rust import RustLexer
 from pygments.lexers.c_like import ECLexer, ValaLexer, CudaLexer
-from pygments.lexers.pascal import DelphiLexer, Modula2Lexer, AdaLexer
+from pygments.lexers.pascal import DelphiLexer, Modula2Lexer
+from pygments.lexers.ada import AdaLexer
 from pygments.lexers.business import CobolLexer, CobolFreeformatLexer
 from pygments.lexers.fortran import FortranLexer
 from pygments.lexers.prolog import PrologLexer

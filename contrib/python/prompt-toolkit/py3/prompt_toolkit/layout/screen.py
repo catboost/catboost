@@ -61,6 +61,7 @@ class Char:
         "\x1b": "^[",  # Escape
         "\x1c": "^\\",
         "\x1d": "^]",
+        "\x1e": "^^",
         "\x1f": "^_",
         "\x7f": "^?",  # ASCII Delete (backspace).
         # Special characters. All visualized like Vim does.
@@ -135,7 +136,7 @@ class Char:
         __ne__ = _not_equal
 
     def __repr__(self) -> str:
-        return "%s(%r, %r)" % (self.__class__.__name__, self.char, self.style)
+        return f"{self.__class__.__name__}({self.char!r}, {self.style!r})"
 
 
 _CHAR_CACHE: FastDictCache[Tuple[str, str], Char] = FastDictCache(
@@ -271,7 +272,7 @@ class Screen:
 
         for y, row in b.items():
             for x, char in row.items():
-                b[y][x] = char_cache[char.char, char.style + append_style]
+                row[x] = char_cache[char.char, char.style + append_style]
 
     def fill_area(
         self, write_position: "WritePosition", style: str = "", after: bool = False
@@ -318,7 +319,7 @@ class WritePosition:
         self.height = height
 
     def __repr__(self) -> str:
-        return "%s(x=%r, y=%r, width=%r, height=%r)" % (
+        return "{}(x={!r}, y={!r}, width={!r}, height={!r})".format(
             self.__class__.__name__,
             self.xpos,
             self.ypos,

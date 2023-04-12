@@ -8,6 +8,7 @@ __all__ = []
 
 np.import_array()
 
+
 cdef extern from "numpy/random/distributions.h":
     # Generate random numbers in closed interval [off, off + rng].
     uint64_t random_bounded_uint64(bitgen_t *bitgen_state,
@@ -51,6 +52,17 @@ cdef extern from "numpy/random/distributions.h":
                                   np.npy_bool *out) nogil
 
 
+cdef object format_bounds_error(bint closed, object low):
+    # Special case low == 0 to provide a better exception for users
+    # since low = 0 is the default single-argument case.
+    if not np.any(low):
+        comp = '<' if closed else '<='
+        return f'high {comp} 0'
+    else:
+        comp = '>' if closed else '>='
+        return f'low {comp} high'
+
+
 
 
 cdef object _rand_uint32_broadcast(np.ndarray low, np.ndarray high, object size,
@@ -89,8 +101,7 @@ cdef object _rand_uint32_broadcast(np.ndarray low, np.ndarray high, object size,
     if np.any(high_comp(high_arr, 0X100000000ULL)):
         raise ValueError('high is out of bounds for uint32')
     if np.any(low_high_comp(low_arr, high_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_UINT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
     high_arr = <np.ndarray>np.PyArray_FROM_OTF(high, np.NPY_UINT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -158,8 +169,7 @@ cdef object _rand_uint16_broadcast(np.ndarray low, np.ndarray high, object size,
     if np.any(high_comp(high_arr, 0X10000UL)):
         raise ValueError('high is out of bounds for uint16')
     if np.any(low_high_comp(low_arr, high_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_UINT32, np.NPY_ALIGNED | np.NPY_FORCECAST)
     high_arr = <np.ndarray>np.PyArray_FROM_OTF(high, np.NPY_UINT32, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -227,8 +237,7 @@ cdef object _rand_uint8_broadcast(np.ndarray low, np.ndarray high, object size,
     if np.any(high_comp(high_arr, 0X100UL)):
         raise ValueError('high is out of bounds for uint8')
     if np.any(low_high_comp(low_arr, high_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_UINT16, np.NPY_ALIGNED | np.NPY_FORCECAST)
     high_arr = <np.ndarray>np.PyArray_FROM_OTF(high, np.NPY_UINT16, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -296,8 +305,7 @@ cdef object _rand_bool_broadcast(np.ndarray low, np.ndarray high, object size,
     if np.any(high_comp(high_arr, 0x2UL)):
         raise ValueError('high is out of bounds for bool')
     if np.any(low_high_comp(low_arr, high_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_UINT8, np.NPY_ALIGNED | np.NPY_FORCECAST)
     high_arr = <np.ndarray>np.PyArray_FROM_OTF(high, np.NPY_UINT8, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -365,8 +373,7 @@ cdef object _rand_int32_broadcast(np.ndarray low, np.ndarray high, object size,
     if np.any(high_comp(high_arr, 0x80000000LL)):
         raise ValueError('high is out of bounds for int32')
     if np.any(low_high_comp(low_arr, high_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_INT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
     high_arr = <np.ndarray>np.PyArray_FROM_OTF(high, np.NPY_INT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -434,8 +441,7 @@ cdef object _rand_int16_broadcast(np.ndarray low, np.ndarray high, object size,
     if np.any(high_comp(high_arr, 0x8000LL)):
         raise ValueError('high is out of bounds for int16')
     if np.any(low_high_comp(low_arr, high_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_INT32, np.NPY_ALIGNED | np.NPY_FORCECAST)
     high_arr = <np.ndarray>np.PyArray_FROM_OTF(high, np.NPY_INT32, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -503,8 +509,7 @@ cdef object _rand_int8_broadcast(np.ndarray low, np.ndarray high, object size,
     if np.any(high_comp(high_arr, 0x80LL)):
         raise ValueError('high is out of bounds for int8')
     if np.any(low_high_comp(low_arr, high_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_INT16, np.NPY_ALIGNED | np.NPY_FORCECAST)
     high_arr = <np.ndarray>np.PyArray_FROM_OTF(high, np.NPY_INT16, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -571,8 +576,7 @@ cdef object _rand_uint64_broadcast(object low, object high, object size,
         # Avoid object dtype path if already an integer
         high_lower_comp = np.less if closed else np.less_equal
         if np.any(high_lower_comp(high_arr, 0x0ULL)):
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low_arr))
         high_m1 = high_arr if closed else high_arr - dt.type(1)
         if np.any(np.greater(high_m1, 0xFFFFFFFFFFFFFFFFULL)):
             raise ValueError('high is out of bounds for uint64')
@@ -589,13 +593,11 @@ cdef object _rand_uint64_broadcast(object low, object high, object size,
             if closed_upper > 0xFFFFFFFFFFFFFFFFULL:
                 raise ValueError('high is out of bounds for uint64')
             if closed_upper < 0x0ULL:
-                comp = '>' if closed else '>='
-                raise ValueError('low {comp} high'.format(comp=comp))
+                raise ValueError(format_bounds_error(closed, low_arr))
             highm1_data[i] = <uint64_t>closed_upper
 
     if np.any(np.greater(low_arr, highm1_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     high_arr = highm1_arr
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_UINT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -660,8 +662,7 @@ cdef object _rand_int64_broadcast(object low, object high, object size,
         # Avoid object dtype path if already an integer
         high_lower_comp = np.less if closed else np.less_equal
         if np.any(high_lower_comp(high_arr, -0x8000000000000000LL)):
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low_arr))
         high_m1 = high_arr if closed else high_arr - dt.type(1)
         if np.any(np.greater(high_m1, 0x7FFFFFFFFFFFFFFFLL)):
             raise ValueError('high is out of bounds for int64')
@@ -678,13 +679,11 @@ cdef object _rand_int64_broadcast(object low, object high, object size,
             if closed_upper > 0x7FFFFFFFFFFFFFFFLL:
                 raise ValueError('high is out of bounds for int64')
             if closed_upper < -0x8000000000000000LL:
-                comp = '>' if closed else '>='
-                raise ValueError('low {comp} high'.format(comp=comp))
+                raise ValueError(format_bounds_error(closed, low_arr))
             highm1_data[i] = <int64_t>closed_upper
 
     if np.any(np.greater(low_arr, highm1_arr)):
-        comp = '>' if closed else '>='
-        raise ValueError('low {comp} high'.format(comp=comp))
+        raise ValueError(format_bounds_error(closed, low_arr))
 
     high_arr = highm1_arr
     low_arr = <np.ndarray>np.PyArray_FROM_OTF(low, np.NPY_INT64, np.NPY_ALIGNED | np.NPY_FORCECAST)
@@ -790,8 +789,7 @@ cdef object _rand_uint64(object low, object high, object size,
         if high > 0xFFFFFFFFFFFFFFFFULL:
             raise ValueError("high is out of bounds for uint64")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <uint64_t>(high - low)
         off = <uint64_t>(<uint64_t>low)
@@ -882,8 +880,7 @@ cdef object _rand_uint32(object low, object high, object size,
         if high > 0XFFFFFFFFUL:
             raise ValueError("high is out of bounds for uint32")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <uint32_t>(high - low)
         off = <uint32_t>(<uint32_t>low)
@@ -974,8 +971,7 @@ cdef object _rand_uint16(object low, object high, object size,
         if high > 0XFFFFUL:
             raise ValueError("high is out of bounds for uint16")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <uint16_t>(high - low)
         off = <uint16_t>(<uint16_t>low)
@@ -1066,8 +1062,7 @@ cdef object _rand_uint8(object low, object high, object size,
         if high > 0XFFUL:
             raise ValueError("high is out of bounds for uint8")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <uint8_t>(high - low)
         off = <uint8_t>(<uint8_t>low)
@@ -1158,8 +1153,7 @@ cdef object _rand_bool(object low, object high, object size,
         if high > 0x1UL:
             raise ValueError("high is out of bounds for bool")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <bool_t>(high - low)
         off = <bool_t>(<bool_t>low)
@@ -1250,8 +1244,7 @@ cdef object _rand_int64(object low, object high, object size,
         if high > 0x7FFFFFFFFFFFFFFFL:
             raise ValueError("high is out of bounds for int64")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <uint64_t>(high - low)
         off = <uint64_t>(<int64_t>low)
@@ -1342,8 +1335,7 @@ cdef object _rand_int32(object low, object high, object size,
         if high > 0x7FFFFFFFL:
             raise ValueError("high is out of bounds for int32")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <uint32_t>(high - low)
         off = <uint32_t>(<int32_t>low)
@@ -1434,8 +1426,7 @@ cdef object _rand_int16(object low, object high, object size,
         if high > 0x7FFFL:
             raise ValueError("high is out of bounds for int16")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <uint16_t>(high - low)
         off = <uint16_t>(<int16_t>low)
@@ -1526,8 +1517,7 @@ cdef object _rand_int8(object low, object high, object size,
         if high > 0x7FL:
             raise ValueError("high is out of bounds for int8")
         if low > high:  # -1 already subtracted, closed interval
-            comp = '>' if closed else '>='
-            raise ValueError('low {comp} high'.format(comp=comp))
+            raise ValueError(format_bounds_error(closed, low))
 
         rng = <uint8_t>(high - low)
         off = <uint8_t>(<int8_t>low)

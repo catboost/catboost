@@ -93,7 +93,7 @@ TVector<TEmbeddingFeature> CreateEmbeddingFeatures(const NCB::TFeaturesLayout& f
 }
 
 void ConfigureMalloc() {
-#if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
+#if !(defined(__APPLE__) && defined(__MACH__)) && !defined(__aarch64__) // there is no LF for MacOS and aarch64
     NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000");
 #endif
 }
@@ -113,7 +113,9 @@ double CalcMetric(
     const auto weights = GetWeights(*targetData);
     const auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
     const auto& additiveStats = EvalErrors(
-        approx,
+        To2DConstArrayRef<double>(approx),
+        /*approxDelta*/{},
+        /*isExpApprox*/false,
         target,
         weights,
         queryInfo,

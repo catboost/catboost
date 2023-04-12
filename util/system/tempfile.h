@@ -43,7 +43,7 @@ private:
  *
  * Note, that the function is not race-free, the file is guaranteed to exist at the time the function returns, but not at the time the returned name is first used.
  * Throws TSystemError on error.
- * 
+ *
  * Returned filepath has such format: dir/prefixXXXXXX.extension or dir/prefixXXXXXX
  * But win32: dir/preXXXX.tmp (prefix is up to 3 characters, extension is always tmp).
  */

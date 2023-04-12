@@ -2,11 +2,123 @@
 Backports of fixes for joblib dependencies
 """
 import os
+import re
 import time
 
-from distutils.version import LooseVersion
 from os.path import basename
 from multiprocessing import util
+
+# Prior to joblib 1.2, joblib used to import LooseVersion from
+# distutils.version. This import had a side-effect with setuptools that was
+# implicitly required in sklearn.show_versions() to work without raising an
+# exception for scikit-learn 1.0 and earlier. This has been fixed in
+# scikit-learn 1.1 (not yet released at the time of writing), see:
+# https://github.com/scikit-learn/scikit-learn/issues/22614
+#
+# To avoid unnecessary disruption for users who might update to joblib 1.2
+# prior to a release of scikit-learn that includes the fix, let's keep on
+# importing distutils here. TODO: Remove this for a future release of joblib,
+# e.g. 6 months after the release of scikit-learn 1.1.
+import distutils  # noqa
+
+
+class Version:
+    """Backport from deprecated distutils
+
+    We maintain this backport to avoid introducing a new dependency on
+    `packaging`.
+
+    We might rexplore this choice in the future if all major Python projects
+    introduce a dependency on packaging anyway.
+    """
+
+    def __init__(self, vstring=None):
+        if vstring:
+            self.parse(vstring)
+
+    def __repr__(self):
+        return "%s ('%s')" % (self.__class__.__name__, str(self))
+
+    def __eq__(self, other):
+        c = self._cmp(other)
+        if c is NotImplemented:
+            return c
+        return c == 0
+
+    def __lt__(self, other):
+        c = self._cmp(other)
+        if c is NotImplemented:
+            return c
+        return c < 0
+
+    def __le__(self, other):
+        c = self._cmp(other)
+        if c is NotImplemented:
+            return c
+        return c <= 0
+
+    def __gt__(self, other):
+        c = self._cmp(other)
+        if c is NotImplemented:
+            return c
+        return c > 0
+
+    def __ge__(self, other):
+        c = self._cmp(other)
+        if c is NotImplemented:
+            return c
+        return c >= 0
+
+
+class LooseVersion(Version):
+    """Backport from deprecated distutils
+
+    We maintain this backport to avoid introducing a new dependency on
+    `packaging`.
+
+    We might rexplore this choice in the future if all major Python projects
+    introduce a dependency on packaging anyway.
+    """
+
+    component_re = re.compile(r'(\d+ | [a-z]+ | \.)', re.VERBOSE)
+
+    def __init__(self, vstring=None):
+        if vstring:
+            self.parse(vstring)
+
+    def parse(self, vstring):
+        # I've given up on thinking I can reconstruct the version string
+        # from the parsed tuple -- so I just store the string here for
+        # use by __str__
+        self.vstring = vstring
+        components = [x for x in self.component_re.split(vstring)
+                      if x and x != '.']
+        for i, obj in enumerate(components):
+            try:
+                components[i] = int(obj)
+            except ValueError:
+                pass
+
+        self.version = components
+
+    def __str__(self):
+        return self.vstring
+
+    def __repr__(self):
+        return "LooseVersion ('%s')" % str(self)
+
+    def _cmp(self, other):
+        if isinstance(other, str):
+            other = LooseVersion(other)
+        elif not isinstance(other, LooseVersion):
+            return NotImplemented
+
+        if self.version == other.version:
+            return 0
+        if self.version < other.version:
+            return -1
+        if self.version > other.version:
+            return 1
 
 
 try:

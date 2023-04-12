@@ -1,0 +1,15 @@
+
+[[unimp]]path/test.py[[rst]]:[[alt2]]13[[rst]]: in [[alt1]]test[[rst]]
+    raise Exception("123
+123
+[[unimp]]path/test.py[[rst]]:[[alt2]]15[[rst]]: in [[alt1]]test")[[rst]]
+[[bad]]E   Exception: 123
+E   123
+E   path/test.py:15: in test
+
+During handling of the above exception, another exception occurred:
+[[unimp]]path/test.py[[rst]]:[[alt2]]15[[rst]]: in [[alt1]]test[[rst]]
+    return foo(0)
+[[unimp]]path/test.py[[rst]]:[[alt2]]5[[rst]]: in [[alt1]]foo[[rst]]
+    b, a = 1, 1 / p
+[[bad]]E   ZeroDivisionError: division by zero

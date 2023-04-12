@@ -1,9 +1,9 @@
 #pragma once
 
+#include "callbacks.h"
 #include "cont_poller.h"
 #include "iostatus.h"
 #include "poller.h"
-#include "schedule_callback.h"
 #include "stack/stack_common.h"
 #include "trampoline.h"
 #include "custom_time.h"
@@ -30,6 +30,12 @@ namespace NCoro::NStack {
 }
 
 class TCont : private TIntrusiveListItem<TCont> {
+    friend class TContExecutor;
+    friend class TIntrusiveListItem<TCont>;
+    friend class NCoro::TEventWaitQueue;
+    friend class NCoro::TTrampoline;
+
+public:
     struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
         TJoinWait(TCont& c) noexcept;
 
@@ -38,11 +44,6 @@ class TCont : private TIntrusiveListItem<TCont> {
     public:
         TCont& Cont_;
     };
-
-    friend class TContExecutor;
-    friend class TIntrusiveListItem<TCont>;
-    friend class NCoro::TEventWaitQueue;
-    friend class NCoro::TTrampoline;
 
 private:
     TCont(
@@ -86,6 +87,7 @@ public:
     bool IAmRunning() const noexcept;
 
     void Cancel() noexcept;
+    void Cancel(THolder<std::exception> exception) noexcept;
 
     bool Cancelled() const noexcept {
         return Cancelled_;
@@ -95,7 +97,12 @@ public:
         return Scheduled_;
     }
 
-    bool Join(TCont* c, TInstant deadLine = TInstant::Max()) noexcept;
+    /// \param this корутина, которая будет ждать
+    /// \param c корутина, которую будем ждать
+    /// \param deadLine максимальное время ожидания
+    /// \param forceStop кастомный обработчик ситуации, когда завершается время ожидания или отменяется ожидающая корутина (this)
+    /// дефолтное поведение - отменить ожидаемую корутину (c->Cancel())
+    bool Join(TCont* c, TInstant deadLine = TInstant::Max(), std::function<void(TJoinWait&, TCont*)> forceStop = {}) noexcept;
 
     void ReSchedule() noexcept;
 
@@ -103,6 +110,14 @@ public:
 
     void SwitchTo(TExceptionSafeContext* ctx) {
         Trampoline_.SwitchTo(ctx);
+    }
+
+    THolder<std::exception> TakeException() noexcept {
+        return std::move(Exception_);
+    }
+
+    void SetException(THolder<std::exception> exception) noexcept {
+        Exception_ = std::move(exception);
     }
 
 private:
@@ -119,6 +134,8 @@ private:
     TIntrusiveList<TJoinWait> Waiters_;
     bool Cancelled_ = false;
     bool Scheduled_ = false;
+
+    THolder<std::exception> Exception_;
 };
 
 TCont* RunningCont();
@@ -154,6 +171,7 @@ public:
         uint32_t defaultStackSize,
         THolder<IPollerFace> poller = IPollerFace::Default(),
         NCoro::IScheduleCallback* = nullptr,
+        NCoro::IEnterPollerCallback* = nullptr,
         NCoro::NStack::EGuard stackGuard = NCoro::NStack::EGuard::Canary,
         TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings = Nothing(),
         NCoro::ITime* time = nullptr
@@ -287,7 +305,8 @@ private:
     void Poll(TInstant deadline);
 
 private:
-    NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
+    NCoro::IScheduleCallback* const ScheduleCallback_ = nullptr;
+    NCoro::IEnterPollerCallback* const EnterPollerCallback_ = nullptr;
     const uint32_t DefaultStackSize_;
     THolder<NCoro::NStack::IAllocator> StackAllocator_;
 

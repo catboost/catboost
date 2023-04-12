@@ -15,7 +15,7 @@ namespace NCatboostCuda {
                                const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                                const TOptimizationSubsets<NCudaLib::TMirrorMapping>& subsets);
 
-        TTreeCtrDataSetVisitor& SetBestScore(double score);
+        TTreeCtrDataSetVisitor& SetBestGain(double score);
 
         TTreeCtrDataSetVisitor& SetScoreStdDevAndSeed(double scoreStdDev,
                                                       ui64 seed);
@@ -28,6 +28,8 @@ namespace NCatboostCuda {
                     const TMirrorBuffer<const TPartitionStatistics>& partStats,
                     const TMirrorBuffer<ui32>& ctrDataSetInverseIndices,
                     const TMirrorBuffer<ui32>& subsetDocs,
+                    const TMirrorBuffer<const float>& featureWeights,
+                    double scoreBeforeSplit,
                     ui32 maxUniqueValues,
                     float modelSizeReg);
 
@@ -60,6 +62,7 @@ namespace NCatboostCuda {
         TAdaptiveLock Lock;
 
         double BestScore;
+        double BestGain;
         double ScoreStdDev = 0;
         ui32 BestBin;
         int BestDevice;

@@ -2,10 +2,6 @@
 #  error "this header file must not be included directly"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 PyAPI_FUNC(char *) Py_UniversalNewlineFgets(char *, int, FILE*, PyObject *);
 
 /* The std printer acts as a preliminary sys.stderr until the new io
@@ -19,6 +15,4 @@ PyAPI_FUNC(PyObject *) PyFile_OpenCode(const char *utf8path);
 PyAPI_FUNC(PyObject *) PyFile_OpenCodeObject(PyObject *path);
 PyAPI_FUNC(int) PyFile_SetOpenCodeHook(Py_OpenCodeHookFunction hook, void *userData);
 
-#ifdef __cplusplus
-}
-#endif
+PyAPI_FUNC(int) _PyLong_FileDescriptor_Converter(PyObject *, void *);

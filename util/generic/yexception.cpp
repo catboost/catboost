@@ -4,14 +4,22 @@
 #include <util/system/backtrace.h>
 #include <util/system/type_name.h>
 
-#include <cxxabi.h>
+#if defined(_linux_) || defined(_android_) || defined(_darwin_)
+    #include <cxxabi.h>
+#endif
 
 #include <stdexcept>
 
 #include <cstdio>
 
+static void FormatExceptionTo(IOutputStream& out, const std::exception& exception) {
+    out << "(" << TypeName(exception) << ") " << exception.what();
+}
+
 TString FormatExc(const std::exception& exception) {
-    return TString::Join(TStringBuf("("), TypeName(exception), TStringBuf(") "), exception.what());
+    TStringStream out;
+    FormatExceptionTo(out, exception);
+    return out.Str();
 }
 
 TString CurrentExceptionMessage() {
@@ -38,17 +46,58 @@ TString CurrentExceptionMessage() {
     return "(NO EXCEPTION)";
 }
 
-bool UncaughtException() noexcept {
-// FIXME: use std::uncaught_exceptions() unconditionally after DEVTOOLS-8811
-#if defined(__cpp_lib_uncaught_exceptions) && !defined(_LIBCPP_AVAILABILITY_UNCAUGHT_EXCEPTIONS)
-    return std::uncaught_exceptions() > 0;
-#else
-    return std::uncaught_exception();
+Y_DECLARE_UNUSED static void FormatBackTraceTo(IOutputStream& out, const TBackTrace& backtrace) {
+    if (backtrace.size() == 0) {
+        out << "backtrace is empty";
+        return;
+    }
+    try {
+        backtrace.PrintTo(out);
+    } catch (const std::exception& e) {
+        out << "Failed to print backtrace: ";
+        FormatExceptionTo(out, e);
+    }
+}
+
+void FormatCurrentExceptionTo(IOutputStream& out) {
+    auto exceptionPtr = std::current_exception();
+
+    if (Y_UNLIKELY(!exceptionPtr)) {
+        out << "(NO EXCEPTION)\n";
+        return;
+    }
+
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+    TBackTrace backtrace = TBackTrace::FromCurrentException();
 #endif
+    try {
+        std::rethrow_exception(exceptionPtr);
+    } catch (const std::exception& e) {
+        out << "Caught:\n";
+        FormatExceptionTo(out, e);
+        out << "\n";
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+        FormatBackTraceTo(out, backtrace);
+#endif
+        return;
+    } catch (...) {
+        out << "unknown error\n";
+        return;
+    }
+}
+
+TString FormatCurrentException() {
+    TStringStream out;
+    FormatCurrentExceptionTo(out);
+    return out.Str();
+}
+
+bool UncaughtException() noexcept {
+    return std::uncaught_exceptions() > 0;
 }
 
 std::string CurrentExceptionTypeName() {
-#if defined(_linux_) || defined(_darwin_)
+#if defined(_linux_) || defined(_android_) || defined(_darwin_)
     std::type_info* currentExceptionTypePtr = abi::__cxa_current_exception_type();
     if (currentExceptionTypePtr) {
         return TypeName(*currentExceptionTypePtr);

@@ -74,7 +74,7 @@ namespace NKernel
         }
     }
 
-    bool UpdatePointwiseHistograms(float* histograms,
+    void UpdatePointwiseHistograms(float* histograms,
                                    int firstBinFeature, int binFeatureCount,
                                    int partCount,
                                    int foldCount,
@@ -88,6 +88,9 @@ namespace NKernel
         numBlocks.x = (binFeatureCount + blockSize - 1) / blockSize;
         numBlocks.y = partCount / 2;
         numBlocks.z = foldCount;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         if (histCount == 1) {
             UpdatePointwiseHistogramsImpl<1><<<numBlocks, blockSize, 0, stream>>>(histograms, firstBinFeature, binFeatureCount, parts, histLineSize);
@@ -95,9 +98,8 @@ namespace NKernel
         else if (histCount == 2) {
             UpdatePointwiseHistogramsImpl<2><<<numBlocks, blockSize, 0, stream>>>(histograms, firstBinFeature, binFeatureCount, parts, histLineSize);
         } else {
-            return false;
+            CB_ENSURE_INTERNAL(false, "histCount should be 1 or 2, not " << histCount);
         }
-        return true;
     }
 
 
@@ -113,6 +115,9 @@ namespace NKernel
         scanBlocks.x = (featureCount * 32 + scanBlockSize - 1) / scanBlockSize;
         scanBlocks.y = histPartCount;
         scanBlocks.z = foldCount;
+        if (IsGridEmpty(scanBlocks)) {
+            return;
+        }
         const int scanOffset = fullPass ? 0 : ((partCount / 2) * histLineSize * histCount) * foldCount;
         if (histCount == 1) {
             ScanHistogramsImpl<scanBlockSize, 1> << < scanBlocks, scanBlockSize, 0, stream >> > (features, featureCount, histLineSize, binSums + scanOffset);
@@ -120,7 +125,7 @@ namespace NKernel
             ScanHistogramsImpl<scanBlockSize, 2> << < scanBlocks, scanBlockSize, 0, stream >> >
                                                                                     (features, featureCount, histLineSize, binSums + scanOffset);
         } else {
-            exit(0);
+            CB_ENSURE_INTERNAL(false, "histCount should be 1 or 2, not " << histCount);
         }
     }
 }

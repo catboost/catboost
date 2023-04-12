@@ -16,6 +16,7 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/target/data_providers.h>
+#include <catboost/private/libs/target/target_converter.h>
 #include <catboost/private/libs/feature_estimator/classification_target.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 #include <catboost/private/libs/feature_estimator/embedding_feature_estimators.h>
@@ -175,20 +176,29 @@ namespace NCB {
 
         CB_ENSURE(dataCanBeEmpty || srcData->RawTargetData.GetObjectCount() > 0, "Dataset " << datasetName  << " is empty");
 
-        trainingData->TargetData = CreateTargetDataProvider(
-            srcData->RawTargetData,
-            trainingData->ObjectsData->GetSubgroupIds(),
-            /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
-            &params->LossFunctionDescription.Get(),
-            /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
-            /*knownModelApproxDimension*/ Nothing(),
-            targetCreationOptions,
-            inputClassificationInfo,
-            &outputClassificationInfo,
-            rand,
-            localExecutor,
-            &outputPairsInfo
-        );
+        try {
+            trainingData->TargetData = CreateTargetDataProvider(
+                srcData->RawTargetData,
+                trainingData->ObjectsData->GetSubgroupIds(),
+                /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
+                &params->LossFunctionDescription.Get(),
+                /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
+                /*knownModelApproxDimension*/ Nothing(),
+                targetCreationOptions,
+                inputClassificationInfo,
+                &outputClassificationInfo,
+                rand,
+                localExecutor,
+                &outputPairsInfo
+            );
+        } catch (const TUnknownClassLabelException& e) {
+            if (!isLearnData) {
+                ythrow TCatBoostException() << "Dataset " << datasetName << " contains class label \"" << e.GetUnknownClassLabel()
+                    << "\" that is not present in the learn dataset";
+            } else {
+                throw;
+            }
+        }
 
         CheckTargetConsistency(
             trainingData->TargetData,
@@ -311,6 +321,8 @@ namespace NCB {
     }
 
     static TFeatureEstimatorsPtr CreateEstimators(
+        bool isClassification,
+        bool isMultiLabel,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TTrainingDataProviders pools,
         NPar::ILocalExecutor* localExecutor
@@ -320,53 +332,63 @@ namespace NCB {
         TFeatureEstimatorsBuilder estimatorsBuilder;
 
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
-        auto learnTextTarget = CreateClassificationTarget(*pools.Learn->TargetData);
-        ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
 
-        pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
-            [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
+        TClassificationTargetPtr learnClassificationTarget;
+        if (isClassification && !isMultiLabel) {
+            learnClassificationTarget = CreateClassificationTarget(*pools.Learn->TargetData);
+        }
 
-                const ui32 tokenizedFeatureIdx = tokenizedTextFeatureIdx.Idx;
-                auto learnTexts = CreateTextDataSet(learnDataProvider, tokenizedFeatureIdx, localExecutor);
+        if (quantizedFeaturesInfo->GetFeaturesLayout()->GetTextFeatureCount()) {
+            ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
 
-                TVector<TTextDataSetPtr> testTexts;
-                for (const auto& testDataProvider : pools.Test) {
-                    testTexts.emplace_back(
-                        CreateTextDataSet(
-                            *testDataProvider->ObjectsData,
-                            tokenizedFeatureIdx,
-                            localExecutor
-                        ));
+            pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
+                [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
+
+                    const ui32 tokenizedFeatureIdx = tokenizedTextFeatureIdx.Idx;
+                    auto learnTexts = CreateTextDataSet(learnDataProvider, tokenizedFeatureIdx, localExecutor);
+
+                    TVector<TTextDataSetPtr> testTexts;
+                    for (const auto& testDataProvider : pools.Test) {
+                        testTexts.emplace_back(
+                            CreateTextDataSet(
+                                *testDataProvider->ObjectsData,
+                                tokenizedFeatureIdx,
+                                localExecutor
+                            ));
+                    }
+
+                    const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount];
+                    auto offlineEstimators = CreateTextEstimators(
+                        featureDescription.FeatureEstimators.Get(),
+                        learnTexts,
+                        testTexts
+                    );
+
+                    const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount].TextFeatureId;
+                    TEstimatorSourceId sourceFeatureIdx{textFeatureId, tokenizedFeatureIdx};
+                    for (auto&& estimator : offlineEstimators) {
+                        estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                    }
+
+                    if (isClassification && !isMultiLabel) {
+                        // There're no online text estimators for regression for now
+
+                        auto onlineEstimators = CreateTextEstimators(
+                            featureDescription.FeatureEstimators.Get(),
+
+                            learnClassificationTarget,
+                            learnTexts,
+                            testTexts
+                        );
+                        for (auto&& estimator : onlineEstimators) {
+                            estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                        }
+                    }
                 }
-
-                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount];
-                auto offlineEstimators = CreateTextEstimators(
-                    featureDescription.FeatureEstimators.Get(),
-                    learnTexts,
-                    testTexts
-                );
-
-                const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount].TextFeatureId;
-                TEstimatorSourceId sourceFeatureIdx{textFeatureId, tokenizedFeatureIdx};
-                for (auto&& estimator : offlineEstimators) {
-                    estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
-                }
-
-                auto onlineEstimators = CreateTextEstimators(
-                    featureDescription.FeatureEstimators.Get(),
-                    learnTextTarget,
-                    learnTexts,
-                    testTexts
-                );
-                for (auto&& estimator : onlineEstimators) {
-                    estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
-                }
-            }
-        );
+            );
+        }
 
         auto embeddingFeaturesDescription = quantizedFeaturesInfo->GetEmbeddingProcessingOptions().GetFeatureDescriptions();
-        auto learnEmbeddingTarget = CreateClassificationTarget(*pools.Learn->TargetData);
-
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Embedding>(
             [&](TEmbeddingFeatureIdx embeddingFeature) {
 
@@ -386,10 +408,12 @@ namespace NCB {
                 const auto& featureDescription = embeddingFeaturesDescription[embeddingFeatureIdx];
                 const ui32 featureId = embeddingFeaturesDescription[embeddingFeatureIdx].EmbeddingFeatureId;
                 TEstimatorSourceId sourceFeatureIdx{featureId, embeddingFeatureIdx};
+                TConstArrayRef<float> learnTarget = *pools.Learn->TargetData->GetOneDimensionalTarget();
 
                 auto onlineEstimators = CreateEmbeddingEstimators(
                     featureDescription.FeatureEstimators.Get(),
-                    learnEmbeddingTarget,
+                    learnTarget,
+                    learnClassificationTarget,
                     learnEmbeddings,
                     testEmbeddings
                 );
@@ -464,11 +488,11 @@ namespace NCB {
 
         if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0
             || trainingData.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0) {
-            CB_ENSURE(
-                IsClassificationObjective(params->LossFunctionDescription->LossFunction),
-                "Computation of online text features is supported only for classification task"
-            );
+
+            const auto lossFunction = params->LossFunctionDescription->LossFunction;
             trainingData.FeatureEstimators = CreateEstimators(
+                IsClassificationObjective(lossFunction),
+                IsMultiLabelObjective(lossFunction),
                 quantizedFeaturesInfo,
                 trainingData,
                 localExecutor);

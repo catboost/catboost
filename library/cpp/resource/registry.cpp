@@ -1,6 +1,6 @@
 #include "registry.h"
 
-#include <library/cpp/blockcodecs/codecs.h>
+#include <library/cpp/blockcodecs/core/codecs.h>
 
 #include <util/system/yassert.h>
 #include <util/generic/hash.h>
@@ -47,6 +47,10 @@ namespace {
             }
 
             Y_VERIFY(size() == Count(), "size mismatch");
+        }
+
+        bool Has(const TStringBuf key) const override {
+            return contains(key);
         }
 
         bool FindExact(const TStringBuf key, TString* out) const override {

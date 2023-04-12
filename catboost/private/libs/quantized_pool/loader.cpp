@@ -310,7 +310,8 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
         } case EColumn::Timestamp: {
             visitor->AddTimestampPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<ui64>(quants));
             break;
-        } case EColumn::Categ: {
+        } case EColumn::Categ:
+          case EColumn::HashedCateg: {
             CB_ENSURE(flatFeatureIdx != nullptr, "Feature not found in index");
             AddQuantizedCatFeatureChunk(chunk, *flatFeatureIdx, visitor);
             break;
@@ -459,25 +460,32 @@ namespace {
 }
 
 TAtomicSharedPtr<NCB::IQuantizedPoolLoader> NCB::TQuantizedPoolLoadersCache::GetLoader(
-    const TPathWithScheme& pathWithScheme)
-{
+    const TPathWithScheme& pathWithScheme,
+    TDatasetSubset loadSubset
+) {
     auto& loadersCache = GetRef();
     TAtomicSharedPtr<IQuantizedPoolLoader> loader = nullptr;
     with_lock(loadersCache.Lock) {
-        if (!loadersCache.Cache.contains(pathWithScheme)) {
-            loadersCache.Cache[pathWithScheme] = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(
+        const auto loaderKey = std::make_pair(pathWithScheme, loadSubset);
+        if (!loadersCache.Cache.contains(loaderKey)) {
+            loader = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(
                 pathWithScheme,
                 pathWithScheme).Release();
+            loadersCache.Cache[loaderKey] = loader;
+            if (loadSubset.HasFeatures) {
+                TLoadQuantizedPoolParameters params{/*LockMemory=*/false, /*Precharge=*/false, loadSubset};
+                loader->LoadQuantizedPool(params);
+            }
         }
-        loader = loadersCache.Cache.at(pathWithScheme);
+        loader = loadersCache.Cache.at(loaderKey);
     }
     return loader;
 }
 
-bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWithScheme) {
+bool NCB::TQuantizedPoolLoadersCache::HaveLoader(const TPathWithScheme& pathWithScheme, TDatasetSubset loadSubset) {
     auto& loadersCache = GetRef();
     with_lock(loadersCache.Lock) {
-        return loadersCache.Cache.contains(pathWithScheme);
+        return loadersCache.Cache.contains(std::make_pair(pathWithScheme, loadSubset));
     }
 }
 
@@ -494,7 +502,7 @@ void NCB::TQuantizedPoolLoadersCache::DropAllLoaders() {
         for (auto& keyValue : loadersCache.Cache) {
             CB_ENSURE(
                 keyValue.second.RefCount() <= 1,
-                "Loader for " << keyValue.first.Scheme << "://" << keyValue.first.Path
+                "Loader for " << keyValue.first.first.Scheme << "://" << keyValue.first.first.Path
                 << " is still referenced");
         }
         loadersCache.Cache.clear();

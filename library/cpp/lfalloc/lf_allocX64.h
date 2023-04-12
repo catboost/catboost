@@ -59,7 +59,7 @@ static inline long AtomicSub(TAtomic& a, long b) {
 #else
 
 #include <util/system/defaults.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/yassert.h>
 
 #if !defined(NDEBUG) && !defined(__GCCXML__)
@@ -1320,7 +1320,12 @@ static inline void* GetAllocPtr(TAllocHeader* p) {
 }
 
 static inline TAllocHeader* GetAllocHeader(void* p) {
-    auto* header = ((TAllocHeader*)p) - 1;
+    return ((TAllocHeader*)p) - 1;
+}
+
+// if present, uses the fake header stored by LFPosixMemalign() to retrieve the original header.
+static inline TAllocHeader* GetOrigAllocHeader(void* p) {
+    auto* header = GetAllocHeader(p);
     if (header->Tag == DBG_ALLOC_ALIGNED_TAG) {
         return (TAllocHeader*)header->Size;
     }
@@ -1585,7 +1590,7 @@ static Y_FORCE_INLINE void LFFree(void* p) {
 #if defined(LFALLOC_DBG)
     if (p == nullptr)
         return;
-    p = GetAllocHeader(p);
+    p = GetOrigAllocHeader(p);
 #endif
 
     uintptr_t chkOffset = ((char*)p - ALLOC_START) - 1ll;
@@ -1648,7 +1653,7 @@ static size_t LFGetSize(const void* p) {
 #if defined(LFALLOC_DBG)
     if (p == nullptr)
         return 0;
-    return GetAllocHeader(const_cast<void*>(p))->Size;
+    return GetOrigAllocHeader(const_cast<void*>(p))->Size;
 #endif
 
     uintptr_t chkOffset = ((const char*)p - ALLOC_START);

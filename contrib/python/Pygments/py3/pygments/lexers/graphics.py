@@ -4,14 +4,14 @@
 
     Lexers for computer graphics and plotting related languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, words, include, bygroups, using, \
     this, default
 from pygments.token import Text, Comment, Operator, Keyword, Name, \
-    Number, Punctuation, String
+    Number, Punctuation, String, Whitespace
 
 __all__ = ['GLShaderLexer', 'PostScriptLexer', 'AsymptoteLexer', 'GnuplotLexer',
            'PovrayLexer', 'HLSLShaderLexer']
@@ -30,8 +30,8 @@ class GLShaderLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^#.*', Comment.Preproc),
-            (r'//.*', Comment.Single),
+            (r'^#.*$', Comment.Preproc),
+            (r'//.*$', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'\+|-|~|!=?|\*|/|%|<<|>>|<=?|>=?|==?|&&?|\^|\|\|?',
              Operator),
@@ -143,7 +143,7 @@ class GLShaderLexer(RegexLexer):
             (r'gl_\w*', Name.Builtin),
             (r'[a-zA-Z_]\w*', Name),
             (r'\.', Punctuation),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
     }
 
@@ -161,8 +161,8 @@ class HLSLShaderLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^#.*', Comment.Preproc),
-            (r'//.*', Comment.Single),
+            (r'^#.*$', Comment.Preproc),
+            (r'//.*$', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'\+|-|~|!=?|\*|/|%|<<|>>|<=?|>=?|==?|&&?|\^|\|\|?',
              Operator),
@@ -289,7 +289,7 @@ class HLSLShaderLexer(RegexLexer):
              Name.Decorator),   # attributes
             (r'[a-zA-Z_]\w*', Name),
             (r'\\$', Comment.Preproc),  # backslash at end of line -- usually macro continuation
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
         'string': [
             (r'"', String, '#pop'),
@@ -306,13 +306,10 @@ class PostScriptLexer(RegexLexer):
     """
     Lexer for PostScript files.
 
-    The PostScript Language Reference published by Adobe at
-    <http://partners.adobe.com/public/developer/en/ps/PLRM.pdf>
-    is the authority for this.
-
     .. versionadded:: 1.4
     """
     name = 'PostScript'
+    url = 'https://en.wikipedia.org/wiki/PostScript'
     aliases = ['postscript', 'postscr']
     filenames = ['*.ps', '*.eps']
     mimetypes = ['application/postscript']
@@ -326,10 +323,10 @@ class PostScriptLexer(RegexLexer):
     tokens = {
         'root': [
             # All comment types
-            (r'^%!.+\n', Comment.Preproc),
-            (r'%%.*\n', Comment.Special),
+            (r'^%!.+$', Comment.Preproc),
+            (r'%%.*$', Comment.Special),
             (r'(^%.*\n){2,}', Comment.Multiline),
-            (r'%.*\n', Comment.Single),
+            (r'%.*$', Comment.Single),
 
             # String literals are awkward; enter separate state.
             (r'\(', String, 'stringliteral'),
@@ -383,7 +380,7 @@ class PostScriptLexer(RegexLexer):
                 'undefinedfilename', 'undefinedresult'), suffix=delimiter_end),
              Name.Builtin),
 
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
 
         'stringliteral': [
@@ -402,11 +399,12 @@ class PostScriptLexer(RegexLexer):
 
 class AsymptoteLexer(RegexLexer):
     """
-    For `Asymptote <http://asymptote.sf.net/>`_ source code.
+    For Asymptote source code.
 
     .. versionadded:: 1.2
     """
     name = 'Asymptote'
+    url = 'http://asymptote.sf.net/'
     aliases = ['asymptote', 'asy']
     filenames = ['*.asy']
     mimetypes = ['text/x-asymptote']
@@ -416,9 +414,9 @@ class AsymptoteLexer(RegexLexer):
 
     tokens = {
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
-            (r'\\\n', Text),  # line continuation
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
+            (r'(\\)(\n)', bygroups(Text, Whitespace)),  # line continuation
             (r'//(\n|(.|\n)*?[^\\]\n)', Comment),
             (r'/(\\\n)?\*(.|\n)*?\*(\\\n)?/', Comment),
         ],
@@ -529,12 +527,13 @@ def _shortened_many(*words):
 
 class GnuplotLexer(RegexLexer):
     """
-    For `Gnuplot <http://gnuplot.info/>`_ plotting scripts.
+    For Gnuplot plotting scripts.
 
     .. versionadded:: 0.11
     """
 
     name = 'Gnuplot'
+    url = 'http://gnuplot.info/'
     aliases = ['gnuplot']
     filenames = ['*.plot', '*.plt']
     mimetypes = ['text/x-gnuplot']
@@ -562,9 +561,9 @@ class GnuplotLexer(RegexLexer):
                              'she$ll', 'test$'),
              Keyword, 'noargs'),
             (r'([a-zA-Z_]\w*)(\s*)(=)',
-             bygroups(Name.Variable, Text, Operator), 'genericargs'),
+             bygroups(Name.Variable, Whitespace, Operator), 'genericargs'),
             (r'([a-zA-Z_]\w*)(\s*\(.*?\)\s*)(=)',
-             bygroups(Name.Function, Text, Operator), 'genericargs'),
+             bygroups(Name.Function, Whitespace, Operator), 'genericargs'),
             (r'@[a-zA-Z_]\w*', Name.Constant),  # macros
             (r';', Keyword),
         ],
@@ -577,13 +576,13 @@ class GnuplotLexer(RegexLexer):
         ],
         'whitespace': [
             ('#', Comment, 'comment'),
-            (r'[ \t\v\f]+', Text),
+            (r'[ \t\v\f]+', Whitespace),
         ],
         'noargs': [
             include('whitespace'),
             # semicolon and newline end the argument list
             (r';', Punctuation, '#pop'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'dqstring': [
             (r'"', String, '#pop'),
@@ -591,7 +590,7 @@ class GnuplotLexer(RegexLexer):
             (r'[^\\"\n]+', String),   # all other characters
             (r'\\\n', String),        # line continuation
             (r'\\', String),          # stray backslash
-            (r'\n', String, '#pop'),  # newline ends the string too
+            (r'\n', Whitespace, '#pop'),  # newline ends the string too
         ],
         'sqstring': [
             (r"''", String),          # escaped single quote
@@ -599,7 +598,7 @@ class GnuplotLexer(RegexLexer):
             (r"[^\\'\n]+", String),   # all other characters
             (r'\\\n', String),        # line continuation
             (r'\\', String),          # normal backslash
-            (r'\n', String, '#pop'),  # newline ends the string too
+            (r'\n', Whitespace, '#pop'),  # newline ends the string too
         ],
         'genericargs': [
             include('noargs'),
@@ -615,7 +614,7 @@ class GnuplotLexer(RegexLexer):
              bygroups(Name.Function, Text, Punctuation)),
             (r'[a-zA-Z_]\w*', Name),
             (r'@[a-zA-Z_]\w*', Name.Constant),  # macros
-            (r'\\\n', Text),
+            (r'(\\)(\n)', bygroups(Text, Whitespace)),
         ],
         'optionarg': [
             include('whitespace'),
@@ -688,11 +687,12 @@ class GnuplotLexer(RegexLexer):
 
 class PovrayLexer(RegexLexer):
     """
-    For `Persistence of Vision Raytracer <http://www.povray.org/>`_ files.
+    For Persistence of Vision Raytracer files.
 
     .. versionadded:: 0.11
     """
     name = 'POVRay'
+    url = 'http://www.povray.org/'
     aliases = ['pov']
     filenames = ['*.pov', '*.inc']
     mimetypes = ['text/x-povray']
@@ -700,7 +700,7 @@ class PovrayLexer(RegexLexer):
     tokens = {
         'root': [
             (r'/\*[\w\W]*?\*/', Comment.Multiline),
-            (r'//.*\n', Comment.Single),
+            (r'//.*$', Comment.Single),
             (r'(?s)"(?:\\.|[^"\\])+"', String.Double),
             (words((
                 'break', 'case', 'debug', 'declare', 'default', 'define', 'else',
@@ -766,16 +766,14 @@ class PovrayLexer(RegexLexer):
                 'quadric', 'quartic', 'smooth_triangle', 'sor', 'sphere', 'superellipsoid',
                 'text', 'torus', 'triangle', 'union'), suffix=r'\b'),
              Name.Builtin),
-            # TODO: <=, etc
-            (r'[\[\](){}<>;,]', Punctuation),
-            (r'[-+*/=]', Operator),
             (r'\b(x|y|z|u|v)\b', Name.Builtin.Pseudo),
             (r'[a-zA-Z_]\w*', Name),
-            (r'[0-9]+\.[0-9]*', Number.Float),
-            (r'\.[0-9]+', Number.Float),
+            (r'[0-9]*\.[0-9]+', Number.Float),
             (r'[0-9]+', Number.Integer),
+            (r'[\[\](){}<>;,]', Punctuation),
+            (r'[-+*/=.|&]|<=|>=|!=', Operator),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ]
     }
 

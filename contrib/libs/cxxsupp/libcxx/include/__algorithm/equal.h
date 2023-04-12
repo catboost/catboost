@@ -10,17 +10,14 @@
 #ifndef _LIBCPP___ALGORITHM_EQUAL_H
 #define _LIBCPP___ALGORITHM_EQUAL_H
 
-#include <__config>
 #include <__algorithm/comp.h>
+#include <__config>
 #include <__iterator/distance.h>
 #include <__iterator/iterator_traits.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
-
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -84,7 +81,5 @@ equal(_InputIterator1 __first1, _InputIterator1 __last1, _InputIterator2 __first
 #endif
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ALGORITHM_EQUAL_H

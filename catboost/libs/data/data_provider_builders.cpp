@@ -895,11 +895,13 @@ namespace NCB {
                             auto& maybeSharedStoragePtr = perFeatureData.DenseDataStorage;
 
                             if (!maybeSharedStoragePtr) {
-                                Y_VERIFY(!prevTailSize);
+                                CB_ENSURE(!prevTailSize, "No dense data storage to store remainder of previous block");
                                 maybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
                                 maybeSharedStoragePtr->Data.yresize(objectCount);
                             } else {
-                                Y_VERIFY(prevTailSize <= maybeSharedStoragePtr->Data.size());
+                                CB_ENSURE(
+                                    prevTailSize <= maybeSharedStoragePtr->Data.size(),
+                                    "Dense data storage is too small to to store remainder of previous block");
                                 auto newMaybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
                                 newMaybeSharedStoragePtr->Data.yresize(objectCount);
                                 if (prevTailSize) {
@@ -2350,9 +2352,10 @@ namespace NCB {
 
             auto& dataRef = GetDataRef();
             const auto& subsetIndexing = *dataRef.CommonObjectsData.SubsetIndexing;
+            CB_ENSURE(subsetIndexing.IsFullSubset(), "Subset indexing is not supported for lazy columns");
             const auto& featuresLayout = *dataRef.MetaInfo.FeaturesLayout;
 
-            CB_ENSURE(featuresLayout.GetFeatureCount(EFeatureType::Categorical) == 0, "Categorical Lazy columns are not supported");
+            CB_ENSURE(featuresLayout.GetFeatureCount(EFeatureType::Categorical) == 0, "Categorical lazy columns are not supported");
             dataRef.ObjectsData.CatFeatures.clear();
 
             const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(EFeatureType::Float);
@@ -2373,8 +2376,8 @@ namespace NCB {
                     lazyQuantizedColumns.push_back(
                         MakeHolder<TLazyCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>>(
                             flatFeatureIdx,
-                            &subsetIndexing,
-                            PoolLoader)
+                            PoolLoader->GetPoolPathWithScheme(),
+                            subsetIndexing.Size())
                     );
                 } else {
                     lazyQuantizedColumns.push_back(nullptr);

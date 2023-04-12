@@ -2,6 +2,7 @@ import errno
 import functools
 import json
 import os
+import sys
 import threading
 
 import six
@@ -9,19 +10,39 @@ import six
 
 _lock = threading.Lock()
 
+_config = None
+
+_relaxed_runtime_allowed = False
+
+
+class NoRuntimeFormed(NotImplementedError):
+    pass
+
+
+def _set_ya_config(config=None, ya=None):
+    global _config
+    if config:
+        _config = config
+    elif ya:
+
+        class Config:
+            def __init__(self):
+                self.ya = None
+
+        _config = Config()
+        _config.ya = ya
+
 
 def _get_ya_config():
-    try:
-        import pytest
-        return pytest.config
-    except (ImportError, AttributeError):
+    if _config:
+        return _config
+    else:
         try:
-            import library.python.testing.recipe
-            if library.python.testing.recipe.ya:
-                return library.python.testing.recipe
+            import pytest
+
+            return pytest.config
         except (ImportError, AttributeError):
-            pass
-        raise NotImplementedError("yatest.common.* is only available from the testing runtime")
+            raise NoRuntimeFormed("yatest.common.* is only available from the testing runtime")
 
 
 def _get_ya_plugin_instance():
@@ -37,6 +58,59 @@ def _norm_path(path):
     return os.path.normpath(path)
 
 
+def _is_binary():
+    return getattr(sys, 'is_standalone_binary', False)
+
+
+def _is_relaxed_runtime_allowed():
+    global _relaxed_runtime_allowed
+    if _relaxed_runtime_allowed:
+        return True
+    return not _is_binary()
+
+
+def default_arg0(func):
+    return default_arg(func, 0)
+
+
+def default_arg1(func):
+    return default_arg(func, 1)
+
+
+def default_arg(func, narg):
+    # Always try to call func, before checking standaloneness.
+    # The context file might be provided and func might return
+    # result even if it's not a standalone binary run.
+    @functools.wraps(func)
+    def wrapper(*args, **kw):
+        try:
+            return func(*args, **kw)
+        except NoRuntimeFormed:
+            if _is_relaxed_runtime_allowed():
+                if len(args) > narg:
+                    return args[narg]
+                return None
+            raise
+
+    return wrapper
+
+
+def default_value(value):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kw):
+            try:
+                return func(*args, **kw)
+            except NoRuntimeFormed:
+                if _is_relaxed_runtime_allowed():
+                    return value
+                raise
+
+        return wrapper
+
+    return decorator
+
+
 def _join_path(main_path, path):
     if not path:
         return main_path
@@ -49,13 +123,16 @@ def not_test(func):
     :param func:
     :return:
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwds):
         return func(*args, **kwds)
+
     setattr(wrapper, '__test__', False)
     return wrapper
 
 
+@default_arg0
 def source_path(path=None):
     """
     Get source path inside arcadia
@@ -65,6 +142,7 @@ def source_path(path=None):
     return _join_path(_get_ya_plugin_instance().source_root, path)
 
 
+@default_arg0
 def build_path(path=None):
     """
     Get path inside build directory
@@ -80,6 +158,7 @@ def java_path():
     :return: absolute path to java
     """
     from . import runtime_java
+
     return runtime_java.get_java_path(binary_path(os.path.join('contrib', 'tools', 'jdk')))
 
 
@@ -88,9 +167,12 @@ def java_home():
     Get jdk directory path
     """
     from . import runtime_java
+
     jdk_dir = runtime_java.get_build_java_dir(binary_path('jdk'))
     if not jdk_dir:
-        raise Exception("Cannot find jdk - make sure 'jdk' is added to the DEPENDS section and exists for the current platform")
+        raise Exception(
+            "Cannot find jdk - make sure 'jdk' is added to the DEPENDS section and exists for the current platform"
+        )
     return jdk_dir
 
 
@@ -102,6 +184,7 @@ def java_bin():
     return os.path.join(java_home(), "bin", "java")
 
 
+@default_arg0
 def data_path(path=None):
     """
     Get path inside arcadia_tests_data directory
@@ -111,6 +194,7 @@ def data_path(path=None):
     return _join_path(_get_ya_plugin_instance().data_root, path)
 
 
+@default_arg0
 def output_path(path=None):
     """
     Get path inside the current test suite output dir.
@@ -121,6 +205,7 @@ def output_path(path=None):
     return _join_path(_get_ya_plugin_instance().output_dir, path)
 
 
+@default_arg0
 def ram_drive_path(path=None):
     """
     :param path: path relative to the ram drive.
@@ -128,8 +213,11 @@ def ram_drive_path(path=None):
     """
     if 'YA_TEST_RAM_DRIVE_PATH' in os.environ:
         return _join_path(os.environ['YA_TEST_RAM_DRIVE_PATH'], path)
+    elif get_param("ram_drive_path"):
+        return _join_path(get_param("ram_drive_path"), path)
 
 
+@default_arg0
 def output_ram_drive_path(path=None):
     """
     Returns path inside ram drive directory which will be saved in the testing_out_stuff directory after testing.
@@ -138,8 +226,11 @@ def output_ram_drive_path(path=None):
     """
     if 'YA_TEST_OUTPUT_RAM_DRIVE_PATH' in os.environ:
         return _join_path(os.environ['YA_TEST_OUTPUT_RAM_DRIVE_PATH'], path)
+    elif _get_ya_plugin_instance().get_context("test_output_ram_drive_path"):
+        return _join_path(_get_ya_plugin_instance().get_context("test_output_ram_drive_path"), path)
 
 
+@default_arg0
 def binary_path(path=None):
     """
     Get path to the built binary
@@ -150,6 +241,7 @@ def binary_path(path=None):
     return _get_ya_plugin_instance().get_binary(path)
 
 
+@default_arg0
 def work_path(path=None):
     """
     Get path inside the current test suite working directory. Creating files in the work directory does not guarantee
@@ -157,9 +249,12 @@ def work_path(path=None):
     :param path: path relative to the test suite working dir
     :return: absolute path inside the test suite working dir
     """
-    return _join_path(os.environ.get("TEST_WORK_PATH") or os.getcwd(), path)
+    return _join_path(
+        os.environ.get("TEST_WORK_PATH") or _get_ya_plugin_instance().get_context("work_path") or os.getcwd(), path
+    )
 
 
+@default_value("python")
 def python_path():
     """
     Get path to the arcadia python.
@@ -173,6 +268,7 @@ def python_path():
     return _get_ya_plugin_instance().python_path
 
 
+@default_value("valgrind")
 def valgrind_path():
     """
     Get path to valgrind
@@ -181,6 +277,7 @@ def valgrind_path():
     return _get_ya_plugin_instance().valgrind_path
 
 
+@default_arg1
 def get_param(key, default=None):
     """
     Get arbitrary parameter passed via command line
@@ -191,6 +288,7 @@ def get_param(key, default=None):
     return _get_ya_plugin_instance().get_param(key, default)
 
 
+@default_value(lambda _: {})
 def get_param_dict_copy():
     """
     Return copy of dictionary with all parameters. Changes to this dictionary do *not* change parameters.
@@ -205,8 +303,7 @@ def test_output_path(path=None):
     """
     Get dir in the suite output_path for the current test case
     """
-    import pytest
-    test_out_dir = os.path.splitext(pytest.config.current_test_log_path)[0]
+    test_out_dir = os.path.splitext(_get_ya_config().current_test_log_path)[0]
     try:
         os.makedirs(test_out_dir)
     except OSError as e:
@@ -222,10 +319,13 @@ def project_path(path=None):
     return _join_path(os.path.join(build_path(), context.project_path), path)
 
 
+@default_value("gdb")
 def gdb_path():
     """
     Get path to the gdb
     """
+    if _is_relaxed_runtime_allowed():
+        return "gdb"
     return _get_ya_plugin_instance().gdb_path
 
 
@@ -250,7 +350,10 @@ def cxx_compiler_path():
 
 def global_resources():
     try:
-        return json.loads(os.environ.get("YA_GLOBAL_RESOURCES"))
+        if "YA_GLOBAL_RESOURCES" in os.environ:
+            return json.loads(os.environ.get("YA_GLOBAL_RESOURCES"))
+        else:
+            return _get_ya_plugin_instance().get_context("ya_global_resources")
     except (TypeError, ValueError):
         return {}
 
@@ -286,31 +389,47 @@ class Context(object):
     """
 
     @property
+    @default_value(None)
     def build_type(self):
         return _get_ya_plugin_instance().get_context("build_type")
 
     @property
+    @default_value(None)
     def project_path(self):
         return _get_ya_plugin_instance().get_context("project_path")
 
     @property
+    @default_value(False)
     def test_stderr(self):
         return _get_ya_plugin_instance().get_context("test_stderr")
 
     @property
+    @default_value(False)
     def test_debug(self):
         return _get_ya_plugin_instance().get_context("test_debug")
 
     @property
+    @default_value(None)
     def test_traceback(self):
         return _get_ya_plugin_instance().get_context("test_traceback")
 
     @property
+    @default_value(None)
     def test_name(self):
-        import pytest
-        return pytest.config.current_test_name
+        return _get_ya_config().current_test_name
 
     @property
+    @default_value("test_tool")
+    def test_tool_path(self):
+        return _get_ya_plugin_instance().get_context("test_tool_path")
+
+    @property
+    @default_value(None)
+    def retry_index(self):
+        return _get_ya_plugin_instance().get_context("retry_index")
+
+    @property
+    @default_value(False)
     def sanitize(self):
         """
         Detect if current test run is under sanitizer
@@ -320,6 +439,7 @@ class Context(object):
         return _get_ya_plugin_instance().get_context("sanitize")
 
     @property
+    @default_value(lambda _: {})
     def flags(self):
         _flags = _get_ya_plugin_instance().get_context("flags")
         if _flags:

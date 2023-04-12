@@ -134,6 +134,10 @@ struct PerThreadSynch {
 
 // The instances of this class are allocated in NewThreadIdentity() with an
 // alignment of PerThreadSynch::kAlignment.
+//
+// NOTE: The layout of fields in this structure is critical, please do not
+//       add, remove, or modify the field placements without fully auditing the
+//       layout.
 struct ThreadIdentity {
   // Must be the first member.  The Mutex implementation requires that
   // the PerThreadSynch object associated with each thread is
@@ -188,25 +192,25 @@ void ClearCurrentThreadIdentity();
 // May be chosen at compile time via: -DABSL_FORCE_THREAD_IDENTITY_MODE=<mode
 // index>
 #ifdef ABSL_THREAD_IDENTITY_MODE_USE_POSIX_SETSPECIFIC
-#error ABSL_THREAD_IDENTITY_MODE_USE_POSIX_SETSPECIFIC cannot be direcly set
+#error ABSL_THREAD_IDENTITY_MODE_USE_POSIX_SETSPECIFIC cannot be directly set
 #else
 #define ABSL_THREAD_IDENTITY_MODE_USE_POSIX_SETSPECIFIC 0
 #endif
 
 #ifdef ABSL_THREAD_IDENTITY_MODE_USE_TLS
-#error ABSL_THREAD_IDENTITY_MODE_USE_TLS cannot be direcly set
+#error ABSL_THREAD_IDENTITY_MODE_USE_TLS cannot be directly set
 #else
 #define ABSL_THREAD_IDENTITY_MODE_USE_TLS 1
 #endif
 
 #ifdef ABSL_THREAD_IDENTITY_MODE_USE_CPP11
-#error ABSL_THREAD_IDENTITY_MODE_USE_CPP11 cannot be direcly set
+#error ABSL_THREAD_IDENTITY_MODE_USE_CPP11 cannot be directly set
 #else
 #define ABSL_THREAD_IDENTITY_MODE_USE_CPP11 2
 #endif
 
 #ifdef ABSL_THREAD_IDENTITY_MODE
-#error ABSL_THREAD_IDENTITY_MODE cannot be direcly set
+#error ABSL_THREAD_IDENTITY_MODE cannot be directly set
 #elif defined(ABSL_FORCE_THREAD_IDENTITY_MODE)
 #define ABSL_THREAD_IDENTITY_MODE ABSL_FORCE_THREAD_IDENTITY_MODE
 #elif defined(_WIN32) && !defined(__MINGW32__)

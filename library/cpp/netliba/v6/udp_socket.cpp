@@ -59,8 +59,8 @@ namespace NNetliba {
     bool InitLocalIPList() {
         // Do not use TMutex here: it has a non-trivial destructor which will be called before
         // destruction of current thread, if its TThread declared as global/static variable.
-        static TAtomic cs;
-        TGuard<TAtomic> lock(cs);
+        static TAdaptiveLock cs;
+        TGuard lock(cs);
 
         if (LocalHostFound)
             return true;

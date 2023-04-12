@@ -10,21 +10,24 @@ from typing import (
     Any,
     Generic,
     Hashable,
+    Literal,
     TypeVar,
     cast,
+    final,
+    overload,
 )
+import warnings
 
 import numpy as np
 
 import pandas._libs.lib as lib
 from pandas._typing import (
     ArrayLike,
-    Dtype,
     DtypeObj,
-    FrameOrSeries,
     IndexLabel,
+    NDFrameT,
     Shape,
-    final,
+    npt,
 )
 from pandas.compat import PYPY
 from pandas.compat.numpy import function as nv
@@ -33,6 +36,7 @@ from pandas.util._decorators import (
     cache_readonly,
     doc,
 )
+from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.common import (
     is_categorical_dtype,
@@ -51,7 +55,11 @@ from pandas.core.dtypes.missing import (
     remove_na_arraylike,
 )
 
-from pandas.core import algorithms
+from pandas.core import (
+    algorithms,
+    nanops,
+    ops,
+)
 from pandas.core.accessor import DirNamesMixin
 from pandas.core.algorithms import (
     duplicated,
@@ -60,13 +68,25 @@ from pandas.core.algorithms import (
 )
 from pandas.core.arraylike import OpsMixin
 from pandas.core.arrays import ExtensionArray
-from pandas.core.construction import create_series_with_explicit_dtype
-import pandas.core.nanops as nanops
+from pandas.core.construction import (
+    create_series_with_explicit_dtype,
+    ensure_wrapped_if_datetimelike,
+    extract_array,
+)
 
 if TYPE_CHECKING:
-    from typing import Literal
 
-    from pandas import Categorical
+    from pandas._typing import (
+        NumpySorter,
+        NumpyValueArrayLike,
+        ScalarLike_co,
+    )
+
+    from pandas import (
+        Categorical,
+        Series,
+    )
+
 
 _shared_docs: dict[str, str] = {}
 _indexops_doc_kwargs = {
@@ -145,7 +165,7 @@ class NoNewAttributesMixin:
         object.__setattr__(self, "__frozen", True)
 
     # prevent adding any attribute via s.xxx.new_attribute = ...
-    def __setattr__(self, key: str, value):
+    def __setattr__(self, key: str, value) -> None:
         # _cache is used by a decorator
         # We need to check both 1.) cls.__dict__ and 2.) getattr(self, key)
         # because
@@ -160,21 +180,13 @@ class NoNewAttributesMixin:
         object.__setattr__(self, key, value)
 
 
-class DataError(Exception):
-    pass
-
-
-class SpecificationError(Exception):
-    pass
-
-
-class SelectionMixin(Generic[FrameOrSeries]):
+class SelectionMixin(Generic[NDFrameT]):
     """
     mixin implementing the selection & aggregation interface on a group-like
     object sub-classes need to define: obj, exclusions
     """
 
-    obj: FrameOrSeries
+    obj: NDFrameT
     _selection: IndexLabel | None = None
     exclusions: frozenset[Hashable]
     _internal_names = ["_cache", "__setstate__"]
@@ -208,7 +220,11 @@ class SelectionMixin(Generic[FrameOrSeries]):
             return self.obj[self._selection_list]
 
         if len(self.exclusions) > 0:
-            return self.obj.drop(self.exclusions, axis=1)
+            # equivalent to `self.obj.drop(self.exclusions, axis=1)
+            #  but this avoids consolidating and making a copy
+            # TODO: following GH#45287 can we now use .drop directly without
+            #  making a copy?
+            return self.obj._drop_axis(self.exclusions, axis=1, only_slice=True)
         else:
             return self.obj
 
@@ -217,7 +233,7 @@ class SelectionMixin(Generic[FrameOrSeries]):
             raise IndexError(f"Column(s) {self._selection} already selected")
 
         if isinstance(key, (list, tuple, ABCSeries, ABCIndex, np.ndarray)):
-            if len(self.obj.columns.intersection(key)) != len(key):
+            if len(self.obj.columns.intersection(key)) != len(set(key)):
                 bad_keys = list(set(key).difference(self.obj.columns))
                 raise KeyError(f"Columns not found: {str(bad_keys)[1:-1]}")
             return self._gotitem(list(key), ndim=2)
@@ -306,7 +322,7 @@ class IndexOpsMixin(OpsMixin):
         raise AbstractMethodError(self)
 
     @property
-    def ndim(self) -> int:
+    def ndim(self) -> Literal[1]:
         """
         Number of dimensions of the underlying data, by definition 1.
         """
@@ -411,9 +427,9 @@ class IndexOpsMixin(OpsMixin):
 
     def to_numpy(
         self,
-        dtype: Dtype | None = None,
+        dtype: npt.DTypeLike | None = None,
         copy: bool = False,
-        na_value=lib.no_default,
+        na_value: object = lib.no_default,
         **kwargs,
     ) -> np.ndarray:
         """
@@ -509,27 +525,19 @@ class IndexOpsMixin(OpsMixin):
               dtype='datetime64[ns]')
         """
         if is_extension_array_dtype(self.dtype):
-            # error: Too many arguments for "to_numpy" of "ExtensionArray"
-            return self.array.to_numpy(  # type: ignore[call-arg]
-                dtype, copy=copy, na_value=na_value, **kwargs
-            )
+            return self.array.to_numpy(dtype, copy=copy, na_value=na_value, **kwargs)
         elif kwargs:
             bad_keys = list(kwargs.keys())[0]
             raise TypeError(
                 f"to_numpy() got an unexpected keyword argument '{bad_keys}'"
             )
 
-        # error: Argument "dtype" to "asarray" has incompatible type
-        # "Union[ExtensionDtype, str, dtype[Any], Type[str], Type[float], Type[int],
-        # Type[complex], Type[bool], Type[object], None]"; expected "Union[dtype[Any],
-        # None, type, _SupportsDType, str, Union[Tuple[Any, int], Tuple[Any, Union[int,
-        # Sequence[int]]], List[Any], _DTypeDict, Tuple[Any, Any]]]"
-        result = np.asarray(self._values, dtype=dtype)  # type: ignore[arg-type]
+        result = np.asarray(self._values, dtype=dtype)
         # TODO(GH-24345): Avoid potential double copy
         if copy or na_value is not lib.no_default:
             result = result.copy()
             if na_value is not lib.no_default:
-                result[self.isna()] = na_value
+                result[np.asanyarray(self.isna())] = na_value
         return result
 
     @property
@@ -591,7 +599,7 @@ class IndexOpsMixin(OpsMixin):
         Parameters
         ----------
         axis : {{None}}
-            Dummy argument for consistency with Series.
+            Unused. Parameter needed for compatibility with DataFrame.
         skipna : bool, default True
             Exclude NA/null values when showing the result.
         *args, **kwargs
@@ -727,9 +735,6 @@ class IndexOpsMixin(OpsMixin):
         numpy.ndarray.tolist : Return the array as an a.ndim-levels deep
             nested list of Python scalars.
         """
-        if not isinstance(self._values, np.ndarray):
-            # check for ndarray instead of dtype to catch DTA/TDA
-            return list(self._values)
         return self._values.tolist()
 
     to_list = tolist
@@ -756,11 +761,15 @@ class IndexOpsMixin(OpsMixin):
     @cache_readonly
     def hasnans(self) -> bool:
         """
-        Return if I have any nans; enables various perf speedups.
-        """
-        return bool(isna(self).any())
+        Return True if there are any NaNs.
 
-    def isna(self):
+        Enables various performance speedups.
+        """
+        # error: Item "bool" of "Union[bool, ndarray[Any, dtype[bool_]], NDFrame]"
+        # has no attribute "any"
+        return bool(isna(self).any())  # type: ignore[union-attr]
+
+    def isna(self) -> npt.NDArray[np.bool_]:
         return isna(self._values)
 
     def _reduce(
@@ -784,6 +793,7 @@ class IndexOpsMixin(OpsMixin):
             )
         return func(skipna=skipna, **kwds)
 
+    @final
     def _map_values(self, mapper, na_action=None):
         """
         An internal function that maps values using the input
@@ -828,6 +838,16 @@ class IndexOpsMixin(OpsMixin):
                 )
 
         if isinstance(mapper, ABCSeries):
+            if na_action not in (None, "ignore"):
+                msg = (
+                    "na_action must either be 'ignore' or None, "
+                    f"{na_action} was passed"
+                )
+                raise ValueError(msg)
+
+            if na_action == "ignore":
+                mapper = mapper[mapper.index.notna()]
+
             # Since values were input this means we came from either
             # a dict or a series and mapper should be an index
             if is_categorical_dtype(self.dtype):
@@ -878,7 +898,7 @@ class IndexOpsMixin(OpsMixin):
         ascending: bool = False,
         bins=None,
         dropna: bool = True,
-    ):
+    ) -> Series:
         """
         Return a Series containing counts of unique values.
 
@@ -971,10 +991,12 @@ class IndexOpsMixin(OpsMixin):
 
         if not isinstance(values, np.ndarray):
             result: ArrayLike = values.unique()
-            if self.dtype.kind in ["m", "M"] and isinstance(self, ABCSeries):
-                # GH#31182 Series._values returns EA, unpack for backward-compat
-                if getattr(self.dtype, "tz", None) is None:
-                    result = np.asarray(result)
+            if (
+                isinstance(self.dtype, np.dtype) and self.dtype.kind in ["m", "M"]
+            ) and isinstance(self, ABCSeries):
+                # GH#31182 Series._values returns EA
+                # unpack numpy datetime for backward-compat
+                result = np.asarray(result)
         else:
             result = unique1d(values)
 
@@ -1033,8 +1055,28 @@ class IndexOpsMixin(OpsMixin):
     @property
     def is_monotonic(self) -> bool:
         """
-        Return boolean if values in the object are
-        monotonic_increasing.
+        Return boolean if values in the object are monotonically increasing.
+
+        .. deprecated:: 1.5.0
+            is_monotonic is deprecated and will be removed in a future version.
+            Use is_monotonic_increasing instead.
+
+        Returns
+        -------
+        bool
+        """
+        warnings.warn(
+            "is_monotonic is deprecated and will be removed in a future version. "
+            "Use is_monotonic_increasing instead.",
+            FutureWarning,
+            stacklevel=find_stack_level(),
+        )
+        return self.is_monotonic_increasing
+
+    @property
+    def is_monotonic_increasing(self) -> bool:
+        """
+        Return boolean if values in the object are monotonically increasing.
 
         Returns
         -------
@@ -1042,21 +1084,12 @@ class IndexOpsMixin(OpsMixin):
         """
         from pandas import Index
 
-        return Index(self).is_monotonic
-
-    @property
-    def is_monotonic_increasing(self) -> bool:
-        """
-        Alias for is_monotonic.
-        """
-        # mypy complains if we alias directly
-        return self.is_monotonic
+        return Index(self).is_monotonic_increasing
 
     @property
     def is_monotonic_decreasing(self) -> bool:
         """
-        Return boolean if values in the object are
-        monotonic_decreasing.
+        Return boolean if values in the object are monotonically decreasing.
 
         Returns
         -------
@@ -1091,6 +1124,7 @@ class IndexOpsMixin(OpsMixin):
         are not components of the array if deep=False or if used on PyPy
         """
         if hasattr(self.array, "memory_usage"):
+            # https://github.com/python/mypy/issues/1424
             # error: "ExtensionArray" has no attribute "memory_usage"
             return self.array.memory_usage(deep=deep)  # type: ignore[attr-defined]
 
@@ -1113,8 +1147,15 @@ class IndexOpsMixin(OpsMixin):
             """
         ),
     )
-    def factorize(self, sort: bool = False, na_sentinel: int | None = -1):
-        return algorithms.factorize(self, sort=sort, na_sentinel=na_sentinel)
+    def factorize(
+        self,
+        sort: bool = False,
+        na_sentinel: int | lib.NoDefault = lib.no_default,
+        use_na_sentinel: bool | lib.NoDefault = lib.no_default,
+    ):
+        return algorithms.factorize(
+            self, sort=sort, na_sentinel=na_sentinel, use_na_sentinel=use_na_sentinel
+        )
 
     _shared_docs[
         "searchsorted"
@@ -1133,7 +1174,7 @@ class IndexOpsMixin(OpsMixin):
 
         Parameters
         ----------
-        value : array-like
+        value : array-like or scalar
             Values to insert into `self`.
         side : {{'left', 'right'}}, optional
             If 'left', the index of the first suitable location found is given.
@@ -1216,9 +1257,50 @@ class IndexOpsMixin(OpsMixin):
         0  # wrong result, correct would be 1
         """
 
+    # This overload is needed so that the call to searchsorted in
+    # pandas.core.resample.TimeGrouper._get_period_bins picks the correct result
+
+    @overload
+    # The following ignore is also present in numpy/__init__.pyi
+    # Possibly a mypy bug??
+    # error: Overloaded function signatures 1 and 2 overlap with incompatible
+    # return types  [misc]
+    def searchsorted(  # type: ignore[misc]
+        self,
+        value: ScalarLike_co,
+        side: Literal["left", "right"] = ...,
+        sorter: NumpySorter = ...,
+    ) -> np.intp:
+        ...
+
+    @overload
+    def searchsorted(
+        self,
+        value: npt.ArrayLike | ExtensionArray,
+        side: Literal["left", "right"] = ...,
+        sorter: NumpySorter = ...,
+    ) -> npt.NDArray[np.intp]:
+        ...
+
     @doc(_shared_docs["searchsorted"], klass="Index")
-    def searchsorted(self, value, side="left", sorter=None) -> np.ndarray:
-        return algorithms.searchsorted(self._values, value, side=side, sorter=sorter)
+    def searchsorted(
+        self,
+        value: NumpyValueArrayLike | ExtensionArray,
+        side: Literal["left", "right"] = "left",
+        sorter: NumpySorter = None,
+    ) -> npt.NDArray[np.intp] | np.intp:
+
+        values = self._values
+        if not isinstance(values, np.ndarray):
+            # Going through EA.searchsorted directly improves performance GH#38083
+            return values.searchsorted(value, side=side, sorter=sorter)
+
+        return algorithms.searchsorted(
+            values,
+            value,
+            side=side,
+            sorter=sorter,
+        )
 
     def drop_duplicates(self, keep="first"):
         duplicated = self._duplicated(keep=keep)
@@ -1228,5 +1310,25 @@ class IndexOpsMixin(OpsMixin):
     @final
     def _duplicated(
         self, keep: Literal["first", "last", False] = "first"
-    ) -> np.ndarray:
+    ) -> npt.NDArray[np.bool_]:
         return duplicated(self._values, keep=keep)
+
+    def _arith_method(self, other, op):
+        res_name = ops.get_op_result_name(self, other)
+
+        lvalues = self._values
+        rvalues = extract_array(other, extract_numpy=True, extract_range=True)
+        rvalues = ops.maybe_prepare_scalar_for_op(rvalues, lvalues.shape)
+        rvalues = ensure_wrapped_if_datetimelike(rvalues)
+
+        with np.errstate(all="ignore"):
+            result = ops.arithmetic_op(lvalues, rvalues, op)
+
+        return self._construct_result(result, name=res_name)
+
+    def _construct_result(self, result, name):
+        """
+        Construct an appropriately-wrapped result from the ArrayLike result
+        of an arithmetic-like operation.
+        """
+        raise AbstractMethodError(self)

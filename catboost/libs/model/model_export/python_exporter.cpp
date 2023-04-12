@@ -35,7 +35,7 @@ namespace NCB {
         out << indent++ << "model_ctrs = catboost_model_ctrs_container(" << '\n';
 
         const TStaticCtrProvider* ctrProvider = dynamic_cast<TStaticCtrProvider*>(model.CtrProvider.Get());
-        Y_VERIFY(ctrProvider, "Unsupported CTR provider");
+        CB_ENSURE(ctrProvider, "Unsupported CTR provider");
 
         TVector<TCompressedModelCtr> compressedModelCtrs = CompressModelCtrs(neededCtrs);
 
@@ -218,10 +218,6 @@ namespace NCB {
         }
         Out << --indent << "]" << '\n';
 
-        int leafValueCount = 0;
-        for (const auto& treeSize : model.ModelTrees->GetModelTreeData()->GetTreeSizes()) {
-            leafValueCount += treeSize * model.ModelTrees->GetDimensionsCount();
-        }
         Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
         Out << indent << "leaf_values = [" << OutputLeafValues(model, indent) << indent << "]" << '\n';

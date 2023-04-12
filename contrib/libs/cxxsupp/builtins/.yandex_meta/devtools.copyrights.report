@@ -56,6 +56,7 @@ BELONGS ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL ebc015cad7377d32e7b2fc0ae5293aa1
 BELONGS ya.make
+    # libcxxabi/CREDITS.TXT included in libcxxabi
     License text:
         Copyright (c) 2009-2019 by the contributors listed in CREDITS.TXT
     Scancode info:

@@ -77,6 +77,14 @@ struct TSockAddrLocal: public ISockAddr {
         strlcpy(Path, path, PathSize);
     }
 
+    inline void Set(TStringBuf path) noexcept {
+        Clear();
+        in.sin_family = AF_INET;
+        in.sin_addr.s_addr = IpFromString("127.0.0.1");
+        in.sin_port = 0;
+        strlcpy(Path, path.data(), Min(PathSize, path.size() + 1));
+    }
+
     sockaddr* SockAddr() {
         return (struct sockaddr*)(&in);
     }
@@ -148,6 +156,10 @@ struct TSockAddrLocal: public sockaddr_un, public ISockAddr {
         Clear();
     }
 
+    TSockAddrLocal(TStringBuf path) {
+        Set(path);
+    }
+
     TSockAddrLocal(const char* path) {
         Set(path);
     }
@@ -168,6 +180,12 @@ struct TSockAddrLocal: public sockaddr_un, public ISockAddr {
         Clear();
         sun_family = AF_UNIX;
         strlcpy(sun_path, path, sizeof(sun_path));
+    }
+
+    inline void Set(TStringBuf path) noexcept {
+        Clear();
+        sun_family = AF_UNIX;
+        strlcpy(sun_path, path.data(), Min(sizeof(sun_path), path.size() + 1));
     }
 
     sockaddr* SockAddr() override {

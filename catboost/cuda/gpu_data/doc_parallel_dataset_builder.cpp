@@ -4,6 +4,19 @@
 #include "dataset_helpers.h"
 #include "estimated_features_calcer.h"
 
+template <typename T>
+static TVector<T> Flatten2D(TVector<TVector<T>>&& src) {
+    if (src.empty()) {
+        return TVector<T>();
+    }
+    TVector<T> result;
+    result.reserve(src.size() * src[0].size());
+    for (const auto& v : src) {
+        result.insert(result.end(), v.begin(), v.end());
+    }
+    return result;
+}
+
 NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount,
                                                                                                   NPar::ILocalExecutor* localExecutor) {
     TDocParallelDataSetsHolder dataSetsHolder(DataProvider,
@@ -21,10 +34,12 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     TCudaBuffer<float, NCudaLib::TStripeMapping> targets;
     TCudaBuffer<float, NCudaLib::TStripeMapping> weights;
 
-    targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
+    const auto& cpuTargets = *DataProvider.TargetData->GetTarget();
+    const auto targetCount = cpuTargets.size();
+    targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping, targetCount);
     weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
 
-    targets.Write(learnLoadBalancingPermutation.Gather(*DataProvider.TargetData->GetOneDimensionalTarget()));
+    targets.Write(Flatten2D(learnLoadBalancingPermutation.Gather2D(*DataProvider.TargetData->GetTarget())));
     weights.Write(learnLoadBalancingPermutation.Gather(GetWeights(*DataProvider.TargetData)));
 
     for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
@@ -44,10 +59,10 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
 
         TDataPermutation testLoadBalancingPermutation = dataSetsHolder.TestDocPerDevicesSplit->Permutation;
 
-        testTargets.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
+        testTargets.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping, targetCount);
         testWeights.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
 
-        testTargets.Write(testLoadBalancingPermutation.Gather(*LinkedTest->TargetData->GetOneDimensionalTarget()));
+        testTargets.Write(Flatten2D(testLoadBalancingPermutation.Gather2D(*LinkedTest->TargetData->GetTarget())));
         testWeights.Write(testLoadBalancingPermutation.Gather(GetWeights(*LinkedTest->TargetData)));
 
         dataSetsHolder.TestDataSet = THolder<TDocParallelDataSet>(new TDocParallelDataSet(*LinkedTest,
@@ -72,12 +87,15 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     }
 
     auto learnMapping = targets.GetMapping();
-    TVector<ui32> learnGatherIndicesVec;
-    learnLoadBalancingPermutation.FillOrder(learnGatherIndicesVec);
-    auto learnGatherIndices = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
-        DataProvider.ObjectsData->GetFeaturesArraySubsetIndexing(),
-        std::move(learnGatherIndicesVec)
-    );
+    TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing> learnGatherIndices = nullptr;
+    if (!learnLoadBalancingPermutation.IsIdentity()) {
+        TVector<ui32> learnGatherIndicesVec;
+        learnLoadBalancingPermutation.FillOrder(learnGatherIndicesVec);
+        learnGatherIndices = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
+            DataProvider.ObjectsData->GetFeaturesArraySubsetIndexing(),
+            std::move(learnGatherIndicesVec)
+        );
+    }
 
 
     TBinarizationInfoProvider learnBinarizationInfo(FeaturesManager,
@@ -109,16 +127,18 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     if (LinkedTest) {
         TDataSetDescription description;
         description.Name = "Test dataset";
-        TVector<ui32> testIndicesVec;
-        dataSetsHolder.TestDocPerDevicesSplit->Permutation.FillOrder(testIndicesVec);
-
 
         TBinarizationInfoProvider testBinarizationInfo(FeaturesManager,
                                                        LinkedTest);
-        auto testObjectsSubsetIndexing = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
-            LinkedTest->ObjectsData->GetFeaturesArraySubsetIndexing(),
-            std::move(testIndicesVec)
-        );
+        TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing> testObjectsSubsetIndexing = nullptr;
+        if (!learnLoadBalancingPermutation.IsIdentity()) {
+            TVector<ui32> testIndicesVec;
+            dataSetsHolder.TestDocPerDevicesSplit->Permutation.FillOrder(testIndicesVec);
+            testObjectsSubsetIndexing = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
+                LinkedTest->ObjectsData->GetFeaturesArraySubsetIndexing(),
+                std::move(testIndicesVec)
+            );
+        }
         auto testMapping = dataSetsHolder.TestDataSet->GetSamplesMapping();
         testDataSetId = compressedIndexBuilder.AddDataSet(
             testBinarizationInfo,
@@ -138,8 +158,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                                               compressedIndexBuilder,
                                                                               DataProvider,
                                                                               permutationIndependentCompressedDataSetId,
-                                                                              /*skipExclusiveBundles=*/ false,
-                                                                              localExecutor);
+                                                                              /*skipExclusiveBundles=*/ false);
         floatFeaturesWriter.Write(permutationIndependent);
     }
 
@@ -148,8 +167,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                                               compressedIndexBuilder,
                                                                               *LinkedTest,
                                                                               testDataSetId,
-                                                                              /*skipExclusiveBundles=*/ true,
-                                                                              localExecutor);
+                                                                              /*skipExclusiveBundles=*/ true);
         floatFeaturesWriter.Write(permutationIndependent);
     }
 

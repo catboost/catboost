@@ -54,7 +54,7 @@ namespace NCatboostCuda {
                 bin |= ((direction == ESplitValue::Zero) ? 0 : 1) << level;
             }
 
-            Y_VERIFY(bin < leavesCount);
+            CB_ENSURE(bin < leavesCount, "Bin id is too large");
             binIds[i] = bin;
             checkSum += bin;
         }
@@ -251,7 +251,7 @@ namespace NCatboostCuda {
                    TVector<EBinSplitType>* flatSplitTypes,
                    TVector<float>* leavesValues,
                    TVector<double>* weights) {
-            Y_VERIFY(cursor);
+            CB_ENSURE(cursor, "Tree is empty (cursor is nullptr)");
             const bool isTerminal = cursor->IsTerminal();
             if (isTerminal) {
                 const auto& leaf = cursor->GetLeaf();

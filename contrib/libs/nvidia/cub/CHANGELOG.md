@@ -1,6 +1,371 @@
+# CUB 1.17.2
+
+## Summary
+
+CUB 1.17.2 is a minor bugfix release.
+
+- NVIDIA/cub#547: Introduce an annotated inline namespace to prevent issues with
+  collisions and mismatched kernel configurations across libraries. The new
+  namespace encodes the CUB version and target SM architectures.
+
+# CUB 1.17.1
+
+## Summary
+
+CUB 1.17.1 is a minor bugfix release.
+
+- NVIDIA/cub#508: Ensure that `temp_storage_bytes` is properly set in
+  the `AdjacentDifferenceCopy` device algorithms.
+- NVIDIA/cub#508: Remove excessive calls to the binary operator given to
+  the `AdjacentDifferenceCopy` device algorithms.
+- Fix device-side debug synchronous behavior in `DeviceSegmentedSort`.
+
+# CUB 1.17.0
+
+## Summary
+
+CUB 1.17.0 is the final minor release of the 1.X series. It provides a variety
+of bug fixes and miscellaneous enhancements, detailed below.
+
+## Known Issues
+
+### "Run-to-run" Determinism Broken
+
+Several CUB device algorithms are documented to provide deterministic results
+(per device) for non-associative reduction operators (e.g. floating-point
+addition). Unfortunately, the implementations of these algorithms contain
+performance optimizations that violate this guarantee.
+The `DeviceReduce::ReduceByKey` and `DeviceScan` algorithms are known to be
+affected. We’re currently evaluating the scope and impact of correcting this in
+a future CUB release. See NVIDIA/cub#471 for details.
+
+## Bug Fixes
+
+- NVIDIA/cub#444: Fixed `DeviceSelect` to work with discard iterators and mixed
+  input/output types.
+- NVIDIA/cub#452: Fixed install issue when `CMAKE_INSTALL_LIBDIR` contained
+  nested directories. Thanks to @robertmaynard for this contribution.
+- NVIDIA/cub#462: Fixed bug that produced incorrect results
+  from `DeviceSegmentedSort` on sm_61 and sm_70.
+- NVIDIA/cub#464: Fixed `DeviceSelect::Flagged` so that flags are normalized to
+  0 or 1.
+- NVIDIA/cub#468: Fixed overflow issues in `DeviceRadixSort` given `num_items`
+  close to 2^32. Thanks to @canonizer for this contribution.
+- NVIDIA/cub#498: Fixed compiler regression in `BlockAdjacentDifference`.
+  Thanks to @MKKnorr for this contribution.
+
+## Other Enhancements
+
+- NVIDIA/cub#445: Remove device-sync in `DeviceSegmentedSort` when launched via
+  CDP.
+- NVIDIA/cub#449: Fixed invalid link in documentation. Thanks to @kshitij12345
+  for this contribution.
+- NVIDIA/cub#450: `BlockDiscontinuity`: Replaced recursive-template loop
+  unrolling with `#pragma unroll`. Thanks to @kshitij12345 for this
+  contribution.
+- NVIDIA/cub#451: Replaced the deprecated `TexRefInputIterator` implementation
+  with an alias to `TexObjInputIterator`. This fully removes all usages of the
+  deprecated CUDA texture reference APIs from CUB.
+- NVIDIA/cub#456: `BlockAdjacentDifference`: Replaced recursive-template loop
+  unrolling with `#pragma unroll`. Thanks to @kshitij12345 for this
+  contribution.
+- NVIDIA/cub#466: `cub::DeviceAdjacentDifference` API has been updated to use
+  the new `OffsetT` deduction approach described in NVIDIA/cub#212.
+- NVIDIA/cub#470: Fix several doxygen-related warnings. Thanks to @karthikeyann
+  for this contribution.
+
+# CUB 1.16.0
+
+## Summary
+
+CUB 1.16.0 is a major release providing several improvements to the device scope
+algorithms. `DeviceRadixSort` now supports large (64-bit indexed) input data. A
+new `UniqueByKey` algorithm has been added to `DeviceSelect`.
+`DeviceAdjacentDifference` provides new `SubtractLeft` and `SubtractRight`
+functionality.
+
+This release also deprecates several obsolete APIs, including type traits
+and `BlockAdjacentDifference` algorithms. Many bugfixes and documentation
+updates are also included.
+
+### 64-bit Offsets in `DeviceRadixSort` Public APIs
+
+Users frequently want to process large datasets using CUB’s device-scope
+algorithms, but the current public APIs limit input data sizes to those that can
+be indexed by a 32-bit integer. Beginning with this release, CUB is updating
+these APIs to support 64-bit offsets, as discussed in NVIDIA/cub#212.
+
+The device-scope algorithms will be updated with 64-bit offset support
+incrementally, starting with the `cub::DeviceRadixSort` family of algorithms.
+Thanks to @canonizer for contributing this functionality.
+
+### New `DeviceSelect::UniqueByKey` Algorithm
+
+`cub::DeviceSelect` now provides a `UniqueByKey` algorithm, which has been
+ported from Thrust. Thanks to @zasdfgbnm for this contribution.
+
+### New `DeviceAdjacentDifference` Algorithms
+
+The new `cub::DeviceAdjacentDifference` interface, also ported from Thrust,
+provides `SubtractLeft` and `SubtractRight` algorithms as CUB kernels.
+
+## Deprecation Notices
+
+### Synchronous CUDA Dynamic Parallelism Support
+
+**A future version of CUB will change the `debug_synchronous` behavior of
+device-scope algorithms when invoked via CUDA Dynamic Parallelism (CDP).**
+
+This will only affect calls to CUB device-scope algorithms launched from
+device-side code with `debug_synchronous = true`. Such invocations will continue
+to print extra debugging information, but they will no longer synchronize after
+kernel launches.
+
+### Deprecated Traits
+
+CUB provided a variety of metaprogramming type traits in order to support C++03.
+Since C++14 is now required, these traits have been deprecated in favor of their
+STL equivalents, as shown below:
+
+| Deprecated CUB Trait  | Replacement STL Trait |
+|-----------------------|-----------------------|
+| cub::If               | std::conditional      |
+| cub::Equals           | std::is_same          |
+| cub::IsPointer        | std::is_pointer       |
+| cub::IsVolatile       | std::is_volatile      |
+| cub::RemoveQualifiers | std::remove_cv        |
+| cub::EnableIf         | std::enable_if        |
+
+CUB now uses the STL traits internally, resulting in a ~6% improvement in
+compile time.
+
+### Misnamed `cub::BlockAdjacentDifference` APIs
+
+The algorithms in `cub::BlockAdjacentDifference` have been deprecated, as their
+names did not clearly describe their intent. The `FlagHeads` method is
+now `SubtractLeft`, and `FlagTails` has been replaced by `SubtractRight`.
+
+## Breaking Changes
+
+- NVIDIA/cub#331: Deprecate the misnamed `BlockAdjacentDifference::FlagHeads`
+  and `FlagTails` methods. Use the new `SubtractLeft` and `SubtractRight`
+  methods instead.
+- NVIDIA/cub#364: Deprecate some obsolete type traits. These should be replaced
+  by the equivalent traits in `<type_traits>` as described above.
+
+## New Features
+
+- NVIDIA/cub#331: Port the `thrust::adjacent_difference` kernel and expose it
+  as `cub::DeviceAdjacentDifference`.
+- NVIDIA/cub#405: Port the `thrust::unique_by_key` kernel and expose it
+  as `cub::DeviceSelect::UniqueByKey`. Thanks to @zasdfgbnm for this
+  contribution.
+
+## Enhancements
+
+- NVIDIA/cub#340: Allow 64-bit offsets in `DeviceRadixSort` public APIs. Thanks
+  to @canonizer for this contribution.
+- NVIDIA/cub#400: Implement a significant reduction in `DeviceMergeSort`
+  compilation time.
+- NVIDIA/cub#415: Support user-defined `CMAKE_INSTALL_INCLUDEDIR` values in
+  Thrust’s CMake install rules. Thanks for @robertmaynard for this contribution.
+
+## Bug Fixes
+
+- NVIDIA/cub#381: Fix shared memory alignment in `dyn_smem` example.
+- NVIDIA/cub#393: Fix some collisions with the `min`/`max`  macros defined
+  in `windows.h`.
+- NVIDIA/cub#404: Fix bad cast in `util_device`.
+- NVIDIA/cub#410: Fix CDP issues in `DeviceSegmentedSort`.
+- NVIDIA/cub#411: Ensure that the `nv_exec_check_disable` pragma is only used on
+  nvcc.
+- NVIDIA/cub#418: Fix `-Wsizeof-array-div` warning on gcc 11. Thanks to
+  @robertmaynard for this contribution.
+- NVIDIA/cub#420: Fix new uninitialized variable warning in `DiscardIterator` on
+  gcc 10.
+- NVIDIA/cub#423: Fix some collisions with the `small` macro defined
+  in `windows.h`.
+- NVIDIA/cub#426: Fix some issues with version handling in CUB’s CMake packages.
+- NVIDIA/cub#430: Remove documentation for `DeviceSpmv` parameters that are
+  absent from public APIs.
+- NVIDIA/cub#432: Remove incorrect documentation for `DeviceScan` algorithms
+  that guaranteed run-to-run deterministic results for floating-point addition.
+
+# CUB 1.15.0 (NVIDIA HPC SDK 22.1, CUDA Toolkit 11.6)
+
+## Summary
+
+CUB 1.15.0 includes a new `cub::DeviceSegmentedSort` algorithm, which
+demonstrates up to 5000x speedup compared to `cub::DeviceSegmentedRadixSort`
+when sorting a large number of small segments. A new `cub::FutureValue<T>`
+helper allows the `cub::DeviceScan` algorithms to lazily load the
+`initial_value` from a pointer. `cub::DeviceScan` also added `ScanByKey`
+functionality.
+
+The new `DeviceSegmentedSort` algorithm partitions segments into size groups.
+Each group is processed with specialized kernels using a variety of sorting
+algorithms. This approach varies the number of threads allocated for sorting
+each segment and utilizes the GPU more efficiently.
+
+`cub::FutureValue<T>` provides the ability to use the result of a previous
+kernel as a scalar input to a CUB device-scope algorithm without unnecessary
+synchronization:
+
+```cpp
+int *d_intermediate_result = ...;
+intermediate_kernel<<<blocks, threads>>>(d_intermediate_result,  // output
+                                         arg1,                   // input
+                                         arg2);                  // input
+
+// Wrap the intermediate pointer in a FutureValue -- no need to explicitly
+// sync when both kernels are stream-ordered. The pointer is read after
+// the ExclusiveScan kernel starts executing.
+cub::FutureValue<int> init_value(d_intermediate_result);
+
+cub::DeviceScan::ExclusiveScan(d_temp_storage,
+                               temp_storage_bytes,
+                               d_in,
+                               d_out,
+                               cub::Sum(),
+                               init_value,
+                               num_items);
+```
+
+Previously, an explicit synchronization would have been necessary to obtain the
+intermediate result, which was passed by value into ExclusiveScan. This new
+feature enables better performance in workflows that use cub::DeviceScan.
+
+## Deprecation Notices
+
+**A future version of CUB will change the `debug_synchronous` behavior of
+device-scope algorithms when invoked via CUDA Dynamic Parallelism (CDP).**
+
+This will only affect calls to CUB device-scope algorithms launched from
+device-side code with `debug_synchronous = true`. These algorithms will continue
+to print extra debugging information, but they will no longer synchronize after
+kernel launches.
+
+## Breaking Changes
+
+- NVIDIA/cub#305: The template parameters of `cub::DispatchScan` have changed to
+  support the new `cub::FutureValue` helper. More details under "New Features".
+- NVIDIA/cub#377: Remove broken `operator->()` from
+  `cub::TransformInputIterator`, since this cannot be implemented without
+  returning a temporary object's address. Thanks to Xiang Gao (@zasdfgbnm) for
+  this contribution.
+
+## New Features
+
+- NVIDIA/cub#305: Add overloads to `cub::DeviceScan` algorithms that allow the
+  output of a previous kernel to be used as `initial_value` without explicit
+  synchronization. See the new `cub::FutureValue` helper for details. Thanks to
+  Xiang Gao (@zasdfgbnm) for this contribution.
+- NVIDIA/cub#354: Add `cub::BlockRunLengthDecode` algorithm. Thanks to Elias
+  Stehle (@elstehle) for this contribution.
+- NVIDIA/cub#357: Add `cub::DeviceSegmentedSort`, an optimized version
+  of `cub::DeviceSegmentedSort` with improved load balancing and small array
+  performance.
+- NVIDIA/cub#376: Add "by key" overloads to `cub::DeviceScan`. Thanks to Xiang
+  Gao (@zasdfgbnm) for this contribution.
+
+## Bug Fixes
+
+- NVIDIA/cub#349: Doxygen and unused variable fixes.
+- NVIDIA/cub#363: Maintenance updates for the new `cub::DeviceMergeSort`
+  algorithms.
+- NVIDIA/cub#382: Fix several `-Wconversion` warnings. Thanks to Matt Stack
+  (@matt-stack) for this contribution.
+- NVIDIA/cub#388: Fix debug assertion on MSVC when using
+  `cub::CachingDeviceAllocator`.
+- NVIDIA/cub#395: Support building with `__CUDA_NO_HALF_CONVERSIONS__`. Thanks
+  to Xiang Gao (@zasdfgbnm) for this contribution.
+
+# CUB 1.14.0 (NVIDIA HPC SDK 21.9)
+
+## Summary
+
+CUB 1.14.0 is a major release accompanying the NVIDIA HPC SDK 21.9.
+
+This release provides the often-requested merge sort algorithm, ported from the
+`thrust::sort` implementation. Merge sort provides more flexibility than the
+existing radix sort by supporting arbitrary data types and comparators, though
+radix sorting is still faster for supported inputs. This functionality is
+provided through the new `cub::DeviceMergeSort` and `cub::BlockMergeSort`
+algorithms.
+
+The namespace wrapping mechanism has been overhauled for 1.14. The existing
+macros (`CUB_NS_PREFIX`/`CUB_NS_POSTFIX`) can now be replaced by a single macro,
+`CUB_WRAPPED_NAMESPACE`, which is set to the name of the desired wrapped
+namespace. Defining a similar `THRUST_CUB_WRAPPED_NAMESPACE` macro will embed
+both `thrust::` and `cub::` symbols in the same external namespace. The
+prefix/postfix macros are still supported, but now require a new
+`CUB_NS_QUALIFIER` macro to be defined, which provides the fully qualified CUB
+namespace (e.g. `::foo::cub`). See `cub/util_namespace.cuh` for details.
+
+## Breaking Changes
+
+- NVIDIA/cub#350: When the `CUB_NS_[PRE|POST]FIX` macros are set,
+  `CUB_NS_QUALIFIER` must also be defined to the fully qualified CUB namespace
+  (e.g. `#define CUB_NS_QUALIFIER ::foo::cub`). Note that this is handled
+  automatically when using the new `[THRUST_]CUB_WRAPPED_NAMESPACE` mechanism.
+
+## New Features
+
+- NVIDIA/cub#322: Ported the merge sort algorithm from Thrust:
+  `cub::BlockMergeSort` and `cub::DeviceMergeSort` are now available.
+- NVIDIA/cub#326: Simplify the namespace wrapper macros, and detect when
+  Thrust's symbols are in a wrapped namespace.
+
+## Bug Fixes
+
+- NVIDIA/cub#160, NVIDIA/cub#163, NVIDIA/cub#352: Fixed several bugs in
+  `cub::DeviceSpmv` and added basic tests for this algorithm. Thanks to James
+  Wyles and Seunghwa Kang for their contributions.
+- NVIDIA/cub#328: Fixed error handling bug and incorrect debugging output in
+  `cub::CachingDeviceAllocator`. Thanks to Felix Kallenborn for this
+  contribution.
+- NVIDIA/cub#335: Fixed a compile error affecting clang and NVRTC. Thanks to
+  Jiading Guo for this contribution.
+- NVIDIA/cub#351: Fixed some errors in the `cub::DeviceHistogram` documentation.
+
+## Enhancements
+
+- NVIDIA/cub#348: Add an example that demonstrates how to use dynamic shared
+  memory with a CUB block algorithm. Thanks to Matthias Jouanneaux for this
+  contribution.
+
+# CUB 1.13.1 (CUDA Toolkit 11.5)
+
+CUB 1.13.1 is a minor release accompanying the CUDA Toolkit 11.5.
+
+This release provides a new hook for embedding the `cub::` namespace inside
+a custom namespace. This is intended to work around various issues related to
+linking multiple shared libraries that use CUB. The existing `CUB_NS_PREFIX` and
+`CUB_NS_POSTFIX` macros already provided this capability; this update provides a
+simpler mechanism that is extended to and integrated with Thrust. Simply define
+`THRUST_CUB_WRAPPED_NAMESPACE` to a namespace name, and both `thrust::` and
+`cub::` will be placed inside the new namespace. Using different wrapped
+namespaces for each shared library will prevent issues like those reported in
+NVIDIA/thrust#1401.
+
+## New Features
+
+- NVIDIA/cub#326: Add `THRUST_CUB_WRAPPED_NAMESPACE` hooks.
+
 # CUB 1.13.0 (NVIDIA HPC SDK 21.7)
 
 CUB 1.13.0 is the major release accompanying the NVIDIA HPC SDK 21.7 release.
+
+Notable new features include support for striped data arrangements in block
+load/store utilities, `bfloat16` radix sort support, and fewer restrictions on
+offset iterators in segmented device algorithms. Several bugs
+in `cub::BlockShuffle`, `cub::BlockDiscontinuity`, and `cub::DeviceHistogram`
+have been addressed. The amount of code generated in `cub::DeviceScan` has been
+greatly reduced, leading to significant compile-time improvements when targeting
+multiple PTX architectures.
+
+This release also includes several user-contributed documentation fixes that
+will be reflected in CUB's online documentation in the coming weeks.
 
 ## Breaking Changes
 

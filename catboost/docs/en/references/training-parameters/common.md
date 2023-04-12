@@ -924,8 +924,7 @@ Depends on the mode and the selected loss function:
 
 **Supported processing units**
 
-- The {{ fit__leaf_estimation_method__Exact }} method is available only on {{ calcer_type__cpu }}
-- All other methods are available on both {{ calcer_type__cpu }} and {{ calcer_type__gpu }}
+ {{ cpu-gpu }}
 
 
 ## leaf_estimation_iterations {#leaf_estimation_iterations}
@@ -1029,7 +1028,7 @@ Command-line:`--approx-on-full-history`
 The principles for calculating the approximated values.
 
 Possible values:
-- <q>False</q> — Use only а fraction of the fold for calculating the approximated values. The size of the fraction is calculated as follows: $\frac{1}{\mbox{X}}$, where `X` is the specified coefficient for changing the length of folds. This mode is faster and in rare cases slightly less accurate
+- <q>False</q> — Use only а fraction of the fold for calculating the approximated values. The size of the fraction is calculated as follows: $\frac{1}{{X}}$, where `X` is the specified coefficient for changing the length of folds. This mode is faster and in rare cases slightly less accurate
 - <q>True</q> — Use all the preceding rows in the fold for calculating the approximated values. This mode is slower and in rare cases slightly more accurate.
 
 **Type**
@@ -1631,6 +1630,27 @@ Command-line: `--first-feature-use-penalties`
 **Supported processing units**
 
  {{ calcer_type__cpu }}
+
+## fixed_binary_splits {#fixed_binary_splits}
+
+Command-line: `--fixed-binary-splits`
+
+#### Description
+
+
+A list of indices of binary features to put at the top of each tree; ignored if `grow_policy` is `Symmetric`.
+
+**Type**
+
+{{ python-type--list }}
+
+**Default value**
+
+ None
+
+**Supported processing units**
+
+ {{ calcer_type__gpu }}
 
 ## penalties_coefficient {#penalties_coefficient}
 

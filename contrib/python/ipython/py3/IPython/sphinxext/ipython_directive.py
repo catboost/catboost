@@ -19,7 +19,7 @@ Here is an example of how the IPython directive can
    In [1]: 1+1
 
    In [1]: import datetime
-      ...: datetime.datetime.now()
+      ...: datetime.date.fromisoformat('2022-02-22')
 
 It supports IPython construct that plain
 Python does not understand (like magics):
@@ -28,7 +28,7 @@ Python does not understand (like magics):
 
    In [0]: import time
 
-   In [0]: %timeit time.sleep(0.05)
+   In [0]: %pdoc time.sleep
 
 This will also support top-level async when using IPython 7.0+
 
@@ -220,6 +220,8 @@ except Exception:
 # for tokenizing blocks
 COMMENT, INPUT, OUTPUT =  range(3)
 
+PSEUDO_DECORATORS = ["suppress", "verbatim", "savefig", "doctest"]
+
 #-----------------------------------------------------------------------------
 # Functions and class declarations
 #-----------------------------------------------------------------------------
@@ -263,11 +265,17 @@ def block_parser(part, rgxin, rgxout, fmtin, fmtout):
             block.append((COMMENT, line))
             continue
 
-        if line_stripped.startswith('@'):
-            # Here is where we assume there is, at most, one decorator.
-            # Might need to rethink this.
-            decorator = line_stripped
-            continue
+        if any(
+            line_stripped.startswith("@" + pseudo_decorator)
+            for pseudo_decorator in PSEUDO_DECORATORS
+        ):
+            if decorator:
+                raise RuntimeError(
+                    "Applying multiple pseudo-decorators on one line is not supported"
+                )
+            else:
+                decorator = line_stripped
+                continue
 
         # does this look like an input line?
         matchin = rgxin.match(line)
@@ -813,8 +821,11 @@ class EmbeddedSphinxShell(object):
                 output.append(line)
                 continue
 
-            # handle decorators
-            if line_stripped.startswith('@'):
+            # handle pseudo-decorators, whilst ensuring real python decorators are treated as input
+            if any(
+                line_stripped.startswith("@" + pseudo_decorator)
+                for pseudo_decorator in PSEUDO_DECORATORS
+            ):
                 output.extend([line])
                 if 'savefig' in line:
                     savefig = True # and need to clear figure
@@ -970,8 +981,9 @@ class IPythonDirective(Directive):
         self.shell.warning_is_error = warning_is_error
 
         # setup bookmark for saving figures directory
-        self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
-                                      store_history=False)
+        self.shell.process_input_line(
+            'bookmark ipy_savedir "%s"' % savefig_dir, store_history=False
+        )
         self.shell.clear_cout()
 
         return rgxin, rgxout, promptin, promptout

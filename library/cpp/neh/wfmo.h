@@ -5,8 +5,9 @@
 #include <library/cpp/threading/atomic/bool.h>
 
 #include <util/generic/vector.h>
-#include <util/system/atomic.h>
-#include <util/system/atomic_ops.h>
+#include <util/generic/scope.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
 
@@ -25,57 +26,56 @@ namespace NNeh {
         }
     };
 
-    class TWaitQueue {
+    class TWaitQueue: public TThrRefBase {
     public:
-        struct TWaitHandle {
-            inline TWaitHandle() noexcept
-                : Signalled(false)
-                , Parent(nullptr)
-            {
+        class TWaitHandle {
+        public:
+
+            ~TWaitHandle() {
+                SwapWaitQueue(nullptr);
             }
 
-            inline void Signal() noexcept {
-                TGuard<TSpinLock> lock(M_);
+            void Signal() noexcept {
+                Signalled_ = true;
 
-                Signalled = true;
-
-                if (Parent) {
-                    Parent->Notify(this);
+                if (TIntrusivePtr<TWaitQueue> q = SwapWaitQueue(nullptr)) {
+                    q->Notify(this);
                 }
             }
 
-            inline void Register(TWaitQueue* parent) noexcept {
-                TGuard<TSpinLock> lock(M_);
+            void Register(TIntrusivePtr<TWaitQueue>& waitQueue) noexcept {
+                if (Signalled_) {
+                    waitQueue->Notify(this);
+                    SwapWaitQueue(nullptr);
+                    return;
+                }
 
-                Parent = parent;
+                waitQueue->Ref();
+                SwapWaitQueue(waitQueue.Get());
 
-                if (Signalled) {
-                    if (Parent) {
-                        Parent->Notify(this);
+                if (Signalled_) {
+                    if (TIntrusivePtr<TWaitQueue> q = SwapWaitQueue(nullptr)) {
+                        q->Notify(this);
                     }
                 }
             }
 
-            NAtomic::TBool Signalled;
-            TWaitQueue* Parent;
-            TSpinLock M_;
-        };
-
-        inline ~TWaitQueue() {
-            for (size_t i = 0; i < H_.size(); ++i) {
-                H_[i]->Register(nullptr);
+            bool Signalled() const {
+                return Signalled_;
             }
-        }
 
-        inline void Register(TWaitHandle& ev) {
-            H_.push_back(&ev);
-            ev.Register(this);
-        }
-
-        template <class T>
-        inline void Register(const T& ev) {
-            Register(static_cast<TWaitHandle&>(*ev));
-        }
+            void ResetState() {
+                Signalled_ = false;
+                SwapWaitQueue(nullptr);
+            }
+        private:
+            TIntrusivePtr<TWaitQueue> SwapWaitQueue(TWaitQueue* newQueue) noexcept {
+                return TIntrusivePtr<TWaitQueue>(AtomicSwap(&WaitQueue_, newQueue), TIntrusivePtr<TWaitQueue>::TNoIncrement());
+            }
+        private:
+            NAtomic::TBool Signalled_ = false;
+            TWaitQueue* WaitQueue_ = nullptr;
+        };
 
         inline bool Wait(const TInstant& deadLine) noexcept {
             return Q_.WaitD(deadLine);
@@ -91,19 +91,12 @@ namespace NNeh {
 
     private:
         TBlockedQueue<TWaitHandle*> Q_;
-        TVector<TWaitHandle*> H_;
     };
 
     typedef TWaitQueue::TWaitHandle TWaitHandle;
 
-    template <class It, class T>
-    static inline void WaitForMultipleObj(It b, It e, const TInstant& deadLine, T& func) {
-        TWaitQueue hndl;
-
-        while (b != e) {
-            hndl.Register(*b++);
-        }
-
+    template <class T>
+    static inline void WaitForMultipleObj(TWaitQueue& hndl, const TInstant& deadLine, T& func) {
         do {
             TWaitHandle* ret = nullptr;
 
@@ -132,8 +125,10 @@ namespace NNeh {
 
     static inline bool WaitForOne(TWaitHandle& wh, const TInstant& deadLine) {
         TSignalled func;
+        auto hndl = MakeIntrusive<TWaitQueue>();
+        wh.Register(hndl);
 
-        WaitForMultipleObj(&wh, &wh + 1, deadLine, func);
+        WaitForMultipleObj(*hndl, deadLine, func);
 
         return func.Signalled;
     }

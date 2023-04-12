@@ -6,7 +6,6 @@
 #include <util/generic/string.h>
 #include <util/memory/tempbuf.h>
 #include <util/stream/file.h>
-#include <util/system/platform.h>
 
 Y_UNIT_TEST_SUITE(TDirutTest) {
     Y_UNIT_TEST(TestRealPath) {

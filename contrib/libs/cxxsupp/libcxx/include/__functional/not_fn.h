@@ -11,12 +11,13 @@
 #define _LIBCPP___FUNCTIONAL_NOT_FN_H
 
 #include <__config>
-#include <__functional/perfect_forward.h>
 #include <__functional/invoke.h>
-#include <utility>
+#include <__functional/perfect_forward.h>
+#include <__utility/forward.h>
+#include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -37,13 +38,13 @@ struct __not_fn_t : __perfect_forward<__not_fn_op, _Fn> {
     using __perfect_forward<__not_fn_op, _Fn>::__perfect_forward;
 };
 
-template<class _Fn, class = _EnableIf<
+template<class _Fn, class = enable_if_t<
     is_constructible_v<decay_t<_Fn>, _Fn> &&
     is_move_constructible_v<decay_t<_Fn>>
 >>
 _LIBCPP_HIDE_FROM_ABI
 _LIBCPP_CONSTEXPR_AFTER_CXX17 auto not_fn(_Fn&& __f) {
-    return __not_fn_t<decay_t<_Fn>>(tuple<>(), _VSTD::forward<_Fn>(__f));
+    return __not_fn_t<decay_t<_Fn>>(_VSTD::forward<_Fn>(__f));
 }
 
 #endif // _LIBCPP_STD_VER > 14

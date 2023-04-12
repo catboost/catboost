@@ -370,6 +370,10 @@ template <>
 class TSerializer<TUtf16String>: public TVectorSerializer<TUtf16String> {
 };
 
+template <class TChar>
+class TSerializer<std::basic_string<TChar>>: public TVectorSerializer<std::basic_string<TChar>> {
+};
+
 template <class T, class A>
 class TSerializer<TDeque<T, A>>: public TVectorSerializer<TDeque<T, A>> {
 };
@@ -716,3 +720,17 @@ static inline void LoadMany(S* s, Ts&... t) {
     void Load(IInputStream* s) override {        \
         ::LoadMany(s, __VA_ARGS__);              \
     }
+
+template <class T>
+struct TNonVirtualSaver {
+    const T* Data;
+    void Save(IOutputStream* out) const {
+        Data->T::Save(out);
+    }
+};
+
+template <typename S, typename T, typename... R>
+inline void LoadMany(S* s, TNonVirtualSaver<T> t, R&... r) {
+    const_cast<T*>(t.Data)->T::Load(s);
+    ::LoadMany(s, r...);
+}

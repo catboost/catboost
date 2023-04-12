@@ -12,6 +12,14 @@ export class Model {
 
 	/** Loads model from file. */
 	loadModel(path: string): void;
+	/** Sets model prediction postprocessing type. Possible value are:
+	 * RawFormulaVal - raw sum of leaf values for each dimension,
+     * Exponent - exp(sum(leaf values)),
+	 * RMSEWithUncertainty - pair (prediction, uncertainty),
+	 * Probability - (probablity for class_0, ..., probablity for class_i,...)
+	 * Class - id of class with maximal predicted probability
+	 * */
+	setPredictionType(predictionType: string): void;
 	/**
 	 * Calculate prediction for multiple documents.
 	 * The same number of numeric and categorial features is expected.
@@ -28,4 +36,6 @@ export class Model {
 	getTreeCount(): number;
 	/** The number of dimensions in the model. */
 	getDimensionsCount(): number;
+	/** The number of dimensions in the prediction. */
+	getPredictionDimensionsCount(): number;
 }

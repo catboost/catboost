@@ -31,6 +31,30 @@ def run_subprocess(*args, **kwargs):
     return p
 
 
+def run_subprocess_with_timeout(timeout, args):
+    attempts_remaining = 5
+    delay = 1
+    p = None
+    while True:
+        try:
+            p = run_subprocess(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate(timeout=timeout)
+            return p, stdout, stderr
+        except subprocess.TimeoutExpired as e:
+            print >>sys.stderr, 'timeout running {0}, error {1}, delay {2} seconds'.format(args, str(e), delay)
+            if p is not None:
+                try:
+                    p.kill()
+                    p.wait(timeout=1)
+                except Exception:
+                    pass
+            attempts_remaining -= 1
+            if attempts_remaining == 0:
+                raise
+            time.sleep(delay)
+            delay = min(2 * delay, 4)
+
+
 def terminate_slaves():
     for p in procs:
         try:
@@ -202,7 +226,7 @@ def is_good_file(p):
     if os.path.getsize(p) < 300:
         return False
 
-    asm_pattern = re.compile('asm(\.\w+)?\.obj$')
+    asm_pattern = re.compile(r'asm(\.\w+)?\.obj$')
     if asm_pattern.search(p):
         pass
     elif p.endswith('.obj'):
@@ -319,16 +343,14 @@ def colorize(out):
 
 
 def trim_path(path, winepath):
-    p1 = run_subprocess([winepath, '-w', path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p1_stdout, p1_stderr = p1.communicate()
+    p1, p1_stdout, p1_stderr = run_subprocess_with_timeout(60, [winepath, '-w', path])
     win_path = p1_stdout.strip()
 
     if p1.returncode != 0 or not win_path:
         # Fall back to only winepath -s
         win_path = path
 
-    p2 = run_subprocess([winepath, '-s', win_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p2_stdout, p2_stderr = p2.communicate()
+    p2, p2_stdout, p2_stderr = run_subprocess_with_timeout(60, [winepath, '-s', win_path])
     short_path = p2_stdout.strip()
 
     check_path = short_path
@@ -336,7 +358,10 @@ def trim_path(path, winepath):
         check_path = check_path[2:]
 
     if not check_path[1:].startswith((path[1:4], path[1:4].upper())):
-        raise Exception('Cannot trim path {}; 1st winepath exit code: {}, stdout:\n{}\n  stderr:\n{}\n 2nd winepath exit code: {}, stdout:\n{}\n  stderr:\n{}'.format(path, p1.returncode, p1_stdout, p1_stderr, p2.returncode, p2_stdout, p2_stderr))
+        raise Exception(
+            'Cannot trim path {}; 1st winepath exit code: {}, stdout:\n{}\n  stderr:\n{}\n 2nd winepath exit code: {}, stdout:\n{}\n  stderr:\n{}'.format(
+            path, p1.returncode, p1_stdout, p1_stderr, p2.returncode, p2_stdout, p2_stderr
+        ))
 
     return short_path
 
@@ -359,8 +384,10 @@ def make_full_path_arg(arg, bld_root, short_root):
         return os.path.join(short_root, arg)
     return arg
 
+
 def fix_path(p):
     topdirs = ['/%s/' % d for d in os.listdir('/')]
+
     def abs_path_start(path, pos):
         if pos < 0:
             return False
@@ -377,6 +404,7 @@ def fix_path(p):
         return '/Fo' + p[3:].replace('/', '\\')
     return p
 
+
 def process_free_args(args, wine, bld_root, mode):
     whole_archive_prefix = '/WHOLEARCHIVE:'
     short_names = {}
@@ -389,6 +417,7 @@ def process_free_args(args, wine, bld_root, mode):
     free_args, wa_peers, wa_libs = pwa.get_whole_archive_peers_and_libs(pcf.skip_markers(args))
 
     process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
+
     def process_arg(arg):
         with_wa_prefix = arg.startswith(whole_archive_prefix)
         prefix = whole_archive_prefix if with_wa_prefix else ''
@@ -407,6 +436,7 @@ def process_free_args(args, wine, bld_root, mode):
         else:
             result.append(process_arg(arg))
     return pwa.ProcessWholeArchiveOption('WINDOWS', wa_peers, wa_libs).construct_cmd(result)
+
 
 def run_main():
     parser = argparse.ArgumentParser()

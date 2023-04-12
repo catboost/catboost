@@ -46,11 +46,11 @@ def describe(article, value, name=None, verbose=False, capital=False):
     Definite description:
 
     >>> describe("the", object())
-    "the object at '0x10741f1b0'"
+    "the object at '...'"
     >>> describe("the", object)
-    "the type 'object'"
+    'the object object'
     >>> describe("the", type(object))
-    "the type 'type'"
+    'the type type'
 
     Definitely named description:
 
@@ -71,7 +71,7 @@ def describe(article, value, name=None, verbose=False, capital=False):
 
     if article == "the" or (article is None and not inspect.isclass(value)):
         if name is not None:
-            result = "{} {}".format(typename, name)
+            result = f"{typename} {name}"
             if article is not None:
                 return add_article(result, True, capital)
             else:
@@ -86,7 +86,10 @@ def describe(article, value, name=None, verbose=False, capital=False):
             elif isinstance(value, types.MethodType):
                 name = value.__func__.__name__
                 tick_wrap = True
-            elif type(value).__repr__ in (object.__repr__, type.__repr__):
+            elif type(value).__repr__ in (
+                object.__repr__,
+                type.__repr__,
+            ):  # type:ignore[comparison-overlap]
                 name = "at '%s'" % hex(id(value))
                 verbose = False
             else:
@@ -96,24 +99,24 @@ def describe(article, value, name=None, verbose=False, capital=False):
                 name = _prefix(value) + name
             if tick_wrap:
                 name = name.join("''")
-            return describe(article, value, name=name,
-                verbose=verbose, capital=capital)
+            return describe(article, value, name=name, verbose=verbose, capital=capital)
     elif article in ("a", "an") or article is None:
         if article is None:
             return typename
         return add_article(typename, False, capital)
     else:
-        raise ValueError("The 'article' argument should "
-            "be 'the', 'a', 'an', or None not %r" % article)
+        raise ValueError(
+            "The 'article' argument should be 'the', 'a', 'an', or None not %r" % article
+        )
 
-    
+
 def _prefix(value):
     if isinstance(value, types.MethodType):
-        name = describe(None, value.__self__, verbose=True) + '.'
+        name = describe(None, value.__self__, verbose=True) + "."
     else:
         module = inspect.getmodule(value)
         if module is not None and module.__name__ != "builtins":
-            name = module.__name__ + '.'
+            name = module.__name__ + "."
         else:
             name = ""
     return name
@@ -150,11 +153,11 @@ def add_article(name, definite=False, capital=False):
     if definite:
         result = "the " + name
     else:
-        first_letters = re.compile(r'[\W_]+').sub('', name)
-        if first_letters[:1].lower() in 'aeiou':
-            result = 'an ' + name
+        first_letters = re.compile(r"[\W_]+").sub("", name)
+        if first_letters[:1].lower() in "aeiou":
+            result = "an " + name
         else:
-            result = 'a ' + name
+            result = "a " + name
     if capital:
         return result[0].upper() + result[1:]
     else:
@@ -167,5 +170,5 @@ def repr_type(obj):
     error messages.
     """
     the_type = type(obj)
-    msg = '{!r} {!r}'.format(obj, the_type)
+    msg = f"{obj!r} {the_type!r}"
     return msg

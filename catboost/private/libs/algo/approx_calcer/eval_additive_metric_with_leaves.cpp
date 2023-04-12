@@ -2,6 +2,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 
 #include <library/cpp/fast_exp/fast_exp.h>
 
@@ -49,7 +50,7 @@ TMetricHolder EvalErrorsWithLeaves(
     const TConstArrayRef<TConstArrayRef<double>> leafDelta,
     TConstArrayRef<TIndexType> indices,
     bool isExpApprox,
-    TConstArrayRef<float> target,
+    const TVector<TConstArrayRef<float>>& target,
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     const IMetric& error,
@@ -70,10 +71,12 @@ TMetricHolder EvalErrorsWithLeaves(
     NPar::TLocalExecutor sequentialExecutor;
     const auto evalMetric = [&] (int from, int to) { // objects or queries
         TVector<TConstArrayRef<double>> approxBlock(approxDimension, TArrayRef<double>{});
+        TVector<TConstArrayRef<float>> targetBlock(target.size(), TArrayRef<float>{});
 
         const bool isObjectwise = error.GetErrorType() == EErrorType::PerObjectError;
         CB_ENSURE(isObjectwise || !queriesInfo.empty(), "Need queries to evaluate metric " + error.GetDescription());
-        int maxApproxBlockSize = 4096;
+        constexpr size_t MaxQueryBlockSize = 4096;
+        int maxApproxBlockSize = MaxQueryBlockSize;
         if (!isObjectwise) {
             const auto maxQuerySize = MaxElementBy(
                 queriesInfo.begin() + from,
@@ -84,7 +87,7 @@ TMetricHolder EvalErrorsWithLeaves(
         TVector<TVector<double>> approxDeltaBlock;
         ResizeRank2(approxDimension, maxApproxBlockSize, approxDeltaBlock);
 
-        TVector<TQueryInfo> localQueriesInfo(queriesInfo.begin(), queriesInfo.end());
+        TVector<TQueryInfo> queriesInfoBlock(MaxQueryBlockSize);
 
         TMetricHolder result;
         for (int idx = from; idx < to; /*see below*/) {
@@ -92,26 +95,22 @@ TMetricHolder EvalErrorsWithLeaves(
             const int approxBlockSize = GetBlockSize(isObjectwise, queriesInfo, idx, nextIdx);
             const int approxBlockStart = isObjectwise ? idx : queriesInfo[idx].Begin;
 
-            for (auto dimensionIdx : xrange(approxDimension)) {
-                const auto approxDimension = MakeArrayRef(approxDeltaBlock[dimensionIdx]);
-                const auto deltaDimension = MakeArrayRef(localLeafDelta[dimensionIdx]);
-                for (auto jdx : xrange(approxBlockSize)) {
-                    approxDimension[jdx] = deltaDimension[indices[approxBlockStart + jdx]];
-                }
-            }
-            for (auto dimensionIdx : xrange(approxDimension)) {
-                approxBlock[dimensionIdx] = MakeArrayRef(approx[dimensionIdx].data() + approxBlockStart, approxBlockSize);
-            }
-            const auto targetBlock = MakeArrayRef(target.data() + approxBlockStart, approxBlockSize);
-            const auto weightBlock = weight.empty() ? TArrayRef<float>{}
-                : MakeArrayRef(weight.data() + approxBlockStart, approxBlockSize);
+            SetApproxDeltasMulti(
+                GetSlice(indices, approxBlockStart, approxBlockSize),
+                approxBlockSize,
+                localLeafDelta,
+                &approxDeltaBlock,
+                &sequentialExecutor);
+            approxBlock = To2DConstArrayRef<double>(approx, approxBlockStart, approxBlockSize);
+            targetBlock = To2DConstArrayRef<float>(target, approxBlockStart, approxBlockSize);
+            const auto weightBlock = GetSlice(weight, approxBlockStart, approxBlockSize);
 
-            auto queriesInfoBlock = TArrayRef<TQueryInfo>{};
+            auto queriesInfoBlockRef = GetSlice(queriesInfoBlock, 0, nextIdx - idx);
             if (!isObjectwise) {
-                queriesInfoBlock = MakeArrayRef(localQueriesInfo.data() + idx, nextIdx - idx);
-                for (auto& query : queriesInfoBlock) {
-                    query.Begin -= approxBlockStart;
-                    query.End -= approxBlockStart;
+                for (auto queryIdx : xrange(idx, nextIdx)) {
+                    queriesInfoBlockRef[queryIdx - idx] = queriesInfo[queryIdx];
+                    queriesInfoBlockRef[queryIdx - idx].Begin -= approxBlockStart;
+                    queriesInfoBlockRef[queryIdx - idx].End -= approxBlockStart;
                 }
             }
 
@@ -121,7 +120,7 @@ TMetricHolder EvalErrorsWithLeaves(
                 isExpApprox,
                 targetBlock,
                 weightBlock,
-                queriesInfoBlock,
+                queriesInfoBlockRef,
                 error,
                 &sequentialExecutor);
             result.Add(blockResult);
@@ -133,10 +132,12 @@ TMetricHolder EvalErrorsWithLeaves(
     int begin = 0;
     int end;
     if (error.GetErrorType() == EErrorType::PerObjectError) {
-        end = target.size();
-        Y_VERIFY(end <= approx[0].ysize());
+        end = target[0].size();
+        CB_ENSURE(end <= approx[0].ysize(), "Prediction and label size do not match");
     } else {
-        Y_VERIFY(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
+        CB_ENSURE(
+            error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError,
+            "Expected querywise or pairwise metric");
         end = queriesInfo.size();
     }
 

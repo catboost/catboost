@@ -4,6 +4,8 @@
 
 #include "features.h"
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/array_ref.h>
@@ -81,20 +83,25 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
 
             virtual void SetProperty(const TStringBuf propName, const TStringBuf propValue) = 0;
 
-            // TODO(kirillovs): maybe write special class for results (on gpu it'll hold floats in possibly managed memory)
-            TVector<double> CreateVectorForPredictions(size_t docCount) const {
+            i32 GetPredictionDimensions() const {
                 switch (GetPredictionType())
                 {
                 case EPredictionType::RawFormulaVal:
                 case EPredictionType::Exponent:
                 case EPredictionType::RMSEWithUncertainty:
+                case EPredictionType::MultiProbability:
                 case EPredictionType::Probability:
-                    return TVector<double>(docCount * GetApproxDimension());
+                    return GetApproxDimension();
                 case EPredictionType::Class:
-                    return TVector<double>(docCount);
+                    return 1;
                 default:
-                    Y_UNREACHABLE();
+                    CB_ENSURE(false, "Unexpected prediction type");
                 }
+            }
+
+            // TODO(kirillovs): maybe write special class for results (on gpu it'll hold floats in possibly managed memory)
+            TVector<double> CreateVectorForPredictions(size_t docCount) const {
+                return TVector<double>(docCount * GetPredictionDimensions());
             }
 
             virtual void CalcFlatTransposed(
@@ -172,10 +179,11 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 const TFeatureLayout* featureInfo = nullptr
             ) const = 0;
 
-            virtual void CalcWithHashedCatAndText(
+            virtual void CalcWithHashedCatAndTextAndEmbeddings(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
                 TConstArrayRef<TConstArrayRef<int>> catFeatures,
                 TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
@@ -209,6 +217,28 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                     const TFeatureLayout* featureInfo = nullptr
             ) const {
                 Calc(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
+            }
+
+            virtual void Calc(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const = 0;
+
+            void Calc(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const {
+                Calc(floatFeatures, catFeatures, textFeatures, embeddingFeatures, 0, GetTreeCount(), results, featureInfo);
             }
 
             template <typename TCatFeatureType>
@@ -268,7 +298,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 TArrayRef<TCalcerIndexType> indexes
             ) const = 0;
 
-	    virtual void Quantize(
+            virtual void Quantize(
                 TConstArrayRef<TConstArrayRef<float>> features,
                 IQuantizedData* quantizedData
             ) const = 0;

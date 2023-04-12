@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Yann Collet, Facebook, Inc.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -34,12 +34,20 @@
 #include "../common/pool.h"
 #include "../common/threading.h"
 #include "../common/zstd_internal.h" /* includes zstd.h */
+#include "../common/bits.h" /* ZSTD_highbit32 */
 #include "../zdict.h"
 #include "cover.h"
 
 /*-*************************************
 *  Constants
 ***************************************/
+/**
+* There are 32bit indexes used to ref samples, so limit samples size to 4GB
+* on 64bit builds.
+* For 32bit builds we choose 1 GB.
+* Most 32bit platforms have 2GB user-mode addressable space and we allocate a large
+* contiguous buffer, so 1GB is already a high limit.
+*/
 #define COVER_MAX_SAMPLES_SIZE (sizeof(size_t) == 8 ? ((unsigned)-1) : ((unsigned)1 GB))
 #define COVER_DEFAULT_SPLITPOINT 1.0
 
@@ -47,7 +55,7 @@
 *  Console display
 ***************************************/
 #ifndef LOCALDISPLAYLEVEL
-static int g_displayLevel = 2;
+static int g_displayLevel = 0;
 #endif
 #undef  DISPLAY
 #define DISPLAY(...)                                                           \
@@ -534,7 +542,7 @@ static void COVER_ctx_destroy(COVER_ctx_t *ctx) {
 
 /**
  * Prepare a context for dictionary building.
- * The context is only dependent on the parameter `d` and can used multiple
+ * The context is only dependent on the parameter `d` and can be used multiple
  * times.
  * Returns 0 on success or error code on error.
  * The context must be destroyed with `COVER_ctx_destroy()`.
@@ -639,7 +647,7 @@ static size_t COVER_ctx_init(COVER_ctx_t *ctx, const void *samplesBuffer,
 
 void COVER_warnOnSmallCorpus(size_t maxDictSize, size_t nbDmers, int displayLevel)
 {
-  const double ratio = (double)nbDmers / maxDictSize;
+  const double ratio = (double)nbDmers / (double)maxDictSize;
   if (ratio >= 10) {
       return;
   }
@@ -735,7 +743,7 @@ ZDICTLIB_API size_t ZDICT_trainFromBuffer_cover(
   COVER_map_t activeDmers;
   parameters.splitPoint = 1.0;
   /* Initialize global data */
-  g_displayLevel = parameters.zParams.notificationLevel;
+  g_displayLevel = (int)parameters.zParams.notificationLevel;
   /* Checks */
   if (!COVER_checkParameters(parameters, dictBufferCapacity)) {
     DISPLAYLEVEL(1, "Cover parameters incorrect\n");
@@ -943,9 +951,17 @@ void COVER_best_finish(COVER_best_t *best, ZDICT_cover_params_t parameters,
   }
 }
 
+static COVER_dictSelection_t setDictSelection(BYTE* buf, size_t s, size_t csz)
+{
+    COVER_dictSelection_t ds;
+    ds.dictContent = buf;
+    ds.dictSize = s;
+    ds.totalCompressedSize = csz;
+    return ds;
+}
+
 COVER_dictSelection_t COVER_dictSelectionError(size_t error) {
-    COVER_dictSelection_t selection = { NULL, 0, error };
-    return selection;
+    return setDictSelection(NULL, 0, error);
 }
 
 unsigned COVER_dictSelectionIsError(COVER_dictSelection_t selection) {
@@ -998,9 +1014,8 @@ COVER_dictSelection_t COVER_selectDict(BYTE* customDictContent, size_t dictBuffe
   }
 
   if (params.shrinkDict == 0) {
-    COVER_dictSelection_t selection = { largestDictbuffer, dictContentSize, totalCompressedSize };
     free(candidateDictBuffer);
-    return selection;
+    return setDictSelection(largestDictbuffer, dictContentSize, totalCompressedSize);
   }
 
   largestDict = dictContentSize;
@@ -1032,20 +1047,16 @@ COVER_dictSelection_t COVER_selectDict(BYTE* customDictContent, size_t dictBuffe
       return COVER_dictSelectionError(totalCompressedSize);
     }
 
-    if (totalCompressedSize <= largestCompressed * regressionTolerance) {
-      COVER_dictSelection_t selection = { candidateDictBuffer, dictContentSize, totalCompressedSize };
+    if ((double)totalCompressedSize <= (double)largestCompressed * regressionTolerance) {
       free(largestDictbuffer);
-      return selection;
+      return setDictSelection( candidateDictBuffer, dictContentSize, totalCompressedSize );
     }
     dictContentSize *= 2;
   }
   dictContentSize = largestDict;
   totalCompressedSize = largestCompressed;
-  {
-    COVER_dictSelection_t selection = { largestDictbuffer, dictContentSize, totalCompressedSize };
-    free(candidateDictBuffer);
-    return selection;
-  }
+  free(candidateDictBuffer);
+  return setDictSelection( largestDictbuffer, dictContentSize, totalCompressedSize );
 }
 
 /**

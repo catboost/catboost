@@ -44,13 +44,8 @@
 #include "../thread/thread_operators.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
 #include "../iterator/counting_input_iterator.cuh"
-#include "../iterator/tex_obj_input_iterator.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -98,18 +93,16 @@ template <
     typename        OffsetT>             ///< Signed integer type for sequence offsets
 struct SpmvParams
 {
-    ValueT*         d_values;            ///< Pointer to the array of \p num_nonzeros values of the corresponding nonzero elements of matrix <b>A</b>.
-    OffsetT*        d_row_end_offsets;   ///< Pointer to the array of \p m offsets demarcating the end of every row in \p d_column_indices and \p d_values
-    OffsetT*        d_column_indices;    ///< Pointer to the array of \p num_nonzeros column-indices of the corresponding nonzero elements of matrix <b>A</b>.  (Indices are zero-valued.)
-    ValueT*         d_vector_x;          ///< Pointer to the array of \p num_cols values corresponding to the dense input vector <em>x</em>
+    const ValueT*   d_values;            ///< Pointer to the array of \p num_nonzeros values of the corresponding nonzero elements of matrix <b>A</b>.
+    const OffsetT*  d_row_end_offsets;   ///< Pointer to the array of \p m offsets demarcating the end of every row in \p d_column_indices and \p d_values
+    const OffsetT*  d_column_indices;    ///< Pointer to the array of \p num_nonzeros column-indices of the corresponding nonzero elements of matrix <b>A</b>.  (Indices are zero-valued.)
+    const ValueT*   d_vector_x;          ///< Pointer to the array of \p num_cols values corresponding to the dense input vector <em>x</em>
     ValueT*         d_vector_y;          ///< Pointer to the array of \p num_rows values corresponding to the dense output vector <em>y</em>
     int             num_rows;            ///< Number of rows of matrix <b>A</b>.
     int             num_cols;            ///< Number of columns of matrix <b>A</b>.
     int             num_nonzeros;        ///< Number of nonzero elements of matrix <b>A</b>.
     ValueT          alpha;               ///< Alpha multiplicand
     ValueT          beta;                ///< Beta addend-multiplicand
-
-    TexObjInputIterator<ValueT, OffsetT>  t_vector_x;
 };
 
 
@@ -209,11 +202,14 @@ struct AgentSpmv
     /// Merge item type (either a non-zero value or a row-end offset)
     union MergeItem
     {
-        // Value type to pair with index type OffsetT (NullType if loading values directly during merge)
-        typedef typename If<AgentSpmvPolicyT::DIRECT_LOAD_NONZEROS, NullType, ValueT>::Type MergeValueT;
+      // Value type to pair with index type OffsetT
+      // (NullType if loading values directly during merge)
+      using MergeValueT =
+        cub::detail::conditional_t<
+          AgentSpmvPolicyT::DIRECT_LOAD_NONZEROS, NullType, ValueT>;
 
-        OffsetT     row_end_offset;
-        MergeValueT nonzero;
+      OffsetT row_end_offset;
+      MergeValueT nonzero;
     };
 
     /// Shared memory type required by this thread block
@@ -298,9 +294,12 @@ struct AgentSpmv
         OffsetT*    s_tile_row_end_offsets  = &temp_storage.aliasable.merge_items[0].row_end_offset;
 
         // Gather the row end-offsets for the merge tile into shared memory
-        for (int item = threadIdx.x; item <= tile_num_rows; item += BLOCK_THREADS)
+        for (int item = threadIdx.x; item < tile_num_rows + ITEMS_PER_THREAD; item += BLOCK_THREADS)
         {
-            s_tile_row_end_offsets[item] = wd_row_end_offsets[tile_start_coord.x + item];
+            const OffsetT offset =
+              (cub::min)(static_cast<OffsetT>(tile_start_coord.x + item),
+                         static_cast<OffsetT>(spmv_params.num_rows - 1));
+            s_tile_row_end_offsets[item] = wd_row_end_offsets[offset];
         }
 
         CTA_SYNC();
@@ -332,10 +331,8 @@ struct AgentSpmv
             OffsetT column_idx          = wd_column_indices[nonzero_idx];
             ValueT  value               = wd_values[nonzero_idx];
 
-            ValueT  vector_value        = spmv_params.t_vector_x[column_idx];
-#if (CUB_PTX_ARCH >= 350)
-            vector_value                = wd_vector_x[column_idx];
-#endif
+            ValueT  vector_value        = wd_vector_x[column_idx];
+
             ValueT  nonzero             = value * vector_value;
 
             OffsetT row_end_offset      = s_tile_row_end_offsets[thread_current_coord.x];
@@ -441,8 +438,7 @@ struct AgentSpmv
                 OffsetT column_idx              = *ci;
                 ValueT  value                   = *a;
 
-                ValueT  vector_value            = spmv_params.t_vector_x[column_idx];
-                vector_value                    = wd_vector_x[column_idx];
+                ValueT  vector_value            = wd_vector_x[column_idx];
 
                 ValueT  nonzero                 = value * vector_value;
 
@@ -468,10 +464,8 @@ struct AgentSpmv
                 OffsetT column_idx              = wd_column_indices[tile_start_coord.y + nonzero_idx];
                 ValueT  value                   = wd_values[tile_start_coord.y + nonzero_idx];
 
-                ValueT  vector_value            = spmv_params.t_vector_x[column_idx];
-#if (CUB_PTX_ARCH >= 350)
-                vector_value                    = wd_vector_x[column_idx];
-#endif
+                ValueT  vector_value            = wd_vector_x[column_idx];
+
                 ValueT  nonzero                 = value * vector_value;
 
                 s_tile_nonzeros[nonzero_idx]    = nonzero;
@@ -482,9 +476,12 @@ struct AgentSpmv
 
         // Gather the row end-offsets for the merge tile into shared memory
         #pragma unroll 1
-        for (int item = threadIdx.x; item <= tile_num_rows; item += BLOCK_THREADS)
+        for (int item = threadIdx.x; item < tile_num_rows + ITEMS_PER_THREAD; item += BLOCK_THREADS)
         {
-            s_tile_row_end_offsets[item] = wd_row_end_offsets[tile_start_coord.x + item];
+            const OffsetT offset =
+              (cub::min)(static_cast<OffsetT>(tile_start_coord.x + item),
+                         static_cast<OffsetT>(spmv_params.num_rows - 1));
+            s_tile_row_end_offsets[item] = wd_row_end_offsets[offset];
         }
 
         CTA_SYNC();
@@ -652,9 +649,23 @@ struct AgentSpmv
         if (threadIdx.x == 0)
         {
             if (HAS_ALPHA)
+            {
                 tile_carry.value *= spmv_params.alpha;
+            }
 
             tile_carry.key += tile_start_coord.x;
+            if (tile_carry.key >= spmv_params.num_rows)
+            {
+                // FIXME: This works around an invalid memory access in the
+                // fixup kernel. The underlying issue needs to be debugged and
+                // properly fixed, but this hack prevents writes to
+                // out-of-bounds addresses. It doesn't appear to have an effect
+                // on the validity of the results, since this only affects the
+                // carry-over from last tile in the input.
+                tile_carry.key = spmv_params.num_rows - 1;
+                tile_carry.value = ValueT{};
+            };
+
             d_tile_carry_pairs[tile_idx]    = tile_carry;
         }
     }
@@ -665,6 +676,5 @@ struct AgentSpmv
 
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

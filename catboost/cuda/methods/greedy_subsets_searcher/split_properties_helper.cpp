@@ -861,7 +861,7 @@ namespace NCatboostCuda {
 
                     TLeaf leaf = subsets->Leaves[leftId];
 
-                    Y_VERIFY(subsets->Leaves[leftId].BestSplit.Defined());
+                    CB_ENSURE(subsets->Leaves[leftId].BestSplit.Defined(), "Best split is undefined for leaf " << leftId);
 
                     TBinarySplit splitFeature = ToSplit(FeaturesManager,
                                                         subsets->Leaves[leftId].BestSplit);
@@ -940,8 +940,8 @@ namespace NCatboostCuda {
                 //here faster to read everything
                 if (leavesToSplit.size() == 1) {
                     //fast path for lossguide learning
-                    Y_VERIFY(leftIds.size() == 1);
-                    Y_VERIFY(rightIds.size() == 1);
+                    CB_ENSURE(leftIds.size() == 1, "Unexpected number of left children " << leftIds.size() << " (should be 1)");
+                    CB_ENSURE(rightIds.size() == 1, "Unexpected number of left children " << rightIds.size() << " (should be 1)");
                     TVector<ui32> ids = {leftIds[0], rightIds[0]};
                     FastUpdateLeavesSizes(ids, subsets);
                 } else {
@@ -976,7 +976,7 @@ namespace NCatboostCuda {
 
         TLeaf leaf = subsets->Leaves[leftId];
 
-        Y_VERIFY(subsets->Leaves[leftId].BestSplit.Defined());
+        CB_ENSURE(subsets->Leaves[leftId].BestSplit.Defined(), "Best split is undefined for leaf " << leftId);
 
         TBinarySplit binarySplit = ToSplit(FeaturesManager,
                                            subsets->Leaves[leftId].BestSplit);
@@ -1029,7 +1029,11 @@ namespace NCatboostCuda {
         FastUpdateLeavesSizes(ids, subsets);
     }
 
-    TPointsSubsets TSplitPropertiesHelper::CreateInitialSubsets(TOptimizationTarget&& target, ui32 maxLeaves) {
+    TPointsSubsets TSplitPropertiesHelper::CreateInitialSubsets(
+        TOptimizationTarget&& target,
+        ui32 maxLeaves,
+        TConstArrayRef<float> featureWeights
+    ) {
         TPointsSubsets subsets;
         subsets.Leaves.reserve(maxLeaves + 1);
 
@@ -1065,6 +1069,9 @@ namespace NCatboostCuda {
                               &subsets.PartitionStats);
 
         subsets.Leaves.push_back(TLeaf());
+
+        subsets.FeatureWeights = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(featureWeights.size()));
+        subsets.FeatureWeights.Write(featureWeights);
 
         RebuildLeavesSizes(&subsets);
         return subsets;
@@ -1393,7 +1400,9 @@ namespace NCatboostCuda {
     void TSplitPropertiesHelper::SubstractHistograms(const TVector<ui32>& from,
                                                      const TVector<ui32>& what,
                                                      TPointsSubsets* subsets) {
-        Y_VERIFY(from.size() == what.size());
+        CB_ENSURE(
+            from.size() == what.size(),
+            "Sizes of subtracted histograms do not match, " << from.size() << " != " << what.size());
 
         if (from.size() <= 2) {
             using TKernel = NKernelHost::TSubstractHistogramKernel;

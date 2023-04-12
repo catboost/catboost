@@ -2,10 +2,10 @@
 #include "record.h"
 
 #include <util/generic/buffer.h>
+#include <util/generic/yexception.h>
 #include <util/system/file.h>
 #include <util/system/info.h>
 #include <util/system/mutex.h>
-#include <util/system/rwlock.h>
 #include <util/system/align.h>
 
 class TSyncPageCacheFileLogBackend::TImpl: public TNonCopyable {
@@ -75,10 +75,15 @@ private:
     }
 
     void Write() {
-        File_.Write(Buffer_.Data(), Buffer_.Size());
-        WrittenPtr_ += Buffer_.Size();
-        PageAlignedWrittenPtr_ = AlignDown(WrittenPtr_, GetPageSize());
-        Buffer_.Clear();
+        try {
+            File_.Write(Buffer_.Data(), Buffer_.Size());
+            WrittenPtr_ += Buffer_.Size();
+            PageAlignedWrittenPtr_ = AlignDown(WrittenPtr_, GetPageSize());
+            Buffer_.Clear();
+        } catch (TFileError&) {
+            Buffer_.Clear();
+            throw;
+        }
     }
 
     void FlushAsync(const i64 from, const i64 to) {

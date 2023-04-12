@@ -6,26 +6,24 @@
     meant to be a complete style, just for Stata's file formats.
 
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.style import Style
-from pygments.token import Keyword, Name, Comment, String, Error, \
-    Number, Operator, Whitespace, Generic, Text
+from pygments.token import Token, Keyword, Name, Comment, String, Error, \
+    Number, Operator, Whitespace, Generic
 
 
 class StataDarkStyle(Style):
-
-    default_style = ''
 
     background_color = "#232629"
     highlight_color = "#49483e"
 
     styles = {
+        Token:                 '#cccccc',
         Whitespace:            '#bbbbbb',
         Error:                 'bg:#e3d2d2 #a61717',
-        Text:                  '#cccccc',
         String:                '#51cc99',
         Number:                '#4FB8CC',
         Operator:              '',

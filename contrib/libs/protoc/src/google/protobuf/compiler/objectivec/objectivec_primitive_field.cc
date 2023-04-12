@@ -52,13 +52,13 @@ const char* PrimitiveTypeName(const FieldDescriptor* descriptor) {
   ObjectiveCType type = GetObjectiveCType(descriptor);
   switch (type) {
     case OBJECTIVECTYPE_INT32:
-      return "int32_t";
+      return "arc_i32";
     case OBJECTIVECTYPE_UINT32:
-      return "uint32_t";
+      return "arc_ui32";
     case OBJECTIVECTYPE_INT64:
-      return "int64_t";
+      return "arc_i64";
     case OBJECTIVECTYPE_UINT64:
-      return "uint64_t";
+      return "arc_ui64";
     case OBJECTIVECTYPE_FLOAT:
       return "float";
     case OBJECTIVECTYPE_DOUBLE:
@@ -70,7 +70,7 @@ const char* PrimitiveTypeName(const FieldDescriptor* descriptor) {
     case OBJECTIVECTYPE_DATA:
       return "NSData";
     case OBJECTIVECTYPE_ENUM:
-      return "int32_t";
+      return "arc_i32";
     case OBJECTIVECTYPE_MESSAGE:
       return NULL;  // Messages go through objectivec_message_field.cc|h.
   }

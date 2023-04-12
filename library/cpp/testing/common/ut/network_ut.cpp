@@ -15,7 +15,7 @@ static TTempDir TmpDir;
 
 TEST(NetworkTest, FreePort) {
     NTesting::TScopedEnvironment envGuard("PORT_SYNC_PATH", TmpDir.Name());
-
+    NTesting::InitPortManagerFromEnv();
     TVector<NTesting::TPortHolder> ports(Reserve(100));
 
     for (size_t i = 0; i < 100; ++i) {
@@ -40,9 +40,61 @@ TEST(NetworkTest, FreePort) {
     }
 }
 
+TEST(NetworkTest, FreePortWithinRanges) {
+    NTesting::TScopedEnvironment envGuard{{
+            {"PORT_SYNC_PATH", TmpDir.Name()},
+            {"VALID_PORT_RANGE", "3456:7654"},
+        }};
+    NTesting::InitPortManagerFromEnv();
+
+    for (size_t i = 0; i < 100; ++i) {
+        auto holder = NTesting::GetFreePort();
+        ui16 port = holder;
+        ASSERT_GE(port, 3456u);
+        ASSERT_LE(port, 7654u);
+    }
+}
+
+TEST(NetworkTest, GetPortRandom) {
+    NTesting::TScopedEnvironment envGuard{{
+            {"PORT_SYNC_PATH", TmpDir.Name()},
+            {"NO_RANDOM_PORTS", ""},
+        }};
+    NTesting::InitPortManagerFromEnv();
+
+    ui16 testPort = 80; // value just must be outside the assignable range
+    for (size_t i = 0; i < 10; ++i) {
+        NTesting::TPortHolder assigned = NTesting::NLegacy::GetPort(testPort);
+        ui16 assignedInt = assigned;
+        ASSERT_NE(testPort, assignedInt);
+    }
+}
+
+TEST(NetworkTest, GetPortNonRandom) {
+    NTesting::TScopedEnvironment envGuard{{
+            {"PORT_SYNC_PATH", TmpDir.Name()},
+            {"NO_RANDOM_PORTS", "1"},
+        }};
+    NTesting::InitPortManagerFromEnv();
+
+    TVector<ui16> ports(Reserve(100)); // keep integers, we don't need the ports to remain allocated
+
+    for (size_t i = 0; i < 10; ++i) {
+        auto portHolder = NTesting::GetFreePort();
+        ports.push_back(portHolder);
+    }
+
+    for (auto& testPort : ports) {
+        NTesting::TPortHolder assigned = NTesting::NLegacy::GetPort(testPort);
+        ui16 assignedInt = assigned;
+        ASSERT_EQ(testPort, assignedInt);
+    }
+}
+
 
 TEST(FreePortTest, FreePortsRange) {
     NTesting::TScopedEnvironment envGuard("PORT_SYNC_PATH", TmpDir.Name());
+    NTesting::InitPortManagerFromEnv();
 
     for (ui16 i = 2; i < 10; ++i) {
         TVector<NTesting::TPortHolder> ports = NTesting::NLegacy::GetFreePortsRange(i);

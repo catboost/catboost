@@ -1,10 +1,11 @@
 #include "rwlock.h"
-#include "atomic.h"
 
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/thread/pool.h>
 #include <util/random/random.h>
+
+#include <atomic>
 
 class TRWMutexTest: public TTestBase {
     UNIT_TEST_SUITE(TRWMutexTest);
@@ -13,17 +14,10 @@ class TRWMutexTest: public TTestBase {
     UNIT_TEST_SUITE_END();
 
     struct TSharedData {
-        TSharedData()
-            : writersIn(0)
-            , readersIn(0)
-            , failed(false)
-        {
-        }
+        std::atomic<size_t> writersIn = 0;
+        std::atomic<size_t> readersIn = 0;
 
-        TAtomic writersIn;
-        TAtomic readersIn;
-
-        bool failed;
+        bool failed = false;
 
         TRWMutex mutex;
     };
@@ -53,11 +47,11 @@ class TRWMutexTest: public TTestBase {
         void RunReaders() {
             Data_.mutex.AcquireRead();
 
-            AtomicIncrement(Data_.readersIn);
+            ++Data_.readersIn;
             usleep(100);
-            FAIL_ASSERT(Data_.readersIn == long(Total_));
+            FAIL_ASSERT(Data_.readersIn.load() == Total_);
             usleep(100);
-            AtomicDecrement(Data_.readersIn);
+            --Data_.readersIn;
 
             Data_.mutex.ReleaseRead();
         }
@@ -67,10 +61,10 @@ class TRWMutexTest: public TTestBase {
                 for (size_t i = 0; i < 10; ++i) {
                     Data_.mutex.AcquireRead();
 
-                    AtomicIncrement(Data_.readersIn);
-                    FAIL_ASSERT(Data_.writersIn == 0);
+                    ++Data_.readersIn;
+                    FAIL_ASSERT(Data_.writersIn.load() == 0);
                     usleep(RandomNumber<ui32>() % 5);
-                    AtomicDecrement(Data_.readersIn);
+                    --Data_.readersIn;
 
                     Data_.mutex.ReleaseRead();
                 }
@@ -78,10 +72,10 @@ class TRWMutexTest: public TTestBase {
                 for (size_t i = 0; i < 10; ++i) {
                     Data_.mutex.AcquireWrite();
 
-                    AtomicIncrement(Data_.writersIn);
-                    FAIL_ASSERT(Data_.readersIn == 0 && Data_.writersIn == 1);
+                    ++Data_.writersIn;
+                    FAIL_ASSERT(Data_.readersIn.load() == 0 && Data_.writersIn.load() == 1);
                     usleep(RandomNumber<ui32>() % 5);
-                    AtomicDecrement(Data_.writersIn);
+                    --Data_.writersIn;
 
                     Data_.mutex.ReleaseWrite();
                 }

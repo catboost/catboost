@@ -7,7 +7,6 @@
 #if defined(_win_)
     #include <util/system/winint.h>
 #else
-    #include <sys/types.h>
     #include <sys/mman.h>
 #endif
 

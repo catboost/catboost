@@ -48,11 +48,7 @@
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /******************************************************************************
  * Kernel entry points
@@ -76,18 +72,17 @@ __global__ void DeviceReduceKernel(
     ReductionOpT            reduction_op)               ///< [in] Binary reduction functor
 {
     // The output value type
-    typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
-        typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
+    using OutputT =
+      cub::detail::non_void_value_t<OutputIteratorT,
+                                    cub::detail::value_t<InputIteratorT>>;
 
     // Thread block type for reducing input tiles
-    typedef AgentReduce<
-            typename ChainedPolicyT::ActivePolicy::ReducePolicy,
-            InputIteratorT,
-            OutputIteratorT,
-            OffsetT,
-            ReductionOpT>
-        AgentReduceT;
+    using AgentReduceT =
+      AgentReduce<typename ChainedPolicyT::ActivePolicy::ReducePolicy,
+                  InputIteratorT,
+                  OutputIteratorT,
+                  OffsetT,
+                  ReductionOpT>;
 
     // Shared memory storage
     __shared__ typename AgentReduceT::TempStorage temp_storage;
@@ -323,11 +318,11 @@ template <
     typename OffsetT,           ///< Signed integer type for global offsets
     typename ReductionOpT,      ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt>
     typename OutputT =          ///< Data type of the output iterator
-        typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-            typename std::iterator_traits<InputIteratorT>::value_type,                                  // ... then the input iterator's value type,
-            typename std::iterator_traits<OutputIteratorT>::value_type>::Type,                          // ... else the output iterator's value type
+        cub::detail::non_void_value_t<
+          OutputIteratorT,
+          cub::detail::value_t<InputIteratorT>>,
     typename SelectedPolicy = DeviceReducePolicy<
-        typename std::iterator_traits<InputIteratorT>::value_type,
+        cub::detail::value_t<InputIteratorT>,
         OutputT,
         OffsetT,
         ReductionOpT> >
@@ -338,7 +333,7 @@ struct DispatchReduce :
     // Problem state
     //------------------------------------------------------------------------------
 
-    void                *d_temp_storage;                ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+    void                *d_temp_storage;                ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
     size_t              &temp_storage_bytes;            ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
     InputIteratorT      d_in;                           ///< [in] Pointer to the input sequence of data items
     OutputIteratorT     d_out;                          ///< [out] Pointer to the output aggregate
@@ -415,7 +410,7 @@ struct DispatchReduce :
                 ActivePolicyT::SingleTilePolicy::ITEMS_PER_THREAD);
 
             // Invoke single_reduce_sweep_kernel
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 1, ActivePolicyT::SingleTilePolicy::BLOCK_THREADS, 0, stream
             ).doit(single_tile_kernel,
                 d_in,
@@ -511,7 +506,7 @@ struct DispatchReduce :
                 reduce_config.sm_occupancy);
 
             // Invoke DeviceReduceKernel
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 reduce_grid_size, ActivePolicyT::ReducePolicy::BLOCK_THREADS,
                 0, stream
             ).doit(reduce_kernel,
@@ -534,7 +529,7 @@ struct DispatchReduce :
                 ActivePolicyT::SingleTilePolicy::ITEMS_PER_THREAD);
 
             // Invoke DeviceReduceSingleTileKernel
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 1, ActivePolicyT::SingleTilePolicy::BLOCK_THREADS, 0, stream
             ).doit(single_tile_kernel,
                 d_block_reductions,
@@ -596,7 +591,7 @@ struct DispatchReduce :
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void            *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void            *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t          &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT  d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT d_out,                              ///< [out] Pointer to the output aggregate
@@ -647,11 +642,10 @@ template <
     typename OffsetT,              ///< Signed integer type for global offsets
     typename ReductionOpT,         ///< Binary reduction functor type having member <tt>T operator()(const T &a, const T &b)</tt>
     typename OutputT =             ///< Data type of the output iterator
-        typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-            typename std::iterator_traits<InputIteratorT>::value_type,                                  // ... then the input iterator's value type,
-            typename std::iterator_traits<OutputIteratorT>::value_type>::Type,                          // ... else the output iterator's value type
+          cub::detail::non_void_value_t<OutputIteratorT,
+                                        cub::detail::value_t<InputIteratorT>>,
     typename SelectedPolicy = DeviceReducePolicy<
-        typename std::iterator_traits<InputIteratorT>::value_type,
+        cub::detail::value_t<InputIteratorT>,
         OutputT,
         OffsetT,
         ReductionOpT> >
@@ -662,7 +656,7 @@ struct DispatchSegmentedReduce :
     // Problem state
     //------------------------------------------------------------------------------
 
-    void                 *d_temp_storage;        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+    void                 *d_temp_storage;        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
     size_t               &temp_storage_bytes;    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
     InputIteratorT       d_in;                   ///< [in] Pointer to the input sequence of data items
     OutputIteratorT      d_out;                  ///< [out] Pointer to the output aggregate
@@ -751,7 +745,7 @@ struct DispatchSegmentedReduce :
                 segmented_reduce_config.sm_occupancy);
 
             // Invoke DeviceReduceKernel
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 num_segments,
                 ActivePolicyT::SegmentedReducePolicy::BLOCK_THREADS, 0, stream
             ).doit(segmented_reduce_kernel,
@@ -800,7 +794,7 @@ struct DispatchSegmentedReduce :
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                 *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
@@ -843,7 +837,6 @@ struct DispatchSegmentedReduce :
 
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 

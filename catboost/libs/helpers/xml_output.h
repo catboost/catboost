@@ -1,5 +1,7 @@
 #pragma once
 
+#include "exception.h"
+
 #include <util/generic/maybe.h>
 #include <util/generic/noncopyable.h>
 #include <util/generic/stack.h>
@@ -52,7 +54,7 @@ public:
 
     template <class TValue>
     TXmlOutputContext& AddAttr(TStringBuf name, const TValue& value) {
-        Y_ENSURE(CurrentElementIsEmpty, "Adding attribute inside element body");
+        CB_ENSURE(CurrentElementIsEmpty, "Adding attribute inside element body");
         CheckIsValidXmlAsciiName(name, "AddAttr");
 
         (*Out) << ' ' << name << "=\"";

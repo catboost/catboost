@@ -87,7 +87,7 @@
  * Microsoft can define _M_IX86, _M_AMD64 (before Visual Studio 8)
  * or _M_X64 (starting in Visual Studio 8).
  */
-#if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+#if defined(__x86_64__) || defined(_M_X64)
     #define _x86_64_
 #endif
 
@@ -239,8 +239,5 @@
 
 #define SIZEOF_LONG_LONG 8
 #define SIZEOF_UNSIGNED_LONG_LONG 8
-
-#undef SIZEOF_SIZE_T // in case we include <Python.h> which defines it, too
-#define SIZEOF_SIZE_T SIZEOF_PTR
 
 // clang-format on

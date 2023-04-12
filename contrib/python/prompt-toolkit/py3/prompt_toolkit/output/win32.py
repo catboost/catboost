@@ -1,14 +1,9 @@
+import sys
+
+assert sys.platform == "win32"
+
 import os
-from ctypes import (
-    ArgumentError,
-    byref,
-    c_char,
-    c_long,
-    c_short,
-    c_uint,
-    c_ulong,
-    pointer,
-)
+from ctypes import ArgumentError, byref, c_char, c_long, c_uint, c_ulong, pointer
 
 from ..utils import SPHINX_AUTODOC_RUNNING
 
@@ -20,6 +15,7 @@ if not SPHINX_AUTODOC_RUNNING:
 from ctypes.wintypes import DWORD, HANDLE
 from typing import Callable, Dict, List, Optional, TextIO, Tuple, Type, TypeVar, Union
 
+from prompt_toolkit.cursor_shapes import CursorShape
 from prompt_toolkit.data_structures import Size
 from prompt_toolkit.styles import ANSI_COLOR_NAMES, Attrs
 from prompt_toolkit.utils import get_cwidth
@@ -181,9 +177,7 @@ class Win32Output(Output):
             return func(*a, **kw)
         except ArgumentError as e:
             if _DEBUG_RENDER_OUTPUT:
-                self.LOG.write(
-                    ("    Error in %r %r %s\n" % (func.__name__, e, e)).encode("utf-8")
-                )
+                self.LOG.write((f"    Error in {func.__name__!r} {e!r} {e}\n").encode())
 
             raise
 
@@ -496,6 +490,12 @@ class Win32Output(Output):
         pass
 
     def show_cursor(self) -> None:
+        pass
+
+    def set_cursor_shape(self, cursor_shape: CursorShape) -> None:
+        pass
+
+    def reset_cursor_shape(self) -> None:
         pass
 
     @classmethod

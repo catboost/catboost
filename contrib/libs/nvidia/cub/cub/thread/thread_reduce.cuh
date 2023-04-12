@@ -36,11 +36,7 @@
 #include "../thread/thread_operators.cuh"
 #include "../config.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /// Internal namespace (to prevent ADL mishaps between static functions when mixing different CUB installations)
 namespace internal {
@@ -148,5 +144,4 @@ __device__ __forceinline__ T ThreadReduce(
 
 
 }               // internal namespace
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

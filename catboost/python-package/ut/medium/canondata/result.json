@@ -183,8 +183,14 @@
     "test.test_cv_with_not_binarized_target[CPU]": {
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"
     },
-    "test.test_cv_with_text": {
-        "uri": "file://test.test_cv_with_text/result.csv"
+    "test.test_cv_with_text[binclass]": {
+        "uri": "file://test.test_cv_with_text_binclass_/result.csv"
+    },
+    "test.test_cv_with_text[multiclass]": {
+        "uri": "file://test.test_cv_with_text_multiclass_/result.csv"
+    },
+    "test.test_cv_with_text[regression]": {
+        "uri": "file://test.test_cv_with_text_regression_/result.csv"
     },
     "test.test_dataframe_with_pandas_categorical_columns[cat_features_specified=True]": {
         "uri": "file://test.test_dataframe_with_pandas_categorical_columns_cat_features_specified=True_/predictions.txt"
@@ -340,6 +346,30 @@
     "test.test_eval_features_with_file_header": {
         "uri": "file://test.test_eval_features_with_file_header/eval_results.csv"
     },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=False-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=False-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=False-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=False-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=True-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=True-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=True-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=True-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=False-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=False-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=False-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=False-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=True-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=True-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=True-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=True-estimator_type=regressor_/predictions.txt"
+    },
     "test.test_eval_period_size": [
         {
             "uri": "file://test.test_eval_period_size/eval_metrics_all_trees.txt"
@@ -398,6 +428,15 @@
     },
     "test.test_feature_importance_prettified[CPU]": {
         "uri": "file://test.test_feature_importance_prettified_CPU_/feature_importance.txt"
+    },
+    "test.test_feature_importance_sage_all_feature_types": {
+        "uri": "file://test.test_feature_importance_sage_all_feature_types/feature_importance.npy"
+    },
+    "test.test_feature_importance_sage_basic": {
+        "uri": "file://test.test_feature_importance_sage_basic/feature_importance.npy"
+    },
+    "test.test_feature_importance_sage_querywise": {
+        "uri": "file://test.test_feature_importance_sage_querywise/feature_importance.npy"
     },
     "test.test_feature_names_from_model": {
         "uri": "file://test.test_feature_names_from_model/feature_names"
@@ -780,6 +819,24 @@
             "uri": "file://test.test_save_border_file/output_borders_file.dat"
         }
     ],
+    "test.test_select_features_by_multi_feature_tags[CPU-algorithm=RecursiveByLossFunctionChange-train_final_model=False]": {
+        "uri": "file://test.test_select_features_by_multi_feature_tags_CPU-algorithm=RecursiveByLossFunctionChange-train_final_model=False_/summary.json"
+    },
+    "test.test_select_features_by_multi_feature_tags[CPU-algorithm=RecursiveByLossFunctionChange-train_final_model=True]": {
+        "uri": "file://test.test_select_features_by_multi_feature_tags_CPU-algorithm=RecursiveByLossFunctionChange-train_final_model=True_/summary.json"
+    },
+    "test.test_select_features_by_multi_feature_tags[CPU-algorithm=RecursiveByPredictionValuesChange-train_final_model=False]": {
+        "uri": "file://test.test_select_features_by_multi_feature_tags_CPU-algorithm=RecursiveByPredictionValuesChange-train_final_model=False_/summary.json"
+    },
+    "test.test_select_features_by_multi_feature_tags[CPU-algorithm=RecursiveByPredictionValuesChange-train_final_model=True]": {
+        "uri": "file://test.test_select_features_by_multi_feature_tags_CPU-algorithm=RecursiveByPredictionValuesChange-train_final_model=True_/summary.json"
+    },
+    "test.test_select_features_by_multi_feature_tags[CPU-algorithm=RecursiveByShapValues-train_final_model=False]": {
+        "uri": "file://test.test_select_features_by_multi_feature_tags_CPU-algorithm=RecursiveByShapValues-train_final_model=False_/summary.json"
+    },
+    "test.test_select_features_by_multi_feature_tags[CPU-algorithm=RecursiveByShapValues-train_final_model=True]": {
+        "uri": "file://test.test_select_features_by_multi_feature_tags_CPU-algorithm=RecursiveByShapValues-train_final_model=True_/summary.json"
+    },
     "test.test_shap[CPU]": {
         "uri": "file://test.test_shap_CPU_/feature_importance.txt"
     },
@@ -839,6 +896,15 @@
     },
     "test.test_text_processing_dictionary": {
         "uri": "file://test.test_text_processing_dictionary/dictionary.tsv"
+    },
+    "test.test_train_with_embedding_features[classification]": {
+        "uri": "file://test.test_train_with_embedding_features_classification_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[ranking]": {
+        "uri": "file://test.test_train_with_embedding_features_ranking_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[regression]": {
+        "uri": "file://test.test_train_with_embedding_features_regression_/predictions.txt"
     },
     "test.test_uncertainty_prediction_types[Logloss-TotalUncertainty-1]": {
         "uri": "file://test.test_uncertainty_prediction_types_Logloss-TotalUncertainty-1_/predictions.txt"
@@ -935,5 +1001,23 @@
     },
     "test.test_zero_baseline[CPU]": {
         "uri": "file://test.test_zero_baseline_CPU_/model.bin"
+    },
+    "test_catboost_utils.test_create_cd_label_and_cat_features": {
+        "uri": "file://test_catboost_utils.test_create_cd_label_and_cat_features/column_description"
+    },
+    "test_catboost_utils.test_create_cd_label_and_feature_names": {
+        "uri": "file://test_catboost_utils.test_create_cd_label_and_feature_names/column_description"
+    },
+    "test_catboost_utils.test_create_cd_label_cat_text_and_emb_features": {
+        "uri": "file://test_catboost_utils.test_create_cd_label_cat_text_and_emb_features/column_description"
+    },
+    "test_catboost_utils.test_create_cd_label_cat_text_and_emb_features_with_names": {
+        "uri": "file://test_catboost_utils.test_create_cd_label_cat_text_and_emb_features_with_names/column_description"
+    },
+    "test_catboost_utils.test_create_cd_label_cat_text_and_emb_features_with_partial_names": {
+        "uri": "file://test_catboost_utils.test_create_cd_label_cat_text_and_emb_features_with_partial_names/column_description"
+    },
+    "test_catboost_utils.test_create_cd_label_only": {
+        "uri": "file://test_catboost_utils.test_create_cd_label_only/column_description"
     }
 }

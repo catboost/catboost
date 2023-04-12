@@ -1,5 +1,4 @@
 import os
-import sys
 
 import process_command_files as pcf
 
@@ -137,12 +136,20 @@ class ProcessWholeArchiveOption():
         if is_whole_archive:
             cmd.append(no_whole_archive_flag)
 
+        # There can be an empty sequence of archive files between
+        # -Wl, --whole-archive and -Wl, --no-whole-archive flags.
+        # As a result an unknown option error may occur, therefore to
+        # prevent this case we need to remove both flags from cmd.
+        # These flags affects only on subsequent archive files.
+        if len(cmd) == 2:
+            return []
+
         self._check_peers()
 
         return cmd
 
     def construct_cmd(self, args):
-        if self.arch in ('DARWIN', 'IOS'):
+        if self.arch in ('DARWIN', 'IOS', 'IOSSIM'):
             return self._construct_cmd_apple(args)
 
         if self.arch == 'WINDOWS':

@@ -2,8 +2,8 @@
 
 #include <util/generic/ptr.h>
 #include <util/stream/output.h>
-#include <util/system/atomic.h>
-#include <util/system/atomic_ops.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic_ops.h>
 
 namespace NNeh {
     class TStatCollector;

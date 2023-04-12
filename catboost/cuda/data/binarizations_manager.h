@@ -86,7 +86,7 @@ namespace NCatboostCuda {
         }
 
         bool IsFeatureBundle(ui32 featureId) const {
-            CB_ENSURE(featureId < Cursor);
+            CB_ENSURE(featureId < Cursor, "Unexpected feature id " << featureId << ", should be less than " << Cursor);
             return FeatureManagerIdToExclusiveBundleId.contains(featureId);
         }
 

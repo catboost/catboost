@@ -110,7 +110,8 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         }
         case ELossFunction::MAE:
         case ELossFunction::MAPE:
-        case ELossFunction::Quantile: {
+        case ELossFunction::Quantile:
+        case ELossFunction::MultiQuantile: {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
@@ -273,9 +274,12 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     if (lossFunctionConfig.GetLossFunction() == ELossFunction::UserQuerywiseMetric) {
         treeConfig.PairwiseNonDiagReg.SetDefault(0);
     }
-    const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile)
+    const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile, ELossFunction::MultiQuantile)
             && SystemOptions->IsSingleHost()
-            && (TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty());
+            && (
+                (TaskType == ETaskType::GPU && BoostingOptions->BoostingType == EBoostingType::Plain)
+                || (TaskType == ETaskType::CPU && !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty())
+            );
 
     if (useExact) {
         defaultEstimationMethod = ELeavesEstimation::Exact;
@@ -326,9 +330,16 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
         auto loss = lossFunctionConfig.GetLossFunction();
-        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::LogCosh),
-            "Exact method is only available for Quantile, MAE, MAPE and LogCosh loss functions.");
-        CB_ENSURE(TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method on CPU.");
+        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::LogCosh, ELossFunction::MultiQuantile),
+            "Exact method is only available for Quantile, MultiQuantile, MAE, MAPE and LogCosh loss functions.");
+        CB_ENSURE(
+            BoostingOptions->BoostingType == EBoostingType::Plain || TaskType == ETaskType::CPU,
+            "Exact leaf estimation method don't work with ordered boosting on GPU"
+        );
+        CB_ENSURE(
+            TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory,
+            "ApproxOnFullHistory option is not available within Exact method on CPU."
+        );
     }
 
     if (treeConfig.L2Reg == 0.0f) {
@@ -459,11 +470,11 @@ static void ValidateCtrTargetBinarization(
     ELossFunction lossFunction)
 {
     if (ctrTargetBinarization->BorderCount > 1) {
-        CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::LogCosh ||
-                      lossFunction == ELossFunction::Quantile ||
-                      lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
-                      lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE || lossFunction == ELossFunction::MultiClass ||
-                      lossFunction == ELossFunction::MultiRMSE || lossFunction == ELossFunction::MultiRMSEWithMissingValues || lossFunction == ELossFunction::SurvivalAft,
+        CB_ENSURE(EqualToOneOf(lossFunction,
+                      ELossFunction::RMSE, ELossFunction::LogCosh, ELossFunction::Quantile, ELossFunction::MultiQuantile,
+                      ELossFunction::LogLinQuantile, ELossFunction::Poisson,
+                      ELossFunction::MAPE, ELossFunction::MAE, ELossFunction::MultiClass,
+                      ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues, ELossFunction::SurvivalAft),
                   "Setting TargetBorderCount is not supported for loss function " << lossFunction);
     }
 }
@@ -564,13 +575,14 @@ static void ValidateModelSize(const NCatboostOptions::TObliviousTreeLearnerOptio
 
 static void EnsureNewtonIsAvailable(ETaskType taskType, const NCatboostOptions::TLossDescription& lossDescription) {
     const auto lossFunction = lossDescription.GetLossFunction();
-    CB_ENSURE(
-        lossFunction != ELossFunction::StochasticFilter &&
-        lossFunction != ELossFunction::StochasticRank &&
-        lossFunction != ELossFunction::Quantile &&
-        lossFunction != ELossFunction::MAE &&
-        lossFunction != ELossFunction::LogLinQuantile &&
-        lossFunction != ELossFunction::MAPE &&
+    CB_ENSURE(!EqualToOneOf(lossFunction,
+        ELossFunction::StochasticFilter,
+        ELossFunction::StochasticRank,
+        ELossFunction::Quantile,
+        ELossFunction::MultiQuantile,
+        ELossFunction::MAE,
+        ELossFunction::LogLinQuantile,
+        ELossFunction::MAPE) &&
         !(taskType == ETaskType::CPU && IsPairwiseScoring(lossFunction)),
         "Newton leaves estimation method is not supoprted for " << lossFunction << " loss function");
     CB_ENSURE(
@@ -605,6 +617,8 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             CB_ENSURE(classesCount == 0 || classesCount == classLabels.size(), "class labels should be specified for each class in range 0, ... , classes_count - 1");
         }
     }
+
+    DataProcessingOptions->TextProcessingOptions->Validate(IsClassificationObjective(lossFunction));
 
     ESamplingUnit samplingUnit = ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();
     if (GetTaskType() == ETaskType::GPU) {
@@ -681,10 +695,10 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (BoostingOptions->BoostFromAverage.Get()) {
         // we may adjust non-set BoostFromAverage in data dependant tuning
         CB_ENSURE(EqualToOneOf(lossFunction, ELossFunction::RMSE, ELossFunction::Logloss,
-            ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE,
+            ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MultiQuantile, ELossFunction::MAE, ELossFunction::MAPE,
             ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues),
             "You can use boost_from_average only for these loss functions now: " <<
-            "RMSE, Logloss, CrossEntropy, Quantile, MAE, MAPE, MultiRMSE or MultiRMSEWithMissingValues.");
+            "RMSE, Logloss, CrossEntropy, Quantile, MultiQuantile, MAE, MAPE, MultiRMSE or MultiRMSEWithMissingValues.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
     }
 
@@ -777,7 +791,10 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
 
-    if (!IsMultiClassOnlyMetric(lossFunction) && TaskType == ETaskType::GPU && !boostingType.IsSet()) {
+    if (!IsMultiClassOnlyMetric(lossFunction)
+        && !EqualToOneOf(lossFunction, ELossFunction::RMSEWithUncertainty, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)
+        && TaskType == ETaskType::GPU && !boostingType.IsSet()
+    ) {
         boostingType.SetDefault(EBoostingType::Ordered);
     }
 
@@ -836,7 +853,8 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             break;
         }
         case ELossFunction::StochasticFilter: {
-            NCatboostOptions::TLossDescription lossDescription = LossFunctionDescription->CloneWithLossFunction(ELossFunction::FilteredDCG);
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.LossFunction.Set(ELossFunction::FilteredDCG);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
@@ -880,6 +898,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                     break;
                 case ELossFunction::PFound:
                     validParams = {"top", "decay", "hints"};
+                    break;
+                case ELossFunction::FilteredDCG:
+                    validParams = {"type", "denominator", "hints"};
                     break;
                 default:
                     CB_ENSURE(false, "StochasticRank does not support target_metric " << targetMetric);
@@ -934,7 +955,12 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
 
         if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
-            if (lossFunction == ELossFunction::MultiClass || lossFunction == ELossFunction::MultiClassOneVsAll) {
+            const bool useL2ScoreFunction = EqualToOneOf(
+                lossFunction,
+                ELossFunction::MultiClass,
+                ELossFunction::MultiClassOneVsAll,
+                ELossFunction::RMSEWithUncertainty);
+            if (useL2ScoreFunction) {
                 ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::L2);
             } else {
                 ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
@@ -997,6 +1023,8 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     if (CatFeatureParams->MaxTensorComplexity.NotSet() && IsSmallIterationCount(BoostingOptions->IterationCount)) {
         CatFeatureParams->MaxTensorComplexity = 1;
     }
+
+    DataProcessingOptions->TextProcessingOptions->SetDefault(IsClassificationObjective(lossFunction));
 }
 
 static TVector<ui32> GetIndices(const NJson::TJsonValue& catBoostJsonOptions, const TString& key, const TString& subKey) {

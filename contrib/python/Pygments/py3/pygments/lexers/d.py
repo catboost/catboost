@@ -4,13 +4,13 @@
 
     Lexers for D languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import RegexLexer, include, words
+from pygments.lexer import RegexLexer, include, words, bygroups
 from pygments.token import Text, Comment, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['DLexer', 'CrocLexer', 'MiniDLexer']
 
@@ -22,17 +22,18 @@ class DLexer(RegexLexer):
     .. versionadded:: 1.2
     """
     name = 'D'
+    url = 'https://dlang.org/'
     filenames = ['*.d', '*.di']
     aliases = ['d']
     mimetypes = ['text/x-dsrc']
 
     tokens = {
         'root': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             # (r'\\\n', Text), # line continuations
             # Comments
-            (r'//(.*?)\n', Comment.Single),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'/\+', Comment.Multiline, 'nested_comment'),
             # Keywords
@@ -122,7 +123,8 @@ class DLexer(RegexLexer):
             # Identifier
             (r'[a-zA-Z_]\w*', Name),
             # Line
-            (r'#line\s.*\n', Comment.Special),
+            (r'(#line)(\s)(.*)(\n)', bygroups(Comment.Special, Whitespace,
+                Comment.Special, Whitespace)),
         ],
         'nested_comment': [
             (r'[^+/]+', Comment.Multiline),
@@ -185,19 +187,20 @@ class DLexer(RegexLexer):
 
 class CrocLexer(RegexLexer):
     """
-    For `Croc <http://jfbillingsley.com/croc>`_ source.
+    For Croc source.
     """
     name = 'Croc'
+    url = 'http://jfbillingsley.com/croc'
     filenames = ['*.croc']
     aliases = ['croc']
     mimetypes = ['text/x-crocsrc']
 
     tokens = {
         'root': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             # Comments
-            (r'//(.*?)\n', Comment.Single),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
             (r'/\*', Comment.Multiline, 'nestedcomment'),
             # Keywords
             (words((

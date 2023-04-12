@@ -200,7 +200,7 @@ namespace NKernel {
 
         Y_ASSERT(featureCount == binFeatureCount);
 
-        if (featureCount > 0) {
+        if (featureCount > 0 && partCount / (fullPass ? 1 : 4) > 0) {
             const int blockSize = 768;
             dim3 numBlocks;
             numBlocks.x = (featureCount + 31) / 32;

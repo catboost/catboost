@@ -37,6 +37,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <queue>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -130,7 +131,7 @@ FileGenerator::FileGenerator(const FileDescriptor* file, const Options& options)
   }
   for (int i = 0; i < file->extension_count(); i++) {
     extension_generators_.emplace_back(
-        new ExtensionGenerator(file->extension(i), options));
+        new ExtensionGenerator(file->extension(i), options, &scc_analyzer_));
   }
   for (int i = 0; i < file->weak_dependency_count(); ++i) {
     weak_deps_.insert(file->weak_dependency(i));
@@ -154,8 +155,8 @@ void FileGenerator::GenerateMacroUndefs(io::Printer* printer) {
   for (int i = 0; i < fields.size(); i++) {
     const TProtoStringType& name = fields[i]->name();
     static const char* kMacroNames[] = {"major", "minor"};
-    for (int i = 0; i < GOOGLE_ARRAYSIZE(kMacroNames); ++i) {
-      if (name == kMacroNames[i]) {
+    for (int j = 0; j < GOOGLE_ARRAYSIZE(kMacroNames); ++j) {
+      if (name == kMacroNames[j]) {
         names_to_undef.push_back(name);
         break;
       }
@@ -386,6 +387,10 @@ void FileGenerator::GenerateSourceIncludes(io::Printer* printer) {
       "\n",
       CreateHeaderInclude(target_basename, file_));
 
+  if (!options_.transitive_pb_h) {
+    GenerateDependencyIncludes(printer);
+  }
+
   IncludeFile("net/proto2/io/public/coded_stream.h", printer);
   // TODO(gerbens) This is to include parse_context.h, we need a better way
   IncludeFile("net/proto2/public/extension_set.h", printer);
@@ -462,6 +467,19 @@ void FileGenerator::GenerateSourceDefaultInstance(int idx,
   format("PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT $1$ $2$;\n",
          DefaultInstanceType(generator->descriptor_, options_),
          DefaultInstanceName(generator->descriptor_, options_));
+
+  for (int i = 0; i < generator->descriptor_->field_count(); i++) {
+    const FieldDescriptor* field = generator->descriptor_->field(i);
+    if (IsStringInlined(field, options_)) {
+      // Force the initialization of the inlined string in the default instance.
+      format(
+          "PROTOBUF_ATTRIBUTE_INIT_PRIORITY std::true_type "
+          "$1$::_init_inline_$2$_ = "
+          "($3$._instance.$2$_.Init(), std::true_type{});\n",
+          ClassName(generator->descriptor_), FieldName(field),
+          DefaultInstanceName(generator->descriptor_, options_));
+    }
+  }
 
   if (options_.lite_implicit_weak_fields) {
     format("$1$* $2$ = &$3$;\n",
@@ -578,6 +596,13 @@ void FileGenerator::GenerateSourceForMessage(int idx, io::Printer* printer) {
       "// @@protoc_insertion_point(global_scope)\n");
 }
 
+void FileGenerator::GenerateSourceForExtension(int idx, io::Printer* printer) {
+  Formatter format(printer, variables_);
+  GenerateSourceIncludes(printer);
+  NamespaceOpener ns(Namespace(file_, options_), format);
+  extension_generators_[idx]->GenerateDefinition(printer);
+}
+
 void FileGenerator::GenerateGlobalSource(io::Printer* printer) {
   Formatter format(printer, variables_);
   GenerateSourceIncludes(printer);
@@ -597,21 +622,6 @@ void FileGenerator::GenerateGlobalSource(io::Printer* printer) {
   // Generate enums.
   for (int i = 0; i < enum_generators_.size(); i++) {
     enum_generators_[i]->GenerateMethods(i, printer);
-  }
-
-  // Define extensions.
-  for (int i = 0; i < extension_generators_.size(); i++) {
-    extension_generators_[i]->GenerateDefinition(printer);
-  }
-
-  if (HasGenericServices(file_, options_)) {
-    // Generate services.
-    for (int i = 0; i < service_generators_.size(); i++) {
-      if (i == 0) format("\n");
-      format(kThickSeparator);
-      format("\n");
-      service_generators_[i]->GenerateImplementation(printer);
-    }
   }
 }
 
@@ -1061,10 +1071,36 @@ void FileGenerator::GenerateForwardDeclarations(io::Printer* printer) {
 
   FlattenMessagesInFile(file_, &classes);  // All messages need forward decls.
 
+  std::vector<const FieldDescriptor*> fields;
+  if (!options_.transitive_pb_h || options_.proto_h) {
+    ListAllFields(file_, &fields);
+  }
+
+  if (!options_.transitive_pb_h) {
+    // Add forward declaration for all messages, enums, and extended messages
+    // defined outside the file
+    for (int i = 0; i < fields.size(); i++) {
+      const Descriptor* message_type = fields[i]->message_type();
+      if (message_type && message_type->file() != file_) {
+        classes.push_back(message_type);
+      }
+
+      const EnumDescriptor* enum_type = fields[i]->enum_type();
+      if (enum_type && enum_type->file() != file_) {
+        enums.push_back(enum_type);
+      }
+
+      if (fields[i]->is_extension()) {
+        const Descriptor* message_type = fields[i]->containing_type();
+        if (message_type && message_type->file() != file_) {
+          classes.push_back(message_type);
+        }
+      }
+    }
+  }
+
   if (options_.proto_h) {  // proto.h needs extra forward declarations.
     // All classes / enums referred to as field members
-    std::vector<const FieldDescriptor*> fields;
-    ListAllFields(file_, &fields);
     for (int i = 0; i < fields.size(); i++) {
       classes.push_back(fields[i]->containing_type());
       classes.push_back(fields[i]->message_type());
@@ -1076,7 +1112,9 @@ void FileGenerator::GenerateForwardDeclarations(io::Printer* printer) {
   // Calculate the set of files whose definitions we get through include.
   // No need to forward declare types that are defined in these.
   std::unordered_set<const FileDescriptor*> public_set;
-  PublicImportDFS(file_, &public_set);
+  if (options_.transitive_pb_h) {
+    PublicImportDFS(file_, &public_set);
+  }
 
   std::map<TProtoStringType, ForwardDeclarations> decls;
   for (int i = 0; i < classes.size(); i++) {
@@ -1143,6 +1181,9 @@ void FileGenerator::GenerateLibraryIncludes(io::Printer* printer) {
     GOOGLE_CHECK(!options_.opensource_runtime);
     IncludeFile("net/proto2/public/lazy_field.h", printer);
   }
+  if (ShouldVerify(file_, options_, &scc_analyzer_)) {
+    IncludeFile("net/proto2/public/wire_format_verify.h", printer);
+  }
 
   if (options_.opensource_runtime) {
     // Verify the protobuf library header version is compatible with the protoc
@@ -1170,6 +1211,13 @@ void FileGenerator::GenerateLibraryIncludes(io::Printer* printer) {
   IncludeFile("net/proto2/io/public/coded_stream.h", printer);
   IncludeFile("net/proto2/public/arena.h", printer);
   IncludeFile("net/proto2/public/arenastring.h", printer);
+  if ((options_.force_inline_string || options_.profile_driven_inline_string) &&
+      !options_.opensource_runtime) {
+    IncludeFile("net/proto2/public/inlined_string_field.h", printer);
+  }
+  if (HasSimpleBaseClasses(file_, options_)) {
+    IncludeFile("net/proto2/public/generated_message_bases.h", printer);
+  }
   IncludeFile("net/proto2/public/generated_message_table_driven.h", printer);
   if (HasGeneratedMethods(file_, options_) &&
       options_.tctable_mode != Options::kTCTableNever) {
@@ -1253,18 +1301,39 @@ void FileGenerator::GenerateMetadataPragma(io::Printer* printer,
 
 void FileGenerator::GenerateDependencyIncludes(io::Printer* printer) {
   Formatter format(printer, variables_);
-  for (int i = 0; i < file_->dependency_count(); i++) {
-    TProtoStringType basename = StripProto(file_->dependency(i)->name());
+  std::queue<const FileDescriptor*> files_queue;
+  std::unordered_set<const FileDescriptor*> included_files;
+  files_queue.push(file_);
+  included_files.insert(file_);
 
-    // Do not import weak deps.
-    if (IsDepWeak(file_->dependency(i))) continue;
+  while (!files_queue.empty()) {
+    const FileDescriptor* file = files_queue.front();
+    files_queue.pop();
 
-    if (IsBootstrapProto(options_, file_)) {
-      GetBootstrapBasename(options_, basename, &basename);
+    for (int i = 0; i < file->dependency_count(); i++) {
+      // try figure out if this file have not been included yet
+      const FileDescriptor* dependency_file = file->dependency(i);
+      if (!options_.transitive_pb_h) {
+        auto [iter, is_inserted] = included_files.insert(dependency_file);
+        if (is_inserted) {
+          files_queue.push(dependency_file);
+        } else {
+          continue;
+        }
+      }
+
+      TProtoStringType basename = StripProto(dependency_file->name());
+
+      // Do not import weak deps.
+      if (IsDepWeak(dependency_file)) continue;
+
+      if (IsBootstrapProto(options_, file)) {
+        GetBootstrapBasename(options_, basename, &basename);
+      }
+
+      format("#include $1$\n",
+             CreateHeaderInclude(basename + ".pb.h", dependency_file));
     }
-
-    format("#include $1$\n",
-           CreateHeaderInclude(basename + ".pb.h", file_->dependency(i)));
   }
 }
 

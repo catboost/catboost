@@ -120,6 +120,7 @@
 #include <google/protobuf/arena.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/generated_message_reflection.h>
+#include <google/protobuf/generated_message_util.h>
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/port.h>
 
@@ -146,6 +147,7 @@ class MessageFactory;
 // Defined in other files.
 class AssignDescriptorsHelper;
 class DynamicMessageFactory;
+class DynamicMessageReflectionHelper;
 class GeneratedMessageReflectionTestHelper;
 class MapKey;
 class MapValueConstRef;
@@ -157,7 +159,8 @@ namespace internal {
 struct DescriptorTable;
 class MapFieldBase;
 class SwapFieldHelper;
-}
+class CachedSize;
+}  // namespace internal
 class UnknownFieldSet;  // unknown_field_set.h
 namespace io {
 class ZeroCopyInputStream;   // zero_copy_stream.h
@@ -168,7 +171,7 @@ class CodedOutputStream;     // coded_stream.h
 namespace python {
 class MapReflectionFriend;  // scalar_map_container.h
 class MessageReflectionFriend;
-}
+}  // namespace python
 namespace expr {
 class CelMapReflectionFriend;  // field_backed_map_impl.cc
 }
@@ -203,18 +206,18 @@ struct Metadata {
 
 namespace internal {
 template <class To>
-inline To* GetPointerAtOffset(Message* message, uint32 offset) {
+inline To* GetPointerAtOffset(Message* message, arc_ui32 offset) {
   return reinterpret_cast<To*>(reinterpret_cast<char*>(message) + offset);
 }
 
 template <class To>
-const To* GetConstPointerAtOffset(const Message* message, uint32 offset) {
+const To* GetConstPointerAtOffset(const Message* message, arc_ui32 offset) {
   return reinterpret_cast<const To*>(reinterpret_cast<const char*>(message) +
                                      offset);
 }
 
 template <class To>
-const To& GetConstRefAtOffset(const Message& message, uint32 offset) {
+const To& GetConstRefAtOffset(const Message& message, arc_ui32 offset) {
   return *GetConstPointerAtOffset<To>(&message, offset);
 }
 
@@ -243,18 +246,11 @@ class PROTOBUF_EXPORT Message : public MessageLite {
   // Construct a new instance of the same type.  Ownership is passed to the
   // caller.  (This is also defined in MessageLite, but is defined again here
   // for return-type covariance.)
-  Message* New() const override = 0;
+  Message* New() const { return New(nullptr); }
 
   // Construct a new instance on the arena. Ownership is passed to the caller
-  // if arena is a nullptr. Default implementation allows for API compatibility
-  // during the Arena transition.
-  Message* New(Arena* arena) const override {
-    Message* message = New();
-    if (arena != nullptr) {
-      arena->Own(message);
-    }
-    return message;
-  }
+  // if arena is a nullptr.
+  Message* New(Arena* arena) const override = 0;
 
   // Make this message into a copy of the given message.  The given message
   // must have the same descriptor, but need not necessarily be the same class.
@@ -292,7 +288,7 @@ class PROTOBUF_EXPORT Message : public MessageLite {
   // method after parsing.
   //
   // See Reflection::GetUnknownFields() for more on unknown fields.
-  virtual void DiscardUnknownFields();
+  void DiscardUnknownFields();
 
   // Computes (an estimate of) the total number of bytes currently used for
   // storing the message in memory.  The default implementation calls the
@@ -335,8 +331,8 @@ class PROTOBUF_EXPORT Message : public MessageLite {
   const char* _InternalParse(const char* ptr,
                              internal::ParseContext* ctx) override;
   size_t ByteSizeLong() const override;
-  uint8* _InternalSerialize(uint8* target,
-                            io::EpsCopyOutputStream* stream) const override;
+  uint8_t* _InternalSerialize(uint8_t* target,
+                              io::EpsCopyOutputStream* stream) const override;
 
   // Yandex-specific
   bool ParseFromArcadiaStream(IInputStream* input);
@@ -411,10 +407,14 @@ class PROTOBUF_EXPORT Message : public MessageLite {
 
   inline explicit Message(Arena* arena, bool is_message_owned = false)
       : MessageLite(arena, is_message_owned) {}
+  size_t ComputeUnknownFieldsSize(size_t total_size,
+                                  internal::CachedSize* cached_size) const;
+  size_t MaybeComputeUnknownFieldsSize(size_t total_size,
+                                       internal::CachedSize* cached_size) const;
 
 
  protected:
-  static uint64 GetInvariantPerBuild(uint64 salt);
+  static arc_ui64 GetInvariantPerBuild(arc_ui64 salt);
 
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Message);
@@ -523,8 +523,14 @@ class PROTOBUF_EXPORT Reflection final {
   void RemoveLast(Message* message, const FieldDescriptor* field) const;
   // Removes the last element of a repeated message field, and returns the
   // pointer to the caller.  Caller takes ownership of the returned pointer.
-  PROTOBUF_MUST_USE_RESULT Message* ReleaseLast(
-      Message* message, const FieldDescriptor* field) const;
+  PROTOBUF_NODISCARD Message* ReleaseLast(Message* message,
+                                          const FieldDescriptor* field) const;
+
+  // Similar to ReleaseLast() without internal safety and ownershp checks. This
+  // method should only be used when the objects are on the same arena or paired
+  // with a call to `UnsafeArenaAddAllocatedMessage`.
+  Message* UnsafeArenaReleaseLast(Message* message,
+                                  const FieldDescriptor* field) const;
 
   // Swap the complete contents of two messages.
   void Swap(Message* message1, Message* message2) const;
@@ -536,6 +542,16 @@ class PROTOBUF_EXPORT Reflection final {
   // Swap two elements of a repeated field.
   void SwapElements(Message* message, const FieldDescriptor* field, int index1,
                     int index2) const;
+
+  // Swap without internal safety and ownership checks. This method should only
+  // be used when the objects are on the same arena.
+  void UnsafeArenaSwap(Message* lhs, Message* rhs) const;
+
+  // SwapFields without internal safety and ownership checks. This method should
+  // only be used when the objects are on the same arena.
+  void UnsafeArenaSwapFields(
+      Message* lhs, Message* rhs,
+      const std::vector<const FieldDescriptor*>& fields) const;
 
   // List all fields of the message which are currently set, except for unknown
   // fields, but including extension known to the parser (i.e. compiled in).
@@ -552,10 +568,12 @@ class PROTOBUF_EXPORT Reflection final {
   // These get the value of a non-repeated field.  They return the default
   // value for fields that aren't set.
 
-  int32 GetInt32(const Message& message, const FieldDescriptor* field) const;
-  int64 GetInt64(const Message& message, const FieldDescriptor* field) const;
-  uint32 GetUInt32(const Message& message, const FieldDescriptor* field) const;
-  uint64 GetUInt64(const Message& message, const FieldDescriptor* field) const;
+  arc_i32 GetInt32(const Message& message, const FieldDescriptor* field) const;
+  arc_i64 GetInt64(const Message& message, const FieldDescriptor* field) const;
+  arc_ui32 GetUInt32(const Message& message,
+                     const FieldDescriptor* field) const;
+  arc_ui64 GetUInt64(const Message& message,
+                     const FieldDescriptor* field) const;
   float GetFloat(const Message& message, const FieldDescriptor* field) const;
   double GetDouble(const Message& message, const FieldDescriptor* field) const;
   bool GetBool(const Message& message, const FieldDescriptor* field) const;
@@ -600,13 +618,13 @@ class PROTOBUF_EXPORT Reflection final {
   // These mutate the value of a non-repeated field.
 
   void SetInt32(Message* message, const FieldDescriptor* field,
-                int32 value) const;
+                arc_i32 value) const;
   void SetInt64(Message* message, const FieldDescriptor* field,
-                int64 value) const;
+                arc_i64 value) const;
   void SetUInt32(Message* message, const FieldDescriptor* field,
-                 uint32 value) const;
+                 arc_ui32 value) const;
   void SetUInt64(Message* message, const FieldDescriptor* field,
-                 uint64 value) const;
+                 arc_ui64 value) const;
   void SetFloat(Message* message, const FieldDescriptor* field,
                 float value) const;
   void SetDouble(Message* message, const FieldDescriptor* field,
@@ -660,7 +678,7 @@ class PROTOBUF_EXPORT Reflection final {
   // If the field existed (HasField() is true), then the returned pointer will
   // be the same as the pointer returned by MutableMessage().
   // This function has the same effect as ClearField().
-  PROTOBUF_MUST_USE_RESULT Message* ReleaseMessage(
+  PROTOBUF_NODISCARD Message* ReleaseMessage(
       Message* message, const FieldDescriptor* field,
       MessageFactory* factory = nullptr) const;
 
@@ -675,14 +693,14 @@ class PROTOBUF_EXPORT Reflection final {
   // Repeated field getters ------------------------------------------
   // These get the value of one element of a repeated field.
 
-  int32 GetRepeatedInt32(const Message& message, const FieldDescriptor* field,
-                         int index) const;
-  int64 GetRepeatedInt64(const Message& message, const FieldDescriptor* field,
-                         int index) const;
-  uint32 GetRepeatedUInt32(const Message& message, const FieldDescriptor* field,
+  arc_i32 GetRepeatedInt32(const Message& message, const FieldDescriptor* field,
                            int index) const;
-  uint64 GetRepeatedUInt64(const Message& message, const FieldDescriptor* field,
+  arc_i64 GetRepeatedInt64(const Message& message, const FieldDescriptor* field,
                            int index) const;
+  arc_ui32 GetRepeatedUInt32(const Message& message,
+                             const FieldDescriptor* field, int index) const;
+  arc_ui64 GetRepeatedUInt64(const Message& message,
+                             const FieldDescriptor* field, int index) const;
   float GetRepeatedFloat(const Message& message, const FieldDescriptor* field,
                          int index) const;
   double GetRepeatedDouble(const Message& message, const FieldDescriptor* field,
@@ -716,13 +734,13 @@ class PROTOBUF_EXPORT Reflection final {
   // These mutate the value of one element of a repeated field.
 
   void SetRepeatedInt32(Message* message, const FieldDescriptor* field,
-                        int index, int32 value) const;
+                        int index, arc_i32 value) const;
   void SetRepeatedInt64(Message* message, const FieldDescriptor* field,
-                        int index, int64 value) const;
+                        int index, arc_i64 value) const;
   void SetRepeatedUInt32(Message* message, const FieldDescriptor* field,
-                         int index, uint32 value) const;
+                         int index, arc_ui32 value) const;
   void SetRepeatedUInt64(Message* message, const FieldDescriptor* field,
-                         int index, uint64 value) const;
+                         int index, arc_ui64 value) const;
   void SetRepeatedFloat(Message* message, const FieldDescriptor* field,
                         int index, float value) const;
   void SetRepeatedDouble(Message* message, const FieldDescriptor* field,
@@ -753,13 +771,13 @@ class PROTOBUF_EXPORT Reflection final {
   // These add an element to a repeated field.
 
   void AddInt32(Message* message, const FieldDescriptor* field,
-                int32 value) const;
+                arc_i32 value) const;
   void AddInt64(Message* message, const FieldDescriptor* field,
-                int64 value) const;
+                arc_i64 value) const;
   void AddUInt32(Message* message, const FieldDescriptor* field,
-                 uint32 value) const;
+                 arc_ui32 value) const;
   void AddUInt64(Message* message, const FieldDescriptor* field,
-                 uint64 value) const;
+                 arc_ui64 value) const;
   void AddFloat(Message* message, const FieldDescriptor* field,
                 float value) const;
   void AddDouble(Message* message, const FieldDescriptor* field,
@@ -788,6 +806,13 @@ class PROTOBUF_EXPORT Reflection final {
   void AddAllocatedMessage(Message* message, const FieldDescriptor* field,
                            Message* new_entry) const;
 
+  // Similar to AddAllocatedMessage() without internal safety and ownership
+  // checks. This method should only be used when the objects are on the same
+  // arena or paired with a call to `UnsafeArenaReleaseLast`.
+  void UnsafeArenaAddAllocatedMessage(Message* message,
+                                      const FieldDescriptor* field,
+                                      Message* new_entry) const;
+
 
   // Get a RepeatedFieldRef object that can be used to read the underlying
   // repeated field. The type parameter T must be set according to the
@@ -795,14 +820,14 @@ class PROTOBUF_EXPORT Reflection final {
   // to acceptable T.
   //
   //   field->cpp_type()      T
-  //   CPPTYPE_INT32        int32
-  //   CPPTYPE_UINT32       uint32
-  //   CPPTYPE_INT64        int64
-  //   CPPTYPE_UINT64       uint64
+  //   CPPTYPE_INT32        arc_i32
+  //   CPPTYPE_UINT32       arc_ui32
+  //   CPPTYPE_INT64        arc_i64
+  //   CPPTYPE_UINT64       arc_ui64
   //   CPPTYPE_DOUBLE       double
   //   CPPTYPE_FLOAT        float
   //   CPPTYPE_BOOL         bool
-  //   CPPTYPE_ENUM         generated enum type or int32
+  //   CPPTYPE_ENUM         generated enum type or arc_i32
   //   CPPTYPE_STRING       TProtoStringType
   //   CPPTYPE_MESSAGE      generated message type or google::protobuf::Message
   //
@@ -1011,6 +1036,11 @@ class PROTOBUF_EXPORT Reflection final {
            IsEagerlyVerifiedLazyField(field);
   }
 
+  // Returns true if the field is lazy extension. It is meant to allow python
+  // reparse lazy field until b/157559327 is fixed.
+  bool IsLazyExtension(const Message& message,
+                       const FieldDescriptor* field) const;
+
   bool IsLazilyVerifiedLazyField(const FieldDescriptor* field) const;
   bool IsEagerlyVerifiedLazyField(const FieldDescriptor* field) const;
 
@@ -1033,6 +1063,7 @@ class PROTOBUF_EXPORT Reflection final {
   friend class ::PROTOBUF_NAMESPACE_ID::MessageLayoutInspector;
   friend class ::PROTOBUF_NAMESPACE_ID::AssignDescriptorsHelper;
   friend class DynamicMessageFactory;
+  friend class DynamicMessageReflectionHelper;
   friend class GeneratedMessageReflectionTestHelper;
   friend class python::MapReflectionFriend;
   friend class python::MessageReflectionFriend;
@@ -1124,11 +1155,11 @@ class PROTOBUF_EXPORT Reflection final {
 
   const Message* GetDefaultMessageInstance(const FieldDescriptor* field) const;
 
-  inline const uint32* GetHasBits(const Message& message) const;
-  inline uint32* MutableHasBits(Message* message) const;
-  inline uint32 GetOneofCase(const Message& message,
-                             const OneofDescriptor* oneof_descriptor) const;
-  inline uint32* MutableOneofCase(
+  inline const arc_ui32* GetHasBits(const Message& message) const;
+  inline arc_ui32* MutableHasBits(Message* message) const;
+  inline arc_ui32 GetOneofCase(const Message& message,
+                               const OneofDescriptor* oneof_descriptor) const;
+  inline arc_ui32* MutableOneofCase(
       Message* message, const OneofDescriptor* oneof_descriptor) const;
   inline bool HasExtensionSet(const Message& /* message */) const {
     return schema_.HasExtensionSet();
@@ -1141,12 +1172,20 @@ class PROTOBUF_EXPORT Reflection final {
 
   internal::InternalMetadata* MutableInternalMetadata(Message* message) const;
 
+  inline bool IsInlined(const FieldDescriptor* field) const;
+
   inline bool HasBit(const Message& message,
                      const FieldDescriptor* field) const;
   inline void SetBit(Message* message, const FieldDescriptor* field) const;
   inline void ClearBit(Message* message, const FieldDescriptor* field) const;
   inline void SwapBit(Message* message1, Message* message2,
                       const FieldDescriptor* field) const;
+
+  inline const arc_ui32* GetInlinedStringDonatedArray(
+      const Message& message) const;
+  inline arc_ui32* MutableInlinedStringDonatedArray(Message* message) const;
+  inline bool IsInlinedStringDonated(const Message& message,
+                                     const FieldDescriptor* field) const;
 
   // Shallow-swap fields listed in fields vector of two messages. It is the
   // caller's responsibility to make sure shallow swap is safe.
@@ -1167,13 +1206,9 @@ class PROTOBUF_EXPORT Reflection final {
   void SwapFieldsImpl(Message* message1, Message* message2,
                       const std::vector<const FieldDescriptor*>& fields) const;
 
-  void SwapOneofField(Message* message1, Message* message2,
+  template <bool unsafe_shallow_swap>
+  void SwapOneofField(Message* lhs, Message* rhs,
                       const OneofDescriptor* oneof_descriptor) const;
-
-  // Unsafe but shallow version of SwapOneofField.
-  void UnsafeShallowSwapOneofField(
-      Message* message1, Message* message2,
-      const OneofDescriptor* oneof_descriptor) const;
 
   inline bool HasOneofField(const Message& message,
                             const FieldDescriptor* field) const;
@@ -1317,10 +1352,10 @@ class PROTOBUF_EXPORT MessageFactory {
   Reflection::MutableRepeatedFieldInternal<TYPE>(                  \
       Message * message, const FieldDescriptor* field) const;
 
-DECLARE_GET_REPEATED_FIELD(int32)
-DECLARE_GET_REPEATED_FIELD(int64)
-DECLARE_GET_REPEATED_FIELD(uint32)
-DECLARE_GET_REPEATED_FIELD(uint64)
+DECLARE_GET_REPEATED_FIELD(arc_i32)
+DECLARE_GET_REPEATED_FIELD(arc_i64)
+DECLARE_GET_REPEATED_FIELD(arc_ui32)
+DECLARE_GET_REPEATED_FIELD(arc_ui64)
 DECLARE_GET_REPEATED_FIELD(float)
 DECLARE_GET_REPEATED_FIELD(double)
 DECLARE_GET_REPEATED_FIELD(bool)
@@ -1444,6 +1479,28 @@ inline RepeatedPtrField<PB>* Reflection::MutableRepeatedPtrFieldInternal(
 template <typename Type>
 const Type& Reflection::DefaultRaw(const FieldDescriptor* field) const {
   return *reinterpret_cast<const Type*>(schema_.GetFieldDefault(field));
+}
+
+arc_ui32 Reflection::GetOneofCase(
+    const Message& message, const OneofDescriptor* oneof_descriptor) const {
+  GOOGLE_DCHECK(!oneof_descriptor->is_synthetic());
+  return internal::GetConstRefAtOffset<arc_ui32>(
+      message, schema_.GetOneofCaseOffset(oneof_descriptor));
+}
+
+bool Reflection::HasOneofField(const Message& message,
+                               const FieldDescriptor* field) const {
+  return (GetOneofCase(message, field->containing_oneof()) ==
+          static_cast<arc_ui32>(field->number()));
+}
+
+template <typename Type>
+const Type& Reflection::GetRaw(const Message& message,
+                               const FieldDescriptor* field) const {
+  GOOGLE_DCHECK(!schema_.InRealOneof(field) || HasOneofField(message, field))
+      << "Field = " << field->full_name();
+  return internal::GetConstRefAtOffset<Type>(message,
+                                             schema_.GetFieldOffset(field));
 }
 }  // namespace protobuf
 }  // namespace google

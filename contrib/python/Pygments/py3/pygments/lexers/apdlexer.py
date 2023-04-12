@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.apdlexer
     ~~~~~~~~~~~~~~~~~~~~~~~~
 
     Lexers for ANSYS Parametric Design Language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -13,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, include, words
 from pygments.token import Comment, Keyword, Name, Text, Number, Operator, \
-    String, Generic, Punctuation
+    String, Generic, Punctuation, Whitespace
 
 __all__ = ['apdlexer']
 
@@ -427,7 +426,7 @@ class apdlexer(RegexLexer):
             (words((elafunf+elafung), suffix=r'\b'), Name.Builtin),
             (r'AR[0-9]+', Name.Variable.Instance),
             (r'[a-z][a-z0-9_]*', Name.Variable),
-            (r'[\s]+', Text),
+            (r'[\s]+', Whitespace),
         ],
         'core': [
             # Operators

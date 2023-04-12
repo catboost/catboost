@@ -426,6 +426,7 @@ class OpenFile(object):
 # ======================= Redefine some methods ===============================
 
 if standalone():
+    import itertools
     import json
 
     CYTHON_INCLUDE_MAP = {'undef': True}
@@ -465,7 +466,11 @@ if standalone():
                 # target file was included and should be sought inside another pyx file
                 base_path = CYTHON_INCLUDE_MAP[base_path]
 
-        for suffix in ['.pyx.c', '.pyx.cpp'] + C_FILE_EXTENSIONS:
+        # TODO (', '.py3', '.py2') -> ('.py3', '.py2'), when https://a.yandex-team.ru/review/3511262 is merged
+        suffixes = [''.join(x) for x in itertools.product(('.pyx',), ('', '.py3', '.py2'), ('.cpp', '.c'))]
+        suffixes += C_FILE_EXTENSIONS
+
+        for suffix in suffixes:
             if exists(base_path + suffix):
                 return base_path + suffix
 

@@ -22,8 +22,7 @@
 #include <thrust/detail/functional/operators/operator_adaptors.h>
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace functional
@@ -183,7 +182,8 @@ struct bit_not
   template <typename T1>
   __host__ __device__
   constexpr auto operator()(T1&& t1) const
-  noexcept(noexcept(~THRUST_FWD(t1))) -> decltype(~THRUST_FWD(t1))
+  noexcept(noexcept(~THRUST_FWD(t1)))
+  THRUST_TRAILING_RETURN(decltype(~THRUST_FWD(t1)))
   {
     return ~THRUST_FWD(t1);
   }
@@ -213,7 +213,7 @@ struct bit_lshift
   __host__ __device__
   constexpr auto operator()(T1&& t1, T2&& t2) const
   noexcept(noexcept(THRUST_FWD(t1) << THRUST_FWD(t2)))
-      -> decltype(THRUST_FWD(t1) << THRUST_FWD(t2))
+  THRUST_TRAILING_RETURN(decltype(THRUST_FWD(t1) << THRUST_FWD(t2)))
   {
     return THRUST_FWD(t1) << THRUST_FWD(t2);
   }
@@ -277,7 +277,7 @@ struct bit_rshift
   __host__ __device__
   constexpr auto operator()(T1& t1, T2&& t2) const
   noexcept(noexcept(THRUST_FWD(t1) >> THRUST_FWD(t2)))
-  -> decltype(THRUST_FWD(t1) >> THRUST_FWD(t2))
+  THRUST_TRAILING_RETURN(decltype(THRUST_FWD(t1) >> THRUST_FWD(t2)))
   {
     return THRUST_FWD(t1) >> THRUST_FWD(t2);
   }
@@ -334,5 +334,5 @@ operator>>(const actor<T1> &_1, const actor<T2> &_2)
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

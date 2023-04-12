@@ -8,6 +8,8 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <util/generic/ymath.h>
+
 using namespace NCB;
 using namespace NCB::NModelEvaluation;
 
@@ -141,6 +143,25 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
         CheckFlatCalcResult(model, expectedPredicts, xrange(4), features);
         model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, expectedPredicts, xrange(4), features);
+    }
+
+    Y_UNIT_TEST(TestFlatCalcMultiValMultiProba) {
+        auto model = MultiValueFloatModel();
+        constexpr size_t DocCount = 4;
+        TConstArrayRef<TConstArrayRef<float>> features(FLOAT_FEATURES.begin(), DocCount);
+        TVector<double> expectedProbs = {
+            Sigmoid(00.), Sigmoid(10.), Sigmoid(20.),
+            Sigmoid(01.), Sigmoid(11.), Sigmoid(21.),
+            Sigmoid(02.), Sigmoid(12.), Sigmoid(22.),
+            Sigmoid(03.), Sigmoid(13.), Sigmoid(23.),
+        };
+        auto customEval = model.GetCurrentEvaluator()->Clone();
+        customEval->SetPredictionType(NCB::NModelEvaluation::EPredictionType::MultiProbability);
+        TVector<double> probs(model.GetDimensionsCount() * DocCount, 0);
+        customEval->Calc<TStringBuf>(features, {}, probs);
+        for (auto i : xrange(model.GetDimensionsCount() * DocCount)) {
+            UNIT_ASSERT_DOUBLES_EQUAL(expectedProbs[i], probs[i], 1.0e-6);
+        }
     }
 
     Y_UNIT_TEST(TestCatOnlyModel) {

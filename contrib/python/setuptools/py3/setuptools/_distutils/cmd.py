@@ -4,10 +4,15 @@ Provides the Command class, the base class for the command classes
 in the distutils.command package.
 """
 
-import sys, os, re
-from distutils.errors import DistutilsOptionError
-from distutils import util, dir_util, file_util, archive_util, dep_util
-from distutils import log
+import sys
+import os
+import re
+import logging
+
+from .errors import DistutilsOptionError
+from . import util, dir_util, file_util, archive_util, dep_util
+from ._log import log
+
 
 class Command:
     """Abstract base class for defining command classes, the "worker bees"
@@ -40,7 +45,6 @@ class Command:
     # predicates can be unbound methods, so they must already have been
     # defined.  The canonical example is the "install" command.
     sub_commands = []
-
 
     # -- Creation/initialization methods -------------------------------
 
@@ -130,8 +134,9 @@ class Command:
 
         This method must be implemented by all command classes.
         """
-        raise RuntimeError("abstract method -- subclass %s must override"
-                           % self.__class__)
+        raise RuntimeError(
+            "abstract method -- subclass %s must override" % self.__class__
+        )
 
     def finalize_options(self):
         """Set final values for all the options that this command supports.
@@ -144,23 +149,23 @@ class Command:
 
         This method must be implemented by all command classes.
         """
-        raise RuntimeError("abstract method -- subclass %s must override"
-                           % self.__class__)
-
+        raise RuntimeError(
+            "abstract method -- subclass %s must override" % self.__class__
+        )
 
     def dump_options(self, header=None, indent=""):
         from distutils.fancy_getopt import longopt_xlate
+
         if header is None:
             header = "command options for '%s':" % self.get_command_name()
-        self.announce(indent + header, level=log.INFO)
+        self.announce(indent + header, level=logging.INFO)
         indent = indent + "  "
-        for (option, _, _) in self.user_options:
+        for option, _, _ in self.user_options:
             option = option.translate(longopt_xlate)
             if option[-1] == "=":
                 option = option[:-1]
             value = getattr(self, option)
-            self.announce(indent + "%s = %s" % (option, value),
-                          level=log.INFO)
+            self.announce(indent + "{} = {}".format(option, value), level=logging.INFO)
 
     def run(self):
         """A command's raison d'etre: carry out the action it exists to
@@ -172,13 +177,11 @@ class Command:
 
         This method must be implemented by all command classes.
         """
-        raise RuntimeError("abstract method -- subclass %s must override"
-                           % self.__class__)
+        raise RuntimeError(
+            "abstract method -- subclass %s must override" % self.__class__
+        )
 
-    def announce(self, msg, level=1):
-        """If the current verbosity level is of greater than or equal to
-        'level' print 'msg' to stdout.
-        """
+    def announce(self, msg, level=logging.DEBUG):
         log.log(level, msg)
 
     def debug_print(self, msg):
@@ -186,10 +189,10 @@ class Command:
         DISTUTILS_DEBUG environment variable) flag is true.
         """
         from distutils.debug import DEBUG
+
         if DEBUG:
             print(msg)
             sys.stdout.flush()
-
 
     # -- Option validation methods -------------------------------------
     # (these are very handy in writing the 'finalize_options()' method)
@@ -210,8 +213,9 @@ class Command:
             setattr(self, option, default)
             return default
         elif not isinstance(val, str):
-            raise DistutilsOptionError("'%s' must be a %s (got `%s`)"
-                                       % (option, what, val))
+            raise DistutilsOptionError(
+                "'{}' must be a {} (got `{}`)".format(option, what, val)
+            )
         return val
 
     def ensure_string(self, option, default=None):
@@ -238,27 +242,29 @@ class Command:
                 ok = False
             if not ok:
                 raise DistutilsOptionError(
-                      "'%s' must be a list of strings (got %r)"
-                      % (option, val))
+                    "'{}' must be a list of strings (got {!r})".format(option, val)
+                )
 
-    def _ensure_tested_string(self, option, tester, what, error_fmt,
-                              default=None):
+    def _ensure_tested_string(self, option, tester, what, error_fmt, default=None):
         val = self._ensure_stringlike(option, what, default)
         if val is not None and not tester(val):
-            raise DistutilsOptionError(("error in '%s' option: " + error_fmt)
-                                       % (option, val))
+            raise DistutilsOptionError(
+                ("error in '%s' option: " + error_fmt) % (option, val)
+            )
 
     def ensure_filename(self, option):
         """Ensure that 'option' is the name of an existing file."""
-        self._ensure_tested_string(option, os.path.isfile,
-                                   "filename",
-                                   "'%s' does not exist or is not a file")
+        self._ensure_tested_string(
+            option, os.path.isfile, "filename", "'%s' does not exist or is not a file"
+        )
 
     def ensure_dirname(self, option):
-        self._ensure_tested_string(option, os.path.isdir,
-                                   "directory name",
-                                   "'%s' does not exist or is not a directory")
-
+        self._ensure_tested_string(
+            option,
+            os.path.isdir,
+            "directory name",
+            "'%s' does not exist or is not a directory",
+        )
 
     # -- Convenience methods for commands ------------------------------
 
@@ -285,7 +291,7 @@ class Command:
         # Option_pairs: list of (src_option, dst_option) tuples
         src_cmd_obj = self.distribution.get_command_obj(src_cmd)
         src_cmd_obj.ensure_finalized()
-        for (src_option, dst_option) in option_pairs:
+        for src_option, dst_option in option_pairs:
             if getattr(self, dst_option) is None:
                 setattr(self, dst_option, getattr(src_cmd_obj, src_option))
 
@@ -302,8 +308,7 @@ class Command:
     # XXX rename to 'get_reinitialized_command()'? (should do the
     # same in dist.py, if so)
     def reinitialize_command(self, command, reinit_subcommands=0):
-        return self.distribution.reinitialize_command(command,
-                                                      reinit_subcommands)
+        return self.distribution.reinitialize_command(command, reinit_subcommands)
 
     def run_command(self, command):
         """Run some other command: uses the 'run_command()' method of
@@ -320,16 +325,15 @@ class Command:
         run for the current distribution.  Return a list of command names.
         """
         commands = []
-        for (cmd_name, method) in self.sub_commands:
+        for cmd_name, method in self.sub_commands:
             if method is None or method(self):
                 commands.append(cmd_name)
         return commands
 
-
     # -- External world manipulation -----------------------------------
 
     def warn(self, msg):
-        log.warn("warning: %s: %s\n", self.get_command_name(), msg)
+        log.warning("warning: %s: %s\n", self.get_command_name(), msg)
 
     def execute(self, func, args, msg=None, level=1):
         util.execute(func, args, msg, dry_run=self.dry_run)
@@ -337,41 +341,70 @@ class Command:
     def mkpath(self, name, mode=0o777):
         dir_util.mkpath(name, mode, dry_run=self.dry_run)
 
-    def copy_file(self, infile, outfile, preserve_mode=1, preserve_times=1,
-                  link=None, level=1):
+    def copy_file(
+        self, infile, outfile, preserve_mode=1, preserve_times=1, link=None, level=1
+    ):
         """Copy a file respecting verbose, dry-run and force flags.  (The
         former two default to whatever is in the Distribution object, and
         the latter defaults to false for commands that don't define it.)"""
-        return file_util.copy_file(infile, outfile, preserve_mode,
-                                   preserve_times, not self.force, link,
-                                   dry_run=self.dry_run)
+        return file_util.copy_file(
+            infile,
+            outfile,
+            preserve_mode,
+            preserve_times,
+            not self.force,
+            link,
+            dry_run=self.dry_run,
+        )
 
-    def copy_tree(self, infile, outfile, preserve_mode=1, preserve_times=1,
-                   preserve_symlinks=0, level=1):
+    def copy_tree(
+        self,
+        infile,
+        outfile,
+        preserve_mode=1,
+        preserve_times=1,
+        preserve_symlinks=0,
+        level=1,
+    ):
         """Copy an entire directory tree respecting verbose, dry-run,
         and force flags.
         """
-        return dir_util.copy_tree(infile, outfile, preserve_mode,
-                                  preserve_times, preserve_symlinks,
-                                  not self.force, dry_run=self.dry_run)
+        return dir_util.copy_tree(
+            infile,
+            outfile,
+            preserve_mode,
+            preserve_times,
+            preserve_symlinks,
+            not self.force,
+            dry_run=self.dry_run,
+        )
 
-    def move_file (self, src, dst, level=1):
+    def move_file(self, src, dst, level=1):
         """Move a file respecting dry-run flag."""
         return file_util.move_file(src, dst, dry_run=self.dry_run)
 
     def spawn(self, cmd, search_path=1, level=1):
         """Spawn an external command respecting dry-run flag."""
         from distutils.spawn import spawn
+
         spawn(cmd, search_path, dry_run=self.dry_run)
 
-    def make_archive(self, base_name, format, root_dir=None, base_dir=None,
-                     owner=None, group=None):
-        return archive_util.make_archive(base_name, format, root_dir, base_dir,
-                                         dry_run=self.dry_run,
-                                         owner=owner, group=group)
+    def make_archive(
+        self, base_name, format, root_dir=None, base_dir=None, owner=None, group=None
+    ):
+        return archive_util.make_archive(
+            base_name,
+            format,
+            root_dir,
+            base_dir,
+            dry_run=self.dry_run,
+            owner=owner,
+            group=group,
+        )
 
-    def make_file(self, infiles, outfile, func, args,
-                  exec_msg=None, skip_msg=None, level=1):
+    def make_file(
+        self, infiles, outfile, func, args, exec_msg=None, skip_msg=None, level=1
+    ):
         """Special case of 'execute()' for operations that process one or
         more input files and generate one output file.  Works just like
         'execute()', except the operation is skipped and a different
@@ -387,11 +420,10 @@ class Command:
         if isinstance(infiles, str):
             infiles = (infiles,)
         elif not isinstance(infiles, (list, tuple)):
-            raise TypeError(
-                  "'infiles' must be a string, or a list or tuple of strings")
+            raise TypeError("'infiles' must be a string, or a list or tuple of strings")
 
         if exec_msg is None:
-            exec_msg = "generating %s from %s" % (outfile, ', '.join(infiles))
+            exec_msg = "generating {} from {}".format(outfile, ', '.join(infiles))
 
         # If 'outfile' must be regenerated (either because it doesn't
         # exist, is out-of-date, or the 'force' flag is true) then

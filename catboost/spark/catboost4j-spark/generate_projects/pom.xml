@@ -78,13 +78,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                <compilerPlugins>
-                    <compilerPlugin>
-                    <groupId>org.scalamacros</groupId>
-                    <artifactId>paradise_${scala.version}</artifactId>
-                    <version>2.1.1</version>
-                </compilerPlugin>
-                </compilerPlugins>
+                    ${scala_maven_plugin_configuration_placeholder}
                 </configuration>
             </plugin>
             <plugin>

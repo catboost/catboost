@@ -37,11 +37,7 @@
 #include "../config.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \brief BlockRakingLayout provides a conflict-free shared memory layout abstraction for 1D raking across thread block data.    ![](raking.png)
@@ -145,6 +141,5 @@ struct BlockRakingLayout
     }
 };
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

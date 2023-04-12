@@ -553,7 +553,7 @@ static void CalcMonotonicLeafDeltasSimple(
             leafWeights,
             linearOrder,
             &updatedLeafValues);
-        Y_VERIFY_DEBUG(CheckMonotonicity(linearOrder, updatedLeafValues), "Tree monotonization failed");
+        CB_ENSURE(CheckMonotonicity(linearOrder, updatedLeafValues), "Tree monotonization failed");
     }
     for (int leafIndex = 0; leafIndex < leafCount; ++leafIndex) {
         (*leafDeltas)[leafIndex] = updatedLeafValues[leafIndex] - currLeafValues[leafIndex];
@@ -849,7 +849,6 @@ static void CalcApproxDeltaSimple(
 
     const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approxDeltas, const TVector<TVector<double>>& leafDeltas) {
         TConstArrayRef<TQueryInfo> bodyTailQueryInfo(fold.LearnQueriesInfo.begin(), bt.BodyQueryFinish);
-        TConstArrayRef<float> bodyTailTarget(fold.LearnTarget[0].begin(), bt.BodyFinish);
         TMetricHolder additiveStats;
         if (!ctx->Params.BoostingOptions->ApproxOnFullHistory) {
             TVector<TVector<double>> localLeafDeltas(*sumLeafDeltas);
@@ -859,7 +858,7 @@ static void CalcApproxDeltaSimple(
                 To2DConstArrayRef<double>(localLeafDeltas),
                 indices,
                 error.GetIsExpApprox(),
-                bodyTailTarget,
+                To2DConstArrayRef<float>(fold.LearnTarget, 0, bt.BodyFinish),
                 fold.GetLearnWeights(),
                 bodyTailQueryInfo,
                 *lossFunction[0],
@@ -874,7 +873,7 @@ static void CalcApproxDeltaSimple(
                 To2DConstArrayRef<double>(bt.Approx),
                 To2DConstArrayRef<double>(localApproxDeltas),
                 error.GetIsExpApprox(),
-                bodyTailTarget,
+                MakeArrayRef<const float>(fold.LearnTarget[0].begin(), bt.BodyFinish),
                 fold.GetLearnWeights(),
                 bodyTailQueryInfo,
                 *lossFunction[0],
@@ -883,7 +882,7 @@ static void CalcApproxDeltaSimple(
         return minimizationSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
-    FastGradientWalker</*IsLeafwise*/false>(
+    FastGradientWalker(
         /*isTrivialWalker*/ !haveBacktrackingObjective,
         gradientIterations,
         leafCount,
@@ -1020,7 +1019,7 @@ static void CalcLeafValuesSimple(
             To2DConstArrayRef<double>(leafDeltas),
             indices,
             error.GetIsExpApprox(),
-            fold.LearnTarget[0],
+            To2DConstArrayRef<float>(fold.LearnTarget),
             fold.GetLearnWeights(),
             fold.LearnQueriesInfo,
             *lossFunction[0],
@@ -1028,7 +1027,7 @@ static void CalcLeafValuesSimple(
         return minimizationSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
-    FastGradientWalker</*IsLeafwise*/ false>(
+    FastGradientWalker(
         /*isTrivialWalker*/ !haveBacktrackingObjective,
         gradientIterations,
         leafCount,
@@ -1060,7 +1059,6 @@ inline void CalcLeafValuesMultiForAllLeaves(
 
     CalcLeafValuesMulti(
         ctx->Params,
-        /*isLeafwise*/ false,
         leafCount,
         error,
         fold.LearnQueriesInfo,
@@ -1070,7 +1068,7 @@ inline void CalcLeafValuesMultiForAllLeaves(
         ctx->LearnProgress->ApproxDimension,
         fold.GetSumWeight(),
         fold.GetLearnSampleCount(),
-        /*objectsInLeafCount*/ 0,
+        fold.GetLearnSampleCount(),
         ctx->Params.MetricOptions->ObjectiveMetric,
         &ctx->LearnProgress->Rand,
         localExecutor,
@@ -1090,7 +1088,7 @@ void CalcLeafValues(
 
     *indices = BuildIndices(fold, tree, data, EBuildIndicesDataParts::All, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
-    Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
+    CB_ENSURE(fold.GetLearnSampleCount() == data.Learn->GetObjectCount(), "Unexpected number of train samples");
     const int leafCount = GetLeafCount(tree);
 
     const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(

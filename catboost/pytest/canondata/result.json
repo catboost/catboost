@@ -735,6 +735,11 @@
             "uri": "file://test.test_bootstrap_calc_block=60-Plain_/test_no.eval"
         }
     ],
+    "test.test_bow_multilogoss": [
+        {
+            "uri": "file://test.test_bow_multilogoss/output.txt"
+        }
+    ],
     "test.test_calc_prediction_type[Ordered]": {
         "uri": "file://test.test_calc_prediction_type_Ordered_/test.eval"
     },
@@ -1389,14 +1394,19 @@
             "uri": "file://test.test_custom_priors_Plain_/test.eval"
         }
     ],
+    "test.test_cv[Ordered-SymmetricTree-]": [
+        {
+            "uri": "file://test.test_cv_Ordered-SymmetricTree-_/test.eval"
+        }
+    ],
     "test.test_cv[Ordered-SymmetricTree-inverted]": [
         {
             "uri": "file://test.test_cv_Ordered-SymmetricTree-inverted_/test.eval"
         }
     ],
-    "test.test_cv[Ordered-SymmetricTree]": [
+    "test.test_cv[Plain-Depthwise-]": [
         {
-            "uri": "file://test.test_cv_Ordered-SymmetricTree_/test.eval"
+            "uri": "file://test.test_cv_Plain-Depthwise-_/test.eval"
         }
     ],
     "test.test_cv[Plain-Depthwise-inverted]": [
@@ -1404,9 +1414,9 @@
             "uri": "file://test.test_cv_Plain-Depthwise-inverted_/test.eval"
         }
     ],
-    "test.test_cv[Plain-Depthwise]": [
+    "test.test_cv[Plain-Lossguide-]": [
         {
-            "uri": "file://test.test_cv_Plain-Depthwise_/test.eval"
+            "uri": "file://test.test_cv_Plain-Lossguide-_/test.eval"
         }
     ],
     "test.test_cv[Plain-Lossguide-inverted]": [
@@ -1414,9 +1424,9 @@
             "uri": "file://test.test_cv_Plain-Lossguide-inverted_/test.eval"
         }
     ],
-    "test.test_cv[Plain-Lossguide]": [
+    "test.test_cv[Plain-SymmetricTree-]": [
         {
-            "uri": "file://test.test_cv_Plain-Lossguide_/test.eval"
+            "uri": "file://test.test_cv_Plain-SymmetricTree-_/test.eval"
         }
     ],
     "test.test_cv[Plain-SymmetricTree-inverted]": [
@@ -1424,9 +1434,9 @@
             "uri": "file://test.test_cv_Plain-SymmetricTree-inverted_/test.eval"
         }
     ],
-    "test.test_cv[Plain-SymmetricTree]": [
+    "test.test_cv_for_pairs[Ordered-]": [
         {
-            "uri": "file://test.test_cv_Plain-SymmetricTree_/test.eval"
+            "uri": "file://test.test_cv_for_pairs_Ordered-_/test.eval"
         }
     ],
     "test.test_cv_for_pairs[Ordered-inverted]": [
@@ -1434,9 +1444,9 @@
             "uri": "file://test.test_cv_for_pairs_Ordered-inverted_/test.eval"
         }
     ],
-    "test.test_cv_for_pairs[Ordered]": [
+    "test.test_cv_for_pairs[Plain-]": [
         {
-            "uri": "file://test.test_cv_for_pairs_Ordered_/test.eval"
+            "uri": "file://test.test_cv_for_pairs_Plain-_/test.eval"
         }
     ],
     "test.test_cv_for_pairs[Plain-inverted]": [
@@ -1444,9 +1454,9 @@
             "uri": "file://test.test_cv_for_pairs_Plain-inverted_/test.eval"
         }
     ],
-    "test.test_cv_for_pairs[Plain]": [
+    "test.test_cv_for_query[Ordered-]": [
         {
-            "uri": "file://test.test_cv_for_pairs_Plain_/test.eval"
+            "uri": "file://test.test_cv_for_query_Ordered-_/test.eval"
         }
     ],
     "test.test_cv_for_query[Ordered-inverted]": [
@@ -1454,9 +1464,9 @@
             "uri": "file://test.test_cv_for_query_Ordered-inverted_/test.eval"
         }
     ],
-    "test.test_cv_for_query[Ordered]": [
+    "test.test_cv_for_query[Plain-]": [
         {
-            "uri": "file://test.test_cv_for_query_Ordered_/test.eval"
+            "uri": "file://test.test_cv_for_query_Plain-_/test.eval"
         }
     ],
     "test.test_cv_for_query[Plain-inverted]": [
@@ -1464,9 +1474,9 @@
             "uri": "file://test.test_cv_for_query_Plain-inverted_/test.eval"
         }
     ],
-    "test.test_cv_for_query[Plain]": [
+    "test.test_cv_multiregression[Ordered-]": [
         {
-            "uri": "file://test.test_cv_for_query_Plain_/test.eval"
+            "uri": "file://test.test_cv_multiregression_Ordered-_/test.eval"
         }
     ],
     "test.test_cv_multiregression[Ordered-inverted]": [
@@ -1474,9 +1484,9 @@
             "uri": "file://test.test_cv_multiregression_Ordered-inverted_/test.eval"
         }
     ],
-    "test.test_cv_multiregression[Ordered]": [
+    "test.test_cv_multiregression[Plain-]": [
         {
-            "uri": "file://test.test_cv_multiregression_Ordered_/test.eval"
+            "uri": "file://test.test_cv_multiregression_Plain-_/test.eval"
         }
     ],
     "test.test_cv_multiregression[Plain-inverted]": [
@@ -1484,9 +1494,54 @@
             "uri": "file://test.test_cv_multiregression_Plain-inverted_/test.eval"
         }
     ],
-    "test.test_cv_multiregression[Plain]": [
+    "test.test_dataset_statistics[use_spots=False-group_stats_only=False-with_groups=False]": [
         {
-            "uri": "file://test.test_cv_multiregression_Plain_/test.eval"
+            "uri": "file://test.test_dataset_statistics_use_spots=False-group_stats_only=False-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=False-group_stats_only=False-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=False-group_stats_only=False-with_groups=True_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=False-group_stats_only=True-with_groups=False]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=False-group_stats_only=True-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=False-group_stats_only=True-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=False-group_stats_only=True-with_groups=True_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=True-group_stats_only=False-with_groups=False]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=True-group_stats_only=False-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=True-group_stats_only=False-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=True-group_stats_only=False-with_groups=True_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=True-group_stats_only=True-with_groups=False]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=True-group_stats_only=True-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=True-group_stats_only=True-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=True-group_stats_only=True-with_groups=True_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics_custom_feature_limits": [
+        {
+            "uri": "file://test.test_dataset_statistics_custom_feature_limits/res.json"
+        }
+    ],
+    "test.test_dataset_statistics_multitarget": [
+        {
+            "uri": "file://test.test_dataset_statistics_multitarget/res.json"
         }
     ],
     "test.test_deep_tree_classification[Ordered-4]": [
@@ -2880,6 +2935,16 @@
             "uri": "file://test.test_eval_metrics_F1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics[F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics[F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_F_beta=0.5-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics[Logloss-1]": [
         {
             "uri": "file://test.test_eval_metrics_Logloss-1_/output.tsv"
@@ -2930,6 +2995,21 @@
             "uri": "file://test.test_eval_metrics_TotalF1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_groupweights[PFound]": [
+        {
+            "uri": "file://test.test_eval_metrics_groupweights_PFound_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_groupweights[PairAccuracy]": [
+        {
+            "uri": "file://test.test_eval_metrics_groupweights_PairAccuracy_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_groupweights[QueryRMSE]": [
+        {
+            "uri": "file://test.test_eval_metrics_groupweights_QueryRMSE_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Accuracy-1]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Accuracy-1_/output.tsv"
@@ -2948,6 +3028,16 @@
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F1-2]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F_beta=0.5-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MCC-1]": [
@@ -3020,6 +3110,16 @@
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F_beta=0.5-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MCC-1]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-1_/output.tsv"
@@ -3090,6 +3190,16 @@
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F_beta=0.5-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-1]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-1_/output.tsv"
@@ -3158,6 +3268,16 @@
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-F1-2]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F_beta=0.5-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MCC-1]": [
@@ -3250,6 +3370,16 @@
             "uri": "file://test.test_eval_metrics_multilabel_scene-F1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_multilabel[scene-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-F_beta=0.5-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics_multilabel[scene-MultiLogloss-1]": [
         {
             "uri": "file://test.test_eval_metrics_multilabel_scene-MultiLogloss-1_/output.tsv"
@@ -3308,6 +3438,16 @@
     "test.test_eval_metrics_multilabel[yeast-F1-2]": [
         {
             "uri": "file://test.test_eval_metrics_multilabel_yeast-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-F_beta=0.5-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multilabel[yeast-MultiLogloss-1]": [
@@ -3469,6 +3609,102 @@
     "test.test_feature_id_fstr[Plain]": {
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
+    "test.test_filtered_dcg[ByPrediction-LogPosition-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-LogPosition-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-LogPosition-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByPrediction-LogPosition-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-LogPosition-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-LogPosition-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByPrediction-Position-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-Position-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-Position-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByPrediction-Position-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-Position-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByPrediction-Position-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByTarget-LogPosition-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-LogPosition-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-LogPosition-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByTarget-LogPosition-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-LogPosition-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-LogPosition-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByTarget-Position-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-Position-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-Position-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[ByTarget-Position-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-Position-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_ByTarget-Position-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[None-LogPosition-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_None-LogPosition-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_None-LogPosition-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[None-LogPosition-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_None-LogPosition-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_None-LogPosition-Exp_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[None-Position-Base]": [
+        {
+            "uri": "file://test.test_filtered_dcg_None-Position-Base_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_None-Position-Base_/test_error.tsv"
+        }
+    ],
+    "test.test_filtered_dcg[None-Position-Exp]": [
+        {
+            "uri": "file://test.test_filtered_dcg_None-Position-Exp_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_filtered_dcg_None-Position-Exp_/test_error.tsv"
+        }
+    ],
     "test.test_fit_binclass_with_text_features[BM25-ByDelimiter-Ordered]": [
         {
             "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Ordered_/learn.tsv"
@@ -3914,20 +4150,80 @@
             "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/test.eval"
         }
     ],
-    "test.test_fit_with_per_feature_text_options[Ordered]": [
+    "test.test_fit_regression_with_text_features[BoW-ByDelimiter-Ordered]": [
         {
-            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered_/learn.tsv"
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Ordered_/learn.tsv"
         },
         {
-            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered_/test.tsv"
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Ordered_/test.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Ordered_/test.eval"
         }
     ],
-    "test.test_fit_with_per_feature_text_options[Plain]": [
+    "test.test_fit_regression_with_text_features[BoW-ByDelimiter-Plain]": [
         {
-            "uri": "file://test.test_fit_with_per_feature_text_options_Plain_/learn.tsv"
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Plain_/learn.tsv"
         },
         {
-            "uri": "file://test.test_fit_with_per_feature_text_options_Plain_/test.tsv"
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Plain_/test.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Plain_/test.eval"
+        }
+    ],
+    "test.test_fit_regression_with_text_features[BoW-BySense-Ordered]": [
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Ordered_/test.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Ordered_/test.eval"
+        }
+    ],
+    "test.test_fit_regression_with_text_features[BoW-BySense-Plain]": [
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Plain_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Plain_/test.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_regression_with_text_features_BoW-BySense-Plain_/test.eval"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Ordered-binclass]": [
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered-binclass_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered-binclass_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Ordered-regression]": [
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered-regression_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered-regression_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Plain-binclass]": [
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain-binclass_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain-binclass_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Plain-regression]": [
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain-regression_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain-regression_/test.tsv"
         }
     ],
     "test.test_fold_len_multiplier[calc_block=5000000-Ordered]": [
@@ -8296,6 +8592,11 @@
     "test.test_rmse_on_qwise_pool[calc_block=60-Plain-SymmetricTree]": [
         {
             "uri": "file://test.test_rmse_on_qwise_pool_calc_block=60-Plain-SymmetricTree_/test.eval"
+        }
+    ],
+    "test.test_sage_basic": [
+        {
+            "uri": "file://test.test_sage_basic/sageval"
         }
     ],
     "test.test_sample_id[column_name=doc_id-loss_function=Logloss]": [

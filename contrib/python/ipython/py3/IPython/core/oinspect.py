@@ -16,6 +16,7 @@ __all__ = ['Inspector','InspectColors']
 import ast
 import inspect
 from inspect import signature
+import html
 import linecache
 import warnings
 import os
@@ -31,7 +32,6 @@ from IPython.lib.pretty import pretty
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import openpy
-from IPython.utils import py3compat
 from IPython.utils.dir2 import safe_hasattr
 from IPython.utils.path import compress_user
 from IPython.utils.text import indent
@@ -182,11 +182,12 @@ def getsource(obj, oname='') -> Union[str,None]:
         except TypeError:
             # The object itself provided no meaningful source, try looking for
             # its class definition instead.
-            if hasattr(obj, '__class__'):
-                try:
-                    src = inspect.getsource(obj.__class__)
-                except TypeError:
-                    return None
+            try:
+                src = inspect.getsource(obj.__class__)
+            except (OSError, TypeError):
+                return None
+        except OSError:
+            return None
 
         return src
 
@@ -221,7 +222,7 @@ def format_argspec(argspec):
     This takes a dict instead of ordered arguments and calls
     inspect.format_argspec with the arguments in the necessary order.
 
-    DEPRECATED: Do not use; will be removed in future versions.
+    DEPRECATED (since 7.10): Do not use; will be removed in future versions.
     """
     
     warnings.warn('`format_argspec` function is deprecated as of IPython 7.10'
@@ -233,10 +234,13 @@ def format_argspec(argspec):
 
 @undoc
 def call_tip(oinfo, format_call=True):
-    """DEPRECATED. Extract call tip data from an oinfo dict.
-    """
-    warnings.warn('`call_tip` function is deprecated as of IPython 6.0'
-                  'and will be removed in future versions.', DeprecationWarning, stacklevel=2)
+    """DEPRECATED since 6.0. Extract call tip data from an oinfo dict."""
+    warnings.warn(
+        "`call_tip` function is deprecated as of IPython 6.0"
+        "and will be removed in future versions.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     # Get call definition
     argspec = oinfo.get('argspec')
     if argspec is None:
@@ -298,7 +302,7 @@ def find_file(obj) -> str:
     Returns
     -------
     fname : str
-      The absolute path to the file where the object was defined.
+        The absolute path to the file where the object was defined.
     """
     obj = _get_wrapped(obj)
 
@@ -308,14 +312,14 @@ def find_file(obj) -> str:
     except TypeError:
         # For an instance, the file that matters is where its class was
         # declared.
-        if hasattr(obj, '__class__'):
-            try:
-                fname = inspect.getabsfile(obj.__class__)
-            except TypeError:
-                # Can happen for builtins
-                pass
-    except:
+        try:
+            fname = inspect.getabsfile(obj.__class__)
+        except (OSError, TypeError):
+            # Can happen for builtins
+            pass
+    except OSError:
         pass
+
     return cast_unicode(fname)
 
 
@@ -333,20 +337,19 @@ def find_source_lines(obj):
     Returns
     -------
     lineno : int
-      The line number where the object definition starts.
+        The line number where the object definition starts.
     """
     obj = _get_wrapped(obj)
 
     try:
+        lineno = inspect.getsourcelines(obj)[1]
+    except TypeError:
+        # For instances, try the class object like getsource() does
         try:
-            lineno = inspect.getsourcelines(obj)[1]
-        except TypeError:
-            # For instances, try the class object like getsource() does
-            if hasattr(obj, '__class__'):
-                lineno = inspect.getsourcelines(obj.__class__)[1]
-            else:
-                lineno = None
-    except:
+            lineno = inspect.getsourcelines(obj.__class__)[1]
+        except (OSError, TypeError):
+            return None
+    except OSError:
         return None
 
     return lineno
@@ -425,7 +428,6 @@ class Inspector(Colorable):
 
         Examples
         --------
-
         In [1]: class NoInit:
            ...:     pass
 
@@ -516,12 +518,12 @@ class Inspector(Colorable):
         """Return a mime bundle representation of the input text.
 
         - if `formatter` is None, the returned mime bundle has
-           a `text/plain` field, with the input text.
-           a `text/html` field with a `<pre>` tag containing the input text.
+           a ``text/plain`` field, with the input text.
+           a ``text/html`` field with a ``<pre>`` tag containing the input text.
 
-        - if `formatter` is not None, it must be a callable transforming the
-          input text into a mime bundle. Default values for `text/plain` and
-          `text/html` representations are the ones described above.
+        - if ``formatter`` is not None, it must be a callable transforming the
+          input text into a mime bundle. Default values for ``text/plain`` and
+          ``text/html`` representations are the ones described above.
 
         Note:
 
@@ -529,8 +531,8 @@ class Inspector(Colorable):
 
         """
         defaults = {
-            'text/plain': text,
-            'text/html': '<pre>' + text + '</pre>'
+            "text/plain": text,
+            "text/html": f"<pre>{html.escape(text)}</pre>",
         }
 
         if formatter is None:
@@ -541,61 +543,66 @@ class Inspector(Colorable):
             if not isinstance(formatted, dict):
                 # Handle the deprecated behavior of a formatter returning
                 # a string instead of a mime bundle.
-                return {
-                    'text/plain': formatted,
-                    'text/html': '<pre>' + formatted + '</pre>'
-                }
+                return {"text/plain": formatted, "text/html": f"<pre>{formatted}</pre>"}
 
             else:
                 return dict(defaults, **formatted)
 
 
     def format_mime(self, bundle):
+        """Format a mimebundle being created by _make_info_unformatted into a real mimebundle"""
+        # Format text/plain mimetype
+        if isinstance(bundle["text/plain"], (list, tuple)):
+            # bundle['text/plain'] is a list of (head, formatted body) pairs
+            lines = []
+            _len = max(len(h) for h, _ in bundle["text/plain"])
 
-        text_plain = bundle['text/plain']
+            for head, body in bundle["text/plain"]:
+                body = body.strip("\n")
+                delim = "\n" if "\n" in body else " "
+                lines.append(
+                    f"{self.__head(head+':')}{(_len - len(head))*' '}{delim}{body}"
+                )
 
-        text = ''
-        heads, bodies = list(zip(*text_plain))
-        _len = max(len(h) for h in heads)
+            bundle["text/plain"] = "\n".join(lines)
 
-        for head, body in zip(heads, bodies):
-            body = body.strip('\n')
-            delim = '\n' if '\n' in body else ' '
-            text += self.__head(head+':') + (_len - len(head))*' ' +delim + body +'\n'
-
-        bundle['text/plain'] = text
+        # Format the text/html mimetype
+        if isinstance(bundle["text/html"], (list, tuple)):
+            # bundle['text/html'] is a list of (head, formatted body) pairs
+            bundle["text/html"] = "\n".join(
+                (f"<h1>{head}</h1>\n{body}" for (head, body) in bundle["text/html"])
+            )
         return bundle
 
-    def _get_info(self, obj, oname='', formatter=None, info=None, detail_level=0):
-        """Retrieve an info dict and format it.
+    def _append_info_field(
+        self, bundle, title: str, key: str, info, omit_sections, formatter
+    ):
+        """Append an info value to the unformatted mimebundle being constructed by _make_info_unformatted"""
+        if title in omit_sections or key in omit_sections:
+            return
+        field = info[key]
+        if field is not None:
+            formatted_field = self._mime_format(field, formatter)
+            bundle["text/plain"].append((title, formatted_field["text/plain"]))
+            bundle["text/html"].append((title, formatted_field["text/html"]))
 
-        Parameters
-        ==========
-
-        obj: any
-            Object to inspect and return info from
-        oname: str (default: ''):
-            Name of the variable pointing to `obj`.
-        formatter: callable
-        info:
-            already computed information
-        detail_level: integer
-            Granularity of detail level, if set to 1, give more information.
-        """
-
-        info = self._info(obj, oname=oname, info=info, detail_level=detail_level)
-
-        _mime = {
-            'text/plain': [],
-            'text/html': '',
+    def _make_info_unformatted(self, obj, info, formatter, detail_level, omit_sections):
+        """Assemble the mimebundle as unformatted lists of information"""
+        bundle = {
+            "text/plain": [],
+            "text/html": [],
         }
 
-        def append_field(bundle, title:str, key:str, formatter=None):
-            field = info[key]
-            if field is not None:
-                formatted_field = self._mime_format(field, formatter)
-                bundle['text/plain'].append((title, formatted_field['text/plain']))
-                bundle['text/html'] += '<h1>' + title + '</h1>\n' + formatted_field['text/html'] + '\n'
+        # A convenience function to simplify calls below
+        def append_field(bundle, title: str, key: str, formatter=None):
+            self._append_info_field(
+                bundle,
+                title=title,
+                key=key,
+                info=info,
+                omit_sections=omit_sections,
+                formatter=formatter,
+            )
 
         def code_formatter(text):
             return {
@@ -603,59 +610,93 @@ class Inspector(Colorable):
                 'text/html': pylight(text)
             }
 
-        if info['isalias']:
-            append_field(_mime, 'Repr', 'string_form')
+        if info["isalias"]:
+            append_field(bundle, "Repr", "string_form")
 
         elif info['ismagic']:
             if detail_level > 0:
-                append_field(_mime, 'Source', 'source', code_formatter)
+                append_field(bundle, "Source", "source", code_formatter)
             else:
-                append_field(_mime, 'Docstring', 'docstring', formatter)
-            append_field(_mime, 'File', 'file')
+                append_field(bundle, "Docstring", "docstring", formatter)
+            append_field(bundle, "File", "file")
 
         elif info['isclass'] or is_simple_callable(obj):
             # Functions, methods, classes
-            append_field(_mime, 'Signature', 'definition', code_formatter)
-            append_field(_mime, 'Init signature', 'init_definition', code_formatter)
-            append_field(_mime, 'Docstring', 'docstring', formatter)
-            if detail_level > 0 and info['source']:
-                append_field(_mime, 'Source', 'source', code_formatter)
+            append_field(bundle, "Signature", "definition", code_formatter)
+            append_field(bundle, "Init signature", "init_definition", code_formatter)
+            append_field(bundle, "Docstring", "docstring", formatter)
+            if detail_level > 0 and info["source"]:
+                append_field(bundle, "Source", "source", code_formatter)
             else:
-                append_field(_mime, 'Init docstring', 'init_docstring', formatter)
+                append_field(bundle, "Init docstring", "init_docstring", formatter)
 
-            append_field(_mime, 'File', 'file')
-            append_field(_mime, 'Type', 'type_name')
-            append_field(_mime, 'Subclasses', 'subclasses')
+            append_field(bundle, "File", "file")
+            append_field(bundle, "Type", "type_name")
+            append_field(bundle, "Subclasses", "subclasses")
 
         else:
             # General Python objects
-            append_field(_mime, 'Signature', 'definition', code_formatter)
-            append_field(_mime, 'Call signature', 'call_def', code_formatter)
-            append_field(_mime, 'Type', 'type_name')
-            append_field(_mime, 'String form', 'string_form')
+            append_field(bundle, "Signature", "definition", code_formatter)
+            append_field(bundle, "Call signature", "call_def", code_formatter)
+            append_field(bundle, "Type", "type_name")
+            append_field(bundle, "String form", "string_form")
 
             # Namespace
-            if info['namespace'] != 'Interactive':
-                append_field(_mime, 'Namespace', 'namespace')
+            if info["namespace"] != "Interactive":
+                append_field(bundle, "Namespace", "namespace")
 
-            append_field(_mime, 'Length', 'length')
-            append_field(_mime, 'File', 'file')
+            append_field(bundle, "Length", "length")
+            append_field(bundle, "File", "file")
 
             # Source or docstring, depending on detail level and whether
             # source found.
-            if detail_level > 0 and info['source']:
-                append_field(_mime, 'Source', 'source', code_formatter)
+            if detail_level > 0 and info["source"]:
+                append_field(bundle, "Source", "source", code_formatter)
             else:
-                append_field(_mime, 'Docstring', 'docstring', formatter)
+                append_field(bundle, "Docstring", "docstring", formatter)
 
-            append_field(_mime, 'Class docstring', 'class_docstring', formatter)
-            append_field(_mime, 'Init docstring', 'init_docstring', formatter)
-            append_field(_mime, 'Call docstring', 'call_docstring', formatter)
+            append_field(bundle, "Class docstring", "class_docstring", formatter)
+            append_field(bundle, "Init docstring", "init_docstring", formatter)
+            append_field(bundle, "Call docstring", "call_docstring", formatter)
+        return bundle
 
 
-        return self.format_mime(_mime)
+    def _get_info(
+        self, obj, oname="", formatter=None, info=None, detail_level=0, omit_sections=()
+    ):
+        """Retrieve an info dict and format it.
 
-    def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0, enable_html_pager=True):
+        Parameters
+        ----------
+        obj : any
+            Object to inspect and return info from
+        oname : str (default: ''):
+            Name of the variable pointing to `obj`.
+        formatter : callable
+        info
+            already computed information
+        detail_level : integer
+            Granularity of detail level, if set to 1, give more information.
+        omit_sections : container[str]
+            Titles or keys to omit from output (can be set, tuple, etc., anything supporting `in`)
+        """
+
+        info = self.info(obj, oname=oname, info=info, detail_level=detail_level)
+        bundle = self._make_info_unformatted(
+            obj, info, formatter, detail_level=detail_level, omit_sections=omit_sections
+        )
+        return self.format_mime(bundle)
+
+    def pinfo(
+        self,
+        obj,
+        oname="",
+        formatter=None,
+        info=None,
+        detail_level=0,
+        enable_html_pager=True,
+        omit_sections=(),
+    ):
         """Show detailed information about an object.
 
         Optional arguments:
@@ -676,40 +717,48 @@ class Inspector(Colorable):
           precomputed already.
 
         - detail_level: if set to 1, more information is given.
+
+        - omit_sections: set of section keys and titles to omit
         """
-        info = self._get_info(obj, oname, formatter, info, detail_level)
+        info = self._get_info(
+            obj, oname, formatter, info, detail_level, omit_sections=omit_sections
+        )
         if not enable_html_pager:
             del info['text/html']
         page.page(info)
 
-    def info(self, obj, oname='', formatter=None, info=None, detail_level=0):
-        """DEPRECATED. Compute a dict with detailed information about an object.
+    def _info(self, obj, oname="", info=None, detail_level=0):
         """
-        if formatter is not None:
-            warnings.warn('The `formatter` keyword argument to `Inspector.info`'
-                     'is deprecated as of IPython 5.0 and will have no effects.',
-                      DeprecationWarning, stacklevel=2)
-        return self._info(obj, oname=oname, info=info, detail_level=detail_level)
+        Inspector.info() was likely improperly marked as deprecated
+        while only a parameter was deprecated. We "un-deprecate" it.
+        """
 
-    def _info(self, obj, oname='', info=None, detail_level=0) -> dict:
+        warnings.warn(
+            "The `Inspector.info()` method has been un-deprecated as of 8.0 "
+            "and the `formatter=` keyword removed. `Inspector._info` is now "
+            "an alias, and you can just call `.info()` directly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.info(obj, oname=oname, info=info, detail_level=detail_level)
+
+    def info(self, obj, oname="", info=None, detail_level=0) -> dict:
         """Compute a dict with detailed information about an object.
 
         Parameters
-        ==========
-
-        obj: any
+        ----------
+        obj : any
             An object to find information about
-        oname: str (default: ''):
+        oname : str (default: '')
             Name of the variable pointing to `obj`.
-        info: (default: None)
+        info : (default: None)
             A struct (dict like with attr access) with some information fields
             which may have been precomputed already.
-        detail_level: int (default:0)
+        detail_level : int (default:0)
             If set to 1, more information is given.
 
         Returns
-        =======
-
+        -------
         An object info dict with known fields from `info_fields`. Keys are
         strings, values are string or None.
         """
@@ -941,7 +990,7 @@ class Inspector(Colorable):
 
           - show_all(False): show all names, including those starting with
             underscores.
-            
+
           - list_types(False): list all available object types for object matching.
         """
         #print 'ps pattern:<%r>' % pattern # dbg

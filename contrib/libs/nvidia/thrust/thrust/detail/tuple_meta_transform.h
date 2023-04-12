@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/tuple.h>
 #include <thrust/type_traits/integer_sequence.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -53,5 +54,5 @@ template<typename Tuple,
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

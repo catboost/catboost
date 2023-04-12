@@ -6,10 +6,9 @@
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
-#include <library/cpp/cuda/wrappers/cub_include.h>
 #include <catboost/cuda/methods/kernel/score_calcers.cuh>
 
-#include _CUB_INCLUDE(cub/block/block_reduce.cuh)
+#include <contrib/libs/nvidia/cub/cub/block/block_reduce.cuh>
 
 #include <cmath>
 #include <exception>
@@ -23,12 +22,15 @@ namespace NKernel {
     scores[tid] = bestScore; \
     __shared__ int indices[BlockSize]; \
     indices[tid] = bestIndex; \
+    __shared__ float gains[BlockSize]; \
+    gains[tid] = bestGain; \
     __syncthreads();\
     for (ui32 s = BlockSize >> 1; s > 0; s >>= 1) { \
         if (tid < s) { \
-            if (scores[tid] > scores[tid + s] || (scores[tid] == scores[tid + s] && indices[tid] > indices[tid + s]) ) { \
+            if (gains[tid] > gains[tid + s] || (gains[tid] == gains[tid + s] && indices[tid] > indices[tid + s]) ) { \
                 scores[tid] = scores[tid + s]; \
                 indices[tid] = indices[tid + s]; \
+                gains[tid] = gains[tid + s]; \
         }\
     }\
         __syncthreads();\
@@ -39,10 +41,12 @@ namespace NKernel {
             result->FeatureId = bf[index].FeatureId;\
             result->BinId = bf[index].BinId;\
             result->Score = scores[0];\
+            result->Gain = gains[0];\
         } else {\
             result->FeatureId = -1;\
             result->BinId = -1;\
             result->Score = FLT_MAX;\
+            result->Gain = FLT_MAX;\
         }\
     }
 //    histId * binFeatureCount * statCount + statId * binFeatureCount + features->FirstFoldIndex;
@@ -61,6 +65,7 @@ namespace NKernel {
                                          TBestSplitProperties* result) {
 
         float bestScore = FLT_MAX;
+        float bestGain = FLT_MAX;
         int bestIndex = -1;
         int tid = threadIdx.x;
 
@@ -77,6 +82,7 @@ namespace NKernel {
                 continue;
             }
             calcer.NextFeature(bf[binFeatureId]);
+            TScoreCalcer beforeSplitCalcer = calcer;
 
             for (int i = 0; i < pCount; i++) {
                 const int leafId = __ldg(partIds + i);
@@ -123,12 +129,16 @@ namespace NKernel {
             }
 
             float score = calcer.GetScore();
+            const float scoreBefore = beforeSplitCalcer.GetScore();
 
-            ui32 featureId = bf[binFeatureId].FeatureId;
-            score *= __ldg(binFeaturesWeights + featureId);
+            float gain = score - scoreBefore;
 
-            if (score < bestScore) {
+            const ui32 featureId = bf[binFeatureId].FeatureId;
+            gain *= __ldg(binFeaturesWeights + featureId);
+
+            if (gain < bestGain) {
                 bestScore = score;
+                bestGain = gain;
                 bestIndex = binFeatureId;
             }
         }
@@ -160,6 +170,9 @@ namespace NKernel {
         numBlocks.x = argmaxBlockCount;
         numBlocks.y = partBlockCount;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         #define RUN() \
         ComputeOptimalSplits<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partIds, partBlockSize, restPartIds, restPartCount, multiclassOptimization, scoreCalcer, result);
@@ -289,6 +302,8 @@ namespace NKernel {
             class TScoreCalcer>
     __global__ void ComputeOptimalSplitsRegion(const TCBinFeature* bf,
                                                ui32 binFeatureCount,
+                                               const float* binFeaturesWeights,
+                                               ui32 binFeaturesWeightsCount,
                                                const float* histograms,
                                                const double* partStats, int statCount,
                                                const ui32* partIds,
@@ -298,6 +313,7 @@ namespace NKernel {
 
         float bestScore = FLT_MAX;
         int bestIndex = -1;
+        float bestGain = FLT_MAX;
         int tid = threadIdx.x;
 
         result += blockIdx.x + blockIdx.y * gridDim.x;
@@ -356,11 +372,15 @@ namespace NKernel {
 
             //-10 - 0 = -10
             //in gpu catboost all scores are inverse, lower is better
-            const float gain = !skip ? abs(scoreAfter - scoreBefore) * (scoreAfter < scoreBefore ? -1 : 1) : 0;
+            float gain = !skip ? (scoreAfter - scoreBefore) : 0;
+
+            const ui32 featureId = bf[binFeatureId].FeatureId;
+            gain *= __ldg(binFeaturesWeights + featureId);
 
             if (gain < bestScore) {
                 bestScore = gain;
                 bestIndex = binFeatureId;
+                bestGain = gain;
             }
         }
 
@@ -372,6 +392,8 @@ namespace NKernel {
         class TScoreCalcer>
     __global__ void ComputeOptimalSplit(const TCBinFeature* bf,
                                         ui32 binFeatureCount,
+                                        const float* binFeaturesWeights,
+                                        ui32 binFeaturesWeightsCount,
                                         const float* histograms,
                                         const double* partStats, int statCount,
                                         const int partId,
@@ -382,6 +404,7 @@ namespace NKernel {
 
         float bestScore = FLT_MAX;
         int bestIndex = -1;
+        float bestGain = FLT_MAX;
         int tid = threadIdx.x;
         result += blockIdx.x + blockIdx.y * gridDim.x;
         const int thisPartId = blockIdx.y == 0 ? partId : maybeSecondPartId;
@@ -438,11 +461,15 @@ namespace NKernel {
 
             //-10 - 0 = -10
             //in gpu catboost all scores are inverse, lower is better
-            const float gain = !skip ? abs(scoreAfter - scoreBefore) * (scoreAfter < scoreBefore ? -1 : 1) : 0;
+            float gain = !skip ? (scoreAfter - scoreBefore) : 0;
+
+            const ui32 featureId = bf[binFeatureId].FeatureId;
+            gain *= __ldg(binFeaturesWeights + featureId);
 
             if (gain < bestScore) {
                 bestScore = gain;
                 bestIndex = binFeatureId;
+                bestGain = gain;
             }
         }
 
@@ -451,6 +478,7 @@ namespace NKernel {
 
 
     void ComputeOptimalSplitsRegion(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                                    const float* binFeaturesWeights, ui32 binFeaturesWeightsCount,
                                     const float* histograms,
                                     const double* partStats, int statCount,
                                     const ui32* partIds, int partCount,
@@ -468,9 +496,12 @@ namespace NKernel {
         numBlocks.x = argmaxBlockCount;
         numBlocks.y = partCount;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         #define RUN() \
-        ComputeOptimalSplitsRegion<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, histograms, partStats,  statCount, partIds, multiclassOptimization, scoreCalcer, result);
+        ComputeOptimalSplitsRegion<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partIds, multiclassOptimization, scoreCalcer, result);
 
 
         switch (scoreFunction)
@@ -519,6 +550,7 @@ namespace NKernel {
 
 
     void ComputeOptimalSplit(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                            const float* binFeaturesWeights, ui32 binFeaturesWeightsCount,
                             const float* histograms,
                             const double* partStats, int statCount,
                             ui32 partId, ui32 maybeSecondPartId,
@@ -536,9 +568,12 @@ namespace NKernel {
         numBlocks.x = argmaxBlockCount;
         numBlocks.y = partId == maybeSecondPartId ? 1 : 2;
         numBlocks.z = 1;
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         #define RUN() \
-        ComputeOptimalSplit<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, histograms, partStats,  statCount, partId, maybeSecondPartId, multiclassOptimization, scoreCalcer, result);
+        ComputeOptimalSplit<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partId, maybeSecondPartId, multiclassOptimization, scoreCalcer, result);
 
 
         switch (scoreFunction)

@@ -1,4 +1,4 @@
-import {buildYa} from './build';
+import {buildNative} from './build';
 import {generateConfigForVersion, patchPackageJSONWithVersion, prepareHeaders} from './packaging';
 import {test} from './test';
 import {E2EDeploymentTest} from './docker';
@@ -20,7 +20,7 @@ async function ci() {
     console.log(`Patching "package.json" with version "${packageVersion}"...`);
     patchPackageJSONWithVersion(packageVersion);
     console.log('Building catboost package against repository sources...');
-    await buildYa();
+    await buildNative();
     console.log('Running local unit tests...');
     await test();
     console.log('Preparing package...');

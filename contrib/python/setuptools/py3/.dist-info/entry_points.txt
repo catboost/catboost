@@ -2,12 +2,14 @@
 alias = setuptools.command.alias:alias
 bdist_egg = setuptools.command.bdist_egg:bdist_egg
 bdist_rpm = setuptools.command.bdist_rpm:bdist_rpm
+build = setuptools.command.build:build
 build_clib = setuptools.command.build_clib:build_clib
 build_ext = setuptools.command.build_ext:build_ext
 build_py = setuptools.command.build_py:build_py
 develop = setuptools.command.develop:develop
 dist_info = setuptools.command.dist_info:dist_info
 easy_install = setuptools.command.easy_install:easy_install
+editable_wheel = setuptools.command.editable_wheel:editable_wheel
 egg_info = setuptools.command.egg_info:egg_info
 install = setuptools.command.install:install
 install_egg_info = setuptools.command.install_egg_info:install_egg_info
@@ -53,4 +55,3 @@ top_level.txt = setuptools.command.egg_info:write_toplevel_names
 [setuptools.finalize_distribution_options]
 keywords = setuptools.dist:Distribution._finalize_setup_keywords
 parent_finalize = setuptools.dist:_Distribution.finalize_options
-

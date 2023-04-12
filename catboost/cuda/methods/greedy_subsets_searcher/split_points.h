@@ -110,6 +110,7 @@ namespace NKernelHost {
         using TKernelContext = NKernel::TSplitPointsContext;
 
         Y_SAVELOAD_DEFINE(StatsPerKernel,
+                          CompressedIndex,
                           Feature,
                           FeatureBin,
                           LeafIdToSplit,

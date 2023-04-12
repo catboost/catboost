@@ -127,7 +127,6 @@ void EnumGenerator::GenerateHeader(io::Printer* printer) {
     if (alias_values_to_skip_.find(all_values_[i]) != alias_values_to_skip_.end()) {
       continue;
     }
-    SourceLocation location;
     if (all_values_[i]->GetSourceLocation(&location)) {
       TProtoStringType comments = BuildCommentsString(location, true).c_str();
       if (comments.length() > 0) {
@@ -154,7 +153,7 @@ void EnumGenerator::GenerateHeader(io::Printer* printer) {
       " * Checks to see if the given value is defined by the enum or was not known at\n"
       " * the time this source was generated.\n"
       " **/\n"
-      "BOOL $name$_IsValidValue(int32_t value);\n"
+      "BOOL $name$_IsValidValue(arc_i32 value);\n"
       "\n",
       "name", name_);
 }
@@ -200,7 +199,7 @@ void EnumGenerator::GenerateSource(io::Printer* printer) {
   }
   printer->Print(
       ";\n"
-      "    static const int32_t values[] = {\n");
+      "    static const arc_i32 values[] = {\n");
   for (int i = 0; i < all_values_.size(); i++) {
     printer->Print("        $name$,\n",  "name", EnumValueName(all_values_[i]));
   }
@@ -212,7 +211,7 @@ void EnumGenerator::GenerateSource(io::Printer* printer) {
         "        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol($name$)\n"
         "                                       valueNames:valueNames\n"
         "                                           values:values\n"
-        "                                            count:(uint32_t)(sizeof(values) / sizeof(int32_t))\n"
+        "                                            count:(arc_ui32)(sizeof(values) / sizeof(arc_i32))\n"
         "                                     enumVerifier:$name$_IsValidValue];\n",
         "name", name_);
     } else {
@@ -222,7 +221,7 @@ void EnumGenerator::GenerateSource(io::Printer* printer) {
         "        [GPBEnumDescriptor allocDescriptorForName:GPBNSStringifySymbol($name$)\n"
         "                                       valueNames:valueNames\n"
         "                                           values:values\n"
-        "                                            count:(uint32_t)(sizeof(values) / sizeof(int32_t))\n"
+        "                                            count:(arc_ui32)(sizeof(values) / sizeof(arc_i32))\n"
         "                                     enumVerifier:$name$_IsValidValue\n"
         "                              extraTextFormatInfo:extraTextFormatInfo];\n",
         "name", name_,
@@ -238,7 +237,7 @@ void EnumGenerator::GenerateSource(io::Printer* printer) {
       "}\n\n");
 
   printer->Print(
-      "BOOL $name$_IsValidValue(int32_t value__) {\n"
+      "BOOL $name$_IsValidValue(arc_i32 value__) {\n"
       "  switch (value__) {\n",
       "name", name_);
 

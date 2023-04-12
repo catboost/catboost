@@ -177,7 +177,7 @@ namespace NCB {
     class TUseClassLabelsTargetConverter : public ITargetConverter {
     public:
         TUseClassLabelsTargetConverter(const TVector<NJson::TJsonValue>& inputClassLabels) {
-            Y_VERIFY(!inputClassLabels.empty());
+            CB_ENSURE(!inputClassLabels.empty(), "Class labels are missing");
 
             float classIdx = 0;
 
@@ -223,7 +223,9 @@ namespace NCB {
                 (*typedSequence)->ForEach(
                     [this, resultRef, &i] (float srcLabel) {
                         const auto it = FloatLabelToClass.find(srcLabel);
-                        CB_ENSURE(it != FloatLabelToClass.end(), "Unknown class label: \"" << srcLabel << '"');
+                        if (it == FloatLabelToClass.end()) {
+                            ythrow TUnknownClassLabelException(ToString(srcLabel));
+                        }
                         resultRef[i++] = it->second;
                     }
                 );
@@ -236,10 +238,9 @@ namespace NCB {
                 localExecutor->ExecRangeBlockedWithThrow(
                     [this, resultRef, stringLabels] (int i) {
                         const auto it = StringLabelToClass.find(stringLabels[i]);
-                        CB_ENSURE(
-                            it != StringLabelToClass.end(),
-                            "Unknown class label: \"" << EscapeC(stringLabels[i]) << '"'
-                        );
+                        if (it == StringLabelToClass.end()) {
+                            ythrow TUnknownClassLabelException(EscapeC(stringLabels[i]));
+                        }
                         resultRef[i] = it->second;
                     },
                     0,
@@ -277,7 +278,7 @@ namespace NCB {
                         StringLabelToClass.emplace(ToString(static_cast<i64>(floatLabel)), classIdx);
                     }
                 } else {
-                    Y_VERIFY(ClassLabelType == ERawTargetType::Float);
+                    CB_ENSURE(ClassLabelType == ERawTargetType::Float, "Unexpected class label type");
                     for (const auto& [floatLabel, classIdx] : FloatLabelToClass) {
                         StringLabelToClass.emplace(ToString(floatLabel), classIdx);
                     }
@@ -331,7 +332,7 @@ namespace NCB {
                     classCount = SafeIntegerCast<ui32>(StringLabelToClass.size());
                     break;
                 default:
-                    Y_UNREACHABLE();
+                    CB_ENSURE(false, "Uexpected target type");
             }
             Y_ASSERT(classCount > 1);
             return classCount;

@@ -33,3 +33,11 @@
 ## A Unified Approach to Interpreting Model Predictions {#unified-approach-to-interpreting-model-predictions}
 
 @[youtube](wjd1G5bu_TY)
+
+## Apache Spark: Introducing CatBoost
+
+@[youtube](47-mAVms-b8)
+
+## Apache Spark: Architecture
+
+@[youtube](nrGt5VKZpzc)

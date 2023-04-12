@@ -78,6 +78,8 @@ items:
             name: Build the binary with make on Linux (CPU only)
           - href: installation/cli-installation-multi-node-installation.md
             name: Build the binary with MPI support from a local copy (GPU only)
+          - href: installation/cli-installation-cmake-install.md
+            name: Build the binary with CMake
         name: Command-line version binary
   - name: Key Features
     items:
@@ -107,6 +109,8 @@ items:
           name: Categorical features
         - href: features/text-features.md
           name: Text features
+        - href: features/embeddings-features.md
+          name: Embeddings features
         - href: features/loss-functions-desc.md
           name: Implemented metrics
         - href: features/export-model-to-python.md
@@ -368,6 +372,8 @@ items:
             name: get_param
           - href: concepts/python-reference_catboostclassifier_get_params.md
             name: get_params
+          - href: concepts/python-reference_catboostclassifier_get_probability_threshold.md
+            name: get_probability_threshold
           - href: >-
               concepts/python-reference_catboostclassifier_get_scale_and_bias.md
             name: get_scale_and_bias
@@ -400,6 +406,8 @@ items:
             name: set_feature_names
           - href: concepts/python-reference_catboostclassifier_set_params.md
             name: set_params
+          - href: concepts/python-reference_catboostclassifier_set_probability_threshold.md
+            name: set_probability_threshold
           - href: >-
               concepts/python-reference_catboostclassifier_set_scale_and_bias.md
             name: set_scale_and_bias
@@ -411,6 +419,88 @@ items:
               concepts/python-reference_catboostclassifier_staged_predict_proba.md
             name: staged_predict_proba
         name: CatBoostClassifier
+      - items:
+          - href: concepts/python-reference_catboostranker.md
+            name: Overview
+          - href: concepts/python-reference_catboostranker_fit.md
+            name: fit
+          - href: concepts/python-reference_catboostranker_predict.md
+            name: predict
+          - href: concepts/python-reference_catboostranker_attributes.md
+            name: Attributes
+          - href: concepts/python-reference_catboostranker_calc_leaf_indexes.md
+            name: calc_leaf_indexes
+          - href: concepts/python-reference_catboostranker_calc_feature_statistics.md
+            name: calc_feature_statistics
+          - href: concepts/python-reference_catboostranker_modelcompare.md
+            name: compare
+          - href: concepts/python-reference_catboostranker_copy.md
+            name: copy
+          - href: concepts/python-reference_catboostranker_eval-metrics.md
+            name: eval_metrics
+          - href: concepts/python-reference_catboostranker_get_all_params.md
+            name: get_all_params
+          - href: concepts/python-reference_catboostranker_get_best_iteration.md
+            name: get_best_iteration
+          - href: concepts/python-reference_catboostranker_get_best_score.md
+            name: get_best_score
+          - href: concepts/python-reference_catboostranker_get_borders.md
+            name: get_borders
+          - href: concepts/python-reference_catboostranker_get_evals_result.md
+            name: get_evals_result
+          - items:
+              - href: >-
+                  concepts/python-reference_catboostranker_get_feature_importance.md
+                name: Overview
+              - href: concepts/python-efstr-type__desc.md
+                hidden: true
+                name: EFStrType
+            name: get_feature_importance
+          - href: concepts/python-reference_catboostranker_metadata.md
+            name: get_metadata
+          - href: concepts/python-reference_catboostranker_get_object_importance.md
+            name: get_object_importance
+          - href: concepts/python-reference_catboostranker_get_param.md
+            name: get_param
+          - href: concepts/python-reference_catboostranker_get_params.md
+            name: get_params
+          - href: concepts/python-reference_catboostranker_get_scale_and_bias.md
+            name: get_scale_and_bias
+          - href: concepts/python-reference_catboostranker_get_test_eval.md
+            name: get_test_eval
+          - href: concepts/python-reference_catboostranker_grid_search.md
+            name: grid_search
+          - href: concepts/python-reference_catboostranker_is_fitted.md
+            name: is_fitted
+          - href: concepts/python-reference_catboostranker_load_model.md
+            name: load_model
+          - href: concepts/python-reference_catboostranker_plot_predictions.md
+            name: plot_predictions
+          - href: concepts/python-reference_catboostranker_plot_tree.md
+            name: plot_tree
+          - href: concepts/python-reference_catboostranker_randomized_search.md
+            name: randomized_search
+          - href: concepts/python-reference_catboostranker_save_model.md
+            name: save_model
+          - href: concepts/python-reference_catboostranker_save_borders.md
+            name: save_borders
+          - href: concepts/python-reference_catboostranker_score.md
+            name: score
+          - href: concepts/python-reference_catboostranker_select_features.md
+            name: select_features
+          - href: concepts/python-reference_catboostranker_set_scale_and_bias.md
+            name: set_scale_and_bias
+          - href: concepts/python-reference_catboostranker_set_feature_names.md
+            name: set_feature_names
+          - href: concepts/python-reference_catboostranker_set_params.md
+            name: set_params
+          - href: concepts/python-reference_catboostranker_shrink.md
+            name: shrink
+          - href: concepts/python-reference_catboostranker_staged_predict.md
+            name: staged_predict
+          - href: concepts/python-reference_virtual_ensemblesranker_predict.md
+            name: virtual_ensembles_predict
+        name: CatBoostRanker
       - items:
           - href: concepts/python-reference_catboostregressor.md
             name: Overview
@@ -549,6 +639,8 @@ items:
             name: get_baseline
           - href: concepts/python-reference_pool_get_cat_feature_indices.md
             name: get_cat_feature_indices
+          - href: concepts/python-reference_pool_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
           - href: concepts/python-reference_pool_get_features.md
             name: get_features
           - href: concepts/python-reference_pool_get_group_id.md
@@ -665,6 +757,8 @@ items:
         name: Usage examples
   - name: CatBoost for Apache Spark
     items:
+      - href: concepts/spark-overview.md
+        name: Overview
       - items:
           - href: concepts/spark-quickstart-scala.md
             name: Scala
@@ -715,6 +809,8 @@ items:
         name: Usage examples
   - name: Command-line version
     items:
+      - href: concepts/cli-reference_train-model.md
+        name: Train a model
       - href: concepts/cli-reference_cross-validation.md
         name: Cross-validation
       - href: concepts/cli-reference_normalize-model.md
@@ -733,6 +829,8 @@ items:
         name: Select features
       - href: concepts/cli-sum-models.md
         name: Sum models
+      - href: concepts/cli-distributed-learning.md
+        name: Distributed learning
       - href: concepts/cli-usages-examples.md
         name: Usage examples
   - items:

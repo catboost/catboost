@@ -5,7 +5,6 @@
 
 #include <library/cpp/sse/sse.h>
 #include <library/cpp/testing/common/env.h>
-#include <util/system/platform.h>
 #include <util/system/compiler.h>
 #include <util/generic/utility.h>
 #include <util/system/cpu_id.h>

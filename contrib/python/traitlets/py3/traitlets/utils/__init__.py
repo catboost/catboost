@@ -1,9 +1,11 @@
 import os
+import pathlib
+
 
 # vestigal things from IPython_genutils.
-def cast_unicode(s, encoding='utf-8'):
+def cast_unicode(s, encoding="utf-8"):
     if isinstance(s, bytes):
-        return s.decode(encoding, 'replace')
+        return s.decode(encoding, "replace")
     return s
 
 
@@ -50,6 +52,8 @@ def filefind(filename, path_dirs=None):
         path_dirs = ("",)
     elif isinstance(path_dirs, str):
         path_dirs = (path_dirs,)
+    elif isinstance(path_dirs, pathlib.Path):
+        path_dirs = (str(path_dirs),)
 
     for path in path_dirs:
         if path == ".":
@@ -58,9 +62,7 @@ def filefind(filename, path_dirs=None):
         if os.path.isfile(testname):
             return os.path.abspath(testname)
 
-    raise IOError(
-        "File %r does not exist in any of the search paths: %r" % (filename, path_dirs)
-    )
+    raise OSError(f"File {filename!r} does not exist in any of the search paths: {path_dirs!r}")
 
 
 def expand_path(s):

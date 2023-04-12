@@ -1,21 +1,27 @@
+# pyright: reportMissingImports=false
 from __future__ import annotations
 
 from pandas._typing import (
-    FilePathOrBuffer,
+    FilePath,
+    ReadBuffer,
     Scalar,
     StorageOptions,
 )
 from pandas.compat._optional import import_optional_dependency
+from pandas.util._decorators import doc
+
+from pandas.core.shared_docs import _shared_docs
 
 from pandas.io.excel._base import BaseExcelReader
 
 
 class PyxlsbReader(BaseExcelReader):
+    @doc(storage_options=_shared_docs["storage_options"])
     def __init__(
         self,
-        filepath_or_buffer: FilePathOrBuffer,
+        filepath_or_buffer: FilePath | ReadBuffer[bytes],
         storage_options: StorageOptions = None,
-    ):
+    ) -> None:
         """
         Reader using pyxlsb engine.
 
@@ -23,8 +29,7 @@ class PyxlsbReader(BaseExcelReader):
         ----------
         filepath_or_buffer : str, path object, or Workbook
             Object to be parsed.
-        storage_options : dict, optional
-            passed to fsspec for appropriate URLs (see ``_get_filepath_or_buffer``)
+        {storage_options}
         """
         import_optional_dependency("pyxlsb")
         # This will call load_workbook on the filepath or buffer
@@ -37,7 +42,7 @@ class PyxlsbReader(BaseExcelReader):
 
         return Workbook
 
-    def load_workbook(self, filepath_or_buffer: FilePathOrBuffer):
+    def load_workbook(self, filepath_or_buffer: FilePath | ReadBuffer[bytes]):
         from pyxlsb import open_workbook
 
         # TODO: hack in buffer capability
@@ -74,7 +79,12 @@ class PyxlsbReader(BaseExcelReader):
 
         return cell.v
 
-    def get_sheet_data(self, sheet, convert_float: bool) -> list[list[Scalar]]:
+    def get_sheet_data(
+        self,
+        sheet,
+        convert_float: bool,
+        file_rows_needed: int | None = None,
+    ) -> list[list[Scalar]]:
         data: list[list[Scalar]] = []
         prevous_row_number = -1
         # When sparse=True the rows can have different lengths and empty rows are
@@ -89,6 +99,8 @@ class PyxlsbReader(BaseExcelReader):
                 data.extend([[]] * (row_number - prevous_row_number - 1))
                 data.append(converted_row)
                 prevous_row_number = row_number
+            if file_rows_needed is not None and len(data) >= file_rows_needed:
+                break
         if data:
             # extend rows to max_width
             max_width = max(len(data_row) for data_row in data)

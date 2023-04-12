@@ -27,7 +27,7 @@ software without specific prior written permission.
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
 FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
@@ -49,8 +49,8 @@ IPython uses a shared copyright model. Each contributor maintains copyright
 over their contributions to IPython. But, it is important to note that these
 contributions are typically only changes to the repositories. Thus, the IPython
 source code, in its entirety is not the copyright of any single person or
-institution.  Instead, it is the collective copyright of the entire IPython
-Development Team.  If individual contributors want to maintain a record of what
+institution. Instead, it is the collective copyright of the entire IPython
+Development Team. If individual contributors want to maintain a record of what
 changes/contributions they have specific copyright on, they should indicate
 their copyright in the commit message of the change, when they commit the
 change to one of the IPython repositories.
@@ -58,5 +58,7 @@ change to one of the IPython repositories.
 With this in mind, the following banner should be used in any source code file
 to indicate the copyright and license terms:
 
-    # Copyright (c) IPython Development Team.
-    # Distributed under the terms of the Modified BSD License.
+```
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+```

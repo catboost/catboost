@@ -2,11 +2,10 @@
 #include <cooperative_groups.h>
 #include <library/cpp/cuda/wrappers/arch.cuh>
 
-#include <library/cpp/cuda/wrappers/cub_include.h>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
-#include _CUB_INCLUDE(cub/warp/warp_scan.cuh)
+#include <contrib/libs/nvidia/cub/cub/warp/warp_scan.cuh>
 
 using namespace cooperative_groups;
 
@@ -240,7 +239,7 @@ namespace NKernel
         numBlocks.y = idsCount;
         numBlocks.z = statCount;
 
-        if (idsCount && statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             ZeroHistogramsImpl<<<numBlocks, blockSize, 0, stream>>>(histIds,
                                                                     binFeatureCount,
                                                                     dstHistogram);
@@ -277,7 +276,7 @@ namespace NKernel
         numBlocks.y = 1;
         numBlocks.z = statCount;
 
-        if (statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             ZeroHistogramImpl<<<numBlocks, blockSize, 0, stream>>>(histId,
                 binFeatureCount,
                 dstHistogram);
@@ -325,7 +324,7 @@ namespace NKernel
         numBlocks.y = idsCount;
         numBlocks.z = statCount;
 
-        if (idsCount && statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             SubstractHistogramsImpl<<<numBlocks, blockSize, 0, stream>>>(fromIds, whatIds, binFeatureCount, dstHistogram);
         }
     }
@@ -366,7 +365,7 @@ namespace NKernel
         numBlocks.y = 1;
         numBlocks.z = statCount;
 
-        if (statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             SubstractHistogramImpl<<<numBlocks, blockSize, 0, stream>>>(fromIds, whatIds, binFeatureCount, dstHistogram);
         }
     }
@@ -444,7 +443,7 @@ namespace NKernel
         numBlocks.y = idsCount;
         numBlocks.z = statCount;
 
-        if (idsCount && statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             ScanHistogramsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(features, fCount, ids, binFeatureCount, histograms);
         }
     }
@@ -521,7 +520,7 @@ namespace NKernel
         numBlocks.y = 1;
         numBlocks.z = statCount;
 
-        if (statCount) {
+        if (!IsGridEmpty(numBlocks)) {
             ScanHistogramImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(features, fCount, id, binFeatureCount, histograms);
         }
     }

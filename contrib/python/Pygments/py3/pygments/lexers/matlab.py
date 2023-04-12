@@ -4,7 +4,7 @@
 
     Lexers for Matlab and related languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -2776,7 +2776,7 @@ class MatlabSessionLexer(Lexer):
                 # line = "\n" + line
                 token = (0, Generic.Traceback, line)
                 insertions.append((idx, [token]))
-            elif continuation:
+            elif continuation and insertions:
                 # line_start is the length of the most recent prompt symbol
                 line_start = len(insertions[-1][-1][-1])
                 # Set leading spaces with the length of the prompt to be a generic prompt
@@ -2815,6 +2815,7 @@ class OctaveLexer(RegexLexer):
     .. versionadded:: 1.5
     """
     name = 'Octave'
+    url = 'https://www.gnu.org/software/octave/index'
     aliases = ['octave']
     filenames = ['*.m']
     mimetypes = ['text/octave']
@@ -3232,6 +3233,7 @@ class ScilabLexer(RegexLexer):
     .. versionadded:: 1.5
     """
     name = 'Scilab'
+    url = 'https://www.scilab.org/'
     aliases = ['scilab']
     filenames = ['*.sci', '*.sce', '*.tst']
     mimetypes = ['text/scilab']
@@ -3262,7 +3264,7 @@ class ScilabLexer(RegexLexer):
             (r'\.\*|\*|\+|\.\^|\.\\|\.\/|\/|\\', Operator),
 
             # punctuation:
-            (r'[\[\](){}@.,=:;]', Punctuation),
+            (r'[\[\](){}@.,=:;]+', Punctuation),
 
             (r'"[^"]*"', String),
 
@@ -3276,6 +3278,7 @@ class ScilabLexer(RegexLexer):
             (r'\d+', Number.Integer),
 
             (r'[a-zA-Z_]\w*', Name),
+            (r'\s+', Whitespace),
             (r'.', Text),
         ],
         'string': [

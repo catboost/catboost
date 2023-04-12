@@ -7,6 +7,7 @@ namespace NCB { // split due to CUDA-compiler inability to support nested namesp
             Exponent,
             RMSEWithUncertainty,
             Probability,
+            MultiProbability,
             Class
         };
     }

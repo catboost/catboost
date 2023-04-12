@@ -2,6 +2,7 @@
 #include "options_helper.h"
 #include "cross_validation.h"
 #include "dir_helper.h"
+#include "trainer_env.h"
 
 #include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/data.h>
@@ -135,7 +136,7 @@ static TDataProviders LoadPools(
             /* oldCvStyleSplit */ true,
             cpuRamLimit,
             executor);
-        Y_VERIFY(foldPools.size() == 1);
+        CB_ENSURE(foldPools.size() == 1, "In cross-validation mode, only one fold is supported");
 
         profile->AddOperation("Build cv pools");
 
@@ -723,7 +724,8 @@ static void SaveModel(
             if (addResultModelToInitModel) {
                 TVector<const TFullModel*> models = {*initModel, modelPtr};
                 TVector<double> weights = {1.0, 1.0};
-                (dstModel ? *dstModel : *modelPtr) = SumModels(models, weights);
+                TVector<TString> modelParamsPrefixes = {"initModel:", ""};
+                (dstModel ? *dstModel : *modelPtr) = SumModels(models, weights, modelParamsPrefixes);
 
                 if (!dstModel) {
                     const bool allLearnObjectsDataIsAvailable
@@ -1613,6 +1615,8 @@ void TrainModel(
     ConvertParamsToCanonicalFormat(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
 
     CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
+
+    auto trainerEnv = NCB::CreateTrainerEnv(NCatboostOptions::LoadOptions(trainOptionsJson));
 
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputFilesOptionsJson);

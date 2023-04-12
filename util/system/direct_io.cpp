@@ -153,16 +153,16 @@ size_t TDirectIOBufferedFile::PreadSafe(void* buffer, size_t byteCount, ui64 off
     }
 
 #ifdef _linux_
-    ssize_t readed = 0;
+    ssize_t bytesRead = 0;
     do {
-        readed = pread(File.GetHandle(), buffer, byteCount, offset);
-    } while (readed == -1 && errno == EINTR);
+        bytesRead = pread(File.GetHandle(), buffer, byteCount, offset);
+    } while (bytesRead == -1 && errno == EINTR);
 
-    if (readed < 0) {
+    if (bytesRead < 0) {
         ythrow yexception() << "error while pread file: " << LastSystemError() << "(" << LastSystemErrorText() << ")";
     }
 
-    return readed;
+    return bytesRead;
 #else
     return File.Pread(buffer, byteCount, offset);
 #endif
@@ -171,7 +171,7 @@ size_t TDirectIOBufferedFile::PreadSafe(void* buffer, size_t byteCount, ui64 off
 size_t TDirectIOBufferedFile::ReadFromFile(void* buffer, size_t byteCount, ui64 offset) {
     SetDirectIO(true);
 
-    ui64 readed = 0;
+    ui64 bytesRead = 0;
 
     while (byteCount) {
         if (!Alignment || IsAligned(buffer) && IsAligned(byteCount) && IsAligned(offset)) {
@@ -179,9 +179,9 @@ size_t TDirectIOBufferedFile::ReadFromFile(void* buffer, size_t byteCount, ui64 
                 buffer = (char*)buffer + fromFile;
                 byteCount -= fromFile;
                 offset += fromFile;
-                readed += fromFile;
+                bytesRead += fromFile;
             } else {
-                return readed;
+                return bytesRead;
             }
         } else {
             break;
@@ -189,7 +189,7 @@ size_t TDirectIOBufferedFile::ReadFromFile(void* buffer, size_t byteCount, ui64 
     }
 
     if (!byteCount) {
-        return readed;
+        return bytesRead;
     }
 
     ui64 bufSize = AlignUp(Min<size_t>(BufferStorage.Size(), byteCount + (Alignment << 1)), Alignment);
@@ -213,15 +213,15 @@ size_t TDirectIOBufferedFile::ReadFromFile(void* buffer, size_t byteCount, ui64 
         buffer = (char*)buffer + count;
         byteCount -= count;
         offset += count;
-        readed += count;
+        bytesRead += count;
     }
-    return readed;
+    return bytesRead;
 }
 
 size_t TDirectIOBufferedFile::Read(void* buffer, size_t byteCount) {
-    size_t readed = Pread(buffer, byteCount, ReadPosition);
-    ReadPosition += readed;
-    return readed;
+    size_t bytesRead = Pread(buffer, byteCount, ReadPosition);
+    ReadPosition += bytesRead;
+    return bytesRead;
 }
 
 size_t TDirectIOBufferedFile::Pread(void* buffer, size_t byteCount, ui64 offset) {
@@ -232,9 +232,9 @@ size_t TDirectIOBufferedFile::Pread(void* buffer, size_t byteCount, ui64 offset)
     size_t readFromFile = 0;
     if (offset < FlushedBytes) {
         readFromFile = Min<ui64>(byteCount, FlushedBytes - offset);
-        size_t readed = ReadFromFile(buffer, readFromFile, offset);
-        if (readed != readFromFile || readFromFile == byteCount) {
-            return readed;
+        size_t bytesRead = ReadFromFile(buffer, readFromFile, offset);
+        if (bytesRead != readFromFile || readFromFile == byteCount) {
+            return bytesRead;
         }
     }
     ui64 start = offset > FlushedBytes ? offset - FlushedBytes : 0;

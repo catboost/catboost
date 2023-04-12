@@ -8,11 +8,6 @@
 #include <util/generic/deque.h>
 #include <util/system/hp_timer.h>
 
-#ifdef _MSC_VER
-// msvc somehow hangs on this piece of code
-#pragma optimize("", off)
-#endif
-
 namespace NNetliba_v12 {
     const int COL_SERVICE_LEVEL = 2;
     const int COL_DATA_SERVICE_LEVEL = 2;       // base level

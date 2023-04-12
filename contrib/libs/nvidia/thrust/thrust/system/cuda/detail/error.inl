@@ -17,11 +17,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/system/cuda/error.h>
 #include <thrust/system/cuda/detail/guarded_cuda_runtime_api.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -94,5 +95,5 @@ const error_category &cuda_category(void)
 
 } // end namespace system
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

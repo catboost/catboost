@@ -4,8 +4,6 @@
 #include <util/generic/singleton.h>
 #include <util/system/env.h>
 
-#include <cstdlib>
-
 #if defined(_unix_)
 #include <unistd.h>
 #endif

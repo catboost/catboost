@@ -82,8 +82,13 @@ if __name__ == '__main__':
         link_or_copy(args[0], args[1])
     elif mode == 'link_or_copy_to_dir':
         assert len(args) > 1
+        start = 0
+        if args[0] == '--no-check':
+            if args == 2:
+                sys.exit()
+            start = 1
         dst = args[-1]
-        for src in args[0:-1]:
+        for src in args[start:-1]:
             link_or_copy(src, os.path.join(dst, os.path.basename(src)))
     elif mode == 'cat':
         with open(args[0], 'w') as dst:

@@ -13,13 +13,13 @@
     Contributed by Thomas Beale <https://github.com/wolandscat>,
     <https://bitbucket.org/thomas_beale>.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, include, bygroups, using, default
 from pygments.token import Text, Comment, Name, Literal, Number, String, \
-    Punctuation, Keyword, Operator, Generic
+    Punctuation, Keyword, Operator, Generic, Whitespace
 
 __all__ = ['OdinLexer', 'CadlLexer', 'AdlLexer']
 
@@ -34,13 +34,13 @@ class AtomsLexer(RegexLexer):
     tokens = {
         # ----- pseudo-states for inclusion -----
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
-            (r'[ \t]*--.*$', Comment),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
+            (r'([ \t]*)(--.*)$', bygroups(Whitespace, Comment)),
         ],
         'archetype_id': [
-            (r'[ \t]*([a-zA-Z]\w+(\.[a-zA-Z]\w+)*::)?[a-zA-Z]\w+(-[a-zA-Z]\w+){2}'
-             r'\.\w+[\w-]*\.v\d+(\.\d+){,2}((-[a-z]+)(\.\d+)?)?', Name.Decorator),
+            (r'([ \t]*)(([a-zA-Z]\w+(\.[a-zA-Z]\w+)*::)?[a-zA-Z]\w+(-[a-zA-Z]\w+){2}'
+             r'\.\w+[\w-]*\.v\d+(\.\d+){,2}((-[a-z]+)(\.\d+)?)?)', bygroups(Whitespace, Name.Decorator)),
         ],
         'date_constraints': [
             # ISO 8601-based date/time constraints
@@ -107,7 +107,7 @@ class AtomsLexer(RegexLexer):
             (r'[<>=] *', Punctuation),
             # handle +/-
             (r'\+/-', Punctuation),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
         'any_code': [
             include('archetype_id'),
@@ -120,7 +120,7 @@ class AtomsLexer(RegexLexer):
             (r'\|', Punctuation, 'code_rubric'),
             (r'\]', Punctuation, '#pop'),
             # handle use_archetype statement
-            (r'\s*,\s*', Punctuation),
+            (r'(\s*)(,)(\s*)', bygroups(Whitespace, Punctuation, Whitespace)),
         ],
         'code_rubric': [
             (r'\|', Punctuation, '#pop'),
@@ -153,8 +153,8 @@ class OdinLexer(AtomsLexer):
             (r'[a-z_]\w*', Name.Class),
             (r'/', Punctuation),
             (r'\[', Punctuation, 'key'),
-            (r'\s*,\s*', Punctuation, '#pop'),
-            (r'\s+', Text, '#pop'),
+            (r'(\s*)(,)(\s*)', bygroups(Whitespace, Punctuation, Whitespace), '#pop'),
+            (r'\s+', Whitespace, '#pop'),
         ],
         'key': [
             include('values'),
@@ -216,11 +216,11 @@ class CadlLexer(AtomsLexer):
             ('(\u2203|\u2204|\u2200|\u2227|\u2228|\u22BB|\223C)',
              Operator),
             # regex in slot or as string constraint
-            (r'(\{)(\s*/[^}]+/\s*)(\})',
-             bygroups(Punctuation, String.Regex, Punctuation)),
+            (r'(\{)(\s*)(/[^}]+/)(\s*)(\})',
+             bygroups(Punctuation, Whitespace, String.Regex, Whitespace, Punctuation)),
             # regex in slot or as string constraint
-            (r'(\{)(\s*\^[^}]+\^\s*)(\})',
-             bygroups(Punctuation, String.Regex, Punctuation)),
+            (r'(\{)(\s*)(\^[^}]+\^)(\s*)(\})',
+             bygroups(Punctuation, Whitespace, String.Regex, Whitespace, Punctuation)),
             (r'/', Punctuation, 'path'),
             # for cardinality etc
             (r'(\{)((?:\d+\.\.)?(?:\d+|\*))'
@@ -263,16 +263,16 @@ class AdlLexer(AtomsLexer):
     tokens = {
         'whitespace': [
             # blank line ends
-            (r'\s*\n', Text),
+            (r'\s*\n', Whitespace),
             # comment-only line
-            (r'^[ \t]*--.*$', Comment),
+            (r'^([ \t]*)(--.*)$', bygroups(Whitespace, Comment)),
         ],
         'odin_section': [
             # repeating the following two rules from the root state enable multi-line
             # strings that start in the first column to be dealt with
             (r'^(language|description|ontology|terminology|annotations|'
-             r'component_terminologies|revision_history)[ \t]*\n', Generic.Heading),
-            (r'^(definition)[ \t]*\n', Generic.Heading, 'cadl_section'),
+             r'component_terminologies|revision_history)([ \t]*\n)', bygroups(Generic.Heading, Whitespace)),
+            (r'^(definition)([ \t]*\n)', bygroups(Generic.Heading, Whitespace), 'cadl_section'),
             (r'^([ \t]*|[ \t]+.*)\n', using(OdinLexer)),
             (r'^([^"]*")(>[ \t]*\n)', bygroups(String, Punctuation)),
             # template overlay delimiter
@@ -299,7 +299,7 @@ class AdlLexer(AtomsLexer):
             (r'\w+', Name.Class),
             (r'"', String, 'string'),
             (r'=', Operator),
-            (r'[ \t]+', Text),
+            (r'[ \t]+', Whitespace),
             default('#pop'),
         ],
         'root': [
@@ -311,7 +311,7 @@ class AdlLexer(AtomsLexer):
             (r'^(definition)[ \t]*\n', Generic.Heading, 'cadl_section'),
             (r'^(rules)[ \t]*\n', Generic.Heading, 'rules_section'),
             include('archetype_id'),
-            (r'[ \t]*\(', Punctuation, 'metadata'),
+            (r'([ \t]*)(\()', bygroups(Whitespace, Punctuation), 'metadata'),
             include('whitespace'),
         ],
     }

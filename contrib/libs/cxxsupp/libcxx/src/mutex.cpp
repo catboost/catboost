@@ -1,4 +1,4 @@
-//===------------------------- mutex.cpp ----------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -6,21 +6,26 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "mutex"
-#include "limits"
-#include "system_error"
+#include <__assert>
+#include <limits>
+#include <mutex>
+#include <system_error>
+
 #if !defined(_LIBCPP_ABI_MICROSOFT)
 #include "include/atomic_support.h"
 #endif
-#include "__undef_macros"
 
 #ifndef _LIBCPP_HAS_NO_THREADS
-#if defined(__ELF__) && defined(_LIBCPP_LINK_PTHREAD_LIB)
-#pragma comment(lib, "pthread")
-#endif
+#  if defined(__ELF__) && defined(_LIBCPP_LINK_PTHREAD_LIB)
+#    pragma comment(lib, "pthread")
+#  endif
 #endif
 
+_LIBCPP_PUSH_MACROS
+#include <__undef_macros>
+
 _LIBCPP_BEGIN_NAMESPACE_STD
+
 #ifndef _LIBCPP_HAS_NO_THREADS
 
 const defer_lock_t  defer_lock{};
@@ -198,8 +203,8 @@ recursive_timed_mutex::unlock() noexcept
 // keep in sync with:  7741191.
 
 #ifndef _LIBCPP_HAS_NO_THREADS
-_LIBCPP_SAFE_STATIC static __libcpp_mutex_t mut = _LIBCPP_MUTEX_INITIALIZER;
-_LIBCPP_SAFE_STATIC static __libcpp_condvar_t cv = _LIBCPP_CONDVAR_INITIALIZER;
+static _LIBCPP_CONSTINIT __libcpp_mutex_t mut = _LIBCPP_MUTEX_INITIALIZER;
+static _LIBCPP_CONSTINIT __libcpp_condvar_t cv = _LIBCPP_CONDVAR_INITIALIZER;
 #endif
 
 #ifdef _LIBCPP_ABI_MICROSOFT
@@ -277,3 +282,5 @@ void __call_once(volatile once_flag::_State_type& flag, void* arg,
 }
 
 _LIBCPP_END_NAMESPACE_STD
+
+_LIBCPP_POP_MACROS

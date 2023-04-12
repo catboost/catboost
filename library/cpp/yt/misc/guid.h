@@ -2,15 +2,10 @@
 
 #include <util/generic/string.h>
 #include <util/generic/typetraits.h>
-#include <util/generic/yexception.h>
+
+#include <library/cpp/yt/exception/exception.h>
 
 namespace NYT {
-
-////////////////////////////////////////////////////////////////////////////////
-
-class TGuidException
-    : public yexception
-{ };
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +54,8 @@ struct TGuid
     constexpr TGuid(ui64 part0, ui64 part1);
 
     //! Copies an existing guid.
-    TGuid(const TGuid& other) = default;
+    constexpr TGuid(const TGuid& other) noexcept = default;
+    constexpr TGuid& operator=(const TGuid& other) noexcept = default;
 
     //! Checks if TGuid is zero.
     bool IsEmpty() const;
@@ -89,6 +85,7 @@ bool operator <  (TGuid lhs, TGuid rhs);
 
 ////////////////////////////////////////////////////////////////////////////////
 
+constexpr int MaxGuidStringSize = 4 * 8 + 3;
 char* WriteGuidToBuffer(char* ptr, TGuid value);
 
 ////////////////////////////////////////////////////////////////////////////////

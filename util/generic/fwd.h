@@ -64,10 +64,10 @@ class TQueue;
 template <class T, class S = TVector<T>, class C = TLess<T>>
 class TPriorityQueue;
 
-template <class Key, class T, class HashFcn = THash<Key>, class EqualKey = TEqualTo<Key>, class Alloc = std::allocator<T>>
+template <class Key, class T, class HashFcn = THash<Key>, class EqualKey = TEqualTo<Key>, class Alloc = std::allocator<Key>>
 class THashMap;
 
-template <class Key, class T, class HashFcn = THash<Key>, class EqualKey = TEqualTo<Key>, class Alloc = std::allocator<T>>
+template <class Key, class T, class HashFcn = THash<Key>, class EqualKey = TEqualTo<Key>, class Alloc = std::allocator<Key>>
 class THashMultiMap;
 
 template <class Value, class HashFcn = THash<Value>, class EqualKey = TEqualTo<Value>, class Alloc = std::allocator<Value>>

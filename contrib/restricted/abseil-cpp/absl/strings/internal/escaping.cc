@@ -21,26 +21,18 @@ namespace absl {
 ABSL_NAMESPACE_BEGIN
 namespace strings_internal {
 
-const char kBase64Chars[] =
+ABSL_CONST_INIT const char kBase64Chars[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 size_t CalculateBase64EscapedLenInternal(size_t input_len, bool do_padding) {
   // Base64 encodes three bytes of input at a time. If the input is not
   // divisible by three, we pad as appropriate.
   //
-  // (from https://tools.ietf.org/html/rfc3548)
-  // Special processing is performed if fewer than 24 bits are available
-  // at the end of the data being encoded.  A full encoding quantum is
-  // always completed at the end of a quantity.  When fewer than 24 input
-  // bits are available in an input group, zero bits are added (on the
-  // right) to form an integral number of 6-bit groups.  Padding at the
-  // end of the data is performed using the '=' character.  Since all base
-  // 64 input is an integral number of octets, only the following cases
-  // can arise:
-
   // Base64 encodes each three bytes of input into four bytes of output.
   size_t len = (input_len / 3) * 4;
 
+  // Since all base 64 input is an integral number of octets, only the following
+  // cases can arise:
   if (input_len % 3 == 0) {
     // (from https://tools.ietf.org/html/rfc3548)
     // (1) the final quantum of encoding input is an integral multiple of 24
@@ -83,6 +75,16 @@ size_t Base64EscapeInternal(const unsigned char* src, size_t szsrc, char* dest,
   char* const limit_dest = dest + szdest;
   const unsigned char* const limit_src = src + szsrc;
 
+  // (from https://tools.ietf.org/html/rfc3548)
+  // Special processing is performed if fewer than 24 bits are available
+  // at the end of the data being encoded.  A full encoding quantum is
+  // always completed at the end of a quantity.  When fewer than 24 input
+  // bits are available in an input group, zero bits are added (on the
+  // right) to form an integral number of 6-bit groups.
+  //
+  // If do_padding is true, padding at the end of the data is performed. This
+  // output padding uses the '=' character.
+
   // Three bytes of data encodes to four characters of cyphertext.
   // So we can pump through three-byte chunks atomically.
   if (szsrc >= 3) {                    // "limit_src - 3" is UB if szsrc < 3.
@@ -102,8 +104,8 @@ size_t Base64EscapeInternal(const unsigned char* src, size_t szsrc, char* dest,
     }
   }
   // To save time, we didn't update szdest or szsrc in the loop.  So do it now.
-  szdest = limit_dest - cur_dest;
-  szsrc = limit_src - cur_src;
+  szdest = static_cast<size_t>(limit_dest - cur_dest);
+  szsrc = static_cast<size_t>(limit_src - cur_src);
 
   /* now deal with the tail (<=3 bytes) */
   switch (szsrc) {
@@ -154,7 +156,8 @@ size_t Base64EscapeInternal(const unsigned char* src, size_t szsrc, char* dest,
       // the loop because the loop above always reads 4 bytes, and the fourth
       // byte is past the end of the input.
       if (szdest < 4) return 0;
-      uint32_t in = (cur_src[0] << 16) + absl::big_endian::Load16(cur_src + 1);
+      uint32_t in =
+          (uint32_t{cur_src[0]} << 16) + absl::big_endian::Load16(cur_src + 1);
       cur_dest[0] = base64[in >> 18];
       in &= 0x3FFFF;
       cur_dest[1] = base64[in >> 12];
@@ -172,7 +175,7 @@ size_t Base64EscapeInternal(const unsigned char* src, size_t szsrc, char* dest,
       ABSL_RAW_LOG(FATAL, "Logic problem? szsrc = %zu", szsrc);
       break;
   }
-  return (cur_dest - dest);
+  return static_cast<size_t>(cur_dest - dest);
 }
 
 }  // namespace strings_internal

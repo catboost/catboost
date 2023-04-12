@@ -23,8 +23,8 @@
   #include <thrust/detail/type_deduction.h>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -151,5 +151,5 @@ Integer0 round_z(Integer0 const x, Integer1 const y)
 #endif
 
 } // end detail
-} // end thrust
 
+THRUST_NAMESPACE_END

@@ -3,7 +3,7 @@ package ai.catboost.spark.params;
 import scala.reflect._
 
 import collection.mutable
-import collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 import com.google.common.base.CaseFormat
 import com.google.common.base.Predicates.alwaysTrue
@@ -111,12 +111,12 @@ class OrderedStringMapParam[V](
     implicit val formats = DefaultFormats
     compact(
       render(
-        value.foldLeft(JObject())(
+        value.asScala.foldLeft(JObject())(
           (acc, kv) => {
             val jValue = kv._2 match {
               case s : String => JString(s)
               case num: Double => JDouble(num)
-              case num: Long => JLong(num)
+              case num: Long => JInt(BigInt(num))
               case value: Boolean => JBool(value)
               case _ => throw new RuntimeException("Unsupported map value type")
             }
@@ -134,7 +134,7 @@ class OrderedStringMapParam[V](
       jValue match {
         case JString(s) =>  result.put(key, s.asInstanceOf[V])
         case JDouble(num) =>  result.put(key, num.asInstanceOf[V])
-        case JLong(num) =>  result.put(key, num.asInstanceOf[V])
+        case JInt(num) =>  result.put(key, num.longValue.asInstanceOf[V])
         case JBool(value) =>  result.put(key, value.asInstanceOf[V])
         case _ => throw new RuntimeException("Unexpected JSON object value type for map")
       }
@@ -247,7 +247,7 @@ private[spark] object Helpers {
         val classNames = maybeClassNames.get
         for (i <- 0 until classWeightsList.size) {
           val className = classNames(i)
-          if (!classWeightsMap.contains(className)) {
+          if (!classWeightsMap.containsValue(className)) {
             throw new CatBoostError(
               s"Class '$className' is present in classNames but is not present in classWeightsMap"
             )
@@ -257,7 +257,7 @@ private[spark] object Helpers {
       } else {
         val classNames = new Array[String](classWeightsMap.size)
         var i = 0
-        for ((className, classWeight) <- classWeightsMap) {
+        for ((className, classWeight) <- classWeightsMap.asScala) {
           classNames(i) = className
           classWeightsList(i) = classWeight.toDouble
           i = i + 1
@@ -299,7 +299,7 @@ private[spark] object Helpers {
         }
         JObject(
           "od_type" -> "Iter",
-          "od_wait" -> JLong(odWait.asInstanceOf[Int])
+          "od_wait" -> JInt(BigInt(odWait.asInstanceOf[Int]))
         )
       }
       case None => {
@@ -323,7 +323,7 @@ private[spark] object Helpers {
   def processSnapshotIntervalParam(params: mutable.HashMap[String, Any]) : JObject = {
     if (params.contains("snapshotInterval")) {
       JObject() ~ (
-        "snapshot_interval" -> JLong(params("snapshotInterval").asInstanceOf[java.time.Duration].getSeconds)
+        "snapshot_interval" -> JInt(BigInt(params("snapshotInterval").asInstanceOf[java.time.Duration].getSeconds))
       )
     } else {
       JObject()
@@ -342,8 +342,10 @@ private[spark] object Helpers {
     "per_object_feature_penalties_list" -> "per_object_feature_penalties",
 
     "spark_partition_count" -> null,
+    "training_driver_listening_port" -> null,
     "worker_initialization_timeout" -> null,
     "worker_max_failures" -> null,
+    "worker_listening_port" -> null,
     "connect_timeout" -> null,
 
     // processed in separate functions

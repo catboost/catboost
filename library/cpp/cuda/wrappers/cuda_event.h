@@ -23,6 +23,9 @@ private:
 
 public:
     static TCudaEvent NewEvent(bool disableTiming = true);
+
+    void Record(cudaStream_t stream) const;
+
     void Record(const TCudaStream& stream) const;
 
     void StreamWait(const TCudaStream& stream) const;
@@ -34,3 +37,4 @@ public:
     void Swap(TCudaEvent& other);
 
 };
+

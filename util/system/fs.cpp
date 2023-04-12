@@ -11,7 +11,6 @@
 #include <util/generic/yexception.h>
 #include <util/memory/tempbuf.h>
 #include <util/stream/file.h>
-#include <util/charset/wide.h>
 #include <util/folder/iterator.h>
 #include <util/system/fstat.h>
 #include <util/folder/path.h>
@@ -167,7 +166,7 @@ TString NFs::CurrentWorkingDirectory() {
 #endif
 }
 
-void NFs::SetCurrentWorkingDirectory(TString path) {
+void NFs::SetCurrentWorkingDirectory(const TString& path) {
 #ifdef _win_
     bool ok = NFsPrivate::WinSetCurrentWorkingDirectory(path);
 #else

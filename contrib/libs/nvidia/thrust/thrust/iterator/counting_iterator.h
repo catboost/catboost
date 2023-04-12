@@ -39,8 +39,7 @@
 // #include the details first
 #include <thrust/iterator/detail/counting_iterator.inl>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -145,11 +144,11 @@ template<typename Incrementable,
     /*! \endcond
      */
 
-    /*! Null constructor initializes this \p counting_iterator's \c Incrementable
-     *  counter using its null constructor.
+    /*! Default constructor initializes this \p counting_iterator's counter to
+     * `Incrementable{}`.
      */
     __host__ __device__
-    counting_iterator() {}
+    counting_iterator() : super_t(Incrementable{}) {}
 
     /*! Copy constructor copies the value of another \p counting_iterator into a
      *  new \p counting_iterator.
@@ -243,5 +242,5 @@ counting_iterator<Incrementable> make_counting_iterator(Incrementable x)
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

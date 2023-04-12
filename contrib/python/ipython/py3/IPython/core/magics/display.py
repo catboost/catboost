@@ -12,7 +12,7 @@
 #-----------------------------------------------------------------------------
 
 # Our own packages
-from IPython.core.display import display, Javascript, Latex, SVG, HTML, Markdown
+from IPython.display import display, Javascript, Latex, SVG, HTML, Markdown
 from IPython.core.magic import  (
     Magics, magics_class, cell_magic
 )
@@ -36,22 +36,33 @@ class DisplayMagics(Magics):
         """Run the cell block of Javascript code
 
         Alias of `%%javascript`
+
+        Starting with IPython 8.0 %%javascript is pending deprecation to be replaced
+        by a more flexible system
+
+        Please See https://github.com/ipython/ipython/issues/13376
         """
         self.javascript(line, cell)
 
     @cell_magic
     def javascript(self, line, cell):
-        """Run the cell block of Javascript code"""
+        """Run the cell block of Javascript code
+
+        Starting with IPython 8.0 %%javascript is pending deprecation to be replaced
+        by a more flexible system
+
+        Please See https://github.com/ipython/ipython/issues/13376
+        """
         display(Javascript(cell))
 
 
     @cell_magic
     def latex(self, line, cell):
-        """Render the cell as a block of latex
+        """Render the cell as a block of LaTeX
 
-        The subset of latex which is support depends on the implementation in
+        The subset of LaTeX which is supported depends on the implementation in
         the client.  In the Jupyter Notebook, this magic only renders the subset
-        of latex defined by MathJax
+        of LaTeX defined by MathJax
         [here](https://docs.mathjax.org/en/v2.5-latest/tex.html)."""
         display(Latex(cell))
 

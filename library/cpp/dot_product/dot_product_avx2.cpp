@@ -2,8 +2,6 @@
 #include "dot_product_simple.h"
 #include "dot_product_sse.h"
 
-#include <util/system/platform.h>
-
 #if defined(_avx2_) && defined(_fma_)
 
 #include <util/system/platform.h>

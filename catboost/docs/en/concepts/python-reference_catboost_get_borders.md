@@ -6,7 +6,7 @@
 ## {{ dl--invoke-format }} {#method-call-format}
 
 ```python
-plot_tree(tree_idx, pool=None)
+get_borders()
 ```
 
 ## {{ output--example }} {#usage-example}

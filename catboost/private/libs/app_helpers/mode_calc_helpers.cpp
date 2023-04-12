@@ -58,6 +58,13 @@ void NCB::PrepareCalcModeParamsParser(
         .StoreResult(&virtualEnsemblesCount);
     parser.AddLongOption("eval-period", "predictions are evaluated every <eval-period> trees")
         .StoreResult(&evalPeriod);
+    parser.AddLongOption("binary-classification-threshold", "probability boundary for binary classification")
+        .Handler1T<TString>([&](const TString& threshold) {
+            params.BinClassLogitThreshold = FromString<double>(threshold);
+            CB_ENSURE(
+                *params.BinClassLogitThreshold > 0.0 && *params.BinClassLogitThreshold < 1.0,
+                "Threshold should be greater than 0, and less than 1");
+        });
     parser.SetFreeArgsNum(0);
 }
 
@@ -104,6 +111,9 @@ void NCB::ReadModelAndUpdateParams(
     CB_ENSURE(!params.IsUncertaintyPrediction || evalPeriod == 0, "Uncertainty prediction requires Eval period 0.");
 
     params.DatasetReadingParams.ClassLabels = model.GetModelClassLabels();
+    if (!params.BinClassLogitThreshold.Defined()) {
+        params.BinClassLogitThreshold = model.GetBinClassLogitThreshold();
+    }
 
     if (iterationsLimit == 0) {
         iterationsLimit = model.GetTreeCount();
@@ -197,14 +207,22 @@ void NCB::CalcModelSingleHost(
             outputStream = MakeHolder<TFileOutput>(Duplicate(2));
         }
     }
+    CB_ENSURE_INTERNAL(params.BinClassLogitThreshold.Defined(), "Logit threshold should be defined");
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
     bool IsFirstBlock = true;
     ui64 docIdOffset = 0;
-    auto poolColumnsPrinter = CreatePoolColumnPrinter(
-        params.DatasetReadingParams.PoolPath,
-        params.DatasetReadingParams.ColumnarPoolFormatParams.DsvFormat);
+    auto poolColumnsPrinter = TIntrusivePtr<NCB::IPoolColumnsPrinter>(
+        GetProcessor<NCB::IPoolColumnsPrinter>(
+            params.DatasetReadingParams.PoolPath,
+            NCB::TPoolColumnsPrinterPullArgs{
+                params.DatasetReadingParams.PoolPath,
+                params.DatasetReadingParams.ColumnarPoolFormatParams.DsvFormat,
+                /*columnsMetaInfo*/ Nothing()
+            }
+        ).Release()
+    );
     const int blockSize = Max<int>(
         32,
         static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.GetDimensionsCount())
@@ -236,7 +254,7 @@ void NCB::CalcModelSingleHost(
                 IsFirstBlock,
                 docIdOffset,
                 std::make_pair(evalPeriod, iterationsLimit),
-                model.GetBinClassLogitThreshold());
+                *params.BinClassLogitThreshold);
             docIdOffset += datasetPart->ObjectsGrouping->GetObjectCount();
             IsFirstBlock = false;
         },

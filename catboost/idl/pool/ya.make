@@ -1,6 +1,0 @@
-
-
-RECURSE(
-    flat
-    proto
-)

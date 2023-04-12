@@ -13,6 +13,8 @@
 #include <catboost/cuda/targets/kernel/pfound_f.cuh>
 #include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
 
+#include <util/generic/cast.h>
+
 namespace NKernelHost {
     class TCrossEntropyTargetKernel: public TStatelessKernel {
     private:
@@ -540,7 +542,7 @@ namespace NKernelHost {
                                               Pairs.Get(),
                                               PairWeights.Get(),
                                               Indices.Get(),
-                                              Pairs.Size(), QueryOffsetsBias,
+                                              SafeIntegerCast<ui32>(Pairs.Size()), QueryOffsetsBias,
                                               FunctionValue.Get(),
                                               Der.Get(),
                                               Der2.Get(),
@@ -594,7 +596,7 @@ namespace NKernelHost {
                                        PointDer.Get(),
                                        PointDer.Size(),
                                        PairDer2.Get(),
-                                       Pairs.Size(),
+                                       SafeIntegerCast<ui32>(Pairs.Size()),
                                        stream.GetStream());
         }
     };
@@ -660,14 +662,14 @@ namespace NKernelHost {
     class TMakePairsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> QOffsets;
-        TCudaBufferPtr<const ui32> MatrixOffsets;
+        TCudaBufferPtr<const ui64> MatrixOffsets;
         TCudaBufferPtr<uint2> Pairs;
 
     public:
         TMakePairsKernel() = default;
 
         TMakePairsKernel(TCudaBufferPtr<const ui32> qOffsets,
-                         TCudaBufferPtr<const ui32> matrixOffsets,
+                         TCudaBufferPtr<const ui64> matrixOffsets,
                          TCudaBufferPtr<uint2> pairs)
             : QOffsets(qOffsets)
             , MatrixOffsets(matrixOffsets)
@@ -678,8 +680,8 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(QOffsets, MatrixOffsets, Pairs);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(QOffsets.Size() > 0);
-            Y_VERIFY(QOffsets.Size() == MatrixOffsets.Size());
+            CB_ENSURE(QOffsets.Size() > 0, "Need some query offsets");
+            CB_ENSURE(QOffsets.Size() == MatrixOffsets.Size(), "Number of query offsets and matrix offsets should be same");
             const ui32 queryCount = QOffsets.Size() - 1;
 
             NKernel::MakePairs(QOffsets.Get(),
@@ -697,7 +699,7 @@ namespace NKernelHost {
         ui32 BootstrapIter;
         TCudaBufferPtr<const ui32> Qids;
         TCudaBufferPtr<const ui32> QueryOffsets;
-        TCudaBufferPtr<const ui32> MatrixOffsets;
+        TCudaBufferPtr<const ui64> MatrixOffsets;
         TCudaBufferPtr<const float> ExpApprox;
         TCudaBufferPtr<const float> Relev;
         TCudaBufferPtr<float> WeightMatrixDst;
@@ -707,13 +709,13 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->QidCursor = memoryManager.Allocate<int, NCudaLib::EPtrType::CudaDevice>(1);
+            context->QidCursor = memoryManager.Allocate<ui32, NCudaLib::EPtrType::CudaDevice>(1);
             return context;
         }
 
         TPFoundFGradientKernel() = default;
 
-        TPFoundFGradientKernel(ui64 seed, float decaySpeed, ui32 bootstrapIter, TCudaBufferPtr<const ui32> qids, TCudaBufferPtr<const ui32> queryOffsets, TCudaBufferPtr<const ui32> matrixOffsets, TCudaBufferPtr<const float> expApprox, TCudaBufferPtr<const float> relev, TCudaBufferPtr<float> weightMatrixDst)
+        TPFoundFGradientKernel(ui64 seed, float decaySpeed, ui32 bootstrapIter, TCudaBufferPtr<const ui32> qids, TCudaBufferPtr<const ui32> queryOffsets, TCudaBufferPtr<const ui64> matrixOffsets, TCudaBufferPtr<const float> expApprox, TCudaBufferPtr<const float> relev, TCudaBufferPtr<float> weightMatrixDst)
             : Seed(seed)
             , DecaySpeed(decaySpeed)
             , BootstrapIter(bootstrapIter)
@@ -730,7 +732,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream,
                  TKernelContext& context) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
             const ui32 queryCount = QueryOffsets.Size() - 1;
             NKernel::PFoundFGradient(Seed, DecaySpeed, BootstrapIter,
                                      QueryOffsets.Get(),
@@ -773,7 +775,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(NzPairWeights.Size() == NzPairs.Size());
-            NKernel::MakeFinalTarget(DocIds.Get(), ExpApprox.Get(), QuerywiseWeights.Get(), Relevs.Get(), NzPairWeights.Get(), NzPairWeights.Size(), ResultDers.Get(), NzPairs.Get(), stream.GetStream());
+            NKernel::MakeFinalTarget(DocIds.Get(), ExpApprox.Get(), QuerywiseWeights.Get(), Relevs.Get(), NzPairWeights.Get(), SafeIntegerCast<ui32>(NzPairWeights.Size()), ResultDers.Get(), NzPairs.Get(), stream.GetStream());
         }
     };
 
@@ -795,7 +797,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Relevs, NzPairs);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::SwapWrongOrderPairs(Relevs.Get(), NzPairs.Size(), NzPairs.Get(), stream.GetStream());
+            NKernel::SwapWrongOrderPairs(Relevs.Get(), SafeIntegerCast<ui32>(NzPairs.Size()), NzPairs.Get(), stream.GetStream());
         }
     };
 
@@ -816,7 +818,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(NzPairs, Bias);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::RemoveOffsetsBias(Bias, NzPairs.Size(), NzPairs.Get(), stream.GetStream());
+            NKernel::RemoveOffsetsBias(Bias, SafeIntegerCast<ui32>(NzPairs.Size()), NzPairs.Get(), stream.GetStream());
         }
     };
 }
@@ -960,7 +962,7 @@ inline void ApproximateYetiRank(ui64 seed, float decay, ui32 permutationCount,
 
 template <class TMapping>
 inline void MakePairs(const TCudaBuffer<ui32, TMapping>& qidOffsets,
-                      const TCudaBuffer<ui32, TMapping>& matrixOffsets,
+                      const TCudaBuffer<ui64, TMapping>& matrixOffsets,
                       TCudaBuffer<uint2, TMapping>* pairs,
                       ui32 stream = 0) {
     using TKernel = NKernelHost::TMakePairsKernel;
@@ -982,7 +984,7 @@ inline void ComputePFoundFWeightsMatrix(NCudaLib::TDistributedObject<ui64> seed,
                                         const TCudaBuffer<float, NCudaLib::TStripeMapping>& target,
                                         const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& qids,
                                         const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& qidOffsets,
-                                        const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& matrixOffsets,
+                                        const TCudaBuffer<ui64, NCudaLib::TStripeMapping>& matrixOffsets,
                                         TCudaBuffer<float, NCudaLib::TStripeMapping>* weights,
                                         ui32 stream = 0) {
     using TKernel = NKernelHost::TPFoundFGradientKernel;
@@ -1014,7 +1016,7 @@ inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMa
                            expApprox,
                            querywiseWeights,
                            target,
-                           pairWeights,
+                           *pairWeights,
                            *gradient,
                            *pairs);
 }

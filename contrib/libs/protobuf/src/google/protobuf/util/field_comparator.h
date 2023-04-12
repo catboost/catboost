@@ -203,13 +203,13 @@ class PROTOBUF_EXPORT SimpleFieldComparator : public FieldComparator {
   // CompareFloat.
   bool CompareFloat(const FieldDescriptor& field, float value_1, float value_2);
 
-  bool CompareInt32(const FieldDescriptor& /* unused */, int32_t value_1,
-                    int32_t value_2) {
+  bool CompareInt32(const FieldDescriptor& /* unused */, arc_i32 value_1,
+                    arc_i32 value_2) {
     return value_1 == value_2;
   }
 
-  bool CompareInt64(const FieldDescriptor& /* unused */, int64_t value_1,
-                    int64_t value_2) {
+  bool CompareInt64(const FieldDescriptor& /* unused */, arc_i64 value_1,
+                    arc_i64 value_2) {
     return value_1 == value_2;
   }
 
@@ -218,13 +218,13 @@ class PROTOBUF_EXPORT SimpleFieldComparator : public FieldComparator {
     return value_1 == value_2;
   }
 
-  bool CompareUInt32(const FieldDescriptor& /* unused */, uint32_t value_1,
-                     uint32_t value_2) {
+  bool CompareUInt32(const FieldDescriptor& /* unused */, arc_ui32 value_1,
+                     arc_ui32 value_2) {
     return value_1 == value_2;
   }
 
-  bool CompareUInt64(const FieldDescriptor& /* unused */, uint64_t value_1,
-                     uint64_t value_2) {
+  bool CompareUInt64(const FieldDescriptor& /* unused */, arc_ui64 value_1,
+                     arc_ui64 value_2) {
     return value_1 == value_2;
   }
 

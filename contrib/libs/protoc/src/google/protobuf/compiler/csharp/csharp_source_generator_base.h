@@ -45,7 +45,7 @@ struct Options;
 
 class SourceGeneratorBase {
  protected:
-  SourceGeneratorBase(const FileDescriptor* descriptor, const Options* options);
+  SourceGeneratorBase(const Options* options);
   virtual ~SourceGeneratorBase();
 
   SourceGeneratorBase(const SourceGeneratorBase&) = delete;
@@ -59,7 +59,6 @@ class SourceGeneratorBase {
   void WriteGeneratedCodeAttributes(io::Printer* printer);
 
  private:
-  const FileDescriptor* descriptor_;
   const Options *options_;
 };
 
@@ -69,4 +68,3 @@ class SourceGeneratorBase {
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_SOURCE_GENERATOR_BASE_H__
-

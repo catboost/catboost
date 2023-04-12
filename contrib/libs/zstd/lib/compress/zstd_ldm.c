@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Yann Collet, Facebook, Inc.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -159,12 +159,12 @@ size_t ZSTD_ldm_getTableSize(ldmParams_t params)
     size_t const ldmBucketSize = ((size_t)1) << (params.hashLog - ldmBucketSizeLog);
     size_t const totalSize = ZSTD_cwksp_alloc_size(ldmBucketSize)
                            + ZSTD_cwksp_alloc_size(ldmHSize * sizeof(ldmEntry_t));
-    return params.enableLdm ? totalSize : 0;
+    return params.enableLdm == ZSTD_ps_enable ? totalSize : 0;
 }
 
 size_t ZSTD_ldm_getMaxNbSeq(ldmParams_t params, size_t maxChunkSize)
 {
-    return params.enableLdm ? (maxChunkSize / params.minMatchLength) : 0;
+    return params.enableLdm == ZSTD_ps_enable ? (maxChunkSize / params.minMatchLength) : 0;
 }
 
 /** ZSTD_ldm_getBucket() :
@@ -242,11 +242,11 @@ static size_t ZSTD_ldm_fillFastTables(ZSTD_matchState_t* ms,
     switch(ms->cParams.strategy)
     {
     case ZSTD_fast:
-        ZSTD_fillHashTable(ms, iend, ZSTD_dtlm_fast);
+        ZSTD_fillHashTable(ms, iend, ZSTD_dtlm_fast, ZSTD_tfp_forCCtx);
         break;
 
     case ZSTD_dfast:
-        ZSTD_fillDoubleHashTable(ms, iend, ZSTD_dtlm_fast);
+        ZSTD_fillDoubleHashTable(ms, iend, ZSTD_dtlm_fast, ZSTD_tfp_forCCtx);
         break;
 
     case ZSTD_greedy:
@@ -478,7 +478,7 @@ static size_t ZSTD_ldm_generateSequences_internal(
              */
             if (anchor > ip + hashed) {
                 ZSTD_ldm_gear_reset(&hashState, anchor - minMatchLength, minMatchLength);
-                /* Continue the outter loop at anchor (ip + hashed == anchor). */
+                /* Continue the outer loop at anchor (ip + hashed == anchor). */
                 ip = anchor - hashed;
                 break;
             }
@@ -549,7 +549,7 @@ size_t ZSTD_ldm_generateSequences(
          * the window through early invalidation.
          * TODO: * Test the chunk size.
          *       * Try invalidation after the sequence generation and test the
-         *         the offset against maxDist directly.
+         *         offset against maxDist directly.
          *
          * NOTE: Because of dictionaries + sequence splitting we MUST make sure
          * that any offset used is valid at the END of the sequence, since it may
@@ -579,7 +579,9 @@ size_t ZSTD_ldm_generateSequences(
     return 0;
 }
 
-void ZSTD_ldm_skipSequences(rawSeqStore_t* rawSeqStore, size_t srcSize, U32 const minMatch) {
+void
+ZSTD_ldm_skipSequences(rawSeqStore_t* rawSeqStore, size_t srcSize, U32 const minMatch)
+{
     while (srcSize > 0 && rawSeqStore->pos < rawSeqStore->size) {
         rawSeq* seq = rawSeqStore->seq + rawSeqStore->pos;
         if (srcSize <= seq->litLength) {
@@ -657,7 +659,7 @@ void ZSTD_ldm_skipRawSeqStoreBytes(rawSeqStore_t* rawSeqStore, size_t nbBytes) {
 
 size_t ZSTD_ldm_blockCompress(rawSeqStore_t* rawSeqStore,
     ZSTD_matchState_t* ms, seqStore_t* seqStore, U32 rep[ZSTD_REP_NUM],
-    ZSTD_useRowMatchFinderMode_e useRowMatchFinder,
+    ZSTD_paramSwitch_e useRowMatchFinder,
     void const* src, size_t srcSize)
 {
     const ZSTD_compressionParameters* const cParams = &ms->cParams;
@@ -709,8 +711,8 @@ size_t ZSTD_ldm_blockCompress(rawSeqStore_t* rawSeqStore,
             rep[0] = sequence.offset;
             /* Store the sequence */
             ZSTD_storeSeq(seqStore, newLitLength, ip - newLitLength, iend,
-                          sequence.offset + ZSTD_REP_MOVE,
-                          sequence.matchLength - MINMATCH);
+                          OFFSET_TO_OFFBASE(sequence.offset),
+                          sequence.matchLength);
             ip += sequence.matchLength;
         }
     }

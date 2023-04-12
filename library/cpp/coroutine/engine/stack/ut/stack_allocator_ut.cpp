@@ -33,7 +33,7 @@ namespace NCoro::NStack::Tests {
 
 
     TEST_P(TAllocatorParamFixture, StackAllocationAndRelease) {
-        uint64_t stackSize = PageSize * 12;
+        size_t stackSize = PageSize * 12;
         auto stack = Allocator_->AllocStack(stackSize, "test_stack");
 #if defined(_san_enabled_) || !defined(NDEBUG)
         stackSize *= DebugOrSanStackMultiplier;
@@ -41,10 +41,10 @@ namespace NCoro::NStack::Tests {
 
         // Correct stack should have
         EXPECT_EQ(stack.GetSize(), stackSize); // predefined size
-        EXPECT_FALSE((uint64_t)stack.GetAlignedMemory() & PageSizeMask); // aligned pointer
+        EXPECT_FALSE((size_t)stack.GetAlignedMemory() & PageSizeMask); // aligned pointer
         // Writable workspace
         auto workspace = Allocator_->GetStackWorkspace(stack.GetAlignedMemory(), stack.GetSize());
-        for (uint64_t i = 0; i < workspace.size(); i += 512) {
+        for (size_t i = 0; i < workspace.size(); i += 512) {
             workspace[i] = 42;
         }
         EXPECT_TRUE(Allocator_->CheckStackOverflow(stack.GetAlignedMemory()));
@@ -87,7 +87,7 @@ namespace NCoro::NStack::Tests {
             : Allocator_(GetAllocator<AllocatorType>(EGuard::Page))
         {}
 
-        const uint64_t StackSize_ = PageSize * 2;
+        const size_t StackSize_ = PageSize * 2;
         THolder<IAllocator> Allocator_;
     };
 

@@ -333,7 +333,6 @@ namespace NCB {
         const auto featureCount = featuresLayout.GetExternalFeatureCount();
         const auto featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
-        bool hasDenseFeatures = false;
         bool hasSparseFeatures = false;
         TVector<ui32> featureIndicesToCalc;
 
@@ -358,8 +357,6 @@ namespace NCB {
 
             if (isSparse) {
                 hasSparseFeatures = true;
-            } else {
-                hasDenseFeatures = true;
             }
         }
 

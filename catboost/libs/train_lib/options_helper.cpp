@@ -365,7 +365,7 @@ static void AdjustBoostFromAverageDefaultValue(
         && EqualToOneOf(
             catBoostOptions->LossFunctionDescription->GetLossFunction(),
             ELossFunction::RMSE, ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::MAPE,
-            ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues)
+            ELossFunction::MultiQuantile, ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues)
     ) {
         catBoostOptions->BoostingOptions->BoostFromAverage.Set(true);
     }

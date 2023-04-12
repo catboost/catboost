@@ -740,18 +740,18 @@ bool ToLower(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::np
 bool ToUpper(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::npos);
 
 /* Lowercase/uppercase given string inplace. Any alphabetic symbol will be converted to a proper
-* case, the rest of the symbols will be kept the same. It is expected that `text` is a correct
-* UTF-32 string.
-*
-* For example `ToLower("heLLo")` will return `"hello"`.
-*
-* @param text      String to modify
-* @param pos       Position of the first character to modify
-* @param count     Length of the substring
-* @returns         `true` if `text` was changed
-*
-* NOTE: `pos` and `count` are measured in `wchar16`, not in codepoints.
-*/
+ * case, the rest of the symbols will be kept the same. It is expected that `text` is a correct
+ * UTF-32 string.
+ *
+ * For example `ToLower("heLLo")` will return `"hello"`.
+ *
+ * @param text      String to modify
+ * @param pos       Position of the first character to modify
+ * @param count     Length of the substring
+ * @returns         `true` if `text` was changed
+ *
+ * NOTE: `pos` and `count` are measured in `wchar16`, not in codepoints.
+ */
 bool ToLower(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf16String::npos);
 bool ToUpper(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf16String::npos);
 
@@ -760,7 +760,7 @@ bool ToUpper(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf
 bool ToTitle(TUtf16String& text, size_t pos = 0, size_t count = TUtf16String::npos);
 
 /* Titlecase first symbol and lowercase the rest, see `ToLower` for more details.
-*/
+ */
 bool ToTitle(TUtf32String& /*text*/, size_t /*pos*/ = 0, size_t /*count*/ = TUtf16String::npos);
 
 /* @param text      Pointer to the string to modify

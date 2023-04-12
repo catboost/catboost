@@ -516,9 +516,8 @@ static void __Pyx__CyFunction_dealloc(__pyx_CyFunctionObject *m)
     PyObject_GC_Del(m);
 }
 
-static void __Pyx_CyFunction_dealloc(PyObject *obj)
+static void __Pyx_CyFunction_dealloc(__pyx_CyFunctionObject *m)
 {
-    __pyx_CyFunctionObject *m = (__pyx_CyFunctionObject *) obj;
     PyObject_GC_UnTrack(m);
     __Pyx__CyFunction_dealloc(m);
 }
@@ -661,6 +660,17 @@ static PyObject *__Pyx_CyFunction_CallAsMethod(PyObject *func, PyObject *args, P
         self = PyTuple_GetItem(args, 0);
         if (unlikely(!self)) {
             Py_DECREF(new_args);
+#if PY_MAJOR_VERSION > 2
+            PyErr_Format(PyExc_TypeError,
+                         "unbound method %.200S() needs an argument",
+                         cyfunc->func_qualname);
+#else
+            // %S doesn't work in PyErr_Format on Py2 and replicating
+            // the formatting seems more trouble than it's worth
+            // (so produce a less useful error message).
+            PyErr_SetString(PyExc_TypeError,
+                            "unbound method needs an argument");
+#endif
             return NULL;
         }
 
@@ -731,11 +741,14 @@ static PyTypeObject __pyx_CyFunctionType_type = {
 #if PY_VERSION_HEX >= 0x030400a1
     0,                                  /*tp_finalize*/
 #endif
-#if PY_VERSION_HEX >= 0x030800b1
+#if PY_VERSION_HEX >= 0x030800b1 && (!CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM >= 0x07030800)
     0,                                  /*tp_vectorcall*/
 #endif
 #if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
     0,                                  /*tp_print*/
+#endif
+#if CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX >= 0x03090000
+    0,                                          /*tp_pypy_flags*/
 #endif
 };
 
@@ -1260,11 +1273,14 @@ static PyTypeObject __pyx_FusedFunctionType_type = {
 #if PY_VERSION_HEX >= 0x030400a1
     0,                                  /*tp_finalize*/
 #endif
-#if PY_VERSION_HEX >= 0x030800b1
+#if PY_VERSION_HEX >= 0x030800b1 && (!CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM >= 0x07030800)
     0,                                  /*tp_vectorcall*/
 #endif
 #if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
     0,                                  /*tp_print*/
+#endif
+#if CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX >= 0x03090000
+    0,                                          /*tp_pypy_flags*/
 #endif
 };
 

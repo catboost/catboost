@@ -4,6 +4,7 @@
 #include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/fstr/compare_documents.h>
 #include <catboost/libs/fstr/output_fstr.h>
+#include <catboost/libs/fstr/sage_values.h>
 #include <catboost/libs/fstr/shap_values.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/helpers/exception.h>
@@ -152,6 +153,13 @@ void NCB::ModeFstrSingleHostInner(
                                     EPreCalcShapValues::Auto,
                                     localExecutor.Get(),
                                     params.ShapCalcType);
+            break;
+        case EFstrType::SageValues:
+            CalcAndOutputSageValues(model,
+                                    *poolLoader(),
+                                    params.Verbose,
+                                    params.OutputPath.Path,
+                                    localExecutor.Get());
             break;
         case EFstrType::PredictionDiff:
             CalcAndOutputPredictionDiff(

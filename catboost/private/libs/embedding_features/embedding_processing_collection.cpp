@@ -274,8 +274,10 @@ namespace NCB {
             guidId[FeatureCalcerId[i]] = i;
         }
 
-        ui64 headerSize;
-        while (TryLoad(stream, headerSize)) {
+        for (ui32 i = 0; i < FeatureCalcerId.size(); i++) {
+            ui64 headerSize;
+            ::Load(stream, headerSize);
+
             TArrayHolder<ui8> buffer(new ui8[headerSize]);
             const ui32 loadedBytes = stream->Load(buffer.Get(), headerSize);
             CB_ENSURE(
@@ -306,8 +308,10 @@ namespace NCB {
             guidId[FeatureCalcerId[i]] = i;
         }
 
-        ui64 headerSize;
-        while (TryLoad(in, headerSize)) {
+        for (ui32 i = 0; i < FeatureCalcerId.size(); i++) {
+            ui64 headerSize;
+            ::Load(in, headerSize);
+
             CB_ENSURE(
                     in->Avail() >= headerSize,
                     "Failed to deserialize: Failed to load collection part"

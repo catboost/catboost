@@ -1,5 +1,0 @@
-LIBRARY()
-
-
-
-END()

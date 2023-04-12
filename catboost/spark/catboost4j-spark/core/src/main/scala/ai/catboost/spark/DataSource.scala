@@ -27,9 +27,11 @@ import org.apache.spark.sql.execution.datasources.text.TextFileFormat
 import org.apache.spark.sql.sources.DataSourceRegister
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types._
+import org.apache.spark.util.TaskCompletionListener
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 import ai.catboost.CatBoostError
+import ai.catboost.spark.impl.ExpressionEncoderSerializer
 
 
 // copied from org.apache.spark.util because it's private there
@@ -102,7 +104,7 @@ private[spark] final class DatasetRowsReaderIterator (
   var currentBlockSize: Int,
   var currentBlockOffset: Int,
   var currentOutRow: Array[Any],
-  val converter: ExpressionEncoder[Row],
+  val serializer: ExpressionEncoderSerializer,
   val callbacks: mutable.ArrayBuffer[TRawDatasetRow => Unit]
 ) extends Iterator[InternalRow] {
   private def updateBlock = {
@@ -121,7 +123,7 @@ private[spark] final class DatasetRowsReaderIterator (
     }
   }
 
-  def next: InternalRow = {
+  def next(): InternalRow = {
     if (currentBlockOffset >= currentBlockSize) {
       updateBlock
       if (currentBlockSize == 0) {
@@ -131,7 +133,7 @@ private[spark] final class DatasetRowsReaderIterator (
     val parsedRaw = rowsReader.GetRow(currentBlockOffset)
     currentBlockOffset = currentBlockOffset + 1
     callbacks.foreach(_(parsedRaw))
-    converter.toRow(Row.fromSeq(currentOutRow))
+    serializer.toInternalRow(Row.fromSeq(currentOutRow))
   }
 }
 
@@ -171,7 +173,7 @@ private[spark] object DatasetRowsReaderIterator {
       currentBlockSize = 0,
       currentBlockOffset = 0,
       currentOutRow = new Array[Any](dataSchema.length),
-      converter = RowEncoder(dataSchema),
+      serializer = ExpressionEncoderSerializer(dataSchema),
       callbacks = new mutable.ArrayBuffer[TRawDatasetRow => Unit]
     )
 
@@ -504,7 +506,13 @@ private[spark] class CatBoostTextFileFormat
 
     (file: PartitionedFile) => {
       val linesReader = new HadoopFileLinesReader(file, broadcastedHadoopConf.value.value)
-      Option(TaskContext.get()).foreach(_.addTaskCompletionListener(_ => linesReader.close()))
+      Option(TaskContext.get()).foreach(
+        _.addTaskCompletionListener(
+          new TaskCompletionListener {
+            override def onTaskCompletion(context: TaskContext): Unit = { linesReader.close() }
+          }
+        )
+      )
 
       DatasetRowsReaderIterator(
         linesReader,

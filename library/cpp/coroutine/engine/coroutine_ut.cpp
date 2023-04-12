@@ -2,6 +2,7 @@
 #include "condvar.h"
 #include "network.h"
 
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/string/cast.h>
@@ -31,8 +32,8 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestException);
     UNIT_TEST(TestJoinCancelExitRaceBug);
     UNIT_TEST(TestWaitWakeLivelockBug);
-    UNIT_TEST(TestFastPathWakeDefault)
-    // TODO (velavokr): BALANCER-1338 our epoll wrapper cannot handle pipe eofs
+// TODO (velavokr): BALANCER-1338 our epoll wrapper cannot handle pipe eofs
+//    UNIT_TEST(TestFastPathWakeDefault)
 //    UNIT_TEST(TestFastPathWakeEpoll)
     UNIT_TEST(TestFastPathWakeKqueue)
     UNIT_TEST(TestFastPathWakePoll)
@@ -46,6 +47,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestUserEvent);
     UNIT_TEST(TestPause);
     UNIT_TEST(TestOverrideTime);
+    UNIT_TEST(TestCancelWithException);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -78,6 +80,7 @@ public:
     void TestUserEvent();
     void TestPause();
     void TestOverrideTime();
+    void TestCancelWithException();
 };
 
 void TCoroTest::TestException() {
@@ -933,7 +936,13 @@ void TCoroTest::TestPollEngines() {
 
         if (engine == EContPoller::Default) {
             defaultChecked = true;
-            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Combined);
+#if defined(HAVE_EPOLL_POLLER)
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Epoll);
+#elif defined(HAVE_KQUEUE_POLLER)
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Kqueue);
+#else
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Select);
+#endif
         } else {
             UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), engine);
         }
@@ -943,7 +952,7 @@ void TCoroTest::TestPollEngines() {
 }
 
 void TCoroTest::TestPause() {
-    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing()};
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, nullptr, NCoro::NStack::EGuard::Canary, Nothing()};
 
     int i = 0;
     executor.CreateOwned([&](TCont*) {
@@ -993,7 +1002,7 @@ void TCoroTest::TestOverrideTime() {
     };
 
     TTime time;
-    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing(), &time};
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, nullptr, NCoro::NStack::EGuard::Canary, Nothing(), &time};
 
     executor.CreateOwned([&](TCont* cont) {
         UNIT_ASSERT_EQUAL(cont->Executor()->Now(), TInstant::Zero());
@@ -1003,5 +1012,39 @@ void TCoroTest::TestOverrideTime() {
     }, "coro");
 
     executor.Execute();
+}
+
+void TCoroTest::TestCancelWithException() {
+    TContExecutor exec(32000);
+
+    TString excText = "test exception";
+    THolder<std::exception> excep = MakeHolder<yexception>(yexception() << excText);
+    std::exception* excPtr = excep.Get();
+
+    exec.CreateOwned([&](TCont* cont){
+        TCont *cont1 = cont->Executor()->CreateOwned([&](TCont* c) {
+            int result = c->SleepD(TDuration::MilliSeconds(200).ToDeadLine());
+            UNIT_ASSERT_EQUAL(result, ECANCELED);
+            UNIT_ASSERT_EQUAL(c->Cancelled(), true);
+            THolder<std::exception> exc = c->TakeException();
+            UNIT_ASSERT_EQUAL(exc.Get(), excPtr);
+            UNIT_ASSERT_EQUAL(exc->what(), excText);
+            UNIT_ASSERT(dynamic_cast<yexception*>(exc.Get()) != nullptr);
+        }, "cancelExc");
+        cont1->Cancel(std::move(excep));
+
+        TCont* cont2 = cont->Executor()->CreateOwned([&](TCont* c) {
+            int result = c->SleepD(TDuration::MilliSeconds(200).ToDeadLine());
+            UNIT_ASSERT_EQUAL(result, ECANCELED);
+            UNIT_ASSERT_EQUAL(c->Cancelled(), true);
+            THolder<std::exception> exc = c->TakeException();
+            UNIT_ASSERT_EQUAL(exc.Get(), nullptr);
+        }, "cancelTwice");
+        cont2->Cancel();
+        THolder<std::exception> e = MakeHolder<yexception>(yexception() << "another exception");
+        cont2->Cancel(std::move(e));
+    }, "coro");
+
+    exec.Execute();
 }
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

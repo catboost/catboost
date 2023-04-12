@@ -51,60 +51,7 @@ public:
     using const_iterator = const TCharType*;
     using const_reference = const TCharType&;
 
-    template <typename TBase>
-    struct TReverseIteratorBase {
-        constexpr TReverseIteratorBase() noexcept = default;
-        explicit constexpr TReverseIteratorBase(TBase p)
-            : P_(p)
-        {
-        }
-
-        TReverseIteratorBase operator++() noexcept {
-            --P_;
-            return *this;
-        }
-
-        TReverseIteratorBase operator++(int) noexcept {
-            TReverseIteratorBase old(*this);
-            --P_;
-            return old;
-        }
-
-        TReverseIteratorBase& operator--() noexcept {
-            ++P_;
-            return *this;
-        }
-
-        TReverseIteratorBase operator--(int) noexcept {
-            TReverseIteratorBase old(*this);
-            ++P_;
-            return old;
-        }
-
-        constexpr auto operator*() const noexcept -> std::remove_pointer_t<TBase>& {
-            return *TBase(*this);
-        }
-
-        explicit constexpr operator TBase() const noexcept {
-            return TBase(P_ - 1);
-        }
-
-        constexpr auto operator-(const TReverseIteratorBase o) const noexcept {
-            return o.P_ - P_;
-        }
-
-        constexpr bool operator==(const TReverseIteratorBase o) const noexcept {
-            return P_ == o.P_;
-        }
-
-        constexpr bool operator!=(const TReverseIteratorBase o) const noexcept {
-            return !(*this == o);
-        }
-
-    private:
-        TBase P_ = nullptr;
-    };
-    using const_reverse_iterator = TReverseIteratorBase<const_iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     static constexpr size_t StrLen(const TCharType* s) noexcept {
         if (Y_LIKELY(s)) {
@@ -135,35 +82,35 @@ public:
         return begin() <= it && end() > it ? size_t(it - begin()) : npos;
     }
 
-    inline const_iterator begin() const noexcept {
+    constexpr const_iterator begin() const noexcept {
         return Ptr();
     }
 
-    inline const_iterator end() const noexcept {
+    constexpr const_iterator end() const noexcept {
         return Ptr() + size();
     }
 
-    inline const_iterator cbegin() const noexcept {
+    constexpr const_iterator cbegin() const noexcept {
         return begin();
     }
 
-    inline const_iterator cend() const noexcept {
+    constexpr const_iterator cend() const noexcept {
         return end();
     }
 
-    inline const_reverse_iterator rbegin() const noexcept {
+    constexpr const_reverse_iterator rbegin() const noexcept {
         return const_reverse_iterator(Ptr() + size());
     }
 
-    inline const_reverse_iterator rend() const noexcept {
+    constexpr const_reverse_iterator rend() const noexcept {
         return const_reverse_iterator(Ptr());
     }
 
-    inline const_reverse_iterator crbegin() const noexcept {
+    constexpr const_reverse_iterator crbegin() const noexcept {
         return rbegin();
     }
 
-    inline const_reverse_iterator crend() const noexcept {
+    constexpr const_reverse_iterator crend() const noexcept {
         return rend();
     }
 
@@ -211,57 +158,57 @@ public: // style-guide compliant methods
     }
 
 private:
-    static inline TStringView LegacySubString(const TStringView view, size_t p, size_t n) noexcept {
+    static constexpr TStringView LegacySubString(const TStringView view, size_t p, size_t n) noexcept {
         p = Min(p, view.length());
         return view.substr(p, n);
     }
 
 public:
     // ~~~ Comparison ~~~ : FAMILY0(int, compare)
-    static int compare(const TSelf& s1, const TSelf& s2) noexcept {
+    static constexpr int compare(const TSelf& s1, const TSelf& s2) noexcept {
         return s1.AsStringView().compare(s2.AsStringView());
     }
 
-    static int compare(const TCharType* p, const TSelf& s2) noexcept {
+    static constexpr int compare(const TCharType* p, const TSelf& s2) noexcept {
         TCharType null{0};
         return TStringViewWithTraits(p ? p : &null).compare(s2.AsStringView());
     }
 
-    static int compare(const TSelf& s1, const TCharType* p) noexcept {
+    static constexpr int compare(const TSelf& s1, const TCharType* p) noexcept {
         TCharType null{0};
         return s1.AsStringView().compare(p ? p : &null);
     }
 
-    static int compare(const TStringView s1, const TStringView s2) noexcept {
+    static constexpr int compare(const TStringView s1, const TStringView s2) noexcept {
         return TStringViewWithTraits(s1.data(), s1.size()).compare(TStringViewWithTraits(s2.data(), s2.size()));
     }
 
     template <class T>
-    inline int compare(const T& t) const noexcept {
+    constexpr int compare(const T& t) const noexcept {
         return compare(*this, t);
     }
 
-    inline int compare(size_t p, size_t n, const TStringView t) const noexcept {
+    constexpr int compare(size_t p, size_t n, const TStringView t) const noexcept {
         return compare(LegacySubString(*this, p, n), t);
     }
 
-    inline int compare(size_t p, size_t n, const TStringView t, size_t p1, size_t n1) const noexcept {
+    constexpr int compare(size_t p, size_t n, const TStringView t, size_t p1, size_t n1) const noexcept {
         return compare(LegacySubString(*this, p, n), LegacySubString(t, p1, n1));
     }
 
-    inline int compare(size_t p, size_t n, const TStringView t, size_t n1) const noexcept {
+    constexpr int compare(size_t p, size_t n, const TStringView t, size_t n1) const noexcept {
         return compare(LegacySubString(*this, p, n), LegacySubString(t, 0, n1));
     }
 
-    inline int compare(const TCharType* p, size_t len) const noexcept {
+    constexpr int compare(const TCharType* p, size_t len) const noexcept {
         return compare(*this, TStringView(p, len));
     }
 
-    static bool equal(const TSelf& s1, const TSelf& s2) noexcept {
+    static constexpr bool equal(const TSelf& s1, const TSelf& s2) noexcept {
         return s1.AsStringView() == s2.AsStringView();
     }
 
-    static bool equal(const TSelf& s1, const TCharType* p) noexcept {
+    static constexpr bool equal(const TSelf& s1, const TCharType* p) noexcept {
         if (p == nullptr) {
             return s1.Len() == 0;
         }
@@ -269,164 +216,164 @@ public:
         return s1.AsStringView() == p;
     }
 
-    static bool equal(const TCharType* p, const TSelf& s2) noexcept {
+    static constexpr bool equal(const TCharType* p, const TSelf& s2) noexcept {
         return equal(s2, p);
     }
 
-    static bool equal(const TStringView s1, const TStringView s2) noexcept {
+    static constexpr bool equal(const TStringView s1, const TStringView s2) noexcept {
         return TStringViewWithTraits{s1.data(), s1.size()} == TStringViewWithTraits{s2.data(), s2.size()};
     }
 
     template <class T>
-    inline bool equal(const T& t) const noexcept {
+    constexpr bool equal(const T& t) const noexcept {
         return equal(*this, t);
     }
 
-    inline bool equal(size_t p, size_t n, const TStringView t) const noexcept {
+    constexpr bool equal(size_t p, size_t n, const TStringView t) const noexcept {
         return equal(LegacySubString(*this, p, n), t);
     }
 
-    inline bool equal(size_t p, size_t n, const TStringView t, size_t p1, size_t n1) const noexcept {
+    constexpr bool equal(size_t p, size_t n, const TStringView t, size_t p1, size_t n1) const noexcept {
         return equal(LegacySubString(*this, p, n), LegacySubString(t, p1, n1));
     }
 
-    inline bool equal(size_t p, size_t n, const TStringView t, size_t n1) const noexcept {
+    constexpr bool equal(size_t p, size_t n, const TStringView t, size_t n1) const noexcept {
         return equal(LegacySubString(*this, p, n), LegacySubString(t, 0, n1));
     }
 
-    static inline bool StartsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
+    static constexpr bool StartsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
         return withLen <= whatLen && TStringViewWithTraits(what, withLen) == TStringViewWithTraits(with, withLen);
     }
 
-    static inline bool EndsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
+    static constexpr bool EndsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
         return withLen <= whatLen && TStringViewWithTraits(what + whatLen - withLen, withLen) == TStringViewWithTraits(with, withLen);
     }
 
-    inline bool StartsWith(const TCharType* s, size_t n) const noexcept {
+    constexpr bool StartsWith(const TCharType* s, size_t n) const noexcept {
         return StartsWith(Ptr(), Len(), s, n);
     }
 
-    inline bool StartsWith(const TStringView s) const noexcept {
+    constexpr bool StartsWith(const TStringView s) const noexcept {
         return StartsWith(s.data(), s.length());
     }
 
-    inline bool StartsWith(TCharType ch) const noexcept {
+    constexpr bool StartsWith(TCharType ch) const noexcept {
         return !empty() && TTraits::eq(*Ptr(), ch);
     }
 
-    inline bool EndsWith(const TCharType* s, size_t n) const noexcept {
+    constexpr bool EndsWith(const TCharType* s, size_t n) const noexcept {
         return EndsWith(Ptr(), Len(), s, n);
     }
 
-    inline bool EndsWith(const TStringView s) const noexcept {
+    constexpr bool EndsWith(const TStringView s) const noexcept {
         return EndsWith(s.data(), s.length());
     }
 
-    inline bool EndsWith(TCharType ch) const noexcept {
+    constexpr bool EndsWith(TCharType ch) const noexcept {
         return !empty() && TTraits::eq(Ptr()[Len() - 1], ch);
     }
 
     template <typename TDerived2, typename TTraits2>
-    bool operator==(const TStringBase<TDerived2, TChar, TTraits2>& s2) const noexcept {
+    constexpr bool operator==(const TStringBase<TDerived2, TChar, TTraits2>& s2) const noexcept {
         return equal(*this, s2);
     }
 
-    bool operator==(TStringView s2) const noexcept {
+    constexpr bool operator==(TStringView s2) const noexcept {
         return equal(*this, s2);
     }
 
-    bool operator==(const TCharType* pc) const noexcept {
+    constexpr bool operator==(const TCharType* pc) const noexcept {
         return equal(*this, pc);
     }
 
 #ifndef __cpp_impl_three_way_comparison
-    friend bool operator==(const TCharType* pc, const TSelf& s) noexcept {
+    friend constexpr bool operator==(const TCharType* pc, const TSelf& s) noexcept {
         return equal(pc, s);
     }
 
     template <typename TDerived2, typename TTraits2>
-    friend bool operator!=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
+    friend constexpr bool operator!=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
         return !(s1 == s2);
     }
 
-    friend bool operator!=(const TSelf& s1, TStringView s2) noexcept {
+    friend constexpr bool operator!=(const TSelf& s1, TStringView s2) noexcept {
         return !(s1 == s2);
     }
 
-    friend bool operator!=(const TSelf& s, const TCharType* pc) noexcept {
+    friend constexpr bool operator!=(const TSelf& s, const TCharType* pc) noexcept {
         return !(s == pc);
     }
 
-    friend bool operator!=(const TCharType* pc, const TSelf& s) noexcept {
+    friend constexpr bool operator!=(const TCharType* pc, const TSelf& s) noexcept {
         return !(pc == s);
     }
 #endif
 
     template <typename TDerived2, typename TTraits2>
-    friend bool operator<(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
+    friend constexpr bool operator<(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
         return compare(s1, s2) < 0;
     }
 
-    friend bool operator<(const TSelf& s1, TStringView s2) noexcept {
+    friend constexpr bool operator<(const TSelf& s1, TStringView s2) noexcept {
         return compare(s1, s2) < 0;
     }
 
-    friend bool operator<(const TSelf& s, const TCharType* pc) noexcept {
+    friend constexpr bool operator<(const TSelf& s, const TCharType* pc) noexcept {
         return compare(s, pc) < 0;
     }
 
-    friend bool operator<(const TCharType* pc, const TSelf& s) noexcept {
+    friend constexpr bool operator<(const TCharType* pc, const TSelf& s) noexcept {
         return compare(pc, s) < 0;
     }
 
     template <typename TDerived2, typename TTraits2>
-    friend bool operator<=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
+    friend constexpr bool operator<=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
         return compare(s1, s2) <= 0;
     }
 
-    friend bool operator<=(const TSelf& s1, TStringView s2) noexcept {
+    friend constexpr bool operator<=(const TSelf& s1, TStringView s2) noexcept {
         return compare(s1, s2) <= 0;
     }
 
-    friend bool operator<=(const TSelf& s, const TCharType* pc) noexcept {
+    friend constexpr bool operator<=(const TSelf& s, const TCharType* pc) noexcept {
         return compare(s, pc) <= 0;
     }
 
-    friend bool operator<=(const TCharType* pc, const TSelf& s) noexcept {
+    friend constexpr bool operator<=(const TCharType* pc, const TSelf& s) noexcept {
         return compare(pc, s) <= 0;
     }
 
     template <typename TDerived2, typename TTraits2>
-    friend bool operator>(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
+    friend constexpr bool operator>(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
         return compare(s1, s2) > 0;
     }
 
-    friend bool operator>(const TSelf& s1, TStringView s2) noexcept {
+    friend constexpr bool operator>(const TSelf& s1, TStringView s2) noexcept {
         return compare(s1, s2) > 0;
     }
 
-    friend bool operator>(const TSelf& s, const TCharType* pc) noexcept {
+    friend constexpr bool operator>(const TSelf& s, const TCharType* pc) noexcept {
         return compare(s, pc) > 0;
     }
 
-    friend bool operator>(const TCharType* pc, const TSelf& s) noexcept {
+    friend constexpr bool operator>(const TCharType* pc, const TSelf& s) noexcept {
         return compare(pc, s) > 0;
     }
 
     template <typename TDerived2, typename TTraits2>
-    friend bool operator>=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
+    friend constexpr bool operator>=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
         return compare(s1, s2) >= 0;
     }
 
-    friend bool operator>=(const TSelf& s1, TStringView s2) noexcept {
+    friend constexpr bool operator>=(const TSelf& s1, TStringView s2) noexcept {
         return compare(s1, s2) >= 0;
     }
 
-    friend bool operator>=(const TSelf& s, const TCharType* pc) noexcept {
+    friend constexpr bool operator>=(const TSelf& s, const TCharType* pc) noexcept {
         return compare(s, pc) >= 0;
     }
 
-    friend bool operator>=(const TCharType* pc, const TSelf& s) noexcept {
+    friend constexpr bool operator>=(const TCharType* pc, const TSelf& s) noexcept {
         return compare(pc, s) >= 0;
     }
 
@@ -581,7 +528,7 @@ public:
 private:
     using GenericFinder = const TCharType* (*)(const TCharType*, size_t, const TCharType*, size_t);
 
-    TStringViewWithTraits AsStringView() const {
+    constexpr TStringViewWithTraits AsStringView() const {
         return static_cast<TStringViewWithTraits>(*this);
     }
 

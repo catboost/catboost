@@ -11,7 +11,9 @@
 #include <catboost/libs/data/order.h>
 #include <catboost/libs/features_selection/select_features.h>
 #include <catboost/libs/features_selection/selection_results.h>
+#include <catboost/libs/train_lib/trainer_env.h>
 
+#include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/preprocess.cpp>
 #include <catboost/private/libs/app_helpers/bind_options.h>
@@ -76,13 +78,21 @@ static TDataProviders LoadPools(
     TVector<NJson::TJsonValue> classLabels = catBoostOptions.DataProcessingOptions->ClassLabels;
     const auto objectsOrder = hasTimeFlag->Get() ? EObjectsOrder::Ordered : EObjectsOrder::Undefined;
     CB_ENSURE(poolLoadParams.TestSetPaths.size() <= 1, "Features selection mode doesn't support several eval sets.");
+    const bool haveLearnFeaturesInMemory = HaveFeaturesInMemory(
+        catBoostOptions,
+        poolLoadParams.LearnSetPath);
+    TVector<TDatasetSubset> testDatasetSubsets;
+    for (const auto& testSetPath : poolLoadParams.TestSetPaths) {
+        testDatasetSubsets.push_back(
+            TDatasetSubset::MakeColumns(HaveFeaturesInMemory(catBoostOptions, testSetPath)));
+    }
     auto pools = NCB::ReadTrainDatasets(
         catBoostOptions.GetTaskType(),
         poolLoadParams,
         objectsOrder,
         /*readTestData*/true,
-        TDatasetSubset::MakeColumns(),
-        TVector<TDatasetSubset>(poolLoadParams.TestSetPaths.size(), TDatasetSubset::MakeColumns()),
+        TDatasetSubset::MakeColumns(haveLearnFeaturesInMemory),
+        testDatasetSubsets,
         catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
         &classLabels,
         executor,
@@ -142,6 +152,8 @@ int mode_select_features(int argc, const char* argv[]) {
     );
 
     TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+
+    auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads - 1);

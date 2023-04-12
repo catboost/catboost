@@ -8,7 +8,7 @@
 
 namespace NCoro::NStack {
 
-    TStorage::TStorage(uint64_t stackSize, uint64_t rssPagesToKeep, uint64_t releaseRate)
+    TStorage::TStorage(size_t stackSize, size_t rssPagesToKeep, size_t releaseRate)
         : StackSize_(stackSize)
         , RssPagesToKeep_(rssPagesToKeep)
         , ReleaseRate_(releaseRate ? releaseRate : 1)
@@ -20,12 +20,12 @@ namespace NCoro::NStack {
         return Released_.empty() && Full_.empty();
     }
 
-    uint64_t TStorage::Size() const noexcept {
+    size_t TStorage::Size() const noexcept {
         return Released_.size() + Full_.size();
     }
 
     void TStorage::ReturnStack(NDetails::TStack& stack) {
-        thread_local uint64_t i = 0;
+        thread_local size_t i = 0;
         if (++i % ReleaseRate_ != 0) {
             Full_.push_back(stack.GetAlignedMemory());
         } else {
@@ -35,9 +35,9 @@ namespace NCoro::NStack {
         stack.Reset();
     }
 
-    void TStorage::ReleaseMemory([[maybe_unused]] char* alignedStackMemory, [[maybe_unused]] uint64_t pagesToKeep) noexcept {
+    void TStorage::ReleaseMemory([[maybe_unused]] char* alignedStackMemory, [[maybe_unused]] size_t pagesToKeep) noexcept {
 #if !defined(_san_enabled_) && defined(NDEBUG)
-        uint64_t numOfPagesToFree = StackSize_ / PageSize;
+        size_t numOfPagesToFree = StackSize_ / PageSize;
         numOfPagesToFree -= pagesToKeep;
         ReleaseRss(alignedStackMemory, numOfPagesToFree);
 #endif

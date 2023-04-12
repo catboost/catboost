@@ -37,15 +37,11 @@
 #include "util_namespace.cuh"
 #include "util_macro.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS    // Do not document
 
-#if ((__CUDACC_VER_MAJOR__ >= 9) || defined(__NVCOMPILER_CUDA__) ||            \
+#if ((__CUDACC_VER_MAJOR__ >= 9) || defined(_NVHPC_CUDA) ||            \
      CUDA_VERSION >= 9000) &&                                                  \
   !defined(CUB_USE_COOPERATIVE_GROUPS)
 #define CUB_USE_COOPERATIVE_GROUPS
@@ -54,7 +50,7 @@ namespace cub {
 /// In device code, CUB_PTX_ARCH expands to the PTX version for which we are
 /// compiling. In host code, CUB_PTX_ARCH's value is implementation defined.
 #ifndef CUB_PTX_ARCH
-    #if defined(__NVCOMPILER_CUDA__)
+    #if defined(_NVHPC_CUDA)
         // __NVCOMPILER_CUDA_ARCH__ is the target PTX version, and is defined
         // when compiling both host code and device code. Currently, only one
         // PTX version can be targeted.
@@ -67,7 +63,7 @@ namespace cub {
 #endif
 
 #ifndef CUB_IS_DEVICE_CODE
-    #if defined(__NVCOMPILER_CUDA__)
+    #if defined(_NVHPC_CUDA)
         #define CUB_IS_DEVICE_CODE __builtin_is_device_code()
         #define CUB_IS_HOST_CODE (!__builtin_is_device_code())
         #define CUB_INCLUDE_DEVICE_CODE 1
@@ -183,5 +179,4 @@ struct MemBoundScaling
 
 #endif  // Do not document
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

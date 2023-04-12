@@ -39,6 +39,11 @@ def strip_suppression_files(srcs):
     return [s for s in srcs if not s.endswith('.supp')]
 
 
+def strip_forceload_prefix(srcs):
+    force_load_prefix = '-Wl,-force_load,'
+    return list(map(lambda lib: lib[lib.startswith(force_load_prefix) and len(force_load_prefix):], srcs))
+
+
 def main():
     args, groups = get_args()
 
@@ -53,6 +58,7 @@ def main():
     global_srcs = groups['global_srcs']
     global_srcs = strip_suppression_files(global_srcs)
     global_srcs = ProcessWholeArchiveOption(args.arch).construct_cmd(global_srcs)
+    global_srcs = strip_forceload_prefix(global_srcs)
     peers = groups['peers']
 
     # Tools

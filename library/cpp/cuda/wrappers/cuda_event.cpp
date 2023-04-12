@@ -20,8 +20,12 @@ void TCudaEvent::StreamWait(const TCudaStream& stream) const  {
     CUDA_SAFE_CALL(cudaStreamWaitEvent(stream, Inner_->Event, 0));
 }
 
-void TCudaEvent::Record(const TCudaStream& stream) const {
+void TCudaEvent::Record(cudaStream_t stream) const {
     CUDA_SAFE_CALL(cudaEventRecord(Inner_->Event, stream));
+}
+
+void TCudaEvent::Record(const TCudaStream& stream) const {
+    Record(stream.GetStream());
 }
 
 TCudaEvent TCudaEvent::NewEvent(bool disableTiming)  {

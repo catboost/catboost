@@ -9,6 +9,8 @@
 #ifndef _LIBCPP___UTILITY_PAIR_H
 #define _LIBCPP___UTILITY_PAIR_H
 
+#include <__compare/common_comparison_category.h>
+#include <__compare/synth_three_way.h>
 #include <__config>
 #include <__functional/unwrap_ref.h>
 #include <__tuple>
@@ -19,14 +21,10 @@
 #include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 _LIBCPP_BEGIN_NAMESPACE_STD
-
 
 #if defined(_LIBCPP_DEPRECATED_ABI_DISABLE_PAIR_TRIVIAL_COPY_CTOR)
 template <class, class>
@@ -75,9 +73,6 @@ struct _LIBCPP_TEMPLATE_VIS pair
         return *this;
     }
 #else
-    template <bool _Val>
-    using _EnableB _LIBCPP_NODEBUG_TYPE = typename enable_if<_Val, bool>::type;
-
     template<bool _Dummy = true, int&... _Args>
     struct _EnableImplicitDefaultConstructor {
         static constexpr bool value = __is_implicitly_default_constructible<_T1>::value
@@ -141,9 +136,9 @@ struct _LIBCPP_TEMPLATE_VIS pair
         static constexpr bool value = __tuple_assignable<_Tuple, pair>::value;
     };
 
-    template<bool _Dummy = true, _EnableB<
+    template<bool _Dummy = true, typename enable_if<
             _EnableExplicitDefaultConstructor<_Dummy>::value
-    > = false>
+    >::type* = nullptr>
     explicit _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
     pair()
 // danlark@ if you remove this define, MSVC gets into ICE
@@ -153,9 +148,9 @@ struct _LIBCPP_TEMPLATE_VIS pair
 #endif
         : first(), second() {}
 
-    template<bool _Dummy = true, _EnableB<
+    template<bool _Dummy = true, typename enable_if<
              _EnableImplicitDefaultConstructor<_Dummy>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
     pair()
 // danlark@ if you remove this define, MSVC gets into ICE
@@ -165,89 +160,99 @@ struct _LIBCPP_TEMPLATE_VIS pair
 #endif
         : first(), second() {}
 
-    template <bool _Dummy = true, _EnableB<
+    template <bool _Dummy = true, typename enable_if<
              _EnableExplicitConstructor<_T1 const&, _T2 const&, _Dummy>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(_T1 const& __t1, _T2 const& __t2)
         _NOEXCEPT_(is_nothrow_copy_constructible<first_type>::value &&
                    is_nothrow_copy_constructible<second_type>::value)
         : first(__t1), second(__t2) {}
 
-    template<bool _Dummy = true, bool _Dummy2 = true, _EnableB<
+    template<bool _Dummy = true, bool _Dummy2 = true, typename enable_if<
             _EnableImplicitConstructor<_T1 const&, _T2 const&, _Dummy>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(_T1 const& __t1, _T2 const& __t2)
         _NOEXCEPT_(is_nothrow_copy_constructible<first_type>::value &&
                    is_nothrow_copy_constructible<second_type>::value)
         : first(__t1), second(__t2) {}
 
-    template<class _U1, class _U2, _EnableB<
-             _EnableExplicitConstructor<_U1, _U2>::value
-    > = false>
+    template <
+#if _LIBCPP_STD_VER > 20 // http://wg21.link/P1951
+        class _U1 = _T1, class _U2 = _T2,
+#else
+        class _U1, class _U2,
+#endif
+        typename enable_if<_EnableExplicitConstructor<_U1, _U2>::value>::type* = nullptr
+    >
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(_U1&& __u1, _U2&& __u2)
         _NOEXCEPT_((is_nothrow_constructible<first_type, _U1>::value &&
                     is_nothrow_constructible<second_type, _U2>::value))
         : first(_VSTD::forward<_U1>(__u1)), second(_VSTD::forward<_U2>(__u2)) {}
 
-    template<class _U1, class _U2, bool _Dummy = true, _EnableB<
-            _EnableImplicitConstructor<_U1, _U2, _Dummy>::value
-    > = false>
+    template<
+#if _LIBCPP_STD_VER > 20 // http://wg21.link/P1951
+        class _U1 = _T1, class _U2 = _T2,
+#else
+        class _U1, class _U2,
+#endif
+        bool _Dummy = true, typename enable_if<_EnableImplicitConstructor<_U1, _U2, _Dummy>::value>::type* = nullptr
+    >
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(_U1&& __u1, _U2&& __u2)
         _NOEXCEPT_((is_nothrow_constructible<first_type, _U1>::value &&
                     is_nothrow_constructible<second_type, _U2>::value))
         : first(_VSTD::forward<_U1>(__u1)), second(_VSTD::forward<_U2>(__u2)) {}
 
-    template<class _U1, class _U2, _EnableB<
+    template<class _U1, class _U2, typename enable_if<
             _EnableExplicitConstructor<_U1 const&, _U2 const&>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(pair<_U1, _U2> const& __p)
         _NOEXCEPT_((is_nothrow_constructible<first_type, _U1 const&>::value &&
                     is_nothrow_constructible<second_type, _U2 const&>::value))
         : first(__p.first), second(__p.second) {}
 
-    template<class _U1, class _U2, bool _Dummy = true, _EnableB<
+    template<class _U1, class _U2, bool _Dummy = true, typename enable_if<
             _EnableImplicitConstructor<_U1 const&, _U2 const&, _Dummy>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(pair<_U1, _U2> const& __p)
         _NOEXCEPT_((is_nothrow_constructible<first_type, _U1 const&>::value &&
                     is_nothrow_constructible<second_type, _U2 const&>::value))
         : first(__p.first), second(__p.second) {}
 
-    template<class _U1, class _U2, _EnableB<
+    template<class _U1, class _U2, typename enable_if<
             _EnableExplicitConstructor<_U1, _U2>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(pair<_U1, _U2>&&__p)
         _NOEXCEPT_((is_nothrow_constructible<first_type, _U1&&>::value &&
                     is_nothrow_constructible<second_type, _U2&&>::value))
         : first(_VSTD::forward<_U1>(__p.first)), second(_VSTD::forward<_U2>(__p.second)) {}
 
-    template<class _U1, class _U2, bool _Dummy = true, _EnableB<
+    template<class _U1, class _U2, bool _Dummy = true, typename enable_if<
             _EnableImplicitConstructor<_U1, _U2>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(pair<_U1, _U2>&& __p)
         _NOEXCEPT_((is_nothrow_constructible<first_type, _U1&&>::value &&
                     is_nothrow_constructible<second_type, _U2&&>::value))
         : first(_VSTD::forward<_U1>(__p.first)), second(_VSTD::forward<_U2>(__p.second)) {}
 
-    template<class _Tuple, _EnableB<
+    template<class _Tuple, typename enable_if<
             _EnableExplicitTupleLikeConstructor<_Tuple>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     explicit pair(_Tuple&& __p)
         : first(_VSTD::get<0>(_VSTD::forward<_Tuple>(__p))),
           second(_VSTD::get<1>(_VSTD::forward<_Tuple>(__p))) {}
 
-    template<class _Tuple, bool _Dummy = true, _EnableB<
+    template<class _Tuple, bool _Dummy = true, typename enable_if<
             _EnableImplicitTupleLikeConstructor<_Tuple>::value
-    > = false>
+    >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
     pair(_Tuple&& __p)
         : first(_VSTD::get<0>(_VSTD::forward<_Tuple>(__p))),
@@ -289,9 +294,9 @@ struct _LIBCPP_TEMPLATE_VIS pair
         return *this;
     }
 
-    template <class _Tuple, bool _Dummy = true, _EnableB<
+    template <class _Tuple, bool _Dummy = true, typename enable_if<
             _EnableTupleLikeAssign<_Tuple>::value
-     > = false>
+     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     pair& operator=(_Tuple&& __p) {
         first = _VSTD::get<0>(_VSTD::forward<_Tuple>(__p));
@@ -320,10 +325,12 @@ private:
 #endif
 };
 
-#if _LIBCPP_STD_VER >= 17
+#if _LIBCPP_STD_VER > 14
 template<class _T1, class _T2>
 pair(_T1, _T2) -> pair<_T1, _T2>;
 #endif
+
+// [pairs.spec], specialized algorithms
 
 template <class _T1, class _T2>
 inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
@@ -332,6 +339,23 @@ operator==(const pair<_T1,_T2>& __x, const pair<_T1,_T2>& __y)
 {
     return __x.first == __y.first && __x.second == __y.second;
 }
+
+#if !defined(_LIBCPP_HAS_NO_CONCEPTS)
+
+template <class _T1, class _T2>
+_LIBCPP_HIDE_FROM_ABI constexpr
+common_comparison_category_t<
+        __synth_three_way_result<_T1>,
+        __synth_three_way_result<_T2> >
+operator<=>(const pair<_T1,_T2>& __x, const pair<_T1,_T2>& __y)
+{
+    if (auto __c = _VSTD::__synth_three_way(__x.first, __y.first); __c != 0) {
+      return __c;
+    }
+    return _VSTD::__synth_three_way(__x.second, __y.second);
+}
+
+#else // !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
 template <class _T1, class _T2>
 inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
@@ -372,6 +396,24 @@ operator<=(const pair<_T1,_T2>& __x, const pair<_T1,_T2>& __y)
 {
     return !(__y < __x);
 }
+
+#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+
+#if _LIBCPP_STD_VER > 20 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
+template <class _T1, class _T2, class _U1, class _U2, template<class> class _TQual, template<class> class _UQual>
+    requires requires { typename pair<common_reference_t<_TQual<_T1>, _UQual<_U1>>,
+                                      common_reference_t<_TQual<_T2>, _UQual<_U2>>>; }
+struct basic_common_reference<pair<_T1, _T2>, pair<_U1, _U2>, _TQual, _UQual> {
+    using type = pair<common_reference_t<_TQual<_T1>, _UQual<_U1>>,
+                      common_reference_t<_TQual<_T2>, _UQual<_U2>>>;
+};
+
+template <class _T1, class _T2, class _U1, class _U2>
+    requires requires { typename pair<common_type_t<_T1, _U1>, common_type_t<_T2, _U2>>; }
+struct common_type<pair<_T1, _T2>, pair<_U1, _U2>> {
+    using type = pair<common_type_t<_T1, _U1>, common_type_t<_T2, _U2>>;
+};
+#endif // _LIBCPP_STD_VER > 20 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
 template <class _T1, class _T2>
 inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
@@ -424,13 +466,13 @@ struct _LIBCPP_TEMPLATE_VIS tuple_element<_Ip, pair<_T1, _T2> >
 template <class _T1, class _T2>
 struct _LIBCPP_TEMPLATE_VIS tuple_element<0, pair<_T1, _T2> >
 {
-    typedef _LIBCPP_NODEBUG_TYPE _T1 type;
+    typedef _LIBCPP_NODEBUG _T1 type;
 };
 
 template <class _T1, class _T2>
 struct _LIBCPP_TEMPLATE_VIS tuple_element<1, pair<_T1, _T2> >
 {
-    typedef _LIBCPP_NODEBUG_TYPE _T2 type;
+    typedef _LIBCPP_NODEBUG _T2 type;
 };
 
 template <size_t _Ip> struct __get_pair;
@@ -589,7 +631,5 @@ constexpr _T1 const && get(pair<_T2, _T1> const&& __p) _NOEXCEPT
 #endif
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___UTILITY_PAIR_H

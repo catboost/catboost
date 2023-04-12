@@ -2,6 +2,7 @@
 
 #include "compare_documents.h"
 #include "feature_str.h"
+#include "sage_values.h"
 #include "shap_values.h"
 #include "shap_interaction_values.h"
 #include "util.h"
@@ -474,7 +475,10 @@ TVector<TVector<double>> GetFeatureImportances(
     EPreCalcShapValues mode,
     int logPeriod,
     ECalcTypeShapValues calcType,
-    EExplainableModelOutput modelOutputType)
+    EExplainableModelOutput modelOutputType,
+    size_t sageNSamples,
+    size_t sageBatchSize,
+    bool sageDetectConvergence)
 {
     TSetLoggingVerboseOrSilent inThisScope(logPeriod);
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
@@ -517,6 +521,22 @@ TVector<TVector<double>> GetFeatureImportances(
                 modelOutputType
             );
         }
+        case EFstrType::SageValues: {
+            CB_ENSURE(dataset, "Dataset is not provided");
+
+            NPar::TLocalExecutor localExecutor;
+            localExecutor.RunAdditionalThreads(threadCount - 1);
+
+            return CalcSageValues(
+                model,
+                *dataset,
+                logPeriod,
+                &localExecutor,
+                sageNSamples,
+                sageBatchSize,
+                sageDetectConvergence
+            );
+        }
         case EFstrType::PredictionDiff: {
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
@@ -525,7 +545,7 @@ TVector<TVector<double>> GetFeatureImportances(
             return GetPredictionDiff(model, *dataset, &localExecutor);
         }
         default:
-            Y_UNREACHABLE();
+            CB_ENSURE(false, "Unexpected Fstr type");
     }
 }
 

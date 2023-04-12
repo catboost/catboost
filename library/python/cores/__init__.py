@@ -21,8 +21,7 @@ def _read_file(filename):
         return afile.read().strip("\n")
 
 
-def recover_core_dump_file(binary_path, cwd, pid):
-
+def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
     class CoreFilePattern(object):
         def __init__(self, path, mask):
             self.path = path
@@ -36,7 +35,8 @@ def recover_core_dump_file(binary_path, cwd, pid):
 
         logger.debug("hostname = '%s'", socket.gethostname())
         logger.debug("rlimit_core = '%s'", str(resource.getrlimit(resource.RLIMIT_CORE)))
-        core_pattern = _read_file("/proc/sys/kernel/core_pattern")
+        if core_pattern is None:
+            core_pattern = _read_file("/proc/sys/kernel/core_pattern")
         logger.debug("core_pattern = '%s'", core_pattern)
         if core_pattern.startswith("/"):
             default_pattern = CoreFilePattern(os.path.dirname(core_pattern), '*')
@@ -93,7 +93,10 @@ def recover_core_dump_file(binary_path, cwd, pid):
                 oct(stat.S_ISVTX),
             )
             logger.debug("Search for core dump files match pattern '%s' in '%s'", pattern.mask, pattern.path)
-            cores = glob.glob(os.path.join(pattern.path, pattern.mask))
+            escaped_pattern_path = pattern.path
+            if six.PY3:
+                escaped_pattern_path = glob.escape(pattern.path)
+            cores = glob.glob(os.path.join(escaped_pattern_path, pattern.mask))
             files = os.listdir(pattern.path)
             logger.debug(
                 "Matched core dump files (%d/%d): [%s] (mismatched samples: %s)",
@@ -106,8 +109,14 @@ def recover_core_dump_file(binary_path, cwd, pid):
             if len(cores) == 1:
                 return cores[0]
             elif len(cores) > 1:
-                stat = [(filename, os.stat(filename).st_mtime) for filename in cores]
-                entry = sorted(stat, key=lambda x: x[1])[-1]
+                core_stats = []
+                for filename in cores:
+                    try:
+                        mtime = os.stat(filename).st_mtime
+                    except OSError:
+                        continue
+                    core_stats.append((filename, mtime))
+                entry = sorted(core_stats, key=lambda x: x[1])[-1]
                 logger.debug("Latest core dump file: '%s' with %d mtime", entry[0], entry[1])
                 return entry[0]
     else:
@@ -168,6 +177,7 @@ def colorize_backtrace(text):
         (re.compile(r"\b(0x[a-f0-9]{6,})\b"), r"[[c:light-grey]]\1[[rst]]"),
     ]
 
+    text = six.ensure_str(text)
     for regex, substitution in filters:
         text = regex.sub(substitution, text)
     return text
@@ -177,8 +187,8 @@ def resolve_addresses(addresses, symbolizer, binary):
     addresses = list(set(addresses))
     cmd = [
         symbolizer,
-        "-demangle",
-        "-obj",
+        "--demangle",
+        "--obj",
         binary,
     ]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

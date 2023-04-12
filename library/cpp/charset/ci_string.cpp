@@ -1,5 +1,4 @@
 #include "ci_string.h"
-#include "wide.h"
 
 int TCiString::compare(const TCiString& s1, const TCiString& s2, const CodePage& cp) {
     return cp.stricmp(s1.data(), s2.data());

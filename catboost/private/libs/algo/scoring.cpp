@@ -462,9 +462,9 @@ static void CalcStatsPairwise(
                     }
                     break;
                 case ESplitEnsembleType::FeaturesGroup:
-                    // FeaturesGroups are implemented only in leafwise scoring now
-                    Y_UNREACHABLE();
-                    break;
+                    CB_ENSURE(false, "FeaturesGroups are implemented only in leafwise scoring now");
+                default:
+                    CB_ENSURE(false, "Unexpected split ensemble type");
             }
         },
         /*mergeFunc*/[&](TPairwiseStats* output, TVector<TPairwiseStats>&& addVector) {

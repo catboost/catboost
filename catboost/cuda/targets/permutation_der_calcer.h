@@ -63,8 +63,9 @@ namespace NCatboostCuda {
                               const TBuffer<const ui32>& indices)
             : Parent(new TTargetFunc(std::move(target)))
         {
-            Target = TVec::CopyMapping(indices);
-            Gather(Target, Parent->GetTarget().GetTargets(), indices);
+            const auto& parentTarget = Parent->GetTarget().GetTargets();
+            Target = TVec::Create(indices.GetMapping(), parentTarget.GetColumnCount());
+            Gather(Target, parentTarget, indices);
 
             Weights = TVec::CopyMapping(indices);
             Gather(Weights, Parent->GetTarget().GetWeights(), indices);

@@ -28,8 +28,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/functional/actor.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace functional
@@ -76,5 +75,5 @@ actor<value<T> > val(const T &x)
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

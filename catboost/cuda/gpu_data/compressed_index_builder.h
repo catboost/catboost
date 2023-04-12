@@ -188,13 +188,13 @@ namespace NCatboostCuda {
             }
         }
 
-        template <typename IQuantizedFeatureColumn, typename TValueProcessor = TIdentity>
+        template <typename IQuantizedFeatureColumn>
         TSharedCompressedIndexBuilder& Write(
             const ui32 dataSetId,
             const ui32 featureId,
             const ui32 binCount,
             IQuantizedFeatureColumn* quantizedFeatureColumn,
-            TValueProcessor&& valueProcessor = TIdentity()
+            TMaybe<ui16> baseValue = Nothing()
         ) {
             CB_ENSURE(IsWritingStage, "Error: prepare to write first");
             CB_ENSURE(dataSetId < GatherIndex.size(), "DataSet id is out of bounds: " << dataSetId << " "
@@ -236,16 +236,23 @@ namespace NCatboostCuda {
                     featureId,
                     binCount,
                     /*permute*/false,
-                    NCB::CastToLazyQuantizedFloatValuesHolder(quantizedFeatureColumn));
+                    NCB::CastToLazyQuantizedFloatValuesHolder(quantizedFeatureColumn),
+                    baseValue);
             } else {
                 TVector<ui8> writeBins;
                 writeBins.yresize(quantizedFeatureColumn->GetSize());
                 quantizedFeatureColumn->ParallelForEachBlock(
                     LocalExecutor,
-                    [writeBinsPtr = writeBins.data(), valueProcessor = std::move(valueProcessor)] (size_t blockStartIdx, auto block) {
+                    [writeBinsPtr = writeBins.data(), baseValue] (size_t blockStartIdx, auto block) {
                         auto writePtr = writeBinsPtr + blockStartIdx;
-                        for (auto i : xrange(block.size())) {
-                            writePtr[i] = valueProcessor(block[i]);
+                        if (baseValue.Defined()) {
+                            for (auto i : xrange(block.size())) {
+                                writePtr[i] = ClipWideHistValue(block[i], *baseValue);
+                            }
+                        } else {
+                            for (auto i : xrange(block.size())) {
+                                writePtr[i] = block[i];
+                            }
                         }
                     },
                     4096 /*blockSize*/
@@ -306,7 +313,8 @@ namespace NCatboostCuda {
             const ui32 featureId,
             const ui32 binCount,
             bool permute,
-            const NCB::TLazyQuantizedFloatValuesHolder* lazyQuantizedColumn
+            const NCB::TLazyQuantizedFloatValuesHolder* lazyQuantizedColumn,
+            TMaybe<ui16> baseValue
         ) {
             auto& dataSet = *CompressedIndex.DataSets[dataSetId];
             const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
@@ -319,6 +327,7 @@ namespace NCatboostCuda {
                 feature,
                 lazyQuantizedColumn,
                 featureId,
+                baseValue,
                 dataSet.GetSamplesMapping(),
                 &CompressedIndex.FlatStorage
             );

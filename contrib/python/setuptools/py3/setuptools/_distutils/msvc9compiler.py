@@ -16,26 +16,41 @@ import os
 import subprocess
 import sys
 import re
+import warnings
 
-from distutils.errors import DistutilsExecError, DistutilsPlatformError, \
-                             CompileError, LibError, LinkError
-from distutils.ccompiler import CCompiler, gen_lib_options
-from distutils import log
-from distutils.util import get_platform
+from .errors import (
+    DistutilsExecError,
+    DistutilsPlatformError,
+    CompileError,
+    LibError,
+    LinkError,
+)
+from .ccompiler import CCompiler, gen_lib_options
+from ._log import log
+from .util import get_platform
 
 import winreg
+
+warnings.warn(
+    "msvc9compiler is deprecated and slated to be removed "
+    "in the future. Please discontinue use or file an issue "
+    "with pypa/distutils describing your use case.",
+    DeprecationWarning,
+)
 
 RegOpenKeyEx = winreg.OpenKeyEx
 RegEnumKey = winreg.EnumKey
 RegEnumValue = winreg.EnumValue
 RegError = winreg.error
 
-HKEYS = (winreg.HKEY_USERS,
-         winreg.HKEY_CURRENT_USER,
-         winreg.HKEY_LOCAL_MACHINE,
-         winreg.HKEY_CLASSES_ROOT)
+HKEYS = (
+    winreg.HKEY_USERS,
+    winreg.HKEY_CURRENT_USER,
+    winreg.HKEY_LOCAL_MACHINE,
+    winreg.HKEY_CLASSES_ROOT,
+)
 
-NATIVE_WIN64 = (sys.platform == 'win32' and sys.maxsize > 2**32)
+NATIVE_WIN64 = sys.platform == 'win32' and sys.maxsize > 2**32
 if NATIVE_WIN64:
     # Visual C++ is a 32-bit application, so we need to look in
     # the corresponding registry branch, if we're running a
@@ -52,13 +67,13 @@ else:
 # 'vcvarsall.bat'.  Note a cross-compile may combine these (eg, 'x86_amd64' is
 # the param to cross-compile on x86 targeting amd64.)
 PLAT_TO_VCVARS = {
-    'win32' : 'x86',
-    'win-amd64' : 'amd64',
+    'win32': 'x86',
+    'win-amd64': 'amd64',
 }
 
+
 class Reg:
-    """Helper class to read values from the registry
-    """
+    """Helper class to read values from the registry"""
 
     def get_value(cls, path, key):
         for base in HKEYS:
@@ -66,6 +81,7 @@ class Reg:
             if d and key in d:
                 return d[key]
         raise KeyError(key)
+
     get_value = classmethod(get_value)
 
     def read_keys(cls, base, key):
@@ -84,6 +100,7 @@ class Reg:
             L.append(k)
             i += 1
         return L
+
     read_keys = classmethod(read_keys)
 
     def read_values(cls, base, key):
@@ -106,6 +123,7 @@ class Reg:
             d[cls.convert_mbcs(name)] = cls.convert_mbcs(value)
             i += 1
         return d
+
     read_values = classmethod(read_values)
 
     def convert_mbcs(s):
@@ -116,10 +134,11 @@ class Reg:
             except UnicodeError:
                 pass
         return s
+
     convert_mbcs = staticmethod(convert_mbcs)
 
-class MacroExpander:
 
+class MacroExpander:
     def __init__(self, version):
         self.macros = {}
         self.vsbase = VS_BASE % version
@@ -134,16 +153,16 @@ class MacroExpander:
         self.set_macro("FrameworkDir", NET_BASE, "installroot")
         try:
             if version >= 8.0:
-                self.set_macro("FrameworkSDKDir", NET_BASE,
-                               "sdkinstallrootv2.0")
+                self.set_macro("FrameworkSDKDir", NET_BASE, "sdkinstallrootv2.0")
             else:
                 raise KeyError("sdkinstallrootv2.0")
         except KeyError:
             raise DistutilsPlatformError(
-            """Python was built with Visual Studio 2008;
+                """Python was built with Visual Studio 2008;
 extensions must be built with a compiler than can generate compatible binaries.
 Visual Studio 2008 was not found on this system. If you have Cygwin installed,
-you can try compiling with MingW32, by passing "-c mingw32" to setup.py.""")
+you can try compiling with MingW32, by passing "-c mingw32" to setup.py."""
+            )
 
         if version >= 9.0:
             self.set_macro("FrameworkVersion", self.vsbase, "clr version")
@@ -156,13 +175,14 @@ you can try compiling with MingW32, by passing "-c mingw32" to setup.py.""")
                 except RegError:
                     continue
                 key = RegEnumKey(h, 0)
-                d = Reg.get_value(base, r"%s\%s" % (p, key))
+                d = Reg.get_value(base, r"{}\{}".format(p, key))
                 self.macros["$(FrameworkVersion)"] = d["version"]
 
     def sub(self, s):
         for k, v in self.macros.items():
             s = s.replace(k, v)
         return s
+
 
 def get_build_version():
     """Return the version of MSVC that was used to build Python.
@@ -189,6 +209,7 @@ def get_build_version():
     # else we don't know what version of the compiler this is
     return None
 
+
 def normalize_and_reduce_paths(paths):
     """Return a list of normalized paths with duplicates removed.
 
@@ -203,9 +224,9 @@ def normalize_and_reduce_paths(paths):
             reduced_paths.append(np)
     return reduced_paths
 
+
 def removeDuplicates(variable):
-    """Remove duplicate values of an environment variable.
-    """
+    """Remove duplicate values of an environment variable."""
     oldList = variable.split(os.pathsep)
     newList = []
     for i in oldList:
@@ -213,6 +234,7 @@ def removeDuplicates(variable):
             newList.append(i)
     newVariable = os.pathsep.join(newList)
     return newVariable
+
 
 def find_vcvarsall(version):
     """Find the vcvarsall.bat file
@@ -222,8 +244,7 @@ def find_vcvarsall(version):
     """
     vsbase = VS_BASE % version
     try:
-        productdir = Reg.get_value(r"%s\Setup\VC" % vsbase,
-                                   "productdir")
+        productdir = Reg.get_value(r"%s\Setup\VC" % vsbase, "productdir")
     except KeyError:
         log.debug("Unable to find productdir in registry")
         productdir = None
@@ -249,9 +270,9 @@ def find_vcvarsall(version):
     log.debug("Unable to find vcvarsall.bat")
     return None
 
+
 def query_vcvarsall(version, arch="x86"):
-    """Launch vcvarsall.bat and read the settings from its environment
-    """
+    """Launch vcvarsall.bat and read the settings from its environment"""
     vcvarsall = find_vcvarsall(version)
     interesting = {"include", "lib", "libpath", "path"}
     result = {}
@@ -259,9 +280,11 @@ def query_vcvarsall(version, arch="x86"):
     if vcvarsall is None:
         raise DistutilsPlatformError("Unable to find vcvarsall.bat")
     log.debug("Calling 'vcvarsall.bat %s' (version=%s)", arch, version)
-    popen = subprocess.Popen('"%s" %s & set' % (vcvarsall, arch),
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+    popen = subprocess.Popen(
+        '"{}" {} & set'.format(vcvarsall, arch),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     try:
         stdout, stderr = popen.communicate()
         if popen.wait() != 0:
@@ -289,15 +312,15 @@ def query_vcvarsall(version, arch="x86"):
 
     return result
 
+
 # More globals
 VERSION = get_build_version()
-if VERSION < 8.0:
-    raise DistutilsPlatformError("VC %0.1f is not supported by this module" % VERSION)
 # MACROS = MacroExpander(VERSION)
 
-class MSVCCompiler(CCompiler) :
+
+class MSVCCompiler(CCompiler):
     """Concrete class that implements an interface to Microsoft Visual C++,
-       as defined by the CCompiler abstract class."""
+    as defined by the CCompiler abstract class."""
 
     compiler_type = 'msvc'
 
@@ -316,8 +339,7 @@ class MSVCCompiler(CCompiler) :
 
     # Needed for the filename generation methods provided by the
     # base class, CCompiler.
-    src_extensions = (_c_extensions + _cpp_extensions +
-                      _rc_extensions + _mc_extensions)
+    src_extensions = _c_extensions + _cpp_extensions + _rc_extensions + _mc_extensions
     res_extension = '.res'
     obj_extension = '.obj'
     static_lib_extension = '.lib'
@@ -326,28 +348,37 @@ class MSVCCompiler(CCompiler) :
     exe_extension = '.exe'
 
     def __init__(self, verbose=0, dry_run=0, force=0):
-        CCompiler.__init__ (self, verbose, dry_run, force)
+        super().__init__(verbose, dry_run, force)
         self.__version = VERSION
         self.__root = r"Software\Microsoft\VisualStudio"
         # self.__macros = MACROS
         self.__paths = []
         # target platform (.plat_name is consistent with 'bdist')
         self.plat_name = None
-        self.__arch = None # deprecated name
+        self.__arch = None  # deprecated name
         self.initialized = False
 
-    def initialize(self, plat_name=None):
+    def initialize(self, plat_name=None):  # noqa: C901
         # multi-init means we would need to check platform same each time...
         assert not self.initialized, "don't init multiple times"
+        if self.__version < 8.0:
+            raise DistutilsPlatformError(
+                "VC %0.1f is not supported by this module" % self.__version
+            )
         if plat_name is None:
             plat_name = get_platform()
         # sanity check for platforms to prevent obscure errors later.
         ok_plats = 'win32', 'win-amd64'
         if plat_name not in ok_plats:
-            raise DistutilsPlatformError("--plat-name must be one of %s" %
-                                         (ok_plats,))
+            raise DistutilsPlatformError(
+                "--plat-name must be one of {}".format(ok_plats)
+            )
 
-        if "DISTUTILS_USE_SDK" in os.environ and "MSSdk" in os.environ and self.find_exe("cl.exe"):
+        if (
+            "DISTUTILS_USE_SDK" in os.environ
+            and "MSSdk" in os.environ
+            and self.find_exe("cl.exe")
+        ):
             # Assume that the SDK set up everything alright; don't try to be
             # smarter
             self.cc = "cl.exe"
@@ -360,13 +391,14 @@ class MSVCCompiler(CCompiler) :
             # to cross compile, you use 'x86_amd64'.
             # On AMD64, 'vcvars32.bat amd64' is a native build env; to cross
             # compile use 'x86' (ie, it runs the x86 compiler directly)
-            if plat_name == get_platform() or plat_name == 'win32':
+            if plat_name in (get_platform(), 'win32'):
                 # native build or cross-compile to win32
                 plat_spec = PLAT_TO_VCVARS[plat_name]
             else:
                 # cross compile from win32 -> some 64bit
-                plat_spec = PLAT_TO_VCVARS[get_platform()] + '_' + \
-                            PLAT_TO_VCVARS[plat_name]
+                plat_spec = (
+                    PLAT_TO_VCVARS[get_platform()] + '_' + PLAT_TO_VCVARS[plat_name]
+                )
 
             vc_env = query_vcvarsall(VERSION, plat_spec)
 
@@ -375,18 +407,19 @@ class MSVCCompiler(CCompiler) :
             os.environ['include'] = vc_env['include']
 
             if len(self.__paths) == 0:
-                raise DistutilsPlatformError("Python was built with %s, "
-                       "and extensions need to be built with the same "
-                       "version of the compiler, but it isn't installed."
-                       % self.__product)
+                raise DistutilsPlatformError(
+                    "Python was built with %s, "
+                    "and extensions need to be built with the same "
+                    "version of the compiler, but it isn't installed." % self.__product
+                )
 
             self.cc = self.find_exe("cl.exe")
             self.linker = self.find_exe("link.exe")
             self.lib = self.find_exe("lib.exe")
-            self.rc = self.find_exe("rc.exe")   # resource compiler
-            self.mc = self.find_exe("mc.exe")   # message compiler
-            #self.set_path_env_var('lib')
-            #self.set_path_env_var('include')
+            self.rc = self.find_exe("rc.exe")  # resource compiler
+            self.mc = self.find_exe("mc.exe")  # message compiler
+            # self.set_path_env_var('lib')
+            # self.set_path_env_var('include')
 
         # extend the MSVC path with the current path
         try:
@@ -399,71 +432,82 @@ class MSVCCompiler(CCompiler) :
 
         self.preprocess_options = None
         if self.__arch == "x86":
-            self.compile_options = [ '/nologo', '/O2', '/MD', '/W3',
-                                     '/DNDEBUG']
-            self.compile_options_debug = ['/nologo', '/Od', '/MDd', '/W3',
-                                          '/Z7', '/D_DEBUG']
+            self.compile_options = ['/nologo', '/O2', '/MD', '/W3', '/DNDEBUG']
+            self.compile_options_debug = [
+                '/nologo',
+                '/Od',
+                '/MDd',
+                '/W3',
+                '/Z7',
+                '/D_DEBUG',
+            ]
         else:
             # Win64
-            self.compile_options = [ '/nologo', '/O2', '/MD', '/W3', '/GS-' ,
-                                     '/DNDEBUG']
-            self.compile_options_debug = ['/nologo', '/Od', '/MDd', '/W3', '/GS-',
-                                          '/Z7', '/D_DEBUG']
+            self.compile_options = ['/nologo', '/O2', '/MD', '/W3', '/GS-', '/DNDEBUG']
+            self.compile_options_debug = [
+                '/nologo',
+                '/Od',
+                '/MDd',
+                '/W3',
+                '/GS-',
+                '/Z7',
+                '/D_DEBUG',
+            ]
 
         self.ldflags_shared = ['/DLL', '/nologo', '/INCREMENTAL:NO']
         if self.__version >= 7:
-            self.ldflags_shared_debug = [
-                '/DLL', '/nologo', '/INCREMENTAL:no', '/DEBUG'
-                ]
-        self.ldflags_static = [ '/nologo']
+            self.ldflags_shared_debug = ['/DLL', '/nologo', '/INCREMENTAL:no', '/DEBUG']
+        self.ldflags_static = ['/nologo']
 
         self.initialized = True
 
     # -- Worker methods ------------------------------------------------
 
-    def object_filenames(self,
-                         source_filenames,
-                         strip_dir=0,
-                         output_dir=''):
+    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
         # Copied from ccompiler.py, extended to return .res as 'object'-file
         # for .rc input file
-        if output_dir is None: output_dir = ''
+        if output_dir is None:
+            output_dir = ''
         obj_names = []
         for src_name in source_filenames:
-            (base, ext) = os.path.splitext (src_name)
-            base = os.path.splitdrive(base)[1] # Chop off the drive
-            base = base[os.path.isabs(base):]  # If abs, chop off leading /
+            (base, ext) = os.path.splitext(src_name)
+            base = os.path.splitdrive(base)[1]  # Chop off the drive
+            base = base[os.path.isabs(base) :]  # If abs, chop off leading /
             if ext not in self.src_extensions:
                 # Better to raise an exception instead of silently continuing
                 # and later complain about sources and targets having
                 # different lengths
-                raise CompileError ("Don't know how to compile %s" % src_name)
+                raise CompileError("Don't know how to compile %s" % src_name)
             if strip_dir:
-                base = os.path.basename (base)
+                base = os.path.basename(base)
             if ext in self._rc_extensions:
-                obj_names.append (os.path.join (output_dir,
-                                                base + self.res_extension))
+                obj_names.append(os.path.join(output_dir, base + self.res_extension))
             elif ext in self._mc_extensions:
-                obj_names.append (os.path.join (output_dir,
-                                                base + self.res_extension))
+                obj_names.append(os.path.join(output_dir, base + self.res_extension))
             else:
-                obj_names.append (os.path.join (output_dir,
-                                                base + self.obj_extension))
+                obj_names.append(os.path.join(output_dir, base + self.obj_extension))
         return obj_names
 
-
-    def compile(self, sources,
-                output_dir=None, macros=None, include_dirs=None, debug=0,
-                extra_preargs=None, extra_postargs=None, depends=None):
-
+    def compile(  # noqa: C901
+        self,
+        sources,
+        output_dir=None,
+        macros=None,
+        include_dirs=None,
+        debug=0,
+        extra_preargs=None,
+        extra_postargs=None,
+        depends=None,
+    ):
         if not self.initialized:
             self.initialize()
-        compile_info = self._setup_compile(output_dir, macros, include_dirs,
-                                           sources, depends, extra_postargs)
+        compile_info = self._setup_compile(
+            output_dir, macros, include_dirs, sources, depends, extra_postargs
+        )
         macros, objects, extra_postargs, pp_opts, build = compile_info
 
         compile_opts = extra_preargs or []
-        compile_opts.append ('/c')
+        compile_opts.append('/c')
         if debug:
             compile_opts.extend(self.compile_options_debug)
         else:
@@ -489,8 +533,7 @@ class MSVCCompiler(CCompiler) :
                 input_opt = src
                 output_opt = "/fo" + obj
                 try:
-                    self.spawn([self.rc] + pp_opts +
-                               [output_opt] + [input_opt])
+                    self.spawn([self.rc] + pp_opts + [output_opt] + [input_opt])
                 except DistutilsExecError as msg:
                     raise CompileError(msg)
                 continue
@@ -510,50 +553,47 @@ class MSVCCompiler(CCompiler) :
                 rc_dir = os.path.dirname(obj)
                 try:
                     # first compile .MC to .RC and .H file
-                    self.spawn([self.mc] +
-                               ['-h', h_dir, '-r', rc_dir] + [src])
-                    base, _ = os.path.splitext (os.path.basename (src))
-                    rc_file = os.path.join (rc_dir, base + '.rc')
+                    self.spawn([self.mc] + ['-h', h_dir, '-r', rc_dir] + [src])
+                    base, _ = os.path.splitext(os.path.basename(src))
+                    rc_file = os.path.join(rc_dir, base + '.rc')
                     # then compile .RC to .RES file
-                    self.spawn([self.rc] +
-                               ["/fo" + obj] + [rc_file])
+                    self.spawn([self.rc] + ["/fo" + obj] + [rc_file])
 
                 except DistutilsExecError as msg:
                     raise CompileError(msg)
                 continue
             else:
                 # how to handle this file?
-                raise CompileError("Don't know how to compile %s to %s"
-                                   % (src, obj))
+                raise CompileError(
+                    "Don't know how to compile {} to {}".format(src, obj)
+                )
 
             output_opt = "/Fo" + obj
             try:
-                self.spawn([self.cc] + compile_opts + pp_opts +
-                           [input_opt, output_opt] +
-                           extra_postargs)
+                self.spawn(
+                    [self.cc]
+                    + compile_opts
+                    + pp_opts
+                    + [input_opt, output_opt]
+                    + extra_postargs
+                )
             except DistutilsExecError as msg:
                 raise CompileError(msg)
 
         return objects
 
-
-    def create_static_lib(self,
-                          objects,
-                          output_libname,
-                          output_dir=None,
-                          debug=0,
-                          target_lang=None):
-
+    def create_static_lib(
+        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+    ):
         if not self.initialized:
             self.initialize()
         (objects, output_dir) = self._fix_object_args(objects, output_dir)
-        output_filename = self.library_filename(output_libname,
-                                                output_dir=output_dir)
+        output_filename = self.library_filename(output_libname, output_dir=output_dir)
 
         if self._need_link(objects, output_filename):
             lib_args = objects + ['/OUT:' + output_filename]
             if debug:
-                pass # XXX what goes here?
+                pass  # XXX what goes here?
             try:
                 self.spawn([self.lib] + lib_args)
             except DistutilsExecError as msg:
@@ -561,36 +601,35 @@ class MSVCCompiler(CCompiler) :
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
 
-
-    def link(self,
-             target_desc,
-             objects,
-             output_filename,
-             output_dir=None,
-             libraries=None,
-             library_dirs=None,
-             runtime_library_dirs=None,
-             export_symbols=None,
-             debug=0,
-             extra_preargs=None,
-             extra_postargs=None,
-             build_temp=None,
-             target_lang=None):
-
+    def link(  # noqa: C901
+        self,
+        target_desc,
+        objects,
+        output_filename,
+        output_dir=None,
+        libraries=None,
+        library_dirs=None,
+        runtime_library_dirs=None,
+        export_symbols=None,
+        debug=0,
+        extra_preargs=None,
+        extra_postargs=None,
+        build_temp=None,
+        target_lang=None,
+    ):
         if not self.initialized:
             self.initialize()
         (objects, output_dir) = self._fix_object_args(objects, output_dir)
-        fixed_args = self._fix_lib_args(libraries, library_dirs,
-                                        runtime_library_dirs)
+        fixed_args = self._fix_lib_args(libraries, library_dirs, runtime_library_dirs)
         (libraries, library_dirs, runtime_library_dirs) = fixed_args
 
         if runtime_library_dirs:
-            self.warn ("I don't know what to do with 'runtime_library_dirs': "
-                       + str (runtime_library_dirs))
+            self.warn(
+                "I don't know what to do with 'runtime_library_dirs': "
+                + str(runtime_library_dirs)
+            )
 
-        lib_opts = gen_lib_options(self,
-                                   library_dirs, runtime_library_dirs,
-                                   libraries)
+        lib_opts = gen_lib_options(self, library_dirs, runtime_library_dirs, libraries)
         if output_dir is not None:
             output_filename = os.path.join(output_dir, output_filename)
 
@@ -607,11 +646,12 @@ class MSVCCompiler(CCompiler) :
                     ldflags = self.ldflags_shared
 
             export_opts = []
-            for sym in (export_symbols or []):
+            for sym in export_symbols or []:
                 export_opts.append("/EXPORT:" + sym)
 
-            ld_args = (ldflags + lib_opts + export_opts +
-                       objects + ['/OUT:' + output_filename])
+            ld_args = (
+                ldflags + lib_opts + export_opts + objects + ['/OUT:' + output_filename]
+            )
 
             # The MSVC linker generates .lib and .exp files, which cannot be
             # suppressed by any linker switches. The .lib files may even be
@@ -621,11 +661,10 @@ class MSVCCompiler(CCompiler) :
             build_temp = os.path.dirname(objects[0])
             if export_symbols is not None:
                 (dll_name, dll_ext) = os.path.splitext(
-                    os.path.basename(output_filename))
-                implib_file = os.path.join(
-                    build_temp,
-                    self.library_filename(dll_name))
-                ld_args.append ('/IMPLIB:' + implib_file)
+                    os.path.basename(output_filename)
+                )
+                implib_file = os.path.join(build_temp, self.library_filename(dll_name))
+                ld_args.append('/IMPLIB:' + implib_file)
 
             self.manifest_setup_ldargs(output_filename, build_temp, ld_args)
 
@@ -648,10 +687,9 @@ class MSVCCompiler(CCompiler) :
             mfinfo = self.manifest_get_embed_info(target_desc, ld_args)
             if mfinfo is not None:
                 mffilename, mfid = mfinfo
-                out_arg = '-outputresource:%s;%s' % (output_filename, mfid)
+                out_arg = '-outputresource:{};{}'.format(output_filename, mfid)
                 try:
-                    self.spawn(['mt.exe', '-nologo', '-manifest',
-                                mffilename, out_arg])
+                    self.spawn(['mt.exe', '-nologo', '-manifest', mffilename, out_arg])
                 except DistutilsExecError as msg:
                     raise LinkError(msg)
         else:
@@ -665,8 +703,8 @@ class MSVCCompiler(CCompiler) :
         # Ask the linker to generate the manifest in the temp dir, so
         # we can check it, and possibly embed it, later.
         temp_manifest = os.path.join(
-                build_temp,
-                os.path.basename(output_filename) + ".manifest")
+            build_temp, os.path.basename(output_filename) + ".manifest"
+        )
         ld_args.append('/MANIFESTFILE:' + temp_manifest)
 
     def manifest_get_embed_info(self, target_desc, ld_args):
@@ -709,9 +747,10 @@ class MSVCCompiler(CCompiler) :
             finally:
                 manifest_f.close()
             pattern = re.compile(
-                r"""<assemblyIdentity.*?name=("|')Microsoft\."""\
+                r"""<assemblyIdentity.*?name=("|')Microsoft\."""
                 r"""VC\d{2}\.CRT("|').*?(/>|</assemblyIdentity>)""",
-                re.DOTALL)
+                re.DOTALL,
+            )
             manifest_buf = re.sub(pattern, "", manifest_buf)
             pattern = r"<dependentAssembly>\s*</dependentAssembly>"
             manifest_buf = re.sub(pattern, "", manifest_buf)
@@ -719,7 +758,9 @@ class MSVCCompiler(CCompiler) :
             # don't want a manifest embedded.
             pattern = re.compile(
                 r"""<assemblyIdentity.*?name=(?:"|')(.+?)(?:"|')"""
-                r""".*?(?:/>|</assemblyIdentity>)""", re.DOTALL)
+                r""".*?(?:/>|</assemblyIdentity>)""",
+                re.DOTALL,
+            )
             if re.search(pattern, manifest_buf) is None:
                 return None
 
@@ -741,11 +782,11 @@ class MSVCCompiler(CCompiler) :
 
     def runtime_library_dir_option(self, dir):
         raise DistutilsPlatformError(
-              "don't know how to set runtime library search path for MSVC++")
+            "don't know how to set runtime library search path for MSVC++"
+        )
 
     def library_option(self, lib):
         return self.library_filename(lib)
-
 
     def find_library_file(self, dirs, lib, debug=0):
         # Prefer a debugging library if found (and requested), but deal
@@ -756,7 +797,7 @@ class MSVCCompiler(CCompiler) :
             try_names = [lib]
         for dir in dirs:
             for name in try_names:
-                libfile = os.path.join(dir, self.library_filename (name))
+                libfile = os.path.join(dir, self.library_filename(name))
                 if os.path.exists(libfile):
                     return libfile
         else:
@@ -781,7 +822,7 @@ class MSVCCompiler(CCompiler) :
 
         # didn't find it; try existing path
         for p in os.environ['Path'].split(';'):
-            fn = os.path.join(os.path.abspath(p),exe)
+            fn = os.path.join(os.path.abspath(p), exe)
             if os.path.isfile(fn):
                 return fn
 

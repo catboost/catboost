@@ -40,11 +40,7 @@
 #include "util_debug.cuh"
 
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -435,6 +431,38 @@ __device__ __forceinline__ unsigned int WarpId()
 }
 
 /**
+ * @brief Returns the warp mask for a warp of @p LOGICAL_WARP_THREADS threads
+ *
+ * @par
+ * If the number of threads assigned to the virtual warp is not a power of two,
+ * it's assumed that only one virtual warp exists.
+ *
+ * @tparam LOGICAL_WARP_THREADS <b>[optional]</b> The number of threads per
+ *                              "logical" warp (may be less than the number of
+ *                              hardware warp threads).
+ * @param warp_id Id of virtual warp within architectural warp
+ */
+template <int LOGICAL_WARP_THREADS,
+          int PTX_ARCH = CUB_PTX_ARCH>
+__host__ __device__ __forceinline__
+unsigned int WarpMask(unsigned int warp_id)
+{
+  constexpr bool is_pow_of_two = PowerOfTwo<LOGICAL_WARP_THREADS>::VALUE;
+  constexpr bool is_arch_warp = LOGICAL_WARP_THREADS ==
+                                CUB_WARP_THREADS(PTX_ARCH);
+
+  unsigned int member_mask =
+    0xFFFFFFFFu >> (CUB_WARP_THREADS(PTX_ARCH) - LOGICAL_WARP_THREADS);
+
+  if (is_pow_of_two && !is_arch_warp)
+  {
+    member_mask <<= warp_id * LOGICAL_WARP_THREADS;
+  }
+
+  return member_mask;
+}
+
+/**
  * \brief Returns the warp lane mask of all lanes less than the calling thread
  */
 __device__ __forceinline__ unsigned int LaneMaskLt()
@@ -736,5 +764,4 @@ inline __device__ unsigned int MatchAny(unsigned int label)
 
 }
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

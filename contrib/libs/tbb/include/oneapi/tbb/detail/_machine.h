@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,14 +25,25 @@
 #include <cstdint>
 #include <cstddef>
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <intrin.h>
+#ifdef __TBBMALLOC_BUILD
+#define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h> // SwitchToThread()
+#endif
+#ifdef _MSC_VER
+#if __TBB_x86_64 || __TBB_x86_32
 #pragma intrinsic(__rdtsc)
+#endif
+#endif
 #endif
 #if __TBB_x86_64 || __TBB_x86_32
 #include <immintrin.h> // _mm_pause
 #endif
-#if (_WIN32 || _WIN64)
+#if (_WIN32)
 #include <float.h> // _control87
 #endif
 
@@ -53,32 +64,28 @@ inline namespace d0 {
 #if __TBB_GLIBCXX_THIS_THREAD_YIELD_BROKEN
 static inline void yield() {
     int err = sched_yield();
-    __TBB_ASSERT_EX(err == 0, "sched_yiled has failed");
+    __TBB_ASSERT_EX(err == 0, "sched_yield has failed");
+}
+#elif __TBBMALLOC_BUILD && _WIN32
+// Use Windows API for yield in tbbmalloc to avoid dependency on C++ runtime with some implementations.
+static inline void yield() {
+    SwitchToThread();
 }
 #else
 using std::this_thread::yield;
 #endif
 
 //--------------------------------------------------------------------------------------------------
-// atomic_fence implementation
+// atomic_fence_seq_cst implementation
 //--------------------------------------------------------------------------------------------------
 
-#if (_WIN32 || _WIN64)
-#pragma intrinsic(_mm_mfence)
+static inline void atomic_fence_seq_cst() {
+#if (__TBB_x86_64 || __TBB_x86_32) && defined(__GNUC__) && __GNUC__ < 11
+    unsigned char dummy = 0u;
+    __asm__ __volatile__ ("lock; notb %0" : "+m" (dummy) :: "memory");
+#else
+    std::atomic_thread_fence(std::memory_order_seq_cst);
 #endif
-
-static inline void atomic_fence(std::memory_order order) {
-#if (_WIN32 || _WIN64)
-    if (order == std::memory_order_seq_cst ||
-        order == std::memory_order_acq_rel ||
-        order == std::memory_order_acquire ||
-        order == std::memory_order_release )
-    {
-        _mm_mfence();
-        return;
-    }
-#endif /*(_WIN32 || _WIN64)*/
-    std::atomic_thread_fence(order);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -229,7 +236,7 @@ T machine_reverse_bits(T src) {
 
 namespace d1 {
 
-#if (_WIN32 || _WIN64)
+#if (_WIN32)
 // API to retrieve/update FPU control setting
 #define __TBB_CPU_CTL_ENV_PRESENT 1
 struct cpu_ctl_env {
@@ -319,7 +326,7 @@ namespace d1 {
 class cpu_ctl_env {
     fenv_t *my_fenv_ptr;
 public:
-    cpu_ctl_env() : my_fenv_ptr(NULL) {}
+    cpu_ctl_env() : my_fenv_ptr(nullptr) {}
     ~cpu_ctl_env() {
         if ( my_fenv_ptr )
             r1::cache_aligned_deallocate( (void*)my_fenv_ptr );
@@ -330,11 +337,11 @@ public:
     //   dispatch loop may become invalid.
     // But do we really want to improve the fenv implementation? It seems to be better to replace the fenv implementation
     // with a platform specific implementation.
-    cpu_ctl_env( const cpu_ctl_env &src ) : my_fenv_ptr(NULL) {
+    cpu_ctl_env( const cpu_ctl_env &src ) : my_fenv_ptr(nullptr) {
         *this = src;
     }
     cpu_ctl_env& operator=( const cpu_ctl_env &src ) {
-        __TBB_ASSERT( src.my_fenv_ptr, NULL );
+        __TBB_ASSERT( src.my_fenv_ptr, nullptr);
         if ( !my_fenv_ptr )
             my_fenv_ptr = (fenv_t*)r1::cache_aligned_allocate(sizeof(fenv_t));
         *my_fenv_ptr = *src.my_fenv_ptr;

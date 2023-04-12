@@ -4,7 +4,7 @@
 
     A highlighting style for Pygments, inspired by the Inkpot theme for VIM.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -14,8 +14,9 @@ from pygments.token import Text, Other, Keyword, Name, Comment, String, \
 
 
 class InkPotStyle(Style):
+
     background_color = "#1e1e27"
-    default_style = ""
+
     styles = {
         Text:                      "#cfbfad",
         Other:                     "#cfbfad",

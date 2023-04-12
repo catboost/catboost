@@ -285,7 +285,7 @@ class IterationTransform(Visitor.EnvTransform):
                 return self._transform_reversed_iteration(node, iterable)
 
         # range() iteration?
-        if Options.convert_range and arg_count >= 1 and (
+        if Options.convert_range and 1 <= arg_count <= 3 and (
                 iterable.self is None and
                 function.is_name and function.name in ('range', 'xrange') and
                 function.entry and function.entry.is_builtin):
@@ -1345,6 +1345,10 @@ class FlattenInListTransform(Visitor.VisitorTransform, SkipDeclarations):
         args = node.operand2.args
         if len(args) == 0:
             # note: lhs may have side effects
+            return node
+
+        if any([arg.is_starred for arg in args]):
+            # Starred arguments do not directly translate to comparisons or "in" tests.
             return node
 
         lhs = UtilNodes.ResultRefNode(node.operand1)
@@ -2856,7 +2860,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
         """Optimistic optimisation as X.append() is almost always
         referring to a list.
         """
-        if len(args) != 2 or node.result_is_used:
+        if len(args) != 2 or node.result_is_used or node.function.entry:
             return node
 
         return ExprNodes.PythonCapiCallNode(

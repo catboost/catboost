@@ -6,7 +6,7 @@
 
     <groupId>ai.catboost</groupId>
     <artifactId>catboost-prediction</artifactId>
-    <version>1.0.3</version>
+    <version>1.1.1</version>
     <packaging>jar</packaging>
     <name>CatBoost model applier</name>
     <description>Java module to apply CatBoost models</description>
@@ -19,6 +19,10 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <properties>
+        <buildNative.extraArgs></buildNative.extraArgs>
+    </properties>
 
     <organization>
         <name>CatBoost dev team</name>
@@ -161,7 +165,7 @@
         <dependency>
             <groupId>ai.catboost</groupId>
             <artifactId>catboost-common</artifactId>
-            <version>0.25.1</version>
+            <version>1.1.1</version>
         </dependency>
     </dependencies>
 
@@ -188,18 +192,13 @@
                           </goals>
                           <configuration>
                               <executable>python</executable>
-                              <arguments>
-                                  <argument>${basedir}/../tools/build_native_for_maven.py</argument>
-                                  <argument>${basedir}</argument>
-                                  <argument>catboost4j-prediction</argument>
-                                  <argument>--build</argument>
-                                  <argument>release</argument>
-                                  <argument>--no-src-links</argument>
-                                  <argument>-DOS_SDK=local</argument>
-                                  <argument>-DHAVE_CUDA=no</argument>
-                                  <argument>-DUSE_SYSTEM_JDK=${JAVA_HOME}</argument>
-                                  <argument>-DJAVA_HOME=${JAVA_HOME}</argument>
-                              </arguments>
+                              <commandlineArgs>
+                                ${basedir}/../tools/build_native_for_maven.py
+                                --build-output-root-dir=${project.build.directory}/native
+                                --base-dir=${basedir}
+                                --lib-name=catboost4j-prediction
+                                ${buildNative.extraArgs}
+                              </commandlineArgs>
                               <workingDirectory>${user.dir}</workingDirectory>
                           </configuration>
                       </execution>

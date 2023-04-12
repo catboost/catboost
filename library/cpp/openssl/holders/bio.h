@@ -1,6 +1,6 @@
 #pragma once
 
-#include <contrib/libs/openssl/include/openssl/bio.h>
+#include <openssl/bio.h>
 
 #include <library/cpp/openssl/holders/holder.h>
 

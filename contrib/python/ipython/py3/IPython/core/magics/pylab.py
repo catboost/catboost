@@ -54,7 +54,7 @@ class PylabMagics(Magics):
         If you are using the inline matplotlib backend in the IPython Notebook
         you can set which figure formats are enabled using the following::
 
-            In [1]: from IPython.display import set_matplotlib_formats
+            In [1]: from matplotlib_inline.backend_inline import set_matplotlib_formats
 
             In [2]: set_matplotlib_formats('pdf', 'svg')
 
@@ -65,9 +65,9 @@ class PylabMagics(Magics):
 
             In [3]: %config InlineBackend.print_figure_kwargs = {'bbox_inches':None}
 
-        In addition, see the docstring of
-        `IPython.display.set_matplotlib_formats` and
-        `IPython.display.set_matplotlib_close` for more information on
+        In addition, see the docstrings of
+        `matplotlib_inline.backend_inline.set_matplotlib_formats` and
+        `matplotlib_inline.backend_inline.set_matplotlib_close` for more information on
         changing additional behaviors of the inline backend.
 
         Examples
@@ -154,6 +154,9 @@ class PylabMagics(Magics):
 
         gui, backend, clobbered = self.shell.enable_pylab(args.gui, import_all=import_all)
         self._show_matplotlib_backend(args.gui, backend)
+        print(
+            "%pylab is deprecated, use %matplotlib inline and import the required libraries."
+        )
         print("Populating the interactive namespace from numpy and matplotlib")
         if clobbered:
             warn("pylab import has clobbered these variables: %s"  % clobbered +

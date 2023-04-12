@@ -64,7 +64,8 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
     localExecutor: TLocalExecutor
   ) : Iterator[Row]
 
-  override def transformImpl(dataset: Dataset[_]): DataFrame = {
+  // cannot override transformImpl because it's made final in ClassificationModel since Spark 3.x+
+  protected def transformCatBoostImpl(dataset: Dataset[_]): DataFrame = {
     val dataFrame = dataset.asInstanceOf[DataFrame]
 
     val featuresColumnIdx = dataset.schema.fieldIndex($(featuresCol));
@@ -322,7 +323,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
   ) : Array[FeatureImportance]  = {
     val featureImportancesArray = getFeatureImportance(fstrType, data, calcType)
     val datasetFeaturesLayout = if (data != null) { data.getFeaturesLayout } else { new TFeaturesLayoutPtr }
-    val featureNames = native_impl.GetMaybeGeneratedModelFeatureIdsWrapper(nativeModel, datasetFeaturesLayout)
+    val featureNames = native_impl.GetMaybeGeneratedModelFeatureIds(nativeModel, datasetFeaturesLayout)
     featureNames.asScala.zip(featureImportancesArray).sortBy(-_._2).map{
       case (name, value) => new FeatureImportance(name, value)
     }.toArray
@@ -433,6 +434,25 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
    */
   def getFeatureImportanceInteraction() : Array[FeatureInteractionScore] = {
     (new impl.FeatureImportanceCalcer()).calcInteraction(this.nativeModel)
+  }
+}
+
+private[spark] object CatBoostModel {
+  def sum[Model <: org.apache.spark.ml.PredictionModel[Vector, Model]](
+    models: Array[CatBoostModelTrait[Model]],
+    weights: Array[Double] = null,
+    ctrMergePolicy: ECtrTableMergePolicy = ECtrTableMergePolicy.IntersectingCountersAverage
+  ) : TFullModel = {
+    val nativeModels = new TVector_const_TFullModel_ptr
+    for (model <- models) {
+      nativeModels.add(model.nativeModel)
+    }
+    val weightsVector = if (weights != null) {
+      new TVector_double(weights)
+    } else {
+      new TVector_double(Iterator.fill(models.length)(1.0).toArray)
+    }
+    native_impl.SumModels(nativeModels, weightsVector, /*modelParamsPrefixes*/ new TVector_TString, ctrMergePolicy)
   }
 }
 

@@ -45,6 +45,7 @@ namespace {
     public:
         void Add(const THandleRef& req) override {
             Reqs_.insert(req);
+            req->Register(WaitQueue_);
         }
 
         void Del(const THandleRef& req) override {
@@ -56,11 +57,8 @@ namespace {
                 if (Reqs_.empty()) {
                     return false;
                 }
-
                 TOnComplete cb(this);
-
-                WaitForMultipleObj(Reqs_.begin(), Reqs_.end(), deadLine, cb);
-
+                WaitForMultipleObj(*WaitQueue_, deadLine, cb);
                 if (!cb.Signalled) {
                     return false;
                 }
@@ -72,14 +70,19 @@ namespace {
             return true;
         }
 
+        bool IsEmpty() const override {
+            return Reqs_.empty() && Complete_.empty();
+        }
+
         inline void OnComplete(const THandleRef& req) {
             Complete_.push_back(req);
-            Reqs_.erase(req);
+            Del(req);
         }
 
     private:
         typedef THashSet<THandleRef, TOps, TOps> TReqs;
         typedef TList<THandleRef> TComplete;
+        TIntrusivePtr<TWaitQueue> WaitQueue_ = MakeIntrusive<TWaitQueue>();
         TReqs Reqs_;
         TComplete Complete_;
     };
@@ -101,18 +104,18 @@ namespace {
     const TString svcFail = "service status: failed";
 }
 
-THandleRef NNeh::Request(const TMessage& msg, IOnRecv* fallback) {
+THandleRef NNeh::Request(const TMessage& msg, IOnRecv* fallback, bool useAsyncSendRequest) {
     TServiceStatRef ss;
 
     if (TServiceStat::Disabled()) {
-        return ProtocolForMessage(msg)->ScheduleRequest(msg, fallback, ss);
+        return ProtocolForMessage(msg)->ScheduleAsyncRequest(msg, fallback, ss, useAsyncSendRequest);
     }
 
     ss = GetServiceStat(msg.Addr);
     TServiceStat::EStatus es = ss->GetStatus();
 
     if (es == TServiceStat::Ok) {
-        return ProtocolForMessage(msg)->ScheduleRequest(msg, fallback, ss);
+        return ProtocolForMessage(msg)->ScheduleAsyncRequest(msg, fallback, ss, useAsyncSendRequest);
     }
 
     if (es == TServiceStat::ReTry) {
@@ -121,7 +124,7 @@ THandleRef NNeh::Request(const TMessage& msg, IOnRecv* fallback) {
 
         validator.Addr = msg.Addr;
 
-        ProtocolForMessage(msg)->ScheduleRequest(validator, nullptr, ss);
+        ProtocolForMessage(msg)->ScheduleAsyncRequest(validator, nullptr, ss, useAsyncSendRequest);
     }
 
     TNotifyHandleRef h(new TNotifyHandle(fallback, msg));

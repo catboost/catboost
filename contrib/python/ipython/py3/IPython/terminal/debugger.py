@@ -1,26 +1,28 @@
 import asyncio
-import signal
+import os
 import sys
-import threading
 
 from IPython.core.debugger import Pdb
-
 from IPython.core.completer import IPCompleter
 from .ptutils import IPythonPTCompleter
-from .shortcuts import create_ipython_shortcuts, suspend_to_bg, cursor_in_leading_ws
+from .shortcuts import create_ipython_shortcuts
+from . import embed
 
-from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import (Condition, has_focus, has_selection,
-    vi_insert_mode, emacs_insert_mode)
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
+from pathlib import Path
 from pygments.token import Token
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.history import InMemoryHistory, FileHistory
+from concurrent.futures import ThreadPoolExecutor
 
 from prompt_toolkit import __version__ as ptk_version
 PTK3 = ptk_version.startswith('3.')
+
+
+# we want to avoid ptk as much as possible when using subprocesses
+# as it uses cursor positioning requests, deletes color ....
+_use_simple_prompt = "IPY_TEST_SIMPLE_PROMPT" in os.environ
 
 
 class TerminalPdb(Pdb):
@@ -30,26 +32,25 @@ class TerminalPdb(Pdb):
         Pdb.__init__(self, *args, **kwargs)
         self._ptcomp = None
         self.pt_init(pt_session_options)
+        self.thread_executor = ThreadPoolExecutor(1)
 
     def pt_init(self, pt_session_options=None):
         """Initialize the prompt session and the prompt loop
         and store them in self.pt_app and self.pt_loop.
-        
+
         Additional keyword arguments for the PromptSession class
         can be specified in pt_session_options.
         """
         if pt_session_options is None:
             pt_session_options = {}
-        
+
         def get_prompt_tokens():
             return [(Token.Prompt, self.prompt)]
 
         if self._ptcomp is None:
-            compl = IPCompleter(shell=self.shell,
-                                        namespace={},
-                                        global_namespace={},
-                                        parent=self.shell,
-                                       )
+            compl = IPCompleter(
+                shell=self.shell, namespace={}, global_namespace={}, parent=self.shell
+            )
             # add a completer for all the do_ methods
             methods_names = [m[3:] for m in dir(self) if m.startswith("do_")]
 
@@ -62,11 +63,24 @@ class TerminalPdb(Pdb):
 
             self._ptcomp = IPythonPTCompleter(compl)
 
+        # setup history only when we start pdb
+        if self.shell.debugger_history is None:
+            if self.shell.debugger_history_file is not None:
+
+                p = Path(self.shell.debugger_history_file).expanduser()
+                if not p.exists():
+                    p.touch()
+                self.debugger_history = FileHistory(os.path.expanduser(str(p)))
+            else:
+                self.debugger_history = InMemoryHistory()
+        else:
+            self.debugger_history = self.shell.debugger_history
+
         options = dict(
             message=(lambda: PygmentsTokens(get_prompt_tokens())),
             editing_mode=getattr(EditingMode, self.shell.editing_mode.upper()),
             key_bindings=create_ipython_shortcuts(self.shell),
-            history=self.shell.debugger_history,
+            history=self.debugger_history,
             completer=self._ptcomp,
             enable_history_search=True,
             mouse_support=self.shell.mouse_support,
@@ -78,8 +92,9 @@ class TerminalPdb(Pdb):
         if not PTK3:
             options['inputhook'] = self.shell.inputhook
         options.update(pt_session_options)
-        self.pt_loop = asyncio.new_event_loop()
-        self.pt_app = PromptSession(**options)
+        if not _use_simple_prompt:
+            self.pt_loop = asyncio.new_event_loop()
+            self.pt_app = PromptSession(**options)
 
     def cmdloop(self, intro=None):
         """Repeatedly issue a prompt, accept input, parse an initial prefix
@@ -102,7 +117,7 @@ class TerminalPdb(Pdb):
             if intro is not None:
                 self.intro = intro
             if self.intro:
-                self.stdout.write(str(self.intro)+"\n")
+                print(self.intro, file=self.stdout)
             stop = None
             while not stop:
                 if self.cmdqueue:
@@ -112,30 +127,34 @@ class TerminalPdb(Pdb):
                     self._ptcomp.ipy_completer.global_namespace = self.curframe.f_globals
 
                     # Run the prompt in a different thread.
-                    line = ''
-                    keyboard_interrupt = False
-
-                    def in_thread():
-                        nonlocal line, keyboard_interrupt
+                    if not _use_simple_prompt:
                         try:
-                            line = self.pt_app.prompt()
+                            line = self.thread_executor.submit(
+                                self.pt_app.prompt
+                            ).result()
                         except EOFError:
-                            line = 'EOF'
-                        except KeyboardInterrupt:
-                            keyboard_interrupt = True
+                            line = "EOF"
+                    else:
+                        line = input("ipdb> ")
 
-                    th = threading.Thread(target=in_thread)
-                    th.start()
-                    th.join()
-
-                    if keyboard_interrupt:
-                        raise KeyboardInterrupt
                 line = self.precmd(line)
                 stop = self.onecmd(line)
                 stop = self.postcmd(stop, line)
             self.postloop()
         except Exception:
             raise
+
+    def do_interact(self, arg):
+        ipshell = embed.InteractiveShellEmbed(
+            config=self.shell.config,
+            banner1="*interactive*",
+            exit_msg="*exiting interactive console...*",
+        )
+        global_ns = self.curframe.f_globals
+        ipshell(
+            module=sys.modules.get(global_ns["__name__"], None),
+            local_ns=self.curframe_locals,
+        )
 
 
 def set_trace(frame=None):
@@ -154,6 +173,6 @@ if __name__ == '__main__':
     # happened after hitting "c", this is needed in order to
     # be able to quit the debugging session (see #9950).
     old_trace_dispatch = pdb.Pdb.trace_dispatch
-    pdb.Pdb = TerminalPdb
-    pdb.Pdb.trace_dispatch = old_trace_dispatch
+    pdb.Pdb = TerminalPdb  # type: ignore
+    pdb.Pdb.trace_dispatch = old_trace_dispatch  # type: ignore
     pdb.main()

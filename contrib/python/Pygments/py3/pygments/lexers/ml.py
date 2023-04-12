@@ -4,7 +4,7 @@
 
     Lexers for ML family languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -55,7 +55,7 @@ class SMLLexer(RegexLexer):
     # A character constant is a sequence of the form #s, where s is a string
     # constant denoting a string of size one character. This setup just parses
     # the entire string as either a String.Double or a String.Char (depending
-    # on the argument), even if the String.Char is an erronous
+    # on the argument), even if the String.Char is an erroneous
     # multiple-character string.
     def stringy(whatkind):
         return [
@@ -360,6 +360,7 @@ class OcamlLexer(RegexLexer):
     """
 
     name = 'OCaml'
+    url = 'https://ocaml.org/'
     aliases = ['ocaml']
     filenames = ['*.ml', '*.mli', '*.mll', '*.mly']
     mimetypes = ['text/x-ocaml']
@@ -446,7 +447,7 @@ class OcamlLexer(RegexLexer):
 
 class OpaLexer(RegexLexer):
     """
-    Lexer for the Opa language (http://opalang.org).
+    Lexer for the Opa language.
 
     .. versionadded:: 1.5
     """
@@ -769,12 +770,13 @@ class OpaLexer(RegexLexer):
 
 class ReasonLexer(RegexLexer):
     """
-    For the ReasonML language (https://reasonml.github.io/).
+    For the ReasonML language.
 
     .. versionadded:: 2.6
     """
 
     name = 'ReasonML'
+    url = 'https://reasonml.github.io/'
     aliases = ['reasonml', 'reason']
     filenames = ['*.re', '*.rei']
     mimetypes = ['text/x-reasonml']
@@ -861,11 +863,12 @@ class ReasonLexer(RegexLexer):
 
 class FStarLexer(RegexLexer):
     """
-    For the F* language (https://www.fstar-lang.org/).
+    For the F* language.
     .. versionadded:: 2.7
     """
 
     name = 'FStar'
+    url = 'https://www.fstar-lang.org/'
     aliases = ['fstar']
     filenames = ['*.fst', '*.fsti']
     mimetypes = ['text/x-fstar']
@@ -908,7 +911,7 @@ class FStarLexer(RegexLexer):
             (r'\b([A-Z][\w\']*)(?=\s*\.)', Name.Namespace, 'dotted'),
             (r'\b([A-Z][\w\']*)', Name.Class),
             (r'\(\*(?![)])', Comment, 'comment'),
-            (r'^\/\/.+$', Comment),
+            (r'\/\/.+$', Comment),
             (r'\b(%s)\b' % '|'.join(keywords), Keyword),
             (r'\b(%s)\b' % '|'.join(assume_keywords), Name.Exception),
             (r'\b(%s)\b' % '|'.join(decl_keywords), Keyword.Declaration),

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -78,29 +78,17 @@ static const ::tbb::detail::r1::tchar *SyncObj_ThreadMonitor = _T("RML Thr Monit
 /** At most one thread should wait on an instance at a time. */
 class thread_monitor {
 public:
-    class cookie {
-        friend class thread_monitor;
-        std::atomic<std::size_t> my_epoch{0};
-    };
-    thread_monitor() : skipped_wakeup(false), my_sema() {
+    thread_monitor() {
         ITT_SYNC_CREATE(&my_sema, SyncType_RML, SyncObj_ThreadMonitor);
     }
     ~thread_monitor() {}
 
-    //! If a thread is waiting or started a two-phase wait, notify it.
+    //! Notify waiting thread
     /** Can be called by any thread. */
     void notify();
 
-    //! Begin two-phase wait.
-    /** Should only be called by thread that owns the monitor.
-        The caller must either complete the wait or cancel it. */
-    void prepare_wait( cookie& c );
-
-    //! Complete a two-phase wait and wait until notification occurs after the earlier prepare_wait.
-    void commit_wait( cookie& c );
-
-    //! Cancel a two-phase wait.
-    void cancel_wait();
+    //! Wait for notification
+    void wait();
 
 #if __TBB_USE_WINAPI
     typedef HANDLE handle_type;
@@ -109,7 +97,7 @@ public:
     typedef unsigned (WINAPI *thread_routine_type)(void*);
 
     //! Launch a thread
-    static handle_type launch( thread_routine_type thread_routine, void* arg, std::size_t stack_size, const size_t* worker_index = NULL );
+    static handle_type launch( thread_routine_type thread_routine, void* arg, std::size_t stack_size, const size_t* worker_index = nullptr );
 
 #elif __TBB_USE_POSIX
     typedef pthread_t handle_type;
@@ -127,9 +115,8 @@ public:
     //! Detach thread
     static void detach_thread(handle_type handle);
 private:
-    cookie my_cookie; // epoch counter
-    std::atomic<bool> in_wait{false};
-    bool skipped_wakeup;
+    // The protection from double notification of the binary semaphore
+    std::atomic<bool> my_notified{ false };
     binary_semaphore my_sema;
 #if __TBB_USE_POSIX
     static void check( int error_code, const char* routine );
@@ -154,7 +141,7 @@ inline thread_monitor::handle_type thread_monitor::launch( thread_routine_type t
     unsigned thread_id;
     int number_of_processor_groups = ( worker_index ) ? NumberOfProcessorGroups() : 0;
     unsigned create_flags = ( number_of_processor_groups > 1 ) ? CREATE_SUSPENDED : 0;
-    HANDLE h = (HANDLE)_beginthreadex( NULL, unsigned(stack_size), thread_routine, arg, STACK_SIZE_PARAM_IS_A_RESERVATION | create_flags, &thread_id );
+    HANDLE h = (HANDLE)_beginthreadex( nullptr, unsigned(stack_size), thread_routine, arg, STACK_SIZE_PARAM_IS_A_RESERVATION | create_flags, &thread_id );
     if( !h ) {
         handle_perror(0, "thread_monitor::launch: _beginthreadex failed\n");
     }
@@ -171,12 +158,12 @@ void thread_monitor::join(handle_type handle) {
     DWORD res =
 #endif
         WaitForSingleObjectEx(handle, INFINITE, FALSE);
-    __TBB_ASSERT( res==WAIT_OBJECT_0, NULL );
+    __TBB_ASSERT( res==WAIT_OBJECT_0, nullptr);
 #if TBB_USE_ASSERT
     BOOL val =
 #endif
         CloseHandle(handle);
-    __TBB_ASSERT( val, NULL );
+    __TBB_ASSERT( val, nullptr);
 }
 
 void thread_monitor::detach_thread(handle_type handle) {
@@ -184,7 +171,7 @@ void thread_monitor::detach_thread(handle_type handle) {
     BOOL val =
 #endif
         CloseHandle(handle);
-    __TBB_ASSERT( val, NULL );
+    __TBB_ASSERT( val, nullptr);
 }
 
 #endif /* __TBB_USE_WINAPI */
@@ -211,7 +198,7 @@ inline thread_monitor::handle_type thread_monitor::launch( void* (*thread_routin
 }
 
 void thread_monitor::join(handle_type handle) {
-    check(pthread_join(handle, NULL), "pthread_join has failed");
+    check(pthread_join(handle, nullptr), "pthread_join has failed");
 }
 
 void thread_monitor::detach_thread(handle_type handle) {
@@ -220,33 +207,17 @@ void thread_monitor::detach_thread(handle_type handle) {
 #endif /* __TBB_USE_POSIX */
 
 inline void thread_monitor::notify() {
-    my_cookie.my_epoch.store(my_cookie.my_epoch.load(std::memory_order_acquire) + 1, std::memory_order_release);
-    bool do_signal = in_wait.exchange( false );
-    if( do_signal )
+    // Check that the semaphore is not notified twice
+    if (!my_notified.exchange(true, std::memory_order_release)) {
         my_sema.V();
-}
-
-inline void thread_monitor::prepare_wait( cookie& c ) {
-    if( skipped_wakeup ) {
-        // Lazily consume a signal that was skipped due to cancel_wait
-        skipped_wakeup = false;
-        my_sema.P(); // does not really wait on the semaphore
     }
-    // Former c = my_cookie
-    c.my_epoch.store(my_cookie.my_epoch.load(std::memory_order_acquire), std::memory_order_release);
-    in_wait.store( true, std::memory_order_seq_cst );
 }
 
-inline void thread_monitor::commit_wait( cookie& c ) {
-    bool do_it = ( c.my_epoch.load(std::memory_order_relaxed) == my_cookie.my_epoch.load(std::memory_order_relaxed) );
-    if( do_it ) my_sema.P();
-    else        cancel_wait();
-}
-
-inline void thread_monitor::cancel_wait() {
-    // if not in_wait, then some thread has sent us a signal;
-    // it will be consumed by the next prepare_wait call
-    skipped_wakeup = ! in_wait.exchange( false );
+inline void thread_monitor::wait() {
+    my_sema.P();
+    // memory_order_seq_cst is required here to be ordered with
+    // further load checking shutdown state
+    my_notified.store(false, std::memory_order_seq_cst);
 }
 
 } // namespace internal

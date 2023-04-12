@@ -39,6 +39,9 @@ ITT_STUB(ITTAPI, __itt_domain*, domain_createW, (const wchar_t *name), (ITT_FORM
 ITT_STUB(ITTAPI, __itt_domain*, domain_create,  (const char    *name), (ITT_FORMAT name), domain_create,  __itt_group_structure, "\"%s\"")
 #endif /* ITT_PLATFORM==ITT_PLATFORM_WIN */
 
+ITT_STUBV(ITTAPI, void, module_load_with_sections, (__itt_module_object* module_obj), (ITT_FORMAT module_obj), module_load_with_sections, __itt_group_module, "%p")
+ITT_STUBV(ITTAPI, void, module_unload_with_sections, (__itt_module_object* module_obj), (ITT_FORMAT module_obj), module_unload_with_sections, __itt_group_module, "%p")
+
 #if ITT_PLATFORM==ITT_PLATFORM_WIN
 ITT_STUB(ITTAPI, __itt_string_handle*, string_handle_createA, (const char    *name), (ITT_FORMAT name), string_handle_createA, __itt_group_structure, "\"%s\"")
 ITT_STUB(ITTAPI, __itt_string_handle*, string_handle_createW, (const wchar_t *name), (ITT_FORMAT name), string_handle_createW, __itt_group_structure, "\"%S\"")
@@ -341,14 +344,13 @@ ITT_STUB(ITTAPI, int, av_save,  (void *data, int rank, const int *dimensions, in
 #endif /* ITT_PLATFORM==ITT_PLATFORM_WIN */
 #endif /* __ITT_INTERNAL_BODY */
 
-#ifndef __ITT_INTERNAL_BODY
 #if ITT_PLATFORM==ITT_PLATFORM_WIN
-ITT_STUBV(ITTAPI, void, module_loadA, (void *start_addr, void* end_addr, const char *path), (ITT_FORMAT start_addr, end_addr, path), module_loadA, __itt_group_none, "%p, %p, %p")
-ITT_STUBV(ITTAPI, void, module_loadW, (void *start_addr, void* end_addr, const wchar_t *path), (ITT_FORMAT start_addr, end_addr, path), module_loadW, __itt_group_none, "%p, %p, %p")
+ITT_STUBV(ITTAPI, void, module_loadA, (void *start_addr, void* end_addr, const char *path), (ITT_FORMAT start_addr, end_addr, path), module_loadA, __itt_group_module, "%p, %p, %p")
+ITT_STUBV(ITTAPI, void, module_loadW, (void *start_addr, void* end_addr, const wchar_t *path), (ITT_FORMAT start_addr, end_addr, path), module_loadW, __itt_group_module, "%p, %p, %p")
 #else  /* ITT_PLATFORM!=ITT_PLATFORM_WIN */
-ITT_STUBV(ITTAPI, void, module_load, (void *start_addr, void *end_addr, const char *path), (ITT_FORMAT start_addr, end_addr, path), module_load, __itt_group_none, "%p, %p, %p")
+ITT_STUBV(ITTAPI, void, module_load, (void *start_addr, void *end_addr, const char *path), (ITT_FORMAT start_addr, end_addr, path), module_load, __itt_group_module, "%p, %p, %p")
 #endif /* ITT_PLATFORM==ITT_PLATFORM_WIN */
-#endif /* __ITT_INTERNAL_BODY */
+ITT_STUBV(ITTAPI, void, module_unload, (void *start_addr), (ITT_FORMAT start_addr), module_unload, __itt_group_module, "%p")
 
 
 #endif /* __ITT_INTERNAL_INIT */

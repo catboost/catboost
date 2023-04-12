@@ -20,8 +20,7 @@
 #include <thrust/iterator/iterator_categories.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -56,5 +55,5 @@ template <typename T>
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

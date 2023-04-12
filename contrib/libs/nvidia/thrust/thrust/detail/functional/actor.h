@@ -33,8 +33,7 @@
 #include <thrust/detail/raw_reference_cast.h>
 #include <thrust/detail/type_traits/result_of_adaptable_function.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace functional
@@ -150,7 +149,7 @@ template<typename Eval, typename Arg1, typename Arg2>
 }; // end result_of
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/functional/actor.inl>
 

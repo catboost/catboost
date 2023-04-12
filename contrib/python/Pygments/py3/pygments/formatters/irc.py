@@ -4,11 +4,9 @@
 
     Formatter for IRC output
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
-
-import sys
 
 from pygments.formatter import Formatter
 from pygments.token import Keyword, Name, Comment, String, Error, \
@@ -142,7 +140,7 @@ class IRCFormatter(Formatter):
                 value = value[:-1]
             color = self.colorscheme.get(ttype)
             while color is None:
-                ttype = ttype[:-1]
+                ttype = ttype.parent
                 color = self.colorscheme.get(ttype)
             if color:
                 color = color[self.darkbg]

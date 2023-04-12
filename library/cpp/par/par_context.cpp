@@ -3,7 +3,7 @@
 
 #include <util/random/random.h>
 #include <util/random/shuffle.h>
-#include <util/system/atomic_ops.h>
+#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/types.h>
 #include <util/system/yassert.h>
 #include <util/system/yield.h>

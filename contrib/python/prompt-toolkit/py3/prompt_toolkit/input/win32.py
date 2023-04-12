@@ -7,6 +7,8 @@ from prompt_toolkit.eventloop import get_event_loop
 
 from ..utils import SPHINX_AUTODOC_RUNNING
 
+assert sys.platform == "win32"
+
 # Do not import win32-specific stuff when generating documentation.
 # Otherwise RTD would be unable to generate docs for this module.
 if not SPHINX_AUTODOC_RUNNING:
@@ -286,8 +288,7 @@ class ConsoleInputReader:
                 if k is not None:
                     yield k
         else:
-            for k2 in all_keys:
-                yield k2
+            yield from all_keys
 
     def _insert_key_data(self, key_press: KeyPress) -> KeyPress:
         """
@@ -322,12 +323,10 @@ class ConsoleInputReader:
                 # Process if this is a key event. (We also have mouse, menu and
                 # focus events.)
                 if type(ev) == KEY_EVENT_RECORD and ev.KeyDown:
-                    for key_press in self._event_to_key_presses(ev):
-                        yield key_press
+                    yield from self._event_to_key_presses(ev)
 
                 elif type(ev) == MOUSE_EVENT_RECORD:
-                    for key_press in self._handle_mouse(ev):
-                        yield key_press
+                    yield from self._handle_mouse(ev)
 
     @staticmethod
     def _merge_paired_surrogates(key_presses: List[KeyPress]) -> Iterator[KeyPress]:

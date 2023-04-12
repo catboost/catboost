@@ -1,17 +1,18 @@
 
-#include <util/system/atomic.h>
-#include <util/system/event.h>
-#include <util/generic/deque.h>
-#include <library/cpp/threading/future/legacy_future.h>
+#include "lfstack.h"
 
 #include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/threading/future/legacy_future.h>
 
-#include "lfstack.h"
+#include <util/generic/deque.h>
+#include <util/system/event.h>
+
+#include <atomic>
 
 Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     class TCountDownLatch {
     private:
-        TAtomic Current_;
+        std::atomic<size_t> Current_;
         TSystemEvent EventObject_;
 
     public:
@@ -21,7 +22,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
         }
 
         void CountDown() {
-            if (AtomicDecrement(Current_) == 0) {
+            if (--Current_ == 0) {
                 EventObject_.Signal();
             }
         }
@@ -41,7 +42,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
         size_t DequeueThreads;
 
         size_t EnqueuesPerThread;
-        TAtomic LeftToDequeue;
+        std::atomic<size_t> LeftToDequeue;
 
         TCountDownLatch StartLatch;
         TLockFreeStack<int> Stack;
@@ -69,7 +70,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
             StartLatch.Await();
 
             TVector<int> temp;
-            while (AtomicGet(LeftToDequeue) > 0) {
+            while (LeftToDequeue.load() > 0) {
                 size_t dequeued = 0;
                 for (size_t i = 0; i < 100; ++i) {
                     temp.clear();
@@ -80,7 +81,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
                     }
                     dequeued += temp.size();
                 }
-                AtomicAdd(LeftToDequeue, -dequeued);
+                LeftToDequeue -= dequeued;
             }
         }
 
@@ -98,7 +99,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
             // effectively join
             futures.clear();
 
-            UNIT_ASSERT_VALUES_EQUAL(0, int(AtomicGet(LeftToDequeue)));
+            UNIT_ASSERT_VALUES_EQUAL(0, int(LeftToDequeue.load()));
 
             TVector<int> left;
             Stack.DequeueAll(&left);

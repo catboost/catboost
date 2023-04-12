@@ -97,6 +97,12 @@ void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInf
     }
 }
 
+void ConvertFixedBinarySplitsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
+    if (catBoostJsonOptions->Has("fixed_binary_splits")) {
+        ConvertNamesIntoIndices(TIndicesMapper(poolLoadParams), &(*catBoostJsonOptions)["fixed_binary_splits"]);
+    }
+}
+
 void ConvertPerFeatureOptionsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* options) {
     if (indicesFromNames.empty()) {
         return;

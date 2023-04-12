@@ -8,11 +8,13 @@ The code is taken from multiple sources, thus both LICENSE() and VERSION() tags 
 During development one can make use of the following mapping of `OS_SDK` into glibc version.
 
 | Ubuntu | glibc |
+| ------ | ----- |
 | 20.04 | 2.30 |
 | 18.04 | 2.27 | 
 | 16.04 | 2.23 | 
 | 14.04 | 2.18 | 
 | 12.04 | 2.15 |
+| 10.04 | 2.11 |
 
 Use the following commands to update the table above:
 

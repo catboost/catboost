@@ -12,6 +12,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/train_lib/dir_helper.h>
+#include <catboost/libs/train_lib/trainer_env.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <util/generic/algorithm.h>
@@ -1207,6 +1208,7 @@ namespace NCB {
 
         InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
 
+        auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
 
@@ -1290,6 +1292,7 @@ namespace NCB {
                 SetGridParamsToBestOptionValues(bestGridParams, bestOptionValuesWithCvResult);
             }
         }
+        trainerEnv.Reset();
         if (returnCvStat || isSearchUsingTrainTestSplit) {
             if (isSearchUsingTrainTestSplit) {
                 if (verbose) {
@@ -1338,6 +1341,7 @@ namespace NCB {
         CB_ENSURE(!outputJsonParams["save_snapshot"].GetBoolean(), "Snapshots are not yet supported for RandomizedSearchCV");
 
         InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+        auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
 
@@ -1411,6 +1415,7 @@ namespace NCB {
                 randDistGenerators
             );
         }
+        trainerEnv.Reset();
         bestGridParams.QuantizationParamsSet.GeneralInfo = generalQuantizeParamsInfo;
         SetGridParamsToBestOptionValues(bestGridParams, bestOptionValuesWithCvResult);
         if (returnCvStat || isSearchUsingTrainTestSplit) {

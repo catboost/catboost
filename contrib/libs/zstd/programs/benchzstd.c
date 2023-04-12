@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Yann Collet, Facebook, Inc.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
  * This source code is licensed under both the BSD-style license (found in the
@@ -13,7 +13,7 @@
 *  Tuning parameters
 ****************************************/
 #ifndef BMK_TIMETEST_DEFAULT_S   /* default minimum time per test */
-#define BMK_TIMETEST_DEFAULT_S 3
+# define BMK_TIMETEST_DEFAULT_S 3
 #endif
 
 
@@ -31,9 +31,14 @@
 #include "timefn.h"      /* UTIL_time_t */
 #include "benchfn.h"
 #include "../lib/common/mem.h"
+#ifndef ZSTD_STATIC_LINKING_ONLY
 #define ZSTD_STATIC_LINKING_ONLY
+#endif
 #include "../lib/zstd.h"
 #include "datagen.h"     /* RDG_genBuffer */
+#ifndef XXH_INLINE_ALL
+#define XXH_INLINE_ALL
+#endif
 #include <contrib/libs/xxhash/xxhash.h>
 #include "benchzstd.h"
 #include "../lib/zstd_errors.h"
@@ -70,6 +75,8 @@ static const size_t maxMemory = (sizeof(size_t)==4)  ?
 #define DISPLAY(...)         { fprintf(stderr, __VA_ARGS__); fflush(NULL); }
 #define DISPLAYLEVEL(l, ...) if (displayLevel>=l) { DISPLAY(__VA_ARGS__); }
 /* 0 : no display;   1: errors;   2 : + result + interaction + warnings;   3 : + progression;   4 : + information */
+#define OUTPUT(...)          { fprintf(stdout, __VA_ARGS__); fflush(NULL); }
+#define OUTPUTLEVEL(l, ...)  if (displayLevel>=l) { OUTPUT(__VA_ARGS__); }
 
 
 /* *************************************
@@ -129,7 +136,7 @@ BMK_advancedParams_t BMK_initAdvancedParams(void) {
         0, /* ldmHashLog */
         0, /* ldmBuckSizeLog */
         0,  /* ldmHashRateLog */
-        ZSTD_lcm_auto, /* literalCompressionMode */
+        ZSTD_ps_auto, /* literalCompressionMode */
         0 /* useRowMatchFinder */
     };
     return res;
@@ -181,7 +188,7 @@ BMK_initCCtx(ZSTD_CCtx* ctx,
     CHECK_Z(ZSTD_CCtx_setParameter(ctx, ZSTD_c_minMatch, (int)comprParams->minMatch));
     CHECK_Z(ZSTD_CCtx_setParameter(ctx, ZSTD_c_targetLength, (int)comprParams->targetLength));
     CHECK_Z(ZSTD_CCtx_setParameter(ctx, ZSTD_c_literalCompressionMode, (int)adv->literalCompressionMode));
-    CHECK_Z(ZSTD_CCtx_setParameter(ctx, ZSTD_c_strategy, comprParams->strategy));
+    CHECK_Z(ZSTD_CCtx_setParameter(ctx, ZSTD_c_strategy, (int)comprParams->strategy));
     CHECK_Z(ZSTD_CCtx_loadDictionary(ctx, dictBuffer, dictBufferSize));
 }
 
@@ -320,26 +327,31 @@ BMK_benchMemAdvancedNoAlloc(
     /* init */
     memset(&benchResult, 0, sizeof(benchResult));
     if (strlen(displayName)>17) displayName += strlen(displayName) - 17;   /* display last 17 characters */
-    if (adv->mode == BMK_decodeOnly) {  /* benchmark only decompression : source must be already compressed */
+    if (adv->mode == BMK_decodeOnly) {
+        /* benchmark only decompression : source must be already compressed */
         const char* srcPtr = (const char*)srcBuffer;
         U64 totalDSize64 = 0;
         U32 fileNb;
         for (fileNb=0; fileNb<nbFiles; fileNb++) {
             U64 const fSize64 = ZSTD_findDecompressedSize(srcPtr, fileSizes[fileNb]);
-            if (fSize64==0) RETURN_ERROR(32, BMK_benchOutcome_t, "Impossible to determine original size ");
+            if (fSize64 == ZSTD_CONTENTSIZE_UNKNOWN) {
+                RETURN_ERROR(32, BMK_benchOutcome_t, "Decompressed size cannot be determined: cannot benchmark");
+            }
+            if (fSize64 == ZSTD_CONTENTSIZE_ERROR) {
+                RETURN_ERROR(32, BMK_benchOutcome_t, "Error while trying to assess decompressed size: data may be invalid");
+            }
             totalDSize64 += fSize64;
             srcPtr += fileSizes[fileNb];
         }
         {   size_t const decodedSize = (size_t)totalDSize64;
             assert((U64)decodedSize == totalDSize64);   /* check overflow */
             free(*resultBufferPtr);
+            if (totalDSize64 > decodedSize) {  /* size_t overflow */
+                RETURN_ERROR(32, BMK_benchOutcome_t, "decompressed size is too large for local system");
+            }
             *resultBufferPtr = malloc(decodedSize);
             if (!(*resultBufferPtr)) {
-                RETURN_ERROR(33, BMK_benchOutcome_t, "not enough memory");
-            }
-            if (totalDSize64 > decodedSize) {  /* size_t overflow */
-                free(*resultBufferPtr);
-                RETURN_ERROR(32, BMK_benchOutcome_t, "original size is too large");
+                RETURN_ERROR(33, BMK_benchOutcome_t, "allocation error: not enough memory");
             }
             cSize = srcSize;
             srcSize = decodedSize;
@@ -371,16 +383,17 @@ BMK_benchMemAdvancedNoAlloc(
                 if (adv->mode == BMK_decodeOnly) {
                     cSizes[nbBlocks] = thisBlockSize;
                     benchResult.cSize = thisBlockSize;
-                }
-            }
-        }
-    }
+    }   }   }   }
 
     /* warming up `compressedBuffer` */
     if (adv->mode == BMK_decodeOnly) {
         memcpy(compressedBuffer, srcBuffer, loadedCompressedSize);
     } else {
         RDG_genBuffer(compressedBuffer, maxCompressedSize, 0.10, 0.50, 1);
+    }
+
+    if (!UTIL_support_MT_measurements() && adv->nbWorkers > 1) {
+        OUTPUTLEVEL(2, "Warning : time measurements may be incorrect in multithreading mode... \n")
     }
 
     /* Bench */
@@ -429,20 +442,21 @@ BMK_benchMemAdvancedNoAlloc(
         dctxprep.dictBuffer = dictBuffer;
         dctxprep.dictBufferSize = dictBufferSize;
 
-        DISPLAYLEVEL(2, "\r%70s\r", "");   /* blank line */
-        DISPLAYLEVEL(2, "%2s-%-17.17s :%10u ->\r", marks[markNb], displayName, (unsigned)srcSize);
+        OUTPUTLEVEL(2, "\r%70s\r", "");   /* blank line */
+        assert(srcSize < UINT_MAX);
+        OUTPUTLEVEL(2, "%2s-%-17.17s :%10u -> \r", marks[markNb], displayName, (unsigned)srcSize);
 
         while (!(compressionCompleted && decompressionCompleted)) {
             if (!compressionCompleted) {
                 BMK_runOutcome_t const cOutcome = BMK_benchTimedFn( timeStateCompress, cbp);
 
                 if (!BMK_isSuccessful_runOutcome(cOutcome)) {
-                    return BMK_benchOutcome_error();
+                    RETURN_ERROR(30, BMK_benchOutcome_t, "compression error");
                 }
 
                 {   BMK_runTime_t const cResult = BMK_extract_runTime(cOutcome);
                     cSize = cResult.sumOfReturn;
-                    ratio = (double)srcSize / cSize;
+                    ratio = (double)srcSize / (double)cSize;
                     {   BMK_benchResult_t newResult;
                         newResult.cSpeed = (U64)((double)srcSize * TIMELOOP_NANOSEC / cResult.nanoSecPerRun);
                         benchResult.cSize = cSize;
@@ -451,11 +465,12 @@ BMK_benchMemAdvancedNoAlloc(
                 }   }
 
                 {   int const ratioAccuracy = (ratio < 10.) ? 3 : 2;
-                    DISPLAYLEVEL(2, "%2s-%-17.17s :%10u ->%10u (%5.*f),%6.*f MB/s\r",
+                    assert(cSize < UINT_MAX);
+                    OUTPUTLEVEL(2, "%2s-%-17.17s :%10u ->%10u (x%5.*f), %6.*f MB/s \r",
                             marks[markNb], displayName,
                             (unsigned)srcSize, (unsigned)cSize,
                             ratioAccuracy, ratio,
-                            benchResult.cSpeed < (10 MB) ? 2 : 1, (double)benchResult.cSpeed / MB_UNIT);
+                            benchResult.cSpeed < (10 * MB_UNIT) ? 2 : 1, (double)benchResult.cSpeed / MB_UNIT);
                 }
                 compressionCompleted = BMK_isCompleted_TimedFn(timeStateCompress);
             }
@@ -464,7 +479,7 @@ BMK_benchMemAdvancedNoAlloc(
                 BMK_runOutcome_t const dOutcome = BMK_benchTimedFn(timeStateDecompress, dbp);
 
                 if(!BMK_isSuccessful_runOutcome(dOutcome)) {
-                    return BMK_benchOutcome_error();
+                    RETURN_ERROR(30, BMK_benchOutcome_t, "decompression error");
                 }
 
                 {   BMK_runTime_t const dResult = BMK_extract_runTime(dOutcome);
@@ -474,11 +489,11 @@ BMK_benchMemAdvancedNoAlloc(
                 }
 
                 {   int const ratioAccuracy = (ratio < 10.) ? 3 : 2;
-                    DISPLAYLEVEL(2, "%2s-%-17.17s :%10u ->%10u (%5.*f),%6.*f MB/s ,%6.1f MB/s \r",
+                    OUTPUTLEVEL(2, "%2s-%-17.17s :%10u ->%10u (x%5.*f), %6.*f MB/s, %6.1f MB/s\r",
                             marks[markNb], displayName,
                             (unsigned)srcSize, (unsigned)cSize,
                             ratioAccuracy, ratio,
-                            benchResult.cSpeed < (10 MB) ? 2 : 1, (double)benchResult.cSpeed / MB_UNIT,
+                            benchResult.cSpeed < (10 * MB_UNIT) ? 2 : 1, (double)benchResult.cSpeed / MB_UNIT,
                             (double)benchResult.dSpeed / MB_UNIT);
                 }
                 decompressionCompleted = BMK_isCompleted_TimedFn(timeStateDecompress);
@@ -515,7 +530,7 @@ BMK_benchMemAdvancedNoAlloc(
                                 DISPLAY("%02X ", ((const BYTE*)srcBuffer)[u+n]);
                             DISPLAY(" \n");
                             DISPLAY("decode: ");
-                            for (n=lowest; n>0; n++)
+                            for (n=lowest; n>0; n--)
                                 DISPLAY("%02X ", resultBuffer[u-n]);
                             DISPLAY(" :%02X:  ", resultBuffer[u]);
                             for (n=1; n<3; n++)
@@ -535,13 +550,13 @@ BMK_benchMemAdvancedNoAlloc(
             double const cSpeed = (double)benchResult.cSpeed / MB_UNIT;
             double const dSpeed = (double)benchResult.dSpeed / MB_UNIT;
             if (adv->additionalParam) {
-                DISPLAY("-%-3i%11i (%5.3f) %6.2f MB/s %6.1f MB/s  %s (param=%d)\n", cLevel, (int)cSize, ratio, cSpeed, dSpeed, displayName, adv->additionalParam);
+                OUTPUT("-%-3i%11i (%5.3f) %6.2f MB/s %6.1f MB/s  %s (param=%d)\n", cLevel, (int)cSize, ratio, cSpeed, dSpeed, displayName, adv->additionalParam);
             } else {
-                DISPLAY("-%-3i%11i (%5.3f) %6.2f MB/s %6.1f MB/s  %s\n", cLevel, (int)cSize, ratio, cSpeed, dSpeed, displayName);
+                OUTPUT("-%-3i%11i (%5.3f) %6.2f MB/s %6.1f MB/s  %s\n", cLevel, (int)cSize, ratio, cSpeed, dSpeed, displayName);
             }
         }
 
-        DISPLAYLEVEL(2, "%2i#\n", cLevel);
+        OUTPUTLEVEL(2, "%2i#\n", cLevel);
     }   /* Bench */
 
     benchResult.cMem = (1ULL << (comprParams->windowLog)) + ZSTD_sizeof_CCtx(cctx);
@@ -588,7 +603,7 @@ BMK_benchOutcome_t BMK_benchMemAdvanced(const void* srcBuffer, size_t srcSize,
 
     void* resultBuffer = srcSize ? malloc(srcSize) : NULL;
 
-    int allocationincomplete = !srcPtrs || !srcSizes || !cPtrs ||
+    int const allocationincomplete = !srcPtrs || !srcSizes || !cPtrs ||
         !cSizes || !cCapacities || !resPtrs || !resSizes ||
         !timeStateCompress || !timeStateDecompress ||
         !cctx || !dctx ||
@@ -670,7 +685,7 @@ static BMK_benchOutcome_t BMK_benchCLevel(const void* srcBuffer, size_t benchedS
     }
 
     if (displayLevel == 1 && !adv->additionalParam)   /* --quiet mode */
-        DISPLAY("bench %s %s: input %u bytes, %u seconds, %u KB blocks\n",
+        OUTPUT("bench %s %s: input %u bytes, %u seconds, %u KB blocks\n",
                 ZSTD_VERSION_STRING, ZSTD_GIT_COMMIT_STRING,
                 (unsigned)benchedSize, adv->nbSeconds, (unsigned)(adv->blockSize>>10));
 
@@ -760,7 +775,7 @@ static int BMK_loadFiles(void* buffer, size_t bufferSize,
         }
         {   FILE* const f = fopen(fileNamesTable[n], "rb");
             if (f==NULL) RETURN_ERROR_INT(10, "impossible to open file %s", fileNamesTable[n]);
-            DISPLAYLEVEL(2, "Loading %s...       \r", fileNamesTable[n]);
+            OUTPUTLEVEL(2, "Loading %s...       \r", fileNamesTable[n]);
             if (fileSize > bufferSize-pos) fileSize = bufferSize-pos, nbFiles=n;   /* buffer too small - stop after this file */
             {   size_t const readSize = fread(((char*)buffer)+pos, 1, (size_t)fileSize, f);
                 if (readSize != (size_t)fileSize) RETURN_ERROR_INT(11, "could not read %s", fileNamesTable[n]);
@@ -795,6 +810,10 @@ BMK_benchOutcome_t BMK_benchFilesAdvanced(
 
     if (cLevel > ZSTD_maxCLevel()) {
         RETURN_ERROR(15, BMK_benchOutcome_t, "Invalid Compression Level");
+    }
+
+    if (totalSizeToLoad == UTIL_FILESIZE_UNKNOWN) {
+        RETURN_ERROR(9, BMK_benchOutcome_t, "Error loading files");
     }
 
     fileSizes = (size_t*)calloc(nbFiles, sizeof(size_t));

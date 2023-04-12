@@ -17,7 +17,6 @@
 #include <library/cpp/json/json_writer.h>
 
 TString ArcadiaSourceRoot() {
-    TString sourceRoot = NPrivate::GetTestEnv().SourceRoot;
     if (const auto& sourceRoot = NPrivate::GetTestEnv().SourceRoot) {
         return sourceRoot;
     } else {
@@ -108,6 +107,13 @@ const TString& GetTestParam(TStringBuf name, const TString& def) {
     return def;
 }
 
+const TString& GetGlobalResource(TStringBuf name) {
+    auto& resources = NPrivate::GetTestEnv().GlobalResources;
+    auto it = resources.find(name.data());
+    Y_VERIFY(it != resources.end());
+    return it->second;
+}
+
 void AddEntryToCoreSearchFile(const TString& filename, TStringBuf cmd, int pid, const TFsPath& binaryPath = TFsPath(), const TFsPath& cwd = TFsPath()) {
     auto lock = TFileLock(filename);
     TGuard<TFileLock> guard(lock);
@@ -165,6 +171,7 @@ namespace NPrivate {
         GdbPath = "";
         CoreSearchFile = "";
         TestParameters.clear();
+        GlobalResources.clear();
 
         const TString contextFilename = GetEnv("YA_TEST_CONTEXT_FILE");
         if (contextFilename) {
@@ -217,6 +224,13 @@ namespace NPrivate {
             if (value) {
                 for (const auto& entry : context.GetValueByPath("runtime.test_params")->GetMap()) {
                     TestParameters[entry.first] = entry.second.GetStringSafe("");
+                }
+            }
+
+            value = context.GetValueByPath("resources.global");
+            if (value) {
+                for (const auto& entry : value->GetMap()) {
+                    GlobalResources[entry.first] = entry.second.GetStringSafe("");
                 }
             }
 

@@ -45,6 +45,12 @@ def test_html_interop():
     assert result == "<strong><em>awesome</em></strong>"
 
 
+@pytest.mark.parametrize("args", ["foo", 42, ("foo", 42)])
+def test_missing_interpol(args):
+    with pytest.raises(TypeError):
+        Markup("<em></em>") % args
+
+
 def test_tuple_interpol():
     result = Markup("<em>%s:%s</em>") % ("<foo>", "<bar>")
     expect = Markup("<em>&lt;foo&gt;:&lt;bar&gt;</em>")
@@ -63,7 +69,17 @@ def test_dict_interpol():
 
 def test_escaping(escape):
     assert escape("\"<>&'") == "&#34;&lt;&gt;&amp;&#39;"
-    assert Markup("<em>Foo &amp; Bar</em>").striptags() == "Foo & Bar"
+    assert (
+        Markup(
+            "<!-- outer comment -->"
+            "<em>Foo &amp; Bar"
+            "<!-- inner comment about <em> -->"
+            "</em>"
+            "<!-- comment\nwith\nnewlines\n-->"
+            "<meta content='tag\nwith\nnewlines'>"
+        ).striptags()
+        == "Foo & Bar"
+    )
 
 
 def test_unescape():
@@ -178,8 +194,3 @@ def test_soft_str(soft_str):
     assert type(soft_str("")) is str
     assert type(soft_str(Markup())) is Markup
     assert type(soft_str(15)) is str
-
-
-def test_soft_unicode_deprecated(soft_unicode):
-    with pytest.warns(DeprecationWarning):
-        assert type(soft_unicode(Markup())) is Markup

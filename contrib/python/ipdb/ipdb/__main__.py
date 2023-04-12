@@ -10,7 +10,7 @@ import sys
 
 from decorator import contextmanager
 
-__version__ = '0.13.9'
+__version__ = '0.13.13'
 
 from IPython import get_ipython
 from IPython.core.debugger import BdbQuit_excepthook
@@ -80,8 +80,8 @@ def set_trace(frame=None, context=None, cond=True):
 
 
 def get_context_from_config():
+    parser = get_config()
     try:
-        parser = get_config()
         return parser.getint("ipdb", "context")
     except (configparser.NoSectionError, configparser.NoOptionError):
         return 3
@@ -176,13 +176,23 @@ def get_config():
                     read_func(f)
             # To use on pyproject.toml, put [tool.ipdb] section
             elif filepath.endswith('pyproject.toml'):
-                import toml
-                toml_file = toml.load(filepath)
-                if "tool" in toml_file and "ipdb" in toml_file["tool"]:
-                    if not parser.has_section("ipdb"):
-                        parser.add_section("ipdb")
-                    for key, value in toml_file["tool"]["ipdb"].items():
-                        parser.set("ipdb", key, str(value))
+                try:
+                    import tomllib
+                    file_mode = "rb"
+                except ImportError:
+                    try:
+                        import tomli as tomllib
+                        file_mode = "rb"
+                    except ImportError:
+                        import toml as tomllib
+                        file_mode = "r"
+                with open(filepath, file_mode) as f:
+                    toml_file = tomllib.load(f)
+                    if "tool" in toml_file and "ipdb" in toml_file["tool"]:
+                        if not parser.has_section("ipdb"):
+                            parser.add_section("ipdb")
+                        for key, value in toml_file["tool"]["ipdb"].items():
+                            parser.set("ipdb", key, str(value))
             else:
                 read_func(ConfigFile(filepath))
     return parser
@@ -299,10 +309,18 @@ def main():
     pdb = _init_pdb(commands=commands)
     while 1:
         try:
-            if run_as_module:
-                pdb._runmodule(mainpyfile)
+            import pdb as stdlib_pdb
+            if hasattr(stdlib_pdb.Pdb, "_run"):
+                # Looks like Pdb from Python 3.11+
+                if run_as_module:
+                    pdb._run(stdlib_pdb._ModuleTarget(mainpyfile))
+                else:
+                    pdb._run(stdlib_pdb._ScriptTarget(mainpyfile))
             else:
-                pdb._runscript(mainpyfile)
+                if run_as_module:
+                    pdb._runmodule(mainpyfile)
+                else:
+                    pdb._runscript(mainpyfile)
             if pdb._user_requested_quit:
                 break
             print("The program finished and will be restarted")

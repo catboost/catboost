@@ -5,10 +5,12 @@
 #
 # adapted from multiprocessing/synchronize.py (17/02/2017)
 #  * Remove ctx argument for compatibility reason
-#  * Implementation of Condition/Event are necessary for compatibility
-#    with python2.7/3.3, Barrier should be reimplemented to for those
-#    version (but it is not used in loky).
+#  * Registers a cleanup function with the loky resource_tracker to remove the
+#    semaphore when the process dies instead.
 #
+# TODO: investigate which Python version is required to be able to use
+# multiprocessing.resource_tracker and therefore multiprocessing.synchronize
+# instead of a loky-specific fork.
 
 import os
 import sys
@@ -16,11 +18,10 @@ import tempfile
 import threading
 import _multiprocessing
 from time import time as _time
+from multiprocessing import process, util
+from multiprocessing.context import assert_spawning
 
-from .context import assert_spawning
 from . import resource_tracker
-from multiprocessing import process
-from multiprocessing import util
 
 __all__ = [
     'Lock', 'RLock', 'Semaphore', 'BoundedSemaphore', 'Condition', 'Event'
@@ -29,26 +30,19 @@ __all__ = [
 # raise ImportError for platforms lacking a working sem_open implementation.
 # See issue 3770
 try:
-    if sys.version_info < (3, 4):
-        from .semlock import SemLock as _SemLock
-        from .semlock import sem_unlink
-    else:
-        from _multiprocessing import SemLock as _SemLock
-        from _multiprocessing import sem_unlink
-except (ImportError):
+    from _multiprocessing import SemLock as _SemLock
+    from _multiprocessing import sem_unlink
+except ImportError:
     raise ImportError("This platform lacks a functioning sem_open" +
                       " implementation, therefore, the required" +
                       " synchronization primitives needed will not" +
                       " function, see issue 3770.")
 
-if sys.version_info[:2] < (3, 3):
-    FileExistsError = OSError
-
 #
 # Constants
 #
 
-RECURSIVE_MUTEX, SEMAPHORE = list(range(2))
+RECURSIVE_MUTEX, SEMAPHORE = range(2)
 SEM_VALUE_MAX = _multiprocessing.SemLock.SEM_VALUE_MAX
 
 
@@ -56,7 +50,7 @@ SEM_VALUE_MAX = _multiprocessing.SemLock.SEM_VALUE_MAX
 # Base class for semaphores and mutexes; wraps `_multiprocessing.SemLock`
 #
 
-class SemLock(object):
+class SemLock:
 
     _rand = tempfile._RandomNameSequence()
 
@@ -65,7 +59,7 @@ class SemLock(object):
         unlink_now = False
         if name is None:
             # Try to find an unused name for the SemLock instance.
-            for i in range(100):
+            for _ in range(100):
                 try:
                     self._semlock = _SemLock(
                         kind, value, maxvalue, SemLock._make_name(), unlink_now
@@ -81,8 +75,10 @@ class SemLock(object):
                 kind, value, maxvalue, name, unlink_now
             )
         self.name = name
-        util.debug('created semlock with handle %s and name "%s"'
-                   % (self._semlock.handle, self.name))
+        util.debug(
+            f'created semlock with handle {self._semlock.handle} and name '
+            f'"{self.name}"'
+        )
 
         self._make_methods()
 
@@ -99,8 +95,14 @@ class SemLock(object):
 
     @staticmethod
     def _cleanup(name):
-        sem_unlink(name)
-        resource_tracker.unregister(name, "semlock")
+        try:
+            sem_unlink(name)
+        except FileNotFoundError:
+            # Already unlinked, possibly by user code: ignore and make sure to
+            # unregister the semaphore from the resource tracker.
+            pass
+        finally:
+            resource_tracker.unregister(name, "semlock")
 
     def _make_methods(self):
         self.acquire = self._semlock.acquire
@@ -120,14 +122,15 @@ class SemLock(object):
 
     def __setstate__(self, state):
         self._semlock = _SemLock._rebuild(*state)
-        util.debug('recreated blocker with handle %r and name "%s"'
-                   % (state[0], state[3]))
+        util.debug(
+            f'recreated blocker with handle {state[0]!r} and name "{state[3]}"'
+        )
         self._make_methods()
 
     @staticmethod
     def _make_name():
         # OSX does not support long names for semaphores
-        return '/loky-%i-%s' % (os.getpid(), next(SemLock._rand))
+        return f'/loky-{os.getpid()}-{next(SemLock._rand)}'
 
 
 #
@@ -149,7 +152,7 @@ class Semaphore(SemLock):
             value = self._semlock._get_value()
         except Exception:
             value = 'unknown'
-        return '<%s(value=%s)>' % (self.__class__.__name__, value)
+        return f'<{self.__class__.__name__}(value={value})>'
 
 
 #
@@ -166,8 +169,10 @@ class BoundedSemaphore(Semaphore):
             value = self._semlock._get_value()
         except Exception:
             value = 'unknown'
-        return '<%s(value=%s, maxvalue=%s)>' % \
-               (self.__class__.__name__, value, self._semlock.maxvalue)
+        return (
+            f'<{self.__class__.__name__}(value={value}, '
+            f'maxvalue={self._semlock.maxvalue})>'
+        )
 
 
 #
@@ -177,14 +182,14 @@ class BoundedSemaphore(Semaphore):
 class Lock(SemLock):
 
     def __init__(self):
-        super(Lock, self).__init__(SEMAPHORE, 1, 1)
+        super().__init__(SEMAPHORE, 1, 1)
 
     def __repr__(self):
         try:
             if self._semlock._is_mine():
                 name = process.current_process().name
                 if threading.current_thread().name != 'MainThread':
-                    name += '|' + threading.current_thread().name
+                    name = f'{name}|{threading.current_thread().name}'
             elif self._semlock._get_value() == 1:
                 name = 'None'
             elif self._semlock._count() > 0:
@@ -193,7 +198,7 @@ class Lock(SemLock):
                 name = 'SomeOtherProcess'
         except Exception:
             name = 'unknown'
-        return '<%s(owner=%s)>' % (self.__class__.__name__, name)
+        return f'<{self.__class__.__name__}(owner={name})>'
 
 
 #
@@ -203,14 +208,14 @@ class Lock(SemLock):
 class RLock(SemLock):
 
     def __init__(self):
-        super(RLock, self).__init__(RECURSIVE_MUTEX, 1, 1)
+        super().__init__(RECURSIVE_MUTEX, 1, 1)
 
     def __repr__(self):
         try:
             if self._semlock._is_mine():
                 name = process.current_process().name
                 if threading.current_thread().name != 'MainThread':
-                    name += '|' + threading.current_thread().name
+                    name = f'{name}|{threading.current_thread().name}'
                 count = self._semlock._count()
             elif self._semlock._get_value() == 1:
                 name, count = 'None', 0
@@ -220,14 +225,14 @@ class RLock(SemLock):
                 name, count = 'SomeOtherProcess', 'nonzero'
         except Exception:
             name, count = 'unknown', 'unknown'
-        return '<%s(%s, %s)>' % (self.__class__.__name__, name, count)
+        return f'<{self.__class__.__name__}({name}, {count})>'
 
 
 #
 # Condition variable
 #
 
-class Condition(object):
+class Condition:
 
     def __init__(self, lock=None):
         self._lock = lock or RLock()
@@ -262,8 +267,7 @@ class Condition(object):
                            self._woken_count._semlock._get_value())
         except Exception:
             num_waiters = 'unknown'
-        return '<%s(%s, %s)>' % (self.__class__.__name__,
-                                 self._lock, num_waiters)
+        return f'<{self.__class__.__name__}({self._lock}, {num_waiters})>'
 
     def wait(self, timeout=None):
         assert self._lock._semlock._is_mine(), \
@@ -274,7 +278,7 @@ class Condition(object):
 
         # release lock
         count = self._lock._semlock._count()
-        for i in range(count):
+        for _ in range(count):
             self._lock.release()
 
         try:
@@ -285,7 +289,7 @@ class Condition(object):
             self._woken_count.release()
 
             # reacquire lock
-            for i in range(count):
+            for _ in range(count):
                 self._lock.acquire()
 
     def notify(self):
@@ -321,7 +325,7 @@ class Condition(object):
             sleepers += 1
 
         if sleepers:
-            for i in range(sleepers):
+            for _ in range(sleepers):
                 self._woken_count.acquire()       # wait for a sleeper to wake
 
             # rezero wait_semaphore in case some timeouts just happened
@@ -351,7 +355,7 @@ class Condition(object):
 # Event
 #
 
-class Event(object):
+class Event:
 
     def __init__(self):
         self._cond = Condition(Lock())

@@ -334,16 +334,7 @@ private:
         v.at(0) = 20;
         UNIT_ASSERT(cv.at(0) == 20);
 
-        for (;;) {
-            try {
-                v.at(1) = 20;
-                UNIT_ASSERT(false);
-            } catch (std::out_of_range const&) {
-                return;
-            } catch (...) {
-                UNIT_ASSERT(false);
-            }
-        }
+        UNIT_ASSERT_EXCEPTION(v.at(1) = 20, std::out_of_range);
     }
 
     void TestPointer() {
@@ -429,8 +420,8 @@ private:
     }
 
     /* This test check a potential issue with empty base class
-         * optimization. Some compilers (VC6) do not implement it
-         * correctly resulting ina wrong behavior. */
+     * optimization. Some compilers (VC6) do not implement it
+     * correctly resulting ina wrong behavior. */
     void TestEbo() {
         // We use heap memory as test failure can corrupt vector internal
         // representation making executable crash on vector destructor invocation.

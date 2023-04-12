@@ -178,6 +178,9 @@ namespace NKernel
 
         numBlocks.x = (fCount + 3) / 4;
         numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         using THist = TPointHist2OneByte<Bits, blockSize>;
         if (partCount) {
@@ -220,6 +223,9 @@ namespace NKernel
 
         numBlocks.x = (fCount + 3) / 4;
         numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         using THist = TPointHist2OneByte<Bits, blockSize>;
         {
@@ -259,6 +265,9 @@ namespace NKernel
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
         numBlocks.x = (fCount + 3) / 4;
         numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
         using THist = TPointHist2OneByte<Bits, blockSize>;
 
         if (partCount) {
@@ -297,6 +306,9 @@ namespace NKernel
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
         numBlocks.x = (fCount + 3) / 4;
         numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
         using THist = TPointHist2OneByte<Bits, blockSize>;
 
         {

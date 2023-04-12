@@ -26,21 +26,11 @@ import asyncio
 import os
 import select
 import selectors
+import sys
 import threading
 from asyncio import AbstractEventLoop
 from selectors import BaseSelector, SelectorKey
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    List,
-    Mapping,
-    NamedTuple,
-    Optional,
-    Tuple,
-)
-
-from prompt_toolkit.utils import is_windows
+from typing import TYPE_CHECKING, Any, Callable, List, Mapping, Optional, Tuple
 
 from .utils import get_event_loop
 
@@ -52,7 +42,7 @@ __all__ = [
 ]
 
 if TYPE_CHECKING:
-    from _typeshed import FileDescriptor, FileDescriptorLike
+    from _typeshed import FileDescriptorLike
 
     _EventMask = int
 
@@ -150,7 +140,7 @@ class InputHookSelector(BaseSelector):
             #       However, if we would ever want to add a select call, it
             #       should use `windll.kernel32.WaitForMultipleObjects`,
             #       because `select.select` can't wait for a pipe on Windows.
-            if not is_windows():
+            if sys.platform != "win32":
                 select.select([self._r], [], [], None)
 
             os.read(self._r, 1024)

@@ -70,6 +70,9 @@ Y_PURE_FUNCTION
 TStringBuf GetHostAndPort(const TStringBuf url) noexcept;
 
 Y_PURE_FUNCTION
+TStringBuf GetSchemeHost(const TStringBuf url, bool trimHttp = true) noexcept;
+
+Y_PURE_FUNCTION
 TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp = true, bool trimDefaultPort = true) noexcept;
 
 /**

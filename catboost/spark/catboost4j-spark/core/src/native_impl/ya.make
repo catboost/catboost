@@ -2,7 +2,10 @@ DLL_JAVA(catboost4j-spark-impl)
 
 NO_WERROR()
 
-
+OWNER(
+    akhropov
+    g:matrixnet
+)
 
 SRCS(
     calc_fstr.cpp
@@ -24,7 +27,6 @@ SRCS(
     string.cpp
     target.cpp
     native_impl.swg
-    quantized_pool_serialization.cpp
     vector_output.cpp
     worker.cpp
 )
@@ -77,6 +79,8 @@ IF (USE_SYSTEM_JDK)
 ELSE()
     IF (NOT OPENSOURCE OR AUTOCHECK)
         PEERDIR(contrib/libs/jdk)
+    ELSEIF(EXPORT_CMAKE)
+        PEERDIR(build/platform/java/jni)
     ELSE()
         # warning instead of an error to enable configure w/o specifying JAVA_HOME
         MESSAGE(WARNING System JDK required)

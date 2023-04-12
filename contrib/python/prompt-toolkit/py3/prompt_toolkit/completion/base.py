@@ -1,10 +1,14 @@
 """
 """
 from abc import ABCMeta, abstractmethod
-from typing import AsyncGenerator, Callable, Iterable, Optional, Sequence
+from typing import AsyncGenerator, Callable, Iterable, List, Optional, Sequence
 
 from prompt_toolkit.document import Document
-from prompt_toolkit.eventloop import generator_to_async_generator
+from prompt_toolkit.eventloop import (
+    aclosing,
+    generator_to_async_generator,
+    get_event_loop,
+)
 from prompt_toolkit.filters import FilterOrBool, to_filter
 from prompt_toolkit.formatted_text import AnyFormattedText, StyleAndTextTuples
 
@@ -65,13 +69,13 @@ class Completion:
 
     def __repr__(self) -> str:
         if isinstance(self.display, str) and self.display == self.text:
-            return "%s(text=%r, start_position=%r)" % (
+            return "{}(text={!r}, start_position={!r})".format(
                 self.__class__.__name__,
                 self.text,
                 self.start_position,
             )
         else:
-            return "%s(text=%r, start_position=%r, display=%r)" % (
+            return "{}(text={!r}, start_position={!r}, display={!r})".format(
                 self.__class__.__name__,
                 self.text,
                 self.start_position,
@@ -155,7 +159,7 @@ class CompleteEvent:
         self.completion_requested = completion_requested
 
     def __repr__(self) -> str:
-        return "%s(text_inserted=%r, completion_requested=%r)" % (
+        return "{}(text_inserted={!r}, completion_requested={!r})".format(
             self.__class__.__name__,
             self.text_inserted,
             self.completion_requested,
@@ -224,13 +228,64 @@ class ThreadedCompleter(Completer):
         """
         Asynchronous generator of completions.
         """
-        async for completion in generator_to_async_generator(
-            lambda: self.completer.get_completions(document, complete_event)
-        ):
-            yield completion
+        # NOTE: Right now, we are consuming the `get_completions` generator in
+        #       a synchronous background thread, then passing the results one
+        #       at a time over a queue, and consuming this queue in the main
+        #       thread (that's what `generator_to_async_generator` does). That
+        #       means that if the completer is *very* slow, we'll be showing
+        #       completions in the UI once they are computed.
+
+        #       It's very tempting to replace this implementation with the
+        #       commented code below for several reasons:
+
+        #       - `generator_to_async_generator` is not perfect and hard to get
+        #         right. It's a lot of complexity for little gain. The
+        #         implementation needs a huge buffer for it to be efficient
+        #         when there are many completions (like 50k+).
+        #       - Normally, a completer is supposed to be fast, users can have
+        #         "complete while typing" enabled, and want to see the
+        #         completions within a second. Handling one completion at a
+        #         time, and rendering once we get it here doesn't make any
+        #         sense if this is quick anyway.
+        #       - Completers like `FuzzyCompleter` prepare all completions
+        #         anyway so that they can be sorted by accuracy before they are
+        #         yielded. At the point that we start yielding completions
+        #         here, we already have all completions.
+        #       - The `Buffer` class has complex logic to invalidate the UI
+        #         while it is consuming the completions. We don't want to
+        #         invalidate the UI for every completion (if there are many),
+        #         but we want to do it often enough so that completions are
+        #         being displayed while they are produced.
+
+        #       We keep the current behavior mainly for backward-compatibility.
+        #       Similarly, it would be better for this function to not return
+        #       an async generator, but simply be a coroutine that returns a
+        #       list of `Completion` objects, containing all completions at
+        #       once.
+
+        #       Note that this argument doesn't mean we shouldn't use
+        #       `ThreadedCompleter`. It still makes sense to produce
+        #       completions in a background thread, because we don't want to
+        #       freeze the UI while the user is typing. But sending the
+        #       completions one at a time to the UI maybe isn't worth it.
+
+        # def get_all_in_thread() -> List[Completion]:
+        #   return list(self.get_completions(document, complete_event))
+
+        # completions = await get_event_loop().run_in_executor(None, get_all_in_thread)
+        # for completion in completions:
+        #   yield completion
+
+        async with aclosing(
+            generator_to_async_generator(
+                lambda: self.completer.get_completions(document, complete_event)
+            )
+        ) as async_generator:
+            async for completion in async_generator:
+                yield completion
 
     def __repr__(self) -> str:
-        return "ThreadedCompleter(%r)" % (self.completer,)
+        return f"ThreadedCompleter({self.completer!r})"
 
 
 class DummyCompleter(Completer):
@@ -274,7 +329,7 @@ class DynamicCompleter(Completer):
             yield completion
 
     def __repr__(self) -> str:
-        return "DynamicCompleter(%r -> %r)" % (self.get_completer, self.get_completer())
+        return f"DynamicCompleter({self.get_completer!r} -> {self.get_completer()!r})"
 
 
 class ConditionalCompleter(Completer):
@@ -291,15 +346,14 @@ class ConditionalCompleter(Completer):
         self.filter = to_filter(filter)
 
     def __repr__(self) -> str:
-        return "ConditionalCompleter(%r, filter=%r)" % (self.completer, self.filter)
+        return f"ConditionalCompleter({self.completer!r}, filter={self.filter!r})"
 
     def get_completions(
         self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
         # Get all completions in a blocking way.
         if self.filter():
-            for c in self.completer.get_completions(document, complete_event):
-                yield c
+            yield from self.completer.get_completions(document, complete_event)
 
     async def get_completions_async(
         self, document: Document, complete_event: CompleteEvent
@@ -307,10 +361,11 @@ class ConditionalCompleter(Completer):
 
         # Get all completions in a non-blocking way.
         if self.filter():
-            async for item in self.completer.get_completions_async(
-                document, complete_event
-            ):
-                yield item
+            async with aclosing(
+                self.completer.get_completions_async(document, complete_event)
+            ) as async_generator:
+                async for item in async_generator:
+                    yield item
 
 
 class _MergedCompleter(Completer):
@@ -326,8 +381,7 @@ class _MergedCompleter(Completer):
     ) -> Iterable[Completion]:
         # Get all completions from the other completers in a blocking way.
         for completer in self.completers:
-            for c in completer.get_completions(document, complete_event):
-                yield c
+            yield from completer.get_completions(document, complete_event)
 
     async def get_completions_async(
         self, document: Document, complete_event: CompleteEvent
@@ -335,8 +389,11 @@ class _MergedCompleter(Completer):
 
         # Get all completions from the other completers in a non-blocking way.
         for completer in self.completers:
-            async for item in completer.get_completions_async(document, complete_event):
-                yield item
+            async with aclosing(
+                completer.get_completions_async(document, complete_event)
+            ) as async_generator:
+                async for item in async_generator:
+                    yield item
 
 
 def merge_completers(

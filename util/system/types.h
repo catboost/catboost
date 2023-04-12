@@ -117,3 +117,9 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #include <sys/types.h>
+
+// for pb.h/cc
+typedef i32 arc_i32;
+typedef i64 arc_i64;
+typedef ui32 arc_ui32;
+typedef ui64 arc_ui64;

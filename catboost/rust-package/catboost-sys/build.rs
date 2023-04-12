@@ -11,23 +11,23 @@ fn main() {
         .canonicalize()
         .unwrap();
 
-    Command::new("../../../ya")
+    let build_cmd_status = Command::new("../../../build/build_native.py")
         .args(&[
-            "make",
-            "-r",
-            cb_model_interface_root.to_str().unwrap(),
-            // "--sanitize=address",
-            "-o",
-            out_dir.to_str().unwrap(),
+            "--targets", "catboostmodel",
+            "--build-root-dir", out_dir.to_str().unwrap(),
         ])
         .status()
         .unwrap_or_else(|e| {
-            panic!("Failed to yamake libcatboostmodel: {}", e);
+            panic!("Failed to run build_native.py : {}", e);
         });
+    if !build_cmd_status.success() {
+        panic!("Building with build_native.py failed");
+    }
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
         .clang_arg(format!("-I{}", cb_model_interface_root.display()))
+        .size_t_is_usize(true)
         .rustfmt_bindings(true)
         .generate()
         .expect("Unable to generate bindings.");

@@ -1,4 +1,0 @@
-RECURSE(
-    chunks
-    chunks/ut
-)

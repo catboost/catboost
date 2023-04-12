@@ -46,5 +46,3 @@ Run `cargo doc --open` in `catboost/rust-package` directory.
 ### Tests
 
 Run `cargo test` in `catboost/rust-package` directory.
-
-To run tests with sanitizer, uncomment line `"--sanitize=address",` in `catboost/rust-package/catboost-sys/build.rs` and run `RUSTFLAGS="-Z sanitizer=address" cargo +nightly test`.

@@ -32,7 +32,7 @@
     have been chosen to have the same style.  Similarly, keywords (Keyword.*),
     and Operator.Word (and, or, in) have been assigned the same style.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -50,12 +50,11 @@ class TangoStyle(Style):
     # work in progress...
 
     background_color = "#f8f8f8"
-    default_style = ""
 
     styles = {
         # No corresponding class for the following:
         #Text:                     "", # class:  ''
-        Whitespace:                "underline #f8f8f8",      # class: 'w'
+        Whitespace:                "#f8f8f8",      # class: 'w'
         Error:                     "#a40000 border:#ef2929", # class: 'err'
         Other:                     "#000000",                # class 'x'
 

@@ -23,15 +23,15 @@ def import_item(name):
     """
     if not isinstance(name, str):
         raise TypeError("import_item accepts strings, not '%s'." % type(name))
-    parts = name.rsplit('.', 1)
+    parts = name.rsplit(".", 1)
     if len(parts) == 2:
         # called with 'foo.bar....'
         package, obj = parts
         module = __import__(package, fromlist=[obj])
         try:
             pak = getattr(module, obj)
-        except AttributeError:
-            raise ImportError('No module named %s' % obj)
+        except AttributeError as e:
+            raise ImportError("No module named %s" % obj) from e
         return pak
     else:
         # called with un-dotted string

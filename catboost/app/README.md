@@ -2,4 +2,4 @@
 
 CatBoost command-line interface (CLI).
 
-[Documentation](https://catboost.ai/docs/concepts/cli-reference_train-model.html)
+[Usage examples](https://catboost.ai/docs/concepts/cli-usages-examples)

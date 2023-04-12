@@ -18,6 +18,7 @@ cimport libc.stdio as stdio
 
 cdef extern from "Python.h":
     ctypedef int Py_intptr_t
+    bint PyObject_TypeCheck(object obj, PyTypeObject* type)
 
 cdef extern from "numpy/arrayobject.h":
     ctypedef Py_intptr_t npy_intp
@@ -129,7 +130,6 @@ cdef extern from "numpy/arrayobject.h":
         NPY_ALIGNED
         NPY_NOTSWAPPED
         NPY_WRITEABLE
-        NPY_UPDATEIFCOPY
         NPY_ARR_HAS_DESCR
 
         NPY_BEHAVED
@@ -161,7 +161,7 @@ cdef extern from "numpy/arrayobject.h":
         NPY_ARRAY_ALIGNED
         NPY_ARRAY_NOTSWAPPED
         NPY_ARRAY_WRITEABLE
-        NPY_ARRAY_UPDATEIFCOPY
+        NPY_ARRAY_WRITEBACKIFCOPY
 
         NPY_ARRAY_BEHAVED
         NPY_ARRAY_BEHAVED_NS
@@ -212,7 +212,7 @@ cdef extern from "numpy/arrayobject.h":
         cdef int type_num
         cdef int itemsize "elsize"
         cdef int alignment
-        cdef dict fields
+        cdef object fields
         cdef tuple names
         # Use PyDataType_HASSUBARRAY to test whether this field is
         # valid (the pointer can be NULL). Most users should access
@@ -289,8 +289,8 @@ cdef extern from "numpy/arrayobject.h":
     ctypedef long double  npy_float128
 
     ctypedef struct npy_cfloat:
-        double real
-        double imag
+        float real
+        float imag
 
     ctypedef struct npy_cdouble:
         double real
@@ -753,6 +753,68 @@ cdef inline tuple PyDataType_SHAPE(dtype d):
         return ()
 
 
+cdef extern from "numpy/ndarrayobject.h":
+    PyTypeObject PyTimedeltaArrType_Type
+    PyTypeObject PyDatetimeArrType_Type
+    ctypedef int64_t npy_timedelta
+    ctypedef int64_t npy_datetime
+
+cdef extern from "numpy/ndarraytypes.h":
+    ctypedef struct PyArray_DatetimeMetaData:
+        NPY_DATETIMEUNIT base
+        int64_t num
+
+cdef extern from "numpy/arrayscalars.h":
+
+    # abstract types
+    ctypedef class numpy.generic [object PyObject]:
+        pass
+    ctypedef class numpy.number [object PyObject]:
+        pass
+    ctypedef class numpy.integer [object PyObject]:
+        pass
+    ctypedef class numpy.signedinteger [object PyObject]:
+        pass
+    ctypedef class numpy.unsignedinteger [object PyObject]:
+        pass
+    ctypedef class numpy.inexact [object PyObject]:
+        pass
+    ctypedef class numpy.floating [object PyObject]:
+        pass
+    ctypedef class numpy.complexfloating [object PyObject]:
+        pass
+    ctypedef class numpy.flexible [object PyObject]:
+        pass
+    ctypedef class numpy.character [object PyObject]:
+        pass
+
+    ctypedef struct PyDatetimeScalarObject:
+        # PyObject_HEAD
+        npy_datetime obval
+        PyArray_DatetimeMetaData obmeta
+
+    ctypedef struct PyTimedeltaScalarObject:
+        # PyObject_HEAD
+        npy_timedelta obval
+        PyArray_DatetimeMetaData obmeta
+
+    ctypedef enum NPY_DATETIMEUNIT:
+        NPY_FR_Y
+        NPY_FR_M
+        NPY_FR_W
+        NPY_FR_D
+        NPY_FR_B
+        NPY_FR_h
+        NPY_FR_m
+        NPY_FR_s
+        NPY_FR_ms
+        NPY_FR_us
+        NPY_FR_ns
+        NPY_FR_ps
+        NPY_FR_fs
+        NPY_FR_as
+
+
 #
 # ufunc API
 #
@@ -805,8 +867,6 @@ cdef extern from "numpy/ufuncobject.h":
           void **, char *, int, int, int, int, char *, char *, int)
     int PyUFunc_RegisterLoopForType(ufunc, int,
                                     PyUFuncGenericFunction, int *, void *)
-    int PyUFunc_GenericFunction \
-        (ufunc, PyObject *, PyObject *, PyArrayObject **)
     void PyUFunc_f_f_As_d_d \
          (char **, npy_intp *, npy_intp *, void *)
     void PyUFunc_d_d \
@@ -901,3 +961,57 @@ cdef extern from *:
     """
     /* NumPy API declarations from "numpy/__init__.pxd" */
     """
+
+
+cdef inline bint is_timedelta64_object(object obj):
+    """
+    Cython equivalent of `isinstance(obj, np.timedelta64)`
+
+    Parameters
+    ----------
+    obj : object
+
+    Returns
+    -------
+    bool
+    """
+    return PyObject_TypeCheck(obj, &PyTimedeltaArrType_Type)
+
+
+cdef inline bint is_datetime64_object(object obj):
+    """
+    Cython equivalent of `isinstance(obj, np.datetime64)`
+
+    Parameters
+    ----------
+    obj : object
+
+    Returns
+    -------
+    bool
+    """
+    return PyObject_TypeCheck(obj, &PyDatetimeArrType_Type)
+
+
+cdef inline npy_datetime get_datetime64_value(object obj) nogil:
+    """
+    returns the int64 value underlying scalar numpy datetime64 object
+
+    Note that to interpret this as a datetime, the corresponding unit is
+    also needed.  That can be found using `get_datetime64_unit`.
+    """
+    return (<PyDatetimeScalarObject*>obj).obval
+
+
+cdef inline npy_timedelta get_timedelta64_value(object obj) nogil:
+    """
+    returns the int64 value underlying scalar numpy timedelta64 object
+    """
+    return (<PyTimedeltaScalarObject*>obj).obval
+
+
+cdef inline NPY_DATETIMEUNIT get_datetime64_unit(object obj) nogil:
+    """
+    returns the unit part of the dtype for a numpy datetime64 object.
+    """
+    return <NPY_DATETIMEUNIT>(<PyDatetimeScalarObject*>obj).obmeta.base

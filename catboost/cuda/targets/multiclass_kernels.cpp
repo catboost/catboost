@@ -9,4 +9,10 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xA11BB02, TMultiClassOneVsAllValueAndDerKernel);
     REGISTER_KERNEL(0xA11BB03, TMultiClassOneVsAllSecondDerKernel);
     REGISTER_KERNEL(0xA11BB04, TBuildConfusionMatrixKernel);
+
+    REGISTER_KERNEL(0xA11BB05, TRMSEWithUncertaintyValueAndDerKernel);
+    REGISTER_KERNEL(0xA11BB06, TRMSEWithUncertaintySecondDerKernel);
+
+    REGISTER_KERNEL(0xA11BB07, TMultiCrossEntropyValueAndDerKernel);
+    REGISTER_KERNEL(0xA11BB08, TMultiCrossEntropySecondDerKernel);
 }

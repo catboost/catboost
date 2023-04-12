@@ -16,10 +16,11 @@ from pkg_resources import (
     evaluate_marker,
     add_activation_listener,
     require,
-    EntryPoint,
 )
+from .._importlib import metadata
 from setuptools import Command
 from setuptools.extern.more_itertools import unique_everseen
+from setuptools.extern.jaraco.functools import pass_none
 
 
 class ScanningLoader(TestLoader):
@@ -117,7 +118,7 @@ class test(Command):
         return list(self._test_args())
 
     def _test_args(self):
-        if not self.test_suite and sys.version_info >= (2, 7):
+        if not self.test_suite:
             yield 'discover'
         if self.verbose:
             yield '--verbose'
@@ -241,12 +242,10 @@ class test(Command):
         return ['unittest'] + self.test_args
 
     @staticmethod
+    @pass_none
     def _resolve_as_ep(val):
         """
         Load the indicated attribute value, called, as a as if it were
         specified as an entry point.
         """
-        if val is None:
-            return
-        parsed = EntryPoint.parse("x=" + val)
-        return parsed.resolve()()
+        return metadata.EntryPoint(value=val, name=None, group=None).load()()

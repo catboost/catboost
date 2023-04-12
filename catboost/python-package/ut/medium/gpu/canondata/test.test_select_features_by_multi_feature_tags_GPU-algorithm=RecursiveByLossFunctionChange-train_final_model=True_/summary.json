@@ -1,0 +1,106 @@
+{
+    "eliminated_features": [
+        16,
+        20,
+        21,
+        24
+    ],
+    "eliminated_features_names": [
+        "16",
+        "20",
+        "21",
+        "24"
+    ],
+    "eliminated_features_tags": [
+        "tag4",
+        "tag6"
+    ],
+    "features_tags_cost_graph": {
+        "loss_values": [
+            4,
+            3
+        ],
+        "main_indices": [],
+        "removed_features_tags_count": [
+            1,
+            2
+        ]
+    },
+    "features_tags_loss_graph": {
+        "loss_values": [
+            0.6924041160210107,
+            0.6927877106644088,
+            0.6924619178432669
+        ],
+        "main_indices": [
+            0,
+            1,
+            2
+        ],
+        "removed_features_tags_count": [
+            0,
+            1,
+            2
+        ]
+    },
+    "loss_graph": {
+        "loss_values": [
+            0.6924041160210107,
+            0.6927877106644088,
+            0.693433297036012,
+            0.6915917890336016,
+            0.6924619178432669
+        ],
+        "main_indices": [
+            0,
+            1,
+            4
+        ],
+        "removed_features_count": [
+            0,
+            1,
+            2,
+            3,
+            4
+        ]
+    },
+    "selected_features": [
+        0,
+        1,
+        2,
+        10,
+        12,
+        15,
+        4,
+        5,
+        3,
+        7,
+        11,
+        13,
+        26,
+        27,
+        28
+    ],
+    "selected_features_names": [
+        "0",
+        "1",
+        "2",
+        "10",
+        "12",
+        "15",
+        "4",
+        "5",
+        "3",
+        "7",
+        "11",
+        "13",
+        "26",
+        "27",
+        "28"
+    ],
+    "selected_features_tags": [
+        "tag0",
+        "tag2",
+        "tag1"
+    ]
+}

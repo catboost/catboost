@@ -1,11 +1,12 @@
 Metadata-Version: 2.1
 Name: joblib
-Version: 1.1.0
+Version: 1.2.0
 Summary: Lightweight pipelining with Python functions
 Home-page: https://joblib.readthedocs.io
 Author: Gael Varoquaux
 Author-email: gael.varoquaux@normalesup.org
 License: BSD
+Project-URL: Source, https://github.com/joblib/joblib
 Platform: any
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Environment :: Console
@@ -15,15 +16,16 @@ Classifier: Intended Audience :: Education
 Classifier: License :: OSI Approved :: BSD License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
 Classifier: Topic :: Scientific/Engineering
 Classifier: Topic :: Utilities
 Classifier: Topic :: Software Development :: Libraries
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 Description-Content-Type: text/x-rst
+License-File: LICENSE.txt
 
 |PyPi| |Azure| |ReadTheDocs| |Codecov| 
 
@@ -35,9 +37,9 @@ Description-Content-Type: text/x-rst
    :target: https://dev.azure.com/joblib/joblib/_build?definitionId=3&_a=summary&branchFilter=40
    :alt: Azure CI status
 
-.. |ReadTheDocs| image:: https://readthedocs.org/projects/pip/badge/?version=latest
-   :target: https://joblib.readthedocs.io/en/latest/
-   :alt: Doc status
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/joblib/badge/?version=latest
+    :target: https://joblib.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 .. |Codecov| image:: https://codecov.io/gh/joblib/joblib/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/joblib/joblib
@@ -75,7 +77,7 @@ Dependencies
 ============
 
 - Joblib has no mandatory dependencies besides Python (supported versions are
-  3.6+).
+  3.7+).
 - Joblib has an optional dependency on Numpy (at least version 1.6.1) for array
   manipulation.
 - Joblib includes its own vendored copy of

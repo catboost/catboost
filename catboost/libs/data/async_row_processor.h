@@ -27,8 +27,8 @@ namespace NCB {
         {
             CB_ENSURE(BlockSize, "TAsyncRowProcessor: blockSize == 0");
 
-            ReadBuffer.yresize(blockSize);
-            ParseBuffer.yresize(blockSize);
+            ReadBuffer.resize(blockSize);
+            ParseBuffer.resize(blockSize);
         }
 
         ~TAsyncRowProcessor() {
@@ -64,7 +64,7 @@ namespace NCB {
                     1,
                     NPar::TLocalExecutor::HIGH_PRIORITY
                 );
-                Y_VERIFY(readFuturesVector.size() == 1);
+                CB_ENSURE(readFuturesVector.size() == 1, "ExecRangeWithFutures returned unexpected number of futures");
                 ReadFuture = std::move(readFuturesVector[0]);
             } else {
                 readLineBufferLambda(0);
@@ -77,7 +77,8 @@ namespace NCB {
          */
         template <class TReadDataFunc>
         bool ReadBlock(TReadDataFunc readFunc) {
-            if (ReadFuture.Initialized()) { // ReadFuture is not used if there's only one thread
+            const bool haveReadFuture = ReadFuture.Initialized();
+            if (haveReadFuture) { // ReadFuture is not used if there's only one thread
                 ReadFuture.GetValueSync(); // will rethrow if there was an exception during read
             }
             ReadBuffer.swap(ParseBuffer);
@@ -85,7 +86,9 @@ namespace NCB {
                 ReadBlockAsync(readFunc);
             } else {
                 ReadBuffer.resize(0);
-                ReadFuture = NThreading::TFuture<void>();
+                if (haveReadFuture) {
+                    ReadFuture = NThreading::TFuture<void>();
+                }
             }
             return !!ParseBuffer;
         }

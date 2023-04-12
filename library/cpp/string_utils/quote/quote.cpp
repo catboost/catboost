@@ -4,8 +4,6 @@
 #include <util/string/ascii.h>
 #include <util/string/cstriter.h>
 
-#include <cctype>
-
 /* note: (x & 0xdf) makes x upper case */
 #define GETXC                                                           \
     do {                                                                \
@@ -48,7 +46,7 @@ namespace {
 
     class TFromHexLenLimited {
     public:
-        TFromHexLenLimited(const char* end)
+        explicit TFromHexLenLimited(const char* end)
             : End(end)
         {
         }
@@ -77,18 +75,18 @@ static inline const char* FixZero(const char* s) noexcept {
 // '%',  '&', '+', ',',
 // '#',  '<', '=', '>',
 // '[',  '\\',']', '?',
-//  ':', '{', '}',
+//  ':', '{', '}', '^'
 // all below ' ' (0x20) and above '~' (0x7E).
 // ' ' converted to '+'
 static const bool chars_to_url_escape[256] = {
-    //  0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F
+//  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //0
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //1
     0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, //2
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, //3
 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //4
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, //5
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, //5
     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //6
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, //7
 
@@ -189,11 +187,11 @@ static inline It1 Quote(It1 to, It2 from, It3 end, const char* safe) {
     // lists following reserved characters:
     const char* reserved = ":/?#[]@!$&\'()*+,;=";
     for (const char* p = reserved; *p; ++p) {
-        escape_map[(unsigned char)*p] = 1;
+        escape_map[(unsigned char)*p] = true;
     }
     // characters we think are safe at the moment
     for (const char* p = safe; *p; ++p) {
-        escape_map[(unsigned char)*p] = 0;
+        escape_map[(unsigned char)*p] = false;
     }
 
     return Escape(to, from, end, escape_map);

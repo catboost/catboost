@@ -2,7 +2,7 @@
 
 {% include [parameter-tuning-one-hot-encoding__note](../_includes/work_src/reusage-common-phrases/one-hot-encoding__note.md) %}
 
-{{ product }} supports numerical, categorical and text features.
+{{ product }} supports numerical, categorical, text, and embeddings features.
 
 Categorical features are used to build new numeric features based on categorical features and their combinations. See the [Transforming categorical features to numerical features](../concepts/algorithm-main-stages_cat-to-numberic.md) section for details.
 

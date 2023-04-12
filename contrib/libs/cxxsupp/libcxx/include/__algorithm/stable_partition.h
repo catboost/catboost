@@ -9,18 +9,15 @@
 #ifndef _LIBCPP___ALGORITHM_STABLE_PARTITION_H
 #define _LIBCPP___ALGORITHM_STABLE_PARTITION_H
 
-#include <__config>
 #include <__algorithm/rotate.h>
+#include <__config>
 #include <__iterator/iterator_traits.h>
 #include <__utility/swap.h>
 #include <memory>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
-
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -294,7 +291,5 @@ stable_partition(_ForwardIterator __first, _ForwardIterator __last, _Predicate _
 }
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ALGORITHM_STABLE_PARTITION_H

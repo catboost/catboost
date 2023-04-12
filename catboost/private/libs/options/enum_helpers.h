@@ -69,7 +69,11 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 bool IsUserDefined(ELossFunction lossFunction);
 bool IsUserDefined(TStringBuf metricName);
 
+bool HasGpuImplementation(ELossFunction loss);
+bool HasGpuImplementation(TStringBuf metricName);
+
 bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType);
+bool IsClassificationOnlyEstimator(EFeatureCalcerType estimatorType);
 
 bool IsBuildingFullBinaryTree(EGrowPolicy growPolicy);
 

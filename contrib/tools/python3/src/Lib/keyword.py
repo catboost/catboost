@@ -6,7 +6,7 @@ To update the symbols in this file, 'cd' to the top directory of
 the python source tree and run:
 
     PYTHONPATH=Tools/peg_generator python3 -m pegen.keywordgen \
-        Grammar/Grammar \
+        Grammar/python.gram \
         Grammar/Tokens \
         Lib/keyword.py
 
@@ -19,7 +19,6 @@ kwlist = [
     'False',
     'None',
     'True',
-    '__peg_parser__',
     'and',
     'as',
     'assert',
@@ -55,7 +54,9 @@ kwlist = [
 ]
 
 softkwlist = [
-
+    '_',
+    'case',
+    'match'
 ]
 
 iskeyword = frozenset(kwlist).__contains__

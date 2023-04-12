@@ -1,41 +1,27 @@
 ---------------------------------------------------------------------------
 RuntimeError                              Traceback (most recent call last)
-library/python/runtime_py3/test/traceback/crash.py in main()
-     42     sys.executable = '<traceback test>'
-     43 
----> 44     one()
-        global one = <function one>
+File library/python/runtime_py3/test/traceback/crash.py:42, in main()
+     39 time.time = lambda: 1531996624.0  # Freeze time
+     40 sys.executable = '<traceback test>'
+---> 42 one()
 
-library/python/runtime_py3/test/traceback/crash.py in one()
-     10 
-     11 def one():
----> 12     modfunc(two)  # aaa
-        global modfunc = <function modfunc>
-        global two = <function two>
-     13 
-     14 
+File library/python/runtime_py3/test/traceback/crash.py:11, in one()
+     10 def one():
+---> 11     modfunc(two)
 
-library/python/runtime_py3/test/traceback/mod/__init__.py in modfunc(f=<function two>)
+File library/python/runtime_py3/test/traceback/mod/__init__.py:3, in modfunc(f=<function two>)
       1 def modfunc(f):
       2     # lalala
-----> 3     f()  # call back to caller
+----> 3     f()
         f = <function two>
 
-library/python/runtime_py3/test/traceback/crash.py in two()
-     14 
-     15 def two():
----> 16     three(42)
-        global three = <function three>
-     17 
-     18 
+File library/python/runtime_py3/test/traceback/crash.py:15, in two()
+     14 def two():
+---> 15     three(42)
 
-library/python/runtime_py3/test/traceback/crash.py in three(x=42)
-     18 
-     19 def three(x):
----> 20     raise RuntimeError('Kaboom! I\'m dead: {}'.format(x))
-        global RuntimeError.format = undefined
+File library/python/runtime_py3/test/traceback/crash.py:19, in three(x=42)
+     18 def three(x):
+---> 19     raise RuntimeError('Kaboom! I\'m dead: {}'.format(x))
         x = 42
-     21 
-     22 
 
 RuntimeError: Kaboom! I'm dead: 42

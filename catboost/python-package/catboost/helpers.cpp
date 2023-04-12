@@ -4,9 +4,15 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/target/data_providers.h>
+
+#include <util/system/guard.h>
+#include <util/system/info.h>
+#include <util/system/mutex.h>
 
 
 extern "C" PyObject* PyCatboostExceptionType;
@@ -214,3 +220,110 @@ TConstArrayRef<TPair> GetUngroupedPairs(const NCB::TDataProvider& dataProvider) 
     }
     return result;
 }
+
+void TrainEvalSplit(
+    const NCB::TDataProvider& srcDataProvider,
+    NCB::TDataProviderPtr* trainDataProvider,
+    NCB::TDataProviderPtr* evalDataProvider,
+    const TTrainTestSplitParams& splitParams,
+    bool saveEvalDataset,
+    int threadCount,
+    ui64 cpuUsedRamLimit
+) {
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+
+    bool shuffle = splitParams.Shuffle && srcDataProvider.ObjectsData->GetOrder() != NCB::EObjectsOrder::RandomShuffled;
+    NCB::TObjectsGroupingSubset postShuffleGroupingSubset;
+    if (shuffle) {
+        TRestorableFastRng64 rand(splitParams.PartitionRandSeed);
+        postShuffleGroupingSubset = NCB::Shuffle(srcDataProvider.ObjectsGrouping, 1, &rand);
+    } else {
+        postShuffleGroupingSubset = NCB::GetSubset(
+            srcDataProvider.ObjectsGrouping,
+            NCB::TArraySubsetIndexing<ui32>(NCB::TFullSubset<ui32>(srcDataProvider.ObjectsGrouping->GetGroupCount())),
+            NCB::EObjectsOrder::Ordered
+        );
+    }
+    auto postShuffleGrouping = postShuffleGroupingSubset.GetSubsetGrouping();
+
+    // for groups
+    NCB::TArraySubsetIndexing<ui32> postShuffleTrainIndices;
+    NCB::TArraySubsetIndexing<ui32> postShuffleTestIndices;
+
+    if (splitParams.Stratified) {
+        auto maybeOneDimensionalTarget = srcDataProvider.RawTargetData.GetOneDimensionalTarget();
+        CB_ENSURE(maybeOneDimensionalTarget, "Cannot do stratified split without one-dimensional target data");
+
+        auto doStratifiedSplit = [&](auto targetArrayRef) {
+            typedef std::remove_const_t<typename decltype(targetArrayRef)::value_type> TDst;
+            TVector<TDst> shuffledTarget;
+            if (shuffle) {
+                shuffledTarget = NCB::GetSubset<TDst>(targetArrayRef, postShuffleGroupingSubset.GetObjectsIndexing(), &executor);
+                targetArrayRef = shuffledTarget;
+            }
+            NCB::StratifiedTrainTestSplit(
+                *postShuffleGrouping,
+                targetArrayRef,
+                splitParams.TrainPart,
+                &postShuffleTrainIndices,
+                &postShuffleTestIndices
+            );
+        };
+
+        std::visit(
+            TOverloaded{
+                [&](const NCB::ITypedSequencePtr<float>& floatTarget) { doStratifiedSplit(TConstArrayRef<float>(NCB::ToVector(*floatTarget))); },
+                [&](const TVector<TString>& stringTarget) { doStratifiedSplit(TConstArrayRef<TString>(stringTarget)); }
+            },
+            **maybeOneDimensionalTarget
+        );
+    } else {
+        NCB::TrainTestSplit(*postShuffleGrouping, splitParams.TrainPart, &postShuffleTrainIndices, &postShuffleTestIndices);
+    }
+
+    auto getSubset = [&](const NCB::TArraySubsetIndexing<ui32>& postShuffleIndexing) {
+        return srcDataProvider.GetSubset(
+            NCB::GetSubset(
+                srcDataProvider.ObjectsGrouping,
+                NCB::Compose(postShuffleGroupingSubset.GetGroupsIndexing(), postShuffleIndexing),
+                shuffle ? NCB::EObjectsOrder::RandomShuffled : NCB::EObjectsOrder::Ordered
+            ),
+            cpuUsedRamLimit,
+            &executor
+        );
+    };
+
+    *trainDataProvider = getSubset(postShuffleTrainIndices);
+    if (saveEvalDataset) {
+        *evalDataProvider = getSubset(postShuffleTestIndices);
+    }
+}
+
+TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount) {
+    static TMutex lock;
+    static TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> cachedExecutor;
+
+    CB_ENSURE(threadsCount == -1 || 0 < threadsCount, "threadsCount should be positive or -1");
+
+    if (threadsCount == -1) {
+        threadsCount = NSystemInfo::CachedNumberOfCpus();
+    }
+
+    with_lock (lock) {
+        if (cachedExecutor && cachedExecutor->GetThreadCount() + 1 == threadsCount) {
+            return cachedExecutor;
+        }
+
+        cachedExecutor.Reset();
+        cachedExecutor = MakeAtomicShared<NPar::TTbbLocalExecutor<false>>(threadsCount);
+
+        return cachedExecutor;
+    }
+}
+
+size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) {
+    const auto& paramsMap = ParseLossParams(lossFunctionDescription).GetParamsMap();
+    return NCatboostOptions::GetAlphaMultiQuantile(paramsMap).size();
+}
+

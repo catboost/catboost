@@ -552,7 +552,7 @@ void TModelTrees::CalcBinFeatures() {
         for (const auto& binSplit : treeSplits) {
             const auto& feature = ref.BinFeatures[binSplit];
             const auto& featureIndex = splitIds[binSplit];
-            Y_ENSURE(
+            CB_ENSURE(
                 featureIndex.FeatureIdx <= 0xffff,
                 "Too many features in model, ask catboost team for support"
             );
@@ -601,7 +601,7 @@ void TModelTrees::CalcFirstLeafOffsets() {
                 if (node.LeftSubtreeDiff == 0 || node.RightSubtreeDiff == 0) {
                     const ui32 leafValueIndex = GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIndex];
                     Y_ASSERT(leafValueIndex != Max<ui32>());
-                    Y_VERIFY_DEBUG(
+                    CB_ENSURE(
                             leafValueIndex % ApproxDimension == 0,
                             "Expect that leaf values are aligned."
                     );
@@ -1016,17 +1016,18 @@ void TFullModel::Calc(
     GetCurrentEvaluator()->Calc(floatFeatures, catFeatures, treeStart, treeEnd, results, featureInfo);
 }
 
-void TFullModel::CalcWithHashedCatAndText(
+void TFullModel::CalcWithHashedCatAndTextAndEmbeddings(
     TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     TConstArrayRef<TConstArrayRef<int>> catFeatures,
     TConstArrayRef<TVector<TStringBuf>> textFeatures,
+    TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
     size_t treeStart,
     size_t treeEnd,
     TArrayRef<double> results,
     const TFeatureLayout* featureInfo
 ) const {
     TVector<TConstArrayRef<TStringBuf>> stringbufTextVecRefs{textFeatures.begin(), textFeatures.end()};
-    GetCurrentEvaluator()->CalcWithHashedCatAndText(floatFeatures, catFeatures, stringbufTextVecRefs, treeStart, treeEnd, results, featureInfo);
+    GetCurrentEvaluator()->CalcWithHashedCatAndTextAndEmbeddings(floatFeatures, catFeatures, stringbufTextVecRefs, embeddingFeatures, treeStart, treeEnd, results, featureInfo);
 }
 
 void TFullModel::Calc(
@@ -1039,6 +1040,21 @@ void TFullModel::Calc(
 ) const {
     TVector<TConstArrayRef<TStringBuf>> stringbufVecRefs{catFeatures.begin(), catFeatures.end()};
     GetCurrentEvaluator()->Calc(floatFeatures, stringbufVecRefs, treeStart, treeEnd, results, featureInfo);
+}
+
+void TFullModel::Calc(
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TVector<TStringBuf>> catFeatures,
+    TConstArrayRef<TVector<TStringBuf>> textFeatures,
+    TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results,
+    const TFeatureLayout* featureInfo
+) const {
+    TVector<TConstArrayRef<TStringBuf>> stringbufCatVecRefs{catFeatures.begin(), catFeatures.end()};
+    TVector<TConstArrayRef<TStringBuf>> stringbufTextVecRefs{textFeatures.begin(), textFeatures.end()};
+    GetCurrentEvaluator()->Calc(floatFeatures, stringbufCatVecRefs, stringbufTextVecRefs, embeddingFeatures, treeStart, treeEnd, results, featureInfo);
 }
 
 void TFullModel::Calc(
@@ -1533,8 +1549,9 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     const TModelTrees& trees,
     double leafMultiplier,
     TObliviousTreeBuilder* builder,
-    bool streamLeafWeights)
-{
+    bool streamLeafWeights,
+    TMaybe<size_t> ownerModelIdx
+) {
     auto& data = trees.GetModelTreeData();
     const auto& binFeatures = trees.GetBinFeatures();
     auto applyData = trees.GetApplyData();
@@ -1546,6 +1563,10 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
              ++splitIdx)
         {
             modelSplits.push_back(binFeatures[data->GetTreeSplits()[splitIdx]]);
+            auto& split = modelSplits.back();
+            if (ownerModelIdx && split.Type == ESplitType::OnlineCtr) {
+                split.OnlineCtr.Ctr.Base.TargetBorderClassifierIdx = *ownerModelIdx;
+            }
         }
         if (leafMultiplier == 1.0) {
             TConstArrayRef<double> leafValuesRef(
@@ -1580,6 +1601,81 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
                 )
             );
         }
+    }
+}
+
+static THolder<TNonSymmetricTreeNode> GetTree(
+    const TModelTrees& trees,
+    double leafMultiplier,
+    bool streamLeafWeights,
+    int nodeIdx
+) {
+    const auto& data = trees.GetModelTreeData();
+    const auto& nodes = data->GetNonSymmetricStepNodes();
+    const auto leftDiff = nodes[nodeIdx].LeftSubtreeDiff;
+    const auto rightDiff = nodes[nodeIdx].RightSubtreeDiff;
+
+    auto tree = MakeHolder<TNonSymmetricTreeNode>();
+    if (leftDiff) {
+        tree->Left = GetTree(trees, leafMultiplier, streamLeafWeights, nodeIdx + leftDiff);
+    }
+    if (rightDiff) {
+        tree->Right = GetTree(trees, leafMultiplier, streamLeafWeights, nodeIdx + rightDiff);
+    }
+    if (leftDiff || rightDiff) {
+        const auto& binFeatures = trees.GetBinFeatures();
+        tree->SplitCondition = binFeatures[data->GetTreeSplits()[nodeIdx]];
+    }
+
+    const auto& leafIdx = data->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+    if (leafIdx != (ui32)-1) {
+        CB_ENSURE(!leftDiff || !rightDiff, "Got a corrupted non-symmetric tree");
+        const auto dimensionCount = trees.GetDimensionsCount();
+        CB_ENSURE(leafIdx % dimensionCount == 0, "Got a corrupted non-symmetric tree");
+        auto leaf = MakeHolder<TNonSymmetricTreeNode>();
+        const auto leafValues = data->GetLeafValues();
+        if (dimensionCount == 1) {
+            leaf->Value = leafValues[leafIdx] * leafMultiplier;
+        } else {
+            const auto begin = leafValues.begin() + leafIdx;
+            const auto end = begin + dimensionCount;
+            leaf->Value = TVector<double>{begin, end};
+            for (auto& value : std::get<TVector<double>>(leaf->Value)) {
+                value *= leafMultiplier;
+            }
+        }
+        const auto leafWeights = data->GetLeafWeights();
+        if (streamLeafWeights && !leafWeights.empty()) {
+            leaf->NodeWeight = leafWeights[leafIdx / dimensionCount];
+        }
+        if (leftDiff) {
+            tree->Right = std::move(leaf);
+        } else if (rightDiff) {
+            tree->Left = std::move(leaf);
+        } else {
+            tree = std::move(leaf);
+        }
+    }
+    return tree;
+}
+
+// overload by type of builder
+static void StreamModelTreesWithoutScaleAndBiasToBuilder(
+    const TModelTrees& trees,
+    double leafMultiplier,
+    TNonSymmetricTreeModelBuilder* builder,
+    bool streamLeafWeights,
+    TMaybe<size_t> ownerModelIdx
+) {
+    Y_UNUSED(ownerModelIdx);
+    const auto& data = trees.GetModelTreeData();
+    for (size_t treeIdx = 0; treeIdx < trees.GetTreeCount(); ++treeIdx) {
+        builder->AddTree(
+            GetTree(
+                trees,
+                leafMultiplier,
+                streamLeafWeights,
+                data->GetTreeStartOffsets()[treeIdx]));
     }
 }
 
@@ -1628,7 +1724,7 @@ static void SumModelsParams(
         for (const TFullModel* model : modelVector) {
             TVector<NJson::TJsonValue> classLabels = model->GetModelClassLabels();
             if (classLabels) {
-                Y_VERIFY(classLabels.size() == 2);
+                CB_ENSURE(classLabels.size() == 2, "Expect exactly two class labels in binary classification");
 
                 if (sumClassLabels) {
                     CB_ENSURE(classLabels == *sumClassLabels, "Cannot sum models with different class labels");
@@ -1689,13 +1785,54 @@ static void SumModelsParams(
     }
 }
 
+static bool IsAllOblivious(const TVector<const TFullModel*>& modelVector) {
+    return AllOf(modelVector, [] (const TFullModel* m) { return m->IsOblivious(); });
+}
+
+static bool IsAllNonSymmetric(const TVector<const TFullModel*>& modelVector) {
+    return AllOf(modelVector, [] (const TFullModel* m) { return !m->IsOblivious(); });
+}
+
+template <typename TBuilderType>
+static void SumModels(
+    const TVector<const TFullModel*>& modelVector,
+    const TVector<double>& weights,
+    const TVector<TFloatFeature>& floatFeatures,
+    const TVector<TCatFeature>& catFeatures,
+    bool allModelsHaveLeafWeights,
+    ECtrTableMergePolicy ctrMergePolicy,
+    TFullModel* sum
+) {
+    const auto approxDimension = modelVector.back()->GetDimensionsCount();
+    TBuilderType builder(floatFeatures, catFeatures, {}, {}, approxDimension);
+
+    for (const auto modelId : xrange(modelVector.size())) {
+        TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
+        StreamModelTreesWithoutScaleAndBiasToBuilder(
+            *modelVector[modelId]->ModelTrees,
+            weights[modelId] * normer.Scale,
+            &builder,
+            allModelsHaveLeafWeights,
+            ctrMergePolicy == ECtrTableMergePolicy::KeepAllTables ? MakeMaybe(modelId) : Nothing()
+        );
+    }
+    builder.Build(sum->ModelTrees.GetMutable());
+}
+
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
-    ECtrTableMergePolicy ctrMergePolicy)
-{
+    const TVector<TString>& modelParamsPrefixes,
+    ECtrTableMergePolicy ctrMergePolicy
+) {
     CB_ENSURE(!modelVector.empty(), "empty model vector unexpected");
     CB_ENSURE(modelVector.size() == weights.size());
+    CB_ENSURE(modelParamsPrefixes.empty() || (modelVector.size() == modelParamsPrefixes.size()));
+
+    CB_ENSURE(
+        IsAllOblivious(modelVector) || IsAllNonSymmetric(modelVector),
+        "Summation of symmetric and non-symmetric models is not supported [for now]");
+
     const auto approxDimension = modelVector.back()->GetDimensionsCount();
     size_t maxFlatFeatureVectorSize = 0;
     TVector<TIntrusivePtr<ICtrProvider>> ctrProviders;
@@ -1703,11 +1840,13 @@ TFullModel SumModels(
     bool someModelHasLeafWeights = false;
     for (const auto& model : modelVector) {
         Y_ASSERT(model != nullptr);
-        //TODO(eermishkina): support non symmetric trees
-        CB_ENSURE(model->IsOblivious(), "Models summation supported only for symmetric trees");
         CB_ENSURE(
             model->ModelTrees->GetTextFeatures().empty(),
             "Models summation is not supported for models with text features"
+        );
+        CB_ENSURE(
+            model->ModelTrees->GetEmbeddingFeatures().empty(),
+            "Models summation is not supported for models with embedding features"
         );
         CB_ENSURE(
             model->GetDimensionsCount() == approxDimension,
@@ -1744,7 +1883,6 @@ TFullModel SumModels(
     for (auto& flatFeature: flatFeatureInfoVector) {
         std::visit(merger, flatFeature.FeatureVariant);
     }
-    TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, {}, approxDimension);
     TVector<double> totalBias(approxDimension);
     for (const auto modelId : xrange(modelVector.size())) {
         TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
@@ -1755,18 +1893,37 @@ TFullModel SumModels(
                 totalBias[dim] += weights[modelId] * normerBias[dim];
             }
         }
-        StreamModelTreesWithoutScaleAndBiasToBuilder(
-            *modelVector[modelId]->ModelTrees,
-            weights[modelId] * normer.Scale,
-            &builder,
-            allModelsHaveLeafWeights
-        );
     }
     TFullModel result;
-    builder.Build(result.ModelTrees.GetMutable());
+    if (IsAllOblivious(modelVector)) {
+        SumModels<TObliviousTreeBuilder>(
+            modelVector,
+            weights,
+            merger.MergedFloatFeatures,
+            merger.MergedCatFeatures,
+            allModelsHaveLeafWeights,
+            ctrMergePolicy,
+            &result);
+    } else if (IsAllNonSymmetric(modelVector)) {
+        SumModels<TNonSymmetricTreeModelBuilder>(
+            modelVector,
+            weights,
+            merger.MergedFloatFeatures,
+            merger.MergedCatFeatures,
+            allModelsHaveLeafWeights,
+            ctrMergePolicy,
+            &result);
+    } else {
+        CB_ENSURE_INTERNAL(false, "This should be unreachable");
+    }
+
     for (const auto modelIdx : xrange(modelVector.size())) {
         TStringBuilder keyPrefix;
-        keyPrefix << "model" << modelIdx << ":";
+        if (modelParamsPrefixes.empty()) {
+            keyPrefix << "model" << modelIdx << ":";
+        } else {
+            keyPrefix << modelParamsPrefixes[modelIdx];
+        }
         for (const auto& [key, value]: modelVector[modelIdx]->ModelInfo) {
             result.ModelInfo[keyPrefix + key] = value;
         }

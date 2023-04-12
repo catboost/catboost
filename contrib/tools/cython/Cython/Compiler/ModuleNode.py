@@ -1353,10 +1353,10 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                 if is_final_type:
                     type_safety_check = ''
                 else:
-                    type_safety_check = ' & ((t->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)) == 0)'
+                    type_safety_check = ' & (int)((t->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)) == 0)'
                 obj_struct = type.declaration_code("", deref=True)
                 code.putln(
-                    "if (CYTHON_COMPILING_IN_CPYTHON && likely((%s > 0) & (t->tp_basicsize == sizeof(%s))%s)) {" % (
+                    "if (CYTHON_COMPILING_IN_CPYTHON & likely((int)(%s > 0) & (int)(t->tp_basicsize == sizeof(%s))%s)) {" % (
                         freecount_name, obj_struct, type_safety_check))
                 code.putln("o = (PyObject*)%s[--%s];" % (
                     freelist_name, freecount_name))
@@ -1545,11 +1545,11 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                     type_safety_check = ''
                 else:
                     type_safety_check = (
-                        ' & ((Py_TYPE(o)->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)) == 0)')
+                        ' & (int)((Py_TYPE(o)->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)) == 0)')
 
                 type = scope.parent_type
                 code.putln(
-                    "if (CYTHON_COMPILING_IN_CPYTHON && ((%s < %d) & (Py_TYPE(o)->tp_basicsize == sizeof(%s))%s)) {" % (
+                    "if (CYTHON_COMPILING_IN_CPYTHON & ((int)(%s < %d) & (int)(Py_TYPE(o)->tp_basicsize == sizeof(%s))%s)) {" % (
                         freecount_name,
                         freelist_size,
                         type.declaration_code("", deref=True),
@@ -2498,7 +2498,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         if Options.generate_cleanup_code:
             code.globalstate.use_utility_code(
                 UtilityCode.load_cached("RegisterModuleCleanup", "ModuleSetupCode.c"))
-            code.putln("if (__Pyx_RegisterCleanup()) %s;" % code.error_goto(self.pos))
+            code.putln("if (__Pyx_RegisterCleanup()) %s" % code.error_goto(self.pos))
 
         code.put_goto(code.return_label)
         code.put_label(code.error_label)
@@ -2635,18 +2635,12 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
             # packages require __path__, so all we can do is try to figure
             # out the module path at runtime by rerunning the import lookup
             code.putln("if (!CYTHON_PEP489_MULTI_PHASE_INIT) {")
-            package_name, _ = self.full_module_name.rsplit('.', 1)
-            if '.' in package_name:
-                parent_name = '"%s"' % (package_name.rsplit('.', 1)[0],)
-            else:
-                parent_name = 'NULL'
             code.globalstate.use_utility_code(UtilityCode.load(
                 "SetPackagePathFromImportLib", "ImportExport.c"))
             code.putln(code.error_goto_if_neg(
-                '__Pyx_SetPackagePathFromImportLib(%s, %s)' % (
-                    parent_name,
+                '__Pyx_SetPackagePathFromImportLib(%s)' % (
                     code.globalstate.get_py_string_const(
-                        EncodedString(env.module_name)).cname),
+                        EncodedString(self.full_module_name)).cname),
                 self.pos))
             code.putln("}")
 
@@ -2848,7 +2842,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                 code.error_goto_if_null(Naming.cython_runtime_cname, self.pos)))
         code.put_incref(Naming.cython_runtime_cname, py_object_type, nanny=False)
         code.putln(
-            'if (PyObject_SetAttrString(%s, "__builtins__", %s) < 0) %s;' % (
+            'if (PyObject_SetAttrString(%s, "__builtins__", %s) < 0) %s' % (
                 env.module_cname,
                 Naming.builtins_cname,
                 code.error_goto(self.pos)))

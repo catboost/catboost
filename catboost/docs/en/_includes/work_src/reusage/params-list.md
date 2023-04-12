@@ -1221,6 +1221,21 @@ None
 
 {{ calcer_type__cpu }}
 
+## fixed_binary_splits
+
+#### Description
+
+
+A list of indices of binary features to put at the top of each tree; ignored if `grow_policy` is `Symmetric`.
+
+**Default value**
+
+ None
+
+**{{ cli__params-table__title__processing-units-type }}**
+
+ {{ calcer_type__gpu }}
+
 ### penalties_coefficient
 
 
@@ -1915,7 +1930,7 @@ c(CtrType[:{{ ctr-types__TargetBorderCount }}=BorderCount][:TargetBorderType=Bor
 
 **Default value**
 
-{{ parameters__ctr-targer-border-count__default }}
+{{ parameters__ctr-target-border-count__default }}
 
 **{{ cli__params-table__title__processing-units-type }}**
 

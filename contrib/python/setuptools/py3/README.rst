@@ -1,15 +1,7 @@
-.. image:: https://raw.githubusercontent.com/pypa/setuptools/main/docs/images/banner-640x320.svg
-   :align: center
-
-|
-
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
-   :target: `PyPI link`_
+   :target: https://pypi.org/project/setuptools
 
 .. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
-   :target: `PyPI link`_
-
-.. _PyPI link: https://pypi.org/project/setuptools
 
 .. image:: https://github.com/pypa/setuptools/workflows/tests/badge.svg
    :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
@@ -22,7 +14,7 @@
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
     :target: https://setuptools.pypa.io
 
-.. image:: https://img.shields.io/badge/skeleton-2021-informational
+.. image:: https://img.shields.io/badge/skeleton-2023-informational
    :target: https://blog.jaraco.com/skeleton
 
 .. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white
@@ -31,13 +23,17 @@
 .. image:: https://tidelift.com/badges/github/pypa/setuptools?style=flat
    :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
 
+.. image:: https://img.shields.io/discord/803025117553754132
+   :target: https://discord.com/channels/803025117553754132/815945031150993468
+   :alt: Discord
+
 See the `Installation Instructions
 <https://packaging.python.org/installing/>`_ in the Python Packaging
 User's Guide for instructions on installing, upgrading, and uninstalling
 Setuptools.
 
-Questions and comments should be directed to the `distutils-sig
-mailing list <http://mail.python.org/pipermail/distutils-sig/>`_.
+Questions and comments should be directed to `GitHub Discussions
+<https://github.com/pypa/setuptools/discussions>`_.
 Bug reports and especially tested patches may be
 submitted directly to the `bug tracker
 <https://github.com/pypa/setuptools/issues>`_.
@@ -47,7 +43,7 @@ Code of Conduct
 ===============
 
 Everyone interacting in the setuptools project's codebases, issue trackers,
-chat rooms, and mailing lists is expected to follow the
+chat rooms, and fora is expected to follow the
 `PSF Code of Conduct <https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md>`_.
 
 

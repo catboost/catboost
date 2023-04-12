@@ -16,7 +16,7 @@ namespace NKernel {
                               TCudaStream stream);
 
 
-    bool GatherHistogramByLeaves(const float* histogram,
+    void GatherHistogramByLeaves(const float* histogram,
                                  const ui32 binFeatureCount,
                                  const ui32 histCount,
                                  const ui32 leafCount,
@@ -26,8 +26,10 @@ namespace NKernel {
     );
 
     void FindOptimalSplit(const TCBinFeature* binaryFeatures,ui32 binaryFeatureCount,
+                          const float* catFeaturesWeights,
                           const float* binFeaturesWeights, ui32 binaryFeatureWeightsCount,
                           const float* splits, const TPartitionStatistics* parts, ui32 pCount, ui32 foldCount,
+                          double scoreBeforeSplit,
                           TBestSplitProperties* result, ui32 resultSize,
                           EScoreFunction scoreFunction, double l2, double metaL2Exponent, double metaL2Frequency, bool normalize,
                           double scoreStdDev, ui64 seed, bool gatheredByLeaves,

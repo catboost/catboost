@@ -1,6 +1,8 @@
 PY23_LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
 
+OWNER(g:yatool)
 
 NO_LINT()
 

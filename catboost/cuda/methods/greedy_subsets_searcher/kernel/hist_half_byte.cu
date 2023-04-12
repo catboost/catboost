@@ -79,6 +79,9 @@ namespace NKernel {
 
         numBlocks.x = (fCount + 7) / 8;
         numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         ComputeSplitPropertiesDirectLoadsImpl<THist, blockSize, 8><<<numBlocks, blockSize, 0, stream>>>(
                         features,
@@ -116,6 +119,9 @@ namespace NKernel {
 
         numBlocks.x = (fCount + 7) / 8;
         numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         ComputeSplitPropertiesGatherImpl<THist, blockSize, 8><<<numBlocks, blockSize, 0, stream>>>(
                         features,
@@ -156,6 +162,9 @@ namespace NKernel {
 
         numBlocks.x = (fCount + 7) / 8;
         numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         ComputeSplitPropertiesDirectLoadsImpl<THist, blockSize, 8><<<numBlocks, blockSize, 0, stream>>>(
             features,
@@ -192,6 +201,9 @@ namespace NKernel {
 
         numBlocks.x = (fCount + 7) / 8;
         numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+        if (IsGridEmpty(numBlocks)) {
+            return;
+        }
 
         ComputeSplitPropertiesGatherImpl<THist, blockSize, 8><<<numBlocks, blockSize, 0, stream>>>(
             features,

@@ -17,9 +17,9 @@
 namespace NCatboostCuda {
     class TPairwiseOptimizationSubsets {
     public:
-        TPairwiseOptimizationSubsets(TNonDiagQuerywiseTargetDers&& target,
+        TPairwiseOptimizationSubsets(TNonDiagQuerywiseTargetDers&& target, // size can exceed 32-bits
                                      ui32 maxDepth)
-            : PairwiseTarget(std::move(target))
+            : PairwiseTarget(std::move(target)) // size can exceed 32-bits
         {
             const ui32 maxPointwisePartCount = (1ULL << maxDepth);
             const ui32 maxPairwisePartCount = maxPointwisePartCount * maxPointwisePartCount;
@@ -81,12 +81,12 @@ namespace NCatboostCuda {
         void RebuildStats();
 
     private:
-        TNonDiagQuerywiseTargetDers PairwiseTarget;
+        TNonDiagQuerywiseTargetDers PairwiseTarget; // size can exceed 32-bits
 
         TStripeBuffer<TDataPartition> PairParts;
         TStripeBuffer<TPartitionStatistics> PairPartStats;
 
-        TStripeBuffer<ui32> PairBins;
+        TStripeBuffer<ui32> PairBins; // size can exceed 32-bits
         TStripeBuffer<ui32> PointBins;
 
         TStripeBuffer<TDataPartition> PointPartitions;

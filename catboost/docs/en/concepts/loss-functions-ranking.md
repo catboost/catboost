@@ -14,61 +14,45 @@ The identifier of the object's group. An arbitrary string, possibly representing
 
 If the labeled pairs data is not specified for the dataset, then pairs are generated automatically in each group using per-object label values (labels must be specified and must be numerical). The object with a greater label value in the pair is considered the <q>winner</q>.
 
-### Specific variables used {#specific-variables-used}
-
 The following variables are used in formulas of the described pairwise metrics:
 - $p$ is the positive object in the pair.
 - $n$ is the negative object in the pair.
 
-### Objectives and metrics {#pairwise-objectives-and-metrics}
+See all common variables in [Variables used in formulas](loss-functions-variables-used).
 
 ### {{ error-function__PairLogit }} {#PairLogit}
 
-{{ title__loss-functions__calculation-principles }}
-
 $\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
-
 
 {% include [objectives-and-metrics-the-weights-of-objects-not-used-to-calculate-metrics](../_includes/work_src/reusage-loss-functions/the-weights-of-objects-not-used-to-calculate-metrics.md) %}
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
-
-_Default:_ {{ loss-functions__use_weights__default }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 {% cut "{{ loss-functions__params__max_pairs }}" %}
 
 The maximum number of generated pairs in each group. Takes effect if no pairs are given and therefore are generated without repetition.
 
-{% endcut %}
-
 _Default:_ {{ loss-functions__params__max_pairs_default }}
 
-
-
+{% endcut %}
 
 ### {{ error-function__PairLogitPairwise }} {#PairLogitPairwise}
 
-{{ title__loss-functions__calculation-principles }}
-
 $\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(log(\displaystyle\frac{1}{1 + e^{- (a_{p} - a_{n})}})\right)}{\sum\limits_{p, n \in Pairs} w_{pn}}$
-
 
 This metric may give more accurate results on large datasets compared to {{ error-function__PairLogit }} but it is calculated significantly slower.
 
 This technique is described in the [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) paper.
 
+**{{ optimization }}** See [more](#usage-information).
+
 {% include [objectives-and-metrics-the-weights-of-objects-not-used-to-calculate-metrics](../_includes/work_src/reusage-loss-functions/the-weights-of-objects-not-used-to-calculate-metrics.md) %}
 
-
-{{ title__loss-functions__text__user-defined-params }}:
-
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
-
-_Default:_ {{ loss-functions__use_weights__default }}
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 {% cut "{{ loss-functions__params__max_pairs }}" %}
 
@@ -78,36 +62,15 @@ _Default:_  {{ loss-functions__params__max_pairs_default }}
 
 {% endcut %}
 
-
-
-
 ### {{ error-function__PairAccuracy }} {#PairAccuracy}
-
-{{ title__loss-functions__calculation-principles }}
 
 $\displaystyle\frac{\sum\limits_{p, n \in Pairs} w_{pn} [a_{p} > a_{n}] }{\sum\limits_{p, n \in Pairs} w_{pn} }$
 
-{% endcut %}
-
 {% include [objectives-and-metrics-the-weights-of-objects-not-used-to-calculate-metrics-not-optimize](../_includes/work_src/reusage-loss-functions/the-weights-of-objects-not-used-to-calculate-metrics-not-optimize.md) %}
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
-
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
-
-_Default:_ {{ loss-functions__use_weights__default }}
-
-
-### {{ title__loss-functions__text__optimization }}
-
-| Name                                                        | Optimization            |
---------------------------------------------------------------|-------------------------|
-[{{ error-function__PairLogit }}](#PairLogit)                 |     +                   |
-[{{ error-function__PairLogitPairwise }}](#PairLogitPairwise) |     +                   |
-[{{ error-function__PairAccuracy }}](#PairAccuracy)           |     -                   |
-
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ## Groupwise metrics {#groupwise-metrics}
 
@@ -115,9 +78,7 @@ _Default:_ {{ loss-functions__use_weights__default }}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
-
 {% include [objectives-and-metrics-yetirank__desc__first](../_includes/work_src/reusage-loss-functions/yetirank__desc__first.md) %}
-
 
 {% include [objectives-and-metrics-yetirank__desc__last](../_includes/work_src/reusage-loss-functions/yetirank__desc__last.md) %}
 
@@ -125,42 +86,35 @@ This metric gives less accurate results on big datasets compared to {{ error-fun
 
 {% include [objectives-and-metrics-the-weights-of-groups](../_includes/work_src/reusage-loss-functions/the-weights-of-groups.md) %}
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
+{% cut "{{ loss-functions__params__decay }}" %}
 
-- {{ loss-functions__params__decay }}
+The probability of search continuation after reaching the current object.
 
-    The probability of search continuation after reaching the current object.
+_Default:_  {{ fit__decay__yetirank }}
 
+{% endcut %}
 
-    {{ ph__loss-functions__default }}{{ fit__decay__yetirank }}
+{% cut "{{ loss-functions__params__permutations }}" %}
 
-- {{ loss-functions__params__permutations }}
+The number of permutations.
 
-    The number of permutations.
+_Default:_ {{ fit__permutations }}
 
+{% endcut %}
 
-    {{ fit__permutations }}
-
-- {{ loss-functions__params__use_weights }}
-
-    Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
-
-
-    true
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function__YetiRankPairwise }} {#YetiRankPairwise}
-
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
 {% include [objectives-and-metrics-yetirank__desc__first](../_includes/work_src/reusage-loss-functions/yetirank__desc__first.md) %}
 
-
 {% include [objectives-and-metrics-yetirank__desc__last](../_includes/work_src/reusage-loss-functions/yetirank__desc__last.md) %}
-
 
 This metric gives more accurate results on big datasets compared to {{ error-function__YetiRank }} but it is significantly slower.
 
@@ -168,31 +122,27 @@ This technique is described in the [Winning The Transfer Learning Track of Yaho
 
 {% include [objectives-and-metrics-the-weights-of-groups](../_includes/work_src/reusage-loss-functions/the-weights-of-groups.md) %}
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- The probability of search continuation after reaching the current object.
+{% cut "{{ loss-functions__params__decay }}" %}
 
-    The probability of search continuation after reaching the current object.
+The probability of search continuation after reaching the current object.
 
+_Default:_ {{ fit__decay__yetirank }}
 
-    {{ ph__loss-functions__default }}{{ fit__decay__yetirank }}
+{% endcut %}
 
--  The number of permutations.
+{% cut "{{ loss-functions__params__permutations }}" %}
 
+The number of permutations.
 
-    The number of permutations.
+_Default:_ {{ fit__permutations }}
 
+{% endcut %}
 
-    {{ fit__permutations }}
-
--  Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
-
-    Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
-
-
-    true
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 
 ### {{ error-function__StochasticFilter }} {#StochasticFilter}
@@ -210,6 +160,7 @@ The filtration is defined via the raw formula value:
 Zeros correspond to filtered instances and ones correspond to the remaining ones.
 
 The ranking is defined by the order of objects in the dataset.
+
 {% note warning %}
 
 Sort objects by the column you are interested in before training with this loss function and use the `--has-time`for the Command-line version option to avoid further objects reordering.
@@ -224,23 +175,25 @@ $\mathbb{P}(\text{filter}|x) = \sigma(a) { , where}$
 
 Refer to the [Learning to Select for a Predefined Ranking]({{ learning-to-select-for-predefined-ranking }}) paper for calculation details.
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__sigma }}
+{% cut "{{ loss-functions__params__sigma }}" %}
 
-    The scale for multiplying predictions.
+The scale for multiplying predictions.
 
+_Default:_ 1
 
-    1
+{% endcut %}
 
-- {{ loss-functions__params__num_estimations }}
+{% cut "{{ loss-functions__params__num_estimations }}" %}
 
-    The number of gradient samples.
+The number of gradient samples.
 
+_Default:_ 1
 
-    1
-
+{% endcut %}
 
 
 ### {{ error-function__StochasticRank }} {#StochasticRank}
@@ -249,180 +202,128 @@ Directly optimize the selected metric. The value of the selected metric is writt
 
 Refer to the [StochasticRank: Global Optimization of Scale-Free Discrete Functions](https://arxiv.org/abs/2003.02122v1) paper for details.
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
-
+**{{ title__loss-functions__text__user-defined-params }}**
 
 Common parameters:
 
-- {{ loss-functions__params__metric }}
+{% cut "{{ loss-functions__params__metric }}" %}
 
-    The metric that should be optimized.
+The metric that should be optimized.
 
-    Supported values:
-    - {{ error-function__dcg }}
-    - {{ error-function__ndcg }}
-    - {{ error-function__PFound }}
+_Default_: {{ loss-functions__params__q__default }}
+_Supported values_: `{{ error-function__dcg }}`, `{{ error-function__ndcg }}`, `{{ error-function__PFound }}`.
 
+{% endcut %}
 
-    {{ loss-functions__params__q__default }}
+{% cut "{{ loss-functions__params__num_estimations }}" %}
 
-- {{ loss-functions__params__num_estimations }}
+The number of gradient estimation iterations.
 
-    The number of gradient estimation iterations.
+_Default_: 1
 
+{% endcut %}
 
-    1
+{% cut "{{ loss-functions__params__mu }}" %}
 
-- {{ loss-functions__params__mu }}
+Controls the penalty for coinciding predictions (aka _ties_).
 
-    Controls the penalty for coinciding predictions (aka _ties_).
+_Default_: 0
 
+{% endcut %}
 
-    0
+Metric-specific parameters:
 
+Available if the corresponding metric is set in the {{ loss-functions__params__metric }} parameter.
 
-Metric-specific parameters (available if the corresponding metric is set in the {{ loss-functions__params__metric }} parameter):
+**{{ error-function__dcg }}**
 
-#### {{ error-function__dcg }}
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-- {{ loss-functions__params__top }}
+{% include [ndcg__type__desc__full](../_includes/work_src/reusage-loss-functions/ndcg__type__desc__full.md) %}
 
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+{% cut "{{ loss-functions__params__denominator }}" %}
 
+Metric denominator type.
 
-    {{ loss-functions__params__top__default }}
+_Default_: _Default_: {{ error-function__dcg__denominator__default }}.
+_Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ error-function__ndcg__denominator__Position }}`.
 
-- {{ loss-functions__params__type }}
+{% endcut %}
 
-    Metric calculation principles.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__type__Base }}<br/>- {{ error-function__ndcg__type__Exp }}
+**{{ error-function__ndcg }}**
 
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-    {{ error-function__dcg__type__default }}
+{% include [ndcg__type__desc__full](../_includes/work_src/reusage-loss-functions/ndcg__type__desc__full.md) %}
 
-- {{ loss-functions__params__denominator }}
+{% cut "{{ loss-functions__params__denominator }}" %}
 
-    Metric denominator type.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__denominator__LogPosition }}<br/>- {{ error-function__ndcg__denominator__Position }}
+Metric denominator type.
 
+_Default_: {{ error-function__dcg__denominator__default }}.
+_Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ error-function__ndcg__denominator__Position }}`.
 
-    {{ error-function__dcg__denominator__default }}
+{% endcut %}
 
+**{{ error-function__PFound }}**
 
-#### {{ error-function__ndcg }}
+{% include [decay__desc__full](../_includes/work_src/reusage-loss-functions/decay__desc__full.md) %}
 
-- {{ loss-functions__params__top }}
-
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
-    {{ loss-functions__params__top__default }}
-
-- {{ loss-functions__params__type }}
-
-    Metric calculation principles.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__type__Base }}<br/>- {{ error-function__ndcg__type__Exp }}
-
-
-    {{ error-function__ndcg__type__default }}
-
-- {{ loss-functions__params__denominator }}
-
-    Metric denominator type.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__denominator__LogPosition }}<br/>- {{ error-function__ndcg__denominator__Position }}
-
-
-    {{ error-function__ndcg__denominator__default }}
-
-
-#### {{ error-function__PFound }}
-
-- {{ loss-functions__params__decay }}
-
-    The probability of search continuation after reaching the current object.
-
-
-    {{ ph__loss-functions__default }}{{ fit__decay__pfound }}
-
-- {{ loss-functions__params__top }}
-
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
-    {{ loss-functions__params__top__default }}
-
-
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
 ### {{ error-function__QueryCrossEntropy }} {#QueryCrossEntropy}
-
-{{ title__loss-functions__calculation-principles }}
 
 $QueryCrossEntropy(\alpha) = (1 - \alpha) \cdot LogLoss + \alpha \cdot LogLoss_{group}$
 
 See the [{{ error-function__QueryCrossEntropy }}](../references/querycrossentropy.md) section for more details.
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__use_weights }}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
-    Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
+{% cut "{{ loss-functions__params__alpha }}" %}
 
+The coefficient used in quantile-based losses.
 
-    {{ loss-functions__use_weights__default }}
+_Default:_ 0.95
 
-- {{ loss-functions__params__alpha }}
-
-    The coefficient used in quantile-based losses.
-
-
-    0.95
-
-
-
-
-
+{% endcut %}
 
 ### {{ error-function__QueryRMSE }} {#QueryRMSE}
 
-{{ title__loss-functions__calculation-principles }}
-
 $\displaystyle\sqrt{\displaystyle\frac{\sum\limits_{Group \in Groups} \sum\limits_{i \in Group} w_{i} \left( t_{i} - a_{i} - \displaystyle\frac{\sum\limits_{j \in Group} w_{j} (t_{j} - a_{j})}{\sum\limits_{j \in Group} w_{j}} \right)^{2}} {\sum\limits_{Group \in Groups} \sum\limits_{i \in Group} w_{i}}}$
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
-
-_Default:_ {{ loss-functions__use_weights__default }}
-
-
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function__QuerySoftMax }} {#QuerySoftMax}
 
-{{ title__loss-functions__calculation-principles }}
-
 $- \displaystyle\frac{\sum\limits_{Group \in Groups} \sum\limits_{i \in Group}w_{i} t_{i} \log \left(\displaystyle\frac{w_{i} e^{\beta a_{i}}}{\sum\limits_{j\in Group} w_{j} e^{\beta a_{j}}}\right)} {\sum\limits_{Group \in Groups} \sum_{i\in Group} w_{i} t_{i}}$
 
+**{{ optimization }}** See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-{% include [use-weights__desc__without__full](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__full.md) %}
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
-_Default:_ {{ loss-functions__use_weights__default }}
+{% cut "{{ loss-functions__params__beta }}" %}
 
+The input scale coefficient.
 
-- {{ loss-functions__params__beta }}
+_Default:_ 1
 
-    The input scale coefficient.
-
-
-    1
-
+{% endcut %}
 
 ### {{ error-function__PFound }} {#PFound}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
-
-{{ title__loss-functions__calculation-principles }}
 
 $PFound(top, decay) =$
 
@@ -430,147 +331,69 @@ $= \sum_{group \in groups} PFound(group, top, decay)$
 
 See the [{{ error-function__PFound }}](../references/pfound.md) section for more details
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- The probability of search continuation after reaching the current object.
+{% include [decay__desc__full](../_includes/work_src/reusage-loss-functions/decay__desc__full.md) %}
 
-    The probability of search continuation after reaching the current object.
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-
-    {{ ph__loss-functions__default }}{{ fit__decay__pfound }}
-
-- The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
-    {{ loss-functions__params__top__default }}
-
-
-- {{ loss-functions__params__use_weights }}
-
-    Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
-
-
-    {{ loss-functions__use_weights__default }}
-
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function__ndcg }} {#ndcg}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
-{{ title__loss-functions__calculation-principles }}
-
 $nDCG(top) = \frac{DCG(top)}{IDCG(top)}$
 
 See the [{{ error-function__ndcg }}](../references/ndcg.md) section for more details.
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+{% include [ndcg__type__desc__full](../_includes/work_src/reusage-loss-functions/ndcg__type__desc__full.md) %}
 
+{% include [ndcg__denominator__desc__full](../_includes/work_src/reusage-loss-functions/ndcg__denominator__desc__full.md) %}
 
-    {{ loss-functions__params__top__default }}
-
-- Metric calculation principles.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__type__Base }}<br/>- {{ error-function__ndcg__type__Exp }}
-
-    Metric calculation principles.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__type__Base }}<br/>- {{ error-function__ndcg__type__Exp }}
-
-
-    {{ error-function__ndcg__type__default }}
-
-- Metric denominator type.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__denominator__LogPosition }}<br/>- {{ error-function__ndcg__denominator__Position }}
-
-    Metric denominator type.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__denominator__LogPosition }}<br/>- {{ error-function__ndcg__denominator__Position }}
-
-
-    {{ error-function__ndcg__denominator__default }}
-
-
-- {{ loss-functions__params__use_weights }}
-
-    Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
-
-
-    {{ loss-functions__use_weights__default }}
-
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function__dcg }} {#dcg}
 
-
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
-
-{{ title__loss-functions__calculation-principles }}
 
 $DCG(top)$
 
 See the [{{ error-function__ndcg }}](../references/ndcg.md) section for more details.
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+{% include [ndcg__type__desc__full](../_includes/work_src/reusage-loss-functions/ndcg__type__desc__full.md) %}
 
+{% include [ndcg__denominator__desc__full](../_includes/work_src/reusage-loss-functions/ndcg__denominator__desc__full.md) %}
 
-    {{ loss-functions__params__top__default }}
-
-- Metric calculation principles.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__type__Base }}<br/>- {{ error-function__ndcg__type__Exp }}
-
-    Metric calculation principles.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__type__Base }}<br/>- {{ error-function__ndcg__type__Exp }}
-
-
-    {{ error-function__dcg__type__default }}
-
-- Metric denominator type.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__denominator__LogPosition }}<br/>- {{ error-function__ndcg__denominator__Position }}
-
-    Metric denominator type.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__denominator__LogPosition }}<br/>- {{ error-function__ndcg__denominator__Position }}
-
-
-    {{ error-function__dcg__denominator__default }}
-
-
-- {{ loss-functions__params__use_weights }}
-
-    Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
-
-
-    {{ loss-functions__use_weights__default }}
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 ### {{ error-function__FilteredDCG }} {#FilteredDCG}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
-
-{{ title__loss-functions__calculation-principles }}
-
 See the [{{ error-function__FilteredDCG }}](../references/filtereddcg.md) section for more details.
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__type }}
+{% include [ndcg__type__desc__full](../_includes/work_src/reusage-loss-functions/ndcg__type__desc__full.md) %}
 
-    Metric calculation principles.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__type__Base }}<br/>- {{ error-function__ndcg__type__Exp }}
-
-    {{ error-function__filtereddcg__type__default }}
-
-- {{ loss-functions__params__denominator }}" %}
-
-    Metric denominator type.<br/><br/>Possible values:<br/>- {{ error-function__ndcg__denominator__LogPosition }}<br/>- {{ error-function__ndcg__denominator__Position }}
-
-
-    {{ error-function__filtereddcg__denominator__default }}
-
-
+{% include [ndcg__denominator__desc__full](../_includes/work_src/reusage-loss-functions/ndcg__denominator__desc__full.md) %}
 
 ### {{ error-function__QueryAverage }} {#QueryAverage}
 
@@ -578,31 +401,24 @@ Represents the average value of the label values for objects with the defined to
 
 See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) section for more details.
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__top }}
+{% cut "{{ loss-functions__params__top }}" %}
 
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
 
+_Default_: {{ loss-functions__obligatory-text }}.
 
-    {{ loss-functions__obligatory-text }}
+{% endcut %}
 
-- {{ loss-functions__params__use_weights }}
-
-    Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
-
-
-    {{ loss-functions__use_weights__default }}
-
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
 
 ### {{ error-function__PrecisionAtK }} {#PrecisionAtK}
 
-{{ title__loss-functions__calculation-principles }}
-
 {% include [loss-functions-function-calculation](../_includes/work_src/reusage-common-phrases/function-calculation.md) %}
-
 
 1. The objectsare sorted in descending order of predicted relevancies ($a_{i}$)
 
@@ -611,29 +427,18 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
     $PrecisionAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{top} { , where}$
     - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__top }}
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-    {{ loss-functions__params__top__default }}
-
-- {{ loss-functions__params__border }}
-
-    The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
-
-
-    {{ fit--border }}
+{% include [ranking__border__desc__full](../_includes/work_src/reusage-loss-functions/ranking__border__desc__full.md) %}
 
 
 ### {{ error-function__RecallAtK }} {#RecallAtK}
 
-{{ title__loss-functions__calculation-principles }}
-
 {% include [loss-functions-function-calculation](../_includes/work_src/reusage-common-phrases/function-calculation.md) %}
-
 
 1. The objectsare sorted in descending order of predicted relevancies ($a_{i}$)
 
@@ -641,28 +446,16 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
     $RecalAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{\sum\limits_{i=1}^{N} Relevant_{i}}$
     - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__top }}
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
-    {{ loss-functions__params__top__default }}
-
-- {{ loss-functions__params__border }}
-
-    The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
-
-
-    {{ fit--border }}
-
+{% include [ranking__border__desc__full](../_includes/work_src/reusage-loss-functions/ranking__border__desc__full.md) %}
 
 
 ### {{ error-function__mapk }} {#mapk}
-
-{{ title__loss-functions__calculation-principles }}
 
 1. The objectsare sorted in descending order of predicted relevancies ($a_{i}$)
 
@@ -676,31 +469,16 @@ See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) sec
     - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
     - $PrecisionAt_{i} = \frac{\sum\limits_{j=1}^{i} Relevant_{j}}{i}$
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-- {{ loss-functions__params__top }}
-
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
-    {{ loss-functions__params__top__default }}
-
-- {{ loss-functions__params__border }}
-
-    The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
-
-
-
-    {{ fit--border }}
-
-
+{% include [ranking__border__desc__full](../_includes/work_src/reusage-loss-functions/ranking__border__desc__full.md) %}
 
 
 ### {{ error-function__err }} {#err}
-
-{{ title__loss-functions__calculation-principles }}
 
 $ERR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} ERR_q$
 
@@ -710,98 +488,83 @@ Targets should be from the range [0, 1].
 
 $t_{q,i} \in [0, 1]$
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__top }}
-
-    The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
-
-
-    {{ loss-functions__params__top__default }}
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
 
 ### {{ error-function__mrr }} {#mrr}
 
-{{ title__loss-functions__calculation-principles }}
-
 $MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers to the rank position of the first relevant document for the _q_-th query.
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__top }}
+{% include [top__desc__full](../_includes/work_src/reusage-loss-functions/top__desc__full.md) %}
 
-  The number of top samples in a group that are used to calculate the ranking metric. Top samples are either the samples with the largest approx values or the ones with the lowest target values if approx values are the same.
+{% include [ranking__border__desc__full](../_includes/work_src/reusage-loss-functions/ranking__border__desc__full.md) %}
 
-
-    {{ loss-functions__params__top__default }}
-
-- {{ loss-functions__params__border }}
-
-  The label value border. If the value is strictly greater than this threshold, it is considered a positive class. Otherwise it is considered a negative class.
-
-    {{ fit--border }}
 
 ### {{ error-function--AUC }} {#AUC}
 
 The calculation of this metric is disabled by default for the training dataset to speed up the training. Use the `hints=skip_train~false` parameter to enable the calculation.
 
+{% include [reusage-loss-functions-type_of_auc__p](../_includes/work_src/reusage-loss-functions/type_of_auc__p.md) %}
 
 {% include [loss-functions-loss-functions-ranking__auc](../_includes/work_src/reusage-popups/loss-functions-ranking__auc.md) %}
 
+**{{ no-optimization }}**  See [more](#usage-information).
 
-{{ title__loss-functions__text__user-defined-params }}:
+**{{ title__loss-functions__text__user-defined-params }}**
 
-- {{ loss-functions__params__use_weights }}
+{% cut "{{ loss-functions__params__type }}" %}
 
-    Use object/group weights to calculate metrics if the specified value is <q>true</q> and set all weights to <q>1</q> regardless of the input data if the specified value is <q>false</q>.
+The type of AUC. Defines the metrics calculation principles.
 
+_Default_: `{{ loss-functions__params__auc__type__Classic }}`.
+_Possible values_: `{{ loss-functions__params__auc__type__Classic }}`, `{{ loss-functions__params__auc__type__Ranking }}`.
+_Examples_: `AUC:type=Classic`, `AUC:type=Ranking`.
 
-    false
+{% endcut %}
 
-- {{ loss-functions__params__type }}
+{% cut "{{loss-functions__params__use_weights}}" %}
 
-    {% include [reusage-loss-functions-type_of_auc__p](../_includes/work_src/reusage-loss-functions/type_of_auc__p.md) %}
+{% include [use-weights__desc__without__note](../_includes/work_src/reusage-loss-functions/use-weights__desc__without__note.md) %}
 
-    Possible values:
+_Default_: `False` for Classic type, `True` for Ranking type.
+_Examples_: `AUC:type=Ranking;use_weights=False`.
 
-    - {{ loss-functions__params__auc__type__Classic }}
-    - {{ loss-functions__params__auc__type__Ranking }}
-
-    Examples:
-    ```
-    AUC:type=Classic
-    ```
-    ```
-    AUC:type=Ranking
-    ```
+{% endcut %}
 
 {% include [query-auc](../_includes/concepts/query-auc.md) %}
 
-## {{ title__loss-functions__text__optimization }}
+## {{ title__loss-functions__text__optimization }} {#usage-information}
 
 
-| Name                                                        | Optimization            |
---------------------------------------------------------------|-------------------------|
-[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |
-[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |
-[{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |
-[{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |
-[{{ error-function__dcg }}](#dcg)                             |     +                   |
-[{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |
-[{{ error-function__QueryRMSE }}](#QueryRMSE)                 |     +                   |
-[{{ error-function__QuerySoftMax }}](#QuerySoftMax)           |     +                   |
-[{{ error-function__PFound }}](#PFound)                       |     -                   |
-[{{ error-function__ndcg }}](#ndcg)                           |     -                   |
-[{{ error-function__dcg }}](#dcg)                             |     -                   |
-[{{ error-function__FilteredDCG }}](#PFilteredDCG)            |     -                   |
-[{{ error-function__QueryAverage }}](#QueryAverage)           |     -                   |
-[{{ error-function__PrecisionAtK }}](#PrecisionAtK)           |     -                   |
-[{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   |
-[{{ error-function__mapk }}](#mapk)                           |     -                   |
-[{{ error-function__err }}](#err)                             |     -                   |
-[{{ error-function__mrr }}](#mrr)                             |     -                   |
-[{{ error-function--AUC }}](#AUC)                             |     -                   |
-[{{ error-function--QueryAUC }}](#QueryAUC)                        |     -                   |
-
+| Name                                                        | Optimization            | GPU Support             |
+--------------------------------------------------------------|-------------------------|-------------------------|
+[{{ error-function__PairLogit }}](#PairLogit)                 |     +                   |     +                   |
+[{{ error-function__PairLogitPairwise }}](#PairLogitPairwise) |     +                   |     +                   |
+[{{ error-function__PairAccuracy }}](#PairAccuracy)           |     -                   |     -                   |
+[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |     +                   |
+[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |     +                   |
+[{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |     -                   |
+[{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |     -                   |
+[{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |     +                   |
+[{{ error-function__QueryRMSE }}](#QueryRMSE)                 |     +                   |     +                   |
+[{{ error-function__QuerySoftMax }}](#QuerySoftMax)           |     +                   |     +                   |
+[{{ error-function__PFound }}](#PFound)                       |     -                   |     -                   |
+[{{ error-function__ndcg }}](#ndcg)                           |     -                   |     -                   |
+[{{ error-function__dcg }}](#dcg)                             |     -                   |     -                   |
+[{{ error-function__FilteredDCG }}](#PFilteredDCG)            |     -                   |     -                   |
+[{{ error-function__QueryAverage }}](#QueryAverage)           |     -                   |     -                   |
+[{{ error-function__PrecisionAtK }}](#PrecisionAtK)           |     -                   |     -                   |
+[{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   |     -                   |
+[{{ error-function__mapk }}](#mapk)                           |     -                   |     -                   |
+[{{ error-function__err }}](#err)                             |     -                   |     -                   |
+[{{ error-function__mrr }}](#mrr)                             |     -                   |     -                   |
+[{{ error-function--AUC }}](#AUC)                             |     -                   |     -                   |
+[{{ error-function--QueryAUC }}](#QueryAUC)                   |     -                   |     -                   |

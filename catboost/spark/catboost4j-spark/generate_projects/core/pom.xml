@@ -24,6 +24,7 @@
         <catboost_root>${global_project_root}/../..</catboost_root>
         <core_project_root>${global_project_root}/core</core_project_root>
         <src.root>${core_project_root}/src</src.root>
+        <buildNative.extraArgs></buildNative.extraArgs>
     </properties>
 
     <distributionManagement>
@@ -41,6 +42,25 @@
         <sourceDirectory>${src.root}/main/scala</sourceDirectory>
         <testSourceDirectory>${src.root}/test/scala</testSourceDirectory>
         <plugins>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>build-helper-maven-plugin</artifactId>
+              <version>1.5</version>
+              <executions>
+                <execution>
+                  <id>add-source</id>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>add-source</goal>
+                  </goals>
+                  <configuration>
+                    <sources>
+                      <source>${src.root}/${version_specific_src_dir}</source>
+                    </sources>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -117,13 +137,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                <compilerPlugins>
-                    <compilerPlugin>
-                    <groupId>org.scalamacros</groupId>
-                    <artifactId>paradise_${scala.version}</artifactId>
-                    <version>2.1.1</version>
-                </compilerPlugin>
-                </compilerPlugins>
+                   ${scala_maven_plugin_configuration_placeholder}
                 </configuration>
             </plugin>
             <plugin>
@@ -159,7 +173,7 @@
                 </configuration>
             </plugin>
         </plugins>
-        
+
         <resources>
            <resource>
                <directory>${src.root}/main/resources</directory>
@@ -194,11 +208,17 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-collection-compat_${scala.compat.version}</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>29.0-jre</version>
         </dependency>
-        
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -219,18 +239,112 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        <version>2.6.7.3</version>
+        <version>2.13.1</version>
         </dependency>
             <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
-            <version>2.6.7.1</version>
+            <version>2.13.1</version>
         </dependency>
 
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
             <version>4.8.98</version>
+        </dependency>
+
+        <!--
+          Default Spark 3.2's 4.1.68.Final dependency is broken because of https://github.com/netty/netty/issues/11657
+          so upgrade to 4.1.72.Final as in Spark itself: https://github.com/apache/spark/pull/34881
+        -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty_all_version_placeholer}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-dns</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-haproxy</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-http</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-http2</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-memcache</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-mqtt</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-redis</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-smtp</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-socks</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-stomp</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-codec-xml</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-handler-proxy</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-resolver-dns</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-resolver-dns-classes-macos</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-resolver-dns-native-macos</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-transport-rxtx</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-transport-sctp</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-transport-udt</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- newer version than in dependencies to support Apple Darwin arm64 architecture -->
+        <dependency>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+            <version>1.1.8.4</version>
+            <type>jar</type>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -264,14 +378,14 @@
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
-        
+
 
         <dependency>
             <groupId>ai.catboost</groupId>
             <artifactId>catboost-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>ai.catboost</groupId>
             <artifactId>catboost-spark-macros_${scala.compat.version}</artifactId>
@@ -321,19 +435,13 @@
                           </goals>
                           <configuration>
                               <executable>python</executable>
-                              <arguments>
-                                  <argument>${catboost_root}/jvm-packages/tools/build_native_for_maven.py</argument>
-                                  <argument>${core_project_root}</argument>
-                                  <argument>catboost4j-spark-impl</argument>
-                                  <argument>--build</argument>
-                                  <argument>release</argument>
-                                  <argument>--no-src-links</argument>
-                                  <argument>-DOS_SDK=local</argument>
-                                  <argument>-DHAVE_CUDA=no</argument>
-                                  <argument>-DUSE_LOCAL_SWIG=yes</argument>
-                                  <argument>-DUSE_SYSTEM_JDK=${JAVA_HOME}</argument>
-                                  <argument>-DJAVA_HOME=${JAVA_HOME}</argument>
-                              </arguments>
+                              <commandlineArgs>
+                                ${catboost_root}/jvm-packages/tools/build_native_for_maven.py
+                                --build-output-root-dir=${project.build.directory}/native
+                                --base-dir=${core_project_root}
+                                --lib-name=catboost4j-spark-impl
+                                ${buildNative.extraArgs}
+                              </commandlineArgs>
                               <workingDirectory>${user.dir}</workingDirectory>
                           </configuration>
                       </execution>

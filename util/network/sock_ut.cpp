@@ -3,6 +3,7 @@
 #include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/threading/future/legacy_future.h>
 
+#include <util/string/split.h>
 #include <util/system/fs.h>
 
 Y_UNIT_TEST_SUITE(TSocketTest) {
@@ -165,4 +166,14 @@ Y_UNIT_TEST_SUITE(TSocketTest) {
         NFs::Remove(localServerSockName);
     }
 
+    Y_UNIT_TEST(DetermingPath) {
+        const TString connectionString = "/var/run/some.sock http://localhost/endpoint";
+
+        TStringBuf sockPath, endpoint;
+        StringSplitter(connectionString).Split(' ').SkipEmpty().CollectInto(&sockPath, &endpoint);
+
+        TSockAddrLocal sal;
+        sal.Set(sockPath);
+        UNIT_ASSERT_STRINGS_EQUAL(sal.ToString(), "/var/run/some.sock");
+    }
 }

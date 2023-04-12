@@ -4,9 +4,8 @@
 #include <util/generic/scope.h>
 #include <util/generic/utility.h>
 
-#include <contrib/libs/zlib/zlib.h>
+#include <zlib.h>
 
-#include <cstdio>
 #include <cstring>
 
 namespace {

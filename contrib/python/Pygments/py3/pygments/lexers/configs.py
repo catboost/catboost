@@ -4,15 +4,16 @@
 
     Lexers for configuration file formats.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import re
 
-from pygments.lexer import RegexLexer, default, words, bygroups, include, using
+from pygments.lexer import ExtendedRegexLexer, RegexLexer, default, words, \
+    bygroups, include, using
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Whitespace, Literal, Generic
+    Number, Punctuation, Whitespace, Literal, Error, Generic
 from pygments.lexers.shell import BashLexer
 from pygments.lexers.data import JsonLexer
 
@@ -21,7 +22,7 @@ __all__ = ['IniLexer', 'RegeditLexer', 'PropertiesLexer', 'KconfigLexer',
            'NginxConfLexer', 'LighttpdConfLexer', 'DockerLexer',
            'TerraformLexer', 'TermcapLexer', 'TerminfoLexer',
            'PkgConfigLexer', 'PacmanConfLexer', 'AugeasLexer', 'TOMLLexer',
-           'NestedTextLexer', 'SingularityLexer']
+           'NestedTextLexer', 'SingularityLexer', 'UnixConfigLexer']
 
 
 class IniLexer(RegexLexer):
@@ -32,7 +33,7 @@ class IniLexer(RegexLexer):
     name = 'INI'
     aliases = ['ini', 'cfg', 'dosini']
     filenames = [
-        '*.ini', '*.cfg', '*.inf',
+        '*.ini', '*.cfg', '*.inf', '.editorconfig',
         # systemd unit files
         # https://www.freedesktop.org/software/systemd/man/systemd.unit.html
         '*.service', '*.socket', '*.device', '*.mount', '*.automount',
@@ -42,11 +43,11 @@ class IniLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[;#].*', Comment.Single),
             (r'\[.*?\]$', Keyword),
             (r'(.*?)([ \t]*)(=)([ \t]*)([^\t\n]*)',
-             bygroups(Name.Attribute, Text, Operator, Text, String)),
+             bygroups(Name.Attribute, Whitespace, Operator, Whitespace, String)),
             # standalone option, supported by some INI parsers
             (r'(.+?)$', Name.Attribute),
         ],
@@ -61,14 +62,13 @@ class IniLexer(RegexLexer):
 
 class RegeditLexer(RegexLexer):
     """
-    Lexer for `Windows Registry
-    <http://en.wikipedia.org/wiki/Windows_Registry#.REG_files>`_ files produced
-    by regedit.
+    Lexer for Windows Registry files produced by regedit.
 
     .. versionadded:: 1.6
     """
 
     name = 'reg'
+    url = 'http://en.wikipedia.org/wiki/Windows_Registry#.REG_files'
     aliases = ['registry']
     filenames = ['*.reg']
     mimetypes = ['text/x-windows-registry']
@@ -76,17 +76,17 @@ class RegeditLexer(RegexLexer):
     tokens = {
         'root': [
             (r'Windows Registry Editor.*', Text),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[;#].*', Comment.Single),
             (r'(\[)(-?)(HKEY_[A-Z_]+)(.*?\])$',
              bygroups(Keyword, Operator, Name.Builtin, Keyword)),
             # String keys, which obey somewhat normal escaping
             (r'("(?:\\"|\\\\|[^"])+")([ \t]*)(=)([ \t]*)',
-             bygroups(Name.Attribute, Text, Operator, Text),
+             bygroups(Name.Attribute, Whitespace, Operator, Whitespace),
              'value'),
             # Bare keys (includes @)
             (r'(.*?)([ \t]*)(=)([ \t]*)',
-             bygroups(Name.Attribute, Text, Operator, Text),
+             bygroups(Name.Attribute, Whitespace, Operator, Whitespace),
              'value'),
         ],
         'value': [
@@ -119,14 +119,14 @@ class PropertiesLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^(\w+)([ \t])(\w+\s*)$', bygroups(Name.Attribute, Text, String)),
+            (r'^(\w+)([ \t])(\w+\s*)$', bygroups(Name.Attribute, Whitespace, String)),
             (r'^\w+(\\[ \t]\w*)*$', Name.Attribute),
-            (r'(^ *)([#!].*)', bygroups(Text, Comment)),
+            (r'(^ *)([#!].*)', bygroups(Whitespace, Comment)),
             # More controversial comments
-            (r'(^ *)((?:;|//).*)', bygroups(Text, Comment)),
+            (r'(^ *)((?:;|//).*)', bygroups(Whitespace, Comment)),
             (r'(.*?)([ \t]*)([=:])([ \t]*)(.*(?:(?<=\\)\n.*)*)',
-             bygroups(Name.Attribute, Text, Operator, Text, String)),
-            (r'\s', Text),
+             bygroups(Name.Attribute, Whitespace, Operator, Whitespace, String)),
+            (r'\s', Whitespace),
         ],
     }
 
@@ -182,7 +182,7 @@ class KconfigLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'#.*?\n', Comment.Single),
             (words((
                 'mainmenu', 'config', 'menuconfig', 'choice', 'endchoice',
@@ -230,12 +230,13 @@ class KconfigLexer(RegexLexer):
 
 class Cfengine3Lexer(RegexLexer):
     """
-    Lexer for `CFEngine3 <http://cfengine.org>`_ policy files.
+    Lexer for CFEngine3 policy files.
 
     .. versionadded:: 1.5
     """
 
     name = 'CFEngine3'
+    url = 'http://cfengine.org'
     aliases = ['cfengine3', 'cf3']
     filenames = ['*.cf']
     mimetypes = []
@@ -244,17 +245,17 @@ class Cfengine3Lexer(RegexLexer):
         'root': [
             (r'#.*?\n', Comment),
             (r'(body)(\s+)(\S+)(\s+)(control)',
-             bygroups(Keyword, Text, Keyword, Text, Keyword)),
+             bygroups(Keyword, Whitespace, Keyword, Whitespace, Keyword)),
             (r'(body|bundle)(\s+)(\S+)(\s+)(\w+)(\()',
-             bygroups(Keyword, Text, Keyword, Text, Name.Function, Punctuation),
+             bygroups(Keyword, Whitespace, Keyword, Whitespace, Name.Function, Punctuation),
              'arglist'),
             (r'(body|bundle)(\s+)(\S+)(\s+)(\w+)',
-             bygroups(Keyword, Text, Keyword, Text, Name.Function)),
+             bygroups(Keyword, Whitespace, Keyword, Whitespace, Name.Function)),
             (r'(")([^"]+)(")(\s+)(string|slist|int|real)(\s*)(=>)(\s*)',
              bygroups(Punctuation, Name.Variable, Punctuation,
-                      Text, Keyword.Type, Text, Operator, Text)),
+                      Whitespace, Keyword.Type, Whitespace, Operator, Whitespace)),
             (r'(\S+)(\s*)(=>)(\s*)',
-             bygroups(Keyword.Reserved, Text, Operator, Text)),
+             bygroups(Keyword.Reserved, Whitespace, Operator, Text)),
             (r'"', String, 'string'),
             (r'(\w+)(\()', bygroups(Name.Function, Punctuation)),
             (r'([\w.!&|()]+)(::)', bygroups(Name.Class, Punctuation)),
@@ -266,7 +267,7 @@ class Cfengine3Lexer(RegexLexer):
             (r'\d+\.\d+', Number.Float),
             (r'\d+', Number.Integer),
             (r'\w+', Name.Function),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
         'string': [
             (r'\$[{(]', String.Interpol, 'interpol'),
@@ -284,7 +285,7 @@ class Cfengine3Lexer(RegexLexer):
             (r'\)', Punctuation, '#pop'),
             (r',', Punctuation),
             (r'\w+', Name.Variable),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
     }
 
@@ -305,10 +306,10 @@ class ApacheConfLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'#(.*\\\n)+.*$|(#.*?)$', Comment),
             (r'(<[^\s>/][^\s>]*)(?:(\s+)(.*))?(>)',
-             bygroups(Name.Tag, Text, String, Name.Tag)),
+             bygroups(Name.Tag, Whitespace, String, Name.Tag)),
             (r'(</[^\s>]+)(>)',
              bygroups(Name.Tag, Name.Tag)),
             (r'[a-z]\w*', Name.Builtin, 'value'),
@@ -316,9 +317,9 @@ class ApacheConfLexer(RegexLexer):
         ],
         'value': [
             (r'\\\n', Text),
-            (r'$', Text, '#pop'),
+            (r'\n+', Whitespace, '#pop'),
             (r'\\', Text),
-            (r'[^\S\n]+', Text),
+            (r'[^\S\n]+', Whitespace),
             (r'\d+\.\d+\.\d+\.\d+(?:/\d+)?', Number),
             (r'\d+', Number),
             (r'/([*a-z0-9][*\w./-]+)', String.Other),
@@ -334,12 +335,13 @@ class ApacheConfLexer(RegexLexer):
 
 class SquidConfLexer(RegexLexer):
     """
-    Lexer for `squid <http://www.squid-cache.org/>`_ configuration files.
+    Lexer for squid configuration files.
 
     .. versionadded:: 0.9
     """
 
     name = 'SquidConf'
+    url = 'http://www.squid-cache.org/'
     aliases = ['squidconf', 'squid.conf', 'squid']
     filenames = ['squid.conf']
     mimetypes = ['text/x-squidconf']
@@ -464,18 +466,19 @@ class SquidConfLexer(RegexLexer):
 
 class NginxConfLexer(RegexLexer):
     """
-    Lexer for `Nginx <http://nginx.net/>`_ configuration files.
+    Lexer for Nginx configuration files.
 
     .. versionadded:: 0.11
     """
     name = 'Nginx configuration file'
+    url = 'http://nginx.net/'
     aliases = ['nginx']
     filenames = ['nginx.conf']
     mimetypes = ['text/x-nginx-conf']
 
     tokens = {
         'root': [
-            (r'(include)(\s+)([^\s;]+)', bygroups(Keyword, Text, Name)),
+            (r'(include)(\s+)([^\s;]+)', bygroups(Keyword, Whitespace, Name)),
             (r'[^\s;#]+', Keyword, 'stmt'),
             include('base'),
         ],
@@ -498,11 +501,11 @@ class NginxConfLexer(RegexLexer):
             (r'[a-z-]+/[a-z-+]+', String),  # mimetype
             # (r'[a-zA-Z._-]+', Keyword),
             (r'[0-9]+[km]?\b', Number.Integer),
-            (r'(~)(\s*)([^\s{]+)', bygroups(Punctuation, Text, String.Regex)),
+            (r'(~)(\s*)([^\s{]+)', bygroups(Punctuation, Whitespace, String.Regex)),
             (r'[:=~]', Punctuation),
             (r'[^\s;#{}$]+', String),  # catch all
             (r'/[^\s;#]*', Name),  # pathname
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[$;]', Text),  # leftover characters
         ],
     }
@@ -510,11 +513,12 @@ class NginxConfLexer(RegexLexer):
 
 class LighttpdConfLexer(RegexLexer):
     """
-    Lexer for `Lighttpd <http://lighttpd.net/>`_ configuration files.
+    Lexer for Lighttpd configuration files.
 
     .. versionadded:: 0.11
     """
     name = 'Lighttpd configuration file'
+    url = 'http://lighttpd.net/'
     aliases = ['lighttpd', 'lighty']
     filenames = ['lighttpd.conf']
     mimetypes = ['text/x-lighttpd-conf']
@@ -530,7 +534,7 @@ class LighttpdConfLexer(RegexLexer):
             (r'\$[A-Z]+', Name.Builtin),
             (r'[(){}\[\],]', Punctuation),
             (r'"([^"\\]*(?:\\.[^"\\]*)*)"', String.Double),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
         ],
 
     }
@@ -538,11 +542,12 @@ class LighttpdConfLexer(RegexLexer):
 
 class DockerLexer(RegexLexer):
     """
-    Lexer for `Docker <http://docker.io>`_ configuration files.
+    Lexer for Docker configuration files.
 
     .. versionadded:: 2.0
     """
     name = 'Docker'
+    url = 'http://docker.io'
     aliases = ['docker', 'dockerfile']
     filenames = ['Dockerfile', '*.docker']
     mimetypes = ['text/x-dockerfile-config']
@@ -556,38 +561,39 @@ class DockerLexer(RegexLexer):
         'root': [
             (r'#.*', Comment),
             (r'(FROM)([ \t]*)(\S*)([ \t]*)(?:(AS)([ \t]*)(\S*))?',
-             bygroups(Keyword, Text, String, Text, Keyword, Text, String)),
-            (r'(ONBUILD)(%s)' % (_lb,), bygroups(Keyword, using(BashLexer))),
-            (r'(HEALTHCHECK)((%s--\w+=\w+%s)*)' % (_lb, _lb),
-                bygroups(Keyword, using(BashLexer))),
-            (r'(VOLUME|ENTRYPOINT|CMD|SHELL)(%s)(\[.*?\])' % (_lb,),
-                bygroups(Keyword, using(BashLexer), using(JsonLexer))),
-            (r'(LABEL|ENV|ARG)((%s\w+=\w+%s)*)' % (_lb, _lb),
-                bygroups(Keyword, using(BashLexer))),
-            (r'(%s|VOLUME)\b(.*)' % (_keywords), bygroups(Keyword, String)),
-            (r'(%s)' % (_bash_keywords,), Keyword),
+             bygroups(Keyword, Whitespace, String, Whitespace, Keyword, Whitespace, String)),
+            (r'(ONBUILD)(\s+)(%s)' % (_lb,), bygroups(Keyword, Whitespace, using(BashLexer))),
+            (r'(HEALTHCHECK)(\s+)((%s--\w+=\w+%s)*)' % (_lb, _lb),
+                bygroups(Keyword, Whitespace, using(BashLexer))),
+            (r'(VOLUME|ENTRYPOINT|CMD|SHELL)(\s+)(%s)(\[.*?\])' % (_lb,),
+                bygroups(Keyword, Whitespace, using(BashLexer), using(JsonLexer))),
+            (r'(LABEL|ENV|ARG)(\s+)((%s\w+=\w+%s)*)' % (_lb, _lb),
+                bygroups(Keyword, Whitespace, using(BashLexer))),
+            (r'(%s|VOLUME)\b(\s+)(.*)' % (_keywords), bygroups(Keyword, Whitespace, String)),
+            (r'(%s)(\s+)' % (_bash_keywords,), bygroups(Keyword, Whitespace)),
             (r'(.*\\\n)*.+', using(BashLexer)),
         ]
     }
 
 
-class TerraformLexer(RegexLexer):
+class TerraformLexer(ExtendedRegexLexer):
     """
-    Lexer for `terraformi .tf files <https://www.terraform.io/>`_.
+    Lexer for terraformi ``.tf`` files.
 
     .. versionadded:: 2.1
     """
 
     name = 'Terraform'
+    url = 'https://www.terraform.io/'
     aliases = ['terraform', 'tf']
     filenames = ['*.tf']
     mimetypes = ['application/x-tf', 'application/x-terraform']
 
     classes = ('backend', 'data', 'module', 'output', 'provider',
-             'provisioner', 'resource', 'variable')
+               'provisioner', 'resource', 'variable')
     classes_re = "({})".format(('|').join(classes))
 
-    types = ('string', 'number', 'bool', 'list', 'tuple', 'map', 'object', 'null')
+    types = ('string', 'number', 'bool', 'list', 'tuple', 'map', 'set', 'object', 'null')
 
     numeric_functions = ('abs', 'ceil', 'floor', 'log', 'max',
                          'mix', 'parseint', 'pow', 'signum')
@@ -611,7 +617,6 @@ class TerraformLexer(RegexLexer):
                           'csvdecode', 'jsondecode', 'jsonencode', 'textdecodebase64',
                           'textencodebase64', 'urlencode', 'yamldecode', 'yamlencode')
 
-
     filesystem_functions = ('abspath', 'dirname', 'pathexpand', 'basename',
                             'file', 'fileexists', 'fileset', 'filebase64', 'templatefile')
 
@@ -630,6 +635,44 @@ class TerraformLexer(RegexLexer):
         filesystem_functions + date_time_functions + hash_crypto_functions + ip_network_functions +\
         type_conversion_functions
     builtins_re = "({})".format(('|').join(builtins))
+
+    def heredoc_callback(self, match, ctx):
+        # Parse a terraform heredoc
+        # match: 1 = <<[-]?, 2 = name 3 = rest of line
+
+        start = match.start(1)
+        yield start, Operator, match.group(1)        # <<[-]?
+        yield match.start(2), String.Delimiter, match.group(2)  # heredoc name
+
+        ctx.pos = match.start(3)
+        ctx.end = match.end(3)
+        yield ctx.pos, String.Heredoc, match.group(3)
+        ctx.pos = match.end()
+
+        hdname = match.group(2)
+        tolerant = True  # leading whitespace is always accepted
+
+        lines = []
+        line_re = re.compile('.*?\n')
+
+        for match in line_re.finditer(ctx.text, ctx.pos):
+            if tolerant:
+                check = match.group().strip()
+            else:
+                check = match.group().rstrip()
+            if check == hdname:
+                for amatch in lines:
+                    yield amatch.start(), String.Heredoc, amatch.group()
+                yield match.start(), String.Delimiter, match.group()
+                ctx.pos = match.end()
+                break
+            else:
+                lines.append(match)
+        else:
+            # end of heredoc not found -- error!
+            for amatch in lines:
+                yield amatch.start(), Error, amatch.group()
+        ctx.end = len(ctx.text)
 
     tokens = {
         'root': [
@@ -651,22 +694,22 @@ class TerraformLexer(RegexLexer):
         ],
         'basic': [
             (r'\s*/\*', Comment.Multiline, 'comment'),
-            (r'\s*#.*\n', Comment.Single),
+            (r'\s*(#|//).*\n', Comment.Single),
             include('whitespace'),
 
             # e.g. terraform {
             # e.g. egress {
             (r'(\s*)([0-9a-zA-Z-_]+)(\s*)(=?)(\s*)(\{)',
-             bygroups(Text, Name.Builtin, Text, Operator, Text, Punctuation)),
+             bygroups(Whitespace, Name.Builtin, Whitespace, Operator, Whitespace, Punctuation)),
 
             # Assignment with attributes, e.g. something = ...
             (r'(\s*)([0-9a-zA-Z-_]+)(\s*)(=)(\s*)',
-             bygroups(Text, Name.Attribute, Text, Operator, Text)),
+             bygroups(Whitespace, Name.Attribute, Whitespace, Operator, Whitespace)),
 
             # Assignment with environment variables and similar, e.g. "something" = ...
             # or key value assignment, e.g. "SlotName" : ...
             (r'(\s*)("\S+")(\s*)([=:])(\s*)',
-             bygroups(Text, Literal.String.Double, Text, Operator, Text)),
+             bygroups(Whitespace, Literal.String.Double, Whitespace, Operator, Whitespace)),
 
             # Functions, e.g. jsonencode(element("value"))
             (builtins_re + r'(\()', bygroups(Name.Function, Punctuation)),
@@ -676,13 +719,14 @@ class TerraformLexer(RegexLexer):
 
             # e.g. resource "aws_security_group" "allow_tls" {
             # e.g. backend "consul" {
-            (classes_re + r'(\s+)', bygroups(Keyword.Reserved, Text), 'blockname'),
-        ],
-        'blockname': [
-            # e.g. resource "aws_security_group" "allow_tls" {
-            # e.g. backend "consul" {
-            (r'(\s*)("[0-9a-zA-Z-_]+")?(\s*)("[0-9a-zA-Z-_]+")(\s+)(\{)',
-             bygroups(Text, Name.Class, Text, Name.Variable, Text, Punctuation)),
+            (classes_re + r'(\s+)("[0-9a-zA-Z-_]+")?(\s*)("[0-9a-zA-Z-_]+")(\s+)(\{)',
+             bygroups(Keyword.Reserved, Whitespace, Name.Class, Whitespace, Name.Variable, Whitespace, Punctuation)),
+
+            # here-doc style delimited strings
+            (
+                r'(<<-?)\s*([a-zA-Z_]\w*)(.*?\n)',
+                heredoc_callback,
+            )
         ],
         'identifier': [
             (r'\b(var\.[0-9a-zA-Z-_\.\[\]]+)\b', bygroups(Name.Variable)),
@@ -698,9 +742,9 @@ class TerraformLexer(RegexLexer):
             (r'[*/]', Comment.Multiline)
         ],
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
-            (r'\\\n', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
+            (r'(\\)(\n)', bygroups(Text, Whitespace)),
         ],
     }
 
@@ -725,18 +769,19 @@ class TermcapLexer(RegexLexer):
     #   * space after separator is not allowed (mayve)
     tokens = {
         'root': [
-            (r'^#.*$', Comment),
+            (r'^#.*', Comment),
             (r'^[^\s#:|]+', Name.Tag, 'names'),
+            (r'\s+', Whitespace),
         ],
         'names': [
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
             (r':', Punctuation, 'defs'),
             (r'\|', Punctuation),
             (r'[^:|]+', Name.Attribute),
         ],
         'defs': [
-            (r'\\\n[ \t]*', Text),
-            (r'\n[ \t]*', Text, '#pop:2'),
+            (r'(\\)(\n[ \t]*)', bygroups(Text, Whitespace)),
+            (r'\n[ \t]*', Whitespace, '#pop:2'),
             (r'(#)([0-9]+)', bygroups(Operator, Number)),
             (r'=', Operator, 'data'),
             (r':', Punctuation),
@@ -773,24 +818,25 @@ class TerminfoLexer(RegexLexer):
         'root': [
             (r'^#.*$', Comment),
             (r'^[^\s#,|]+', Name.Tag, 'names'),
+            (r'\s+', Whitespace),
         ],
         'names': [
-            (r'\n', Text, '#pop'),
-            (r'(,)([ \t]*)', bygroups(Punctuation, Text), 'defs'),
+            (r'\n', Whitespace, '#pop'),
+            (r'(,)([ \t]*)', bygroups(Punctuation, Whitespace), 'defs'),
             (r'\|', Punctuation),
             (r'[^,|]+', Name.Attribute),
         ],
         'defs': [
-            (r'\n[ \t]+', Text),
-            (r'\n', Text, '#pop:2'),
+            (r'\n[ \t]+', Whitespace),
+            (r'\n', Whitespace, '#pop:2'),
             (r'(#)([0-9]+)', bygroups(Operator, Number)),
             (r'=', Operator, 'data'),
-            (r'(,)([ \t]*)', bygroups(Punctuation, Text)),
+            (r'(,)([ \t]*)', bygroups(Punctuation, Whitespace)),
             (r'[^\s,=#]+', Name.Class),
         ],
         'data': [
             (r'\\[,\\]', Literal),
-            (r'(,)([ \t]*)', bygroups(Punctuation, Text), '#pop'),
+            (r'(,)([ \t]*)', bygroups(Punctuation, Whitespace), '#pop'),
             (r'[^\\,]+', Literal),  # for performance
             (r'.', Literal),
         ],
@@ -799,14 +845,14 @@ class TerminfoLexer(RegexLexer):
 
 class PkgConfigLexer(RegexLexer):
     """
-    Lexer for `pkg-config
-    <http://www.freedesktop.org/wiki/Software/pkg-config/>`_
+    Lexer for pkg-config
     (see also `manual page <http://linux.die.net/man/1/pkg-config>`_).
 
     .. versionadded:: 2.1
     """
 
     name = 'PkgConfig'
+    url = 'http://www.freedesktop.org/wiki/Software/pkg-config/'
     aliases = ['pkgconfig']
     filenames = ['*.pc']
     mimetypes = []
@@ -826,6 +872,7 @@ class PkgConfigLexer(RegexLexer):
             include('interp'),
 
             # fallback
+            (r'\s+', Whitespace),
             (r'[^${}#=:\n.]+', Text),
             (r'.', Text),
         ],
@@ -844,10 +891,11 @@ class PkgConfigLexer(RegexLexer):
             include('interp'),
 
             (r'#.*$', Comment.Single, '#pop'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
 
             # fallback
-            (r'[^${}#\n]+', Text),
+            (r'\s+', Whitespace),
+            (r'[^${}#\n\s]+', Text),
             (r'.', Text),
         ],
     }
@@ -855,8 +903,7 @@ class PkgConfigLexer(RegexLexer):
 
 class PacmanConfLexer(RegexLexer):
     """
-    Lexer for `pacman.conf
-    <https://www.archlinux.org/pacman/pacman.conf.5.html>`_.
+    Lexer for pacman.conf.
 
     Actually, IniLexer works almost fine for this format,
     but it yield error token. It is because pacman.conf has
@@ -874,6 +921,7 @@ class PacmanConfLexer(RegexLexer):
     """
 
     name = 'PacmanConf'
+    url = 'https://www.archlinux.org/pacman/pacman.conf.5.html'
     aliases = ['pacmanconf']
     filenames = ['pacman.conf']
     mimetypes = []
@@ -884,16 +932,16 @@ class PacmanConfLexer(RegexLexer):
             (r'#.*$', Comment.Single),
 
             # section header
-            (r'^\s*\[.*?\]\s*$', Keyword),
+            (r'^(\s*)(\[.*?\])(\s*)$', bygroups(Whitespace, Keyword, Whitespace)),
 
             # variable definitions
             # (Leading space is allowed...)
             (r'(\w+)(\s*)(=)',
-             bygroups(Name.Attribute, Text, Operator)),
+             bygroups(Name.Attribute, Whitespace, Operator)),
 
             # flags to on
             (r'^(\s*)(\w+)(\s*)$',
-             bygroups(Text, Name.Attribute, Text)),
+             bygroups(Whitespace, Name.Attribute, Whitespace)),
 
             # built-in special values
             (words((
@@ -905,6 +953,7 @@ class PacmanConfLexer(RegexLexer):
              Name.Variable),
 
             # fallback
+            (r'\s+', Whitespace),
             (r'.', Text),
         ],
     }
@@ -912,19 +961,20 @@ class PacmanConfLexer(RegexLexer):
 
 class AugeasLexer(RegexLexer):
     """
-    Lexer for `Augeas <http://augeas.net>`_.
+    Lexer for Augeas.
 
     .. versionadded:: 2.4
     """
     name = 'Augeas'
+    url = 'http://augeas.net'
     aliases = ['augeas']
     filenames = ['*.aug']
 
     tokens = {
         'root': [
-            (r'(module)(\s*)([^\s=]+)', bygroups(Keyword.Namespace, Text, Name.Namespace)),
-            (r'(let)(\s*)([^\s=]+)', bygroups(Keyword.Declaration, Text, Name.Variable)),
-            (r'(del|store|value|counter|seq|key|label|autoload|incl|excl|transform|test|get|put)(\s+)', bygroups(Name.Builtin, Text)),
+            (r'(module)(\s*)([^\s=]+)', bygroups(Keyword.Namespace, Whitespace, Name.Namespace)),
+            (r'(let)(\s*)([^\s=]+)', bygroups(Keyword.Declaration, Whitespace, Name.Variable)),
+            (r'(del|store|value|counter|seq|key|label|autoload|incl|excl|transform|test|get|put)(\s+)', bygroups(Name.Builtin, Whitespace)),
             (r'(\()([^:]+)(\:)(unit|string|regexp|lens|tree|filter)(\))', bygroups(Punctuation, Name.Variable, Punctuation, Keyword.Type, Punctuation)),
             (r'\(\*', Comment.Multiline, 'comment'),
             (r'[*+\-.;=?|]', Operator),
@@ -933,7 +983,7 @@ class AugeasLexer(RegexLexer):
             (r'\/', String.Regex, 'regex'),
             (r'([A-Z]\w*)(\.)(\w+)', bygroups(Name.Namespace, Punctuation, Name.Variable)),
             (r'.', Name.Variable),
-            (r'\s', Text),
+            (r'\s+', Whitespace),
         ],
         'string': [
             (r'\\.', String.Escape),
@@ -956,24 +1006,25 @@ class AugeasLexer(RegexLexer):
 
 class TOMLLexer(RegexLexer):
     """
-    Lexer for `TOML <https://github.com/toml-lang/toml>`_, a simple language
+    Lexer for TOML, a simple language
     for config files.
 
     .. versionadded:: 2.4
     """
 
     name = 'TOML'
+    url = 'https://github.com/toml-lang/toml'
     aliases = ['toml']
     filenames = ['*.toml', 'Pipfile', 'poetry.lock']
 
     tokens = {
         'root': [
             # Table
-            (r'^(\s*)(\[.*?\])$', bygroups(Text, Keyword)),
+            (r'^(\s*)(\[.*?\])$', bygroups(Whitespace, Keyword)),
 
             # Basics, comments, strings
-            (r'[ \t]+', Text),
-            (r'\n', Text),
+            (r'[ \t]+', Whitespace),
+            (r'\n', Whitespace),
             (r'#.*?$', Comment.Single),
             # Basic string
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
@@ -1007,13 +1058,14 @@ class TOMLLexer(RegexLexer):
 
 class NestedTextLexer(RegexLexer):
     """
-    Lexer for `NextedText <https://nestedtext.org>`_, a human-friendly data 
+    Lexer for NextedText, a human-friendly data
     format.
-    
+
     .. versionadded:: 2.9
     """
 
     name = 'NestedText'
+    url = 'https://nestedtext.org'
     aliases = ['nestedtext', 'nt']
     filenames = ['*.nt']
 
@@ -1021,40 +1073,41 @@ class NestedTextLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'^(\s*)(#.*?)$', bygroups(Text, Comment)),
-            (r'^(\s*)(> ?)(.*?)(\s*)$', bygroups(Text, Punctuation, String, Whitespace)),
-            (r'^(\s*)(- ?)(.*?)(\s*)$', bygroups(Text, Punctuation, String, Whitespace)),
-            (_quoted_dict_item.format("'"), bygroups(Text, Punctuation, Name, Punctuation, String, Whitespace)),
-            (_quoted_dict_item.format('"'), bygroups(Text, Punctuation, Name, Punctuation, String, Whitespace)),
-            (r'^(\s*)(.*?)(: ?)(.*?)(\s*)$', bygroups(Text, Name, Punctuation, String, Whitespace)),
+            (r'^(\s*)(#.*?)$', bygroups(Whitespace, Comment)),
+            (r'^(\s*)(>)( ?)(.*?)(\s*)$', bygroups(Whitespace, Punctuation, Whitespace, String, Whitespace)),
+            (r'^(\s*)(-)( ?)(.*?)(\s*)$', bygroups(Whitespace, Punctuation, Whitespace, String, Whitespace)),
+            (_quoted_dict_item.format("'"), bygroups(Whitespace, Punctuation, Name, Punctuation, String, Whitespace)),
+            (_quoted_dict_item.format('"'), bygroups(Whitespace, Punctuation, Name, Punctuation, String, Whitespace)),
+            (r'^(\s*)(.*?)(:)( ?)(.*?)(\s*)$', bygroups(Whitespace, Name, Punctuation, Whitespace, String, Whitespace)),
         ],
     }
-        
+
 
 class SingularityLexer(RegexLexer):
     """
-    Lexer for `Singularity definition files
-    <https://www.sylabs.io/guides/3.0/user-guide/definition_files.html>`_.
+    Lexer for Singularity definition files.
 
     .. versionadded:: 2.6
     """
 
     name = 'Singularity'
+    url = 'https://www.sylabs.io/guides/3.0/user-guide/definition_files.html'
     aliases = ['singularity']
     filenames = ['*.def', 'Singularity']
     flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
 
     _headers = r'^(\s*)(bootstrap|from|osversion|mirrorurl|include|registry|namespace|includecmd)(:)'
-    _section = r'^%(?:pre|post|setup|environment|help|labels|test|runscript|files|startscript)\b'
-    _appsect = r'^%app(?:install|help|run|labels|env|test|files)\b'
+    _section = r'^(%(?:pre|post|setup|environment|help|labels|test|runscript|files|startscript))(\s*)'
+    _appsect = r'^(%app(?:install|help|run|labels|env|test|files))(\s*)'
 
     tokens = {
         'root': [
-            (_section, Generic.Heading, 'script'),
-            (_appsect, Generic.Heading, 'script'),
-            (_headers, bygroups(Text, Keyword, Text)),
+            (_section, bygroups(Generic.Heading, Whitespace), 'script'),
+            (_appsect, bygroups(Generic.Heading, Whitespace), 'script'),
+            (_headers, bygroups(Whitespace, Keyword, Text)),
             (r'\s*#.*?\n', Comment),
             (r'\b(([0-9]+\.?[0-9]*)|(\.[0-9]+))\b', Number),
+            (r'[ \t]+', Whitespace),
             (r'(?!^\s*%).', Text),
         ],
         'script': [
@@ -1073,3 +1126,30 @@ class SingularityLexer(RegexLexer):
             result += 0.49
 
         return result
+
+
+class UnixConfigLexer(RegexLexer):
+    """
+    Lexer for Unix/Linux config files using colon-separated values, e.g.
+
+    * ``/etc/group``
+    * ``/etc/passwd``
+    * ``/etc/shadow``
+    
+    .. versionadded:: 2.12
+    """
+
+    name = 'Unix/Linux config files'
+    aliases = ['unixconfig', 'linuxconfig']
+    filenames = []
+
+    tokens = {
+        'root': [
+            (r'^#.*', Comment),
+            (r'\n', Whitespace),
+            (r':', Punctuation),
+            (r'[0-9]+', Number),
+            (r'((?!\n)[a-zA-Z0-9\_\-\s\(\),]){2,}', Text),
+            (r'[^:\n]+', String),
+        ],
+    }

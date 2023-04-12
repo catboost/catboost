@@ -38,6 +38,7 @@
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 
 #include <google/protobuf/port_def.inc>
 
@@ -45,6 +46,19 @@ namespace google {
 namespace protobuf {
 namespace compiler {
 namespace objectivec {
+
+// Get/Set if the proto package should be used to make the default prefix for
+// symbols. This will then impact most of the type naming apis below. It is done
+// as a global to not break any other generator reusing the methods since they
+// are exported.
+bool PROTOC_EXPORT UseProtoPackageAsDefaultPrefix();
+void PROTOC_EXPORT SetUseProtoPackageAsDefaultPrefix(bool on_or_off);
+// Get/Set the path to a file to load as exceptions when
+// `UseProtoPackageAsDefaultPrefixUseProtoPackageAsDefaultPrefix()` is `true`.
+// And empty string means there should be no exceptions loaded.
+TProtoStringType PROTOC_EXPORT GetProtoPackagePrefixExceptionList();
+void PROTOC_EXPORT SetProtoPackagePrefixExceptionList(
+    const TProtoStringType& file_path);
 
 // Generator options (see objectivec_generator.cc for a description of each):
 struct Options {
@@ -54,6 +68,8 @@ struct Options {
   TProtoStringType generate_for_named_framework;
   TProtoStringType named_framework_to_proto_path_mappings_path;
   TProtoStringType runtime_import_prefix;
+  bool prefixes_must_be_registered;
+  bool require_prefixes;
 };
 
 // Escape C++ trigraphs by escaping question marks to "\?".
@@ -70,7 +86,7 @@ bool PROTOC_EXPORT IsRetainedName(const TProtoStringType& name);
 // handling under ARC.
 bool PROTOC_EXPORT IsInitName(const TProtoStringType& name);
 
-// Gets the objc_class_prefix.
+// Gets the objc_class_prefix or the prefix made from the proto package.
 TProtoStringType PROTOC_EXPORT FileClassPrefix(const FileDescriptor* file);
 
 // Gets the path of the file we're going to generate (sans the .pb.h
@@ -90,7 +106,7 @@ TProtoStringType PROTOC_EXPORT FileClassName(const FileDescriptor* file);
 // descriptor.
 TProtoStringType PROTOC_EXPORT ClassName(const Descriptor* descriptor);
 TProtoStringType PROTOC_EXPORT ClassName(const Descriptor* descriptor,
-                               TProtoStringType* out_suffix_added);
+                                    TProtoStringType* out_suffix_added);
 TProtoStringType PROTOC_EXPORT EnumName(const EnumDescriptor* descriptor);
 
 // Returns the fully-qualified name of the enum value corresponding to the
@@ -247,7 +263,7 @@ class PROTOC_EXPORT TextFormatDecodeData {
   TextFormatDecodeData(const TextFormatDecodeData&) = delete;
   TextFormatDecodeData& operator=(const TextFormatDecodeData&) = delete;
 
-  void AddString(int32 key, const TProtoStringType& input_for_decode,
+  void AddString(arc_i32 key, const TProtoStringType& input_for_decode,
                  const TProtoStringType& desired_output);
   size_t num_entries() const { return entries_.size(); }
   TProtoStringType Data() const;
@@ -256,7 +272,7 @@ class PROTOC_EXPORT TextFormatDecodeData {
                                          const TProtoStringType& desired_output);
 
  private:
-  typedef std::pair<int32, TProtoStringType> DataEntry;
+  typedef std::pair<arc_i32, TProtoStringType> DataEntry;
   std::vector<DataEntry> entries_;
 };
 
@@ -271,6 +287,11 @@ class PROTOC_EXPORT LineConsumer {
 bool PROTOC_EXPORT ParseSimpleFile(const TProtoStringType& path,
                                    LineConsumer* line_consumer,
                                    TProtoStringType* out_error);
+
+bool PROTOC_EXPORT ParseSimpleStream(io::ZeroCopyInputStream& input_stream,
+                                     const TProtoStringType& stream_name,
+                                     LineConsumer* line_consumer,
+                                     TProtoStringType* out_error);
 
 // Helper class for parsing framework import mappings and generating
 // import statements.
@@ -296,7 +317,7 @@ class PROTOC_EXPORT ImportWriter {
     ProtoFrameworkCollector(std::map<TProtoStringType, TProtoStringType>* inout_proto_file_to_framework_name)
         : map_(inout_proto_file_to_framework_name) {}
 
-    virtual bool ConsumeLine(const StringPiece& line, TProtoStringType* out_error);
+    virtual bool ConsumeLine(const StringPiece& line, TProtoStringType* out_error) override;
 
    private:
     std::map<TProtoStringType, TProtoStringType>* map_;

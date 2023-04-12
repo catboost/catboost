@@ -4,7 +4,7 @@
 
     Lexers for ActionScript and MXML.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, bygroups, using, this, words, default
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['ActionScriptLexer', 'ActionScript3Lexer', 'MxmlLexer']
 
@@ -33,7 +33,7 @@ class ActionScriptLexer(RegexLexer):
     flags = re.DOTALL
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'//.*?\n', Comment.Single),
             (r'/\*.*?\*/', Comment.Multiline),
             (r'/(\\\\|\\[^\\]|[^/\\\n])*/[gim]*', String.Regex),
@@ -123,6 +123,7 @@ class ActionScript3Lexer(RegexLexer):
     """
 
     name = 'ActionScript 3'
+    url = 'https://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/index.html'
     aliases = ['actionscript3', 'as3']
     filenames = ['*.as']
     mimetypes = ['application/x-actionscript3', 'text/x-actionscript3',
@@ -134,18 +135,18 @@ class ActionScript3Lexer(RegexLexer):
     flags = re.DOTALL | re.MULTILINE
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'(function\s+)(' + identifier + r')(\s*)(\()',
              bygroups(Keyword.Declaration, Name.Function, Text, Operator),
              'funcparams'),
             (r'(var|const)(\s+)(' + identifier + r')(\s*)(:)(\s*)(' +
              typeidentifier + r')',
-             bygroups(Keyword.Declaration, Text, Name, Text, Punctuation, Text,
+             bygroups(Keyword.Declaration, Whitespace, Name, Whitespace, Punctuation, Whitespace,
                       Keyword.Type)),
             (r'(import|package)(\s+)((?:' + identifier + r'|\.)+)(\s*)',
-             bygroups(Keyword, Text, Name.Namespace, Text)),
+             bygroups(Keyword, Whitespace, Name.Namespace, Whitespace)),
             (r'(new)(\s+)(' + typeidentifier + r')(\s*)(\()',
-             bygroups(Keyword, Text, Keyword.Type, Text, Operator)),
+             bygroups(Keyword, Whitespace, Keyword.Type, Whitespace, Operator)),
             (r'//.*?\n', Comment.Single),
             (r'/\*.*?\*/', Comment.Multiline),
             (r'/(\\\\|\\[^\\]|[^\\\n])*/[gisx]*', String.Regex),
@@ -173,22 +174,22 @@ class ActionScript3Lexer(RegexLexer):
             (r'[~^*!%&<>|+=:;,/?\\{}\[\]().-]+', Operator),
         ],
         'funcparams': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'(\s*)(\.\.\.)?(' + identifier + r')(\s*)(:)(\s*)(' +
              typeidentifier + r'|\*)(\s*)',
-             bygroups(Text, Punctuation, Name, Text, Operator, Text,
-                      Keyword.Type, Text), 'defval'),
+             bygroups(Whitespace, Punctuation, Name, Whitespace, Operator, Whitespace,
+                      Keyword.Type, Whitespace), 'defval'),
             (r'\)', Operator, 'type')
         ],
         'type': [
             (r'(\s*)(:)(\s*)(' + typeidentifier + r'|\*)',
-             bygroups(Text, Operator, Text, Keyword.Type), '#pop:2'),
+             bygroups(Whitespace, Operator, Whitespace, Keyword.Type), '#pop:2'),
             (r'\s+', Text, '#pop:2'),
             default('#pop:2')
         ],
         'defval': [
             (r'(=)(\s*)([^(),]+)(\s*)(,?)',
-             bygroups(Operator, Text, using(this), Text, Operator), '#pop'),
+             bygroups(Operator, Whitespace, using(this), Whitespace, Operator), '#pop'),
             (r',', Operator, '#pop'),
             default('#pop')
         ]
@@ -231,12 +232,12 @@ class MxmlLexer(RegexLexer):
             ('-', Comment),
         ],
         'tag': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[\w.:-]+\s*=', Name.Attribute, 'attr'),
             (r'/?\s*>', Name.Tag, '#pop'),
         ],
         'attr': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             ('".*?"', String, '#pop'),
             ("'.*?'", String, '#pop'),
             (r'[^\s>]+', String, '#pop'),

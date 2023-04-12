@@ -1,7 +1,3 @@
-# cython: cdivision=True
-# cython: boundscheck=False
-# cython: wraparound=False
-# cython: language_level=3
 """This module contains routines for building histograms."""
 
 # Author: Nicolas Hug
@@ -10,12 +6,12 @@ cimport cython
 from cython.parallel import prange
 
 import numpy as np
-cimport numpy as np
 
 from .common import HISTOGRAM_DTYPE
 from .common cimport hist_struct
 from .common cimport X_BINNED_DTYPE_C
 from .common cimport G_H_DTYPE_C
+
 
 # Notes:
 # - IN views are read-only, OUT views are write-only
@@ -51,7 +47,7 @@ cdef class HistogramBuilder:
 
     There are different ways to build a histogram:
     - by subtraction: hist(child) = hist(parent) - hist(sibling)
-    - from scratch. In this case we have rountines that update the hessians
+    - from scratch. In this case we have routines that update the hessians
       or not (not useful when hessians are constant for some losses e.g.
       least squares). Also, there's a special case for the root which
       contains all the samples, leading to some possible optimizations.
@@ -83,11 +79,13 @@ cdef class HistogramBuilder:
         G_H_DTYPE_C [::1] ordered_gradients
         G_H_DTYPE_C [::1] ordered_hessians
         unsigned char hessians_are_constant
+        int n_threads
 
     def __init__(self, const X_BINNED_DTYPE_C [::1, :] X_binned,
                  unsigned int n_bins, G_H_DTYPE_C [::1] gradients,
                  G_H_DTYPE_C [::1] hessians,
-                 unsigned char hessians_are_constant):
+                 unsigned char hessians_are_constant,
+                 int n_threads):
 
         self.X_binned = X_binned
         self.n_features = X_binned.shape[1]
@@ -100,10 +98,13 @@ cdef class HistogramBuilder:
         self.ordered_gradients = gradients.copy()
         self.ordered_hessians = hessians.copy()
         self.hessians_are_constant = hessians_are_constant
+        self.n_threads = n_threads
 
     def compute_histograms_brute(
-            HistogramBuilder self,
-            const unsigned int [::1] sample_indices):  # IN
+        HistogramBuilder self,
+        const unsigned int [::1] sample_indices,       # IN
+        const unsigned int [:] allowed_features=None,  # IN
+    ):
         """Compute the histograms of the node by scanning through all the data.
 
         For a given feature, the complexity is O(n_samples)
@@ -113,6 +114,10 @@ cdef class HistogramBuilder:
         sample_indices : array of int, shape (n_samples_at_node,)
             The indices of the samples at the node to split.
 
+        allowed_features : None or ndarray, dtype=np.uint32
+            Indices of the features that are allowed by interaction constraints to be
+            split.
+
         Returns
         -------
         histograms : ndarray of HISTOGRAM_DTYPE, shape (n_features, n_bins)
@@ -121,19 +126,27 @@ cdef class HistogramBuilder:
         cdef:
             int n_samples
             int feature_idx
+            int f_idx
             int i
             # need local views to avoid python interactions
             unsigned char hessians_are_constant = \
                 self.hessians_are_constant
             int n_features = self.n_features
+            int n_allowed_features = self.n_features
             G_H_DTYPE_C [::1] ordered_gradients = self.ordered_gradients
             G_H_DTYPE_C [::1] gradients = self.gradients
             G_H_DTYPE_C [::1] ordered_hessians = self.ordered_hessians
             G_H_DTYPE_C [::1] hessians = self.hessians
-            hist_struct [:, ::1] histograms = np.zeros(
+            # Histograms will be initialized to zero later within a prange
+            hist_struct [:, ::1] histograms = np.empty(
                 shape=(self.n_features, self.n_bins),
                 dtype=HISTOGRAM_DTYPE
             )
+            bint has_interaction_cst = allowed_features is not None
+            int n_threads = self.n_threads
+
+        if has_interaction_cst:
+            n_allowed_features = allowed_features.shape[0]
 
         with nogil:
             n_samples = sample_indices.shape[0]
@@ -143,17 +156,27 @@ cdef class HistogramBuilder:
             # cache hit.
             if sample_indices.shape[0] != gradients.shape[0]:
                 if hessians_are_constant:
-                    for i in prange(n_samples, schedule='static'):
+                    for i in prange(n_samples, schedule='static',
+                                    num_threads=n_threads):
                         ordered_gradients[i] = gradients[sample_indices[i]]
                 else:
-                    for i in prange(n_samples, schedule='static'):
+                    for i in prange(n_samples, schedule='static',
+                                    num_threads=n_threads):
                         ordered_gradients[i] = gradients[sample_indices[i]]
                         ordered_hessians[i] = hessians[sample_indices[i]]
 
-            for feature_idx in prange(n_features, schedule='static'):
-                # Compute histogram of each feature
+            # Compute histogram of each feature
+            for f_idx in prange(
+                n_allowed_features, schedule='static', num_threads=n_threads
+            ):
+                if has_interaction_cst:
+                    feature_idx = allowed_features[f_idx]
+                else:
+                    feature_idx = f_idx
+
                 self._compute_histogram_brute_single_feature(
-                    feature_idx, sample_indices, histograms)
+                    feature_idx, sample_indices, histograms
+                )
 
         return histograms
 
@@ -175,6 +198,12 @@ cdef class HistogramBuilder:
                 self.ordered_hessians[:n_samples]
             unsigned char hessians_are_constant = \
                 self.hessians_are_constant
+            unsigned int bin_idx = 0
+
+        for bin_idx in range(self.n_bins):
+            histograms[feature_idx, bin_idx].sum_gradients = 0.
+            histograms[feature_idx, bin_idx].sum_hessians = 0.
+            histograms[feature_idx, bin_idx].count = 0
 
         if root_node:
             if hessians_are_constant:
@@ -196,9 +225,11 @@ cdef class HistogramBuilder:
                                  ordered_hessians, histograms)
 
     def compute_histograms_subtraction(
-            HistogramBuilder self,
-            hist_struct [:, ::1] parent_histograms,  # IN
-            hist_struct [:, ::1] sibling_histograms):  # IN
+        HistogramBuilder self,
+        hist_struct [:, ::1] parent_histograms,        # IN
+        hist_struct [:, ::1] sibling_histograms,       # IN
+        const unsigned int [:] allowed_features=None,  # IN
+    ):
         """Compute the histograms of the node using the subtraction trick.
 
         hist(parent) = hist(left_child) + hist(right_child)
@@ -215,6 +246,9 @@ cdef class HistogramBuilder:
         sibling_histograms : ndarray of HISTOGRAM_DTYPE, \
                 shape (n_features, n_bins)
             The histograms of the sibling.
+        allowed_features : None or ndarray, dtype=np.uint32
+            Indices of the features that are allowed by interaction constraints to be
+            split.
 
         Returns
         -------
@@ -224,19 +258,34 @@ cdef class HistogramBuilder:
 
         cdef:
             int feature_idx
+            int f_idx
             int n_features = self.n_features
-            hist_struct [:, ::1] histograms = np.zeros(
+            int n_allowed_features = self.n_features
+            hist_struct [:, ::1] histograms = np.empty(
                 shape=(self.n_features, self.n_bins),
                 dtype=HISTOGRAM_DTYPE
             )
+            bint has_interaction_cst = allowed_features is not None
+            int n_threads = self.n_threads
 
-        for feature_idx in prange(n_features, schedule='static', nogil=True):
-            # Compute histogram of each feature
-            _subtract_histograms(feature_idx,
-                                 self.n_bins,
-                                 parent_histograms,
-                                 sibling_histograms,
-                                 histograms)
+        if has_interaction_cst:
+            n_allowed_features = allowed_features.shape[0]
+
+        # Compute histogram of each feature
+        for f_idx in prange(n_allowed_features, schedule='static', nogil=True,
+                            num_threads=n_threads):
+            if has_interaction_cst:
+                feature_idx = allowed_features[f_idx]
+            else:
+                feature_idx = f_idx
+
+            _subtract_histograms(
+                feature_idx,
+                self.n_bins,
+                parent_histograms,
+                sibling_histograms,
+                histograms,
+            )
         return histograms
 
 

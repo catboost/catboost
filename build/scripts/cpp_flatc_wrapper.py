@@ -12,13 +12,12 @@ def main():
         cmd[index+1] = os.path.dirname(h_file)
     except (ValueError, IndexError):
         pass
-    p = subprocess.Popen(cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = p.communicate()
+    p = subprocess.run(cmd, capture_output=True, text=True)
     if p.returncode:
-        if out:
-            sys.stderr.write('stdout:\n{}\n'.format(out))
-        if err:
-            sys.stderr.write('stderr:\n{}\n'.format(err))
+        if p.stdout:
+            sys.stderr.write('stdout:\n{}\n'.format(p.stdout))
+        if p.stderr:
+            sys.stderr.write('stderr:\n{}\n'.format(p.stderr))
         sys.exit(p.returncode)
     if h_file and h_file.endswith(('.fbs.h', '.fbs64.h')):
         cpp_file = '{}.cpp'.format(h_file[:-2])

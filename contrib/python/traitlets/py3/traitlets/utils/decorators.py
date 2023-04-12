@@ -1,10 +1,10 @@
 """Useful decorators for Traitlets users."""
 
 import copy
+from inspect import Parameter, Signature, signature
+from typing import Type, TypeVar
 
-from inspect import Signature, Parameter, signature
-
-from ..traitlets import Undefined
+from ..traitlets import HasTraits, Undefined
 
 
 def _get_default(value):
@@ -12,12 +12,15 @@ def _get_default(value):
     return Parameter.empty if value == Undefined else value
 
 
-def signature_has_traits(cls):
+T = TypeVar("T", bound=HasTraits)
+
+
+def signature_has_traits(cls: Type[T]) -> Type[T]:
     """Return a decorated class with a constructor signature that contain Trait names as kwargs."""
     traits = [
         (name, _get_default(value.default_value))
         for name, value in cls.class_traits().items()
-        if not name.startswith('_')
+        if not name.startswith("_")
     ]
 
     # Taking the __init__ signature, as the cls signature is not initialized yet
@@ -33,7 +36,10 @@ def signature_has_traits(cls):
         # Copy the parameter
         parameter = copy.copy(old_signature.parameters[parameter_name])
 
-        if parameter.kind is Parameter.POSITIONAL_ONLY or parameter.kind is Parameter.POSITIONAL_OR_KEYWORD:
+        if (
+            parameter.kind is Parameter.POSITIONAL_ONLY
+            or parameter.kind is Parameter.POSITIONAL_OR_KEYWORD
+        ):
             old_positional_parameters.append(parameter)
 
         elif parameter.kind is Parameter.VAR_POSITIONAL:
@@ -49,8 +55,9 @@ def signature_has_traits(cls):
     # because it can't accept traits as keyword arguments
     if old_var_keyword_parameter is None:
         raise RuntimeError(
-            'The {} constructor does not take **kwargs, which means that the signature can not be expanded with trait names'
-            .format(cls)
+            "The {} constructor does not take **kwargs, which means that the signature can not be expanded with trait names".format(
+                cls
+            )
         )
 
     new_parameters = []
@@ -75,6 +82,6 @@ def signature_has_traits(cls):
     # Append **kwargs
     new_parameters.append(old_var_keyword_parameter)
 
-    cls.__signature__ = Signature(new_parameters)
+    cls.__signature__ = Signature(new_parameters)  # type:ignore[attr-defined]
 
     return cls

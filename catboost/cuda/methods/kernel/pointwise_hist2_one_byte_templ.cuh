@@ -169,7 +169,7 @@ namespace NKernel {
         fCount = min(fCount - (blockIdx.x / M) * 4, 4);
 
         __shared__ float counters[32 * BLOCK_SIZE];
-        const int maxBinCount = GetMaxBinCount(feature, fCount, (int*) &counters[0]);
+        const ui32 maxBinCount = GetMaxBinCount(feature, fCount, (ui32*) &counters[0]);
         __syncthreads();
 
         static_assert(BITS >= 5, "Error: this specialization for 5-8 bit histograms");
@@ -241,6 +241,9 @@ namespace NKernel {
             const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
             numBlocks.x = ((nbCount + 3) / 4);
             numBlocks.x *= multiplier;
+            if (IsGridEmpty(numBlocks)) {
+                return;
+            }
 
             #define COMPUTE(k)\
              RunComputeHist2NonBinaryKernel<blockSize, Bits, k>(nbFeatures, nbCount, cindex,  target, weight,  indices, \

@@ -59,7 +59,7 @@ class PROTOBUF_EXPORT FieldMaskUtil {
   // Populates the FieldMask with the paths corresponding to the fields with the
   // given numbers, after checking that all field numbers are valid.
   template <typename T>
-  static void FromFieldNumbers(const std::vector<int64_t>& field_numbers,
+  static void FromFieldNumbers(const std::vector<arc_i64>& field_numbers,
                                FieldMask* out) {
     for (const auto field_number : field_numbers) {
       const FieldDescriptor* field_desc =
@@ -245,7 +245,7 @@ class PROTOBUF_EXPORT FieldMaskUtil::TrimOptions {
   // When trimming message fields, the default behavior is to trim required
   // fields of the present message if they are not specified in the field mask.
   // If you instead want to keep required fields of the present message even
-  // they are not specified in the field mask, set this flag to true.
+  // when they are not specified in the field mask, set this flag to true.
   void set_keep_required_fields(bool value) { keep_required_fields_ = value; }
   bool keep_required_fields() const { return keep_required_fields_; }
 

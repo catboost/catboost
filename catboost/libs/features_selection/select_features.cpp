@@ -4,11 +4,13 @@
 
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/feature_names_converter.h>
+#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/dir_helper.h>
 #include <catboost/libs/train_lib/options_helper.h>
+#include <catboost/libs/train_lib/trainer_env.h>
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/full_model_saver.h>
 #include <catboost/private/libs/algo/preprocess.h>
@@ -34,21 +36,57 @@ namespace NCB {
                 "Please install latest NVDIA driver and check again");
         }
 
-        const auto& featuresForSelect = featuresSelectOptions.FeaturesForSelect.Get();
-        CB_ENSURE(featuresSelectOptions.NumberOfFeaturesToSelect.IsSet(), "You should specify the number of features to select");
-        CB_ENSURE(featuresSelectOptions.NumberOfFeaturesToSelect.Get() > 0, "Number of features to select should be positive");
-        CB_ENSURE(featuresForSelect.size() > 0, "You should specify features to select from");
-        CB_ENSURE(
-            static_cast<int>(featuresForSelect.size()) >= featuresSelectOptions.NumberOfFeaturesToSelect,
-            "It is impossible to select " << featuresSelectOptions.NumberOfFeaturesToSelect << " features from " << featuresForSelect.size() << " features"
-        );
-        const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
-        for (const ui32 feature : featuresForSelect) {
-            CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
+        auto checkCountConsistency = [] (
+            auto entriesForSelectSize,
+            const TOption<int>& numberOfEntriesToSelect,
+            TStringBuf entriesName
+        ) {
             CB_ENSURE(
-                !pools.Learn->MetaInfo.FeaturesLayout->GetExternalFeatureMetaInfo(feature).IsIgnored,
-                "Tested feature " << feature << " should not be ignored"
+                numberOfEntriesToSelect.IsSet(),
+                "You should specify the number of " << entriesName << " to select"
             );
+            CB_ENSURE(
+                numberOfEntriesToSelect.Get() > 0,
+                "Number of " << entriesName << " to select should be positive"
+            );
+            CB_ENSURE(entriesForSelectSize > 0, "You should specify " << entriesName << " to select from");
+            CB_ENSURE(
+                static_cast<int>(entriesForSelectSize) >= numberOfEntriesToSelect.Get(),
+                "It is impossible to select " << numberOfEntriesToSelect.Get() << ' ' << entriesName
+                << " from " << entriesForSelectSize << ' ' << entriesName
+            );
+        };
+
+
+        if (featuresSelectOptions.Grouping.Get() == EFeaturesSelectionGrouping::Individual) {
+            const auto& featuresForSelect = featuresSelectOptions.FeaturesForSelect.Get();
+
+            checkCountConsistency(
+                featuresForSelect.size(),
+                featuresSelectOptions.NumberOfFeaturesToSelect,
+                "features"
+            );
+
+            const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
+            for (const ui32 feature : featuresForSelect) {
+                CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
+            }
+        } else { // ByTags
+            const auto& featuresTagsForSelect = featuresSelectOptions.FeaturesTagsForSelect.Get();
+
+            checkCountConsistency(
+                featuresTagsForSelect.size(),
+                featuresSelectOptions.NumberOfFeaturesTagsToSelect,
+                "features tags"
+            );
+
+            const auto& datasetFeaturesTags = pools.Learn->MetaInfo.FeaturesLayout->GetTagToExternalIndices();
+            for (const auto& featuresTag : featuresTagsForSelect) {
+                CB_ENSURE(
+                    datasetFeaturesTags.contains(featuresTag),
+                    "Tested features tag \"" << featuresTag << "\" is not present in dataset features tags"
+                );
+            }
         }
     }
 
@@ -120,6 +158,52 @@ namespace NCB {
         return trainingData;
     }
 
+    static TDataProviderPtr LoadSubsetForFstrCalc(
+        const TDataProviderPtr srcPool,
+        const TCatBoostOptions& catBoostOptions,
+        const TPoolLoadParams* poolLoadParams,
+        NPar::ILocalExecutor* executor
+    ) {
+        CATBOOST_DEBUG_LOG << "Loading fstr pool..." << Endl;
+        const ui32 totalDocumentCount = srcPool->GetObjectCount();
+        const ui32 minSubsetDocumentCount = SafeIntegerCast<ui32>(
+            GetMaxObjectCountForFstrCalc(
+                totalDocumentCount,
+                SafeIntegerCast<i64>(srcPool->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())
+            )
+        );
+
+        ui32 subsetDocumentCount = 0;
+        if (srcPool->ObjectsGrouping->IsTrivial()) {
+            subsetDocumentCount = minSubsetDocumentCount;
+        } else {
+            ui32 lastGroupIdx = 0;
+            while (srcPool->ObjectsGrouping->GetGroup(lastGroupIdx).End < minSubsetDocumentCount) {
+                lastGroupIdx += 1;
+            }
+            subsetDocumentCount = srcPool->ObjectsGrouping->GetGroup(lastGroupIdx).End;
+        }
+
+        auto classLabels = catBoostOptions.DataProcessingOptions->ClassLabels.Get();
+        return ReadDataset(
+            catBoostOptions.GetTaskType(),
+            poolLoadParams->LearnSetPath,
+            poolLoadParams->PairsFilePath,
+            poolLoadParams->GroupWeightsFilePath,
+            poolLoadParams->TimestampsFilePath,
+            poolLoadParams->BaselineFilePath,
+            poolLoadParams->FeatureNamesPath,
+            poolLoadParams->PoolMetaInfoPath,
+            poolLoadParams->ColumnarPoolFormatParams,
+            poolLoadParams->IgnoredFeatures,
+            catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ? EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+            TDatasetSubset::MakeRange(0, subsetDocumentCount),
+            catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
+            &classLabels,
+            executor
+        );
+    }
+
 
     TFeaturesSelectionSummary SelectFeatures(
         TCatBoostOptions catBoostOptions,
@@ -144,6 +228,16 @@ namespace NCB {
         TLabelConverter labelConverter;
         TRestorableFastRng64 rand(catBoostOptions.RandomSeed);
 
+        TDataProviderPtr srcPool = pools.Test.empty() ? pools.Learn : pools.Test[0];
+        TMaybe<TPathWithScheme> srcPoolPath = poolLoadParams
+            ? MakeMaybe(pools.Test.empty() ? poolLoadParams->LearnSetPath : poolLoadParams->TestSetPaths[0])
+            : Nothing();
+        const bool haveFeaturesInMemory = HaveFeaturesInMemory(catBoostOptions, srcPoolPath);
+        TDataProviderPtr fstrPool = haveFeaturesInMemory
+            ? GetSubsetForFstrCalc(srcPool, executor)
+            : LoadSubsetForFstrCalc(srcPool, catBoostOptions, poolLoadParams, executor);
+        CATBOOST_DEBUG_LOG << "Fstr pool size: " << fstrPool->GetObjectCount() << Endl;
+
         auto trainingData = QuantizePools(
             poolLoadParams,
             outputFileOptions,
@@ -158,8 +252,6 @@ namespace NCB {
             catBoostOptions,
             poolLoadParams ? MakeMaybe(poolLoadParams->LearnSetPath) : Nothing()
         );
-        // TODO(ilyzhin) support distributed training with quantized pool
-        CB_ENSURE(haveLearnFeaturesInMemory, "Features selection doesn't support distributed training with quantized pool yet.");
 
         THolder<TMasterContext> masterContext;
 
@@ -207,7 +299,7 @@ namespace NCB {
             outputFileOptions,
             featuresSelectOptions,
             evalMetricDescriptor,
-            pools,
+            fstrPool,
             labelConverter,
             trainingData,
             dstModel,
@@ -250,6 +342,8 @@ namespace NCB {
         TFeaturesSelectOptions featuresSelectOptions;
         featuresSelectOptions.Load(featuresSelectJsonOptions);
         featuresSelectOptions.CheckAndUpdateSteps();
+
+        auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads - 1);

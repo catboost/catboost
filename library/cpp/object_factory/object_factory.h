@@ -95,80 +95,6 @@ namespace NObjectFactory {
         TRWMutex CreatorsLock;
     };
 
-    template <class TProduct, class TKey>
-    class TObjectFactory: public IObjectFactory<TProduct, TKey, void> {
-    public:
-        TProduct* Create(const TKey& key) const {
-            IFactoryObjectCreator<TProduct, void>* creator = IObjectFactory<TProduct, TKey, void>::GetCreator(key);
-            return creator == nullptr ? nullptr : creator->Create();
-        }
-
-        static TString KeysDebugString() {
-            TSet<TString> keys;
-            Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
-            TString keysStr;
-            for (auto&& k : keys) {
-                keysStr += k + " ";
-            }
-            return keysStr;
-        }
-
-        static TProduct* Construct(const TKey& key, const TKey& defKey) {
-            TProduct* result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(key);
-            if (!result && !!defKey) {
-                result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(defKey);
-            }
-            return result;
-        }
-
-        static TProduct* Construct(const TKey& key) {
-            TProduct* result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(key);
-            return result;
-        }
-
-        static THolder<TProduct> VerifiedConstruct(const TKey& key) {
-            auto result = MakeHolder(key);
-            Y_VERIFY(result, "Construct by factory failed");
-            return result;
-        }
-
-        template<class... Args>
-        static THolder<TProduct> MakeHolder(Args&&... args) {
-            return THolder<TProduct>(Construct(std::forward<Args>(args)...));
-        }
-
-        static bool Has(const TKey& key) {
-            return Singleton<TObjectFactory<TProduct, TKey>>()->HasImpl(key);
-        }
-
-        static void GetRegisteredKeys(TSet<TKey>& keys) {
-            return Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
-        }
-
-        static TSet<TKey> GetRegisteredKeys() {
-            TSet<TKey> keys;
-            Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
-            return keys;
-        }
-
-        template <class Product>
-        class TRegistrator {
-        public:
-            TRegistrator(const TKey& key, IFactoryObjectCreator<TProduct, void>* creator) {
-                Singleton<TObjectFactory<TProduct, TKey>>()->template Register<Product>(key, creator);
-            }
-
-            TRegistrator(const TKey& key) {
-                Singleton<TObjectFactory<TProduct, TKey>>()->template Register<Product>(key);
-            }
-
-            TRegistrator()
-                : TRegistrator(Product::GetTypeName())
-            {
-            }
-        };
-    };
-
     template <class TProduct, class TKey, class... TArgs>
     class TParametrizedObjectFactory: public IObjectFactory<TProduct, TKey, TArgs...> {
     public:
@@ -179,6 +105,14 @@ namespace NObjectFactory {
 
         static bool Has(const TKey& key) {
             return Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->HasImpl(key);
+        }
+
+        static TProduct* Construct(const TKey& key, const TKey& defKey, TArgs... args) {
+            TProduct* result = Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(key, std::forward<TArgs>(args)...);
+            if (!result && !!defKey) {
+                result = Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(defKey, std::forward<TArgs>(args)...);
+            }
+            return result;
         }
 
         static TProduct* Construct(const TKey& key, TArgs... args) {
@@ -207,6 +141,17 @@ namespace NObjectFactory {
             return keys;
         }
 
+        template <class TDerivedProduct>
+        static TSet<TKey> GetRegisteredKeys() {
+            TSet<TKey> registeredKeys(GetRegisteredKeys());
+            TSet<TKey> fileredKeys;
+            std::copy_if(registeredKeys.begin(), registeredKeys.end(), std::inserter(fileredKeys, fileredKeys.end()), [](const TKey& key) {
+                THolder<TProduct> objectHolder(Construct(key));
+                return !!dynamic_cast<const TDerivedProduct*>(objectHolder.Get());
+            });
+            return fileredKeys;
+        }
+
         template <class Product>
         class TRegistrator {
         public:
@@ -229,4 +174,6 @@ namespace NObjectFactory {
         };
     };
 
+    template <class TProduct, class TKey, class... TArgs>
+    using TObjectFactory = TParametrizedObjectFactory<TProduct, TKey, TArgs...>;
 }

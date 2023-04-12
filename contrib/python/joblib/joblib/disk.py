@@ -66,10 +66,10 @@ def mkdirp(d):
 
 # if a rmtree operation fails in rm_subdirs, wait for this much time (in secs),
 # then retry up to RM_SUBDIRS_N_RETRY times. If it still fails, raise the
-# exception. this mecanism ensures that the sub-process gc have the time to
+# exception. this mechanism ensures that the sub-process gc have the time to
 # collect and close the memmaps before we fail.
 RM_SUBDIRS_RETRY_TIME = 0.1
-RM_SUBDIRS_N_RETRY = 5
+RM_SUBDIRS_N_RETRY = 10
 
 
 def rm_subdirs(path, onerror=None):
@@ -119,7 +119,7 @@ def delete_folder(folder_path, onerror=None, allow_non_empty=True):
                             folder_path, ignore_errors=False, onerror=None
                         )
                         util.debug(
-                            "Sucessfully deleted {}".format(folder_path))
+                            "Successfully deleted {}".format(folder_path))
                         break
                     else:
                         raise OSError(

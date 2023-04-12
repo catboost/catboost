@@ -5,9 +5,9 @@
     This file defines a set of types used across Cocoa frameworks from Apple.
     There is a list of @interfaces, @protocols and some other (structs, unions)
 
-    File may be also used as standalone generator for aboves.
+    File may be also used as standalone generator for above.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

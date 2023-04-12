@@ -2,9 +2,13 @@ LIBRARY()
 
 WITHOUT_LICENSE_TEXTS()
 
-LICENSE(MIT)
+LICENSE(YandexOpen)
 
-
+OWNER(
+    g:contrib
+    g:cpp-contrib
+    somov
+)
 
 NO_PLATFORM()
 

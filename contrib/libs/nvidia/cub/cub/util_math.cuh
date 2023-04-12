@@ -35,13 +35,9 @@
 #include <type_traits>
 
 #include "util_namespace.cuh"
+#include "util_macro.cuh"
 
-// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-// CUB namespace
-namespace cub
-{
+CUB_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -50,6 +46,14 @@ template <typename T>
 using is_integral_or_enum =
   std::integral_constant<bool,
                          std::is_integral<T>::value || std::is_enum<T>::value>;
+
+__host__ __device__ __forceinline__ constexpr  std::size_t
+VshmemSize(std::size_t max_shmem,
+           std::size_t shmem_per_block,
+           std::size_t num_blocks)
+{
+  return shmem_per_block > max_shmem ? shmem_per_block * num_blocks : 0;
+}
 
 }
 
@@ -71,5 +75,49 @@ DivideAndRoundUp(NumeratorT n, DenominatorT d)
   return static_cast<NumeratorT>(n / d + (n % d != 0 ? 1 : 0));
 }
 
-} // namespace cub
-CUB_NS_POSTFIX // Optional outer namespace(s)
+constexpr __device__ __host__ int
+Nominal4BItemsToItemsCombined(int nominal_4b_items_per_thread, int combined_bytes)
+{
+  return (cub::min)(nominal_4b_items_per_thread,
+                    (cub::max)(1,
+                               nominal_4b_items_per_thread * 8 /
+                               combined_bytes));
+}
+
+template <typename T>
+constexpr __device__ __host__ int
+Nominal4BItemsToItems(int nominal_4b_items_per_thread)
+{
+  return (cub::min)(nominal_4b_items_per_thread,
+                    (cub::max)(1,
+                               nominal_4b_items_per_thread * 4 /
+                                 static_cast<int>(sizeof(T))));
+}
+
+template <typename ItemT>
+constexpr __device__ __host__ int
+Nominal8BItemsToItems(int nominal_8b_items_per_thread)
+{
+  return sizeof(ItemT) <= 8u
+           ? nominal_8b_items_per_thread
+           : (cub::min)(nominal_8b_items_per_thread,
+                        (cub::max)(1,
+                                   ((nominal_8b_items_per_thread * 8) +
+                                    static_cast<int>(sizeof(ItemT)) - 1) /
+                                     static_cast<int>(sizeof(ItemT))));
+}
+
+/**
+ * \brief Computes the midpoint of the integers
+ *
+ * Extra operation is performed in order to prevent overflow.
+ *
+ * \return Half the sum of \p begin and \p end
+ */
+template <typename T>
+constexpr __device__ __host__ T MidPoint(T begin, T end)
+{
+  return begin + (end - begin) / 2;
+}
+
+CUB_NAMESPACE_END

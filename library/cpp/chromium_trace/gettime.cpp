@@ -3,6 +3,10 @@
 #include <util/generic/utility.h>
 #include <util/system/datetime.h>
 
+#ifdef _win_
+#include <windows.h>
+#endif
+
 namespace NChromiumTrace {
     TInstant GetThreadCPUTime() {
 #ifdef _linux_
@@ -19,6 +23,14 @@ namespace NChromiumTrace {
     }
 
     TInstant GetWallTime() {
+#ifdef _win_
+        LARGE_INTEGER counter;
+        LARGE_INTEGER frequency;
+        if (QueryPerformanceCounter(&counter) && QueryPerformanceFrequency(&frequency)) {
+            return TInstant::MicroSeconds(counter.QuadPart * 1'000'000 / frequency.QuadPart);
+        }
+        return {};
+#else
         // With "complete" events, trace viewer relies only on timestamps to
         // restore sequential ordering of events.  In case of two events too
         // close in time, it fails to disambiguate between them.  It is
@@ -28,5 +40,6 @@ namespace NChromiumTrace {
         static thread_local ui64 LastTimeStamp = 0;
         LastTimeStamp = Max(LastTimeStamp + 1, MicroSeconds());
         return TInstant::MicroSeconds(LastTimeStamp);
+#endif        
     }
 }

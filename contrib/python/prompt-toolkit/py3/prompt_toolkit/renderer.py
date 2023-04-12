@@ -8,6 +8,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Deque, Dict, Hashable, Optional, Tuple
 
 from prompt_toolkit.application.current import get_app
+from prompt_toolkit.cursor_shapes import CursorShape
 from prompt_toolkit.data_structures import Point, Size
 from prompt_toolkit.filters import FilterOrBool, to_filter
 from prompt_toolkit.formatted_text import AnyFormattedText, to_formatted_text
@@ -151,13 +152,12 @@ def _output_screen_diff(
         - The `Window` adds a style class to the current line for highlighting
           (cursor-line).
         """
-        numbers = [
+        numbers = (
             index
             for index, cell in row.items()
             if cell.char != " " or style_string_has_style[cell.style]
-        ]
-        numbers.append(0)
-        return max(numbers)
+        )
+        return max(numbers, default=0)
 
     # Render for the first time: reset styling.
     if not previous_screen:
@@ -188,7 +188,6 @@ def _output_screen_diff(
 
     # Loop over the rows.
     row_count = min(max(screen.height, previous_screen.height), height)
-    c = 0  # Column counter.
 
     for y in range(row_count):
         new_row = screen.data_buffer[y]
@@ -199,7 +198,7 @@ def _output_screen_diff(
         previous_max_line_len = min(width - 1, get_max_column_index(previous_row))
 
         # Loop over the columns.
-        c = 0
+        c = 0  # Column counter.
         while c <= new_max_line_len:
             new_char = new_row[c]
             old_char = previous_row[c]
@@ -385,6 +384,7 @@ class Renderer:
         self._last_screen: Optional[Screen] = None
         self._last_size: Optional[Size] = None
         self._last_style: Optional[str] = None
+        self._last_cursor_shape: Optional[CursorShape] = None
 
         # Default MouseHandlers. (Just empty.)
         self.mouse_handlers = MouseHandlers()
@@ -413,6 +413,8 @@ class Renderer:
         if self._bracketed_paste_enabled:
             self.output.disable_bracketed_paste()
             self._bracketed_paste_enabled = False
+
+        self.output.reset_cursor_shape()
 
         # NOTE: No need to set/reset cursor key mode here.
 
@@ -704,6 +706,16 @@ class Renderer:
         self._last_size = size
         self.mouse_handlers = mouse_handlers
 
+        # Handle cursor shapes.
+        new_cursor_shape = app.cursor.get_cursor_shape(app)
+        if (
+            self._last_cursor_shape is None
+            or self._last_cursor_shape != new_cursor_shape
+        ):
+            output.set_cursor_shape(new_cursor_shape)
+            self._last_cursor_shape = new_cursor_shape
+
+        # Flush buffered output.
         output.flush()
 
         # Set visible windows in layout.
@@ -728,6 +740,7 @@ class Renderer:
         output.erase_down()
         output.reset_attributes()
         output.enable_autowrap()
+
         output.flush()
 
         self.reset(leave_alternate_screen=leave_alternate_screen)
@@ -784,12 +797,16 @@ def print_formatted_text(
                 output.reset_attributes()
         last_attrs = attrs
 
-        # Eliminate carriage returns
-        text = text.replace("\r", "")
-
-        # Assume that the output is raw, and insert a carriage return before
-        # every newline. (Also important when the front-end is a telnet client.)
-        output.write(text.replace("\n", "\r\n"))
+        # Print escape sequences as raw output
+        if "[ZeroWidthEscape]" in style_str:
+            output.write_raw(text)
+        else:
+            # Eliminate carriage returns
+            text = text.replace("\r", "")
+            # Insert a carriage return before every newline (important when the
+            # front-end is a telnet client).
+            text = text.replace("\n", "\r\n")
+            output.write(text)
 
     # Reset again.
     output.reset_attributes()

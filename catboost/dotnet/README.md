@@ -13,7 +13,7 @@ Requirements
 ---
 
 * Win10 (so far — ideally, the build instructions should be ported to the `linux` / `osx` runtimes without too much effort);
-* .NET Core 2.2 CLI;
+* .NET Core 3.1 CLI;
 * Visual Studio 2019 (if you need to compile the API `.nupkg` by yourself)
 
 This project also assumes that it can access `ya make` — if you cloned the complete `catboost` repository, you should be fine :)

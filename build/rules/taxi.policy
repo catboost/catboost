@@ -1,3 +1,0 @@
-# userver-specific libc overrides, pending removal
-ALLOW taxi/uservices/userver -> contrib/libs/libc_userver_workarounds
-DENY .* -> contrib/libs/libc_userver_workarounds

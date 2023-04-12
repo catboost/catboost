@@ -5,7 +5,7 @@
     Lexers for the mosel language.
     http://www.fico.com/en/products/fico-xpress-optimization
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

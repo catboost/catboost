@@ -73,5 +73,8 @@ namespace NCB {
 
         size_t ClassesCount = 0;
         size_t EstimatedIdsLength = 0;
+        double EstimatedGroupSize = 0;
+        double EstimatedSqrGroupSize = 0;
+        size_t EstimatedMaxGroupSize = 0;
     };
 }

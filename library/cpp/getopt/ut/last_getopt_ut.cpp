@@ -415,6 +415,40 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
     }
 #endif
 
+    Y_UNIT_TEST(TestEqParseOnly) {
+        TOptsParserTester tester;
+
+        tester.Argv_.push_back("cmd");
+        tester.Argv_.push_back("--data=jjhh");
+        tester.Argv_.push_back("-n");
+        tester.Argv_.push_back("11");
+        tester.Argv_.push_back("--optional-number-1=8");
+        tester.Argv_.push_back("--optional-string-1=os1");
+        tester.Argv_.push_back("--optional-number-2");
+        tester.Argv_.push_back("10");
+        tester.Argv_.push_back("--optional-string-2");
+        tester.Argv_.push_back("freearg");
+
+        tester.Opts_.AddLongOption('d', "data");
+        tester.Opts_.AddLongOption('n', "number");
+        tester.Opts_.AddLongOption("optional-string-0");
+        tester.Opts_.AddLongOption("optional-number-0");
+        tester.Opts_.AddLongOption("optional-string-1");
+        tester.Opts_.AddLongOption("optional-number-1");
+        tester.Opts_.AddLongOption("optional-string-2").OptionalArgument().DisableSpaceParse();
+        tester.Opts_.AddLongOption("optional-number-2").OptionalArgument();
+
+        tester.AcceptOptionWithValue("data", "jjhh");
+        tester.AcceptOptionWithValue('n', "11");
+        tester.AcceptOptionWithValue("optional-number-1", "8");
+        tester.AcceptOptionWithValue("optional-string-1", "os1");
+        tester.AcceptOptionWithValue("optional-number-2", "10");
+        tester.AcceptOptionWithoutValue("optional-string-2");
+        tester.AcceptEndOfOptions();
+        tester.AcceptFreeArg("freearg");
+        tester.AcceptEndOfFreeArgs();
+    }
+
     Y_UNIT_TEST(TestStoreResult) {
         TOptsNoDefault opts;
         TString data;
@@ -702,15 +736,21 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
 
     Y_UNIT_TEST(TestAppendTo) {
         TVector<int> ints;
+        std::vector<std::string> strings;
 
         TOptsNoDefault opts;
         opts.AddLongOption("size").AppendTo(&ints);
+        opts.AddLongOption("value").AppendTo(&strings);
 
-        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--size=17", "--size=19"}));
+        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--size=17", "--size=19", "--value=v1", "--value=v2"}));
 
         UNIT_ASSERT_VALUES_EQUAL(size_t(2), ints.size());
         UNIT_ASSERT_VALUES_EQUAL(17, ints.at(0));
         UNIT_ASSERT_VALUES_EQUAL(19, ints.at(1));
+
+        UNIT_ASSERT_VALUES_EQUAL(size_t(2), strings.size());
+        UNIT_ASSERT_VALUES_EQUAL("v1", strings.at(0));
+        UNIT_ASSERT_VALUES_EQUAL("v2", strings.at(1));
     }
 
     Y_UNIT_TEST(TestEmplaceTo) {
@@ -790,5 +830,30 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         UNIT_ASSERT_VALUES_EQUAL("hello", data);
         UNIT_ASSERT_VALUES_EQUAL(25, number);
         UNIT_ASSERT_VALUES_EQUAL(2, r.GetFreeArgCount());
+    }
+
+    Y_UNIT_TEST(TestCheckUserTypos) {
+        {
+            TOptsNoDefault opts;
+            opts.SetCheckUserTypos();
+            opts.AddLongOption("from");
+            opts.AddLongOption("to");
+
+            UNIT_ASSERT_EXCEPTION(
+                    TOptsParseResultTestWrapper(&opts, V({"copy", "-from", "/home", "--to=/etc"})),
+                    TUsageException);
+            UNIT_ASSERT_NO_EXCEPTION(
+                    TOptsParseResultTestWrapper(&opts, V({"copy", "--from", "from", "--to=/etc"})));
+        }
+
+        {
+            TOptsNoDefault opts;
+            opts.SetCheckUserTypos();
+            opts.AddLongOption('f', "file", "");
+            opts.AddLongOption('r', "read", "");
+            opts.AddLongOption("fr");
+            UNIT_ASSERT_NO_EXCEPTION(
+                    TOptsParseResultTestWrapper(&opts, V({"copy", "-fr"})));
+        }
     }
 }

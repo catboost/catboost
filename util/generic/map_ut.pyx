@@ -1,3 +1,5 @@
+# cython: c_string_type=unicode, c_string_encoding=utf8
+
 from util.generic.map cimport TMap
 from util.generic.string cimport TString
 

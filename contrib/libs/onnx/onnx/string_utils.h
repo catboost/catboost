@@ -1,49 +1,61 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #pragma once
 
-#include <util/generic/string.h>
-#include <util/stream/str.h>
-#include <util/string/cast.h>
+#include <sstream>
+#include <string>
 
 namespace ONNX_NAMESPACE {
 
-
+#if defined(__ANDROID__)
 template <typename T>
-TString to_string(T value) {
-  return ToString(value);
+std::string to_string(T value) {
+  std::ostringstream os;
+  os << value;
+  return os.str();
 }
 
-inline int stoi(const TString& str) {
-  return FromString<int>(str);
+inline int stoi(const std::string& str) {
+  std::stringstream ss;
+  int n = 0;
+  ss << str;
+  ss >> n;
+  return n;
 }
 
+#else
+using std::stoi;
+using std::to_string;
+#endif // defined(__ANDROID__)
 
-inline void MakeStringInternal(TStringStream& /*ss*/) {}
+inline void MakeStringInternal(std::stringstream& /*ss*/) {}
 
 template <typename T>
-inline void MakeStringInternal(TStringStream& ss, const T& t) {
+inline void MakeStringInternal(std::stringstream& ss, const T& t) {
   ss << t;
 }
 
 template <typename T, typename... Args>
-inline void
-MakeStringInternal(TStringStream& ss, const T& t, const Args&... args) {
+inline void MakeStringInternal(std::stringstream& ss, const T& t, const Args&... args) {
   MakeStringInternal(ss, t);
   MakeStringInternal(ss, args...);
 }
 
 template <typename... Args>
-TString MakeString(const Args&... args) {
-  TStringStream ss;
+std::string MakeString(const Args&... args) {
+  std::stringstream ss;
   MakeStringInternal(ss, args...);
-  return TString(ss.Str());
+  return std::string(ss.str());
 }
 
 // Specializations for already-a-string types.
 template <>
-inline TString MakeString(const TString& str) {
+inline std::string MakeString(const std::string& str) {
   return str;
 }
-inline TString MakeString(const char* c_str) {
-  return TString(c_str);
+inline std::string MakeString(const char* c_str) {
+  return std::string(c_str);
 }
 } // namespace ONNX_NAMESPACE

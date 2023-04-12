@@ -1,0 +1,1 @@
+{% include [python-reference_catboost_get_best_score](python-reference_catboost_get_best_score.md) %}

@@ -4,7 +4,7 @@
 
     Lexers for Lispy languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,21 +12,19 @@ import re
 
 from pygments.lexer import RegexLexer, include, bygroups, words, default
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Literal, Error
+    Number, Punctuation, Literal, Error, Whitespace
 
 from pygments.lexers.python import PythonLexer
+
+from pygments.lexers._scheme_builtins import scheme_keywords, scheme_builtins
 
 __all__ = ['SchemeLexer', 'CommonLispLexer', 'HyLexer', 'RacketLexer',
            'NewLispLexer', 'EmacsLispLexer', 'ShenLexer', 'CPSALexer',
            'XtlangLexer', 'FennelLexer']
 
-
 class SchemeLexer(RegexLexer):
     """
-    A Scheme lexer, parsing a stream and outputting the tokens
-    needed to highlight scheme code.
-    This lexer could be most probably easily subclassed to parse
-    other LISP-Dialects like Common Lisp, Emacs Lisp or AutoLisp.
+    A Scheme lexer.
 
     This parser is checked with pastes from the LISP pastebin
     at http://paste.lisp.org/ to cover as much syntax as possible.
@@ -36,119 +34,229 @@ class SchemeLexer(RegexLexer):
     .. versionadded:: 0.6
     """
     name = 'Scheme'
+    url = 'http://www.scheme-reports.org/'
     aliases = ['scheme', 'scm']
     filenames = ['*.scm', '*.ss']
     mimetypes = ['text/x-scheme', 'application/x-scheme']
 
-    # list of known keywords and builtins taken form vim 6.4 scheme.vim
-    # syntax file.
-    keywords = (
-        'lambda', 'define', 'if', 'else', 'cond', 'and', 'or', 'case', 'let',
-        'let*', 'letrec', 'begin', 'do', 'delay', 'set!', '=>', 'quote',
-        'quasiquote', 'unquote', 'unquote-splicing', 'define-syntax',
-        'let-syntax', 'letrec-syntax', 'syntax-rules'
-    )
-    builtins = (
-        '*', '+', '-', '/', '<', '<=', '=', '>', '>=', 'abs', 'acos', 'angle',
-        'append', 'apply', 'asin', 'assoc', 'assq', 'assv', 'atan',
-        'boolean?', 'caaaar', 'caaadr', 'caaar', 'caadar', 'caaddr', 'caadr',
-        'caar', 'cadaar', 'cadadr', 'cadar', 'caddar', 'cadddr', 'caddr',
-        'cadr', 'call-with-current-continuation', 'call-with-input-file',
-        'call-with-output-file', 'call-with-values', 'call/cc', 'car',
-        'cdaaar', 'cdaadr', 'cdaar', 'cdadar', 'cdaddr', 'cdadr', 'cdar',
-        'cddaar', 'cddadr', 'cddar', 'cdddar', 'cddddr', 'cdddr', 'cddr',
-        'cdr', 'ceiling', 'char->integer', 'char-alphabetic?', 'char-ci<=?',
-        'char-ci<?', 'char-ci=?', 'char-ci>=?', 'char-ci>?', 'char-downcase',
-        'char-lower-case?', 'char-numeric?', 'char-ready?', 'char-upcase',
-        'char-upper-case?', 'char-whitespace?', 'char<=?', 'char<?', 'char=?',
-        'char>=?', 'char>?', 'char?', 'close-input-port', 'close-output-port',
-        'complex?', 'cons', 'cos', 'current-input-port', 'current-output-port',
-        'denominator', 'display', 'dynamic-wind', 'eof-object?', 'eq?',
-        'equal?', 'eqv?', 'eval', 'even?', 'exact->inexact', 'exact?', 'exp',
-        'expt', 'floor', 'for-each', 'force', 'gcd', 'imag-part',
-        'inexact->exact', 'inexact?', 'input-port?', 'integer->char',
-        'integer?', 'interaction-environment', 'lcm', 'length', 'list',
-        'list->string', 'list->vector', 'list-ref', 'list-tail', 'list?',
-        'load', 'log', 'magnitude', 'make-polar', 'make-rectangular',
-        'make-string', 'make-vector', 'map', 'max', 'member', 'memq', 'memv',
-        'min', 'modulo', 'negative?', 'newline', 'not', 'null-environment',
-        'null?', 'number->string', 'number?', 'numerator', 'odd?',
-        'open-input-file', 'open-output-file', 'output-port?', 'pair?',
-        'peek-char', 'port?', 'positive?', 'procedure?', 'quotient',
-        'rational?', 'rationalize', 'read', 'read-char', 'real-part', 'real?',
-        'remainder', 'reverse', 'round', 'scheme-report-environment',
-        'set-car!', 'set-cdr!', 'sin', 'sqrt', 'string', 'string->list',
-        'string->number', 'string->symbol', 'string-append', 'string-ci<=?',
-        'string-ci<?', 'string-ci=?', 'string-ci>=?', 'string-ci>?',
-        'string-copy', 'string-fill!', 'string-length', 'string-ref',
-        'string-set!', 'string<=?', 'string<?', 'string=?', 'string>=?',
-        'string>?', 'string?', 'substring', 'symbol->string', 'symbol?',
-        'tan', 'transcript-off', 'transcript-on', 'truncate', 'values',
-        'vector', 'vector->list', 'vector-fill!', 'vector-length',
-        'vector-ref', 'vector-set!', 'vector?', 'with-input-from-file',
-        'with-output-to-file', 'write', 'write-char', 'zero?'
-    )
+    flags = re.DOTALL | re.MULTILINE
 
     # valid names for identifiers
     # well, names can only not consist fully of numbers
     # but this should be good enough for now
     valid_name = r'[\w!$%&*+,/:<=>?@^~|-]+'
 
+    # Use within verbose regexes
+    token_end = r'''
+      (?=
+        \s         # whitespace
+        | ;        # comment
+        | \#[;|!] # fancy comments
+        | [)\]]    # end delimiters
+        | $        # end of file
+      )
+    '''
+
+    # Recognizing builtins.
+    def get_tokens_unprocessed(self, text):
+        for index, token, value in super().get_tokens_unprocessed(text):
+            if token is Name.Function or token is Name.Variable:
+                if value in scheme_keywords:
+                    yield index, Keyword, value
+                elif value in scheme_builtins:
+                    yield index, Name.Builtin, value
+                else:
+                    yield index, token, value
+            else:
+                yield index, token, value
+
+    # Scheme has funky syntactic rules for numbers. These are all
+    # valid number literals: 5.0e55|14, 14/13, -1+5j, +1@5, #b110,
+    # #o#Iinf.0-nan.0i.  This is adapted from the formal grammar given
+    # in http://www.r6rs.org/final/r6rs.pdf, section 4.2.1.  Take a
+    # deep breath ...
+
+    # It would be simpler if we could just not bother about invalid
+    # numbers like #b35. But we cannot parse 'abcdef' without #x as a
+    # number.
+
+    number_rules = {}
+    for base in (2, 8, 10, 16):
+        if base == 2:
+            digit = r'[01]'
+            radix = r'( \#[bB] )'
+        elif base == 8:
+            digit = r'[0-7]'
+            radix = r'( \#[oO] )'
+        elif base == 10:
+            digit = r'[0-9]'
+            radix = r'( (\#[dD])? )'
+        elif base == 16:
+            digit = r'[0-9a-fA-F]'
+            radix = r'( \#[xX] )'
+
+        # Radix, optional exactness indicator.
+        prefix = rf'''
+          (
+            {radix} (\#[iIeE])?
+            | \#[iIeE] {radix}
+          )
+        '''
+
+        # Simple unsigned number or fraction.
+        ureal = rf'''
+          (
+            {digit}+
+            ( / {digit}+ )?
+          )
+        '''
+
+        # Add decimal numbers.
+        if base == 10:
+            decimal = r'''
+              (
+                # Decimal part
+                (
+                  [0-9]+ ([.][0-9]*)?
+                  | [.][0-9]+
+                )
+
+                # Optional exponent
+                (
+                  [eEsSfFdDlL] [+-]? [0-9]+
+                )?
+
+                # Optional mantissa width
+                (
+                  \|[0-9]+
+                )?
+              )
+            '''
+            ureal = rf'''
+              (
+                {decimal} (?!/)
+                | {ureal}
+              )
+            '''
+
+        naninf = r'(nan.0|inf.0)'
+
+        real = rf'''
+          (
+            [+-] {naninf}  # Sign mandatory
+            | [+-]? {ureal}    # Sign optional
+          )
+        '''
+
+        complex_ = rf'''
+          (
+            {real}?  [+-]  ({naninf}|{ureal})?  i
+            | {real} (@ {real})?
+
+          )
+        '''
+
+        num = rf'''(?x)
+          (
+            {prefix}
+            {complex_}
+          )
+          # Need to ensure we have a full token. 1+ is not a
+          # number followed by something else, but a function
+          # name.
+          {token_end}
+        '''
+
+        number_rules[base] = num
+
+    # If you have a headache now, say thanks to RnRS editors.
+
+    # Doing it this way is simpler than splitting the number(10)
+    # regex in a floating-point and a no-floating-point version.
+    def decimal_cb(self, match):
+        if '.' in match.group():
+            token_type = Number.Float # includes [+-](inf|nan).0
+        else:
+            token_type = Number.Integer
+        yield match.start(), token_type, match.group()
+
+    # --
+
+    # The 'scheme-root' state parses as many expressions as needed, always
+    # delegating to the 'scheme-value' state. The latter parses one complete
+    # expression and immediately pops back. This is needed for the LilyPondLexer.
+    # When LilyPond encounters a #, it starts parsing embedded Scheme code, and
+    # returns to normal syntax after one expression. We implement this
+    # by letting the LilyPondLexer subclass the SchemeLexer. When it finds
+    # the #, the LilyPondLexer goes to the 'value' state, which then pops back
+    # to LilyPondLexer. The 'root' state of the SchemeLexer merely delegates the
+    # work to 'scheme-root'; this is so that LilyPondLexer can inherit
+    # 'scheme-root' and redefine 'root'.
+
     tokens = {
         'root': [
+            default('scheme-root'),
+        ],
+        'scheme-root': [
+            default('value'),
+        ],
+        'value': [
             # the comments
             # and going to the end of the line
-            (r';.*$', Comment.Single),
+            (r';.*?$', Comment.Single),
             # multi-line comment
             (r'#\|', Comment.Multiline, 'multiline-comment'),
-            # commented form (entire sexpr folliwng)
-            (r'#;\s*\(', Comment, 'commented-form'),
+            # commented form (entire sexpr following)
+            (r'#;[([]', Comment, 'commented-form'),
+            # commented datum
+            (r'#;', Comment, 'commented-datum'),
             # signifies that the program text that follows is written with the
             # lexical and datum syntax described in r6rs
             (r'#!r6rs', Comment),
 
             # whitespaces - usually not relevant
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # numbers
-            (r'-?\d+\.\d+', Number.Float),
-            (r'-?\d+', Number.Integer),
-            # support for uncommon kinds of numbers -
-            # have to figure out what the characters mean
-            # (r'(#e|#i|#b|#o|#d|#x)[\d.]+', Number),
+            (number_rules[2], Number.Bin, '#pop'),
+            (number_rules[8], Number.Oct, '#pop'),
+            (number_rules[10], decimal_cb, '#pop'),
+            (number_rules[16], Number.Hex, '#pop'),
 
-            # strings, symbols and characters
-            (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
-            (r"'" + valid_name, String.Symbol),
-            (r"#\\([()/'\"._!§$%& ?=+-]|[a-zA-Z0-9]+)", String.Char),
+            # strings, symbols, keywords and characters
+            (r'"', String, 'string'),
+            (r"'" + valid_name, String.Symbol, "#pop"),
+            (r'#:' + valid_name, Keyword.Declaration, '#pop'),
+            (r"#\\([()/'\"._!§$%& ?=+-]|[a-zA-Z0-9]+)", String.Char, "#pop"),
 
             # constants
-            (r'(#t|#f)', Name.Constant),
+            (r'(#t|#f)', Name.Constant, '#pop'),
 
             # special operators
             (r"('|#|`|,@|,|\.)", Operator),
 
-            # highlight the keywords
-            ('(%s)' % '|'.join(re.escape(entry) + ' ' for entry in keywords),
-             Keyword),
-
             # first variable in a quoted string like
             # '(this is syntactic sugar)
-            (r"(?<='\()" + valid_name, Name.Variable),
-            (r"(?<=#\()" + valid_name, Name.Variable),
+            (r"(?<='\()" + valid_name, Name.Variable, '#pop'),
+            (r"(?<=#\()" + valid_name, Name.Variable, '#pop'),
 
-            # highlight the builtins
-            (r"(?<=\()(%s)" % '|'.join(re.escape(entry) + ' ' for entry in builtins),
-             Name.Builtin),
+            # Functions -- note that this also catches variables
+            # defined in let/let*, but there is little that can
+            # be done about it.
+            (r'(?<=\()' + valid_name, Name.Function, '#pop'),
 
-            # the remaining functions
-            (r'(?<=\()' + valid_name, Name.Function),
             # find the remaining variables
-            (valid_name, Name.Variable),
+            (valid_name, Name.Variable, '#pop'),
 
             # the famous parentheses!
-            (r'(\(|\))', Punctuation),
-            (r'(\[|\])', Punctuation),
+
+            # Push scheme-root to enter a state that will parse as many things
+            # as needed in the parentheses.
+            (r'[([]', Punctuation, 'scheme-root'),
+            # Pop one 'value', one 'scheme-root', and yet another 'value', so
+            # we get back to a state parsing expressions as needed in the
+            # enclosing context.
+            (r'[)\]]', Punctuation, '#pop:3'),
         ],
         'multiline-comment': [
             (r'#\|', Comment.Multiline, '#push'),
@@ -157,10 +265,30 @@ class SchemeLexer(RegexLexer):
             (r'[|#]', Comment.Multiline),
         ],
         'commented-form': [
-            (r'\(', Comment, '#push'),
-            (r'\)', Comment, '#pop'),
-            (r'[^()]+', Comment),
+            (r'[([]', Comment, '#push'),
+            (r'[)\]]', Comment, '#pop'),
+            (r'[^()[\]]+', Comment),
         ],
+        'commented-datum': [
+            (rf'(?x).*?{token_end}', Comment, '#pop'),
+        ],
+        'string': [
+            # Pops back from 'string', and pops 'value' as well.
+            ('"', String, '#pop:2'),
+            # Hex escape sequences, R6RS-style.
+            (r'\\x[0-9a-fA-F]+;', String.Escape),
+            # We try R6RS style first, but fall back to Guile-style.
+            (r'\\x[0-9a-fA-F]{2}', String.Escape),
+            # Other special escape sequences implemented by Guile.
+            (r'\\u[0-9a-fA-F]{4}', String.Escape),
+            (r'\\U[0-9a-fA-F]{6}', String.Escape),
+            # Escape sequences are not overly standardized. Recognizing
+            # a single character after the backslash should be good enough.
+            # NB: we have DOTALL.
+            (r'\\.', String.Escape),
+            # The rest
+            (r'[^\\"]+', String),
+        ]
     }
 
 
@@ -171,6 +299,7 @@ class CommonLispLexer(RegexLexer):
     .. versionadded:: 0.9
     """
     name = 'Common Lisp'
+    url = 'https://lisp-lang.org/'
     aliases = ['common-lisp', 'cl', 'lisp']
     filenames = ['*.cl', '*.lisp']
     mimetypes = ['text/x-common-lisp']
@@ -245,7 +374,7 @@ class CommonLispLexer(RegexLexer):
         ],
         'body': [
             # whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # single-line comment
             (r';.*$', Comment.Single),
@@ -344,11 +473,12 @@ class CommonLispLexer(RegexLexer):
 
 class HyLexer(RegexLexer):
     """
-    Lexer for `Hy <http://hylang.org/>`_ source code.
+    Lexer for Hy source code.
 
     .. versionadded:: 2.0
     """
     name = 'Hy'
+    url = 'http://hylang.org/'
     aliases = ['hylang']
     filenames = ['*.hy']
     mimetypes = ['text/x-hy', 'application/x-hy']
@@ -393,7 +523,8 @@ class HyLexer(RegexLexer):
             (r';.*$', Comment.Single),
 
             # whitespaces - usually not relevant
-            (r'[,\s]+', Text),
+            (r',+', Text),
+            (r'\s+', Whitespace),
 
             # numbers
             (r'-?\d+\.\d+', Number.Float),
@@ -457,13 +588,14 @@ class HyLexer(RegexLexer):
 
 class RacketLexer(RegexLexer):
     """
-    Lexer for `Racket <http://racket-lang.org/>`_ source code (formerly
+    Lexer for Racket source code (formerly
     known as PLT Scheme).
 
     .. versionadded:: 1.6
     """
 
     name = 'Racket'
+    url = 'http://racket-lang.org/'
     aliases = ['racket', 'rkt']
     filenames = ['*.rkt', '*.rktd', '*.rktl']
     mimetypes = ['text/x-racket', 'application/x-racket']
@@ -1273,7 +1405,7 @@ class RacketLexer(RegexLexer):
             (r'#\|', Comment.Multiline, 'block-comment'),
 
             # Whitespaces
-            (r'(?u)\s+', Text),
+            (r'(?u)\s+', Whitespace),
 
             # Numbers: Keep in mind Racket reader hash prefixes, which
             # can denote the base or the type. These don't map neatly
@@ -1322,7 +1454,7 @@ class RacketLexer(RegexLexer):
             (r'#(true|false|[tTfF])', Name.Constant, '#pop'),
 
             # Keyword argument names (e.g. #:keyword)
-            (r'(?u)#:%s' % _symbol, Keyword.Declaration, '#pop'),
+            (r'#:%s' % _symbol, Keyword.Declaration, '#pop'),
 
             # Reader extensions
             (r'(#lang |#!)(\S+)',
@@ -1351,9 +1483,9 @@ class RacketLexer(RegexLexer):
             (r'quasiquote(?=[%s])' % _delimiters, Keyword,
              ('#pop', 'quasiquoted-datum')),
             (_opening_parenthesis, Punctuation, ('#pop', 'unquoted-list')),
-            (words(_keywords, prefix='(?u)', suffix='(?=[%s])' % _delimiters),
+            (words(_keywords, suffix='(?=[%s])' % _delimiters),
              Keyword, '#pop'),
-            (words(_builtins, prefix='(?u)', suffix='(?=[%s])' % _delimiters),
+            (words(_builtins, suffix='(?=[%s])' % _delimiters),
              Name.Builtin, '#pop'),
             (_symbol, Name, '#pop'),
             include('datum*')
@@ -1399,17 +1531,18 @@ class RacketLexer(RegexLexer):
 
 class NewLispLexer(RegexLexer):
     """
-    For `newLISP. <http://www.newlisp.org/>`_ source code (version 10.3.0).
+    For newLISP source code (version 10.3.0).
 
     .. versionadded:: 1.5
     """
 
     name = 'NewLisp'
+    url = 'http://www.newlisp.org/'
     aliases = ['newlisp']
     filenames = ['*.lsp', '*.nl', '*.kif']
     mimetypes = ['text/x-newlisp', 'application/x-newlisp']
 
-    flags = re.IGNORECASE | re.MULTILINE | re.UNICODE
+    flags = re.IGNORECASE | re.MULTILINE
 
     # list of built-in functions for newLISP version 10.3
     builtins = (
@@ -1486,7 +1619,7 @@ class NewLispLexer(RegexLexer):
             (r'#.*$', Comment.Single),
 
             # whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # strings, symbols and characters
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
@@ -2098,7 +2231,7 @@ class EmacsLispLexer(RegexLexer):
         ],
         'body': [
             # whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # single-line comment
             (r';.*$', Comment.Single),
@@ -2175,11 +2308,12 @@ class EmacsLispLexer(RegexLexer):
 
 class ShenLexer(RegexLexer):
     """
-    Lexer for `Shen <http://shenlanguage.org/>`_ source code.
+    Lexer for Shen source code.
 
     .. versionadded:: 2.1
     """
     name = 'Shen'
+    url = 'http://shenlanguage.org/'
     aliases = ['shen']
     filenames = ['*.shen']
     mimetypes = ['text/x-shen', 'application/x-shen']
@@ -2245,7 +2379,7 @@ class ShenLexer(RegexLexer):
         'root': [
             (r'(?s)\\\*.*?\*\\', Comment.Multiline),  # \* ... *\
             (r'\\\\.*', Comment.Single),              # \\ ...
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'_{5,}', Punctuation),
             (r'={5,}', Punctuation),
             (r'(;|:=|\||--?>|<--?)', Punctuation),
@@ -2267,7 +2401,7 @@ class ShenLexer(RegexLexer):
         return tokens
 
     def _relevant(self, token):
-        return token not in (Text, Comment.Single, Comment.Multiline)
+        return token not in (Text, Whitespace, Comment.Single, Comment.Multiline)
 
     def _process_declarations(self, tokens):
         opening_paren = False
@@ -2337,7 +2471,7 @@ class ShenLexer(RegexLexer):
             yield index, token, value
 
 
-class CPSALexer(SchemeLexer):
+class CPSALexer(RegexLexer):
     """
     A CPSA lexer based on the CPSA language as of version 2.2.12
 
@@ -2372,7 +2506,7 @@ class CPSALexer(SchemeLexer):
             (r';.*$', Comment.Single),
 
             # whitespaces - usually not relevant
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # numbers
             (r'-?\d+\.\d+', Number.Float),
@@ -2416,8 +2550,7 @@ class CPSALexer(SchemeLexer):
 
 
 class XtlangLexer(RegexLexer):
-    """An xtlang lexer for the `Extempore programming environment
-    <http://extempore.moso.com.au>`_.
+    """An xtlang lexer for the Extempore programming environment.
 
     This is a mixture of Scheme and xtlang, really. Keyword lists are
     taken from the Extempore Emacs mode
@@ -2426,6 +2559,7 @@ class XtlangLexer(RegexLexer):
     .. versionadded:: 2.2
     """
     name = 'xtlang'
+    url = 'http://extempore.moso.com.au'
     aliases = ['extempore']
     filenames = ['*.xtm']
     mimetypes = []
@@ -2585,7 +2719,7 @@ class XtlangLexer(RegexLexer):
             (r';.*$', Comment.Single),
 
             # whitespaces - usually not relevant
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # numbers
             (r'-?\d+\.\d+', Number.Float),
@@ -2620,7 +2754,7 @@ class XtlangLexer(RegexLexer):
 
 
 class FennelLexer(RegexLexer):
-    """A lexer for the `Fennel programming language <https://fennel-lang.org>`_.
+    """A lexer for the Fennel programming language.
 
     Fennel compiles to Lua, so all the Lua builtins are recognized as well
     as the special forms that are particular to the Fennel compiler.
@@ -2628,6 +2762,7 @@ class FennelLexer(RegexLexer):
     .. versionadded:: 2.3
     """
     name = 'Fennel'
+    url = 'https://fennel-lang.org'
     aliases = ['fennel', 'fnl']
     filenames = ['*.fnl']
 
@@ -2666,7 +2801,8 @@ class FennelLexer(RegexLexer):
             # the only comment form is a semicolon; goes to the end of the line
             (r';.*$', Comment.Single),
 
-            (r'[,\s]+', Text),
+            (r',+', Text),
+            (r'\s+', Whitespace),
             (r'-?\d+\.\d+', Number.Float),
             (r'-?\d+', Number.Integer),
 

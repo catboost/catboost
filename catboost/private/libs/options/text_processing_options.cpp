@@ -166,6 +166,10 @@ namespace NCatboostOptions {
         , Dictionaries("dictionaries", {})
         , TextFeatureProcessing("feature_processing", {})
     {
+        SetDefault();
+    }
+
+    void TTextProcessingOptions::SetDefault(bool forClassification) {
         const TString tokenizerName = "Space";
         Tokenizers.SetDefault(TVector<TTextColumnTokenizerOptions>{{tokenizerName, TTokenizerOptions()}});
 
@@ -179,18 +183,47 @@ namespace NCatboostOptions {
 
         Dictionaries.SetDefault(TVector<TTextColumnDictionaryOptions>{bigramDctionary, unigramDctionary});
 
-        TextFeatureProcessing.SetDefault(TMap<TString, TVector<TTextFeatureProcessing>>{{DefaultProcessingName(), {
+        TVector<TTextFeatureProcessing> textFeatureProcessingVector;
+        textFeatureProcessingVector.push_back(
             TTextFeatureProcessing{
                 {TFeatureCalcerDescription{EFeatureCalcerType::BoW}},
                 {tokenizerName},
                 {bigramDctionaryName, unigramDctionaryName}
-            },
-            TTextFeatureProcessing{
-                {TFeatureCalcerDescription{EFeatureCalcerType::NaiveBayes}},
-                {tokenizerName},
-                {unigramDctionaryName}
             }
-        }}});
+        );
+        if (forClassification) {
+            textFeatureProcessingVector.push_back(
+                TTextFeatureProcessing{
+                    {TFeatureCalcerDescription{EFeatureCalcerType::NaiveBayes}},
+                    {tokenizerName},
+                    {unigramDctionaryName}
+                }
+            );
+        }
+
+        TextFeatureProcessing.SetDefault(
+            TMap<TString, TVector<TTextFeatureProcessing>>{{DefaultProcessingName(), std::move(textFeatureProcessingVector)}}
+        );
+    }
+
+    void TTextProcessingOptions::Validate(bool forClassification) const {
+        if (!forClassification) {
+            if (TextFeatureProcessing.IsSet()) {
+                for (const auto& [featureId, processings]: TextFeatureProcessing.Get()) {
+                    for (const auto& processing: processings) {
+                        if (!processing.FeatureCalcers->empty()) {
+                            for (const auto& featureCalcer : processing.FeatureCalcers.Get()) {
+                                CB_ENSURE(
+                                    !IsClassificationOnlyEstimator(featureCalcer.CalcerType.Get()),
+                                    "Text feature processing feature calcer has type " << featureCalcer.CalcerType.Get()
+                                    << " that is supported only for classification"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void TTextProcessingOptions::SetNotSpecifiedOptionsToDefaults() {

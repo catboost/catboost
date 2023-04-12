@@ -46,11 +46,7 @@
 #include "../iterator/cache_modified_input_iterator.cuh"
 #include "../iterator/constant_input_iterator.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -106,18 +102,17 @@ struct AgentRle
     //---------------------------------------------------------------------
 
     /// The input value type
-    typedef typename std::iterator_traits<InputIteratorT>::value_type T;
+    using T = cub::detail::value_t<InputIteratorT>;
 
     /// The lengths output value type
-    typedef typename If<(Equals<typename std::iterator_traits<LengthsOutputIteratorT>::value_type, void>::VALUE),   // LengthT =  (if output iterator's value type is void) ?
-        OffsetT,                                                                                                    // ... then the OffsetT type,
-        typename std::iterator_traits<LengthsOutputIteratorT>::value_type>::Type LengthT;                           // ... else the output iterator's value type
+    using LengthT =
+      cub::detail::non_void_value_t<LengthsOutputIteratorT, OffsetT>;
 
     /// Tuple type for scanning (pairs run-length and run-index)
-    typedef KeyValuePair<OffsetT, LengthT> LengthOffsetPair;
+    using LengthOffsetPair = KeyValuePair<OffsetT, LengthT>;
 
     /// Tile status descriptor interface type
-    typedef ReduceByKeyScanTileState<LengthT, OffsetT> ScanTileStateT;
+    using ScanTileStateT = ReduceByKeyScanTileState<LengthT, OffsetT>;
 
     // Constants
     enum
@@ -169,42 +164,42 @@ struct AgentRle
 
 
     // Cache-modified Input iterator wrapper type (for applying cache modifier) for data
-    typedef typename If<IsPointer<InputIteratorT>::VALUE,
-            CacheModifiedInputIterator<AgentRlePolicyT::LOAD_MODIFIER, T, OffsetT>,      // Wrap the native input pointer with CacheModifiedVLengthnputIterator
-            InputIteratorT>::Type                                                       // Directly use the supplied input iterator type
-        WrappedInputIteratorT;
+    // Wrap the native input pointer with CacheModifiedVLengthnputIterator
+    // Directly use the supplied input iterator type
+    using WrappedInputIteratorT = cub::detail::conditional_t<
+      std::is_pointer<InputIteratorT>::value,
+      CacheModifiedInputIterator<AgentRlePolicyT::LOAD_MODIFIER, T, OffsetT>,
+      InputIteratorT>;
 
     // Parameterized BlockLoad type for data
-    typedef BlockLoad<
-            T,
-            AgentRlePolicyT::BLOCK_THREADS,
-            AgentRlePolicyT::ITEMS_PER_THREAD,
-            AgentRlePolicyT::LOAD_ALGORITHM>
-        BlockLoadT;
+    using BlockLoadT = BlockLoad<T,
+                                 AgentRlePolicyT::BLOCK_THREADS,
+                                 AgentRlePolicyT::ITEMS_PER_THREAD,
+                                 AgentRlePolicyT::LOAD_ALGORITHM>;
 
     // Parameterized BlockDiscontinuity type for data
-    typedef BlockDiscontinuity<T, BLOCK_THREADS> BlockDiscontinuityT;
+    using BlockDiscontinuityT = BlockDiscontinuity<T, BLOCK_THREADS> ;
 
     // Parameterized WarpScan type
-    typedef WarpScan<LengthOffsetPair> WarpScanPairs;
+    using WarpScanPairs = WarpScan<LengthOffsetPair>;
 
     // Reduce-length-by-run scan operator
-    typedef ReduceBySegmentOp<cub::Sum> ReduceBySegmentOpT;
+    using ReduceBySegmentOpT = ReduceBySegmentOp<cub::Sum>;
 
     // Callback type for obtaining tile prefix during block scan
-    typedef TilePrefixCallbackOp<
-            LengthOffsetPair,
-            ReduceBySegmentOpT,
-            ScanTileStateT>
-        TilePrefixCallbackOpT;
+    using TilePrefixCallbackOpT =
+      TilePrefixCallbackOp<LengthOffsetPair, ReduceBySegmentOpT, ScanTileStateT>;
 
     // Warp exchange types
-    typedef WarpExchange<LengthOffsetPair, ITEMS_PER_THREAD>        WarpExchangePairs;
+    using WarpExchangePairs = WarpExchange<LengthOffsetPair, ITEMS_PER_THREAD>;
 
-    typedef typename If<STORE_WARP_TIME_SLICING, typename WarpExchangePairs::TempStorage, NullType>::Type WarpExchangePairsStorage;
+    using WarpExchangePairsStorage =
+      cub::detail::conditional_t<STORE_WARP_TIME_SLICING,
+                                 typename WarpExchangePairs::TempStorage,
+                                 NullType>;
 
-    typedef WarpExchange<OffsetT, ITEMS_PER_THREAD>                 WarpExchangeOffsets;
-    typedef WarpExchange<LengthT, ITEMS_PER_THREAD>                 WarpExchangeLengths;
+    using WarpExchangeOffsets = WarpExchange<OffsetT, ITEMS_PER_THREAD>;
+    using WarpExchangeLengths = WarpExchange<LengthT, ITEMS_PER_THREAD>;
 
     typedef LengthOffsetPair WarpAggregates[WARPS];
 
@@ -832,6 +827,5 @@ struct AgentRle
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

@@ -230,7 +230,7 @@ class PROTOC_EXPORT CommandLineInterface {
   // Fails if these files use proto3 optional and the code generator doesn't
   // support it. This is a permanent check.
   bool EnforceProto3OptionalSupport(
-      const TProtoStringType& codegen_name, uint64_t supported_features,
+      const TProtoStringType& codegen_name, arc_ui64 supported_features,
       const std::vector<const FileDescriptor*>& parsed_files) const;
 
 

@@ -346,7 +346,7 @@ void MapGenericRemoteCalcScore(
         ctx->LocalExecutor->ExecRange(
             [&] (int candidateIdx) {
                 auto& candidates = candidateList[candidateIdx].Candidates;
-                Y_VERIFY(candidates.size() > 0);
+                CB_ENSURE(candidates.size() > 0, "Some score calcer did not produce ay scores");
 
                 SetBestScore(
                     randSeed + candidateIdx,
@@ -740,7 +740,7 @@ void MapSetApproxes(
         };
 
         averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
-        GradientWalker</*IsLeafwise*/ false>(
+        GradientWalker(
             /*isTrivialWalker*/ !haveBacktrackingObjective,
             gradientIterations,
             leafCount,

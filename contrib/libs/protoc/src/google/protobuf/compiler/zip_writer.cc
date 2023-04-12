@@ -47,7 +47,7 @@ namespace compiler {
 // see https://msdn.microsoft.com/en-us/library/9kkf9tah.aspx
 static const uint16_t kDosEpoch = 1 << 5 | 1;
 
-static const uint32_t kCRC32Table[256] = {
+static const arc_ui32 kCRC32Table[256] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
     0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
     0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
@@ -92,8 +92,8 @@ static const uint32_t kCRC32Table[256] = {
     0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d};
 
-static uint32_t ComputeCRC32(const TProtoStringType& buf) {
-  uint32_t x = ~0U;
+static arc_ui32 ComputeCRC32(const TProtoStringType& buf) {
+  arc_ui32 x = ~0U;
   for (int i = 0; i < buf.size(); ++i) {
     unsigned char c = buf[i];
     x = kCRC32Table[(x ^ c) & 0xff] ^ (x >> 8);
@@ -145,16 +145,16 @@ bool ZipWriter::Write(const TProtoStringType& filename,
 
 bool ZipWriter::WriteDirectory() {
   uint16_t num_entries = files_.size();
-  uint32_t dir_ofs = raw_output_->ByteCount();
+  arc_ui32 dir_ofs = raw_output_->ByteCount();
 
   // write central directory
   io::CodedOutputStream output(raw_output_);
   for (int i = 0; i < num_entries; ++i) {
     const TProtoStringType& filename = files_[i].name;
     uint16_t filename_size = filename.size();
-    uint32_t crc32 = files_[i].crc32;
-    uint32_t size = files_[i].size;
-    uint32_t offset = files_[i].offset;
+    arc_ui32 crc32 = files_[i].crc32;
+    arc_ui32 size = files_[i].size;
+    arc_ui32 offset = files_[i].offset;
 
     output.WriteLittleEndian32(0x02014b50);  // magic
     WriteShort(&output, 10);                 // version made by
@@ -175,7 +175,7 @@ bool ZipWriter::WriteDirectory() {
     output.WriteLittleEndian32(offset);      // local header offset
     output.WriteString(filename);            // file name
   }
-  uint32_t dir_len = output.ByteCount();
+  arc_ui32 dir_len = output.ByteCount();
 
   // write end of central directory marker
   output.WriteLittleEndian32(0x06054b50);  // magic

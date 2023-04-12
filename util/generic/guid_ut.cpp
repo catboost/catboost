@@ -97,10 +97,10 @@ Y_UNIT_TEST_SUITE(TGuidTest) {
 
     Y_UNIT_TEST(DoubleConvert) {
         /**
-        * test print and parsing RFC4122 GUID, which described in
-        * https://en.wikipedia.org/wiki/Universally_unique_identifier
-        * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-        **/
+         * test print and parsing RFC4122 GUID, which described in
+         * https://en.wikipedia.org/wiki/Universally_unique_identifier
+         * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+         **/
         auto guid = TGUID::Create();
         auto printed = guid.AsUuidString();
 

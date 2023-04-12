@@ -25,6 +25,9 @@ namespace NCatboostCuda {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
             using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner>;
+            CB_ENSURE(
+                !IsMultiTargetObjective(catBoostOptions.LossFunctionDescription->LossFunction),
+                "Catboost does not support ordered boosting with multitarget on GPU yet");
             return Train<TBoosting>(featureManager,
                                     internalOptions,
                                     catBoostOptions,

@@ -28,29 +28,27 @@
 
 /**
  * \file
- * AgentRadixSortDownsweep implements a stateful abstraction of CUDA thread blocks for participating in device-wide radix sort downsweep .
+ * AgentRadixSortDownsweep implements a stateful abstraction of CUDA thread
+ * blocks for participating in device-wide radix sort downsweep .
  */
 
 
 #pragma once
 
 #include <stdint.h>
+#include <type_traits>
 
-#include "../thread/thread_load.cuh"
-#include "../block/block_load.cuh"
-#include "../block/block_store.cuh"
-#include "../block/block_radix_rank.cuh"
-#include "../block/block_exchange.cuh"
-#include "../block/radix_rank_sort_operations.cuh"
-#include "../config.cuh"
-#include "../util_type.cuh"
-#include "../iterator/cache_modified_input_iterator.cuh"
+#include <cub/thread/thread_load.cuh>
+#include <cub/block/block_load.cuh>
+#include <cub/block/block_store.cuh>
+#include <cub/block/block_radix_rank.cuh>
+#include <cub/block/block_exchange.cuh>
+#include <cub/block/radix_rank_sort_operations.cuh>
+#include <cub/config.cuh>
+#include <cub/util_type.cuh>
+#include <cub/iterator/cache_modified_input_iterator.cuh>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -127,36 +125,41 @@ struct AgentRadixSortDownsweep
         TILE_ITEMS              = BLOCK_THREADS * ITEMS_PER_THREAD,
 
         RADIX_DIGITS            = 1 << RADIX_BITS,
-        KEYS_ONLY               = Equals<ValueT, NullType>::VALUE,
+        KEYS_ONLY               = std::is_same<ValueT, NullType>::value,
         LOAD_WARP_STRIPED       = RANK_ALGORITHM == RADIX_RANK_MATCH ||
                                   RANK_ALGORITHM == RADIX_RANK_MATCH_EARLY_COUNTS_ANY ||
                                   RANK_ALGORITHM == RADIX_RANK_MATCH_EARLY_COUNTS_ATOMIC_OR,
     };
 
     // Input iterator wrapper type (for applying cache modifier)s
-    typedef CacheModifiedInputIterator<LOAD_MODIFIER, UnsignedBits, OffsetT>    KeysItr;
-    typedef CacheModifiedInputIterator<LOAD_MODIFIER, ValueT, OffsetT>          ValuesItr;
+    using KeysItr = CacheModifiedInputIterator<LOAD_MODIFIER, UnsignedBits, OffsetT>;
+    using ValuesItr = CacheModifiedInputIterator<LOAD_MODIFIER, ValueT, OffsetT>;
 
     // Radix ranking type to use
-    typedef typename If<(RANK_ALGORITHM == RADIX_RANK_BASIC),
-            BlockRadixRank<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, false, SCAN_ALGORITHM>,
-            typename If<(RANK_ALGORITHM == RADIX_RANK_MEMOIZE),
-                BlockRadixRank<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, true, SCAN_ALGORITHM>,
-                typename If<(RANK_ALGORITHM == RADIX_RANK_MATCH),
-                    BlockRadixRankMatch<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, SCAN_ALGORITHM>,
-                    typename If<(RANK_ALGORITHM == RADIX_RANK_MATCH_EARLY_COUNTS_ANY),
-                        BlockRadixRankMatchEarlyCounts<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING,
-                                                       SCAN_ALGORITHM, WARP_MATCH_ANY>,
-                        BlockRadixRankMatchEarlyCounts<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING,
-                                                       SCAN_ALGORITHM, WARP_MATCH_ATOMIC_OR>
-                    >::Type
-                >::Type
-            >::Type
-        >::Type BlockRadixRankT;
+    using BlockRadixRankT = cub::detail::conditional_t<
+      RANK_ALGORITHM == RADIX_RANK_BASIC,
+      BlockRadixRank<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, false, SCAN_ALGORITHM>,
+      cub::detail::conditional_t<
+        RANK_ALGORITHM == RADIX_RANK_MEMOIZE,
+        BlockRadixRank<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, true, SCAN_ALGORITHM>,
+        cub::detail::conditional_t<
+          RANK_ALGORITHM == RADIX_RANK_MATCH,
+          BlockRadixRankMatch<BLOCK_THREADS, RADIX_BITS, IS_DESCENDING, SCAN_ALGORITHM>,
+          cub::detail::conditional_t<
+            RANK_ALGORITHM == RADIX_RANK_MATCH_EARLY_COUNTS_ANY,
+            BlockRadixRankMatchEarlyCounts<BLOCK_THREADS,
+                                           RADIX_BITS,
+                                           IS_DESCENDING,
+                                           SCAN_ALGORITHM,
+                                           WARP_MATCH_ANY>,
+            BlockRadixRankMatchEarlyCounts<BLOCK_THREADS,
+                                           RADIX_BITS,
+                                           IS_DESCENDING,
+                                           SCAN_ALGORITHM,
+                                           WARP_MATCH_ATOMIC_OR>>>>>;
 
     // Digit extractor type
-    typedef BFEDigitExtractor<KeyT> DigitExtractorT;
-
+    using DigitExtractorT = BFEDigitExtractor<KeyT>;
 
     enum
     {
@@ -165,18 +168,12 @@ struct AgentRadixSortDownsweep
     };
 
     // BlockLoad type (keys)
-    typedef BlockLoad<
-        UnsignedBits,
-        BLOCK_THREADS,
-        ITEMS_PER_THREAD,
-        LOAD_ALGORITHM> BlockLoadKeysT;
+    using BlockLoadKeysT =
+      BlockLoad<UnsignedBits, BLOCK_THREADS, ITEMS_PER_THREAD, LOAD_ALGORITHM>;
 
     // BlockLoad type (values)
-    typedef BlockLoad<
-        ValueT,
-        BLOCK_THREADS,
-        ITEMS_PER_THREAD,
-        LOAD_ALGORITHM> BlockLoadValuesT;
+    using BlockLoadValuesT =
+      BlockLoad<ValueT, BLOCK_THREADS, ITEMS_PER_THREAD, LOAD_ALGORITHM>;
 
     // Value exchange array type
     typedef ValueT ValueExchangeT[TILE_ITEMS];
@@ -611,7 +608,7 @@ struct AgentRadixSortDownsweep
         OffsetT         block_end)
     {
         // Simply copy the input
-        while (block_offset + TILE_ITEMS <= block_end)
+        while (block_end - block_offset >= TILE_ITEMS)
         {
             T items[ITEMS_PER_THREAD];
 
@@ -756,7 +753,7 @@ struct AgentRadixSortDownsweep
         {
             // Process full tiles of tile_items
             #pragma unroll 1
-            while (block_offset + TILE_ITEMS <= block_end)
+            while (block_end - block_offset >= TILE_ITEMS)
             {
                 ProcessTile<true>(block_offset);
                 block_offset += TILE_ITEMS;
@@ -777,6 +774,5 @@ struct AgentRadixSortDownsweep
 
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

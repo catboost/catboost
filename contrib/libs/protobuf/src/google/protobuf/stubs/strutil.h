@@ -41,8 +41,6 @@
 #include <google/protobuf/port_def.inc>
 #include <vector>
 
-#include <util/system/platform.h>
-
 namespace google {
 namespace protobuf {
 
@@ -416,33 +414,12 @@ inline bool safe_strto64(const char* str, int64* value) {
 inline bool safe_strto64(StringPiece str, int64* value) {
   return safe_strto64(str.ToString(), value);
 }
-#if defined(_64_) && (defined(_darwin_) || defined(_ios_))
-inline bool safe_strto64(StringPiece str, int64_t* value) {
-  int64 otherValue;
-  bool ok = safe_strto64(str.ToString(), &otherValue);
-  if (ok) {
-      *value = otherValue;
-  }
-  return ok;
-}
-#endif
-
 inline bool safe_strtou64(const char* str, uint64* value) {
   return safe_strtou64(TProtoStringType(str), value);
 }
 inline bool safe_strtou64(StringPiece str, uint64* value) {
   return safe_strtou64(str.ToString(), value);
 }
-#if defined(_64_) && (defined(_darwin_) || defined(_ios_))
-inline bool safe_strtou64(StringPiece str, uint64_t* value) {
-  uint64 otherValue;
-  bool ok = safe_strtou64(str.ToString(), &otherValue);
-  if (ok) {
-      *value = otherValue;
-  }
-  return ok;
-}
-#endif
 
 PROTOBUF_EXPORT bool safe_strtof(const char* str, float* value);
 PROTOBUF_EXPORT bool safe_strtod(const char* str, double* value);

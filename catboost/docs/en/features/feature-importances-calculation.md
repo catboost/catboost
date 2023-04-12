@@ -55,7 +55,7 @@ Use the following command to calculate the feature importances during model tra
 | [catboost fit](../references/training-parameters/index.md)| `--fstr-file` |  The name of the resulting file that contains [regular feature importance](../concepts/output-data_feature-analysis_feature-importance.md#per-feature-importance) data (see [Feature importance](../concepts/fstr.md)). <br> Set the required file name for further feature importance analysis.|
 |                                                         |`--fstr-internal-file`|  The name of the resulting file that contains [internal feature importance](../concepts/output-data_feature-analysis_feature-importance.md#internal-feature-importance) data (see [Feature importance](../concepts/fstr.md)). <br> Set the required file name for further internal feature importance analysis.|
 
-Use the following commandto calculate the feature importances after model training:
+Use the following command to calculate the feature importances after model training:
 
 |{{ features__table__title__cli__command }}| {{ features__table__title__cli__purpose }}|
 |-------------------------------------------|-------------------------------------------------|

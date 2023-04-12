@@ -6,6 +6,8 @@ namespace NCatboostCuda {
                                         const TMirrorBuffer<const TPartitionStatistics>& partStats,
                                         const TMirrorBuffer<ui32>& ctrDataSetInverseIndices,
                                         const TMirrorBuffer<ui32>& subsetDocs,
+                                        const TMirrorBuffer<const float>& featureWeights,
+                                        double scoreBeforeSplit,
                                         ui32 maxUniqueValues,
                                         float modelSizeReg) {
         {
@@ -29,6 +31,8 @@ namespace NCatboostCuda {
 
         scoreHelper.ComputeOptimalSplit(partStats.AsConstBuf(),
                                         ctrDataSet.GetCtrWeights(maxUniqueValues, modelSizeReg).AsConstBuf(),
+                                        featureWeights,
+                                        scoreBeforeSplit,
                                         ScoreStdDev,
                                         taskSeed);
 
@@ -61,8 +65,9 @@ namespace NCatboostCuda {
         { //we don't need complex logic here. this should be pretty fast
             bool shouldReturn = false;
             with_lock (Lock) {
-                if (bestSplitProperties.Score < BestScore) {
+                if (bestSplitProperties.Gain < BestGain) {
                     BestScore = bestSplitProperties.Score;
+                    BestGain = bestSplitProperties.Gain;
                     BestBin = bestSplitProperties.BinId;
                     BestDevice = dev;
                     BestCtr = dataSet.GetCtrs()[bestSplitProperties.FeatureId];
@@ -138,6 +143,7 @@ namespace NCatboostCuda {
         , TreeConfig(treeConfig)
         , Subsets(subsets)
         , BestScore(std::numeric_limits<double>::infinity())
+        , BestGain(std::numeric_limits<double>::infinity())
         , BestBin(-1)
         , BestDevice(-1)
         , BestBorders(NCudaLib::GetCudaManager().GetDeviceCount())
@@ -146,8 +152,8 @@ namespace NCatboostCuda {
     {
     }
 
-    TTreeCtrDataSetVisitor& TTreeCtrDataSetVisitor::SetBestScore(double score) {
-        BestScore = score;
+    TTreeCtrDataSetVisitor& TTreeCtrDataSetVisitor::SetBestGain(double gain) {
+        BestGain = gain;
         return *this;
     }
 

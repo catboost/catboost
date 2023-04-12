@@ -71,7 +71,7 @@ namespace NCatboostCuda {
     }
 
     void TBoostingProgressTracker::OnFirstCall() {
-        Y_VERIFY(FirstCall);
+        CB_ENSURE(FirstCall, "OnFirstCall is called twice");
 
         LastSnapshotTime = Now();
 

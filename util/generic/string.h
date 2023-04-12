@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <stlfwd>
@@ -7,8 +8,8 @@
 #include <string>
 #include <string_view>
 
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
-#include <util/system/atomic.h>
 
 #include "ptr.h"
 #include "utility.h"
@@ -138,6 +139,17 @@ public:
         return this->operator=(static_cast<TChar>(other));
     }
 
+    /*
+     * WARN:
+     * Though references are copyable types according to the standard,
+     * the behavior of this explicit default specification is different from the one
+     * implemented by the assignment operator above.
+     *
+     * An attempt to explicitly delete it will break valid invocations like
+     * auto c = flag ? s[i] : s[j];
+     */
+    TBasicCharRef(const TBasicCharRef&) = default;
+
 private:
     TStringType& S_;
     size_t Pos_;
@@ -163,7 +175,7 @@ public:
     using traits_type = TTraits;
 
     using iterator = TCharType*;
-    using reverse_iterator = typename TBase::template TReverseIteratorBase<iterator>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using typename TBase::const_iterator;
     using typename TBase::const_reference;
     using typename TBase::const_reverse_iterator;
@@ -550,7 +562,7 @@ private:
     }
 
 public:
-    inline void clear() noexcept {
+    Y_REINITIALIZES_OBJECT inline void clear() noexcept {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.clear();
 #else

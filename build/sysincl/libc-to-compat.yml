@@ -1,6 +1,0 @@
-# We want musl to resolve itself without these sysincls, but its test must have them
-- source_filter: "^(?!contrib/libs/musl).*|^contrib/libs/musl/tests"
-  includes:
-  # sys/random.h was added in glibc=2.25 / Ubuntu 16.04
-  - sys/random.h: "contrib/libs/libc_compat/include/random/sys/random.h"
-  - readpassphrase.h: "contrib/libs/libc_compat/include/readpassphrase/readpassphrase.h"

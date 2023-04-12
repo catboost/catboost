@@ -16,7 +16,7 @@
 
 namespace NCB {
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
-        TPoolColumnsPrinterPushArgs&& args
+        TLineDataPoolColumnsPrinterPushArgs&& args
     )
         : LineDataReader(std::move(args.Reader))
         , Delimiter(args.Format.Delimiter)
@@ -26,15 +26,11 @@ namespace NCB {
         UpdateColumnTypeInfo(args.ColumnsMetaInfo);
     }
 
-    TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
-        const TPathWithScheme& testSetPath,
-        const TDsvFormatOptions& format,
-        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
-    )
-        : TDSVPoolColumnsPrinter(TPoolColumnsPrinterPushArgs{
-            GetLineDataReader(testSetPath, format),
-            format,
-            columnsMetaInfo})
+    TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args)
+        : TDSVPoolColumnsPrinter(TLineDataPoolColumnsPrinterPushArgs{
+            GetLineDataReader(args.PoolPath, args.Format),
+            args.Format,
+            args.ColumnsMetaInfo})
     {}
 
 
@@ -83,8 +79,8 @@ namespace NCB {
         return Columns[colId];
     }
 
-    TQuantizedPoolColumnsPrinter::TQuantizedPoolColumnsPrinter(const TPathWithScheme& testSetPath)
-        : QuantizedPool(LoadQuantizedPool(testSetPath, {/*LockMemory=*/false, /*Precharge=*/false, TDatasetSubset::MakeColumns(!IsSharedFs(testSetPath))}))
+    TQuantizedPoolColumnsPrinter::TQuantizedPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args)
+        : QuantizedPool(LoadQuantizedPool(args.PoolPath, {/*LockMemory=*/false, /*Precharge=*/false, TDatasetSubset::MakeColumns(!IsSharedFs(args.PoolPath))}))
     {
         for (const ui32 columnId : xrange(QuantizedPool.ColumnTypes.size())) {
             const auto columnType = QuantizedPool.ColumnTypes[columnId];
@@ -131,6 +127,7 @@ namespace NCB {
             case EColumn::GroupId:
             case EColumn::SubgroupId:
                 token = GetStringColumnToken(docId, columnType);
+                break;
             default:
                 CB_ENSURE("Unsupported output columnType for Quantized pool.");
         }
@@ -204,6 +201,9 @@ namespace NCB {
     }
 
     TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DefPoolColumnsPrinter("");
+
     TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DsvPoolColumnsPrinter("dsv");
+
+    TPoolColumnsPrinterLoaderFactory::TRegistrator<TQuantizedPoolColumnsPrinter> QuantizedPoolColumnsPrinter("quantized");
 
 } // namespace NCB

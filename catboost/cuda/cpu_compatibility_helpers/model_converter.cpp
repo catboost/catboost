@@ -86,6 +86,10 @@ TFullModel TModelConverter::Convert(
         }
     }
 
+    if (src.Bias) {
+        cpuApproxDim = src.Bias->size();
+    }
+
     TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(
         *QuantizedFeaturesInfo->GetFeaturesLayout(), // it's ok to get from QuantizedFeaturesInfo
         *QuantizedFeaturesInfo);
@@ -131,8 +135,8 @@ TFullModel TModelConverter::Convert(
 
     obliviousTreeBuilder.Build(coreModel.ModelTrees.GetMutable());
     TVector<double> bias;
-    if (cpuApproxDim == 1) {
-        bias = {src.Bias};
+    if (src.Bias) {
+        bias = *src.Bias;
     }
     coreModel.SetScaleAndBias({1.0, bias});
     coreModel.UpdateDynamicData();
@@ -149,6 +153,10 @@ TFullModel TModelConverter::Convert(
         if (TargetHelper.IsInitialized()) {
             coreModel.ModelInfo["class_params"] = TargetHelper.Serialize();
             cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetApproxDimension());
+        }
+
+        if (src.Bias) {
+            cpuApproxDim = src.Bias->size();
         }
 
         TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(
@@ -211,8 +219,8 @@ TFullModel TModelConverter::Convert(
 
         treeBuilder.Build(coreModel.ModelTrees.GetMutable());
         TVector<double> bias;
-        if (cpuApproxDim == 1) {
-            bias = {src.Bias};
+        if (src.Bias) {
+            bias = *src.Bias;
         }
         coreModel.SetScaleAndBias({1.0, bias});
         coreModel.UpdateDynamicData();

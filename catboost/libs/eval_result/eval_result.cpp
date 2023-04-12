@@ -145,33 +145,6 @@ namespace NCB {
         CB_ENSURE(hasPrediction, "No prediction type chosen in output-column header");
     }
 
-    TIntrusivePtr<IPoolColumnsPrinter> CreatePoolColumnPrinter(
-        const TPathWithScheme& testSetPath,
-        const TDsvFormatOptions& testSetFormat,
-        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
-    ) {
-        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
-        if (testSetPath.Inited()) {
-            if (testSetPath.Scheme.Contains("quantized")) {
-                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
-            } else if (testSetPath.Scheme.Contains("dsv")) {
-                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, columnsMetaInfo));
-            } else if (testSetPath.Scheme.Contains("proto")) {
-                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(GetProcessor<IPoolColumnsPrinter>(
-                    testSetPath,
-                    TPoolColumnsPrinterPushArgs{
-                        GetProcessor<ILineDataReader>(
-                            testSetPath,
-                            TLineDataReaderArgs{testSetPath, testSetFormat}
-                        ),
-                        testSetFormat,
-                        columnsMetaInfo
-                    }).Release());
-            }
-        }
-        return poolColumnsPrinter;
-    }
-
     TVector<THolder<IColumnPrinter>> InitializeColumnWriter(
         const TEvalResult& evalResult,
         NPar::ILocalExecutor* executor,
@@ -182,6 +155,7 @@ namespace NCB {
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
         ui64 docIdOffset,
+        bool* needColumnsPrinterPtr,
         TMaybe<std::pair<size_t, size_t>> evalParameters,
         double binClassLogitThreshold) {
 
@@ -192,6 +166,8 @@ namespace NCB {
         const auto targetDim = pool.RawTargetData.GetTargetDimension();
         const bool isMultiTarget = targetDim > 1;
         const bool isMultiLabel = !lossFunctionName.empty() && IsMultiLabelObjective(lossFunctionName);
+
+        *needColumnsPrinterPtr = false;
 
         for (const auto& outputColumn : outputColumns) {
             EPredictionType type;
@@ -252,6 +228,9 @@ namespace NCB {
                             docIdOffset,
                             outputColumn)
                     );
+                    if (dynamic_cast<TDocIdPrinter*>(&*(columnPrinter.back()))->NeedPrinterPtr()) {
+                        *needColumnsPrinterPtr = true;
+                    }
                     continue;
                 }
                 if (outputType == EColumn::Timestamp) {
@@ -270,6 +249,7 @@ namespace NCB {
                             docIdOffset,
                             outputColumn)
                     );
+                    *needColumnsPrinterPtr = true;
                     continue;
                 }
                 if (outputType == EColumn::GroupWeight) {
@@ -310,6 +290,7 @@ namespace NCB {
                         docIdOffset
                     )
                 );
+                *needColumnsPrinterPtr = true;
             } else {
                 auto it = featureIdToDesc.find(outputColumn);
                 CB_ENSURE(it != featureIdToDesc.end(),
@@ -321,17 +302,19 @@ namespace NCB {
                     "Raw feature values are not available for quantized pools"
                 );
 
+                auto internalIdx = pool.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(it->second.Index);
+
                 if (it->second.IsCategorical) {
                     columnPrinter.push_back(
                         MakeHolder<TCatFeaturePrinter>(
-                            (*rawObjectsData->GetCatFeature(it->second.Index))->ExtractValues(executor),
-                            rawObjectsData->GetCatFeaturesHashToString(it->second.Index),
+                            (*rawObjectsData->GetCatFeature(internalIdx))->ExtractValues(executor),
+                            rawObjectsData->GetCatFeaturesHashToString(internalIdx),
                             outputColumn
                         )
                     );
                 } else {
                     TMaybeOwningArrayHolder<float> extractedValues
-                        = (*rawObjectsData->GetFloatFeature(it->second.Index))->ExtractValues(executor);
+                        = (*rawObjectsData->GetFloatFeature(internalIdx))->ExtractValues(executor);
                     columnPrinter.push_back(
                         MakeHolder<TArrayPrinter<float>>(
                             TMaybeOwningConstArrayHolder<float>::CreateOwningReinterpretCast(extractedValues),
@@ -359,6 +342,7 @@ namespace NCB {
         TMaybe<std::pair<size_t, size_t>> evalParameters,
         double binClassLogitThreshold) {
 
+        bool needPoolColumnsPrinter;
         TVector<THolder<IColumnPrinter>> columnPrinter = InitializeColumnWriter(
             evalResult,
             executor,
@@ -369,6 +353,7 @@ namespace NCB {
             poolColumnsPrinter,
             testFileWhichOf,
             docIdOffset,
+            &needPoolColumnsPrinter,
             evalParameters,
             binClassLogitThreshold);
 
@@ -407,11 +392,12 @@ namespace NCB {
         ui64 docIdOffset,
         double binClassLogitThreshold) {
 
-        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
-            testSetPath,
-            testSetFormat,
-            pool.MetaInfo.ColumnsInfo);
-
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
+        if (testSetPath.Inited()) {
+            poolColumnsPrinter = GetProcessor<IPoolColumnsPrinter>(
+                testSetPath,
+                TPoolColumnsPrinterPullArgs{testSetPath, testSetFormat, pool.MetaInfo.ColumnsInfo}).Release();
+        }
         OutputEvalResultToFile(
             evalResult,
             executor,

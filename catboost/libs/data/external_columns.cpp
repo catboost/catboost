@@ -132,7 +132,7 @@ namespace NCB {
                 ramUsedForDstIndexing = (sizeof(ui32) + sizeof(ui64)) * nonDefaultValuesCount;
                 break;
             default:
-                Y_UNREACHABLE();
+                CB_ENSURE(false, "Unexpected sparse array indexing type");
         }
 
         const ui64 ramUsedForDstValues = sizeof(TDst) * nonDefaultValuesCount;

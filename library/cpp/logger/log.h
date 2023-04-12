@@ -59,11 +59,12 @@ public:
     //
     // @param[in] priority          Message priority to use.
     // @param[in] message           Message to write.
-    void Write(ELogPriority priority, TStringBuf message) const;
+    // @param[in] metaFlags         Message meta flags.
+    void Write(ELogPriority priority, TStringBuf message, TLogRecord::TMetaFlags metaFlags = {}) const;
     // Write message to the log using `DefaultPriority()`.
-    void Write(const char* data, size_t len) const;
+    void Write(const char* data, size_t len, TLogRecord::TMetaFlags metaFlags = {}) const;
     // Write message to the log, but pass the message in a c-style.
-    void Write(ELogPriority priority, const char* data, size_t len) const;
+    void Write(ELogPriority priority, const char* data, size_t len, TLogRecord::TMetaFlags metaFlags = {}) const;
 
     // Write message to the log in a c-like printf style.
     void Y_PRINTF_FORMAT(3, 4) AddLog(ELogPriority priority, const char* format, ...) const;

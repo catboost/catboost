@@ -1,2 +1,2 @@
 
-Windows installation currently requires Visual C++ 2017 Build Tools.
+Windows installation currently requires Visual C++ 2019 Build Tools.

@@ -11,6 +11,8 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 
 import org.apache.spark.sql._
+import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
+import org.apache.spark.ml.feature.{StringIndexer,VectorAssembler}
 import org.apache.spark.ml.linalg._
 import org.apache.spark.sql.types._
 
@@ -85,7 +87,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -159,7 +161,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -250,7 +252,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -320,7 +322,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -402,7 +404,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
     
@@ -504,7 +506,7 @@ class CatBoostRegressorTest {
           )
         }
         spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedPredictionsData),
+          spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
           StructType(expectedPredictionsSchema)
         )
       }
@@ -579,7 +581,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
     
@@ -635,7 +637,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -703,7 +705,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -764,12 +766,12 @@ class CatBoostRegressorTest {
     )
     
     val expectedPrediction = Seq(
-      0.15170673766243029,
-      0.11622931026015675,
-      0.03726535148720679,
-      0.010579656432736211,
-      0.0037732481141320336,
-      0.15237303004835703
+      0.14155830428540508,
+      0.08871561519254367,
+      0.04030286390197705,
+      0.018987510395767397,
+      0.00566932722899423,
+      0.1512885105351797
     )
     val expectedPredictionsData = mutable.Seq.concat(srcData)
     for (i <- 0 until srcData.length) {
@@ -785,7 +787,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ Seq("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
     
@@ -869,7 +871,7 @@ class CatBoostRegressorTest {
       catFeaturesNumValues = catFeaturesNumValues
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -945,7 +947,7 @@ class CatBoostRegressorTest {
       catFeaturesNumValues = catFeaturesNumValues
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1054,7 +1056,7 @@ class CatBoostRegressorTest {
           )
         }
         spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedPredictionsData),
+          spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
           StructType(expectedPredictionsSchema)
         )
       }
@@ -1119,7 +1121,7 @@ class CatBoostRegressorTest {
       0.06002440645289813,
       0.0,
       0.0,
-      0.0844211462846704
+      0.08421609837877377
     )
     val expectedPredictionsData = mutable.Seq.concat(srcData)
     for (i <- 0 until srcData.length) {
@@ -1136,7 +1138,7 @@ class CatBoostRegressorTest {
       catFeaturesNumValues = catFeaturesNumValues
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1253,7 +1255,7 @@ class CatBoostRegressorTest {
           )
         }
         spark.createDataFrame(
-          spark.sparkContext.parallelize(expectedPredictionsData),
+          spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
           StructType(expectedPredictionsSchema)
         )
       }
@@ -1337,7 +1339,7 @@ class CatBoostRegressorTest {
       catFeaturesNumValues = catFeaturesNumValues
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1392,7 +1394,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ pool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1451,7 +1453,7 @@ class CatBoostRegressorTest {
       /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
     )
     val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData),
+      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
       StructType(expectedPredictionsSchema)
     )
 
@@ -1465,5 +1467,119 @@ class CatBoostRegressorTest {
     val predictions = model.transform(evalPool.data)
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions, Seq("groupId", "sampleId"))
+  }
+
+  @Test 
+  @throws(classOf[Exception])
+  def testModelSerializationInPipeline() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName);
+    
+    val srcData = Seq(
+      Row(0.12, "query0", 0.1, "Male", 0.2, "Germany", 0.11),
+      Row(0.22, "query0", 0.97, "Female", 0.82, "Russia", 0.33),
+      Row(0.34, "query1", 0.13, "Male", 0.22, "USA", 0.23),
+      Row(0.42, "Query 2", 0.14, "Male", 0.18, "Finland", 0.1),
+      Row(0.01, "Query 2", 0.9, "Female", 0.67, "USA", 0.17),
+      Row(0.0, "Query 2", 0.66, "Female", 0.1, "UK", 0.31)
+    )
+    val srcDataSchema = StructType(
+      Seq(
+        StructField("Label", DoubleType),
+        StructField("GroupId", StringType),
+        StructField("float0", DoubleType),
+        StructField("Gender1", StringType),
+        StructField("float2", DoubleType),
+        StructField("Country3", StringType),
+        StructField("float4", DoubleType)
+      )
+    )
+    val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), srcDataSchema)
+
+    var indexers = mutable.Seq.empty[PipelineStage]
+    for (catFeature <- Seq("Gender1", "Country3")) {
+      indexers = indexers :+ (new StringIndexer().setInputCol(catFeature).setOutputCol(catFeature + "Index"))
+    }
+    val assembler = new VectorAssembler()
+      .setInputCols(Array("float0", "Gender1Index", "float2", "Country3Index", "float4"))
+      .setOutputCol("features")
+    val regressor = new CatBoostRegressor()
+      .setLabelCol("Label")
+      .setIterations(20)
+
+    val pipeline = new Pipeline().setStages((indexers :+ assembler :+ regressor).toArray)
+    val pipelineModel = pipeline.fit(df)
+
+    val modelPath = new java.io.File(
+      temporaryFolder.newFolder(TestHelpers.getCurrentMethodName),
+      "serialized_pipeline_model"
+    )
+
+    pipelineModel.write.overwrite.save(modelPath.toString)
+    val loadedPipelineModel = PipelineModel.load(modelPath.toString)
+
+    TestHelpers.assertEqualsWithPrecision(pipelineModel.transform(df), loadedPipelineModel.transform(df))
+  }
+
+  @Test
+  @throws(classOf[Exception])
+  def testSumModels() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val featureNames = Array[String]("f1", "f2", "f3")
+    val srcDataSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", DoubleType)
+      ),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true
+    )
+    
+    val srcData1 = Seq(
+      Row(Vectors.dense(0.1, 0.2, 0.11), 0.1),
+      Row(Vectors.dense(0.97, 0.82, 0.33), 0.12),
+      Row(Vectors.dense(0.13, 0.22, 0.23), 0.0),
+      Row(Vectors.dense(0.14, 0.18, 0.1), 0.2),
+      Row(Vectors.dense(0.9, 0.67, 0.17), 0.6),
+      Row(Vectors.dense(0.66, 0.1, 0.31), 0.3)
+    )
+
+    val df1 = spark.createDataFrame(spark.sparkContext.parallelize(srcData1), StructType(srcDataSchema))
+    
+    val srcData2 = Seq(
+      Row(Vectors.dense(0.12, 0.3, 0.0), 0.56),
+      Row(Vectors.dense(0.21, 0.77, 0.1), 0.11),
+      Row(Vectors.dense(0.98, 0.92, 0.0), 0.0),
+      Row(Vectors.dense(1.1, 0.0, 0.48), 0.22),
+      Row(Vectors.dense(0.45, 0.0, 0.87), 0.7),
+      Row(Vectors.dense(0.2, 0.22, 0.39), 1.1)
+    )
+
+    val df2 = spark.createDataFrame(spark.sparkContext.parallelize(srcData2), StructType(srcDataSchema))
+
+    val regressor1 = new CatBoostRegressor()
+      .setIterations(20)
+      .setTrainDir(temporaryFolder.newFolder("sumModels.regressor1").getPath)
+    val model1 = regressor1.fit(df1)
+
+    val regressor2 = new CatBoostRegressor()
+      .setIterations(25)
+      .setTrainDir(temporaryFolder.newFolder("sumModels.regresssor2").getPath)
+    val model2 = regressor2.fit(df2)
+
+    val modelWoWeights = CatBoostRegressionModel.sum(Array(model1, model2))
+
+    val predictionsWoWeights = modelWoWeights.transform(df1)
+
+    val modelWithUsualWeights = CatBoostRegressionModel.sum(Array(model1, model2), Array(1.0, 1.0))
+
+    val predictionsWithUsualWeights = modelWithUsualWeights.transform(df1)
+
+    TestHelpers.assertEqualsWithPrecision(predictionsWoWeights, predictionsWithUsualWeights)
+
+    val modelWithWeights = CatBoostRegressionModel.sum(Array(model1, model2), Array(2.0, 0.4))
+
+    val predictionsWithWeights = modelWithWeights.transform(df1)
+    predictionsWithWeights.show()
   }
 }

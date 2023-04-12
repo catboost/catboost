@@ -15,7 +15,7 @@ namespace NMonoForest {
                 totalWeight = stat.Weight;
             }
         }
-        Y_ASSERT(totalWeight > 0);
+        CB_ENSURE(totalWeight > 0);
         for (auto dim : xrange(polynom.Dimension())) {
             value[dim] /= totalWeight;
         }
@@ -28,7 +28,7 @@ namespace NMonoForest {
                 return stat.Weight;
             }
         }
-        Y_UNREACHABLE();
+        CB_ENSURE(false, "Failed to get total weight");
     }
 
     static TVector<TVector<double>> GetBorderWeights(const TPolynom& polynom, const IGrid& grid) {

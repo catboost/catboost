@@ -34,17 +34,14 @@
 #pragma once
 
 #include <iterator>
+#include <type_traits>
 
 #include "block_exchange.cuh"
 #include "../config.cuh"
 #include "../util_ptx.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \addtogroup UtilIo
@@ -370,8 +367,8 @@ enum BlockStoreAlgorithm
      * directly to memory.
      *
      * \par Performance Considerations
-     * - The utilization of memory transactions (coalescing) decreases as the
-     *   access stride between threads increases (i.e., the number items per thread).
+     * The utilization of memory transactions (coalescing) remains high regardless
+     * of items written per thread.
      */
     BLOCK_STORE_STRIPED,
 
@@ -508,7 +505,6 @@ enum BlockStoreAlgorithm
  *     ...
  *
  *     // Store items to linear memory
- *     int thread_data[4];
  *     BlockStore(temp_storage).Store(d_data, thread_data);
  *
  * \endcode
@@ -517,6 +513,13 @@ enum BlockStoreAlgorithm
  * <tt>{ [0,1,2,3], [4,5,6,7], ..., [508,509,510,511] }</tt>.
  * The output \p d_data will be <tt>0, 1, 2, 3, 4, 5, ...</tt>.
  *
+ * \par Re-using dynamically allocating shared memory
+ * The following example under the examples/block folder illustrates usage of
+ * dynamically shared memory with BlockReduce and how to re-purpose
+ * the same memory region:
+ * <a href="../../examples/block/example_block_reduce_dyn_smem.cu">example_block_reduce_dyn_smem.cu</a>
+ *
+ * This example can be easily adapted to the storage required by BlockStore.
  */
 template <
     typename                T,
@@ -993,7 +996,7 @@ public:
      */
     template <typename OutputIteratorT>
     __device__ __forceinline__ void Store(
-        OutputIteratorT     block_itr,                  ///< [in] The thread block's base output iterator for storing to
+        OutputIteratorT     block_itr,                  ///< [out] The thread block's base output iterator for storing to
         T                   (&items)[ITEMS_PER_THREAD]) ///< [in] Data to store
     {
         InternalStore(temp_storage, linear_tid).Store(block_itr, items);
@@ -1042,15 +1045,26 @@ public:
      */
     template <typename OutputIteratorT>
     __device__ __forceinline__ void Store(
-        OutputIteratorT     block_itr,                  ///< [in] The thread block's base output iterator for storing to
+        OutputIteratorT     block_itr,                  ///< [out] The thread block's base output iterator for storing to
         T                   (&items)[ITEMS_PER_THREAD], ///< [in] Data to store
         int                 valid_items)                ///< [in] Number of valid items to write
     {
         InternalStore(temp_storage, linear_tid).Store(block_itr, items, valid_items);
     }
+
+    //@}  end member group
 };
 
+template <class Policy,
+          class It,
+          class T = cub::detail::value_t<It>>
+struct BlockStoreType
+{
+  using type = cub::BlockStore<T,
+                               Policy::BLOCK_THREADS,
+                               Policy::ITEMS_PER_THREAD,
+                               Policy::STORE_ALGORITHM>;
+};
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

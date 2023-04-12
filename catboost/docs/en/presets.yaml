@@ -17,7 +17,7 @@ default:
   fit__learn-set: Required parameter (the path must be specified).
   fit__ostr__output-path: object_importances.tsv
   fit__decay__pfound: '0.85'
-  fit__decay__yetirank: '0.99'
+  fit__decay__yetirank: '0.85'
   fit__top__allmetrics: –1
   fit__permutations: '10'
   autoclass__weights__none: None
@@ -195,18 +195,22 @@ default:
   fit__profiler-log: catboost_profile.log
   error-function--RMSE: RMSE
   error-function__MultiRMSE: MultiRMSE
+  error-function__MultiRMSEWithMissingValues: MultiRMSEWithMissingValues
   error-function--R2: R2
   error-function__LLP: LogLikelihoodOfPrediction
   error-function__Tweedie: Tweedie
   error-function--MAE: MAE
   error-function__Huber: Huber
+  error-function__LogCosh: LogCosh
   error-function--Logit: Logloss
   error-function--Precision: Precision
   error-function--Recall: Recall
+  error-function--F: F
   error-function--F1: F1
   error-function--totalF1: TotalF1
   error-function--CrossEntropy: CrossEntropy
   error-function--Quantile: Quantile
+  error-function--MultiQuantile: MultiQuantile
   error-function--LogLinQuantile: LogLinQuantile
   error-function__lq: Lq
   error-function__Expectile: Expectile
@@ -238,6 +242,7 @@ default:
   error-function__CtrFactor: CtrFactor
   error-function--AUC: AUC
   error-function--QueryAUC: QueryAUC
+  error-function--PRAUC: PRAUC
   error-function--NormalizedGini: NormalizedGini
   error-function--Accuracy: Accuracy
   error-function--MultiRMSE: MultiRMSE
@@ -412,6 +417,8 @@ default:
   shrink__ntree_end__default: Required argument
   common__python__aliases: 'Alias:'
   other-products__clickhouse: ClickHouse
+  optimization: Usage information
+  no-optimization: Can't be used for optimization.
   json__array: array
   json__int: int
   json__string: string
@@ -508,6 +515,7 @@ default:
   ECtrTableMergePolicy__FailIfCtrsIntersects: FailIfCtrsIntersects
   ECtrTableMergePolicy__LeaveMostDiversifiedTable: LeaveMostDiversifiedTable
   ECtrTableMergePolicy__IntersectingCountersAverage: IntersectingCountersAverage
+  ECtrTableMergePolicy__KeepAllTables: KeepAllTables
   ECtrTableMergePolicy__default: IntersectingCountersAverage
   loss-functions__params__use_weights: use_weights
   loss-functions__params__metric: metric
@@ -533,8 +541,10 @@ default:
   loss-functions__params__variance_power: variance_power
   loss-functions__params__alpha: alpha
   loss-functions__params__beta: beta
+  loss-functions__params__beta_for_F: beta
   loss-functions__params__sigma: sigma
   loss-functions__params__border: border
+  loss-functions__params__border__default: '0'
   loss-functions__params__decay: decay
   loss-functions__params__permutations: permutations
   loss-functions__params__top: top
@@ -546,7 +556,7 @@ default:
   loss-functions__obligatory-text: This parameter is obligatory (the default value is not defined)
   loss-functions__params__default: 'true'
   ctr-types__TargetBorderCount: TargetBorderCount
-  parameters__ctr-targer-border-count__default: >-
+  parameters__ctr-target-border-count__default: >-
     Number_of_classes - 1 for Multiclassification problems when training on CPU,
     1 otherwise
   title__missing-values-processing: Missing values processing
@@ -627,6 +637,7 @@ default:
   learning-to-select-for-predefined-ranking: 'http://proceedings.mlr.press/v97/vorobev19a/vorobev19a.pdf'
   stochastic-gradient-langevin-boosting: 'https://arxiv.org/abs/2001.07248'
   releases-page: 'https://github.com/catboost/catboost/releases'
+  release-version: 1.1.1
   pmml-supported-version: '4.3'
   cpu-gpu: CPU and GPU
 internal:

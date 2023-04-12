@@ -4,25 +4,26 @@
 
     Lexers for Devicetree language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, bygroups, include, default, words
 from pygments.token import Comment, Keyword, Name, Number, Operator, \
-    Punctuation, String, Text
+    Punctuation, String, Text, Whitespace
 
 __all__ = ['DevicetreeLexer']
 
 
 class DevicetreeLexer(RegexLexer):
     """
-    Lexer for `Devicetree <https://www.devicetree.org/>`_ files.
+    Lexer for Devicetree files.
 
     .. versionadded:: 2.7
     """
 
     name = 'Devicetree'
+    url = 'https://www.devicetree.org/'
     aliases = ['devicetree', 'dts']
     filenames = ['*.dts', '*.dtsi']
     mimetypes = ['text/x-c']
@@ -46,12 +47,12 @@ class DevicetreeLexer(RegexLexer):
              bygroups(Comment.Preproc, Comment.Multiline, Comment.Preproc, Punctuation)),
         ],
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             (r'\\\n', Text),  # line continuation
             (r'//(\n|[\w\W]*?[^\\]\n)', Comment.Single),
             (r'/(\\\n)?[*][\w\W]*?[*](\\\n)?/', Comment.Multiline),
-            # Open until EOF, so no ending delimeter
+            # Open until EOF, so no ending delimiter
             (r'/(\\\n)?[*][\w\W]*', Comment.Multiline),
         ],
         'statements': [
@@ -73,7 +74,7 @@ class DevicetreeLexer(RegexLexer):
             include('macro'),
 
             # Nodes
-            (r'([^/*@\s&]+|/)(@?)([0-9a-fA-F,]*)(' + _ws + r')(\{)',
+            (r'([^/*@\s&]+|/)(@?)((?:0x)?[0-9a-fA-F,]*)(' + _ws + r')(\{)',
              bygroups(Name.Function, Operator, Number.Integer,
                       Comment.Multiline, Punctuation), 'node'),
 
@@ -88,7 +89,7 @@ class DevicetreeLexer(RegexLexer):
             include('whitespace'),
             include('macro'),
 
-            (r'([^/*@\s&]+|/)(@?)([0-9a-fA-F,]*)(' + _ws + r')(\{)',
+            (r'([^/*@\s&]+|/)(@?)((?:0x)?[0-9a-fA-F,]*)(' + _ws + r')(\{)',
              bygroups(Name.Function, Operator, Number.Integer,
                       Comment.Multiline, Punctuation), '#push'),
 

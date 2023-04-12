@@ -1,17 +1,13 @@
 #pragma once
 
+#include <library/cpp/iterator/iterate_values.h>
+
+#include <util/generic/iterator_range.h>
 #include <util/generic/map.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 
 #include <initializer_list>
-
-struct TStringLess {
-    template <class T1, class T2>
-    inline bool operator()(const T1& t1, const T2& t2) const noexcept {
-        return TStringBuf(t1) < TStringBuf(t2);
-    }
-};
 
 class TCgiParameters: public TMultiMap<TString, TString> {
 public:
@@ -60,8 +56,8 @@ public:
     TString QuotedPrint(const char* safe = "/") const;
 
     Y_PURE_FUNCTION
-    std::pair<const_iterator, const_iterator> Range(const TStringBuf name) const noexcept {
-        return equal_range(name);
+    auto Range(const TStringBuf name) const noexcept {
+        return IterateValues(MakeIteratorRange(equal_range(name)));
     }
 
     Y_PURE_FUNCTION
@@ -118,8 +114,19 @@ public:
 
     bool Erase(const TStringBuf name, size_t numOfValue = 0);
     bool Erase(const TStringBuf name, const TStringBuf val);
+    bool ErasePattern(const TStringBuf name, const TStringBuf pat);
 
     inline const char* FormField(const TStringBuf name, size_t numOfValue = 0) const {
+        const_iterator it = Find(name, numOfValue);
+
+        if (it == end()) {
+            return nullptr;
+        }
+
+        return it->second.data();
+    }
+
+    inline TStringBuf FormFieldBuf(const TStringBuf name, size_t numOfValue = 0) const {
         const_iterator it = Find(name, numOfValue);
 
         if (it == end()) {

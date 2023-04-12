@@ -18,7 +18,6 @@
 
 #include <util/system/event.h>
 #include <util/system/mutex.h>
-#include <util/system/atomic.h>
 #include <util/system/condvar.h>
 #include <util/system/thread.h>
 
@@ -76,7 +75,7 @@ public:
         , Blocking(params.Blocking_)
         , Catching(params.Catching_)
         , Namer(params)
-        , ShouldTerminate(1)
+        , ShouldTerminate(true)
         , MaxQueueSize(0)
         , ThreadCountExpected(0)
         , ThreadCountReal(0)
@@ -98,7 +97,7 @@ public:
     }
 
     inline bool Add(IObjectInQueue* obj) {
-        if (AtomicGet(ShouldTerminate)) {
+        if (ShouldTerminate.load()) {
             return false;
         }
 
@@ -110,14 +109,14 @@ public:
         }
 
         with_lock (QueueMutex) {
-            while (MaxQueueSize > 0 && Queue.Size() >= MaxQueueSize && !AtomicGet(ShouldTerminate)) {
+            while (MaxQueueSize > 0 && Queue.Size() >= MaxQueueSize && !ShouldTerminate.load()) {
                 if (!Blocking) {
                     return false;
                 }
                 QueuePopCond.Wait(QueueMutex);
             }
 
-            if (AtomicGet(ShouldTerminate)) {
+            if (ShouldTerminate.load()) {
                 return false;
             }
 
@@ -157,7 +156,7 @@ public:
 
 private:
     inline void Start(size_t num, size_t maxque) {
-        AtomicSet(ShouldTerminate, 0);
+        ShouldTerminate.store(false);
         MaxQueueSize = maxque;
         ThreadCountExpected = num;
 
@@ -174,7 +173,7 @@ private:
     }
 
     inline void Stop() {
-        AtomicSet(ShouldTerminate, 1);
+        ShouldTerminate.store(true);
 
         with_lock (QueueMutex) {
             QueuePopCond.BroadCast();
@@ -212,11 +211,11 @@ private:
             IObjectInQueue* job = nullptr;
 
             with_lock (QueueMutex) {
-                while (Queue.Empty() && !AtomicGet(ShouldTerminate)) {
+                while (Queue.Empty() && !ShouldTerminate.load()) {
                     QueuePushCond.Wait(QueueMutex);
                 }
 
-                if (AtomicGet(ShouldTerminate) && Queue.Empty()) {
+                if (ShouldTerminate.load() && Queue.Empty()) {
                     tsr.Destroy();
 
                     break;
@@ -264,7 +263,7 @@ private:
     TCondVar StopCond;
     TJobQueue Queue;
     TVector<TThreadRef> Tharr;
-    TAtomic ShouldTerminate;
+    std::atomic<bool> ShouldTerminate;
     size_t MaxQueueSize;
     size_t ThreadCountExpected;
     size_t ThreadCountReal;
@@ -290,10 +289,14 @@ private:
 
     private:
         void ChildAction() {
-            with_lock (ActionMutex) {
-                for (auto it = RegisteredObjects.Begin(); it != RegisteredObjects.End(); ++it) {
-                    it->AtforkAction();
-                }
+            TTryGuard guard{ActionMutex};
+            // If you get an error here, it means you've used fork(2) in multi-threaded environment and probably created thread pools often.
+            // Don't use fork(2) in multi-threaded programs, don't create thread pools often.
+            // The mutex is locked after fork iff the fork(2) call was concurrent with RegisterObject / UnregisterObject in another thread.
+            Y_VERIFY(guard.WasAcquired(), "Failed to acquire ActionMutex after fork");
+
+            for (auto it = RegisteredObjects.Begin(); it != RegisteredObjects.End(); ++it) {
+                it->AtforkAction();
             }
         }
 
@@ -367,7 +370,7 @@ void TThreadPool::Stop() noexcept {
     Impl_.Destroy();
 }
 
-static TAtomic mtp_queue_counter = 0;
+static std::atomic<long> MtpQueueCounter = 0;
 
 class TAdaptiveThreadPool::TImpl {
 public:
@@ -428,7 +431,7 @@ public:
         , Free_(0)
         , IdleTime_(TDuration::Max())
     {
-        sprintf(Name_, "[mtp queue %ld]", (long)AtomicAdd(mtp_queue_counter, 1));
+        sprintf(Name_, "[mtp queue %ld]", ++MtpQueueCounter);
     }
 
     inline ~TImpl() {
@@ -472,16 +475,16 @@ public:
     }
 
     inline size_t Size() const noexcept {
-        return (size_t)ThrCount_;
+        return ThrCount_.load();
     }
 
 private:
     inline void IncThreadCount() noexcept {
-        AtomicAdd(ThrCount_, 1);
+        ++ThrCount_;
     }
 
     inline void DecThreadCount() noexcept {
-        AtomicAdd(ThrCount_, -1);
+        --ThrCount_;
     }
 
     inline void AddThreadNoLock() {
@@ -501,7 +504,7 @@ private:
 
         AllDone_ = true;
 
-        while (AtomicGet(ThrCount_)) {
+        while (ThrCount_.load()) {
             Mutex_.Release();
             CondReady_.Signal();
             Mutex_.Acquire();
@@ -536,7 +539,7 @@ private:
     TAdaptiveThreadPool* Parent_;
     const bool Catching;
     TThreadNamer Namer;
-    TAtomic ThrCount_;
+    std::atomic<size_t> ThrCount_;
     TMutex Mutex_;
     TCondVar CondReady_;
     TCondVar CondFree_;

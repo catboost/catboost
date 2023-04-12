@@ -32,12 +32,28 @@ namespace NCatboostCuda {
         template <class T>
         TVector<T> Gather(TConstArrayRef<T> src) const {
             TVector<T> result;
-            result.yresize(src.size());
+            result.resize(src.size());
 
             TVector<ui32> order;
             FillOrder(order);
             for (ui32 i = 0; i < order.size(); ++i) {
                 result[i] = src[order[i]];
+            }
+            return result;
+        }
+
+        template <class T>
+        TVector<TVector<T>> Gather2D(TConstArrayRef<TConstArrayRef<T>> src) const {
+            TVector<TVector<T>> result;
+            result.resize(src.size());
+
+            TVector<ui32> order;
+            FillOrder(order);
+            for (ui32 j = 0; j < src.size(); ++j) {
+                result[j].resize(order.size());
+                for (ui32 i = 0; i < order.size(); ++i) {
+                    result[j][i] = src[j][order[i]];
+                }
             }
             return result;
         }

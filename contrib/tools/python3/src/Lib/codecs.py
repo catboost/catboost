@@ -83,7 +83,7 @@ BOM64_BE = BOM_UTF32_BE
 class CodecInfo(tuple):
     """Codec details when looking up the codec registry"""
 
-    # Private API to allow Python 3.4 to blacklist the known non-Unicode
+    # Private API to allow Python 3.4 to denylist the known non-Unicode
     # codecs in the standard library. A more general mechanism to
     # reliably distinguish test encodings from other codecs will hopefully
     # be defined for Python 3.5
@@ -878,7 +878,8 @@ def open(filename, mode='r', encoding=None, errors='strict', buffering=-1):
         codecs. Output is also codec dependent and will usually be
         Unicode as well.
 
-        Underlying encoded files are always opened in binary mode.
+        If encoding is not None, then the
+        underlying encoded files are always opened in binary mode.
         The default file mode is 'r', meaning to open the file in read mode.
 
         encoding specifies the encoding which is to be used for the

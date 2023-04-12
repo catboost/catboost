@@ -1,8 +1,9 @@
 # Code common to build tools
-import sys
-import warnings
 import copy
+import pathlib
+import sys
 import textwrap
+import warnings
 
 from numpy.distutils.misc_util import mingw32
 
@@ -40,22 +41,16 @@ C_ABI_VERSION = 0x01000009
 # 0x0000000c - 1.14.x
 # 0x0000000c - 1.15.x
 # 0x0000000d - 1.16.x
-C_API_VERSION = 0x0000000d
+# 0x0000000d - 1.19.x
+# 0x0000000e - 1.20.x
+# 0x0000000e - 1.21.x
+# 0x0000000f - 1.22.x
+# 0x00000010 - 1.23.x
+C_API_VERSION = 0x00000010
 
 class MismatchCAPIWarning(Warning):
     pass
 
-def is_released(config):
-    """Return True if a released version of numpy is detected."""
-    from distutils.version import LooseVersion
-
-    v = config.get_version('../version.py')
-    if v is None:
-        raise ValueError("Could not get version")
-    pv = LooseVersion(vstring=v).version
-    if len(pv) > 3:
-        return False
-    return True
 
 def get_api_versions(apiversion, codegen_dir):
     """
@@ -97,6 +92,32 @@ def check_api_version(apiversion, codegen_dir):
         warnings.warn(msg % (apiversion, curapi_hash, apiversion, api_hash,
                              __file__),
                       MismatchCAPIWarning, stacklevel=2)
+
+
+FUNC_CALL_ARGS = {}
+
+def set_sig(sig):
+    prefix, _, args = sig.partition("(")
+    args = args.rpartition(")")[0]
+    funcname = prefix.rpartition(" ")[-1]
+    args = [arg.strip() for arg in args.split(",")]
+    FUNC_CALL_ARGS[funcname] = ", ".join("(%s) 0" % arg for arg in args)
+
+
+for file in [
+    "feature_detection_locale.h",
+    "feature_detection_math.h",
+    "feature_detection_misc.h",
+    "feature_detection_stdio.h",
+]:
+    with open(pathlib.Path(__file__).parent / file) as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            if not line.strip():
+                continue
+            set_sig(line)
+
 # Mandatory functions: if not found, fail the build
 MANDATORY_FUNCS = ["sin", "cos", "tan", "sinh", "cosh", "tanh", "fabs",
         "floor", "ceil", "sqrt", "log10", "log", "exp", "asin",
@@ -106,9 +127,11 @@ MANDATORY_FUNCS = ["sin", "cos", "tan", "sinh", "cosh", "tanh", "fabs",
 # replacement implementation. Note that some of these are C99 functions.
 OPTIONAL_STDFUNCS = ["expm1", "log1p", "acosh", "asinh", "atanh",
         "rint", "trunc", "exp2", "log2", "hypot", "atan2", "pow",
-        "copysign", "nextafter", "ftello", "fseeko",
-        "strtoll", "strtoull", "cbrt", "strtold_l", "fallocate",
-        "backtrace", "madvise"]
+        "copysign", "nextafter", "strtoll", "strtoull", "cbrt"]
+
+OPTIONAL_LOCALE_FUNCS = ["strtold_l"]
+OPTIONAL_FILE_FUNCS = ["ftello", "fseeko", "fallocate"]
+OPTIONAL_MISC_FUNCS = ["backtrace", "madvise"]
 
 
 OPTIONAL_HEADERS = [
@@ -118,7 +141,9 @@ OPTIONAL_HEADERS = [
                 "immintrin.h",  # AVX
                 "features.h",  # for glibc version linux
                 "xlocale.h",  # see GH#8367
-                "dlfcn.h", # dladdr
+                "dlfcn.h",  # dladdr
+                "execinfo.h",  # backtrace
+                "libunwind.h",  # backtrace for LLVM/Clang using libunwind
                 "sys/mman.h", #madvise
 ]
 
@@ -146,6 +171,10 @@ OPTIONAL_INTRINSICS = [("__builtin_isnan", '5.'),
                         "stdio.h", "LINK_AVX2"),
                        ("__asm__ volatile", '"vpaddd %zmm1, %zmm2, %zmm3"',
                         "stdio.h", "LINK_AVX512F"),
+                       ("__asm__ volatile", '"vfpclasspd $0x40, %zmm15, %k6\\n"\
+                                             "vmovdqu8 %xmm0, %xmm1\\n"\
+                                             "vpbroadcastmb2q %k0, %xmm0\\n"',
+                        "stdio.h", "LINK_AVX512_SKX"),
                        ("__asm__ volatile", '"xgetbv"', "stdio.h", "XGETBV"),
                        ]
 
@@ -156,6 +185,8 @@ OPTIONAL_FUNCTION_ATTRIBUTES = [('__attribute__((optimize("unroll-loops")))',
                                 'attribute_optimize_unroll_loops'),
                                 ('__attribute__((optimize("O3")))',
                                  'attribute_optimize_opt_3'),
+                                ('__attribute__((optimize("O2")))',
+                                 'attribute_optimize_opt_2'),
                                 ('__attribute__((nonnull (1)))',
                                  'attribute_nonnull'),
                                 ('__attribute__((target ("avx")))',
@@ -164,6 +195,8 @@ OPTIONAL_FUNCTION_ATTRIBUTES = [('__attribute__((optimize("unroll-loops")))',
                                  'attribute_target_avx2'),
                                 ('__attribute__((target ("avx512f")))',
                                  'attribute_target_avx512f'),
+                                ('__attribute__((target ("avx512f,avx512dq,avx512bw,avx512vl,avx512cd")))',
+                                 'attribute_target_avx512_skx'),
                                 ]
 
 # function attributes with intrinsics
@@ -171,6 +204,9 @@ OPTIONAL_FUNCTION_ATTRIBUTES = [('__attribute__((optimize("unroll-loops")))',
 # gcc 4.8.4 support attributes but not with intrisics
 # tested via "#include<%s> int %s %s(void *){code; return 0;};" % (header, attribute, name, code)
 # function name will be converted to HAVE_<upper-case-name> preprocessor macro
+# The _mm512_castps_si512 instruction is specific check for AVX-512F support
+# in gcc-4.9 which is missing a subset of intrinsics. See
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61878
 OPTIONAL_FUNCTION_ATTRIBUTES_WITH_INTRINSICS = [('__attribute__((target("avx2,fma")))',
                                 'attribute_target_avx2_with_intrinsics',
                                 '__m256 temp = _mm256_set1_ps(1.0); temp = \
@@ -178,7 +214,14 @@ OPTIONAL_FUNCTION_ATTRIBUTES_WITH_INTRINSICS = [('__attribute__((target("avx2,fm
                                 'immintrin.h'),
                                 ('__attribute__((target("avx512f")))',
                                 'attribute_target_avx512f_with_intrinsics',
-                                '__m512 temp = _mm512_set1_ps(1.0)',
+                                '__m512i temp = _mm512_castps_si512(_mm512_set1_ps(1.0))',
+                                'immintrin.h'),
+                                ('__attribute__((target ("avx512f,avx512dq,avx512bw,avx512vl,avx512cd")))',
+                                'attribute_target_avx512_skx_with_intrinsics',
+                                '__mmask8 temp = _mm512_fpclass_pd_mask(_mm512_set1_pd(1.0), 0x01);\
+                                __m512i unused_temp = \
+                                    _mm512_castps_si512(_mm512_set1_ps(1.0));\
+                                _mm_mask_storeu_epi8(NULL, 0xFF, _mm_broadcastmb_epi64(temp))',
                                 'immintrin.h'),
                                 ]
 
@@ -300,8 +343,8 @@ def pyod(filename):
     out : seq
         list of lines of od output
 
-    Note
-    ----
+    Notes
+    -----
     We only implement enough to get the necessary information for long double
     representation, this is not intended as a compatible replacement for od.
     """
