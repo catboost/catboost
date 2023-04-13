@@ -28,5 +28,6 @@ target_sources(cpp-yt-memory PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/chunked_output_stream.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/ref.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/ref_tracked.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/safe_memory_reader.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/shared_range.cpp
 )
