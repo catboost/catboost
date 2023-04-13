@@ -766,8 +766,7 @@ if __name__ == '__main__':
             'graphviz',
             'matplotlib',
             'numpy (>=1.16.0)',
-            # TODO: Compatibility with pandas 2.0 (https://github.com/catboost/catboost/issues/2320)
-            'pandas (>=0.24, <=1.5.0)',
+            'pandas (>=0.24)',
             'scipy',
             'plotly',
             'six',
