@@ -246,39 +246,97 @@ __global__ void EvalObliviousTrees(
 }
 
 template<NCB::NModelEvaluation::EPredictionType PredictionType, bool OneDimension>
-__global__ void ProcessResults(
+__global__ void ProcessResultsImpl(
     const float* __restrict__ rawResults,
     ui32 resultsSize,
+    const double* __restrict__ bias,
+    double scale,
     double* hostMemResults,
     ui32 approxDimension
 ) {
     for (ui32 resultId = threadIdx.x; resultId < resultsSize; resultId += blockDim.x) {
-        if (PredictionType == NCB::NModelEvaluation::EPredictionType::RawFormulaVal) {
-            hostMemResults[resultId] = __ldg(rawResults + resultId);
-        } else if (PredictionType == NCB::NModelEvaluation::EPredictionType::Probability) {
-            if (OneDimension) {
-                hostMemResults[resultId] = 1 / (1 + exp(-__ldg(rawResults + resultId)));
+        if (OneDimension) {
+            double res = scale * __ldg(rawResults + resultId) + __ldg(bias);
+            if (PredictionType == NCB::NModelEvaluation::EPredictionType::RawFormulaVal) {
+                hostMemResults[resultId] = res;
+            } else if (PredictionType == NCB::NModelEvaluation::EPredictionType::Probability) {
+                hostMemResults[resultId] = 1 / (1 + exp(-res));
+            } else if (PredictionType == NCB::NModelEvaluation::EPredictionType::Class) {
+                hostMemResults[resultId] = res > 0;
             } else {
-                // TODO(kirillovs): write softmax
                 assert(0);
             }
         } else {
-            if (OneDimension) {
-                hostMemResults[resultId] = __ldg(rawResults + resultId) > 0;
-            } else {
-                float maxVal = __ldg(rawResults);
+            const float* rawResultsSub = rawResults + resultId * approxDimension;
+            if (PredictionType == NCB::NModelEvaluation::EPredictionType::Class) {
+                double maxVal = scale * __ldg(rawResultsSub) + __ldg(bias);
                 ui32 maxPos = 0;
                 for (ui32 dim = 1; dim < approxDimension; ++dim) {
-                    const float val = __ldg(rawResults + dim);
+                    double val = scale * __ldg(rawResultsSub + dim) + __ldg(bias + dim);
                     if (val > maxVal) {
                         maxVal = val;
                         maxPos = dim;
                     }
                 }
                 hostMemResults[resultId] = maxPos;
-                rawResults += approxDimension;
+            } else {
+                double* hostMemResultsBase = hostMemResults + resultId * approxDimension;
+
+                for (ui32 dim = 0; dim < approxDimension; ++dim) {
+                    hostMemResultsBase[dim] = scale * __ldg(rawResultsSub + dim) + __ldg(bias + dim);
+                }
+
+                if (PredictionType != NCB::NModelEvaluation::EPredictionType::RawFormulaVal) {
+                    // TODO(kirillovs): write softmax
+                    assert(0);
+                }
             }
         }
+    }
+}
+
+template<bool OneDimension>
+void ProcessResults(
+    const TGPUCatboostEvaluationContext& ctx,
+    NCB::NModelEvaluation::EPredictionType predictionType,
+    size_t objectsCount) {
+
+    switch (predictionType) {
+        case NCB::NModelEvaluation::EPredictionType::RawFormulaVal:
+            ProcessResultsImpl<NCB::NModelEvaluation::EPredictionType::RawFormulaVal, OneDimension><<<1, 256, 0, ctx.Stream>>> (
+                ctx.EvalDataCache.ResultsFloatBuf.Get(),
+                objectsCount,
+                ctx.GPUModelData.Bias.Get(),
+                ctx.GPUModelData.Scale,
+                ctx.EvalDataCache.ResultsDoubleBuf.Get(),
+                ctx.GPUModelData.ApproxDimension
+            );
+            break;
+        case NCB::NModelEvaluation::EPredictionType::Exponent:
+        case NCB::NModelEvaluation::EPredictionType::RMSEWithUncertainty:
+        case NCB::NModelEvaluation::EPredictionType::MultiProbability:
+            ythrow yexception() << "Unimplemented on GPU: prediction type " << ToString(predictionType);
+            break;
+        case NCB::NModelEvaluation::EPredictionType::Probability:
+            ProcessResultsImpl<NCB::NModelEvaluation::EPredictionType::Probability, OneDimension><<<1, 256, 0, ctx.Stream>>> (
+                ctx.EvalDataCache.ResultsFloatBuf.Get(),
+                objectsCount,
+                ctx.GPUModelData.Bias.Get(),
+                ctx.GPUModelData.Scale,
+                ctx.EvalDataCache.ResultsDoubleBuf.Get(),
+                ctx.GPUModelData.ApproxDimension
+            );
+            break;
+        case NCB::NModelEvaluation::EPredictionType::Class:
+            ProcessResultsImpl<NCB::NModelEvaluation::EPredictionType::Class, OneDimension><<<1, 256, 0, ctx.Stream>>> (
+                ctx.EvalDataCache.ResultsFloatBuf.Get(),
+                objectsCount,
+                ctx.GPUModelData.Bias.Get(),
+                ctx.GPUModelData.Scale,
+                ctx.EvalDataCache.ResultsDoubleBuf.Get(),
+                ctx.GPUModelData.ApproxDimension
+            );
+            break;
     }
 }
 
@@ -308,37 +366,13 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
         data->GetObjectsCount(),
         EvalDataCache.ResultsFloatBuf.Get()
     );
-    switch (predictionType) {
-    case NCB::NModelEvaluation::EPredictionType::RawFormulaVal:
-        ProcessResults<NCB::NModelEvaluation::EPredictionType::RawFormulaVal, true><<<1, 256, 0, Stream>>> (
-            EvalDataCache.ResultsFloatBuf.Get(),
-            data->GetObjectsCount(),
-            EvalDataCache.ResultsDoubleBuf.Get(),
-            1
-        );
-        break;
-    case NCB::NModelEvaluation::EPredictionType::Exponent:
-    case NCB::NModelEvaluation::EPredictionType::RMSEWithUncertainty:
-    case NCB::NModelEvaluation::EPredictionType::MultiProbability:
-        ythrow yexception() << "Unimplemented on GPU: prediction type " << ToString(predictionType);
-        break;
-    case NCB::NModelEvaluation::EPredictionType::Probability:
-        ProcessResults<NCB::NModelEvaluation::EPredictionType::Probability, true><<<1, 256, 0, Stream>>> (
-            EvalDataCache.ResultsFloatBuf.Get(),
-            data->GetObjectsCount(),
-            EvalDataCache.ResultsDoubleBuf.Get(),
-            1
-        );
-        break;
-    case NCB::NModelEvaluation::EPredictionType::Class:
-        ProcessResults<NCB::NModelEvaluation::EPredictionType::Class, true><<<1, 256, 0, Stream>>> (
-            EvalDataCache.ResultsFloatBuf.Get(),
-            data->GetObjectsCount(),
-            EvalDataCache.ResultsDoubleBuf.Get(),
-            1
-        );
-        break;
+
+    if (GPUModelData.ApproxDimension == 1) {
+        ProcessResults<true>(*this, predictionType, data->GetObjectsCount());
+    } else {
+        ProcessResults<false>(*this, predictionType, data->GetObjectsCount());
     }
+
     MemoryCopyAsync<double>(EvalDataCache.ResultsDoubleBuf.Slice(0, data->GetObjectsCount()), result, Stream);
 }
 

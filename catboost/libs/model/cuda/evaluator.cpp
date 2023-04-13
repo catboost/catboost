@@ -66,6 +66,17 @@ namespace NCB::NModelEvaluation {
                     TVector<TCudaEvaluatorLeafType>(ModelTrees->GetModelTreeData()->GetLeafValues().begin(), ModelTrees->GetModelTreeData()->GetLeafValues().end()),
                     EMemoryType::Device
                 );
+
+                Ctx.GPUModelData.ApproxDimension = ModelTrees->GetDimensionsCount();
+
+                const auto& scaleAndBias = ModelTrees->GetScaleAndBias();
+                const auto& biasRef = scaleAndBias.GetBiasRef();
+                Ctx.GPUModelData.Bias = TCudaVec<double>(
+                    biasRef.empty() ? TVector<double>(Ctx.GPUModelData.ApproxDimension, 0.0) : biasRef,
+                    EMemoryType::Device
+                );
+                Ctx.GPUModelData.Scale = scaleAndBias.Scale;
+
                 Ctx.Stream = TCudaStream::NewStream();
             }
 
@@ -287,7 +298,6 @@ namespace NCB::NModelEvaluation {
                 const TCudaQuantizedData* cudaQuantizedFeatures = dynamic_cast<const TCudaQuantizedData*>(quantizedFeatures);
                 CB_ENSURE(cudaQuantizedFeatures != nullptr, "Got improperly typed quantized data");
                 Ctx.EvalQuantizedData(cudaQuantizedFeatures, treeStart, treeEnd, results, PredictionType);
-                ApplyScaleAndBias(ModelTrees->GetScaleAndBias(), results, treeStart);
             }
 
             void CalcLeafIndexesSingle(
