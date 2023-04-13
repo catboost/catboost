@@ -105,6 +105,10 @@ impl Model {
     pub fn get_dimensions_count(&self) -> usize {
         unsafe { catboost_sys::GetDimensionsCount(self.handle) }
     }
+
+    pub fn enable_gpu_evaluation(&self) -> bool {
+        unsafe { catboost_sys::EnableGPUEvaluation(self.handle, 0) }
+    }
 }
 
 impl Drop for Model {
@@ -172,5 +176,30 @@ mod tests {
         data.resize(size, 0);
         file.read_exact(&mut data)?;
         Ok(data)
+    }
+
+    #[cfg(feature = "gpu")]
+    #[test]
+    fn calc_prediction_on_gpu() {
+        let model = Model::load("tmp/model.bin").unwrap();
+        assert!(model.enable_gpu_evaluation());
+        let prediction = model
+            .calc_model_prediction(
+                vec![
+                    vec![-10.0, 5.0, 753.0],
+                    vec![30.0, 1.0, 760.0],
+                    vec![40.0, 0.1, 705.0],
+                ],
+                vec![
+                    vec![String::from("north")],
+                    vec![String::from("south")],
+                    vec![String::from("south")],
+                ],
+            )
+            .unwrap();
+
+        assert_eq!(prediction[0], 0.9980003729960197);
+        assert_eq!(prediction[1], 0.00249414628534181);
+        assert_eq!(prediction[2], -0.0013677527881450977);
     }
 }

@@ -11,15 +11,33 @@ fn main() {
         .canonicalize()
         .unwrap();
 
+    #[cfg(feature = "gpu")]
     let build_cmd_status = Command::new("../../../build/build_native.py")
         .args(&[
-            "--targets", "catboostmodel",
-            "--build-root-dir", out_dir.to_str().unwrap(),
+            "--targets",
+            "catboostmodel",
+            "--build-root-dir",
+            out_dir.to_str().unwrap(),
+            "--have-cuda",
         ])
         .status()
         .unwrap_or_else(|e| {
             panic!("Failed to run build_native.py : {}", e);
         });
+
+    #[cfg(not(feature = "gpu"))]
+    let build_cmd_status = Command::new("../../../build/build_native.py")
+        .args(&[
+            "--targets",
+            "catboostmodel",
+            "--build-root-dir",
+            out_dir.to_str().unwrap(),
+        ])
+        .status()
+        .unwrap_or_else(|e| {
+            panic!("Failed to run build_native.py : {}", e);
+        });
+
     if !build_cmd_status.success() {
         panic!("Building with build_native.py failed");
     }
