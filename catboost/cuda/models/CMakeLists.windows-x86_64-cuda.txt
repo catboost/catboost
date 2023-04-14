@@ -48,6 +48,7 @@ target_cuda_flags(models
   arch=compute_70,code=compute_70
   --ptxas-options=-v
   -gencode=arch=compute_80,code=sm_80
+  -gencode=arch=compute_86,code=sm_86
 )
 
 add_global_library_for(models.global models)

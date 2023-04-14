@@ -41,6 +41,7 @@ target_cuda_flags(libs-model-cuda
   -lineinfo
   --use_fast_math
   -gencode=arch=compute_80,code=sm_80
+  -gencode=arch=compute_86,code=sm_86
 )
 
 add_global_library_for(libs-model-cuda.global libs-model-cuda)
