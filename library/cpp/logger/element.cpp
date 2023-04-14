@@ -3,6 +3,7 @@
 
 #include <utility>
 
+
 TLogElement::TLogElement(const TLog* parent)
     : Parent_(parent)
     , Priority_(Parent_->DefaultPriority())
@@ -32,7 +33,7 @@ void TLogElement::DoFlush() {
     const size_t filled = Filled();
 
     if (filled) {
-        Parent_->Write(Priority_, Data(), filled);
+        Parent_->Write(Priority_, Data(), filled, std::move(Context_));
         Reset();
     }
 }
