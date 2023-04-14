@@ -4748,7 +4748,7 @@ cdef class _CatBoost:
 
     cpdef _get_embedding_feature_indices(self):
         cdef TConstArrayRef[TEmbeddingFeature] arrayView = self.__model.ModelTrees.Get().GetEmbeddingFeatures()
-        return [] #feature.Position.FlatIndex for feature in arrayView]
+        return [feature.Position.FlatIndex for feature in arrayView]
 
     cpdef _get_float_feature_indices(self):
         cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()
