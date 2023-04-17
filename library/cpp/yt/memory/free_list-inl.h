@@ -128,13 +128,13 @@ bool TFreeList<TItem>::PutIf(TItem* head, TItem* tail, TPredicate predicate)
     auto popCount = Head_.PopCount.load(std::memory_order::relaxed);
 
     while (predicate(current)) {
-        tail->Next.store(current, std::memory_order::release);
+        tail->Next.store(current);
         if (NYT::NDetail::CompareAndSet(&AtomicHead_, current, popCount, head, popCount)) {
             return true;
         }
     }
 
-    tail->Next.store(nullptr, std::memory_order::release);
+    tail->Next.store(nullptr);
 
     return false;
 }
@@ -148,7 +148,7 @@ void TFreeList<TItem>::Put(TItem* head, TItem* tail)
     auto popCount = Head_.PopCount.load(std::memory_order::relaxed);
 
     do {
-        tail->Next.store(current, std::memory_order::release);
+        tail->Next.store(current);
     } while (!NYT::NDetail::CompareAndSet(&AtomicHead_, current, popCount, head, popCount));
 }
 
