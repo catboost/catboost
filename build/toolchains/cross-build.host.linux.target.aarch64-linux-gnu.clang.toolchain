@@ -10,6 +10,8 @@ set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES /usr/aarch64-linux-gnu/include/)
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_COMPILER_TARGET aarch64-linux-gnu)
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES /usr/aarch64-linux-gnu/include/)
+set(CMAKE_C_STANDARD_LIBRARIES "-lc -lm")
+set(CMAKE_CXX_STANDARD_LIBRARIES "-lc -lm")
 
 set(CMAKE_ASM_FLAGS "-target aarch64-linux-gnu -I/usr/aarch64-linux-gnu/include/")
 

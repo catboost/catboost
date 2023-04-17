@@ -18,6 +18,9 @@ set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${cross_root}/include/)
 
 set(CMAKE_ASM_FLAGS "-target ${cross_triple}  -I${cross_root}/include/")
 
+set(CMAKE_C_STANDARD_LIBRARIES "-lc -lm")
+set(CMAKE_CXX_STANDARD_LIBRARIES "-lc -lm")
+
 set(CMAKE_CUDA_COMPILER nvcc)
 set(CMAKE_CUDA_HOST_COMPILER clang)
 

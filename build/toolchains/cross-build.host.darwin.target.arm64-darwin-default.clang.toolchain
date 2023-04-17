@@ -10,6 +10,9 @@ set(CMAKE_CXX_COMPILER_TARGET arm64-darwin-default)
 
 set(CMAKE_ASM_FLAGS "-target arm64-darwin-default")
 
+set(CMAKE_C_STANDARD_LIBRARIES "-lc -lm")
+set(CMAKE_CXX_STANDARD_LIBRARIES "-lc -lm")
+
 set(ENV{CC} clang)
 set(ENV{CXX} clang++)
 
