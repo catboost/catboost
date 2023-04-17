@@ -7,8 +7,6 @@
 
 #include <library/cpp/yt/containers/intrusive_linked_list.h>
 
-#include <library/cpp/yt/memory/free_list.h>
-
 #include <library/cpp/yt/threading/at_fork.h>
 #include <library/cpp/yt/threading/fork_aware_spin_lock.h>
 
@@ -505,7 +503,88 @@ Y_FORCE_INLINE void PoisonUninitializedRange(void* ptr, size_t size)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class T>
+struct TFreeListItem
+{
+    T* Next = nullptr;
+};
+
 constexpr size_t CacheLineSize = 64;
+
+// A lock-free stack of items (derived from TFreeListItem).
+// Supports multiple producers and multiple consumers.
+// Internally uses DCAS with tagged pointers to defeat ABA.
+template <class T>
+class TFreeList
+{
+public:
+    void Put(T* item)
+    {
+        TTaggedPointer currentTaggedHead{};
+        TTaggedPointer newTaggedHead;
+        do {
+            item->Next = currentTaggedHead.first;
+            newTaggedHead = std::make_pair(item, currentTaggedHead.second + 1);
+        } while (!CompareAndSet(&TaggedHead_, currentTaggedHead, newTaggedHead));
+    }
+
+    T* Extract()
+    {
+        T* item;
+        TTaggedPointer currentTaggedHead{};
+        TTaggedPointer newTaggedHead{};
+        CompareAndSet(&TaggedHead_, currentTaggedHead, newTaggedHead);
+        do {
+            item = currentTaggedHead.first;
+            if (!item) {
+                break;
+            }
+            newTaggedHead = std::make_pair(item->Next, currentTaggedHead.second + 1);
+        } while (!CompareAndSet(&TaggedHead_, currentTaggedHead, newTaggedHead));
+        return item;
+    }
+
+    T* ExtractAll()
+    {
+        T* item;
+        TTaggedPointer currentTaggedHead{};
+        TTaggedPointer newTaggedHead;
+        do {
+            item = currentTaggedHead.first;
+            newTaggedHead = std::make_pair(nullptr, currentTaggedHead.second + 1);
+        } while (!CompareAndSet(&TaggedHead_, currentTaggedHead, newTaggedHead));
+        return item;
+    }
+
+private:
+    using TAtomicUint128 = volatile unsigned __int128  __attribute__((aligned(16)));
+    using TTag = ui64;
+    using TTaggedPointer = std::pair<T*, TTag>;
+
+    TAtomicUint128 TaggedHead_ = 0;
+
+    // Avoid false sharing.
+    char Padding[CacheLineSize - sizeof(TAtomicUint128)];
+
+private:
+    static Y_FORCE_INLINE bool CompareAndSet(TAtomicUint128* atomic, TTaggedPointer& expectedValue, TTaggedPointer newValue)
+    {
+        bool success;
+        __asm__ __volatile__
+        (
+            "lock cmpxchg16b %1\n"
+            "setz %0"
+            : "=q"(success)
+            , "+m"(*atomic)
+            , "+a"(expectedValue.first)
+            , "+d"(expectedValue.second)
+            : "b"(newValue.first)
+            , "c"(newValue.second)
+            : "cc"
+        );
+        return success;
+    }
+};
 
 static_assert(sizeof(TFreeList<void>) == CacheLineSize, "sizeof(TFreeList) != CacheLineSize");
 
@@ -1666,7 +1745,7 @@ TExplicitlyConstructableSingleton<TMmapObservationManager> MmapObservationManage
 
 // A per-thread structure containing counters, chunk caches etc.
 struct TThreadState
-    : public TFreeListItemBase<TThreadState>
+    : public TFreeListItem<TThreadState>
     , public TLocalShardedState
 {
     // TThreadState instances of all alive threads are put into a double-linked intrusive list.
@@ -2836,7 +2915,7 @@ constexpr size_t GroupsBatchSize = 1024;
 static_assert(ChunksPerGroup <= MaxCachedChunksPerRank, "ChunksPerGroup > MaxCachedChunksPerRank");
 
 class TChunkGroup
-    : public TFreeListItemBase<TChunkGroup>
+    : public TFreeListItem<TChunkGroup>
 {
 public:
     bool IsEmpty() const
@@ -3368,7 +3447,7 @@ enum ELargeBlobState : ui64
 
 // Every large blob (either tagged or not) is prepended with this header.
 struct TLargeBlobHeader
-    : public TFreeListItemBase<TLargeBlobHeader>
+    : public TFreeListItem<TLargeBlobHeader>
 {
     TLargeBlobHeader(
         TLargeBlobExtent* extent,
@@ -3413,7 +3492,7 @@ struct TLargeBlobExtent
 // A helper node that enables storing a number of extent's segments
 // in a free list. Recall that segments themselves do not posses any headers.
 struct TDisposedSegment
-    : public TFreeListItemBase<TDisposedSegment>
+    : public TFreeListItem<TDisposedSegment>
 {
     size_t Index;
     TLargeBlobExtent* Extent;
@@ -3575,7 +3654,7 @@ private:
 
         size_t count = 0;
         while (blob) {
-            auto* nextBlob = blob->Next.load();
+            auto* nextBlob = blob->Next;
             YTALLOC_VERIFY(!blob->Locked.load());
             AssertBlobState(blob, ELargeBlobState::LockedSpare);
             blob->State = ELargeBlobState::Spare;
@@ -3598,7 +3677,7 @@ private:
 
         size_t count = 0;
         while (blob) {
-            auto* nextBlob = blob->Next.load();
+            auto* nextBlob = blob->Next;
             AssertBlobState(blob, ELargeBlobState::LockedFreed);
             MoveBlobToSpare(state, arena, blob, false);
             ++count;
@@ -4847,3 +4926,4 @@ TEnumIndexedVector<ETimingEventType, TTimingEventCounters> GetTimingEventCounter
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT::NYTAlloc
+

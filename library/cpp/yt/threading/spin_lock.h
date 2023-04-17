@@ -3,8 +3,6 @@
 #include "public.h"
 #include "spin_lock_base.h"
 
-#include <library/cpp/yt/memory/public.h>
-
 #include <library/cpp/yt/misc/port.h>
 
 #include <library/cpp/yt/system/thread_id.h>
@@ -80,3 +78,4 @@ private:
 #define SPIN_LOCK_INL_H_
 #include "spin_lock-inl.h"
 #undef SPIN_LOCK_INL_H_
+
