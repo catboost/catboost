@@ -37,6 +37,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsitf.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattidf.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattisf.c
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattixf.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunditf.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsitf.c
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntidf.c
