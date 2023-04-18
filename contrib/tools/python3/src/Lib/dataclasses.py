@@ -1175,6 +1175,9 @@ def _add_slots(cls, is_frozen, weakref_slot):
     # Remove __dict__ itself.
     cls_dict.pop('__dict__', None)
 
+    # Clear existing `__weakref__` descriptor, it belongs to a previous type:
+    cls_dict.pop('__weakref__', None)  # gh-102069
+
     # And finally create the class.
     qualname = getattr(cls, '__qualname__', None)
     cls = type(cls)(cls.__name__, cls.__bases__, cls_dict)
@@ -1231,7 +1234,7 @@ def fields(class_or_instance):
     try:
         fields = getattr(class_or_instance, _FIELDS)
     except AttributeError:
-        raise TypeError('must be called with a dataclass type or instance')
+        raise TypeError('must be called with a dataclass type or instance') from None
 
     # Exclude pseudo-fields.  Note that fields is sorted by insertion
     # order, so the order of the tuple is as the fields were defined.
