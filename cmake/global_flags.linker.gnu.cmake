@@ -1,8 +1,3 @@
-add_link_options(
-  -lc
-  -lm
-)
-
 if (ANDROID)
   # NDK r23 onwards has stopped using libgcc:
   # - https://github.com/android/ndk/wiki/Changelog-r23#changes
@@ -15,9 +10,10 @@ if (ANDROID)
     add_link_options("-nostdlib++")
   else ()
     # Preserve old behaviour: specify runtime libs manually
-    add_link_options(-nodefaultlibs -lgcc)
+    add_link_options(-nodefaultlibs)
+    link_libraries(gcc)
     if (CMAKE_ANDROID_ARCH_ABI STREQUAL "armeabi-v7a")
-      add_link_options("-lunwind")
+      link_libraries(unwind)
     endif()
   endif()
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Darwin|Linux)$")
