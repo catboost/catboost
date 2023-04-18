@@ -43,8 +43,8 @@ void NCB::PrepareCalcModeParamsParser(
         });
     parser.AddLongOption("prediction-type")
         .RequiredArgument(
-            "Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal, "
-            "RMSEWithUncertainty, TotalUncertainty, VirtEnsembles")
+            "Comma separated list of prediction types. Every prediction type should be one of: "
+            + GetEnumAllNames<EPredictionType>())
         .Handler1T<TString>([&](const TString& predictionTypes) {
             params.PredictionTypes.clear();
             params.OutputColumnsIds = {"SampleId"};
