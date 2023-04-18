@@ -395,7 +395,6 @@ namespace NCatboostCuda {
                 featuresManager,
                 localExecutor);
 
-            InitializeEvalMetricIfNotSet(updatedCatboostOptions.MetricOptions->ObjectiveMetric, &updatedCatboostOptions.MetricOptions->EvalMetric);
             const TString& trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
             if (!trainingOptionsFileName.empty()) {
                 TOFStream trainingOptionsFile(trainingOptionsFileName);
