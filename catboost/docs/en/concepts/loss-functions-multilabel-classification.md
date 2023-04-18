@@ -127,8 +127,8 @@ $\displaystyle\frac{\sum\limits_{j=0}^{M-1} \sum\limits_{i = 1}^{N} w_{i} [[p_{i
 
 | Name                                                          | Optimization            | GPU Support             |
 ----------------------------------------------------------------|-------------------------|-------------------------|
-[{{ error-function__MultiLogloss }}](#MultiLogloss)             |     +                   |     -                   |
-[{{ error-function__MultiCrossEntropy }}](#MultiCrossEntropy)   |     +                   |     -                   |
+[{{ error-function__MultiLogloss }}](#MultiLogloss)             |     +                   |     +                   |
+[{{ error-function__MultiCrossEntropy }}](#MultiCrossEntropy)   |     +                   |     +                   |
 [{{ error-function--Precision }}](#Precision)                   |     -                   |     -                   |
 [{{ error-function--Recall }}](#Recall)                         |     -                   |     -                   |
 [{{ error-function--F }}](#F)                                   |     -                   |     -                   |

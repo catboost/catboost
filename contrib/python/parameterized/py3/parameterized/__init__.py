@@ -1,3 +1,3 @@
 from .parameterized import parameterized, param, parameterized_class
 
-__version__ = "0.8.1"
+__version__ = "0.9.0"

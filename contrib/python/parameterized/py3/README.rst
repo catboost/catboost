@@ -1,8 +1,12 @@
 Parameterized testing with any Python test framework
 ====================================================
 
-.. image:: https://img.shields.io/pypi/v/parameterized.svg
+.. image:: https://img.shields.io/pypi/v/parameterized
     :alt: PyPI
+    :target: https://pypi.org/project/parameterized/
+
+.. image:: https://img.shields.io/pypi/dm/parameterized
+    :alt: PyPI - Downloads
     :target: https://pypi.org/project/parameterized/
 
 .. image:: https://circleci.com/gh/wolever/parameterized.svg?style=svg
@@ -175,33 +179,27 @@ Compatibility
 
 `Yes`__ (mostly).
 
-__ https://travis-ci.org/wolever/parameterized
+__ https://app.circleci.com/pipelines/github/wolever/parameterized?branch=master
 
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
 
    * -
-     - Py2.6
-     - Py2.7
-     - Py3.4
-     - Py3.5
-     - Py3.6
      - Py3.7
      - Py3.8
      - Py3.9
-     - PyPy
+     - Py3.10
+     - Py3.11
+     - PyPy3
      - ``@mock.patch``
    * - nose
      - yes
      - yes
      - yes
      - yes
-     - yes
-     - yes
-     - yes
-     - yes
-     - yes
+     - no§
+     - no§
      - yes
    * - nose2
      - yes
@@ -211,30 +209,21 @@ __ https://travis-ci.org/wolever/parameterized
      - yes
      - yes
      - yes
-     - yes
-     - yes
-     - yes
    * - py.test 2
-     - yes
-     - yes
      - no*
      - no*
      - no*
      - no*
-     - yes
-     - yes
-     - yes
-     - yes
+     - no*
+     - no*
+     - no*
    * - py.test 3
      - yes
      - yes
      - yes
      - yes
-     - yes
-     - yes
-     - yes
-     - yes
-     - yes
+     - no*
+     - no*
      - yes
    * - py.test 4
      - no**
@@ -244,13 +233,7 @@ __ https://travis-ci.org/wolever/parameterized
      - no**
      - no**
      - no**
-     - no**
-     - no**
-     - no**
    * - py.test fixtures
-     - no†
-     - no†
-     - no†
      - no†
      - no†
      - no†
@@ -267,29 +250,29 @@ __ https://travis-ci.org/wolever/parameterized
      - yes
      - yes
      - yes
-     - yes
-     - yes
-     - yes
    * - | unittest2
        | (``@parameterized.expand``)
      - yes
      - yes
      - yes
      - yes
-     - yes
-     - yes
-     - yes
-     - yes
-     - yes
+     - no§
+     - no§
      - yes
 
-\*: py.test 2 does `does not appear to work (#71)`__ under Python 3. Please comment on the related issues if you are affected.
+§: nose and unittest2 - both of which were last updated in 2015 - sadly do not
+appear to support Python 3.10 or 3.11.
+
+\*: `py.test 2 does not appear to work under Python 3 (#71)`__, and
+`py.test 3 does not appear to work under Python 3.10 or 3.11 (#154)`__.
 
 \*\*: py.test 4 is not yet supported (but coming!) in `issue #34`__
 
 †: py.test fixture support is documented in `issue #81`__
 
+
 __ https://github.com/wolever/parameterized/issues/71
+__ https://github.com/wolever/parameterized/issues/154
 __ https://github.com/wolever/parameterized/issues/34
 __ https://github.com/wolever/parameterized/issues/81
 
@@ -384,7 +367,7 @@ class is a subclass of ``unittest.TestCase``):
     class AddTestCase(unittest.TestCase):
         @parameterized.expand([
             ("2 and 3", 2, 3, 5),
-            ("3 and 5", 2, 3, 5),
+            ("3 and 5", 3, 5, 8),
         ])
         def test_add(self, _, a, b, expected):
             assert_equal(a + b, expected)
@@ -645,9 +628,10 @@ To migrate a codebase from ``nose-parameterized`` to ``parameterized``:
 FAQ
 ---
 
-What happened to ``nose-parameterized``?
-    Originally only nose was supported. But now everything is supported, and it
-    only made sense to change the name!
+What happened to Python 2.X, 3.5, and 3.6 support?
+    As of version 0.9.0, ``parameterized`` no longer supports Python 2.X, 3.5,
+    or 3.6.  Previous versions of ``parameterized`` - 0.8.1 being the latest -
+    will continue to work, but will not receive any new features or bug fixes.
 
 What do you mean when you say "nose is best supported"?
     There are small caveates with ``py.test`` and ``unittest``: ``py.test``
@@ -664,3 +648,7 @@ Why do I get an ``AttributeError: 'function' object has no attribute 'expand'`` 
     You've likely installed the ``parametrized`` (note the missing *e*)
     package. Use ``parameterized`` (with the *e*) instead and you'll be all
     set.
+
+What happened to ``nose-parameterized``?
+    Originally only nose was supported. But now everything is supported, and it
+    only made sense to change the name!

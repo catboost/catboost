@@ -2,9 +2,18 @@ import re
 import sys
 import inspect
 import warnings
+from typing import Iterable
 from functools import wraps
 from types import MethodType as MethodType
 from collections import namedtuple
+
+try:
+    from unittest import mock
+except ImportError:
+    try:
+        import mock
+    except ImportError:
+        mock = None
 
 try:
     from collections import OrderedDict as MaybeOrderedDict
@@ -19,6 +28,9 @@ except ImportError:
     class SkipTest(Exception):
         pass
 
+# NOTE: even though Python 2 support has been dropped, these checks have been
+# left in place to avoid merge conflicts. They can be removed in the future, and
+# future code can be written to assume Python 3.
 PY3 = sys.version_info[0] == 3
 PY2 = sys.version_info[0] == 2
 
@@ -82,17 +94,66 @@ def reapply_patches_if_need(func):
         return dummy_func
 
     if hasattr(func, 'patchings'):
+        is_original_async = inspect.iscoroutinefunction(func)
         func = dummy_wrapper(func)
         tmp_patchings = func.patchings
         delattr(func, 'patchings')
         for patch_obj in tmp_patchings:
-            func = patch_obj.decorate_callable(func)
+            if is_original_async:
+                func = patch_obj.decorate_async_callable(func)
+            else:
+                func = patch_obj.decorate_callable(func)
     return func
+
+
+# `parameterized.expand` strips out `mock` patches from the source method in favor of re-applying them over the
+# generated methods instead. Sadly, this can cause problems with old versions of the `mock` package, as shown in
+# https://bugs.python.org/issue40126 (bpo-40126).
+#
+# Long story short, bpo-40126 arises whenever the `patchings` list of a `mock`-decorated method is left fully empty.
+#
+# The bug has been fixed in the `mock` code itself since:
+#   - Python 3.7.8-rc1, 3.8.3-rc1 and later (for the `unittest.mock` package) [0][1].
+#   - Version 4 of the `mock` backport package (https://pypi.org/project/mock/) [2].
+#
+# To work around the problem when running old `mock` versions, we avoid fully stripping out patches from the source
+# method in favor of replacing them with a "dummy" no-op patch instead.
+#
+# [0] https://docs.python.org/release/3.7.10/whatsnew/changelog.html#python-3-7-8-release-candidate-1
+# [1] https://docs.python.org/release/3.8.10/whatsnew/changelog.html#python-3-8-3-release-candidate-1
+# [2] https://mock.readthedocs.io/en/stable/changelog.html#b1
+
+PYTHON_DOESNT_HAVE_FIX_FOR_BPO_40126 = (
+    sys.version_info[:3] < (3, 7, 8) or (sys.version_info[:2] >= (3, 8) and sys.version_info[:3] < (3, 8, 3))
+)
+
+try:
+    import mock as _mock_backport
+except ImportError:
+    _mock_backport = None
+
+MOCK_BACKPORT_DOESNT_HAVE_FIX_FOR_BPO_40126 = _mock_backport is not None and _mock_backport.version_info[0] < 4
+
+AVOID_CLEARING_MOCK_PATCHES = PYTHON_DOESNT_HAVE_FIX_FOR_BPO_40126 or MOCK_BACKPORT_DOESNT_HAVE_FIX_FOR_BPO_40126
+
+
+class DummyPatchTarget(object):
+    dummy_attribute = None
+
+    @staticmethod
+    def create_dummy_patch():
+        if mock is not None:
+            return mock.patch.object(DummyPatchTarget(), "dummy_attribute", new=None)
+        else:
+            raise ImportError("Missing mock package")
 
 
 def delete_patches_if_need(func):
     if hasattr(func, 'patchings'):
-        func.patchings[:] = []
+        if AVOID_CLEARING_MOCK_PATCHES:
+            func.patchings[:] = [DummyPatchTarget.create_dummy_patch()]
+        else:
+            func.patchings[:] = []
 
 
 _param = namedtuple("param", "args kwargs")
@@ -148,7 +209,7 @@ class param(_param):
             """
         if isinstance(args, param):
             return args
-        elif isinstance(args, string_types):
+        elif isinstance(args, (str, bytes)) or not isinstance(args, Iterable):
             args = (args, )
         try:
             return cls(*args)
@@ -300,7 +361,7 @@ def set_test_runner(name):
 def detect_runner():
     """ Guess which test runner we're using by traversing the stack and looking
         for the first matching module. This *should* be reasonably safe, as
-        it's done during test disocvery where the test runner should be the
+        it's done during test discovery where the test runner should be the
         stack frame immediately outside. """
     if _test_runner_override is not None:
         return _test_runner_override
@@ -321,6 +382,7 @@ def detect_runner():
         else:
             _test_runner_guess = None
     return _test_runner_guess
+
 
 
 class parameterized(object):
@@ -463,11 +525,28 @@ class parameterized(object):
 
     @classmethod
     def expand(cls, input, name_func=None, doc_func=None, skip_on_empty=False,
-               **legacy):
+               namespace=None, **legacy):
         """ A "brute force" method of parameterizing test cases. Creates new
             test cases and injects them into the namespace that the wrapped
             function is being defined in. Useful for parameterizing tests in
             subclasses of 'UnitTest', where Nose test generators don't work.
+
+            :param input: An iterable of values to pass to the test function.
+            :param name_func: A function that takes a single argument (the
+                value from the input iterable) and returns a string to use as
+                the name of the test case. If not provided, the name of the
+                test case will be the name of the test function with the
+                parameter value appended.
+            :param doc_func: A function that takes a single argument (the
+                value from the input iterable) and returns a string to use as
+                the docstring of the test case. If not provided, the docstring
+                of the test case will be the docstring of the test function.
+            :param skip_on_empty: If True, the test will be skipped if the
+                input iterable is empty. If False, a ValueError will be raised
+                if the input iterable is empty.
+            :param namespace: The namespace (dict-like) to inject the test cases
+                into. If not provided, the namespace of the test function will
+                be used.
 
             >>> @parameterized.expand([("foo", 1, 2)])
             ... def test_add1(name, input, expected):
@@ -495,7 +574,9 @@ class parameterized(object):
         name_func = name_func or default_name_func
 
         def parameterized_expand_wrapper(f, instance=None):
-            frame_locals = inspect.currentframe().f_back.f_locals
+            frame_locals = namespace
+            if frame_locals is None:
+                frame_locals = inspect.currentframe().f_back.f_locals
 
             parameters = cls.input_as_callable(input)()
 
@@ -524,13 +605,20 @@ class parameterized(object):
             delete_patches_if_need(f)
 
             f.__test__ = False
+
         return parameterized_expand_wrapper
 
     @classmethod
     def param_as_standalone_func(cls, p, func, name):
-        @wraps(func)
-        def standalone_func(*a):
-            return func(*(a + p.args), **p.kwargs)
+        if inspect.iscoroutinefunction(func):
+            @wraps(func)
+            async def standalone_func(*a, **kw):
+                return await func(*(a + p.args), **p.kwargs, **kw)
+        else:
+            @wraps(func)
+            def standalone_func(*a, **kw):
+                return func(*(a + p.args), **p.kwargs, **kw)
+
         standalone_func.__name__ = name
 
         # place_as is used by py.test to determine what source file should be
@@ -548,6 +636,8 @@ class parameterized(object):
 
     @classmethod
     def to_safe_name(cls, s):
+        if not isinstance(s, str):
+            s = str(s)
         return str(re.sub("[^a-zA-Z0-9_]+", "_", s))
 
 
@@ -585,7 +675,7 @@ def parameterized_class(attrs, input_values=None, class_name_func=None, classnam
     )
 
     class_name_func = class_name_func or default_class_name_func
-    
+
     if classname_func:
         warnings.warn(
             "classname_func= is deprecated; use class_name_func= instead. "
