@@ -21,6 +21,7 @@
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/features.h>
+#include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
@@ -361,6 +362,8 @@ void CrossValidate(
 
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
                                  &catBoostOptions.MetricOptions->EvalMetric);
+
+    UpdateMetricPeriodOption(catBoostOptions, &outputFileOptions);
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
         catBoostOptions.MetricOptions,

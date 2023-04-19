@@ -33,6 +33,7 @@
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/monotone_constraints.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/system_options.h>
@@ -1129,6 +1130,8 @@ static void TrainModel(
 
     // Eval metric may not be set. If that's the case, we assign it to objective metric
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+
+    UpdateMetricPeriodOption(catBoostOptions, &updatedOutputOptions);
 
     if (outputOptions.NeedSaveBorders()) {
         SaveBordersAndNanModesToFileInMatrixnetFormat(

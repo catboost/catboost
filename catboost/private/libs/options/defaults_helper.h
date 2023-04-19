@@ -47,3 +47,8 @@ inline void UpdateSampleRateOption(size_t learnSampleCount, NCatboostOptions::TC
         takenFraction.SetDefault(1.0);
     }
 }
+
+void UpdateMetricPeriodOption(
+    const NCatboostOptions::TCatBoostOptions& trainOptions,
+    NCatboostOptions::TOutputFilesOptions* outputOptions
+);

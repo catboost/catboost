@@ -13,6 +13,7 @@
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/train_lib/dir_helper.h>
 #include <catboost/libs/train_lib/trainer_env.h>
+#include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <util/generic/algorithm.h>
@@ -795,6 +796,9 @@ namespace {
                 NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
             }
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+
+            UpdateMetricPeriodOption(catBoostOptions, &outputFileOptions);
+
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 
@@ -985,6 +989,9 @@ namespace {
             }
 
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+
+            UpdateMetricPeriodOption(catBoostOptions, &outputFileOptions);
+
             UpdateSampleRateOption(data->GetObjectCount(), &catBoostOptions);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
@@ -1208,6 +1215,8 @@ namespace NCB {
 
         InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
 
+        UpdateMetricPeriodOption(catBoostOptions, &outputFileOptions);
+
         auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
@@ -1341,6 +1350,9 @@ namespace NCB {
         CB_ENSURE(!outputJsonParams["save_snapshot"].GetBoolean(), "Snapshots are not yet supported for RandomizedSearchCV");
 
         InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+
+        UpdateMetricPeriodOption(catBoostOptions, &outputFileOptions);
+
         auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);

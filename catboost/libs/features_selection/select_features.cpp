@@ -15,6 +15,7 @@
 #include <catboost/private/libs/algo/full_model_saver.h>
 #include <catboost/private/libs/algo/preprocess.h>
 #include <catboost/private/libs/distributed/master.h>
+#include <catboost/private/libs/options/defaults_helper.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 
@@ -293,6 +294,8 @@ namespace NCB {
 
         InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
                                      &catBoostOptions.MetricOptions->EvalMetric);
+
+        UpdateMetricPeriodOption(catBoostOptions, &outputFileOptions);
 
         TFeaturesSelectionSummary summary = DoRecursiveFeaturesElimination(
             catBoostOptions,
