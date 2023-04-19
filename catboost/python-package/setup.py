@@ -759,7 +759,6 @@ if __name__ == '__main__':
             "Development Status :: 5 - Production/Stable",
             "Topic :: Scientific/Engineering :: Artificial Intelligence",
             "Topic :: Software Development :: Libraries :: Python Modules",
-            "License :: OSI Approved :: Apache License 2.0",
         ],
         install_requires=[
             'graphviz',
