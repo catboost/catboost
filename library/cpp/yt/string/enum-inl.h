@@ -4,6 +4,8 @@
 #include "enum.h"
 #endif
 
+#include <library/cpp/yt/exception/exception.h>
+
 #include <util/string/printf.h>
 
 namespace NYT {
@@ -28,7 +30,29 @@ template <class T>
 std::optional<T> TryParseEnum(TStringBuf value)
 {
     auto tryFromString = [] (TStringBuf value) -> std::optional<T> {
-        return TEnumTraits<T>::FindValueByLiteral(DecodeEnumValue(value));
+        try {
+            return TEnumTraits<T>::FindValueByLiteral(DecodeEnumValue(value));
+        } catch (const TSimpleException&) {
+            TStringBuf typeName;
+            auto isTypeNameCorrect = value.NextTok('(', typeName) && typeName == TEnumTraits<T>::GetTypeName();
+            if (!isTypeNameCorrect) {
+                throw;
+            }
+
+            TStringBuf enumValue;
+            std::underlying_type_t<T> underlyingValue;
+            auto isEnumValueCorrect = value.NextTok(')', enumValue) && TryFromString(enumValue, underlyingValue);
+            if (!isEnumValueCorrect) {
+                throw;
+            }
+
+            auto isParsingComplete = value.empty();
+            if (!isParsingComplete) {
+                throw;
+            }
+
+            return static_cast<T>(underlyingValue);
+        }
     };
 
     if constexpr (TEnumTraits<T>::IsBitEnum) {
