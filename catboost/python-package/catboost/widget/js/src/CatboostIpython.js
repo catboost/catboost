@@ -1600,10 +1600,9 @@ var getInstance = function (el) {
         return catboostIpython;
     };
 
-var CatboostIpythonWidget = widgets.DOMWidgetView.extend({
-
-    initialize: function () {
-        CatboostIpythonWidget.__super__.initialize.apply(this, arguments);
+class CatboostIpythonWidget extends widgets.DOMWidgetView {
+    initialize() {
+        widgets.DOMWidgetView.prototype.initialize.apply(this, arguments);
 
         if (!window.catboostIpythonInstances) {
             window.catboostIpythonInstances = {};
@@ -1620,24 +1619,24 @@ var CatboostIpythonWidget = widgets.DOMWidgetView.extend({
         }
 
         catboostIpythonInstance.init();
-    },
+    }
 
-    render: function () {
+    render() {
         this.value_changed();
         this.model.on('change:value', this.value_changed, this);
-    },
+    }
 
-    update: function () {
+    update() {
         this.value_changed();
-    },
+    }
 
-    value_changed: function () {
+    value_changed() {
         this.el.style['width'] = this.model.get('width');
         this.el.style['height'] = this.model.get('height');
         this.displayed.then(_.bind(this.render_charts, this));
-    },
+    }
 
-    process_all: function (parent, params) {
+    process_all(parent, params) {
         var data = params.data;
 
         for (var path in data) {
@@ -1645,9 +1644,9 @@ var CatboostIpythonWidget = widgets.DOMWidgetView.extend({
                 this.process_row(parent, data[path]);
             }
         }
-    },
+    }
 
-    process_row: function (parent, data) {
+    process_row(parent, data) {
         var catboostIpython = getInstance(parent),
             path = data.path,
             content = data.content,
@@ -1680,27 +1679,33 @@ var CatboostIpythonWidget = widgets.DOMWidgetView.extend({
             train: data.name,
             path: data.path
         });
-    },
+    }
 
-    render_charts: function () {
+    render_charts() {
         this.process_all(this.el, {
             data: this.model.get('data')
         });
 
         return this;
     }
-});
+}
 
-var CatboostWidgetModel = widgets.DOMWidgetModel.extend({
-    defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
-        _model_name: 'CatboostWidgetModel',
-        _view_name: 'CatboostWidgetView',
-        _model_module: 'catboost-widget',
-        _view_module: 'catboost-widget',
-        _model_module_version: widget_version,
-        _view_module_version: widget_version,
-    })
-});
+class CatboostWidgetModel extends widgets.DOMWidgetModel {
+    defaults() {
+        return Object.assign(
+            {},
+            super.defaults(),
+            {
+                _model_name: 'CatboostWidgetModel',
+                _view_name: 'CatboostWidgetView',
+                _model_module: 'catboost-widget',
+                _view_module: 'catboost-widget',
+                _model_module_version: widget_version,
+                _view_module_version: widget_version,
+            }
+        )
+    }
+}
 
 module.exports = {
     CatboostWidgetModel: CatboostWidgetModel,

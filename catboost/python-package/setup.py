@@ -740,8 +740,7 @@ if __name__ == '__main__':
             'sdist': sdist,
         },
         extras_require={
-            # TODO: fix for ipywidgets >= 8.0 (https://github.com/catboost/catboost/issues/2266)
-            'widget': ['traitlets', 'ipython', 'ipywidgets (>=7.0, <8.0)']
+            'widget': ['traitlets', 'ipython', 'ipywidgets (>=7.0, <9.0)']
         },
         author='CatBoost Developers',
         description='CatBoost Python Package',
