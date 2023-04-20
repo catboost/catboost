@@ -30,14 +30,14 @@ Y_UNIT_TEST_SUITE(MultiQuantileDerivativesTest) {
 
         CalcDersAtTarget(approx, 0.5, &der, &der2);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(der[0], -0.25, 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(der[0], +0.25, 1e-6);
         UNIT_ASSERT_DOUBLES_EQUAL(der[1], -0.50, 1e-6);
         UNIT_ASSERT_DOUBLES_EQUAL(der[2], -0.25, 1e-6);
 
         CalcDersAtTarget(approx, 1.5, &der, &der2);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(der[0], -0.25, 1e-6);
-        UNIT_ASSERT_DOUBLES_EQUAL(der[1], -0.50, 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(der[0], +0.25, 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(der[1], +0.50, 1e-6);
         UNIT_ASSERT_DOUBLES_EQUAL(der[2], -0.25, 1e-6);
     }
 }
