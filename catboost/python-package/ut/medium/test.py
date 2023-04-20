@@ -5113,6 +5113,15 @@ def test_util_eval_metric_subgroups(metric):
     return local_canonical_file(preds_path)
 
 
+def test_util_eval_metric_groupwise_metric_without_group_data():
+    with pytest.raises(CatBoostError):
+        eval_metric(
+            [-1, 0, 0, 0.5, 0.2, 0.1, -2.39, 1.9],
+            [0, 1, 0, -1, 0.7, 0, -2, 2],
+            'NDCG'
+        )
+
+
 def test_option_used_ram_limit():
     for limit in [1000, 1234.56, 0, 0.0, 0.5,
                   '100', '34.56', '0', '0.0', '0.5',

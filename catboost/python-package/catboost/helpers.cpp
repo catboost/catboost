@@ -6,6 +6,7 @@
 #include <catboost/libs/helpers/matrix.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/target/data_providers.h>
@@ -113,8 +114,8 @@ TVector<TString> GetMetricNames(const TFullModel& model, const TVector<TString>&
 }
 
 TVector<double> EvalMetricsForUtils(
-    TConstArrayRef<TVector<float>> label,
-    const TVector<TVector<double>>& approx,
+    TConstArrayRef<TVector<float>> label,   // [dimensionIdx][objectIdx]
+    const TVector<TVector<double>>& approx, // [dimensionIdx][objectIdx]
     const TString& metricName,
     const TVector<float>& weight,
     const TVector<TGroupId>& groupId,
@@ -123,6 +124,11 @@ TVector<double> EvalMetricsForUtils(
     const TVector<TPair>& pairs,
     int threadCount
 ) {
+    auto objectCount = label[0].size();
+    CB_ENSURE(objectCount > 0, "Cannot evaluate metric on empty data");
+
+    CB_ENSURE(!IsGroupwiseMetric(metricName) || !groupId.empty(), "Metric \"" << metricName << "\" requires group data");
+
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
     const int approxDimension = approx.ysize();
@@ -133,7 +139,7 @@ TVector<double> EvalMetricsForUtils(
         }
     }
     NCB::TObjectsGrouping objectGrouping = NCB::CreateObjectsGroupingFromGroupIds<TGroupId>(
-        label[0].size(),
+        objectCount,
         groupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TGroupId>>(groupId)
     );
     if (!pairs.empty()) {
@@ -326,4 +332,3 @@ size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) {
     const auto& paramsMap = ParseLossParams(lossFunctionDescription).GetParamsMap();
     return NCatboostOptions::GetAlphaMultiQuantile(paramsMap).size();
 }
-
