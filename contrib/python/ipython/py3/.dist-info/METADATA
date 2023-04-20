@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.11.0
+Version: 8.12.0
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -35,6 +35,7 @@ Requires-Dist: prompt-toolkit (!=3.0.37,<3.1.0,>=3.0.30)
 Requires-Dist: pygments (>=2.4.0)
 Requires-Dist: stack-data
 Requires-Dist: traitlets (>=5)
+Requires-Dist: typing-extensions ; python_version < "3.10"
 Requires-Dist: pexpect (>4.3) ; sys_platform != "win32"
 Requires-Dist: appnope ; sys_platform == "darwin"
 Requires-Dist: colorama ; sys_platform == "win32"

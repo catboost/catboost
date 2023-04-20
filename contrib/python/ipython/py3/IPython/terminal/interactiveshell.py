@@ -51,6 +51,7 @@ from .pt_inputhooks import get_inputhook_name_and_func
 from .prompts import Prompts, ClassicPrompts, RichPromptDisplayHook
 from .ptutils import IPythonPTCompleter, IPythonPTLexer
 from .shortcuts import (
+    KEY_BINDINGS,
     create_ipython_shortcuts,
     create_identifier,
     RuntimeBinding,
@@ -491,8 +492,8 @@ class TerminalInteractiveShell(InteractiveShell):
         # for now we only allow adding shortcuts for commands which are already
         # registered; this is a security precaution.
         known_commands = {
-            create_identifier(binding.handler): binding.handler
-            for binding in key_bindings.bindings
+            create_identifier(binding.command): binding.command
+            for binding in KEY_BINDINGS
         }
         shortcuts_to_skip = []
         shortcuts_to_add = []
@@ -513,11 +514,11 @@ class TerminalInteractiveShell(InteractiveShell):
             )
             matching = [
                 binding
-                for binding in key_bindings.bindings
+                for binding in KEY_BINDINGS
                 if (
                     (old_filter is None or binding.filter == old_filter)
                     and (old_keys is None or [k for k in binding.keys] == old_keys)
-                    and create_identifier(binding.handler) == command_id
+                    and create_identifier(binding.command) == command_id
                 )
             ]
 
@@ -542,7 +543,7 @@ class TerminalInteractiveShell(InteractiveShell):
                 }
                 if len(matching) == 0:
                     raise ValueError(
-                        f"No shortcuts matching {specification} found in {key_bindings.bindings}"
+                        f"No shortcuts matching {specification} found in {KEY_BINDINGS}"
                     )
                 elif len(matching) > 1:
                     raise ValueError(
@@ -913,10 +914,19 @@ class TerminalInteractiveShell(InteractiveShell):
 
     active_eventloop = None
     def enable_gui(self, gui=None):
+        if self._inputhook is None and gui is None:
+            print("No event loop hook running.")
+            return
+
         if self._inputhook is not None and gui is not None:
-            warn(
-                f"Shell was already running a gui event loop for {self.active_eventloop}; switching to {gui}."
+            print(
+                f"Shell is already running a gui event loop for {self.active_eventloop}. "
+                "Call with no arguments to disable the current loop."
             )
+            return
+        if self._inputhook is not None and gui is None:
+            self.active_eventloop = self._inputhook = None
+
         if gui and (gui not in {"inline", "webagg"}):
             # This hook runs with each cycle of the `prompt_toolkit`'s event loop.
             self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
@@ -934,15 +944,18 @@ class TerminalInteractiveShell(InteractiveShell):
                 # same event loop as the rest of the code. don't use an actual
                 # input hook. (Asyncio is not made for nesting event loops.)
                 self.pt_loop = get_asyncio_loop()
+                print("Installed asyncio event loop hook.")
 
             elif self._inputhook:
                 # If an inputhook was set, create a new asyncio event loop with
                 # this inputhook for the prompt.
                 self.pt_loop = new_eventloop_with_inputhook(self._inputhook)
+                print(f"Installed {self.active_eventloop} event loop hook.")
             else:
                 # When there's no inputhook, run the prompt in a separate
                 # asyncio event loop.
                 self.pt_loop = asyncio.new_event_loop()
+                print("GUI event loop hook disabled.")
 
     # Run !system commands directly, not through pipes, so terminal programs
     # work correctly.
