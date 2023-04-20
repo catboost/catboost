@@ -127,6 +127,8 @@ target_cuda_flags(catboost-cuda-methods
   --ptxas-options=-v
   -gencode=arch=compute_80,code=sm_80
   -gencode=arch=compute_86,code=sm_86
+  -gencode=arch=compute_89,code=sm_89
+  -gencode=arch=compute_90,code=sm_90
 )
 
 add_global_library_for(catboost-cuda-methods.global catboost-cuda-methods)

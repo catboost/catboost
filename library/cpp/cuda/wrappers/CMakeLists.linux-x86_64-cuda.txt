@@ -55,4 +55,6 @@ target_cuda_flags(cpp-cuda-wrappers
   --use_fast_math
   -gencode=arch=compute_80,code=sm_80
   -gencode=arch=compute_86,code=sm_86
+  -gencode=arch=compute_89,code=sm_89
+  -gencode=arch=compute_90,code=sm_90
 )
