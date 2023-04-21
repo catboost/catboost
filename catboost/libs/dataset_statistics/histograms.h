@@ -135,6 +135,12 @@ public:
 
     TVector<ui64> GetHistogram() const;
 
+    void ConvertBitToUniformIfNeeded();
+
+    void ConvertBitToUniform();
+
+    NJson::TJsonValue ToJson() const;
+
     bool operator==(const TFloatFeatureHistogram& a) const {
         return std::tie(Histogram, Borders, Nans, MinusInf, PlusInf) ==
                std::tie(a.Histogram, a.Borders, a.Nans, a.MinusInf, a.PlusInf);
@@ -156,14 +162,8 @@ public:
         PlusInf
     );
 
-    NJson::TJsonValue ToJson() const;
-
 private:
     bool ProcessNotNummeric(float f);
-
-    void ConvertBitToUniformIfNeeded();
-
-    void ConvertBitToUniform();
 
 public:
     TVector<ui64> Histogram;
