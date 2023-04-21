@@ -5,14 +5,14 @@ import sys
 from errno import EACCES, EEXIST
 
 from ._api import BaseFileLock
-from ._util import raise_on_exist_ro_file
+from ._util import raise_on_not_writable_file
 
 
 class SoftFileLock(BaseFileLock):
     """Simply watches the existence of the lock file."""
 
     def _acquire(self) -> None:
-        raise_on_exist_ro_file(self._lock_file)
+        raise_on_not_writable_file(self.lock_file)
         # first check for exists and read-only mode as the open will mask this case as EEXIST
         flags = (
             os.O_WRONLY  # open for writing only
@@ -21,7 +21,7 @@ class SoftFileLock(BaseFileLock):
             | os.O_TRUNC  # truncate the file to zero byte
         )
         try:
-            file_handler = os.open(self._lock_file, flags, self._mode)
+            file_handler = os.open(self.lock_file, flags, self._context.mode)
         except OSError as exception:  # re-raise unless expected exception
             if not (
                 exception.errno == EEXIST  # lock already exist
@@ -29,13 +29,13 @@ class SoftFileLock(BaseFileLock):
             ):  # pragma: win32 no cover
                 raise
         else:
-            self._lock_file_fd = file_handler
+            self._context.lock_file_fd = file_handler
 
     def _release(self) -> None:
-        os.close(self._lock_file_fd)  # type: ignore # the lock file is definitely not None
-        self._lock_file_fd = None
+        os.close(self._context.lock_file_fd)  # type: ignore # the lock file is definitely not None
+        self._context.lock_file_fd = None
         try:
-            os.remove(self._lock_file)
+            os.remove(self.lock_file)
         except OSError:  # the file is already deleted and that's what we want
             pass
 

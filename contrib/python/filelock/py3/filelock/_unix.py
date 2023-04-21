@@ -33,9 +33,9 @@ else:  # pragma: win32 no cover
 
         def _acquire(self) -> None:
             open_flags = os.O_RDWR | os.O_CREAT | os.O_TRUNC
-            fd = os.open(self._lock_file, open_flags, self._mode)
+            fd = os.open(self.lock_file, open_flags, self._context.mode)
             try:
-                os.fchmod(fd, self._mode)
+                os.fchmod(fd, self._context.mode)
             except PermissionError:
                 pass  # This locked is not owned by this UID
             try:
@@ -45,14 +45,14 @@ else:  # pragma: win32 no cover
                 if exception.errno == ENOSYS:  # NotImplemented error
                     raise NotImplementedError("FileSystem does not appear to support flock; user SoftFileLock instead")
             else:
-                self._lock_file_fd = fd
+                self._context.lock_file_fd = fd
 
         def _release(self) -> None:
             # Do not remove the lockfile:
             #   https://github.com/tox-dev/py-filelock/issues/31
             #   https://stackoverflow.com/questions/17708885/flock-removing-locked-file-without-race-condition
-            fd = cast(int, self._lock_file_fd)
-            self._lock_file_fd = None
+            fd = cast(int, self._context.lock_file_fd)
+            self._context.lock_file_fd = None
             fcntl.flock(fd, fcntl.LOCK_UN)
             os.close(fd)
 
