@@ -10,11 +10,18 @@
 
 import abc
 import binascii
+import json
 import os
 import sys
 import warnings
+from datetime import datetime, timedelta, timezone
 from hashlib import sha384
-from typing import Dict, Iterable
+from os import getenv
+from pathlib import Path, PurePath
+from typing import Dict, Iterable, Optional, Set
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+from zipfile import BadZipFile, ZipFile
 
 from hypothesis.configuration import mkdir_p, storage_directory
 from hypothesis.errors import HypothesisException, HypothesisWarning
@@ -26,6 +33,7 @@ __all__ = [
     "InMemoryExampleDatabase",
     "MultiplexedDatabase",
     "ReadOnlyDatabase",
+    "GitHubArtifactDatabase",
 ]
 
 
@@ -182,12 +190,12 @@ class DirectoryBasedExampleDatabase(ExampleDatabase):
 
     def __init__(self, path: str) -> None:
         self.path = path
-        self.keypaths: Dict[str, str] = {}
+        self.keypaths: Dict[bytes, str] = {}
 
     def __repr__(self) -> str:
         return f"DirectoryBasedExampleDatabase({self.path!r})"
 
-    def _key_path(self, key):
+    def _key_path(self, key: bytes) -> str:
         try:
             return self.keypaths[key]
         except KeyError:
@@ -232,7 +240,10 @@ class DirectoryBasedExampleDatabase(ExampleDatabase):
             self.save(src, value)
             return
         try:
-            os.renames(self._value_path(src, value), self._value_path(dest, value))
+            os.renames(
+                self._value_path(src, value),
+                self._value_path(dest, value),
+            )
         except OSError:
             self.delete(src, value)
             self.save(dest, value)
@@ -324,3 +335,306 @@ class MultiplexedDatabase(ExampleDatabase):
     def move(self, src: bytes, dest: bytes, value: bytes) -> None:
         for db in self._wrapped:
             db.move(src, dest, value)
+
+
+class GitHubArtifactDatabase(ExampleDatabase):
+    """
+    A file-based database loaded from a GitHub Actions artifact.
+
+    You can use this for sharing example databases between CI runs and developers, allowing
+    the latter to get read-only access to the former. This is particularly useful for
+    continuous fuzzing (i.e. with `HypoFuzz <https://hypofuzz.com/>`__),
+    where the CI system can upload the resulting database as an artifact after each run,
+    allowing developers to reproduce any failures by just running hypothesis.
+
+    In most cases, this will be used
+    through the :class:`~hypothesis.database.MultiplexedDatabase`,
+    by combining a local directory-based database with this one. For example:
+
+    .. code-block:: python
+
+        local = DirectoryBasedExampleDatabase(".hypothesis/examples")
+        shared = ReadOnlyDatabase(GitHubArtifactDatabase("user", "repo"))
+
+        settings.register_profile("ci", database=local)
+        settings.register_profile("dev", database=MultiplexedDatabase(local, shared))
+        # We don't want to use the shared database in CI, only to populate its local one.
+        # which the workflow should then upload as an artifact.
+        settings.load_profile("ci" if os.environ.get("CI") else "dev")
+
+    .. note::
+        Because this database is read-only, you always need to wrap it with the
+        :class:`ReadOnlyDatabase`.
+
+    If you're using a private repository, you must provide `GITHUB_TOKEN` as an environment variable,
+    which would usually be a `Personal Access Token <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_
+    with the `repo` scope.
+
+    The database automatically implements a simple file-based cache with a default expiration period
+    of 1 day. You can adjust this through the `cache_timeout` property.
+
+    For mono-repo support, you can provide an unique `artifact_name` (e.g. `hypofuzz-example-db-frontend`).
+    """
+
+    def __init__(
+        self,
+        owner: str,
+        repo: str,
+        artifact_name: str = "hypothesis-example-db",
+        cache_timeout: timedelta = timedelta(days=1),
+        path: Optional[Path] = None,
+    ):
+        self.owner = owner
+        self.repo = repo
+        self.artifact_name = artifact_name
+        self.cache_timeout = cache_timeout
+
+        self.keypaths: Dict[bytes, PurePath] = {}
+
+        # Get the GitHub token from the environment
+        # It's unnecessary to use a token if the repo is public
+        self.token: Optional[str] = getenv("GITHUB_TOKEN")
+
+        if path is None:
+            self.path: Path = Path(
+                storage_directory(f"github-artifacts/{self.artifact_name}/")
+            )
+        else:
+            self.path = path
+
+        # We don't want to initialize the cache until we need to
+        self._initialized: bool = False
+        self._disabled: bool = False
+
+        # This is the path to the artifact in usage
+        # .hypothesis/github-artifacts/<artifact-name>/<modified_isoformat>.zip
+        self._artifact: Optional[Path] = None
+        # This caches the artifact structure
+        self._access_cache: Optional[Dict[PurePath, Set[PurePath]]] = None
+
+        # Message to display if user doesn't wrap around ReadOnlyDatabase
+        self._read_only_message = (
+            "This database is read-only. "
+            "Please wrap this class with ReadOnlyDatabase"
+            "i.e. ReadOnlyDatabase(GitHubArtifactDatabase(...))."
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"GitHubArtifactDatabase(owner={self.owner!r}, "
+            f"repo={self.repo!r}, artifact_name={self.artifact_name!r})"
+        )
+
+    def _prepare_for_io(self) -> None:
+        assert self._artifact is not None, "Artifact not loaded."
+
+        if self._initialized:  # pragma: no cover
+            return
+
+        # Test that the artifact is valid
+        try:
+            with ZipFile(self._artifact) as f:
+                if f.testzip():  # pragma: no cover
+                    raise BadZipFile
+
+            # Turns out that testzip() doesn't work quite well
+            # doing the cache initialization here instead
+            # will give us more coverage of the artifact.
+
+            # Cache the files inside each keypath
+            self._access_cache = {}
+            with ZipFile(self._artifact) as zf:
+                namelist = zf.namelist()
+                # Iterate over files in the artifact
+                for filename in namelist:
+                    fileinfo = zf.getinfo(filename)
+                    if fileinfo.is_dir():
+                        self._access_cache[PurePath(filename)] = set()
+                    else:
+                        # Get the keypath from the filename
+                        keypath = PurePath(filename).parent
+                        # Add the file to the keypath
+                        self._access_cache[keypath].add(PurePath(filename))
+        except BadZipFile:
+            warnings.warn(
+                HypothesisWarning(
+                    "The downloaded artifact from GitHub is invalid. "
+                    "This could be because the artifact was corrupted, "
+                    "or because the artifact was not created by Hypothesis. "
+                )
+            )
+            self._disabled = True
+
+        self._initialized = True
+
+    def _initialize_db(self) -> None:
+        # Create the cache directory if it doesn't exist
+        mkdir_p(str(self.path))
+
+        # Get all artifacts
+        cached_artifacts = sorted(
+            self.path.glob("*.zip"),
+            key=lambda a: datetime.fromisoformat(a.stem.replace("_", ":")),
+        )
+
+        # Remove all but the latest artifact
+        for artifact in cached_artifacts[:-1]:
+            artifact.unlink()
+
+        try:
+            found_artifact = cached_artifacts[-1]
+        except IndexError:
+            found_artifact = None
+
+        # Check if the latest artifact is a cache hit
+        if found_artifact is not None and (
+            datetime.now(timezone.utc)
+            - datetime.fromisoformat(found_artifact.stem.replace("_", ":"))
+            < self.cache_timeout
+        ):
+            self._artifact = found_artifact
+        else:
+            # Download the latest artifact from GitHub
+            new_artifact = self._fetch_artifact()
+
+            if new_artifact:
+                if found_artifact is not None:
+                    found_artifact.unlink()
+                self._artifact = new_artifact
+            elif found_artifact is not None:
+                warnings.warn(
+                    HypothesisWarning(
+                        "Using an expired artifact as a fallback for the database: "
+                        f"{found_artifact}"
+                    )
+                )
+                self._artifact = found_artifact
+            else:
+                warnings.warn(
+                    HypothesisWarning(
+                        "Couldn't acquire a new or existing artifact. "
+                        "Disabling database."
+                    )
+                )
+                self._disabled = True
+                return
+
+        self._prepare_for_io()
+
+    def _get_bytes(self, url: str) -> Optional[bytes]:  # pragma: no cover
+        request = Request(
+            url,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28 ",
+                "Authorization": f"Bearer {self.token}",
+            },
+        )
+        response_bytes: Optional[bytes] = None
+        try:
+            response = urlopen(request)
+            response_bytes = response.read()
+            warning_message = None
+        except HTTPError as e:
+            if e.code == 401:
+                warning_message = (
+                    "Authorization failed when trying to download artifact from GitHub. "
+                    "Check your $GITHUB_TOKEN environment variable "
+                    "or make the repository public."
+                )
+            else:
+                warning_message = (
+                    "Could not get the latest artifact from GitHub. "
+                    "This could be because because the repository "
+                    "or artifact does not exist. "
+                )
+        except URLError:
+            warning_message = "Could not connect to GitHub to get the latest artifact. "
+        except TimeoutError:
+            warning_message = (
+                "Could not connect to GitHub to get the latest artifact "
+                "(connection timed out)."
+            )
+
+        if warning_message is not None:
+            warnings.warn(HypothesisWarning(warning_message))
+            return None
+
+        return response_bytes
+
+    def _fetch_artifact(self) -> Optional[Path]:  # pragma: no cover
+        # Get the list of artifacts from GitHub
+        url = f"https://api.github.com/repos/{self.owner}/{self.repo}/actions/artifacts"
+        response_bytes = self._get_bytes(url)
+        if response_bytes is None:
+            return None
+        artifacts = json.loads(response_bytes)["artifacts"]
+
+        # Get the latest artifact from the list
+        artifact = sorted(
+            filter(lambda a: a["name"] == self.artifact_name, artifacts),
+            key=lambda a: a["created_at"],
+        )[-1]
+
+        url = artifact["archive_download_url"]
+        # Download the artifact
+        artifact_bytes = self._get_bytes(url)
+        if artifact_bytes is None:
+            return None
+
+        # Save the artifact to the cache
+        # We replace ":" with "_" to ensure the filenames are compatible
+        # with Windows filesystems
+        timestamp = datetime.now(timezone.utc).isoformat().replace(":", "_")
+        artifact_path = self.path / f"{timestamp}.zip"
+        try:
+            with open(artifact_path, "wb") as f:
+                f.write(artifact_bytes)
+        except OSError:
+            warnings.warn(
+                HypothesisWarning("Could not save the latest artifact from GitHub. ")
+            )
+            return None
+
+        return artifact_path
+
+    def _key_path(self, key: bytes) -> PurePath:
+        try:
+            return self.keypaths[key]
+        except KeyError:
+            pass
+
+        directory = PurePath(_hash(key) + "/")
+        self.keypaths[key] = directory
+        return directory
+
+    def fetch(self, key: bytes) -> Iterable[bytes]:
+        if self._disabled:
+            return
+
+        if not self._initialized:
+            self._initialize_db()
+            if self._disabled:
+                return
+
+        assert self._artifact is not None
+        assert self._access_cache is not None
+
+        kp = self._key_path(key)
+
+        with ZipFile(self._artifact) as zf:
+            # Get the all files in the the kp from the cache
+            filenames = self._access_cache.get(kp, ())
+            for filename in filenames:
+                with zf.open(filename.as_posix()) as f:
+                    yield f.read()
+
+    # Read-only interface
+    def save(self, key: bytes, value: bytes) -> None:
+        raise RuntimeError(self._read_only_message)
+
+    def move(self, src: bytes, dest: bytes, value: bytes) -> None:
+        raise RuntimeError(self._read_only_message)
+
+    def delete(self, key: bytes, value: bytes) -> None:
+        raise RuntimeError(self._read_only_message)
