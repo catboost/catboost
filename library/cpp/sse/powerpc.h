@@ -759,11 +759,11 @@ Y_FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128 b) {
 }
 
 Y_FORCE_INLINE __m128i _mm_set_epi8(char q15, char q14, char q13, char q12, char q11, char q10, char q09, char q08, char q07, char q06, char q05, char q04, char q03, char q02, char q01, char q00) {
-    return (__m128i)(__v16qi){q00, q01, q02, q03, q04, q05, q06, q07, q08, q09, q10, q11, q12, q13, q14, q15};
+    return (__m128i)(__v16qi){static_cast<signed char>(q00), static_cast<signed char>(q01), static_cast<signed char>(q02), static_cast<signed char>(q03), static_cast<signed char>(q04), static_cast<signed char>(q05), static_cast<signed char>(q06), static_cast<signed char>(q07), static_cast<signed char>(q08), static_cast<signed char>(q09), static_cast<signed char>(q10), static_cast<signed char>(q11), static_cast<signed char>(q12), static_cast<signed char>(q13), static_cast<signed char>(q14), static_cast<signed char>(q15)};
 };
 
 Y_FORCE_INLINE __m128i _mm_setr_epi8(char q15, char q14, char q13, char q12, char q11, char q10, char q09, char q08, char q07, char q06, char q05, char q04, char q03, char q02, char q01, char q00) {
-    return (__m128i)(__v16qi){q15, q14, q13, q12, q11, q10, q09, q08, q07, q06, q05, q04, q03, q02, q01, q00};
+    return (__m128i)(__v16qi){static_cast<signed char>(q15), static_cast<signed char>(q14), static_cast<signed char>(q13), static_cast<signed char>(q12), static_cast<signed char>(q11), static_cast<signed char>(q10), static_cast<signed char>(q09), static_cast<signed char>(q08), static_cast<signed char>(q07), static_cast<signed char>(q06), static_cast<signed char>(q05), static_cast<signed char>(q04), static_cast<signed char>(q03), static_cast<signed char>(q02), static_cast<signed char>(q01), static_cast<signed char>(q00)};
 };
 
 Y_FORCE_INLINE __m128i _mm_set_epi16(short q7, short q6, short q5, short q4, short q3, short q2, short q1, short q0) {
