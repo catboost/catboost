@@ -33,6 +33,7 @@
 #include <util/stream/labeled.h>
 #include <util/string/cast.h>
 #include <util/system/compiler.h>
+#include <util/system/fs.h>
 #include <util/system/hp_timer.h>
 
 #include <cmath>
@@ -395,6 +396,9 @@ void CrossValidate(
 
     TString tmpDir;
     if (outputFileOptions.AllowWriteFiles()) {
+        // Need to clean train dir first because snapshots are used in the implementation in GPU mode but they
+        // should not be used to load data from the previous call to CrossValidation with the same train dir.
+        NFs::RemoveRecursive(outputFileOptions.GetTrainDir());
         NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
     }
 
