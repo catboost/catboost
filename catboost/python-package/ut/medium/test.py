@@ -4611,8 +4611,17 @@ def test_cv_with_not_binarized_target(task_type):
     return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
-@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
-def test_eval_metrics(loss_function, task_type):
+@pytest.mark.parametrize(
+    'loss_function',
+    ['Logloss', 'RMSE', 'QueryRMSE'],
+    ids=[f'loss_function={n}' for n in ['Logloss', 'RMSE', 'QueryRMSE']]
+)
+@pytest.mark.parametrize(
+    'metric_period',
+    [1, 5, 10],
+    ids=[f'metric_period={n}' for n in [1, 5, 10]]
+)
+def test_eval_metrics(loss_function, metric_period, task_type):
     train, test, cd, metric = TRAIN_FILE, TEST_FILE, CD_FILE, loss_function
     if loss_function == 'QueryRMSE':
         train, test, cd, metric = QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'PFound'
@@ -4621,12 +4630,15 @@ def test_eval_metrics(loss_function, task_type):
 
     train_pool = Pool(train, column_description=cd)
     test_pool = Pool(test, column_description=cd)
-    model = CatBoost(params={'loss_function': loss_function, 'iterations': 20, 'thread_count': 8, 'eval_metric': metric,
-                             'task_type': task_type, 'devices': '0', 'counter_calc_method': 'SkipTest'})
+    model = CatBoost(
+        params={'loss_function': loss_function, 'iterations': 20, 'thread_count': 8,
+                'eval_metric': metric, 'metric_period': metric_period,
+                'task_type': task_type, 'devices': '0', 'counter_calc_method': 'SkipTest'}
+    )
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
     first_metrics = np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1]
-    second_metrics = model.eval_metrics(test_pool, [metric])[metric]
+    second_metrics = model.eval_metrics(test_pool, [metric], eval_period=metric_period)[metric]
     elemwise_reldiff = np.abs(first_metrics - second_metrics) / np.max((np.abs(first_metrics), np.abs(second_metrics)), 0)
     elemwise_absdiff = np.abs(first_metrics - second_metrics)
     elemwise_mindiff = np.min((elemwise_reldiff, elemwise_absdiff), 0)
@@ -4636,8 +4648,17 @@ def test_eval_metrics(loss_function, task_type):
         assert np.all(abs(elemwise_mindiff) < 1e-9)
 
 
-@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
-def test_eval_metrics_batch_calcer(loss_function, task_type):
+@pytest.mark.parametrize(
+    'loss_function',
+    ['Logloss', 'RMSE', 'QueryRMSE'],
+    ids=[f'loss_function={n}' for n in ['Logloss', 'RMSE', 'QueryRMSE']]
+)
+@pytest.mark.parametrize(
+    'metric_period',
+    [1, 5, 10],
+    ids=[f'metric_period={n}' for n in [1, 5, 10]]
+)
+def test_eval_metrics_batch_calcer(loss_function, metric_period, task_type):
     metric = loss_function
     if loss_function == 'QueryRMSE':
         train, test, cd = QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE
@@ -4647,13 +4668,16 @@ def test_eval_metrics_batch_calcer(loss_function, task_type):
 
     train_pool = Pool(train, column_description=cd)
     test_pool = Pool(test, column_description=cd)
-    model = CatBoost(params={'loss_function': loss_function, 'iterations': 100, 'thread_count': 8,
-                             'eval_metric': metric, 'task_type': task_type, 'devices': '0', 'counter_calc_method': 'SkipTest'})
+    model = CatBoost(
+        params={'loss_function': loss_function, 'iterations': 100, 'thread_count': 8,
+                'eval_metric': metric, 'metric_period': metric_period,
+                'task_type': task_type, 'devices': '0', 'counter_calc_method': 'SkipTest'}
+    )
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
     first_metrics = np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1]
 
-    calcer = model.create_metric_calcer([metric])
+    calcer = model.create_metric_calcer([metric], eval_period=metric_period)
     calcer.add(test_pool)
 
     second_metrics = calcer.eval_metrics().get_result(metric)
