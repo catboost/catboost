@@ -105,7 +105,7 @@ public class CatBoostModel implements AutoCloseable {
             super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
-    
+
     static {
         try {
             NativeLib.smartLoad("catboost4j-prediction");
@@ -615,7 +615,7 @@ public class CatBoostModel implements AutoCloseable {
             final @Nullable String[][] catFeatures,
             final @Nullable String[][] textFeatures,
             final @Nullable float[][][] embeddingFeatures) throws CatBoostError {
-        int resultSize = 0; 
+        int resultSize = 0;
         if (numericFeatures != null) {
             resultSize = numericFeatures.length;
         } else if (catFeatures != null) {
@@ -722,7 +722,7 @@ public class CatBoostModel implements AutoCloseable {
             final @Nullable int[][] catFeatureHashes,
             final @Nullable String[][] textFeatures,
             final @Nullable float[][][] embeddingFeatures) throws CatBoostError {
-        int resultSize = 0; 
+        int resultSize = 0;
         if (numericFeatures != null) {
             resultSize = numericFeatures.length;
         } else if (catFeatureHashes != null) {

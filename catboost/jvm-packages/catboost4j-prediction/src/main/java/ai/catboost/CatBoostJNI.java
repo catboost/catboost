@@ -61,7 +61,7 @@ class CatBoostJNI {
             final @NotNull int[] embeddingFeatureCount) throws CatBoostError {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedEmbeddingFeatureCount(handle, embeddingFeatureCount));
     }
-    
+
     final void catBoostModelGetFlatFeatureVectorExpectedSize(
             final long handle,
             final @NotNull int[] featureVectorExpectedSize) throws CatBoostError {

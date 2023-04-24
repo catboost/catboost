@@ -47,7 +47,7 @@ class CatBoostJNIImpl {
     final static native String catBoostModelGetUsedCategoricalFeatureCount(
             long handle,
             @NotNull int[] catFeatureCount);
-    
+
     @Nullable
     final static native String catBoostModelGetUsedTextFeatureCount(
             long handle,
