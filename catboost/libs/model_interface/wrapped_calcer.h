@@ -58,6 +58,29 @@ public:
             throw std::runtime_error(GetErrorString());
         }
     }
+
+    /**
+     * Get supported formula evaluator types
+     */
+    std::vector<ECatBoostApiFormulaEvaluatorType> GetSupportedEvaluatorTypes() {
+        enum ECatBoostApiFormulaEvaluatorType* formulaEvaluatorTypes = nullptr;
+        size_t formulaEvaluatorTypesCount = 0;
+        if (!::GetSupportedEvaluatorTypes(CalcerHolder.get(), &formulaEvaluatorTypes, &formulaEvaluatorTypesCount)) {
+            throw std::runtime_error(GetErrorString());
+        }
+        std::vector<ECatBoostApiFormulaEvaluatorType> result;
+        try {
+            for (size_t i = 0; i < formulaEvaluatorTypesCount; ++i) {
+                result.push_back(formulaEvaluatorTypes[i]);
+            }
+        } catch (...) {
+            free(formulaEvaluatorTypes);
+            throw;
+        }
+        free(formulaEvaluatorTypes);
+        return result;
+    }
+
     /**
      * Evaluate model on single object flat features vector.
      * Flat here means that float features and categorical feature are in the same float array.

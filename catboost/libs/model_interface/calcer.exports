@@ -15,6 +15,7 @@ C LoadFullModelFromFile
 C LoadFullModelFromBuffer
 
 C EnableGPUEvaluation
+C GetSupportedEvaluatorTypes
 C SetPredictionType
 C SetPredictionTypeString
 

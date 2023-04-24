@@ -8,9 +8,14 @@
 #include <catboost/libs/model/model.h>
 
 #include <util/generic/singleton.h>
+#include <util/generic/xrange.h>
 #include <util/string/cast.h>
 #include <util/stream/file.h>
 #include <util/string/builder.h>
+#include <util/system/compiler.h>
+
+#include <algorithm>
+#include <new>
 
 struct TModelHandleContent {
     THolder<TFullModel> FullModel;
@@ -279,6 +284,36 @@ CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int device
         FULL_MODEL_PTR(modelHandle)->SetEvaluatorType(EFormulaEvaluatorType::GPU);
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
+CATBOOST_API bool GetSupportedEvaluatorTypes(
+        ModelCalcerHandle* modelHandle,
+        enum ECatBoostApiFormulaEvaluatorType** formulaEvaluatorTypes,
+        size_t* formulaEvaluatorTypesCount) {
+
+    Y_UNUSED(modelHandle);
+    *formulaEvaluatorTypes = nullptr;
+    try {
+        auto formulaEvaluatorTypesVector = TFullModel::GetSupportedEvaluatorTypes();
+        *formulaEvaluatorTypesCount = formulaEvaluatorTypesVector.size();
+        *formulaEvaluatorTypes = (enum ECatBoostApiFormulaEvaluatorType*)malloc(
+            sizeof(enum ECatBoostApiFormulaEvaluatorType) * formulaEvaluatorTypesVector.size()
+        );
+        if (!*formulaEvaluatorTypes) {
+            throw std::bad_alloc();
+        }
+        for (auto i : xrange(formulaEvaluatorTypesVector.size())) {
+            (*formulaEvaluatorTypes)[i] = static_cast<ECatBoostApiFormulaEvaluatorType>(formulaEvaluatorTypesVector[i]);
+        }
+    } catch (...) {
+        if (*formulaEvaluatorTypes) {
+            free(formulaEvaluatorTypes);
+        }
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+
         return false;
     }
     return true;

@@ -55,6 +55,11 @@ enum EApiPredictionType {
     APT_CLASS = 4,
 };
 
+enum ECatBoostApiFormulaEvaluatorType {
+    CBA_FET_CPU = 0,
+    CBA_FET_GPU = 1,
+};
+
 /**
  * Create empty model handle
  * @return
@@ -100,6 +105,21 @@ CATBOOST_API bool LoadFullModelFromBuffer(
  * Use CUDA gpu device for model evaluation
 */
 CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId);
+
+/**
+ * Get supported formula evaluator types
+ * formulaEvaluatorTypes array must be deallocated using free() after use.
+ *
+ * @param modelHandle model handle
+ * @param formulaEvaluatorTypes address of the pointer to an array that will be initialized with formula evaluator types
+ * @param formulaEvaluatorTypesCount address of the variable where the size of formulaEvaluatorTypes array will be stored
+ * @return true on success, false on error
+ */
+CATBOOST_API bool GetSupportedEvaluatorTypes(
+    ModelCalcerHandle* modelHandle,
+    enum ECatBoostApiFormulaEvaluatorType** formulaEvaluatorTypes,
+    size_t* formulaEvaluatorTypesCount);
+
 
 /**
  * Set prediction type for model evaluation

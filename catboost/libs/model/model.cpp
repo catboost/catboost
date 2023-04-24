@@ -1,5 +1,7 @@
 #include "model.h"
 
+#include "evaluation_interface.h"
+
 #include "flatbuffers_serializer_helper.h"
 #include "model_import_interface.h"
 #include "model_build_helper.h"
@@ -976,6 +978,16 @@ void TOpaqueModelTree::SetLeafValues(const TVector<double>&) {
 
 void TOpaqueModelTree::SetLeafWeights(const TVector<double>&) {
     CB_ENSURE(false, "Only solid models are modifiable");
+}
+
+TVector<EFormulaEvaluatorType> TFullModel::GetSupportedEvaluatorTypes() {
+    TVector<EFormulaEvaluatorType> result;
+    for (auto formulaEvaluatorType : GetEnumAllValues<EFormulaEvaluatorType>()) {
+        if (NCB::NModelEvaluation::TEvaluationBackendFactory::Has(formulaEvaluatorType)) {
+            result.push_back(formulaEvaluatorType);
+        }
+    }
+    return result;
 }
 
 void TFullModel::CalcFlat(

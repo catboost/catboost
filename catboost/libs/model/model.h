@@ -652,6 +652,8 @@ private:
 public:
     void InitNonOwning(const void* binaryBuffer, size_t dataSize);
 
+    static TVector<EFormulaEvaluatorType> GetSupportedEvaluatorTypes();
+
     void SetEvaluatorType(EFormulaEvaluatorType evaluatorType) {
         with_lock(CurrentEvaluatorLock) {
             if (FormulaEvaluatorType != evaluatorType) {
