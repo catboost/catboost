@@ -216,7 +216,7 @@ CATBOOST_API void AddTextFeatures(DataWrapperHandle* dataWrapperHandle, const ch
 }
 
 CATBOOST_API void AddEmbeddingFeatures(
-    DataWrapperHandle* dataWrapperHandle, 
+    DataWrapperHandle* dataWrapperHandle,
     const float*** embeddingFeatures,
     size_t* embeddingDimensions,
     size_t embeddingFeaturesSize
@@ -407,17 +407,17 @@ CATBOOST_API bool CalcModelPredictionTextAndEmbeddings(
             }
             for (size_t embeddingFeatureIdx = 0; embeddingFeatureIdx < embeddingFeaturesSize; ++embeddingFeatureIdx) {
                 embeddingFeaturesVecData[i][embeddingFeatureIdx] = TConstArrayRef<float>(
-                    embeddingFeatures[i][embeddingFeatureIdx], 
+                    embeddingFeatures[i][embeddingFeatureIdx],
                     embeddingDimensions[embeddingFeatureIdx]
                 );
             }
             embeddingFeaturesVec[i] = embeddingFeaturesVecData[i];
         }
         FULL_MODEL_PTR(modelHandle)->Calc(
-            floatFeaturesVec, 
-            catFeaturesVec, 
-            textFeaturesVec, 
-            embeddingFeaturesVec, 
+            floatFeaturesVec,
+            catFeaturesVec,
+            textFeaturesVec,
+            embeddingFeaturesVec,
             TArrayRef<double>(result, resultSize)
         );
     } catch (...) {
@@ -526,7 +526,7 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFea
             }
             for (size_t embeddingFeatureIdx = 0; embeddingFeatureIdx < embeddingFeaturesSize; ++embeddingFeatureIdx) {
                 embeddingFeaturesVecData[i][embeddingFeatureIdx] = TConstArrayRef<float>(
-                    embeddingFeatures[i][embeddingFeatureIdx], 
+                    embeddingFeatures[i][embeddingFeatureIdx],
                     embeddingDimensions[embeddingFeatureIdx]
                 );
             }
