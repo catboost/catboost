@@ -6172,7 +6172,8 @@ def test_use_loss_if_no_eval_metric_cv(task_type):
         'iterations': 50,
         'loss_function': 'Logloss',
         'logging_level': 'Silent',
-        'task_type': task_type
+        'task_type': task_type,
+        'metric_period': (5 if task_type == 'GPU' else 1)
     }
 
     cv_params = {
