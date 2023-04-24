@@ -31,6 +31,7 @@ namespace NFs {
     bool Remove(const TString& path);
 
     /// Remove a file or directory with contents
+    /// Does nothing if path does not exist
     ///
     /// @param[in] path  Path to file or directory
     /// @throws
