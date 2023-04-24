@@ -2,7 +2,7 @@
 
 
 namespace NCB::NModelEvaluation {
-    TModelEvaluatorPtr CreateEvaluator(EFormulaEvaluatorType formualEvaluatorType, const TFullModel& model) {
-        return TEvaluationBackendFactory::Construct(formualEvaluatorType, model);
+    TModelEvaluatorPtr CreateEvaluator(EFormulaEvaluatorType formulaEvaluatorType, const TFullModel& model) {
+        return TEvaluationBackendFactory::Construct(formulaEvaluatorType, model);
     }
 }
