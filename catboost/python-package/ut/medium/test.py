@@ -4150,7 +4150,7 @@ def test_exact_shap_feature_importance(task_type):
 def test_shap_feature_importance_multiclass(task_type, calc_shap_mode):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     reference_data = make_reference_data(pool, calc_shap_mode)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass', random_strength=0, bootstrap_type='No', has_time=True)
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)), 9))
@@ -4159,7 +4159,7 @@ def test_shap_feature_importance_multiclass(task_type, calc_shap_mode):
 
 def test_approximate_shap_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass', random_strength=0, bootstrap_type='No', has_time=True)
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
@@ -4169,7 +4169,7 @@ def test_approximate_shap_feature_importance_multiclass(task_type):
 
 def test_exact_shap_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass', random_strength=0, bootstrap_type='No', has_time=True)
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
@@ -4802,16 +4802,16 @@ def test_shap_interaction_feature_importance(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)), 9))
     return local_canonical_file(fimp_npy_path)
 
 
 def test_shap_interaction_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass', random_strength=0, bootstrap_type='No', has_time=True)
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -5649,7 +5649,7 @@ def test_learning_rate_auto_set_in_cv(task_type):
 
 def test_shap_multiclass(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
-    classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0', random_strength=0, bootstrap_type='No', has_time=True)
     classifier.fit(pool)
     pred = classifier.predict(pool, prediction_type='Probability')
 
@@ -7408,7 +7408,10 @@ def test_eval_features(task_type, eval_type, problem):
         'logging_level': 'Silent',
         'loss_function': loss_function,
         'boosting_type': 'Plain',
-        'allow_const_label': True
+        'allow_const_label': True,
+        'bootstrap_type': 'No',
+        'random_strength': 0,
+        'has_time': True
     }
     evaluator = CatboostEvaluation(
         train_file,
