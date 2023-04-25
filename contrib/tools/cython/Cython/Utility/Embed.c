@@ -239,7 +239,7 @@ int
                 __Pyx_char2wchar(argv[i]);
 #else
                 Py_DecodeLocale(argv[i], NULL);
-#endif 
+#endif
             if (!argv_copy[i]) res = 1;  /* failure, but continue to simplify cleanup */
         }
         setlocale(LC_ALL, oldloc);
