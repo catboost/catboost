@@ -402,11 +402,27 @@ public:
     );
 
     void ApplyFeatureNames(const TVector<TString>& featureNames) {
+        auto setFeatureName = [&] (TFeatureBase& feature) {
+            size_t flatIndex = static_cast<size_t>(feature.Position.FlatIndex);
+            CB_ENSURE(
+                flatIndex < featureNames.size(),
+                "Model has a feature with index " << flatIndex << " but provided features names size "
+                << featureNames.size() << "is too small for it"
+            );
+            feature.FeatureId = featureNames[flatIndex];
+        };
+
         for (TFloatFeature& feature : FloatFeatures) {
-            feature.FeatureId = featureNames[feature.Position.FlatIndex];
+            setFeatureName(feature);
         }
         for (TCatFeature& feature : CatFeatures) {
-            feature.FeatureId = featureNames[feature.Position.FlatIndex];
+            setFeatureName(feature);
+        }
+        for (TTextFeature& feature : TextFeatures) {
+            setFeatureName(feature);
+        }
+        for (TEmbeddingFeature& feature : EmbeddingFeatures) {
+            setFeatureName(feature);
         }
     }
 

@@ -7172,7 +7172,10 @@ def test_save_border_file():
 
 
 def test_set_feature_names():
-    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_pool = Pool(
+        ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        column_description=ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE
+    )
 
     model = CatBoostClassifier(loss_function='Logloss', iterations=10)
     model.fit(train_pool)
@@ -7180,6 +7183,20 @@ def test_set_feature_names():
     names = ["feature_{}".format(x) for x in range(train_pool.num_col())]
     model.set_feature_names(names)
     assert names == model.feature_names_
+
+
+def test_bad_set_feature_names():
+    train_pool = Pool(
+        ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+        column_description=ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE
+    )
+
+    model = CatBoostClassifier(loss_function='Logloss', iterations=10)
+    model.fit(train_pool)
+
+    names = ["feature_{}".format(x) for x in range(3)]
+    with pytest.raises(CatBoostError):
+        model.set_feature_names(names)
 
 
 def test_model_comparison():
