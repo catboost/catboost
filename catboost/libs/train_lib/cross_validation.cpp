@@ -33,7 +33,6 @@
 #include <util/stream/labeled.h>
 #include <util/string/cast.h>
 #include <util/system/compiler.h>
-#include <util/system/fs.h>
 #include <util/system/hp_timer.h>
 
 #include <cmath>
@@ -112,12 +111,6 @@ static void CheckCrossValidationOptions(
             "Can't load GPU learning library. "
             "Module was not compiled or driver  is incompatible with package. "
             "Please install latest NVDIA driver and check again");
-
-        // TODO(akhropov): implement learning continuation for GPU, do not rely on snapshots. MLTOOLS-3735.
-        CB_ENSURE(
-            outputFileOptions.AllowWriteFiles(),
-            "Cross-validation on GPU relies on writing files, so it must be allowed"
-    );
     }
 
     bool hasQuerywiseMetric = false;
@@ -175,8 +168,6 @@ TFoldContext::TFoldContext(
     , Rand(randomSeed)
 {
     OutputOptions.UseBestModel = false;
-    // TODO(akhropov): implement learning continuation for GPU, do not rely on snapshots. MLTOOLS-3735.
-    OutputOptions.SetSaveSnapshotFlag(taskType == ETaskType::GPU);
     if (hasFullModel) {
         FullModel = TFullModel();
     }
@@ -396,9 +387,6 @@ void CrossValidate(
 
     TString tmpDir;
     if (outputFileOptions.AllowWriteFiles()) {
-        // Need to clean train dir first because snapshots are used in the implementation in GPU mode but they
-        // should not be used to load data from the previous call to CrossValidation with the same train dir.
-        NFs::RemoveRecursive(outputFileOptions.GetTrainDir());
         NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
     }
 
@@ -472,9 +460,6 @@ void CrossValidate(
             catBoostOptions.RandomSeed,
             cvParams.ReturnModels
         );
-        if (cvParams.IsCalledFromSearchHyperparameters) {
-            foldContext.OutputOptions.SetSaveSnapshotFlag(false); // hotfix for MLTOOLS-5965
-        }
         const THolder<ITrainingCallbacks> cvCallbacks = MakeHolder<TCrossValidationCallbacks>(
             globalMaxIteration,
             &errorTracker,
