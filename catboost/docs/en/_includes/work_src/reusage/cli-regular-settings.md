@@ -874,7 +874,7 @@ The value must be in the range (0;1].
 
 **{{ cli__params-table__title__processing-units-type }}**
 
- {{ calcer_type__cpu }}
+ {{ calcer_type__cpu }} and {{ calcer_type__gpu }} for pairwise ranking
 
 
 

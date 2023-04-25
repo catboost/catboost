@@ -773,7 +773,7 @@ None (set to 1)
 
 **Supported processing units**
 
-{{ calcer_type__cpu }}
+{{ calcer_type__cpu }}; {{ calcer_type__gpu }} for pairwise ranking
 
 
 ## nan_mode {#nan_mode}
