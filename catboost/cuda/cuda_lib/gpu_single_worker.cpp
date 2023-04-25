@@ -162,9 +162,7 @@ namespace NCudaLib {
         CreateNewComputationStream();
         SetDefaultStream(Streams[0]->GetStream());
 
-        ui64 Iteration = 0;
         while (true) {
-            ++Iteration;
             const bool shouldStop = RunIteration();
             if (shouldStop) {
                 break;
