@@ -1192,7 +1192,7 @@ def test_predict_and_predict_proba_on_single_object(problem):
 @fails_on_gpu(how='Model contains categorical features, gpu evaluation impossible')
 def test_predict_on_gpu(task_type):
     if task_type == 'CPU':
-        return
+        pytest.skip('test_predict_on_gpu is a GPU-specific test')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostRegressor(iterations=10, task_type='GPU', devices='0')
     model.fit(pool)
