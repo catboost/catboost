@@ -302,10 +302,10 @@ namespace NCB {
         return MakeIntrusive<TEmbeddingDataSet>(std::move(constEmbeddingData));
     }
 
-    static TClassificationTargetPtr CreateClassificationTarget(const TTargetDataProvider& targetDataProvider) {
+    static TClassificationTargetPtr CreateClassificationTarget(const TTargetDataProvider& targetDataProvider, ui32 targetIdx) {
         const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
         const auto extractClasses = [&](auto isBinClass) {
-            TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
+            TConstArrayRef<float> target = (*targetDataProvider.GetTarget())[targetIdx];
             TVector<ui32> classes;
             classes.yresize(target.size());
 
@@ -320,9 +320,19 @@ namespace NCB {
         );
     }
 
+    static bool HasOnlineEstimators(
+        TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription
+    ) {
+        for (const auto& calcerDescription: featureCalcerDescription) {
+            if (EqualToOneOf(calcerDescription.CalcerType, EFeatureCalcerType::NaiveBayes, EFeatureCalcerType::BM25)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static TFeatureEstimatorsPtr CreateEstimators(
         bool isClassification,
-        bool isMultiLabel,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TTrainingDataProviders pools,
         NPar::ILocalExecutor* localExecutor
@@ -333,13 +343,26 @@ namespace NCB {
 
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
 
-        TClassificationTargetPtr learnClassificationTarget;
-        if (isClassification && !isMultiLabel) {
-            learnClassificationTarget = CreateClassificationTarget(*pools.Learn->TargetData);
+        const ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
+        bool needLearnTarget = false;
+        pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
+            [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
+                const ui32 tokenizedFeatureIdx = tokenizedTextFeatureIdx.Idx;
+                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount];
+                needLearnTarget = needLearnTarget || HasOnlineEstimators(featureDescription.FeatureEstimators.Get());
+            }
+        );
+        needLearnTarget = needLearnTarget || quantizedFeaturesInfo->GetFeaturesLayout()->GetEmbeddingFeatureCount();
+
+        const auto targetCount = pools.Learn->TargetData->GetTargetDimension();
+        TVector<TClassificationTargetPtr> learnClassificationTarget(targetCount);
+        if (isClassification && needLearnTarget) {
+            for (auto targetIdx : xrange(targetCount)) {
+                learnClassificationTarget[targetIdx] = CreateClassificationTarget(*pools.Learn->TargetData, targetIdx);
+            }
         }
 
         if (quantizedFeaturesInfo->GetFeaturesLayout()->GetTextFeatureCount()) {
-            ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
 
             pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
                 [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
@@ -370,18 +393,20 @@ namespace NCB {
                         estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
                     }
 
-                    if (isClassification && !isMultiLabel) {
+                    if (isClassification && needLearnTarget) {
                         // There're no online text estimators for regression for now
 
-                        auto onlineEstimators = CreateTextEstimators(
-                            featureDescription.FeatureEstimators.Get(),
+                        for (auto targetIdx : xrange(targetCount)) {
+                            auto onlineEstimators = CreateTextEstimators(
+                                featureDescription.FeatureEstimators.Get(),
 
-                            learnClassificationTarget,
-                            learnTexts,
-                            testTexts
-                        );
-                        for (auto&& estimator : onlineEstimators) {
-                            estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                                learnClassificationTarget[targetIdx],
+                                learnTexts,
+                                testTexts
+                            );
+                            for (auto&& estimator : onlineEstimators) {
+                                estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                            }
                         }
                     }
                 }
@@ -408,17 +433,19 @@ namespace NCB {
                 const auto& featureDescription = embeddingFeaturesDescription[embeddingFeatureIdx];
                 const ui32 featureId = embeddingFeaturesDescription[embeddingFeatureIdx].EmbeddingFeatureId;
                 TEstimatorSourceId sourceFeatureIdx{featureId, embeddingFeatureIdx};
-                TConstArrayRef<float> learnTarget = *pools.Learn->TargetData->GetOneDimensionalTarget();
+                const auto& learnTarget = *pools.Learn->TargetData->GetTarget();
 
-                auto onlineEstimators = CreateEmbeddingEstimators(
-                    featureDescription.FeatureEstimators.Get(),
-                    learnTarget,
-                    learnClassificationTarget,
-                    learnEmbeddings,
-                    testEmbeddings
-                );
-                for (auto&& estimator : onlineEstimators) {
-                    estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                for (auto targetIdx : xrange(targetCount)) {
+                    auto onlineEstimators = CreateEmbeddingEstimators(
+                        featureDescription.FeatureEstimators.Get(),
+                        learnTarget[targetIdx],
+                        learnClassificationTarget[targetIdx],
+                        learnEmbeddings,
+                        testEmbeddings
+                    );
+                    for (auto&& estimator : onlineEstimators) {
+                        estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                    }
                 }
             }
         );
@@ -492,7 +519,6 @@ namespace NCB {
             const auto lossFunction = params->LossFunctionDescription->LossFunction;
             trainingData.FeatureEstimators = CreateEstimators(
                 IsClassificationObjective(lossFunction),
-                IsMultiLabelObjective(lossFunction),
                 quantizedFeaturesInfo,
                 trainingData,
                 localExecutor);

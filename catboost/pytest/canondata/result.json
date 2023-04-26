@@ -4150,6 +4150,166 @@
             "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/test.eval"
         }
     ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-BM25-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-BM25-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BM25-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-BoW,NaiveBayes,BM25-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW_NaiveBayes_BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW_NaiveBayes_BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-BoW,NaiveBayes,BM25-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW_NaiveBayes_BM25-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW_NaiveBayes_BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-BoW,NaiveBayes-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW_NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW_NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-BoW,NaiveBayes-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW_NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW_NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-BoW-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-BoW-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-BoW-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-NaiveBayes-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiCrossEntropy-NaiveBayes-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiCrossEntropy-NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-BM25-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-BM25-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BM25-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-BoW,NaiveBayes,BM25-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW_NaiveBayes_BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW_NaiveBayes_BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-BoW,NaiveBayes,BM25-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW_NaiveBayes_BM25-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW_NaiveBayes_BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-BoW,NaiveBayes-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW_NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW_NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-BoW,NaiveBayes-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW_NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW_NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-BoW-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-BoW-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-BoW-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-NaiveBayes-ByDelimiter]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multilabel_with_text_features[MultiLogloss-NaiveBayes-BySense]": [
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "uri": "file://test.test_fit_multilabel_with_text_features_MultiLogloss-NaiveBayes-BySense_/test.tsv"
+        }
+    ],
     "test.test_fit_regression_with_text_features[BoW-ByDelimiter-Ordered]": [
         {
             "uri": "file://test.test_fit_regression_with_text_features_BoW-ByDelimiter-Ordered_/learn.tsv"

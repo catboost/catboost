@@ -9604,6 +9604,54 @@ def test_fit_multiclass_with_text_features(separator_type, feature_estimators, l
     ]
 
 
+@pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
+@pytest.mark.parametrize('feature_estimators', CLASSIFICATION_TEXT_FEATURE_ESTIMATORS)
+@pytest.mark.parametrize('loss_function', ['MultiLogloss', 'MultiCrossEntropy'])
+def test_fit_multilabel_with_text_features(separator_type, feature_estimators, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    tokenizers = [{'tokenizer_id': separator_type, 'separator_type': separator_type, 'token_types': ['Word']}]
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer], 'tokenizers_names': [separator_type]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries, 'tokenizers': tokenizers}
+
+    test_file = data_file('scene', 'test')
+    cd_file = data_file('scene', 'train.cd')
+    cmd = (
+        '--loss-function', loss_function,
+        '--eval-metric', 'Accuracy',
+        '-f', data_file('scene', 'train'),
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+    return [
+        local_canonical_file(learn_error_path),
+        local_canonical_file(test_error_path),
+    ]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
 @pytest.mark.parametrize('feature_estimators', REGRESSION_TEXT_FEATURE_ESTIMATORS)

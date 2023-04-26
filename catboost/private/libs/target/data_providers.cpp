@@ -708,7 +708,7 @@ namespace NCB {
                 (*outputClassificationInfo->LabelConverter)->InitializeMultiClass(classCount);
             }
             if (!maybeConvertedTarget.empty()) {
-                processedTargetData.TargetsClassCount.emplace("", (**outputClassificationInfo->LabelConverter).GetApproxDimension());
+                processedTargetData.TargetsClassCount.emplace("", Max((**outputClassificationInfo->LabelConverter).GetApproxDimension(), 2));
             }
         }
 

@@ -1682,12 +1682,14 @@ def test_multilogloss(loss_function):
 @pytest.mark.parametrize('loss_function', ['MultiLogloss', 'MultiCrossEntropy'])
 def test_multilogloss_with_bow(loss_function):
     datatset = 'rotten_tomatoes_small_with_embeddings'
+    text_processing = {"feature_processing": {"default": [{"feature_calcers": ["BoW"]}]}}
     fit_params = (
         '--loss-function', loss_function,
         '--learning-rate', '0.03',
         '-f', data_file(datatset, 'train_two_labels'),
         '-t', data_file(datatset, 'train_two_labels'),
         '--column-description', data_file(datatset, 'cd_binclass_only_text_two_labels'),
+        '--text-processing', json.dumps(text_processing),
         '--boosting-type', 'Plain',
         '-i', '10',
         '-T', '4',
