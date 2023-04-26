@@ -9,7 +9,10 @@ import errno
 import process_command_files as pcf
 
 
-def link_or_copy(src, dst):
+def link_or_copy(src, dst, trace={}):
+    if dst not in trace:
+        trace[dst] = src
+
     try:
         if platform.system().lower() == 'windows':
             shutil.copy(src, dst)
@@ -17,9 +20,17 @@ def link_or_copy(src, dst):
             os.link(src, dst)
     except OSError as e:
         if e.errno == errno.EEXIST:
-            print('link_or_copy: destination file already exists: {}'.format(dst), file=sys.stderr)
+            if dst in trace:
+                print(
+                    '[[bad]]link_or_copy: copy collision found - tried to copy {} to {} which was copied earlier from {}[[rst]]'.format(
+                        src, dst, trace[dst]
+                    ),
+                    file=sys.stderr,
+                )
+            else:
+                print('[[bad]]link_or_copy: destination file already exists: {}[[rst]]'.format(dst), file=sys.stderr)
         if e.errno == errno.ENOENT:
-            print('link_or_copy: source file doesn\'t exists: {}'.format(src), file=sys.stderr)
+            print('[[bad]]link_or_copy: source file doesn\'t exists: {}[[rst]]'.format(src), file=sys.stderr)
         raise
 
 
@@ -31,7 +42,9 @@ if __name__ == '__main__':
         shutil.copy(args[0], args[1])
     elif mode == 'copy_tree_no_link':
         dst = args[1]
-        shutil.copytree(args[0], dst, ignore=lambda dirname, names: [n for n in names if os.path.islink(os.path.join(dirname, n))])
+        shutil.copytree(
+            args[0], dst, ignore=lambda dirname, names: [n for n in names if os.path.islink(os.path.join(dirname, n))]
+        )
     elif mode == 'copy_files':
         src = args[0]
         dst = args[1]
