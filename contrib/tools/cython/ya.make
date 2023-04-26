@@ -4,17 +4,16 @@ PY3_LIBRARY()
 
 LICENSE(
     Apache-2.0 AND
-    LicenseRef-scancode-unknown-license-reference AND
-    Public-Domain
+    LicenseRef-scancode-unknown-license-reference
 )
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 OWNER(g:python-contrib)
 
-VERSION(0.29.33)
+VERSION(0.29.34)
 
-ORIGINAL_SOURCE(mirror://pypi/C/Cython/Cython-0.29.33.tar.gz)
+ORIGINAL_SOURCE(mirror://pypi/C/Cython/Cython-0.29.34.tar.gz)
 
 NO_LINT()
 

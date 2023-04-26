@@ -189,10 +189,6 @@ Software License.  More precisely, all modifications and new code
 License: Apache
 
 
-====================COPYRIGHT====================
-# Copyright (C) 2010-2011, IPython Development Team.
-
-
 ====================File: LICENSE.txt====================
                                  Apache License
                            Version 2.0, January 2004
@@ -386,7 +382,3 @@ The original Pyrex code as of 2006-04 is licensed under the following
 
 ====================LicenseRef-scancode-unknown-license-reference AND Apache-2.0====================
 Cython itself is licensed under the permissive **Apache License**.
-
-
-====================Public-Domain====================
-//   Written by Rusty Russell, public domain, http://ccodearchive.net/

@@ -1,0 +1,6 @@
+====================COPYRIGHT====================
+# Copyright (C) 2010-2011, IPython Development Team.
+
+
+====================Public-Domain====================
+//   Written by Rusty Russell, public domain, http://ccodearchive.net/

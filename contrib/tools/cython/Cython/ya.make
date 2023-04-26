@@ -1,5 +1,9 @@
 PY23_LIBRARY()
 
+LICENSE(Public-Domain)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
 WITHOUT_LICENSE_TEXTS()
 
 OWNER(g:yatool)

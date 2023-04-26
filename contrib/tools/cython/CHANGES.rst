@@ -2,6 +2,25 @@
 Cython Changelog
 ================
 
+0.29.34 (2023-04-02)
+====================
+
+Bugs fixed
+----------
+
+* A refence leak of the for-loop list/tuple iterable was resolved if the for-loop's
+  ``else:`` branch executes a ``break`` for an outer loop.
+  (Github issue :issue:`5347`)
+
+* Some C compile failures in CPython 3.12 were resolved.
+
+* Some old usages of the deprecated Python ``imp`` module were replaced with ``importlib``.
+  Patch by Matúš Valo.  (Github issue :issue:`5300`)
+
+* Some issues with ``depfile`` generation were resolved.
+  Patches by Eli Schwartz.  (Github issues :issue:`5279`, :issue:`5291`)
+
+
 0.29.33 (2023-01-06)
 ====================
 
@@ -83,6 +102,9 @@ Features added
 * A new argument ``--module-name`` was added to the ``cython`` command to
   provide the (one) exact target module name from the command line.
   Patch by Matthew Brett and h-vetinari.  (Github issue #4906)
+  
+* A new keyword ``noexcept`` was added for forward compatibility with Cython 3.
+  Patch by David Woods.  (Github issue #4903)
 
 Bugs fixed
 ----------

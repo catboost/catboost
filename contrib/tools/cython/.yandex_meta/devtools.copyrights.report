@@ -34,7 +34,7 @@
 # =======================
 
 KEEP     COPYRIGHT_SERVICE_LABEL ba4550f2155d0b776fb4c0be0145de18
-BELONGS ya.make
+BELONGS Cython/ya.make
     License text:
         \# Copyright (C) 2010-2011, IPython Development Team.
     Scancode info:
@@ -43,6 +43,3 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         Cython/Build/IpythonMagic.py [40:40]
-    Belongs difference:
-        + ya.make
-        - Cython/ya.make

@@ -89,7 +89,7 @@ BELONGS ya.make
         LICENSE.txt [1:176]
 
 SKIP     GPL-2.0-or-later AND Bootloader-exception 35b681ec6079cfeb49b0bd28c29f807a
-BELONGS ya.make
+BELONGS Cython/ya.make
     License text:
         \# Distributed under the terms of the Modified BSD License.
         \#
@@ -108,12 +108,9 @@ BELONGS ya.make
         Links           : https://github.com/pyinstaller/pyinstaller/blob/develop/COPYING.txt, https://spdx.org/licenses/Bootloader-exception
     Files with this license:
         Cython/Build/IpythonMagic.py [42:44]
-    Belongs difference:
-        + ya.make
-        - Cython/ya.make
 
 KEEP     Public-Domain        5e5fc519986cb79a430b651afa9afe9b
-BELONGS ya.make
+BELONGS Cython/ya.make
     License text:
         //   Written by Rusty Russell, public domain, http://ccodearchive.net/
     Scancode info:
@@ -123,9 +120,6 @@ BELONGS ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         Cython/Utility/ObjectHandling.c [1984:1984]
-    Belongs difference:
-        + ya.make
-        - Cython/ya.make
 
 KEEP     Apache-2.0           61d70dcaa7e25996bcb85b4855e537d3
 BELONGS ya.make
