@@ -141,9 +141,8 @@ def build_shared_lib_with_ya(parsed_args, top_src_root_dir, package_src_sub_path
         + ['-DUSE_LOCAL_SWIG=yes']
         + [f'-DUSE_SYSTEM_JDK={os.environ["JAVA_HOME"]}']
         + [f'-DJAVA_HOME={os.environ["JAVA_HOME"]}']
+        + [f'-DHAVE_CUDA={"yes" if parsed_args.have_cuda else "no"}']
     )
-    if not parsed_args.have_cuda:
-        common_ya_make_args += ['-DHAVE_CUDA=no']
 
     cpp_ya_make_extra_args = []
     if parsed_args.macos_universal_binaries:
