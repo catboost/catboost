@@ -34,6 +34,21 @@ class CatBoostJNIImpl {
     final static native String catBoostFreeModel(long handle);
 
     @Nullable
+    final static native String catBoostModelGetSupportedEvaluatorTypes(
+            long handle,
+            @NotNull String[][] evaluatorTypes);
+
+    @Nullable
+    final static native String catBoostModelSetEvaluatorType(
+            long handle,
+            @NotNull String evaluatorType);
+
+    @Nullable
+    final static native String catBoostModelGetEvaluatorType(
+            long handle,
+            @NotNull String[] evaluatorType);
+
+    @Nullable
     final static native String catBoostModelGetPredictionDimension(
             long handle,
             @NotNull int[] classesCount);

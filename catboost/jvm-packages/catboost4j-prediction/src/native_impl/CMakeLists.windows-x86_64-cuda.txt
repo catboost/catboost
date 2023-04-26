@@ -14,6 +14,7 @@ target_link_libraries(catboost4j-prediction PUBLIC
   yutil
   catboost-libs-helpers
   catboost-libs-model
+  libs-model-cuda
   JNITarget::jni
 )
 target_sources(catboost4j-prediction PRIVATE

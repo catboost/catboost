@@ -32,6 +32,24 @@ class CatBoostJNI {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostFreeModel(handle));
     }
 
+    final void catBoostModelGetSupportedEvaluatorTypes(
+            final long handle,
+            final @NotNull String[][] evaluatorTypes) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetSupportedEvaluatorTypes(handle, evaluatorTypes));
+    }
+
+    final void catBoostModelSetEvaluatorType(
+            final long handle,
+            final @NotNull String evaluatorType) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelSetEvaluatorType(handle, evaluatorType));
+    }
+
+    final void catBoostModelGetEvaluatorType(
+            final long handle,
+            final @NotNull String[] evaluatorType) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetEvaluatorType(handle, evaluatorType));
+    }
+
     final void catBoostModelGetPredictionDimension(
             final long handle,
             final @NotNull int[] classesCount) throws CatBoostError {

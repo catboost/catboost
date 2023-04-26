@@ -33,6 +33,11 @@ public class CatBoostModel implements AutoCloseable {
     private List<Feature> features = new ArrayList<Feature>();
     private static CatBoostJNI implLibrary = null;
 
+    public enum FormulaEvaluatorType {
+        CPU,
+        GPU
+    }
+
     public static abstract class Feature {
         private String name;
         private int featureIndex;
@@ -299,6 +304,27 @@ public class CatBoostModel implements AutoCloseable {
         final int[] hashes = new int[catFeatures.length];
         hashCategoricalFeatures(catFeatures, hashes);
         return hashes;
+    }
+
+    FormulaEvaluatorType[] getSupportedEvaluatorTypes() throws CatBoostError {
+        final String[][] evaluatorTypesAsStrings = new String[1][];
+        implLibrary.catBoostModelGetSupportedEvaluatorTypes(handle, evaluatorTypesAsStrings);
+        int evaluatorTypesSize = evaluatorTypesAsStrings[0].length;
+        final FormulaEvaluatorType[] evaluatorTypes = new FormulaEvaluatorType[evaluatorTypesSize];
+        for (int i = 0; i < evaluatorTypesSize; ++i) {
+            evaluatorTypes[i] = FormulaEvaluatorType.valueOf(evaluatorTypesAsStrings[0][i]);
+        }
+        return evaluatorTypes;
+    }
+
+    void setEvaluatorType(FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        implLibrary.catBoostModelSetEvaluatorType(handle, evaluatorType.toString());
+    }
+
+    FormulaEvaluatorType getEvaluatorType() throws CatBoostError, IllegalArgumentException {
+        final String[] evaluatorTypeAsString = new String[1];
+        implLibrary.catBoostModelGetEvaluatorType(handle, evaluatorTypeAsString);
+        return FormulaEvaluatorType.valueOf(evaluatorTypeAsString[0]);
     }
 
     /**

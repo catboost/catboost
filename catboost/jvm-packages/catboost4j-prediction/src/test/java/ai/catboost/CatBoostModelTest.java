@@ -1,18 +1,41 @@
 package ai.catboost;
 
 import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import ai.catboost.CatBoostModel.FormulaEvaluatorType;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.fail;
 
 public class CatBoostModelTest {
-    @Before
-    public void Init() {
+    private static boolean testOnGPU = false;
+
+    @BeforeAll
+    public static void Init() {
         System.setProperty("java.util.logging.config.file", ClassLoader.getSystemResource("logging.properties").getPath());
+        final String testOnGPUProperty = System.getProperty("testOnGPU");
+        final String[] trueValues = {"y", "yes", "true", "1"};
+        testOnGPU = Arrays.asList(trueValues).contains(testOnGPUProperty);
+    }
+
+    private static FormulaEvaluatorType[] getFormulaEvaluatorTypes() {
+        if (testOnGPU) {
+            return new FormulaEvaluatorType[]{FormulaEvaluatorType.CPU, FormulaEvaluatorType.GPU};
+        } else {
+            return new FormulaEvaluatorType[]{FormulaEvaluatorType.CPU};
+        }
     }
 
     static void assertEqualArrays(@NotNull int[] expected, @NotNull int[] actual) {
@@ -41,7 +64,7 @@ public class CatBoostModelTest {
                         "at objectIndex=" + String.valueOf(objectIndex) + " predictionIndex=" + String.valueOf(predictionIndex),
                         expected.get(objectIndex, predictionIndex),
                         actual.get(objectIndex, predictionIndex),
-                        1.e-13);
+                        1.e-5);
             }
         }
     }
@@ -221,8 +244,26 @@ public class CatBoostModelTest {
     }
 
     @Test
-    public void testSuccessfulPredictSingleNumericOnly() throws CatBoostError {
+    public void testGetSupportedEvaluatorTypes() throws CatBoostError {
+        final FormulaEvaluatorType[] expectedFormulaEvaluatorTypes = getFormulaEvaluatorTypes();
+
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            final FormulaEvaluatorType[] formulaEvaluatorTypes = model.getSupportedEvaluatorTypes();
+            Set<FormulaEvaluatorType> formulaEvaluatorTypesSet
+                = new HashSet<FormulaEvaluatorType>(Arrays.asList(formulaEvaluatorTypes));
+
+            for (FormulaEvaluatorType formulaEvaluatorType : expectedFormulaEvaluatorTypes) {
+                TestCase.assertTrue(formulaEvaluatorTypesSet.contains(formulaEvaluatorType));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictSingleNumericOnly(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
+
             final float[] numericFeatuers = new float[]{0.1f, 0.3f, 0.2f};
             final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.029172098906116373});
             final CatBoostPredictions prediction = model.predict(numericFeatuers, (String[]) null);
@@ -231,9 +272,11 @@ public class CatBoostModelTest {
         }
     }
 
-    @Test
-    public void testFailPredictSingleNumericOnlyWithNullInNumeric() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleNumericOnlyWithNullInNumeric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try (final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
             try {
                 model.predict((float[]) null, (String[]) null);
                 fail();
@@ -242,9 +285,11 @@ public class CatBoostModelTest {
         }
     }
 
-    @Test
-    public void testFailPredictSingleNumericOnlywithInsufficientNumericFeatures() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleNumericOnlywithInsufficientNumericFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try (final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
             try {
                 final float[] features = new float[]{0.f, 0.f};
                 model.predict(features, (String[]) null);
@@ -254,9 +299,11 @@ public class CatBoostModelTest {
         }
     }
 
-    @Test
-    public void testFailPredictNumericOnlyWithInsufficientPredictionSize() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictNumericOnlyWithInsufficientPredictionSize(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
             try {
                 final float[] featuers = new float[]{0.1f, 0.3f, 0.2f};
                 final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
@@ -267,9 +314,11 @@ public class CatBoostModelTest {
         }
     }
 
-    @Test
-    public void testSuccessfulPredictMultipleNumericOnly() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictMultipleNumericOnly(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
             final float[][] features = new float[][]{
                     {0.5f, 1.5f, -2.5f},
                     {0.7f, 6.4f, 2.4f},
@@ -284,9 +333,11 @@ public class CatBoostModelTest {
         }
     }
 
-    @Test
-    public void testFailPredictMultipleNumericOnlyNullInNumeric() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleNumericOnlyNullInNumeric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
             try {
                 model.predict((float[][]) null, (String[][]) null);
                 fail();
@@ -295,9 +346,11 @@ public class CatBoostModelTest {
         }
     }
 
-    @Test
-    public void testFailPredictMultipleNumericOnlyInsufficientNumberOfFeatures() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleNumericOnlyInsufficientNumberOfFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
             try {
                 final float[][] features = new float[][]{
                         {0.f, 0.f, 0.f},
@@ -309,9 +362,11 @@ public class CatBoostModelTest {
         }
     }
 
-    @Test
-    public void testFailPredictMultipleInsufficientPredictionSize() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientPredictionSize(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            model.setEvaluatorType(evaluatorType);
             try {
                 final float[][] features = new float[][]{
                         {0.f, 0.f, 0.f},
@@ -324,679 +379,981 @@ public class CatBoostModelTest {
         }
     }
 
-    @Test
-    public void testSuccessfulPredictSingleCategoricOnly() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictSingleCategoricOnly(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            final String[] features = new String[]{"a", "d", "g"};
-            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04146251510837989});
-            final CatBoostPredictions prediction = model.predict((float[])null, features);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict((float[])null, features));
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                final String[] features = new String[]{"a", "d", "g"};
+                final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04146251510837989});
+                final CatBoostPredictions prediction = model.predict((float[])null, features);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict((float[])null, features));
+            }
         }
     }
 
-    @Test
-    public void testFailPredictSingleCategoricOnlyWithNullInNumeric() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleCategoricOnlyWithNullInNumeric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
-                model.predict((float[]) null, (String[]) null);
-                fail();
-            } catch (CatBoostError e) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    model.predict((float[]) null, (String[]) null);
+                    fail();
+                } catch (CatBoostError e) {
+                }
             }
         }
     }
 
-    @Test
-    public void testFailPredictSingleCategoricOnlyWithNullCategoricalFeatures() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleCategoricOnlyWithNullCategoricalFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
-                final float[] features = null;
-                final String[] catFeatures = new String[]{null, null, null};
-                model.predict(features, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    final float[] features = null;
+                    final String[] catFeatures = new String[]{null, null, null};
+                    model.predict(features, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
             }
         }
     }
 
-    @Test
-    public void testFailPredictSingleCategoricOnlywihtInsufficientCategoricFeatures() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleCategoricOnlywihtInsufficientCategoricFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
-                final String[] features = new String[]{"a", "d"};
-                model.predict((float[])null, features);
-                fail();
-            } catch (CatBoostError e) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    final String[] features = new String[]{"a", "d"};
+                    model.predict((float[])null, features);
+                    fail();
+                } catch (CatBoostError e) {
+                }
             }
         }
     }
 
-    @Test
-    public void testSuccessfulPredictMultipleCategoricOnly() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictMultipleCategoricOnly(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            final String[][] features = new String[][]{
-                {"a", "d", "g"},
-                {"b", "e", "h"},
-                {"c", "f", "k"}};
-            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
-                0.04146251510837989,
-                0.015486266021159064,
-                0.04146251510837989});
-            final CatBoostPredictions prediction = model.predict((float[][])null, features);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict((float[][])null, features));
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleCategoricOnlyNullInCategoric() throws CatBoostError {
-        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
-                model.predict((float[][]) null, (String[][]) null);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleCategoricOnlyInsufficientNumberOfFeatures() throws CatBoostError {
-        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
                 final String[][] features = new String[][]{
                     {"a", "d", "g"},
-                    {"b", "e"}};
-                model.predict((float[][])null, features);
-                fail();
-            } catch (CatBoostError e) {
+                    {"b", "e", "h"},
+                    {"c", "f", "k"}};
+                final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                    0.04146251510837989,
+                    0.015486266021159064,
+                    0.04146251510837989});
+                final CatBoostPredictions prediction = model.predict((float[][])null, features);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict((float[][])null, features));
             }
         }
     }
 
-    @Test
-    public void testSuccessfulPredictSingle() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleCategoricOnlyNullInCategoric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    model.predict((float[][]) null, (String[][]) null);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleCategoricOnlyInsufficientNumberOfFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    final String[][] features = new String[][]{
+                        {"a", "d", "g"},
+                        {"b", "e"}};
+                    model.predict((float[][])null, features);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictSingle(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadTestModel()) {
-            final float[] numericFeatuers = new float[]{0.5f, 1.5f};
-            final String[] catFeatures = new String[]{"a", "d", "g"};
-            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04666924366060905});
-            final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatuers, catFeatures));
-        }
-    }
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
 
-    @Test
-    public void testFailPredictSingleWithNullInNumeric() throws CatBoostError {
-        try (final CatBoostModel model = loadTestModel()) {
-            try {
-                final String[] catFeatures = new String[]{"a", "d", "g"};
-                model.predict((float[]) null, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictSingleWithNullInCategoric() throws CatBoostError {
-        try (final CatBoostModel model = loadTestModel()) {
-            try {
                 final float[] numericFeatuers = new float[]{0.5f, 1.5f};
-                model.predict(numericFeatuers, (String[])null);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictSinglewihtInsufficientNumericFeatures() throws CatBoostError {
-        try (final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[] numericFeatures = new float[]{};
                 final String[] catFeatures = new String[]{"a", "d", "g"};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
+                final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04666924366060905});
+                final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatuers, catFeatures));
             }
         }
     }
 
-    @Test
-    public void testFailPredictSinglewihtInsufficientCategoricFeatures() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleWithNullInNumeric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try (final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[] numericFeatures = new float[]{0.f, 0.f};
-                final String[] catFeatures = new String[]{"a", "d"};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    final String[] catFeatures = new String[]{"a", "d", "g"};
+                    model.predict((float[]) null, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
             }
         }
     }
 
-    @Test
-    public void testFailPredictWithInsufficientPredictionSize() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[] numericFeatuers = new float[]{0.1f, 0.3f};
-                final String[] catFeatures = new String[]{"a", "d", "g"};
-                final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
-                model.predict(numericFeatuers, catFeatures, prediction);
-                fail();
-            } catch (CatBoostError e) {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleWithNullInCategoric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    final float[] numericFeatuers = new float[]{0.5f, 1.5f};
+                    model.predict(numericFeatuers, (String[])null);
+                    fail();
+                } catch (CatBoostError e) {
+                }
             }
         }
     }
 
-    @Test
-    public void testSuccessfulPredictSingleWithNumCatAndTextFeatures() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
-            final float[] numericFeatuers = new float[]{0.1f, 0.13f};
-            final String[] catFeatures = new String[]{"Male"};
-            final String[] textFeatures = new String[]{"question 1", "simple answer"};
-            final CatBoostPredictions expected = new CatBoostPredictions(1, 3, new double[]{0.37830508558041, -0.11873512511004, -0.25956996047037});
-            final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures, textFeatures, null);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatuers, catFeatures, textFeatures, null));
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSinglewihtInsufficientNumericFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    final float[] numericFeatures = new float[]{};
+                    final String[] catFeatures = new String[]{"a", "d", "g"};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
         }
     }
 
-    @Test
-    public void testSuccessfulPredictMultiple() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSinglewihtInsufficientCategoricFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    final float[] numericFeatures = new float[]{0.f, 0.f};
+                    final String[] catFeatures = new String[]{"a", "d"};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictWithInsufficientPredictionSize(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadTestModel()) {
-            final float[][] numericFeatures = new float[][]{
-                {0.5f, 1.5f},
-                {0.7f, 6.4f},
-                {-2.0f, -1.0f}};
-            final String[][] catFeatures = new String[][]{
-                {"a", "d", "g"},
-                {"b", "e", "h"},
-                {"c", "f", "k"}};
-            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
-                0.04666924366060905,
-                0.026244613740247648,
-                0.03094452158737013});
-            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatures, catFeatures));
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                try {
+                    final float[] numericFeatuers = new float[]{0.1f, 0.3f};
+                    final String[] catFeatures = new String[]{"a", "d", "g"};
+                    final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
+                    model.predict(numericFeatuers, catFeatures, prediction);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
         }
     }
 
-    @Test
-    public void testSuccessfulPredictMultipleWithNumCatAndTextFeatures() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictSingleWithNumCatAndTextFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
-            final float[][] numericFeatures = new float[][]{
-                {0.1f, 0.13f},
-                {0.0f, 0.2f},
-                {0.33f, 0.65f},
-                {0.2f, 0.1f}};
-            final String[][] catFeatures = new String[][]{
-                {"Male"},
-                {"Female"},
-                {"Female"},
-                {"Male"}};
-            final String[][] textFeatures = new String[][]{
-                {"question 1", "simple answer"},
-                {"question 2", "strong answer"},
-                {"question 3", "weak answer"},
-                {"question 1", "complicated answer"}};
-            final CatBoostPredictions expected = new CatBoostPredictions(4, 3, new double[]{
-                0.37830508558041, -0.11873512511004, -0.25956996047037,
-                -0.12726299984411, 0.13483590199441, -0.00757290215030,
-                -0.12726299984411, -0.00757290215030, 0.13483590199441,
-                0.41077099521589, -0.20538549760794, -0.20538549760794});
-            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+                final float[] numericFeatuers = new float[]{0.1f, 0.13f};
+                final String[] catFeatures = new String[]{"Male"};
+                final String[] textFeatures = new String[]{"question 1", "simple answer"};
+                final CatBoostPredictions expected = new CatBoostPredictions(1, 3, new double[]{0.37830508558041, -0.11873512511004, -0.25956996047037});
+                final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures, textFeatures, null);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatuers, catFeatures, textFeatures, null));
+            }
         }
     }
 
-    @Test
-    public void testFailPredictMultipleNullInNumeric() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictMultiple(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadTestModel()) {
-            try {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final float[][] numericFeatures = new float[][]{
+                    {0.5f, 1.5f},
+                    {0.7f, 6.4f},
+                    {-2.0f, -1.0f}};
                 final String[][] catFeatures = new String[][]{
                     {"a", "d", "g"},
                     {"b", "e", "h"},
                     {"c", "f", "k"}};
-                model.predict((float[][]) null, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleNullInCategoric() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.5f, 1.5f},
-                        {0.7f, 6.4f},
-                        {-2.0f, -1.0f}};
-                model.predict(numericFeatures, (String[][])null);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleInsufficientNumberOfNumericFeatures() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f},
-                        {0.f, 0.f},
-                        {0.f}};
-                final String[][] catFeatures = new String[][]{
-                        {"a", "d", "g"},
-                        {"b", "e", "h"},
-                        {"c", "f", "k"}};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleInsufficientNumberOfCategoricFeatures() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f},
-                        {0.f, 0.f},
-                        {0.f, 0.f}};
-                final String[][] catFeatures = new String[][]{
-                        {"a", "d", "g"},
-                        {"b", "e", "h"},
-                        {"c", "f"}};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleInsufficientNumberOfNumericRows() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f},
-                        {0.f, 0.f}};
-                final String[][] catFeatures = new String[][]{
-                        {"a", "d", "g"},
-                        {"b", "e", "h"},
-                        {"c", "f", "k"}};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleInsufficientNumberOfCategoricRows() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f},
-                        {0.f, 0.f},
-                        {0.f, 0.f}};
-                final String[][] catFeatures = new String[][]{
-                        {"a", "d", "g"},
-                        {"b", "e", "h"}};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testSuccessfulPredictSingleHashesOnly() throws CatBoostError {
-        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            final int[] features = new int[]{-805065478, 2136526169, 785836961};
-            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04146251510837989});
-            final CatBoostPredictions prediction = model.predict((float[])null, features);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict((float[])null, features));
-        }
-    }
-
-    @Test
-    public void testFailPredictSingleHashesOnlyWithNullInNumeric() throws CatBoostError {
-        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
-                model.predict((float[]) null, (int[]) null);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictSingleHashesOnlywihtInsufficientCategoricFeatures() throws CatBoostError {
-        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
-                final int[] features = new int[]{-805065478, 2136526169};
-                model.predict((float[])null, features);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testSuccessfulPredictSingleWithNumCatHashesAndTextFeatures() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
-            final float[] numericFeatuers = new float[]{0.1f, 0.13f};
-            final int[] catFeatures = new int[]{-1291328762};
-            final String[] textFeatures = new String[]{"question 1", "simple answer"};
-            final CatBoostPredictions expected = new CatBoostPredictions(1, 3, new double[]{0.37830508558041, -0.11873512511004, -0.25956996047037});
-            final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures, textFeatures, null);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatuers, catFeatures, textFeatures, null));
-        }
-    }
-
-    @Test
-    public void testSuccessfulPredictMultipleHashesOnly() throws CatBoostError {
-        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            final int[][] features = new int[][]{
-                    {-805065478, 2136526169, 785836961},
-                    {1982436109, 1400211492, 1076941191},
-                    {-1883343840, -1452597217, 2122455585}};
-            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
-                    0.04146251510837989,
-                    0.015486266021159064,
-                    0.04146251510837989});
-            final CatBoostPredictions prediction = model.predict((float[][])null, features);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict((float[][])null, features));
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleHashesOnlyNullInCategoric() throws CatBoostError {
-        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
-                model.predict((float[][]) null, (int[][]) null);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleHashesOnlyInsufficientNumberOfFeatures() throws CatBoostError {
-        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
-            try {
-                final int[][] features = new int[][]{
-                        {-805065478, 2136526169, 785836961},
-                        {1982436109, 1400211492}};
-                model.predict((float[][])null, features);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testSuccessfulPredictSingleHashes() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            final float[] numericFeatuers = new float[]{0.5f, 1.5f};
-            final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
-            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04666924366060905});
-            final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatuers, catFeatures));
-        }
-    }
-
-    @Test
-    public void testFailPredictSingleWithNullInNumericHashes() throws CatBoostError {
-        try (final CatBoostModel model = loadTestModel()) {
-            try {
-                final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
-                model.predict((float[]) null, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictSingleWithNullInCategoricHashes() throws CatBoostError {
-        try (final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[] numericFeatuers = new float[]{0.5f, 1.5f};
-                model.predict(numericFeatuers, (int[])null);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictSinglewihtInsufficientNumericFeaturesHashes() throws CatBoostError {
-        try (final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[] numericFeatures = new float[]{};
-                final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictSinglewihtInsufficientCategoricFeaturesHashes() throws CatBoostError {
-        try (final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[] numericFeatures = new float[]{0.f, 0.f};
-                final int[] catFeatures = new int[]{-805065478, 2136526169};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictWithInsufficientPredictionSizeHashes() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[] numericFeatuers = new float[]{0.1f, 0.3f};
-                final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
-                final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
-                model.predict(numericFeatuers, catFeatures, prediction);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testSuccessfulPredictMultipleHashes() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            final float[][] numericFeatures = new float[][]{
-                    {0.5f, 1.5f},
-                    {0.7f, 6.4f},
-                    {-2.0f, -1.0f}};
-            final int[][] catFeatures = new int[][]{
-                    {-805065478, 2136526169, 785836961},
-                    {1982436109, 1400211492, 1076941191},
-                    {-1883343840, -1452597217, 2122455585}};
-            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
                     0.04666924366060905,
                     0.026244613740247648,
                     0.03094452158737013});
-            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatures, catFeatures));
-        }
-    }
-
-    @Test
-    public void testSuccessfulPredictMultipleWithNumCatHashedAndTextFeatures() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
-            final float[][] numericFeatures = new float[][]{
-                {0.1f, 0.13f},
-                {0.0f, 0.2f},
-                {0.33f, 0.65f},
-                {0.2f, 0.1f}};
-            final int[][] catFeatures = new int[][]{
-                {-1291328762},
-                {-2114564283},
-                {-2114564283},
-                {-1291328762}};
-            final String[][] textFeatures = new String[][]{
-                {"question 1", "simple answer"},
-                {"question 2", "strong answer"},
-                {"question 3", "weak answer"},
-                {"question 1", "complicated answer"}};
-            final CatBoostPredictions expected = new CatBoostPredictions(4, 3, new double[]{
-                0.37830508558041, -0.11873512511004, -0.25956996047037,
-                -0.12726299984411, 0.13483590199441, -0.00757290215030,
-                -0.12726299984411, -0.00757290215030, 0.13483590199441,
-                0.41077099521589, -0.20538549760794, -0.20538549760794});
-            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleNullInNumericHashes() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final int[][] catFeatures = new int[][]{
-                        {-805065478, 2136526169, 785836961},
-                        {1982436109, 1400211492, 1076941191},
-                        {-1883343840, -1452597217, 2122455585}};
-                model.predict((float[][]) null, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
+                final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatures, catFeatures));
             }
         }
     }
 
-    @Test
-    public void testFailPredictMultipleNullInCategoricHashes() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictMultipleWithNumCatAndTextFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final float[][] numericFeatures = new float[][]{
+                    {0.1f, 0.13f},
+                    {0.0f, 0.2f},
+                    {0.33f, 0.65f},
+                    {0.2f, 0.1f}};
+                final String[][] catFeatures = new String[][]{
+                    {"Male"},
+                    {"Female"},
+                    {"Female"},
+                    {"Male"}};
+                final String[][] textFeatures = new String[][]{
+                    {"question 1", "simple answer"},
+                    {"question 2", "strong answer"},
+                    {"question 3", "weak answer"},
+                    {"question 1", "complicated answer"}};
+                final CatBoostPredictions expected = new CatBoostPredictions(4, 3, new double[]{
+                    0.37830508558041, -0.11873512511004, -0.25956996047037,
+                    -0.12726299984411, 0.13483590199441, -0.00757290215030,
+                    -0.12726299984411, -0.00757290215030, 0.13483590199441,
+                    0.41077099521589, -0.20538549760794, -0.20538549760794});
+                final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleNullInNumeric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadTestModel()) {
-            try {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final String[][] catFeatures = new String[][]{
+                        {"a", "d", "g"},
+                        {"b", "e", "h"},
+                        {"c", "f", "k"}};
+                    model.predict((float[][]) null, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleNullInCategoric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.5f, 1.5f},
+                            {0.7f, 6.4f},
+                            {-2.0f, -1.0f}};
+                    model.predict(numericFeatures, (String[][])null);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientNumberOfNumericFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.f, 0.f},
+                            {0.f, 0.f},
+                            {0.f}};
+                    final String[][] catFeatures = new String[][]{
+                            {"a", "d", "g"},
+                            {"b", "e", "h"},
+                            {"c", "f", "k"}};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientNumberOfCategoricFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.f, 0.f},
+                            {0.f, 0.f},
+                            {0.f, 0.f}};
+                    final String[][] catFeatures = new String[][]{
+                            {"a", "d", "g"},
+                            {"b", "e", "h"},
+                            {"c", "f"}};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientNumberOfNumericRows(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.f, 0.f},
+                            {0.f, 0.f}};
+                    final String[][] catFeatures = new String[][]{
+                            {"a", "d", "g"},
+                            {"b", "e", "h"},
+                            {"c", "f", "k"}};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientNumberOfCategoricRows(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.f, 0.f},
+                            {0.f, 0.f},
+                            {0.f, 0.f}};
+                    final String[][] catFeatures = new String[][]{
+                            {"a", "d", "g"},
+                            {"b", "e", "h"}};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictSingleHashesOnly(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final int[] features = new int[]{-805065478, 2136526169, 785836961};
+                final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04146251510837989});
+                final CatBoostPredictions prediction = model.predict((float[])null, features);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict((float[])null, features));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleHashesOnlyWithNullInNumeric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    model.predict((float[]) null, (int[]) null);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleHashesOnlywihtInsufficientCategoricFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final int[] features = new int[]{-805065478, 2136526169};
+                    model.predict((float[])null, features);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictSingleWithNumCatHashesAndTextFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final float[] numericFeatuers = new float[]{0.1f, 0.13f};
+                final int[] catFeatures = new int[]{-1291328762};
+                final String[] textFeatures = new String[]{"question 1", "simple answer"};
+                final CatBoostPredictions expected = new CatBoostPredictions(1, 3, new double[]{0.37830508558041, -0.11873512511004, -0.25956996047037});
+                final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures, textFeatures, null);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatuers, catFeatures, textFeatures, null));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictMultipleHashesOnly(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final int[][] features = new int[][]{
+                        {-805065478, 2136526169, 785836961},
+                        {1982436109, 1400211492, 1076941191},
+                        {-1883343840, -1452597217, 2122455585}};
+                final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                        0.04146251510837989,
+                        0.015486266021159064,
+                        0.04146251510837989});
+                final CatBoostPredictions prediction = model.predict((float[][])null, features);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict((float[][])null, features));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleHashesOnlyNullInCategoric(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    model.predict((float[][]) null, (int[][]) null);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleHashesOnlyInsufficientNumberOfFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final int[][] features = new int[][]{
+                            {-805065478, 2136526169, 785836961},
+                            {1982436109, 1400211492}};
+                    model.predict((float[][])null, features);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictSingleHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final float[] numericFeatuers = new float[]{0.5f, 1.5f};
+                final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
+                final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04666924366060905});
+                final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatuers, catFeatures));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleWithNullInNumericHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
+                    model.predict((float[]) null, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSingleWithNullInCategoricHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[] numericFeatuers = new float[]{0.5f, 1.5f};
+                    model.predict(numericFeatuers, (int[])null);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSinglewihtInsufficientNumericFeaturesHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[] numericFeatures = new float[]{};
+                    final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictSinglewihtInsufficientCategoricFeaturesHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[] numericFeatures = new float[]{0.f, 0.f};
+                    final int[] catFeatures = new int[]{-805065478, 2136526169};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictWithInsufficientPredictionSizeHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[] numericFeatuers = new float[]{0.1f, 0.3f};
+                    final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
+                    final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
+                    model.predict(numericFeatuers, catFeatures, prediction);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictMultipleHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
                 final float[][] numericFeatures = new float[][]{
                         {0.5f, 1.5f},
                         {0.7f, 6.4f},
                         {-2.0f, -1.0f}};
-                model.predict(numericFeatures, (int[][])null);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleInsufficientNumberOfNumericFeaturesHashes() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f},
-                        {0.f, 0.f},
-                        {0.f}};
                 final int[][] catFeatures = new int[][]{
                         {-805065478, 2136526169, 785836961},
                         {1982436109, 1400211492, 1076941191},
                         {-1883343840, -1452597217, 2122455585}};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
+                final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                        0.04666924366060905,
+                        0.026244613740247648,
+                        0.03094452158737013});
+                final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatures, catFeatures));
             }
         }
     }
 
-    @Test
-    public void testFailPredictMultipleInsufficientNumberOfCategoricFeaturesHashes() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f},
-                        {0.f, 0.f},
-                        {0.f, 0.f}};
-                final int[][] catFeatures = new int[][]{
-                        {-805065478, 2136526169, 785836961},
-                        {1982436109, 1400211492, 1076941191},
-                        {-1883343840, -1452597217}};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleInsufficientNumberOfNumericRowsHashes() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f},
-                        {0.f, 0.f}};
-                final int[][] catFeatures = new int[][]{
-                        {-805065478, 2136526169, 785836961},
-                        {1982436109, 1400211492, 1076941191},
-                        {-1883343840, -1452597217, 2122455585}};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-
-    @Test
-    public void testFailPredictMultipleInsufficientNumberOfCategoricRowsHashes() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f},
-                        {0.f, 0.f},
-                        {0.f, 0.f}};
-                final int[][] catFeatures = new int[][]{
-                        {-805065478, 2136526169, 785836961},
-                        {1982436109, 1400211492, 1076941191}};
-                model.predict(numericFeatures, catFeatures);
-                fail();
-            } catch (CatBoostError e) {
-            }
-        }
-    }
-    
-    @Test
-    public void testEmptyFeaturesArray() throws CatBoostError {
-        try(final CatBoostModel model = loadTestModel()) {
-            final float[][] numericFeatures = new float[0][];
-            final int[][] catFeatures = new int[0][];
-            final CatBoostPredictions expected = new CatBoostPredictions(0, 1, new double[0]);
-            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatures, catFeatures));
-        }
-    }
-
-    @Test
-    public void testEmptyFeaturesArrayWithNumCatAndTextFeatures() throws CatBoostError {
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testSuccessfulPredictMultipleWithNumCatHashedAndTextFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
         try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
-            final float[][] numericFeatures = new float[0][];
-            final int[][] catFeatures = new int[0][];
-            final String[][] textFeatures = new String[0][];
-            final CatBoostPredictions expected = new CatBoostPredictions(0, 3, new double[0]);
-            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
-            assertEqual(expected, prediction);
-            assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final float[][] numericFeatures = new float[][]{
+                    {0.1f, 0.13f},
+                    {0.0f, 0.2f},
+                    {0.33f, 0.65f},
+                    {0.2f, 0.1f}};
+                final int[][] catFeatures = new int[][]{
+                    {-1291328762},
+                    {-2114564283},
+                    {-2114564283},
+                    {-1291328762}};
+                final String[][] textFeatures = new String[][]{
+                    {"question 1", "simple answer"},
+                    {"question 2", "strong answer"},
+                    {"question 3", "weak answer"},
+                    {"question 1", "complicated answer"}};
+                final CatBoostPredictions expected = new CatBoostPredictions(4, 3, new double[]{
+                    0.37830508558041, -0.11873512511004, -0.25956996047037,
+                    -0.12726299984411, 0.13483590199441, -0.00757290215030,
+                    -0.12726299984411, -0.00757290215030, 0.13483590199441,
+                    0.41077099521589, -0.20538549760794, -0.20538549760794});
+                final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleNullInNumericHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final int[][] catFeatures = new int[][]{
+                            {-805065478, 2136526169, 785836961},
+                            {1982436109, 1400211492, 1076941191},
+                            {-1883343840, -1452597217, 2122455585}};
+                    model.predict((float[][]) null, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleNullInCategoricHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.5f, 1.5f},
+                            {0.7f, 6.4f},
+                            {-2.0f, -1.0f}};
+                    model.predict(numericFeatures, (int[][])null);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientNumberOfNumericFeaturesHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.f, 0.f},
+                            {0.f, 0.f},
+                            {0.f}};
+                    final int[][] catFeatures = new int[][]{
+                            {-805065478, 2136526169, 785836961},
+                            {1982436109, 1400211492, 1076941191},
+                            {-1883343840, -1452597217, 2122455585}};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientNumberOfCategoricFeaturesHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.f, 0.f},
+                            {0.f, 0.f},
+                            {0.f, 0.f}};
+                    final int[][] catFeatures = new int[][]{
+                            {-805065478, 2136526169, 785836961},
+                            {1982436109, 1400211492, 1076941191},
+                            {-1883343840, -1452597217}};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientNumberOfNumericRowsHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.f, 0.f},
+                            {0.f, 0.f}};
+                    final int[][] catFeatures = new int[][]{
+                            {-805065478, 2136526169, 785836961},
+                            {1982436109, 1400211492, 1076941191},
+                            {-1883343840, -1452597217, 2122455585}};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testFailPredictMultipleInsufficientNumberOfCategoricRowsHashes(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                try {
+                    final float[][] numericFeatures = new float[][]{
+                            {0.f, 0.f},
+                            {0.f, 0.f},
+                            {0.f, 0.f}};
+                    final int[][] catFeatures = new int[][]{
+                            {-805065478, 2136526169, 785836961},
+                            {1982436109, 1400211492, 1076941191}};
+                    model.predict(numericFeatures, catFeatures);
+                    fail();
+                } catch (CatBoostError e) {
+                }
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testEmptyFeaturesArray(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final float[][] numericFeatures = new float[0][];
+                final int[][] catFeatures = new int[0][];
+                final CatBoostPredictions expected = new CatBoostPredictions(0, 1, new double[0]);
+                final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatures, catFeatures));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getFormulaEvaluatorTypes")
+    public void testEmptyFeaturesArrayWithNumCatAndTextFeatures(CatBoostModel.FormulaEvaluatorType evaluatorType) throws CatBoostError {
+        try(final CatBoostModel model = loadTestModelWithNumCatAndTextFeatures()) {
+            if (evaluatorType == FormulaEvaluatorType.GPU) {
+                Assertions.assertThrows(CatBoostError.class, () -> { model.setEvaluatorType(evaluatorType); } );
+            } else {
+                model.setEvaluatorType(evaluatorType);
+
+                final float[][] numericFeatures = new float[0][];
+                final int[][] catFeatures = new int[0][];
+                final String[][] textFeatures = new String[0][];
+                final CatBoostPredictions expected = new CatBoostPredictions(0, 3, new double[0]);
+                final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures, textFeatures, null);
+                assertEqual(expected, prediction);
+                assertEqual(expected, model.predict(numericFeatures, catFeatures, textFeatures, null));
+            }
         }
     }
 }

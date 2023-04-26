@@ -15,6 +15,7 @@ target_link_libraries(catboost4j-prediction PUBLIC
   yutil
   catboost-libs-helpers
   catboost-libs-model
+  libs-model-cuda
   JNITarget::jni
 )
 target_link_options(catboost4j-prediction PRIVATE
@@ -27,6 +28,9 @@ target_link_options(catboost4j-prediction PRIVATE
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_sources(catboost4j-prediction PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/jvm-packages/catboost4j-prediction/src/native_impl/ai_catboost_CatBoostJNIImpl.cpp

@@ -356,6 +356,58 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
     Y_END_JNI_API_CALL();
 }
 
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetSupportedEvaluatorTypes
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jevaluatorTypes) {
+    Y_BEGIN_JNI_API_CALL();
+
+    Y_UNUSED(jhandle);
+
+    auto supportedEvaluatorTypes = TFullModel::GetSupportedEvaluatorTypes();
+
+    auto evaluatorTypes = jenv->NewObjectArray(
+        supportedEvaluatorTypes.size(),
+        jenv->FindClass("java/lang/String"),
+        /*init*/ NULL
+    );
+    CB_ENSURE(evaluatorTypes, "OutOfMemoryError");
+
+    for (auto i : xrange(supportedEvaluatorTypes.size())) {
+        auto jevaluatorType = StringToJavaUTF8(jenv, ToString(supportedEvaluatorTypes[i]));
+        jenv->SetObjectArrayElement(evaluatorTypes, static_cast<jsize>(i), jevaluatorType);
+    }
+
+    jenv->SetObjectArrayElement(jevaluatorTypes, 0, evaluatorTypes);
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelSetEvaluatorType
+  (JNIEnv* jenv, jclass, jlong jhandle, jstring jevaluatorType) {
+    Y_BEGIN_JNI_API_CALL();
+
+    auto* model = ToFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    TJVMStringAsStringBuf evaluatorTypeStringBuf(jenv, jevaluatorType);
+    model->SetEvaluatorType(FromString<EFormulaEvaluatorType>(evaluatorTypeStringBuf.Get()));
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetEvaluatorType
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jevaluatorType) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const auto evaluatorTypeString = ToString(model->GetEvaluatorType());
+    auto jevaluatorTypeString = StringToJavaUTF8(jenv, evaluatorTypeString);
+    jenv->SetObjectArrayElement(jevaluatorType, 0, jevaluatorTypeString);
+
+    Y_END_JNI_API_CALL();
+}
+
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredictionDimension
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jpredictionDimension) {
     Y_BEGIN_JNI_API_CALL();

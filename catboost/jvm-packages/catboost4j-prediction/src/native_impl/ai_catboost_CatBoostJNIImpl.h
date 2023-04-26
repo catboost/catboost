@@ -51,6 +51,30 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetSupportedEvaluatorTypes
+ * Signature: (J[[Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetSupportedEvaluatorTypes
+  (JNIEnv *, jclass, jlong, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelSetEvaluatorType
+ * Signature: (JLjava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelSetEvaluatorType
+  (JNIEnv *, jclass, jlong, jstring);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetEvaluatorType
+ * Signature: (J[Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetEvaluatorType
+  (JNIEnv *, jclass, jlong, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelGetPredictionDimension
  * Signature: (J[I)Ljava/lang/String;
  */
