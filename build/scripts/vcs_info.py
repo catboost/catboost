@@ -253,6 +253,54 @@ def print_go(json_file, output_file):
         ) + '\n')
 
 
+def print_json(json_file, output_file):
+    MANDATOTRY_FIELDS_MAP = {
+        'ARCADIA_TAG': 'Arcadia-Tag',
+        'ARCADIA_PATCH_NUMBER': 'Arcadia-Patch-Number',
+        'ARCADIA_SOURCE_URL': 'Arcadia-Source-URL',
+        'ARCADIA_SOURCE_REVISION': 'Arcadia-Source-Revision',
+        'ARCADIA_SOURCE_HG_HASH': 'Arcadia-Source-Hash',
+        'ARCADIA_SOURCE_LAST_CHANGE': 'Arcadia-Source-Last-Change',
+        'ARCADIA_SOURCE_LAST_AUTHOR': 'Arcadia-Source-Last-Author',
+        'BRANCH': 'Branch',
+        'BUILD_HOST': 'Build-Host',
+        'BUILD_USER': 'Build-User',
+        'PROGRAM_VERSION': 'Program-Version-String',
+        'SCM_DATA': 'SCM-String',
+        'VCS': 'Version-Control-System',
+    }
+
+    SVN_REVISION = 'SVN_REVISION'
+
+    SVN_FIELDS_MAP = {
+        SVN_REVISION: 'SVN-Revision',
+        'SVN_ARCROOT': 'SVN-Arcroot',
+        'SVN_TIME': 'SVN-Time',
+    }
+
+    OPTIONAL_FIELDS_MAP = {
+        'BUILD_TIMESTAMP': 'Build-Timestamp',
+        'CUSTOM_VERSION': 'Custom-Version-String',
+        'DIRTY': 'Working-Copy-State',
+    }
+
+    ext_json = {}
+
+    for k in MANDATOTRY_FIELDS_MAP:
+        ext_json[MANDATOTRY_FIELDS_MAP[k]] = json_file[k]
+
+    if SVN_REVISION in json_file:
+       for k in SVN_FIELDS_MAP:
+           ext_json[SVN_FIELDS_MAP[k]] = json_file[k]
+
+    for k in OPTIONAL_FIELDS_MAP:
+        if k in json_file and json_file[k]:
+           ext_json[OPTIONAL_FIELDS_MAP[k]] = json_file[k]
+
+    with open(output_file, 'w') as f:
+        json.dump(ext_json, f, sort_keys=True, indent=4)
+
+
 if __name__ == '__main__':
     if 'output-go' in sys.argv:
         lang = 'Go'
@@ -260,6 +308,9 @@ if __name__ == '__main__':
     elif 'output-java' in sys.argv:
         lang = 'Java'
         sys.argv.remove('output-java')
+    elif 'output-json' in sys.argv:
+        lang = 'JSON'
+        sys.argv.remove('output-json')
     else:
         lang = 'C'
 
@@ -274,5 +325,7 @@ if __name__ == '__main__':
         print_go(json_file, sys.argv[2])
     elif lang == 'Java':
         print_java(json_file, sys.argv[2], sys.argv[3:])
+    elif lang == 'JSON':
+        print_json(json_file, sys.argv[2])
     else:
         print_c(json_file, sys.argv[2], sys.argv[3:])
