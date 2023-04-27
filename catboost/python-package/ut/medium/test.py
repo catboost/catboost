@@ -1189,16 +1189,125 @@ def test_predict_and_predict_proba_on_single_object(problem):
             assert np.array_equal(pred_probabilities[test_object_idx], model.predict_proba(test_data.values[test_object_idx]))
 
 
-@fails_on_gpu(how='Model contains categorical features, gpu evaluation impossible')
-def test_predict_on_gpu(task_type):
+@pytest.mark.parametrize(
+    'problem,prediction_type,feature_types',
+    [
+        pytest.param(
+            'Regression', 'RawFormulaVal', 'Numeric',
+            id='problem=Regression-prediction_type=RawFormulaVal-feature_types=Numeric'
+        ),
+        pytest.param(
+            'Regression', 'RawFormulaVal', 'NumericCateg',
+            id='problem=Regression-prediction_type=RawFormulaVal-feature_types=NumericCateg',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'BinaryClassification', 'RawFormulaVal', 'Numeric',
+            id='problem=BinaryClassification-prediction_type=RawFormulaVal-feature_types=Numeric'
+        ),
+        pytest.param(
+            'BinaryClassification', 'Class', 'Numeric',
+            id='problem=BinaryClassification-prediction_type=Class-feature_types=Numeric'
+        ),
+        pytest.param(
+            'BinaryClassification', 'Probability', 'Numeric',
+            id='problem=BinaryClassification-prediction_type=Probability-feature_types=Numeric'
+        ),
+        pytest.param(
+            'BinaryClassification', 'RawFormulaVal', 'NumericCateg',
+            id='problem=BinaryClassification-prediction_type=RawFormulaVal-feature_types=NumericCateg',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'BinaryClassification', 'RawFormulaVal', 'NumericCategText',
+            id='problem=BinaryClassification-prediction_type=RawFormulaVal-feature_types=NumericCategText',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'BinaryClassification', 'RawFormulaVal', 'NumericCategTextEmbeddings',
+            id='problem=BinaryClassification-prediction_type=RawFormulaVal-feature_types=NumericCategTextEmbeddings',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'RawFormulaVal', 'Numeric',
+            id='problem=MultiClassification-prediction_type=RawFormulaVal-feature_types=Numeric',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'Class', 'Numeric',
+            id='problem=MultiClassification-prediction_type=Class-feature_types=Numeric',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'Probability', 'Numeric',
+            id='problem=MultiClassification-prediction_type=Probability-feature_types=Numeric',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'RawFormulaVal', 'NumericCateg',
+            id='problem=MultiClassification-prediction_type=RawFormulaVal-feature_types=NumericCateg',
+            marks=[pytest.mark.xfail]
+        ),
+        pytest.param(
+            'MultiClassification', 'RawFormulaVal', 'NumericCategText',
+            id='problem=MultiClassification-prediction_type=RawFormulaVal-feature_types=NumericCategText',
+            marks=[pytest.mark.xfail]
+        ),
+    ],
+)
+def test_predict_on_gpu(task_type, problem, prediction_type, feature_types):
     if task_type == 'CPU':
         pytest.skip('test_predict_on_gpu is a GPU-specific test')
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=10, task_type='GPU', devices='0')
+
+    iterations = 1100
+
+    if problem == 'Regression':
+        model = CatBoostRegressor(iterations=iterations, task_type='GPU', devices='0')
+        if feature_types == 'Numeric':
+            pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+        if feature_types == 'NumericCateg':
+            pool = Pool(
+                data_file('adult_not_binarized', 'train_small'),
+                column_description=data_file('adult_not_binarized', 'train.cd')
+            )
+    elif 'Classification' in problem:
+        model = CatBoostClassifier(iterations=iterations, task_type='GPU', devices='0')
+        if (problem, feature_types) == ('BinaryClassification', 'Numeric'):
+            pool = Pool(HIGGS_TRAIN_FILE, column_description=HIGGS_CD_FILE)
+        elif (problem, feature_types) == ('BinaryClassification', 'NumericCateg'):
+            pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        elif (problem, feature_types) == ('BinaryClassification', 'NumericCategText'):
+            pool = Pool(
+                ROTTEN_TOMATOES_TRAIN_FILE,
+                column_description=ROTTEN_TOMATOES_CD_BINCLASS_FILE
+            )
+        elif (problem, feature_types) == ('BinaryClassification', 'NumericCategTextEmbeddings'):
+            pool = Pool(
+                ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+                column_description=ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE
+            )
+        elif (problem, feature_types) == ('MultiClassification', 'Numeric'):
+            object_count = 100
+            feature_count = 10
+            unique_labels = [0, 1, 2, 3, 4]
+            prng = np.random.RandomState(seed=0)
+            pool = Pool(
+                prng.random_sample(size=(object_count, feature_count)),
+                label=prng.choice(unique_labels, size=object_count)
+            )
+        elif (problem, feature_types) == ('MultiClassification', 'NumericCateg'):
+            pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+        elif (problem, feature_types) == ('MultiClassification', 'NumericCategText'):
+            pool = Pool(ROTTEN_TOMATOES_TRAIN_FILE, column_description=ROTTEN_TOMATOES_CD_FILE)
+
     model.fit(pool)
-    cpu_prediction = np.array(model.predict(pool, task_type='CPU'))
-    gpu_prediction = np.array(model.predict(pool, task_type='GPU'))
-    assert np.abs(cpu_prediction - gpu_prediction).max() < 1e-9
+
+    cpu_prediction = model.predict(pool, task_type='CPU', prediction_type=prediction_type)
+    gpu_prediction = model.predict(pool, task_type='GPU', prediction_type=prediction_type)
+    if prediction_type == 'Class':
+        assert all(cpu_prediction == gpu_prediction)
+    else:
+        assert np.abs(np.array(cpu_prediction) - np.array(gpu_prediction)).max() < 1e-6
 
 
 def test_model_pickling(task_type):
