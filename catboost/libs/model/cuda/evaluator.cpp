@@ -23,6 +23,10 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(!model.HasTextFeatures(), "Model contains text features, gpu evaluation impossible");
                 CB_ENSURE(!model.HasEmbeddingFeatures(), "Model contains embedding features, gpu evaluation impossible");
                 CB_ENSURE(model.IsOblivious(), "Model is not oblivious, gpu evaluation impossible");
+
+                // TODO(akhropov): Support Multidimensional models
+                CB_ENSURE(ModelTrees->GetDimensionsCount() == 1, "Model is not one-dimensional, GPU evaluation is not supported yet");
+
                 TVector<TGPURepackedBin> gpuBins;
                 for (const TRepackedBin& cpuRepackedBin : ModelTrees->GetRepackedBins()) {
                     gpuBins.emplace_back(TGPURepackedBin{ static_cast<ui32>(cpuRepackedBin.FeatureIndex * WarpSize), cpuRepackedBin.SplitIdx, cpuRepackedBin.XorMask });
