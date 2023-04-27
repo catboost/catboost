@@ -1470,3 +1470,47 @@ private:
 };
 
 void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstimation estimationMethod);
+
+class TFocalError final : public IDerCalcer {
+public:
+    const double FocalAlpha;
+    const double FocalGamma;
+
+public:
+    TFocalError(double alpha, double gamma, bool isExpApprox)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2)
+        , FocalAlpha(alpha), FocalGamma(gamma)
+    {
+        Y_ASSERT(FocalAlpha > 0 && FocalAlpha < 1 && FocalGamma > 0);
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        double approx_exp, at, p, pt, y, der;
+        approx_exp = 1 / (1 + exp(-approx));
+        at = target == 1 ? FocalAlpha : 1 - FocalAlpha;
+        p = std::clamp(approx_exp, 0.0000000000001, 0.9999999999999);
+        pt = target == 1 ? p : 1 - p;
+        y = 2 * target - 1;
+        der = at * y * pow((1 - pt), FocalGamma);
+        der = der * (FocalGamma * pt * log(pt) + pt - 1);
+        return der;
+    }
+
+    double CalcDer2(double approx, float target) const override {
+        double approx_exp, at, p, pt, y, u, du, v, dv, der2;
+        approx_exp = 1 / (1 + exp(-approx));
+        at = target == 1 ? FocalAlpha : 1 - FocalAlpha;
+        p = std::clamp(approx_exp, 0.0000000000001, 0.9999999999999);
+        pt = target == 1 ? p : 1 - p;
+        y = 2 * target - 1;
+        u = at * y * pow((1 - pt), FocalGamma);
+        du = -at * y * FocalGamma * pow((1 - pt), FocalGamma - 1);
+        v = FocalGamma * pt * log(pt) + pt - 1;
+        dv = FocalGamma * log(pt) + FocalGamma + 1;
+        der2 = (du * v + u * dv) * y * (pt * (1 - pt));
+        return der2;
+    }
+
+};

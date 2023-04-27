@@ -275,6 +275,11 @@ namespace NCatboostCuda {
                     VariancePower = NCatboostOptions::GetTweedieParam(targetOptions);
                     break;
                 }
+                case ELossFunction::Focal: {
+                    Alpha = NCatboostOptions::GetFocalParamA(targetOptions);
+                    Gamma = NCatboostOptions::GetFocalParamG(targetOptions);
+                    break;
+                }
                 case ELossFunction::Huber: {
                     Alpha = NCatboostOptions::GetHuberParam(targetOptions);
                     break;

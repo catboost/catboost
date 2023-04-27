@@ -296,6 +296,11 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TTweedieError>(
                 NCatboostOptions::GetTweedieParam(params.LossFunctionDescription),
                 isStoreExpApprox);
+        case ELossFunction::Focal:
+            return MakeHolder<TFocalError>(
+                NCatboostOptions::GetFocalParamA(params.LossFunctionDescription),
+                NCatboostOptions::GetFocalParamG(params.LossFunctionDescription),
+                isStoreExpApprox);
         case ELossFunction::LogCosh:
             return MakeHolder<TLogCoshError>(isStoreExpApprox);
         default:

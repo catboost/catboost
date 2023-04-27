@@ -1619,6 +1619,128 @@ TVector<TParamSet> TTweedieMetric::ValidParamSets() {
     };
 }
 
+/* Focal loss */
+
+namespace {
+    struct TFocalMetric final: public TAdditiveMetric {
+        explicit TFocalMetric(const TLossParams& params, double focal_alpha, double focal_gamma)
+            : TAdditiveMetric(ELossFunction::Focal, params)
+            , FocalAlpha(focal_alpha), FocalGamma(focal_gamma) {
+            CB_ENSURE(FocalAlpha > 0 && FocalAlpha < 1, "Focal metric is defined for 0 < focal_alpha < 1, got " << focal_alpha);
+            CB_ENSURE(FocalGamma > 0, "Focal metric is defined for 0 < focal_gamma, got " << focal_gamma);
+        }
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
+
+        TMetricHolder EvalSingleThread(
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end
+        ) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+    private:
+        const double FocalAlpha;
+        const double FocalGamma;
+    };
+}
+
+// static
+TVector<THolder<IMetric>> TFocalMetric::Create(const TMetricConfig& config) {
+    CB_ENSURE(config.GetParamsMap().contains("focal_alpha"), "Metric " << ELossFunction::Focal << " requires focal_alpha as parameter");
+    CB_ENSURE(config.GetParamsMap().contains("focal_gamma"), "Metric " << ELossFunction::Focal << " requires focal_gamma as parameter");
+    config.ValidParams->insert("focal_alpha");
+    config.ValidParams->insert("focal_gamma");
+    return AsVector(MakeHolder<TFocalMetric>(config.Params,
+                                               FromString<float>(config.GetParamsMap().at("focal_alpha")),
+                                               FromString<float>(config.GetParamsMap().at("focal_gamma"))
+                                            )
+                    );
+}
+
+TMetricHolder TFocalMetric::EvalSingleThread(
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric Focal supports only single-dimensional data");
+    Y_ASSERT(!isExpApprox);
+    const auto impl = [=] (auto hasDelta, auto hasWeight, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
+        TMetricHolder error(2);
+        for (int k : xrange(begin, end)) {
+            double curApprox = approx[k];
+            if (hasDelta) {
+                curApprox += approxDelta[k];
+            }
+            const float w = hasWeight ? weight[k] : 1;
+            double FocalAlpha = 0.75;
+            double FocalGamma = 2;
+            double at, p, pt, y, margin;
+            double u, du, v, dv, der2;
+
+            curApprox = 1 / (1 + exp(-curApprox));
+            at = target[k] == 1 ? FocalAlpha : 1 - FocalAlpha;
+            p = std::clamp(curApprox, 0.0000000000001, 0.9999999999999);
+            pt = target[k] == 1 ? p : 1 - p;
+            y = 2 * target[k] - 1;
+            margin = at * y * pow((1 - pt), FocalGamma);
+            margin = margin * (FocalGamma * pt * log(pt) + pt - 1);
+
+            // second derivative
+            u = at * y * pow((1 - pt), FocalGamma);
+            du = -at * y * pow(FocalGamma * (1 - pt), FocalGamma - 1);
+            v = FocalGamma * pt * log(pt) + pt - 1;
+            dv = FocalGamma * log(pt) + FocalGamma + 1;
+            der2 = (du * v + u * dv) * y * (pt * (1 - pt));
+
+            margin = margin + der2;
+            error.Stats[0] += w * margin;
+            error.Stats[1] += w;
+            }
+            return error;
+    };
+    switch (EncodeFlags(!approxDelta.empty(), !weight.empty())) {
+        case EncodeFlags(false, false):
+            return impl(std::false_type(), std::false_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(false, true):
+            return impl(std::false_type(), std::true_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(true, false):
+            return impl(std::true_type(), std::false_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(true, true):
+            return impl(std::true_type(), std::true_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        default:
+            Y_VERIFY(false);
+    }
+}
+
+void TFocalMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+TVector<TParamSet> TFocalMetric::ValidParamSets() {
+    return {
+        TParamSet{
+            {
+                TParamInfo{"use_weights", false, true},
+                TParamInfo{"focal_alpha", true, {}},
+                TParamInfo{"focal_gamma", true, {}}
+            },
+            ""
+        }
+    };
+}
+
 /* Mean squared logarithmic error */
 
 namespace {
@@ -5795,6 +5917,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::Tweedie:
             AppendTemporaryMetricsVector(TTweedieMetric::Create(config), &result);
             break;
+        case ELossFunction::Focal:
+            AppendTemporaryMetricsVector(TFocalMetric::Create(config), &result);
+            break;
         case ELossFunction::LogCosh:
             AppendTemporaryMetricsVector(TLogCoshMetric::Create(config), &result);
             break;
@@ -6038,6 +6163,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TPoissonMetric::ValidParamSets();
         case ELossFunction::Tweedie:
             return TTweedieMetric::ValidParamSets();
+        case ELossFunction::Focal:
+            return TFocalMetric::ValidParamSets();
         case ELossFunction::LogCosh:
             return TLogCoshMetric::ValidParamSets();
         case ELossFunction::MedianAbsoluteError:

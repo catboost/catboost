@@ -437,6 +437,9 @@ MakeRegister(LossInfos,
     Registree(Tweedie,
         EMetricAttribute::IsRegression
         | EMetricAttribute::HasGpuImplementation
+    ),
+    Registree(Focal,
+        EMetricAttribute::IsBinaryClassCompatible
     )
 )
 
@@ -559,7 +562,8 @@ static const TVector<ELossFunction> ClassificationObjectives = {
     ELossFunction::MultiClass,
     ELossFunction::MultiClassOneVsAll,
     ELossFunction::MultiLogloss,
-    ELossFunction::MultiCrossEntropy
+    ELossFunction::MultiCrossEntropy,
+    ELossFunction::Focal
 };
 
 static const TVector<ELossFunction> MultiLabelObjectives = {

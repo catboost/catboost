@@ -226,6 +226,14 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             defaultGradientIterations = 1;
             break;
         }
+        case ELossFunction::Focal: {
+            CB_ENSURE(lossFunctionConfig.GetLossParamsMap().contains("focal_alpha"), "Param focal_alpha is mandatory for Focal loss");
+            CB_ENSURE(lossFunctionConfig.GetLossParamsMap().contains("focal_gamma"), "Param focal_gamma is mandatory for Focal loss");
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::Combination: {
             bool haveDefaults = false;
             IterateOverCombination(

@@ -117,6 +117,7 @@ enum class ELossFunction {
     Logloss,
     CrossEntropy,
     CtrFactor,
+    Focal,
 
     /* regression errors */
 
