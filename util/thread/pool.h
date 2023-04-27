@@ -156,7 +156,7 @@ public:
     void SafeAddAndOwn(THolder<IObjectInQueue> obj);
 
     /**
-     * Add object to queue, run ojb->Proccess in other threads.
+     * Add object to queue, run obj->Proccess in other threads.
      * Obj is not deleted after execution
      * @return true of obj is successfully added to queue
      * @return false if queue is full or shutting down
