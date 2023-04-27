@@ -1622,9 +1622,9 @@ TVector<TParamSet> TTweedieMetric::ValidParamSets() {
 /* Focal loss */
 
 namespace {
-    struct TFocalMetric final: public TAdditiveMetric {
+    struct TFocalMetric final: public TAdditiveSingleTargetMetric {
         explicit TFocalMetric(const TLossParams& params, double focal_alpha, double focal_gamma)
-            : TAdditiveMetric(ELossFunction::Focal, params)
+            : TAdditiveSingleTargetMetric(ELossFunction::Focal, params)
             , FocalAlpha(focal_alpha), FocalGamma(focal_gamma) {
             CB_ENSURE(FocalAlpha > 0 && FocalAlpha < 1, "Focal metric is defined for 0 < focal_alpha < 1, got " << focal_alpha);
             CB_ENSURE(FocalGamma > 0, "Focal metric is defined for 0 < focal_gamma, got " << focal_gamma);
@@ -1665,8 +1665,8 @@ TVector<THolder<IMetric>> TFocalMetric::Create(const TMetricConfig& config) {
 }
 
 TMetricHolder TFocalMetric::EvalSingleThread(
-        const TConstArrayRef<TConstArrayRef<double>> approx,
-        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approxRef,
+        const TConstArrayRef<TConstArrayRef<double>> approxDeltaRef,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -1674,9 +1674,10 @@ TMetricHolder TFocalMetric::EvalSingleThread(
         int begin,
         int end
 ) const {
-    CB_ENSURE(approx.size() == 1, "Metric Focal supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
-    const auto impl = [=] (auto hasDelta, auto hasWeight, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
+    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+        TConstArrayRef<double> approx = approxRef[0];
+        TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
         TMetricHolder error(2);
         for (int k : xrange(begin, end)) {
             double curApprox = approx[k];
@@ -1710,18 +1711,7 @@ TMetricHolder TFocalMetric::EvalSingleThread(
             }
             return error;
     };
-    switch (EncodeFlags(!approxDelta.empty(), !weight.empty())) {
-        case EncodeFlags(false, false):
-            return impl(std::false_type(), std::false_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
-        case EncodeFlags(false, true):
-            return impl(std::false_type(), std::true_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
-        case EncodeFlags(true, false):
-            return impl(std::true_type(), std::false_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
-        case EncodeFlags(true, true):
-            return impl(std::true_type(), std::true_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
-        default:
-            Y_VERIFY(false);
-    }
+    return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weight.empty());
 }
 
 void TFocalMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
