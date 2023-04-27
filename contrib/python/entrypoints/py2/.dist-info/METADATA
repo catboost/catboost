@@ -1,0 +1,32 @@
+Metadata-Version: 2.1
+Name: entrypoints
+Version: 0.3
+Summary: Discover and load entry points from installed packages.
+Home-page: https://github.com/takluyver/entrypoints
+License: UNKNOWN
+Author: Thomas Kluyver
+Author-email: thomas@kluyver.me.uk
+Requires-Python: >=2.7
+Description-Content-Type: text/x-rst
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Requires-Dist: configparser (>=3.5); python_version == '2.7'
+Project-URL: Documentation, https://entrypoints.readthedocs.io/en/latest/
+Provides-Extra: .none
+
+Entry points are a way for Python packages to advertise objects with some
+common interface. The most common examples are ``console_scripts`` entry points,
+which define shell commands by identifying a Python function to run.
+
+*Groups* of entry points, such as ``console_scripts``, point to objects with
+similar interfaces. An application might use a group to find its plugins, or
+multiple groups if it has different kinds of plugins.
+
+The **entrypoints** module contains functions to find and load entry points.
+You can install it from PyPI with ``pip install entrypoints``.
+
+To advertise entry points when distributing a package, see
+`entry_points in the Python Packaging User Guide
+<https://packaging.python.org/en/latest/distributing.html#entry-points>`_.
+

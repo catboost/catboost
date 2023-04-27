@@ -1,0 +1,3 @@
+[entrypoints.test1]
+opo = bar:main
+abc = bar:abc

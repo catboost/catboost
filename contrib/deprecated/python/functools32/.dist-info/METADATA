@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: functools32
+Version: 3.2.3-2
+Summary: Backport of the functools module from Python 3.2.3 for use on 2.7 and PyPy.
+Home-page: https://github.com/MiCHiLU/python-functools32
+Author: ENDOH takanao
+Author-email: djmchl@gmail.com
+License: PSF license
+Platform: UNKNOWN
+
+
+This is a backport of the functools standard library module from
+Python 3.2.3 for use on Python 2.7 and PyPy. It includes
+new features `lru_cache` (Least-recently-used cache decorator).
+

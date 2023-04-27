@@ -1,0 +1,2 @@
+[entrypoints.test1]
+rew = baz:init

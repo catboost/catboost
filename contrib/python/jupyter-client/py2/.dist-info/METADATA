@@ -1,0 +1,41 @@
+Metadata-Version: 2.1
+Name: jupyter-client
+Version: 5.2.4
+Summary: Jupyter protocol implementation and client libraries
+Home-page: https://jupyter.org
+Author: Jupyter Development Team
+Author-email: jupyter@googlegroups.com
+License: BSD
+Project-URL: Documentation, https://jupyter-client.readthedocs.io
+Project-URL: Source, https://github.com/jupyter/jupyter_client/
+Project-URL: Tracker, https://github.com/jupyter/jupyter_client/issues
+Keywords: Interactive,Interpreter,Shell,Web
+Platform: Linux
+Platform: Mac OS X
+Platform: Windows
+Classifier: Framework :: Jupyter
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: System Administrators
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*
+Requires-Dist: traitlets
+Requires-Dist: jupyter-core
+Requires-Dist: pyzmq (>=13)
+Requires-Dist: python-dateutil (>=2.1)
+Requires-Dist: tornado (>=4.1)
+Provides-Extra: test
+Requires-Dist: ipykernel ; extra == 'test'
+Requires-Dist: ipython ; extra == 'test'
+Requires-Dist: mock ; extra == 'test'
+Requires-Dist: pytest ; ((python_version >= "3.4" or python_version == "2.7")) and extra == 'test'
+Requires-Dist: pytest (<3.3.0) ; (python_version == "3.3") and extra == 'test'
+
+UNKNOWN
+
+

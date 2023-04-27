@@ -1,0 +1,5 @@
+[entrypoints.test1]
+dontseeme = invisible
+
+# This shouldn't be seen, because another foo distribution is found
+# in packages1, which is before this on the path.
