@@ -331,7 +331,6 @@ TMetricHolder TCtrFactorMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approx.size() == 1, "Metric CtrFactor supports only single-dimensional data");
     Y_ASSERT(approxDelta.empty());
     Y_ASSERT(!isExpApprox);
 
@@ -766,7 +765,6 @@ TMetricHolder TLogCoshMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approxRef.size() == 1, "Metric LogCosh supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
     const double METRIC_APPROXIMATION_THRESHOLD = 12;
 
@@ -967,7 +965,6 @@ TMetricHolder TLqMetric::EvalSingleThread(
         int begin,
         int end
 ) const {
-    CB_ENSURE(approxRef.size() == 1, "Metric Lq supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
     const auto impl = [=] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
@@ -1067,7 +1064,6 @@ TMetricHolder TQuantileMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approxRef.size() == 1, "Metric quantile supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
     const auto impl = [=] (auto hasDelta, auto hasWeight, auto isMAE) {
         double alpha = Alpha;
@@ -1182,7 +1178,6 @@ TMetricHolder TExpectileMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approxRef.size() == 1, "Metric expectile supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
     const auto impl = [=] (auto hasDelta, auto hasWeight) {
         double alpha = Alpha;
@@ -1273,7 +1268,6 @@ TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approxRef.size() == 1, "Metric log-linear quantile supports only single-dimensional data");
     const auto impl = [=] (auto isExpApprox, auto hasDelta, auto hasWeight) {
         double alpha = Alpha;
         TConstArrayRef<double> approx = approxRef[0];
@@ -1358,7 +1352,6 @@ TMetricHolder TMAPEMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approxRef.size() == 1, "Metric MAPE quantile supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
     const auto impl = [=] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
@@ -1430,7 +1423,6 @@ TMetricHolder TNumErrorsMetric::EvalSingleThread(
         int begin,
         int end
 ) const {
-    CB_ENSURE(approx.size() == 1, "Metric NumErrors supports only single-dimensional data");
     Y_ASSERT(approxDelta.empty());
     Y_ASSERT(!isExpApprox);
 
@@ -1590,7 +1582,6 @@ TMetricHolder TTweedieMetric::EvalSingleThread(
         int begin,
         int end
 ) const {
-    CB_ENSURE(approxRef.size() == 1, "Metric Tweedie supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
     const auto impl = [=] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
@@ -1669,7 +1660,6 @@ TMetricHolder TMSLEMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approx.size() == 1, "Metric Mean squared logarithmic error supports only single-dimensional data");
     const auto& approxVec = approx.front();
     Y_ASSERT(approxVec.size() == target.size());
     Y_ASSERT(approxDelta.empty());
@@ -1740,7 +1730,6 @@ TMetricHolder TMedianAbsoluteErrorMetric::Eval(
     int end,
     NPar::ILocalExecutor& /* executor */
 ) const {
-    CB_ENSURE(approx.size() == 1, "Metric Median absolute error supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
     const auto& approxVec = approx.front();
     Y_ASSERT(approxVec.size() == target.size());
@@ -1819,7 +1808,6 @@ TMetricHolder TSMAPEMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approx.size() == 1, "Symmetric mean absolute percentage error supports only single-dimensional data");
     const auto& approxVec = approx.front();
     Y_ASSERT(approxVec.size() == target.size());
     Y_ASSERT(approxDelta.empty());
@@ -2360,7 +2348,6 @@ TMetricHolder TQueryRMSEMetric::EvalSingleThread(
     int queryStartIndex,
     int queryEndIndex
 ) const {
-    CB_ENSURE(approxRef.size() == 1, "Metric QueryRMSE supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
     const auto impl = [=] (auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
@@ -2980,7 +2967,6 @@ TMetricHolder TR2Metric::Eval(
     int end,
     NPar::ILocalExecutor& executor
 ) const {
-    CB_ENSURE(approx.size() == 1, "Metric R2 supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
 
     auto targetMeanCalcer = TR2TargetSumMetric();
@@ -4888,7 +4874,6 @@ TMetricHolder TAverageGain::EvalSingleThread(
 ) const {
     Y_ASSERT(approxDelta.empty());
     Y_ASSERT(!isExpApprox);
-    CB_ENSURE(approx.size() == 1, "Metric AverageGain supports only single-dimensional data");
 
     TMetricHolder error(2);
 

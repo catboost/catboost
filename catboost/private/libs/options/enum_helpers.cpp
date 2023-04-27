@@ -155,6 +155,7 @@ MakeRegister(LossInfos,
     ),
     Registree(RMSEWithUncertainty,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(RMSE,
         EMetricAttribute::IsRegression

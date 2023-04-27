@@ -175,6 +175,9 @@ namespace NCatboostCuda {
             double totalWeight = SumVector(weights);
             auto metricType = GetMetricDescription().GetLossFunction();
             const auto& params = GetMetricDescription().GetLossParamsMap();
+            // for models with uncertainty
+            // compatibility of metrics and loss is checked at startup in CheckMetric
+            const auto& prediction0 = cursor.ColumnView(0);
             switch (metricType) {
                 case ELossFunction::Logloss:
                 case ELossFunction::CrossEntropy: {
@@ -190,7 +193,7 @@ namespace NCatboostCuda {
 
                     ApproximateCrossEntropy(target,
                                             weights,
-                                            cursor,
+                                            prediction0,
                                             &tmp,
                                             (TVec*)nullptr,
                                             (TVec*)nullptr,
@@ -201,8 +204,8 @@ namespace NCatboostCuda {
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
                 case ELossFunction::RMSE: {
-                    auto tmp = TVec::CopyMapping(cursor);
-                    tmp.Copy(cursor);
+                    auto tmp = TVec::CopyMapping(prediction0);
+                    tmp.Copy(prediction0);
                     SubtractVector(tmp, target);
                     const double sum2 = DotProduct(tmp, tmp, &weights);
                     return MakeSimpleAdditiveStatistic(sum2, totalWeight);
@@ -218,7 +221,7 @@ namespace NCatboostCuda {
                 case ELossFunction::Tweedie:
                 case ELossFunction::Huber: {
                     float alpha = 0.5;
-                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    auto tmp = TVec::Create(prediction0.GetMapping().RepeatOnAllDevices(1));
                     //TODO(noxoomo): make param dispatch on device side
                     if (params.contains("alpha")) {
                         alpha = FromString<float>(params.at("alpha"));
@@ -238,7 +241,7 @@ namespace NCatboostCuda {
 
                     ApproximatePointwise(target,
                                          weights,
-                                         cursor,
+                                         prediction0,
                                          metricType,
                                          alpha,
                                          &tmp,
