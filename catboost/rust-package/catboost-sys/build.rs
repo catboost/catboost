@@ -7,32 +7,28 @@ use std::process::Command;
 fn main() {
     let target = env::var("TARGET").unwrap();
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let debug = env::var("DEBUG").unwrap();
     let cb_model_interface_root = Path::new("../../libs/model_interface/")
         .canonicalize()
         .unwrap();
 
-    #[cfg(feature = "gpu")]
-    let build_cmd_status = Command::new("../../../build/build_native.py")
-        .args(&[
-            "--targets",
-            "catboostmodel",
-            "--build-root-dir",
-            out_dir.to_str().unwrap(),
-            "--have-cuda",
-        ])
-        .status()
-        .unwrap_or_else(|e| {
-            panic!("Failed to run build_native.py : {}", e);
-        });
+    let mut build_native_args = vec![
+        "--targets",
+        "catboostmodel",
+        "--build-root-dir",
+        out_dir.to_str().unwrap(),
+    ];
+    if debug == "true" {
+        build_native_args.push("--build-type=Debug");
+    } else {
+        build_native_args.push("--build-type=Release");
+    }
 
-    #[cfg(not(feature = "gpu"))]
+    #[cfg(feature = "gpu")]
+    build_native_args.push("--have-cuda");
+
     let build_cmd_status = Command::new("../../../build/build_native.py")
-        .args(&[
-            "--targets",
-            "catboostmodel",
-            "--build-root-dir",
-            out_dir.to_str().unwrap(),
-        ])
+        .args(&build_native_args)
         .status()
         .unwrap_or_else(|e| {
             panic!("Failed to run build_native.py : {}", e);
