@@ -10709,6 +10709,19 @@ def test_pandas_integer_array():
     cb.fit(X, y)
 
 
+def test_pandas_categorical_with_categories_as_string_array():
+    X = pd.DataFrame({
+        "ints": pd.Series([1, 9, 5]),
+        "strs": pd.Series(["a", "b", "c"], dtype="category")
+    })
+    y = pd.Series([1, 2, 5])
+
+    X = X.astype({"strs": "string"}).astype({"strs": "category"})
+
+    clf = CatBoostClassifier(iterations=10, cat_features=["strs"])
+    clf.fit(X, y)
+
+
 @pytest.mark.parametrize('problem_type', ['classification', 'regression', 'ranking'])
 def test_train_with_embedding_features(problem_type):
     train_pool = Pool(

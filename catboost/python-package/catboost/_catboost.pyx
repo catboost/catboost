@@ -2641,8 +2641,7 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
 
     IRawFeaturesOrderDataVisitor* builder_visitor
 ):
-    cdef np.ndarray categories_values = column_values.categories.values
-    cdef ui32 categories_values_size = categories_values.shape[0]
+    cdef ui32 categories_size = len(column_values.categories)
 
     cdef np.ndarray categories_codes = column_values.codes
     cdef ui32 doc_count = categories_codes.shape[0]
@@ -2657,16 +2656,16 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
 
 
     # TODO(akhropov): make yresize accessible in Cython
-    categories_as_hashed_cat_values[0].resize(categories_values_size)
+    categories_as_hashed_cat_values[0].resize(categories_size)
     categories_as_hashed_cat_values_ref = <TArrayRef[ui32]>categories_as_hashed_cat_values[0]
-    for category_idx in range(categories_values_size):
+    for category_idx in range(categories_size):
         try:
-            get_id_object_bytes_string_representation(categories_values[category_idx], factor_string)
+            get_id_object_bytes_string_representation(column_values.categories[category_idx], factor_string)
         except CatBoostError:
             raise CatBoostError(
                 'Invalid type for cat_feature category for [feature_idx={}]={} :'
                 ' cat_features must be integer or string, real number values and NaN values'
-                ' should be converted to string.'.format(flat_feature_idx, categories_values[category_idx])
+                ' should be converted to string.'.format(flat_feature_idx, column_values.categories[category_idx])
             )
 
         categories_as_hashed_cat_values_ref[category_idx]  = builder_visitor[0].GetCatFeatureValue(
