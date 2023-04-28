@@ -38,14 +38,8 @@ else:
 
 
 def need_to_build_cuda(platform_name: str):
-    system, arch = platform_name.split('-')
-    if system == 'windows':
-        return True
-    elif system == 'linux':
-        # TODO: maybe aarch64 will also get support in the future
-        return arch == 'x86_64'
-    else:
-        return False
+    system, _ = platform_name.split('-')
+    return system in ['linux', 'windows']
 
 
 def get_primary_platform_name():
