@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 import shutil
@@ -6,7 +8,6 @@ from contextlib import contextmanager
 
 from prompt_toolkit.completion import (
     CompleteEvent,
-    DeduplicateCompleter,
     FuzzyWordCompleter,
     NestedCompleter,
     PathCompleter,

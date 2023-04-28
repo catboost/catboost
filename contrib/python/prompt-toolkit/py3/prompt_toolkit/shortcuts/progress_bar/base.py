@@ -7,13 +7,15 @@ Progress bar implementation on top of prompt_toolkit.
         for item in pb(data):
             ...
 """
+from __future__ import annotations
+
+import contextvars
 import datetime
 import functools
 import os
 import signal
 import threading
 import traceback
-from asyncio import new_event_loop, set_event_loop
 from typing import (
     Callable,
     Generic,
@@ -30,7 +32,6 @@ from typing import (
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app_session
-from prompt_toolkit.eventloop import get_event_loop
 from prompt_toolkit.filters import Condition, is_done, renderer_height_is_known
 from prompt_toolkit.formatted_text import (
     AnyFormattedText,
@@ -52,16 +53,9 @@ from prompt_toolkit.layout.controls import UIContent, UIControl
 from prompt_toolkit.layout.dimension import AnyDimension, D
 from prompt_toolkit.output import ColorDepth, Output
 from prompt_toolkit.styles import BaseStyle
+from prompt_toolkit.utils import in_main_thread
 
 from .formatters import Formatter, create_default_formatters
-
-try:
-    import contextvars
-except ImportError:
-    from prompt_toolkit.eventloop import dummy_contextvars
-
-    contextvars = dummy_contextvars  # type: ignore
-
 
 __all__ = ["ProgressBar"]
 
@@ -70,7 +64,7 @@ E = KeyPressEvent
 _SIGWINCH = getattr(signal, "SIGWINCH", None)
 
 
-def create_key_bindings(cancel_callback: Optional[Callable[[], None]]) -> KeyBindings:
+def create_key_bindings(cancel_callback: Callable[[], None] | None) -> KeyBindings:
     """
     Key bindings handled by the progress bar.
     (The main thread is not supposed to handle any key bindings.)
@@ -125,21 +119,20 @@ class ProgressBar:
     def __init__(
         self,
         title: AnyFormattedText = None,
-        formatters: Optional[Sequence[Formatter]] = None,
+        formatters: Sequence[Formatter] | None = None,
         bottom_toolbar: AnyFormattedText = None,
-        style: Optional[BaseStyle] = None,
-        key_bindings: Optional[KeyBindings] = None,
-        cancel_callback: Optional[Callable[[], None]] = None,
-        file: Optional[TextIO] = None,
-        color_depth: Optional[ColorDepth] = None,
-        output: Optional[Output] = None,
-        input: Optional[Input] = None,
+        style: BaseStyle | None = None,
+        key_bindings: KeyBindings | None = None,
+        cancel_callback: Callable[[], None] | None = None,
+        file: TextIO | None = None,
+        color_depth: ColorDepth | None = None,
+        output: Output | None = None,
+        input: Input | None = None,
     ) -> None:
-
         self.title = title
         self.formatters = formatters or create_default_formatters()
         self.bottom_toolbar = bottom_toolbar
-        self.counters: List[ProgressBarCounter[object]] = []
+        self.counters: list[ProgressBarCounter[object]] = []
         self.style = style
         self.key_bindings = key_bindings
         self.cancel_callback = cancel_callback
@@ -147,10 +140,7 @@ class ProgressBar:
         # If no `cancel_callback` was given, and we're creating the progress
         # bar from the main thread. Cancel by sending a `KeyboardInterrupt` to
         # the main thread.
-        if (
-            self.cancel_callback is None
-            and threading.currentThread() == threading.main_thread()
-        ):
+        if self.cancel_callback is None and in_main_thread():
 
             def keyboard_interrupt_to_main_thread() -> None:
                 os.kill(os.getpid(), signal.SIGINT)
@@ -163,13 +153,12 @@ class ProgressBar:
         self.output = output or get_app_session().output
         self.input = input or get_app_session().input
 
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
 
-        self._app_loop = new_event_loop()
         self._has_sigwinch = False
         self._app_started = threading.Event()
 
-    def __enter__(self) -> "ProgressBar":
+    def __enter__(self) -> ProgressBar:
         # Create UI Application.
         title_toolbar = ConditionalContainer(
             Window(
@@ -233,7 +222,6 @@ class ProgressBar:
 
         # Run application in different thread.
         def run() -> None:
-            set_event_loop(self._app_loop)
             try:
                 self.app.run(pre_run=self._app_started.set)
             except BaseException as e:
@@ -254,20 +242,19 @@ class ProgressBar:
         self._app_started.wait()
 
         # Quit UI application.
-        if self.app.is_running:
-            self._app_loop.call_soon_threadsafe(self.app.exit)
+        if self.app.is_running and self.app.loop is not None:
+            self.app.loop.call_soon_threadsafe(self.app.exit)
 
         if self._thread is not None:
             self._thread.join()
-        self._app_loop.close()
 
     def __call__(
         self,
-        data: Optional[Iterable[_T]] = None,
+        data: Iterable[_T] | None = None,
         label: AnyFormattedText = "",
         remove_when_done: bool = False,
-        total: Optional[int] = None,
-    ) -> "ProgressBarCounter[_T]":
+        total: int | None = None,
+    ) -> ProgressBarCounter[_T]:
         """
         Start a new counter.
 
@@ -296,14 +283,14 @@ class _ProgressControl(UIControl):
         self,
         progress_bar: ProgressBar,
         formatter: Formatter,
-        cancel_callback: Optional[Callable[[], None]],
+        cancel_callback: Callable[[], None] | None,
     ) -> None:
         self.progress_bar = progress_bar
         self.formatter = formatter
         self._key_bindings = create_key_bindings(cancel_callback)
 
     def create_content(self, width: int, height: int) -> UIContent:
-        items: List[StyleAndTextTuples] = []
+        items: list[StyleAndTextTuples] = []
 
         for pr in self.progress_bar.counters:
             try:
@@ -337,21 +324,20 @@ class ProgressBarCounter(Generic[_CounterItem]):
     def __init__(
         self,
         progress_bar: ProgressBar,
-        data: Optional[Iterable[_CounterItem]] = None,
+        data: Iterable[_CounterItem] | None = None,
         label: AnyFormattedText = "",
         remove_when_done: bool = False,
-        total: Optional[int] = None,
+        total: int | None = None,
     ) -> None:
-
         self.start_time = datetime.datetime.now()
-        self.stop_time: Optional[datetime.datetime] = None
+        self.stop_time: datetime.datetime | None = None
         self.progress_bar = progress_bar
         self.data = data
         self.items_completed = 0
         self.label = label
         self.remove_when_done = remove_when_done
         self._done = False
-        self.total: Optional[int]
+        self.total: int | None
 
         if total is None:
             try:
@@ -452,7 +438,7 @@ class ProgressBarCounter(Generic[_CounterItem]):
             return self.stop_time - self.start_time
 
     @property
-    def time_left(self) -> Optional[datetime.timedelta]:
+    def time_left(self) -> datetime.timedelta | None:
         """
         Timedelta representing the time left.
         """

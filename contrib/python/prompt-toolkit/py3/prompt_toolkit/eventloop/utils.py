@@ -1,19 +1,17 @@
+from __future__ import annotations
+
 import asyncio
+import contextvars
 import sys
 import time
+from asyncio import get_running_loop
 from types import TracebackType
 from typing import Any, Awaitable, Callable, Dict, Optional, TypeVar, cast
-
-try:
-    import contextvars
-except ImportError:
-    from . import dummy_contextvars as contextvars  # type: ignore
 
 __all__ = [
     "run_in_executor_with_context",
     "call_soon_threadsafe",
     "get_traceback_from_context",
-    "get_event_loop",
 ]
 
 _T = TypeVar("_T")
@@ -22,7 +20,7 @@ _T = TypeVar("_T")
 def run_in_executor_with_context(
     func: Callable[..., _T],
     *args: Any,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ) -> Awaitable[_T]:
     """
     Run a function in an executor, but make sure it uses the same contextvars.
@@ -30,7 +28,7 @@ def run_in_executor_with_context(
 
     See also: https://bugs.python.org/issue34014
     """
-    loop = loop or get_event_loop()
+    loop = loop or get_running_loop()
     ctx: contextvars.Context = contextvars.copy_context()
 
     return loop.run_in_executor(None, ctx.run, func, *args)
@@ -38,8 +36,8 @@ def run_in_executor_with_context(
 
 def call_soon_threadsafe(
     func: Callable[[], None],
-    max_postpone_time: Optional[float] = None,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    max_postpone_time: float | None = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ) -> None:
     """
     Wrapper around asyncio's `call_soon_threadsafe`.
@@ -57,7 +55,7 @@ def call_soon_threadsafe(
     However, we want to set a deadline value, for when the rendering should
     happen. (The UI should stay responsive).
     """
-    loop2 = loop or get_event_loop()
+    loop2 = loop or get_running_loop()
 
     # If no `max_postpone_time` has been given, schedule right now.
     if max_postpone_time is None:
@@ -86,7 +84,7 @@ def call_soon_threadsafe(
     loop2.call_soon_threadsafe(schedule)
 
 
-def get_traceback_from_context(context: Dict[str, Any]) -> Optional[TracebackType]:
+def get_traceback_from_context(context: dict[str, Any]) -> TracebackType | None:
     """
     Get the traceback object from the context.
     """
@@ -101,18 +99,3 @@ def get_traceback_from_context(context: Dict[str, Any]) -> Optional[TracebackTyp
             return sys.exc_info()[2]
 
     return None
-
-
-def get_event_loop() -> asyncio.AbstractEventLoop:
-    """Backward compatible way to get the event loop"""
-    # Python 3.6 doesn't have get_running_loop
-    # Python 3.10 deprecated get_event_loop
-    if sys.version_info >= (3, 7):
-        getloop = asyncio.get_running_loop
-    else:
-        getloop = asyncio.get_event_loop
-
-    try:
-        return getloop()
-    except RuntimeError:
-        return asyncio.get_event_loop_policy().get_event_loop()

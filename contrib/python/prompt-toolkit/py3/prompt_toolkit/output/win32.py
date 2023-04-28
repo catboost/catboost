@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 
 assert sys.platform == "win32"
@@ -96,12 +98,12 @@ class Win32Output(Output):
         self,
         stdout: TextIO,
         use_complete_width: bool = False,
-        default_color_depth: Optional[ColorDepth] = None,
+        default_color_depth: ColorDepth | None = None,
     ) -> None:
         self.use_complete_width = use_complete_width
         self.default_color_depth = default_color_depth
 
-        self._buffer: List[str] = []
+        self._buffer: list[str] = []
         self.stdout: TextIO = stdout
         self.hconsole = HANDLE(windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE))
 
@@ -523,11 +525,6 @@ class Win32Output(Output):
         if self.default_color_depth is not None:
             return self.default_color_depth
 
-        # For now, by default, always use 4 bit color on Windows 10 by default,
-        # even when vt100 escape sequences with
-        # ENABLE_VIRTUAL_TERMINAL_PROCESSING are supported. We don't have a
-        # reliable way yet to know whether our console supports true color or
-        # only 4-bit.
         return ColorDepth.DEPTH_4_BIT
 
 
@@ -556,8 +553,8 @@ class BACKGROUND_COLOR:
 
 
 def _create_ansi_color_dict(
-    color_cls: Union[Type[FOREGROUND_COLOR], Type[BACKGROUND_COLOR]]
-) -> Dict[str, int]:
+    color_cls: type[FOREGROUND_COLOR] | type[BACKGROUND_COLOR],
+) -> dict[str, int]:
     "Create a table that maps the 16 named ansi colors to their Windows code."
     return {
         "ansidefault": color_cls.BLACK,
@@ -598,10 +595,10 @@ class ColorLookupTable:
         self._win32_colors = self._build_color_table()
 
         # Cache (map color string to foreground and background code).
-        self.best_match: Dict[str, Tuple[int, int]] = {}
+        self.best_match: dict[str, tuple[int, int]] = {}
 
     @staticmethod
-    def _build_color_table() -> List[Tuple[int, int, int, int, int]]:
+    def _build_color_table() -> list[tuple[int, int, int, int, int]]:
         """
         Build an RGB-to-256 color conversion table
         """
@@ -627,7 +624,7 @@ class ColorLookupTable:
             (0xFF, 0xFF, 0xFF, FG.GRAY | FG.INTENSITY, BG.GRAY | BG.INTENSITY),
         ]
 
-    def _closest_color(self, r: int, g: int, b: int) -> Tuple[int, int]:
+    def _closest_color(self, r: int, g: int, b: int) -> tuple[int, int]:
         distance = 257 * 257 * 3  # "infinity" (>distance from #000000 to #ffffff)
         fg_match = 0
         bg_match = 0
@@ -645,7 +642,7 @@ class ColorLookupTable:
                 distance = d
         return fg_match, bg_match
 
-    def _color_indexes(self, color: str) -> Tuple[int, int]:
+    def _color_indexes(self, color: str) -> tuple[int, int]:
         indexes = self.best_match.get(color, None)
         if indexes is None:
             try:

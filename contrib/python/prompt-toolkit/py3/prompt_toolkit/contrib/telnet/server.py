@@ -1,15 +1,18 @@
 """
 Telnet server.
 """
+from __future__ import annotations
+
 import asyncio
+import contextvars
 import socket
 import sys
+from asyncio import get_running_loop
 from typing import Any, Awaitable, Callable, List, Optional, Set, TextIO, Tuple, cast
 
 from prompt_toolkit.application.current import create_app_session, get_app
 from prompt_toolkit.application.run_in_terminal import run_in_terminal
 from prompt_toolkit.data_structures import Size
-from prompt_toolkit.eventloop import get_event_loop
 from prompt_toolkit.formatted_text import AnyFormattedText, to_formatted_text
 from prompt_toolkit.input import PipeInput, create_pipe_input
 from prompt_toolkit.output.vt100 import Vt100_Output
@@ -32,11 +35,6 @@ from .protocol import (
     WILL,
     TelnetProtocolParser,
 )
-
-if sys.version_info >= (3, 7):
-    import contextvars  # Requires Python3.7!
-else:
-    contextvars: Any = None
 
 __all__ = [
     "TelnetServer",
@@ -86,7 +84,7 @@ class _ConnectionStdout:
         self._encoding = encoding
         self._connection = connection
         self._errors = "strict"
-        self._buffer: List[bytes] = []
+        self._buffer: list[bytes] = []
         self._closed = False
 
     def write(self, data: str) -> None:
@@ -126,15 +124,14 @@ class TelnetConnection:
     def __init__(
         self,
         conn: socket.socket,
-        addr: Tuple[str, int],
-        interact: Callable[["TelnetConnection"], Awaitable[None]],
-        server: "TelnetServer",
+        addr: tuple[str, int],
+        interact: Callable[[TelnetConnection], Awaitable[None]],
+        server: TelnetServer,
         encoding: str,
-        style: Optional[BaseStyle],
+        style: BaseStyle | None,
         vt100_input: PipeInput,
         enable_cpr: bool = True,
     ) -> None:
-
         self.conn = conn
         self.addr = addr
         self.interact = interact
@@ -145,7 +142,7 @@ class TelnetConnection:
         self._ready = asyncio.Event()
         self.vt100_input = vt100_input
         self.enable_cpr = enable_cpr
-        self.vt100_output: Optional[Vt100_Output] = None
+        self.vt100_output: Vt100_Output | None = None
 
         # Create "Output" object.
         self.size = Size(rows=40, columns=79)
@@ -177,7 +174,7 @@ class TelnetConnection:
             self._ready.set()
 
         self.parser = TelnetProtocolParser(data_received, size_received, ttype_received)
-        self.context: Optional[contextvars.Context] = None
+        self.context: contextvars.Context | None = None
 
     async def run_application(self) -> None:
         """
@@ -194,7 +191,7 @@ class TelnetConnection:
                 self.close()
 
         # Add reader.
-        loop = get_event_loop()
+        loop = get_running_loop()
         loop.add_reader(self.conn, handle_incoming_data)
 
         try:
@@ -220,7 +217,7 @@ class TelnetConnection:
             self._closed = True
 
             self.vt100_input.close()
-            get_event_loop().remove_reader(self.conn)
+            get_running_loop().remove_reader(self.conn)
             self.conn.close()
             self.stdout.close()
 
@@ -269,6 +266,18 @@ async def _dummy_interact(connection: TelnetConnection) -> None:
 class TelnetServer:
     """
     Telnet server implementation.
+
+    Example::
+
+        async def interact(connection):
+            connection.send("Welcome")
+            session = PromptSession()
+            result = await session.prompt_async(message="Say something: ")
+            connection.send(f"You said: {result}\n")
+
+        async def main():
+            server = TelnetServer(interact=interact, port=2323)
+            await server.run()
     """
 
     def __init__(
@@ -277,20 +286,20 @@ class TelnetServer:
         port: int = 23,
         interact: Callable[[TelnetConnection], Awaitable[None]] = _dummy_interact,
         encoding: str = "utf-8",
-        style: Optional[BaseStyle] = None,
+        style: BaseStyle | None = None,
         enable_cpr: bool = True,
     ) -> None:
-
         self.host = host
         self.port = port
         self.interact = interact
         self.encoding = encoding
         self.style = style
         self.enable_cpr = enable_cpr
-        self._application_tasks: List[asyncio.Task[None]] = []
 
-        self.connections: Set[TelnetConnection] = set()
-        self._listen_socket: Optional[socket.socket] = None
+        self._run_task: asyncio.Task[None] | None = None
+        self._application_tasks: list[asyncio.Task[None]] = []
+
+        self.connections: set[TelnetConnection] = set()
 
     @classmethod
     def _create_socket(cls, host: str, port: int) -> socket.socket:
@@ -302,44 +311,76 @@ class TelnetServer:
         s.listen(4)
         return s
 
-    def start(self) -> None:
+    async def run(self, ready_cb: Callable[[], None] | None = None) -> None:
         """
-        Start the telnet server.
-        Don't forget to call `loop.run_forever()` after doing this.
+        Run the telnet server, until this gets cancelled.
+
+        :param ready_cb: Callback that will be called at the point that we're
+            actually listening.
         """
-        self._listen_socket = self._create_socket(self.host, self.port)
+        socket = self._create_socket(self.host, self.port)
         logger.info(
             "Listening for telnet connections on %s port %r", self.host, self.port
         )
 
-        get_event_loop().add_reader(self._listen_socket, self._accept)
+        get_running_loop().add_reader(socket, lambda: self._accept(socket))
+
+        if ready_cb:
+            ready_cb()
+
+        try:
+            # Run forever, until cancelled.
+            await asyncio.Future()
+        finally:
+            get_running_loop().remove_reader(socket)
+            socket.close()
+
+            # Wait for all applications to finish.
+            for t in self._application_tasks:
+                t.cancel()
+
+            # (This is similar to
+            # `Application.cancel_and_wait_for_background_tasks`. We wait for the
+            # background tasks to complete, but don't propagate exceptions, because
+            # we can't use `ExceptionGroup` yet.)
+            if len(self._application_tasks) > 0:
+                await asyncio.wait(
+                    self._application_tasks,
+                    timeout=None,
+                    return_when=asyncio.ALL_COMPLETED,
+                )
+
+    def start(self) -> None:
+        """
+        Deprecated: Use `.run()` instead.
+
+        Start the telnet server (stop by calling and awaiting `stop()`).
+        """
+        if self._run_task is not None:
+            # Already running.
+            return
+
+        self._run_task = get_running_loop().create_task(self.run())
 
     async def stop(self) -> None:
-        if self._listen_socket:
-            get_event_loop().remove_reader(self._listen_socket)
-            self._listen_socket.close()
+        """
+        Deprecated: Use `.run()` instead.
 
-        # Wait for all applications to finish.
-        for t in self._application_tasks:
-            t.cancel()
+        Stop a telnet server that was started using `.start()` and wait for the
+        cancellation to complete.
+        """
+        if self._run_task is not None:
+            self._run_task.cancel()
+            try:
+                await self._run_task
+            except asyncio.CancelledError:
+                pass
 
-        # (This is similar to
-        # `Application.cancel_and_wait_for_background_tasks`. We wait for the
-        # background tasks to complete, but don't propagate exceptions, because
-        # we can't use `ExceptionGroup` yet.)
-        if len(self._application_tasks) > 0:
-            await asyncio.wait(
-                self._application_tasks, timeout=None, return_when=asyncio.ALL_COMPLETED
-            )
-
-    def _accept(self) -> None:
+    def _accept(self, listen_socket: socket.socket) -> None:
         """
         Accept new incoming connection.
         """
-        if self._listen_socket is None:
-            return  # Should not happen. `_accept` is called after `start`.
-
-        conn, addr = self._listen_socket.accept()
+        conn, addr = listen_socket.accept()
         logger.info("New connection %r %r", *addr)
 
         # Run application for this connection.
@@ -381,5 +422,5 @@ class TelnetServer:
             finally:
                 self._application_tasks.remove(task)
 
-        task = get_event_loop().create_task(run())
+        task = get_running_loop().create_task(run())
         self._application_tasks.append(task)

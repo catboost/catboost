@@ -22,17 +22,17 @@ stuff to do. There are two ways to detect when to return:
   asynchronous autocompletion. When the completion for instance is ready, we
   also want prompt-toolkit to gain control again in order to display that.
 """
+from __future__ import annotations
+
 import asyncio
 import os
 import select
 import selectors
 import sys
 import threading
-from asyncio import AbstractEventLoop
+from asyncio import AbstractEventLoop, get_running_loop
 from selectors import BaseSelector, SelectorKey
 from typing import TYPE_CHECKING, Any, Callable, List, Mapping, Optional, Tuple
-
-from .utils import get_event_loop
 
 __all__ = [
     "new_eventloop_with_inputhook",
@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
 
 def new_eventloop_with_inputhook(
-    inputhook: Callable[["InputHookContext"], None]
+    inputhook: Callable[[InputHookContext], None]
 ) -> AbstractEventLoop:
     """
     Create a new event loop with the given inputhook.
@@ -59,7 +59,7 @@ def new_eventloop_with_inputhook(
 
 
 def set_eventloop_with_inputhook(
-    inputhook: Callable[["InputHookContext"], None]
+    inputhook: Callable[[InputHookContext], None]
 ) -> AbstractEventLoop:
     """
     Create a new event loop with the given inputhook, and activate it.
@@ -79,31 +79,31 @@ class InputHookSelector(BaseSelector):
     """
 
     def __init__(
-        self, selector: BaseSelector, inputhook: Callable[["InputHookContext"], None]
+        self, selector: BaseSelector, inputhook: Callable[[InputHookContext], None]
     ) -> None:
         self.selector = selector
         self.inputhook = inputhook
         self._r, self._w = os.pipe()
 
     def register(
-        self, fileobj: "FileDescriptorLike", events: "_EventMask", data: Any = None
-    ) -> "SelectorKey":
+        self, fileobj: FileDescriptorLike, events: _EventMask, data: Any = None
+    ) -> SelectorKey:
         return self.selector.register(fileobj, events, data=data)
 
-    def unregister(self, fileobj: "FileDescriptorLike") -> "SelectorKey":
+    def unregister(self, fileobj: FileDescriptorLike) -> SelectorKey:
         return self.selector.unregister(fileobj)
 
     def modify(
-        self, fileobj: "FileDescriptorLike", events: "_EventMask", data: Any = None
-    ) -> "SelectorKey":
+        self, fileobj: FileDescriptorLike, events: _EventMask, data: Any = None
+    ) -> SelectorKey:
         return self.selector.modify(fileobj, events, data=None)
 
     def select(
-        self, timeout: Optional[float] = None
-    ) -> List[Tuple["SelectorKey", "_EventMask"]]:
+        self, timeout: float | None = None
+    ) -> list[tuple[SelectorKey, _EventMask]]:
         # If there are tasks in the current event loop,
         # don't run the input hook.
-        if len(getattr(get_event_loop(), "_ready", [])) > 0:
+        if len(getattr(get_running_loop(), "_ready", [])) > 0:
             return self.selector.select(timeout=timeout)
 
         ready = False
@@ -166,7 +166,7 @@ class InputHookSelector(BaseSelector):
         self._r = self._w = -1
         self.selector.close()
 
-    def get_map(self) -> Mapping["FileDescriptorLike", "SelectorKey"]:
+    def get_map(self) -> Mapping[FileDescriptorLike, SelectorKey]:
         return self.selector.get_map()
 
 

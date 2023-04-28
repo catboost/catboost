@@ -1,42 +1,27 @@
 """
 Implementation for async generators.
 """
-from queue import Empty, Full, Queue
-from threading import Event
-from typing import (
-    TYPE_CHECKING,
-    AsyncGenerator,
-    Awaitable,
-    Callable,
-    Iterable,
-    TypeVar,
-    Union,
-)
+from __future__ import annotations
 
-from .async_context_manager import asynccontextmanager
-from .utils import get_event_loop, run_in_executor_with_context
+from asyncio import get_running_loop
+from contextlib import asynccontextmanager
+from queue import Empty, Full, Queue
+from typing import Any, AsyncGenerator, Callable, Iterable, TypeVar, Union
+
+from .utils import run_in_executor_with_context
 
 __all__ = [
     "aclosing",
     "generator_to_async_generator",
 ]
 
-
-if TYPE_CHECKING:
-    # Thanks: https://github.com/python/typeshed/blob/main/stdlib/contextlib.pyi
-    from typing_extensions import Protocol
-
-    class _SupportsAclose(Protocol):
-        def aclose(self) -> Awaitable[object]:
-            ...
-
-    _SupportsAcloseT = TypeVar("_SupportsAcloseT", bound=_SupportsAclose)
+_T_Generator = TypeVar("_T_Generator", bound=AsyncGenerator[Any, None])
 
 
 @asynccontextmanager
 async def aclosing(
-    thing: "_SupportsAcloseT",
-) -> AsyncGenerator["_SupportsAcloseT", None]:
+    thing: _T_Generator,
+) -> AsyncGenerator[_T_Generator, None]:
     "Similar to `contextlib.aclosing`, in Python 3.10."
     try:
         yield thing
@@ -80,8 +65,8 @@ async def generator_to_async_generator(
     """
     quitting = False
     # NOTE: We are limiting the queue size in order to have back-pressure.
-    q: Queue[Union[_T, _Done]] = Queue(maxsize=buffer_size)
-    loop = get_event_loop()
+    q: Queue[_T | _Done] = Queue(maxsize=buffer_size)
+    loop = get_running_loop()
 
     def runner() -> None:
         """

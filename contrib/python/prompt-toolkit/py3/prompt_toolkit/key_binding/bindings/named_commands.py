@@ -3,6 +3,8 @@ Key bindings which are also known by GNU Readline by the given names.
 
 See: http://www.delorie.com/gnu/docs/readline/rlman_13.html
 """
+from __future__ import annotations
+
 from typing import Callable, Dict, TypeVar, Union, cast
 
 from prompt_toolkit.document import Document
@@ -29,7 +31,7 @@ E = KeyPressEvent
 
 
 # Registry that maps the Readline command names to their handlers.
-_readline_commands: Dict[str, Binding] = {}
+_readline_commands: dict[str, Binding] = {}
 
 
 def register(name: str) -> Callable[[_T], _T]:
@@ -574,6 +576,7 @@ def print_last_kbd_macro(event: E) -> None:
     """
     Print the last keyboard macro.
     """
+
     # TODO: Make the format suitable for the inputrc file.
     def print_macro() -> None:
         macro = event.app.emacs_state.macro

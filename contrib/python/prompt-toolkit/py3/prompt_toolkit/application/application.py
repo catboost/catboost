@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import asyncio
+import contextvars
 import os
 import re
 import signal
@@ -10,8 +13,7 @@ from asyncio import (
     Future,
     Task,
     ensure_future,
-    new_event_loop,
-    set_event_loop,
+    get_running_loop,
     sleep,
 )
 from contextlib import ExitStack, contextmanager
@@ -19,7 +21,6 @@ from subprocess import Popen
 from traceback import format_tb
 from typing import (
     Any,
-    Awaitable,
     Callable,
     Coroutine,
     Dict,
@@ -50,7 +51,7 @@ from prompt_toolkit.eventloop import (
     get_traceback_from_context,
     run_in_executor_with_context,
 )
-from prompt_toolkit.eventloop.utils import call_soon_threadsafe, get_event_loop
+from prompt_toolkit.eventloop.utils import call_soon_threadsafe
 from prompt_toolkit.filters import Condition, Filter, FilterOrBool, to_filter
 from prompt_toolkit.formatted_text import AnyFormattedText
 from prompt_toolkit.input.base import Input
@@ -93,12 +94,6 @@ from prompt_toolkit.utils import Event, in_main_thread
 
 from .current import get_app_session, set_app
 from .run_in_terminal import in_terminal, run_in_terminal
-
-try:
-    import contextvars
-except ImportError:
-    import prompt_toolkit.eventloop.dummy_contextvars as contextvars  # type: ignore
-
 
 __all__ = [
     "Application",
@@ -196,38 +191,34 @@ class Application(Generic[_AppResult]):
 
     def __init__(
         self,
-        layout: Optional[Layout] = None,
-        style: Optional[BaseStyle] = None,
+        layout: Layout | None = None,
+        style: BaseStyle | None = None,
         include_default_pygments_style: FilterOrBool = True,
-        style_transformation: Optional[StyleTransformation] = None,
-        key_bindings: Optional[KeyBindingsBase] = None,
-        clipboard: Optional[Clipboard] = None,
+        style_transformation: StyleTransformation | None = None,
+        key_bindings: KeyBindingsBase | None = None,
+        clipboard: Clipboard | None = None,
         full_screen: bool = False,
-        color_depth: Union[
-            ColorDepth, Callable[[], Union[ColorDepth, None]], None
-        ] = None,
+        color_depth: (ColorDepth | Callable[[], ColorDepth | None] | None) = None,
         mouse_support: FilterOrBool = False,
-        enable_page_navigation_bindings: Optional[
-            FilterOrBool
-        ] = None,  # Can be None, True or False.
+        enable_page_navigation_bindings: None
+        | (FilterOrBool) = None,  # Can be None, True or False.
         paste_mode: FilterOrBool = False,
         editing_mode: EditingMode = EditingMode.EMACS,
         erase_when_done: bool = False,
         reverse_vi_search_direction: FilterOrBool = False,
-        min_redraw_interval: Union[float, int, None] = None,
-        max_render_postpone_time: Union[float, int, None] = 0.01,
-        refresh_interval: Optional[float] = None,
-        terminal_size_polling_interval: Optional[float] = 0.5,
+        min_redraw_interval: float | int | None = None,
+        max_render_postpone_time: float | int | None = 0.01,
+        refresh_interval: float | None = None,
+        terminal_size_polling_interval: float | None = 0.5,
         cursor: AnyCursorShapeConfig = None,
-        on_reset: Optional["ApplicationEventHandler[_AppResult]"] = None,
-        on_invalidate: Optional["ApplicationEventHandler[_AppResult]"] = None,
-        before_render: Optional["ApplicationEventHandler[_AppResult]"] = None,
-        after_render: Optional["ApplicationEventHandler[_AppResult]"] = None,
+        on_reset: ApplicationEventHandler[_AppResult] | None = None,
+        on_invalidate: ApplicationEventHandler[_AppResult] | None = None,
+        before_render: ApplicationEventHandler[_AppResult] | None = None,
+        after_render: ApplicationEventHandler[_AppResult] | None = None,
         # I/O.
-        input: Optional[Input] = None,
-        output: Optional[Output] = None,
+        input: Input | None = None,
+        output: Output | None = None,
     ) -> None:
-
         # If `enable_page_navigation_bindings` is not specified, enable it in
         # case of full screen applications only. This can be overridden by the user.
         if enable_page_navigation_bindings is None:
@@ -283,12 +274,12 @@ class Application(Generic[_AppResult]):
         self.input = input or session.input
 
         # List of 'extra' functions to execute before a Application.run.
-        self.pre_run_callables: List[Callable[[], None]] = []
+        self.pre_run_callables: list[Callable[[], None]] = []
 
         self._is_running = False
-        self.future: Optional[Future[_AppResult]] = None
-        self.loop: Optional[AbstractEventLoop] = None
-        self.context: Optional[contextvars.Context] = None
+        self.future: Future[_AppResult] | None = None
+        self.loop: AbstractEventLoop | None = None
+        self.context: contextvars.Context | None = None
 
         #: Quoted insert. This flag is set if we go into quoted insert mode.
         self.quoted_insert = False
@@ -333,7 +324,7 @@ class Application(Generic[_AppResult]):
 
         # Invalidate flag. When 'True', a repaint has been scheduled.
         self._invalidated = False
-        self._invalidate_events: List[
+        self._invalidate_events: list[
             Event[object]
         ] = []  # Collection of 'invalidate' Event objects.
         self._last_redraw_time = 0.0  # Unix timestamp of last redraw. Used when
@@ -345,7 +336,7 @@ class Application(Generic[_AppResult]):
         # If `run_in_terminal` was called. This will point to a `Future` what will be
         # set at the point when the previous run finishes.
         self._running_in_terminal = False
-        self._running_in_terminal_f: Optional[Future[None]] = None
+        self._running_in_terminal_f: Future[None] | None = None
 
         # Trigger initialize callback.
         self.reset()
@@ -433,7 +424,7 @@ class Application(Generic[_AppResult]):
 
         self.exit_style = ""
 
-        self._background_tasks: Set[Task[None]] = set()
+        self._background_tasks: set[Task[None]] = set()
 
         self.renderer.reset()
         self.key_processor.reset()
@@ -460,7 +451,7 @@ class Application(Generic[_AppResult]):
         """
         if not self._is_running:
             # Don't schedule a redraw if we're not running.
-            # Otherwise, `get_event_loop()` in `call_soon_threadsafe` can fail.
+            # Otherwise, `get_running_loop()` in `call_soon_threadsafe` can fail.
             # See: https://github.com/dbcli/mycli/issues/797
             return
 
@@ -613,7 +604,7 @@ class Application(Generic[_AppResult]):
         self._request_absolute_cursor_position()
         self._redraw()
 
-    def _pre_run(self, pre_run: Optional[Callable[[], None]] = None) -> None:
+    def _pre_run(self, pre_run: Callable[[], None] | None = None) -> None:
         """
         Called during `run`.
 
@@ -633,7 +624,7 @@ class Application(Generic[_AppResult]):
 
     async def run_async(
         self,
-        pre_run: Optional[Callable[[], None]] = None,
+        pre_run: Callable[[], None] | None = None,
         set_exception_handler: bool = True,
         handle_sigint: bool = True,
         slow_callback_duration: float = 0.5,
@@ -678,7 +669,7 @@ class Application(Generic[_AppResult]):
             # pressed, we start a 'flush' timer for flushing our escape key. But
             # when any subsequent input is received, a new timer is started and
             # the current timer will be ignored.
-            flush_task: Optional[asyncio.Task[None]] = None
+            flush_task: asyncio.Task[None] | None = None
 
             # Reset.
             # (`self.future` needs to be set when `pre_run` is called.)
@@ -737,7 +728,6 @@ class Application(Generic[_AppResult]):
             with self.input.raw_mode(), self.input.attach(
                 read_from_input
             ), attach_winch_signal_handler(self._on_resize):
-
                 # Draw UI.
                 self._request_absolute_cursor_position()
                 self._redraw()
@@ -790,7 +780,7 @@ class Application(Generic[_AppResult]):
 
         @contextmanager
         def get_loop() -> Iterator[AbstractEventLoop]:
-            loop = get_event_loop()
+            loop = get_running_loop()
             self.loop = loop
 
             try:
@@ -849,7 +839,7 @@ class Application(Generic[_AppResult]):
         @contextmanager
         def create_future(
             loop: AbstractEventLoop,
-        ) -> "Iterator[asyncio.Future[_AppResult]]":
+        ) -> Iterator[asyncio.Future[_AppResult]]:
             f = loop.create_future()
             self.future = f  # XXX: make sure to set this before calling '_redraw'.
 
@@ -898,7 +888,7 @@ class Application(Generic[_AppResult]):
 
     def run(
         self,
-        pre_run: Optional[Callable[[], None]] = None,
+        pre_run: Callable[[], None] | None = None,
         set_exception_handler: bool = True,
         handle_sigint: bool = True,
         in_thread: bool = False,
@@ -931,7 +921,7 @@ class Application(Generic[_AppResult]):
         """
         if in_thread:
             result: _AppResult
-            exception: Optional[BaseException] = None
+            exception: BaseException | None = None
 
             def run_in_thread() -> None:
                 nonlocal result, exception
@@ -944,14 +934,6 @@ class Application(Generic[_AppResult]):
                     )
                 except BaseException as e:
                     exception = e
-                finally:
-                    # Make sure to close the event loop in this thread. Running
-                    # the application creates a new loop (because we're in
-                    # another thread), but it doesn't get closed automatically
-                    # (also not by the garbage collector).
-                    loop = get_event_loop()
-                    loop.run_until_complete(loop.shutdown_asyncgens())
-                    loop.close()
 
             thread = threading.Thread(target=run_in_thread)
             thread.start()
@@ -961,30 +943,25 @@ class Application(Generic[_AppResult]):
                 raise exception
             return result
 
-        # We don't create a new event loop by default, because we want to be
-        # sure that when this is called multiple times, each call of `run()`
-        # goes through the same event loop. This way, users can schedule
-        # background-tasks that keep running across multiple prompts.
-        try:
-            loop = get_event_loop()
-        except RuntimeError:
-            # Possibly we are not running in the main thread, where no event
-            # loop is set by default. Or somebody called `asyncio.run()`
-            # before, which closes the existing event loop. We can create a new
-            # loop.
-            loop = new_event_loop()
-            set_event_loop(loop)
-
-        return loop.run_until_complete(
-            self.run_async(
-                pre_run=pre_run,
-                set_exception_handler=set_exception_handler,
-                handle_sigint=handle_sigint,
-            )
+        coro = self.run_async(
+            pre_run=pre_run,
+            set_exception_handler=set_exception_handler,
+            handle_sigint=handle_sigint,
         )
+        try:
+            # See whether a loop was installed already. If so, use that. That's
+            # required for the input hooks to work, they are installed using
+            # `set_event_loop`.
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            # No loop installed. Run like usual.
+            return asyncio.run(coro)
+        else:
+            # Use existing loop.
+            return loop.run_until_complete(coro)
 
     def _handle_exception(
-        self, loop: AbstractEventLoop, context: Dict[str, Any]
+        self, loop: AbstractEventLoop, context: dict[str, Any]
     ) -> None:
         """
         Handler for event loop exceptions.
@@ -1060,7 +1037,7 @@ class Application(Generic[_AppResult]):
 
     def create_background_task(
         self, coroutine: Coroutine[Any, Any, None]
-    ) -> "asyncio.Task[None]":
+    ) -> asyncio.Task[None]:
         """
         Start a background task (coroutine) for the running application. When
         the `Application` terminates, unfinished background tasks will be
@@ -1077,14 +1054,14 @@ class Application(Generic[_AppResult]):
 
         This is not threadsafe.
         """
-        loop = self.loop or get_event_loop()
+        loop = self.loop or get_running_loop()
         task: asyncio.Task[None] = loop.create_task(coroutine)
         self._background_tasks.add(task)
 
         task.add_done_callback(self._on_background_task_done)
         return task
 
-    def _on_background_task_done(self, task: "asyncio.Task[None]") -> None:
+    def _on_background_task_done(self, task: asyncio.Task[None]) -> None:
         """
         Called when a background task completes. Remove it from
         `_background_tasks`, and handle exceptions if any.
@@ -1096,7 +1073,7 @@ class Application(Generic[_AppResult]):
 
         exc = task.exception()
         if exc is not None:
-            get_event_loop().call_exception_handler(
+            get_running_loop().call_exception_handler(
                 {
                     "message": f"prompt_toolkit.Application background task {task!r} "
                     "raised an unexpected exception.",
@@ -1145,7 +1122,7 @@ class Application(Generic[_AppResult]):
         - If we are not running in the main thread.
         - On Windows.
         """
-        size: Optional[Size] = None
+        size: Size | None = None
         interval = self.terminal_size_polling_interval
 
         if interval is None:
@@ -1184,14 +1161,14 @@ class Application(Generic[_AppResult]):
 
     @overload
     def exit(
-        self, *, exception: Union[BaseException, Type[BaseException]], style: str = ""
+        self, *, exception: BaseException | type[BaseException], style: str = ""
     ) -> None:
         "Exit with exception."
 
     def exit(
         self,
-        result: Optional[_AppResult] = None,
-        exception: Optional[Union[BaseException, Type[BaseException]]] = None,
+        result: _AppResult | None = None,
+        exception: BaseException | type[BaseException] | None = None,
         style: str = "",
     ) -> None:
         """
@@ -1306,7 +1283,7 @@ class Application(Generic[_AppResult]):
             run_in_terminal(run)
 
     def print_text(
-        self, text: AnyFormattedText, style: Optional[BaseStyle] = None
+        self, text: AnyFormattedText, style: BaseStyle | None = None
     ) -> None:
         """
         Print a list of (style_str, text) tuples to the output.
@@ -1335,7 +1312,7 @@ class Application(Generic[_AppResult]):
             return self.future.done()
         return False
 
-    def get_used_style_strings(self) -> List[str]:
+    def get_used_style_strings(self) -> list[str]:
         """
         Return a list of used style strings. This is helpful for debugging, and
         for writing a new `Style`.
@@ -1361,7 +1338,7 @@ class _CombinedRegistry(KeyBindingsBase):
     def __init__(self, app: Application[_AppResult]) -> None:
         self.app = app
         self._cache: SimpleCache[
-            Tuple[Window, FrozenSet[UIControl]], KeyBindingsBase
+            tuple[Window, frozenset[UIControl]], KeyBindingsBase
         ] = SimpleCache()
 
     @property
@@ -1371,13 +1348,13 @@ class _CombinedRegistry(KeyBindingsBase):
         raise NotImplementedError
 
     @property
-    def bindings(self) -> List[Binding]:
+    def bindings(self) -> list[Binding]:
         """Not needed - this object is not going to be wrapped in another
         KeyBindings object."""
         raise NotImplementedError
 
     def _create_key_bindings(
-        self, current_window: Window, other_controls: List[UIControl]
+        self, current_window: Window, other_controls: list[UIControl]
     ) -> KeyBindingsBase:
         """
         Create a `KeyBindings` object that merges the `KeyBindings` from the
@@ -1440,10 +1417,10 @@ class _CombinedRegistry(KeyBindingsBase):
             key, lambda: self._create_key_bindings(current_window, other_controls)
         )
 
-    def get_bindings_for_keys(self, keys: KeysTuple) -> List[Binding]:
+    def get_bindings_for_keys(self, keys: KeysTuple) -> list[Binding]:
         return self._key_bindings.get_bindings_for_keys(keys)
 
-    def get_bindings_starting_with_keys(self, keys: KeysTuple) -> List[Binding]:
+    def get_bindings_starting_with_keys(self, keys: KeysTuple) -> list[Binding]:
         return self._key_bindings.get_bindings_starting_with_keys(keys)
 
 
@@ -1504,7 +1481,7 @@ def attach_winch_signal_handler(
 
     # Keep track of the previous handler.
     # (Only UnixSelectorEventloop has `_signal_handlers`.)
-    loop = get_event_loop()
+    loop = get_running_loop()
     previous_winch_handler = getattr(loop, "_signal_handlers", {}).get(sigwinch)
 
     try:

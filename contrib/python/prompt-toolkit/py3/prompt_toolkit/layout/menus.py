@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 from itertools import zip_longest
 from typing import (
@@ -5,7 +7,6 @@ from typing import (
     Callable,
     Dict,
     Iterable,
-    List,
     Optional,
     Sequence,
     Tuple,
@@ -13,7 +14,7 @@ from typing import (
     Union,
     cast,
 )
-from weakref import WeakKeyDictionary, WeakValueDictionary
+from weakref import WeakKeyDictionary
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.buffer import CompletionState
@@ -74,7 +75,7 @@ class CompletionsMenuControl(UIControl):
     def has_focus(self) -> bool:
         return False
 
-    def preferred_width(self, max_available_width: int) -> Optional[int]:
+    def preferred_width(self, max_available_width: int) -> int | None:
         complete_state = get_app().current_buffer.complete_state
         if complete_state:
             menu_width = self._get_menu_width(500, complete_state)
@@ -89,9 +90,8 @@ class CompletionsMenuControl(UIControl):
         width: int,
         max_available_height: int,
         wrap_lines: bool,
-        get_line_prefix: Optional[GetLinePrefixCallable],
-    ) -> Optional[int]:
-
+        get_line_prefix: GetLinePrefixCallable | None,
+    ) -> int | None:
         complete_state = get_app().current_buffer.complete_state
         if complete_state:
             return len(complete_state.completions)
@@ -177,7 +177,6 @@ class CompletionsMenuControl(UIControl):
     def _get_menu_item_meta_fragments(
         self, completion: Completion, is_current_completion: bool, width: int
     ) -> StyleAndTextTuples:
-
         if is_current_completion:
             style_str = "class:completion-menu.meta.completion.current"
         else:
@@ -191,7 +190,7 @@ class CompletionsMenuControl(UIControl):
             style=style_str,
         )
 
-    def mouse_handler(self, mouse_event: MouseEvent) -> "NotImplementedOrNone":
+    def mouse_handler(self, mouse_event: MouseEvent) -> NotImplementedOrNone:
         """
         Handle mouse events: clicking and scrolling.
         """
@@ -245,7 +244,7 @@ def _get_menu_item_fragments(
 
 def _trim_formatted_text(
     formatted_text: StyleAndTextTuples, max_width: int
-) -> Tuple[StyleAndTextTuples, int]:
+) -> tuple[StyleAndTextTuples, int]:
     """
     Trim the text to `max_width`, append dots when the text is too long.
     Returns (text, width) tuple.
@@ -279,13 +278,12 @@ class CompletionsMenu(ConditionalContainer):
     #       visible at the point where we draw this menu.
     def __init__(
         self,
-        max_height: Optional[int] = None,
-        scroll_offset: Union[int, Callable[[], int]] = 0,
+        max_height: int | None = None,
+        scroll_offset: int | Callable[[], int] = 0,
         extra_filter: FilterOrBool = True,
         display_arrows: FilterOrBool = False,
         z_index: int = 10**8,
     ) -> None:
-
         extra_filter = to_filter(extra_filter)
         display_arrows = to_filter(display_arrows)
 
@@ -344,15 +342,15 @@ class MultiColumnCompletionMenuControl(UIControl):
         # (map `completion_state` to `(completion_count, width)`. We remember
         # the count, because a completer can add new completions to the
         # `CompletionState` while loading.)
-        self._column_width_for_completion_state: "WeakKeyDictionary[CompletionState, Tuple[int, int]]" = (
-            WeakKeyDictionary()
-        )
+        self._column_width_for_completion_state: WeakKeyDictionary[
+            CompletionState, Tuple[int, int]
+        ] = WeakKeyDictionary()
 
         # Info of last rendering.
         self._rendered_rows = 0
         self._rendered_columns = 0
         self._total_columns = 0
-        self._render_pos_to_completion: Dict[Tuple[int, int], Completion] = {}
+        self._render_pos_to_completion: dict[tuple[int, int], Completion] = {}
         self._render_left_arrow = False
         self._render_right_arrow = False
         self._render_width = 0
@@ -363,7 +361,7 @@ class MultiColumnCompletionMenuControl(UIControl):
     def has_focus(self) -> bool:
         return False
 
-    def preferred_width(self, max_available_width: int) -> Optional[int]:
+    def preferred_width(self, max_available_width: int) -> int | None:
         """
         Preferred width: prefer to use at least min_rows, but otherwise as much
         as possible horizontally.
@@ -393,8 +391,8 @@ class MultiColumnCompletionMenuControl(UIControl):
         width: int,
         max_available_height: int,
         wrap_lines: bool,
-        get_line_prefix: Optional[GetLinePrefixCallable],
-    ) -> Optional[int]:
+        get_line_prefix: GetLinePrefixCallable | None,
+    ) -> int | None:
         """
         Preferred height: as much as needed in order to display all the completions.
         """
@@ -421,8 +419,8 @@ class MultiColumnCompletionMenuControl(UIControl):
         _T = TypeVar("_T")
 
         def grouper(
-            n: int, iterable: Iterable[_T], fillvalue: Optional[_T] = None
-        ) -> Iterable[Sequence[Optional[_T]]]:
+            n: int, iterable: Iterable[_T], fillvalue: _T | None = None
+        ) -> Iterable[Sequence[_T | None]]:
             "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
             args = [iter(iterable)] * n
             return zip_longest(fillvalue=fillvalue, *args)
@@ -545,7 +543,7 @@ class MultiColumnCompletionMenuControl(UIControl):
             )
             return result
 
-    def mouse_handler(self, mouse_event: MouseEvent) -> "NotImplementedOrNone":
+    def mouse_handler(self, mouse_event: MouseEvent) -> NotImplementedOrNone:
         """
         Handle scroll and click events.
         """
@@ -589,7 +587,7 @@ class MultiColumnCompletionMenuControl(UIControl):
 
         return None
 
-    def get_key_bindings(self) -> "KeyBindings":
+    def get_key_bindings(self) -> KeyBindings:
         """
         Expose key bindings that handle the left/right arrow keys when the menu
         is displayed.
@@ -655,7 +653,6 @@ class MultiColumnCompletionsMenu(HSplit):
         extra_filter: FilterOrBool = True,
         z_index: int = 10**8,
     ) -> None:
-
         show_meta = to_filter(show_meta)
         extra_filter = to_filter(extra_filter)
 
@@ -702,7 +699,7 @@ class _SelectedCompletionMetaControl(UIControl):
     Control that shows the meta information of the selected completion.
     """
 
-    def preferred_width(self, max_available_width: int) -> Optional[int]:
+    def preferred_width(self, max_available_width: int) -> int | None:
         """
         Report the width of the longest meta text as the preferred width of this control.
 
@@ -734,8 +731,8 @@ class _SelectedCompletionMetaControl(UIControl):
         width: int,
         max_available_height: int,
         wrap_lines: bool,
-        get_line_prefix: Optional[GetLinePrefixCallable],
-    ) -> Optional[int]:
+        get_line_prefix: GetLinePrefixCallable | None,
+    ) -> int | None:
         return 1
 
     def create_content(self, width: int, height: int) -> UIContent:

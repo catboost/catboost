@@ -1,4 +1,7 @@
-from prompt_toolkit.eventloop import get_event_loop
+from __future__ import annotations
+
+from asyncio import run
+
 from prompt_toolkit.history import FileHistory, InMemoryHistory, ThreadedHistory
 
 
@@ -12,7 +15,7 @@ def _call_history_load(history):
         async for item in history.load():
             result.append(item)
 
-    get_event_loop().run_until_complete(call_load())
+    run(call_load())
     return result
 
 

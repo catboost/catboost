@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from contextlib import contextmanager
 
 import pytest
@@ -36,6 +38,16 @@ def set_dummy_app():
             output=DummyOutput(),
             input=pipe_input,
         )
+
+        # Don't start background tasks for these tests. The `KeyProcessor`
+        # wants to create a background task for flushing keys. We can ignore it
+        # here for these tests.
+        # This patch is not clean. In the future, when we can use Taskgroups,
+        # the `Application` should pass its task group to the constructor of
+        # `KeyProcessor`. That way, it doesn't have to do a lookup using
+        # `get_app()`.
+        app.create_background_task = lambda *_, **kw: None
+
         with set_app(app):
             yield
 

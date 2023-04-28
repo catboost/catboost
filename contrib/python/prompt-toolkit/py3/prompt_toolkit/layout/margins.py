@@ -1,6 +1,8 @@
 """
 Margin implementations for a :class:`~prompt_toolkit.layout.containers.Window`.
 """
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Callable, Optional
 
@@ -44,7 +46,7 @@ class Margin(metaclass=ABCMeta):
 
     @abstractmethod
     def create_margin(
-        self, window_render_info: "WindowRenderInfo", width: int, height: int
+        self, window_render_info: WindowRenderInfo, width: int, height: int
     ) -> StyleAndTextTuples:
         """
         Creates a margin.
@@ -76,7 +78,6 @@ class NumberedMargin(Margin):
     def __init__(
         self, relative: FilterOrBool = False, display_tildes: FilterOrBool = False
     ) -> None:
-
         self.relative = to_filter(relative)
         self.display_tildes = to_filter(display_tildes)
 
@@ -85,7 +86,7 @@ class NumberedMargin(Margin):
         return max(3, len("%s" % line_count) + 1)
 
     def create_margin(
-        self, window_render_info: "WindowRenderInfo", width: int, height: int
+        self, window_render_info: WindowRenderInfo, width: int, height: int
     ) -> StyleAndTextTuples:
         relative = self.relative()
 
@@ -148,7 +149,7 @@ class ConditionalMargin(Margin):
             return 0
 
     def create_margin(
-        self, window_render_info: "WindowRenderInfo", width: int, height: int
+        self, window_render_info: WindowRenderInfo, width: int, height: int
     ) -> StyleAndTextTuples:
         if width and self.filter():
             return self.margin.create_margin(window_render_info, width, height)
@@ -169,7 +170,6 @@ class ScrollbarMargin(Margin):
         up_arrow_symbol: str = "^",
         down_arrow_symbol: str = "v",
     ) -> None:
-
         self.display_arrows = to_filter(display_arrows)
         self.up_arrow_symbol = up_arrow_symbol
         self.down_arrow_symbol = down_arrow_symbol
@@ -178,7 +178,7 @@ class ScrollbarMargin(Margin):
         return 1
 
     def create_margin(
-        self, window_render_info: "WindowRenderInfo", width: int, height: int
+        self, window_render_info: WindowRenderInfo, width: int, height: int
     ) -> StyleAndTextTuples:
         content_height = window_render_info.content_height
         window_height = window_render_info.window_height
@@ -268,11 +268,9 @@ class PromptMargin(Margin):
     def __init__(
         self,
         get_prompt: Callable[[], StyleAndTextTuples],
-        get_continuation: Optional[
-            Callable[[int, int, bool], StyleAndTextTuples]
-        ] = None,
+        get_continuation: None
+        | (Callable[[int, int, bool], StyleAndTextTuples]) = None,
     ) -> None:
-
         self.get_prompt = get_prompt
         self.get_continuation = get_continuation
 
@@ -283,7 +281,7 @@ class PromptMargin(Margin):
         return get_cwidth(text)
 
     def create_margin(
-        self, window_render_info: "WindowRenderInfo", width: int, height: int
+        self, window_render_info: WindowRenderInfo, width: int, height: int
     ) -> StyleAndTextTuples:
         get_continuation = self.get_continuation
         result: StyleAndTextTuples = []
