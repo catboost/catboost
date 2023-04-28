@@ -2544,7 +2544,8 @@ def test_generated_metrics_default_params():
     for metric in metrics_without_default_params:
         assert str(metric()) == metric.__name__
     metrics_with_mandatory_params = (
-        metrics.NumErrors, metrics.Huber, metrics.AverageGain, metrics.QueryAverage, metrics.Lq, metrics.Tweedie
+        metrics.NumErrors, metrics.Huber, metrics.AverageGain, metrics.QueryAverage, metrics.Lq, metrics.Tweedie,
+        metrics.Focal
     )
     for metric in metrics_with_mandatory_params:
         with pytest.raises(ValueError):
@@ -2593,7 +2594,8 @@ def test_generated_classification_metrics():
             'NormalizedGini': metrics.NormalizedGini(), 'BrierScore': metrics.BrierScore(),
             'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
             'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
-            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction(), 'F:beta=2': metrics.F(beta=2)
+            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction(), 'F:beta=2': metrics.F(beta=2),
+            'Focal:focal_alpha=0.75;focal_gamma=2.0': metrics.Focal(focal_alpha=0.75, focal_gamma=2.0)
         },
         "classification"
     )
@@ -2752,7 +2754,11 @@ def test_generated_classification_losses():
     _test_generated_losses(
         Pool(data=TRAIN_FILE, column_description=CD_FILE),
         Pool(data=TEST_FILE, column_description=CD_FILE),
-        {'Logloss': metrics.Logloss(), 'CrossEntropy': metrics.CrossEntropy()},
+        {
+            'Logloss': metrics.Logloss(),
+            'CrossEntropy': metrics.CrossEntropy(),
+            'Focal:focal_alpha=0.75;focal_gamma=2.0': metrics.Focal(focal_alpha=0.75, focal_gamma=2.0)
+        },
         int
     )
 
