@@ -1,3 +1,79 @@
+# Release 1.2
+## Major changes
+CatBoost's build system has been switched from Ya Make (Yandex's build system) to [CMake](https://cmake.org/). This means more transparency in the build process and more familiar tools for Open Source developers.
+For now it is possible to build CatBoost for:
+* Linux on x86-64 with or without CUDA
+* Linux on aarch64 without CUDA (CUDA support is in progress)
+* macOS on x86-64 and arm64, including creating universal binaries
+* Windows on x86-64 with or without CUDA
+* Android (only model applier) on [All supported ABIs](https://developer.android.com/ndk/guides/abis).
+
+This allowed us to prepare the Python package in the source distribution form (also known as `sdist`). #830
+
+* `msvs` subdirectory with the Microsoft Visual Studio solution has been removed. Visual Studio solutions can be generated using CMake instead.
+* `make` subdirectory with Makefiles has been removed. Use `CMake` + `ninja` (recommended) or `CMake` + `make` instead.
+
+## Python package
+* Switch to the standard Python build and installation method that uses `setup.py` instead of the custom `mk_wheel.py` script. All common scenarios (`sdist`, `build`, `install`, editable `install`, `bdist_wheel`) are supported.
+* The source distribution is now available on PyPI. #830
+* Support Python 3.11. #2213
+* Make wheels [PEP427](https://peps.python.org/pep-0427/)-compliant. #2165
+* Fix wrong checksums in wheels that caused problems with poetry. #2331
+* Improved performance due to caching TBB local executors. #2203
+* Add `fixed_binary_splits` to the regressor, classifier, and ranker.
+* Compatibility with pandas 2.0. #2320
+* CatBoost widget is now compatible with ipywidgets 8.x. #2266
+
+## New features
+* \[Rust package\]: Support CUDA applier. #1925, thanks to @getumen.
+* \[JVM applier\]: Support CUDA.
+* Static model applier library now works on Windows.
+* Add `binary-classification-threshold` parameter to the CLI model applier.
+* Support Multi-target regression with text features (but only Bag-of-Words features are generated for now). #2229
+* Support `RMSEWithUncertainty` loss function on GPU.
+* Support `MultiLogloss` and `MultiCrossEntropy` loss functions with numerical features on GPU.
+* Support `MultiLogloss` loss function with text features on CPU and GPU. #1885
+* Enable univariate metrics for models with uncertainty
+* Add `Focal` loss (CPU-only for now). #1807, thanks to @diditforlulz273.
+
+## Improvements
+* \[Rust package\]: Properly forward debug/release setting to native library build.
+* Removed legacy dependency on Python 2 interpreter in the build process. #2297
+* Calc metrics: Throw catboost exception if column index exceeds column count.
+* Speedup `MultiLogloss` on CPU by 8% per tree (110K samples, 20 targets, 480 float features, 3 cat features, 16 cores CPU).
+* Update .NET projects from obsolete .NET Core 2.1 to .NET Core 3.1.
+* Code generation for new CUDA Compute Architectures 8.6, 8.9 and 9.0 is enabled by default (requires CUDA 11.8)
+* Check that evaluator implementation is available in  `TFullModel::SetEvaluatorType` (it was possible to get a Segmentation fault when calling it for non-available implementstion). Add `TFullModel::GetSupportedEvaluatorTypes`.
+* Cross Validation on GPU no longer requires `allow_write_files=True`.
+
+## Bugfixes
+* \[Python-package\]: Clear model params before load_model. Fixes #2205.
+* \[Python-package\]: Fix CatBoostRanker score computation. #2231
+* \[Python-package\]: Fix `_get_embedding_feature_indices`. #2273
+* \[Python-package\]: Fix `set_feature_names` with text or embedding features. #2090
+* \[Python-package\]: pandas.Categorical.categories is not necessarily a numpy.ndarray. #1965
+* \[Spark\]: Pass classpath in a file to avoid hitting cmdline length limits. #1842
+* \[CUDA Applier\]: Apply scale and bias.
+* \[CUDA Applier\]: Fix that `libs/model_interface applier` always produced an error in CUDA mode.
+* Fix CUDA error 700 in pairwise ranking.
+* Fix kernel registration for distributed training on GPU.
+* Fix `floating point exception' on CPU for small datasets on GPU.
+* Fix wrong log message 'There are invalid params and some of them will be ignored'. #2253
+* Fix incorrect results and crashes for GPU applier on Nvidia Ampere - based GPUs.
+* Fix 'CUDA error 9' in Multi-GPU training.
+* Fix serialization of embedding features structures in the model.
+* Fix GPU buffer overrun in distributed multi-classification training.
+* Fix `catboost/cuda/cuda_util/sort.cpp:166: CUDA error 9` on Nvidia Ampere - based GPUs.
+* Fix inf/nan parsing in dataset input files.
+* Fix floating point exception for very small datasets on GPU.
+* Fix: built static applier library lacked the part with 'global' objects. #2187
+* Fix sum of models with categorical features with CTRs.
+* Fix: model_interface/cmake_example failed build "‘runtime_error’ is not a member of ‘std’". #2324, thanks to @Mandelag.
+* Fix Segmentation fault in Cross Validation and hyperparameter search functions that use it on GPU.
+* Fix Segmentation fault in `utils.eval_metrics` for groupwise metrics when group data has not been specified. #2343
+* Fix errors when running Cross Validation repeatedly on GPU. #2221
+
+
 # Release 1.1.1
 ## New features
 * Support building for Linux on aarch64 from sources using CMake (no prebuilt binaries or PyPI packages yet). #1981

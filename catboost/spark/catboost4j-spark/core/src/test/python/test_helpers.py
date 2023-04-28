@@ -13,7 +13,7 @@ def getCurrentMethodName():
 def getOrCreateSparkSession(appName):
     return (SparkSession.builder
         .master("local[2]")
-        .config("spark.jars.packages", "ai.catboost:catboost-spark_2.4_2.11:1.1.1")
+        .config("spark.jars.packages", "ai.catboost:catboost-spark_2.4_2.11:1.2")
         .appName(appName)
         .getOrCreate()
     )
@@ -66,4 +66,3 @@ def assertEqualsWithPrecision(expected, actual, sortByFields=[]):
               assert np.isclose(expectedRow[fieldIdx].toArray(), actualRow[fieldIdx].toArray())
           else:
               assert expectedRow[fieldIdx] == actualRow[fieldIdx]
-

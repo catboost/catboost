@@ -21,7 +21,7 @@ def generate_project(src_dir, substitution_dict, dst_dir):
 
 
 global_substitition_dict = {
-    'catboost_version_placeholder': '1.1.1',
+    'catboost_version_placeholder': '1.2',
     'relative_global_project_root_placeholder': '../..'
 }
 
@@ -180,4 +180,3 @@ for config in configs:
         substitution_dict=substitution_dict,
         dst_dir=os.path.join(current_dir, config['dst_dir'])
     )
-
