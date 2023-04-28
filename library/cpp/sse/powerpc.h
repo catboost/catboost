@@ -621,7 +621,7 @@ Y_FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count) {
     lshift = (__v2du)vec_splat((__v2du)count, 0);
     shmask = vec_cmplt(lshift, shmax);
     result = vec_sl((__v2du)a, lshift);
-    result = (__v2du)(((vector long long)shmask & ~(vector long long)shmask) | ((vector long long)result & (vector long long)shmask));
+    result = result & shmask;
 
     return (__m128i)result;
 }
