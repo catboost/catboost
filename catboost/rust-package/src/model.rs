@@ -106,8 +106,8 @@ impl Model {
         unsafe { catboost_sys::GetDimensionsCount(self.handle) }
     }
 
-    pub fn enable_gpu_evaluation(&self) -> bool {
-        unsafe { catboost_sys::EnableGPUEvaluation(self.handle, 0) }
+    pub fn enable_gpu_evaluation(&self) -> CatBoostResult<()> {
+        CatBoostError::check_return_value( unsafe { catboost_sys::EnableGPUEvaluation(self.handle, 0) } )
     }
 }
 
