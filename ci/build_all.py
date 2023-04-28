@@ -141,6 +141,15 @@ def run_with_native_python_with_version_in_python_package_dir(
     )
 
 
+def patch_sources(src_root_dir: str, dry_run:bool = False, verbose:bool = False):
+    # TODO(akhropov): Remove when system cuda.cmake is updated for Linux cross-build
+    distutils.file_util.copy_file(
+        src=os.path.join(src_root_dir, 'ci', 'cmake', 'cuda.cmake'),
+        dst=os.path.join(src_root_dir, 'cmake', 'cuda.cmake'),
+        verbose=verbose,
+        dry_run=dry_run
+    )
+
 
 def get_python_plat_name(platform_name: str):
     system, arch = platform_name.split('-')
@@ -480,4 +489,5 @@ if __name__ == '__main__':
     args_parser.add_argument('--verbose', action='store_true', help='Verbose output')
     parsed_args = args_parser.parse_args()
 
+    patch_sources(os.path.abspath(os.getcwd()), parsed_args.dry_run, parsed_args.verbose)
     build_all(os.path.abspath(os.getcwd()), parsed_args.dry_run, parsed_args.verbose)
