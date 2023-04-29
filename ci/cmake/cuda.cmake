@@ -153,7 +153,7 @@ if (HAVE_CUDA)
   find_package(CUDAToolkit REQUIRED)
 
   if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "11.2")
-    string(APPEND CMAKE_CUDA_FLAGS " --threads 0")
+    string(APPEND CMAKE_CUDA_FLAGS " --threads 2")
   endif()
 
   message(VERBOSE "CMAKE_CUDA_FLAGS = \"${CMAKE_CUDA_FLAGS}\"")
