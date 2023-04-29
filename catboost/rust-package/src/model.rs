@@ -40,25 +40,35 @@ impl Model {
     }
 
     /// Calculate raw model predictions on float features and string categorical feature values
-    pub fn calc_model_prediction(
+    pub fn calc_model_prediction<
+        TFloatFeature: AsRef<[f32]>,
+        TFloatFeatures: AsRef<[TFloatFeature]>,
+        TString: AsRef<str>,
+        TCatFeature: AsRef<[TString]>,
+        TCatFeatures: AsRef<[TCatFeature]>
+    >
+    (
         &self,
-        float_features: Vec<Vec<f32>>,
-        cat_features: Vec<Vec<String>>,
+        float_features: TFloatFeatures,
+        cat_features: TCatFeatures,
     ) -> CatBoostResult<Vec<f64>> {
         let mut float_features_ptr = float_features
+            .as_ref()
             .iter()
-            .map(|x| x.as_ptr())
+            .map(|x| x.as_ref().as_ptr())
             .collect::<Vec<_>>();
 
         let hashed_cat_features = cat_features
+            .as_ref()
             .iter()
             .map(|doc_cat_features| {
                 doc_cat_features
+                    .as_ref()
                     .iter()
                     .map(|cat_feature| unsafe {
                         catboost_sys::GetStringCatFeatureHash(
-                            cat_feature.as_ptr() as *const std::os::raw::c_char,
-                            cat_feature.len(),
+                            cat_feature.as_ref().as_ptr() as *const std::os::raw::c_char,
+                            cat_feature.as_ref().len(),
                         )
                     })
                     .collect::<Vec<_>>()
@@ -70,15 +80,15 @@ impl Model {
             .map(|x| x.as_ptr())
             .collect::<Vec<_>>();
 
-        let mut prediction = vec![0.0; float_features.len()];
+        let mut prediction = vec![0.0; float_features.as_ref().len()];
         CatBoostError::check_return_value(unsafe {
             catboost_sys::CalcModelPredictionWithHashedCatFeatures(
                 self.handle,
-                float_features.len(),
+                float_features.as_ref().len(),
                 float_features_ptr.as_mut_ptr(),
-                float_features[0].len(),
+                float_features.as_ref()[0].as_ref().len(),
                 hashed_cat_features_ptr.as_mut_ptr(),
-                cat_features[0].len(),
+                cat_features.as_ref()[0].as_ref().len(),
                 prediction.as_mut_ptr(),
                 prediction.len(),
             )
@@ -148,6 +158,25 @@ mod tests {
                     vec![String::from("north")],
                     vec![String::from("south")],
                     vec![String::from("south")],
+                ],
+            )
+            .unwrap();
+
+        assert_eq!(prediction[0], 0.9980003729960197);
+        assert_eq!(prediction[1], 0.00249414628534181);
+        assert_eq!(prediction[2], -0.0013677527881450977);
+
+        let prediction = model
+            .calc_model_prediction(
+                &[
+                    [-10.0, 5.0, 753.0],
+                    [30.0, 1.0, 760.0],
+                    [40.0, 0.1, 705.0],
+                ],
+                &[
+                    ["north"],
+                    ["south"],
+                    ["south"],
                 ],
             )
             .unwrap();
