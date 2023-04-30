@@ -39,6 +39,33 @@ impl Model {
         Ok(model)
     }
 
+    fn set_or_check_object_count<
+        TFeature,
+        TObjectFeatures: AsRef<[TFeature]>,
+        TFeatures: AsRef<[TObjectFeatures]>
+    >
+    (
+        object_count: &mut Option<usize>,
+        features: &TFeatures
+    ) -> CatBoostResult<()> {
+        let features_array_size = features.as_ref().len();
+        if features_array_size > 0 {
+            match object_count {
+                Some(count) => {
+                    if *count != features_array_size {
+                        return Err(
+                            CatBoostError{ description: "features arguments have different nonzero sizes".to_owned() }
+                        )
+                    }
+                }
+                None => {
+                    object_count.replace(features_array_size);
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// Calculate raw model predictions on float features and string categorical feature values
     pub fn calc_model_prediction<
         TFloatFeature: AsRef<[f32]>,
@@ -52,6 +79,15 @@ impl Model {
         float_features: TFloatFeatures,
         cat_features: TCatFeatures,
     ) -> CatBoostResult<Vec<f64>> {
+        let mut object_count = None;
+        Self::set_or_check_object_count(&mut object_count, &float_features)?;
+        Self::set_or_check_object_count(&mut object_count, &cat_features)?;
+        if object_count.is_none() {
+            return Err(
+                CatBoostError{ description: "all features arguments are empty".to_owned() }
+            );
+        }
+
         let mut float_features_ptr = float_features
             .as_ref()
             .iter()
@@ -80,15 +116,15 @@ impl Model {
             .map(|x| x.as_ptr())
             .collect::<Vec<_>>();
 
-        let mut prediction = vec![0.0; float_features.as_ref().len()];
+        let mut prediction = vec![0.0; object_count.unwrap()];
         CatBoostError::check_return_value(unsafe {
             catboost_sys::CalcModelPredictionWithHashedCatFeatures(
                 self.handle,
-                float_features.as_ref().len(),
+                object_count.unwrap(),
                 float_features_ptr.as_mut_ptr(),
-                float_features.as_ref()[0].as_ref().len(),
+                if float_features.as_ref().is_empty() { 0 } else { float_features.as_ref()[0].as_ref().len() },
                 hashed_cat_features_ptr.as_mut_ptr(),
-                cat_features.as_ref()[0].as_ref().len(),
+                if cat_features.as_ref().is_empty() { 0 } else { cat_features.as_ref()[0].as_ref().len() },
                 prediction.as_mut_ptr(),
                 prediction.len(),
             )
@@ -184,6 +220,24 @@ mod tests {
         assert_eq!(prediction[0], 0.9980003729960197);
         assert_eq!(prediction[1], 0.00249414628534181);
         assert_eq!(prediction[2], -0.0013677527881450977);
+    }
+
+    #[test]
+    #[should_panic]
+    fn calc_prediction_object_size_mismatch() {
+        let model = Model::load("tmp/model.bin").unwrap();
+        model.calc_model_prediction(
+            vec![
+                vec![-10.0, 5.0, 753.0],
+                vec![30.0, 1.0, 760.0],
+                vec![40.0, 0.1, 705.0],
+            ],
+            vec![
+                vec![String::from("north")],
+                vec![String::from("south")],
+            ],
+        )
+        .unwrap();
     }
 
     #[test]

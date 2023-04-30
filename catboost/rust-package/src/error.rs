@@ -6,7 +6,7 @@ pub type CatBoostResult<T> = std::result::Result<T, CatBoostError>;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct CatBoostError {
-    description: String,
+    pub description: String,
 }
 
 impl CatBoostError {
