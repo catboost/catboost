@@ -3,7 +3,7 @@
 CatBoost's build system has been switched from Ya Make (Yandex's build system) to [CMake](https://cmake.org/). This means more transparency in the build process and more familiar tools for Open Source developers.
 For now it is possible to build CatBoost for:
 * Linux on x86-64 with or without CUDA
-* Linux on aarch64 without CUDA (CUDA support is in progress)
+* Linux on aarch64 with or without CUDA
 * macOS on x86-64 and arm64, including creating universal binaries
 * Windows on x86-64 with or without CUDA
 * Android (only model applier) on [All supported ABIs](https://developer.android.com/ndk/guides/abis).
@@ -24,8 +24,14 @@ This allowed us to prepare the Python package in the source distribution form (a
 * Compatibility with pandas 2.0. #2320
 * CatBoost widget is now compatible with ipywidgets 8.x. #2266
 
+## Rust package
+* Support CUDA applier. #1925, thanks to @getumen.
+* Properly forward debug/release setting to native library build.
+* Passing features: switch from `String` and `Vec` types for features to `AsRef` of slices to make code more generic
+* Support text and embedding features.
+* Support multidimensional output in predictions.
+
 ## New features
-* \[Rust package\]: Support CUDA applier. #1925, thanks to @getumen.
 * \[JVM applier\]: Support CUDA.
 * Static model applier library now works on Windows.
 * Add `binary-classification-threshold` parameter to the CLI model applier.
@@ -37,7 +43,6 @@ This allowed us to prepare the Python package in the source distribution form (a
 * Add `Focal` loss (CPU-only for now). #1807, thanks to @diditforlulz273.
 
 ## Improvements
-* \[Rust package\]: Properly forward debug/release setting to native library build.
 * Removed legacy dependency on Python 2 interpreter in the build process. #2297
 * Calc metrics: Throw catboost exception if column index exceeds column count.
 * Speedup `MultiLogloss` on CPU by 8% per tree (110K samples, 20 targets, 480 float features, 3 cat features, 16 cores CPU).
