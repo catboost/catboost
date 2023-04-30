@@ -30,7 +30,7 @@ from contextlib import suppress
 from importlib import import_module
 from importlib.abc import MetaPathFinder
 from itertools import starmap
-from typing import List, Mapping, Optional
+from typing import List, Mapping, Optional, cast
 
 try:
     import library.python.resource
@@ -357,7 +357,7 @@ class Distribution(metaclass=abc.ABCMeta):
     """A Python distribution package."""
 
     @abc.abstractmethod
-    def read_text(self, filename):
+    def read_text(self, filename) -> Optional[str]:
         """Attempt to load metadata file given by the name.
 
         :param filename: The name of the file in the distribution info.
@@ -431,7 +431,7 @@ class Distribution(metaclass=abc.ABCMeta):
         The returned object will have keys that name the various bits of
         metadata.  See PEP 566 for details.
         """
-        text = (
+        opt_text = (
             self.read_text('METADATA')
             or self.read_text('PKG-INFO')
             # This last clause is here to support old egg-info files.  Its
@@ -439,6 +439,7 @@ class Distribution(metaclass=abc.ABCMeta):
             # (which points to the egg-info file) attribute unchanged.
             or self.read_text('')
         )
+        text = cast(str, opt_text)
         return _adapters.Message(email.message_from_string(text))
 
     @property
