@@ -3,13 +3,13 @@ catboost_download_dynlib <- function(dest_dir) {
 
   base_url <- "https://github.com/catboost/catboost/releases/download"
   if (.Platform$OS.type == "windows") {
-    src_dynlib <- "libcatboostr.dll"
-    dst_dynlib <- src_dynlib
+    src_dynlib <- sprintf("libcatboostr-windows-%s-%s.dll", R.version$arch, ver)
+    dst_dynlib <- "libcatboostr.dll"
   } else if (grepl("darwin", R.version$os)) {
-    src_dynlib <- "libcatboostr-darwin.dylib"
+    src_dynlib <- sprintf("libcatboostr-darwin-universal2-%s.dylib", ver)
     dst_dynlib <- "libcatboostr.dylib"
   } else if (.Platform$OS.type == "unix") {
-    src_dynlib <- "libcatboostr-linux.so"
+    src_dynlib <- sprintf("libcatboostr-linux-%s-%s.so", R.version$arch, ver)
     dst_dynlib <- "libcatboostr.so"
   } else {
     return(FALSE)
