@@ -71,6 +71,7 @@ impl Model {
         Ok(())
     }
 
+    /// Calculate raw model predictions
     pub fn predict<
         TObjectFloatFeatures: AsRef<[f32]>,
         TFloatFeatures: AsRef<[TObjectFloatFeatures]>,

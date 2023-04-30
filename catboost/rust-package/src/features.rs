@@ -42,9 +42,17 @@ impl AsRef<[Vec<Vec<f32>>]> for EmptyEmbeddingFeatures {
 }
 
  pub struct ObjectsOrderFeatures<
+    /// must provide 2-level dereferencing to f32. Outer is by-object, inner is by float feature
     TFloatFeatures = EmptyFloatFeatures,
+
+    /// must provide 2-level dereferencing to str. Outer is by-object, inner is by cat feature
     TCatFeatures = EmptyCatFeatures,
+
+    /// must provide 2-level dereferencing to CStr. Outer is by-object, inner is by cat feature
+    /// Note: CStr is used because that's what CatBoost's C API functions accept this format for now.
     TTextFeatures = EmptyTextFeatures,
+
+    /// must provide 3-level dereferencing to f32. Levels are: by-object, by-embedding, index in embedding
     TEmbeddingFeatures = EmptyEmbeddingFeatures,
 > {
   pub float_features: TFloatFeatures,
@@ -66,6 +74,11 @@ impl ObjectsOrderFeatures<EmptyFloatFeatures, EmptyCatFeatures, EmptyTextFeature
     }
 }
 
+
+/// `with_*_features` are convenience functions when you don't want to specify all types of features when you don't
+///   need them.
+/// They are necessary because Rust does not support default params.
+/// See examples in model tests.
 impl<TFloatFeatures, TCatFeatures, TTextFeatures, TEmbeddingFeatures>
     ObjectsOrderFeatures<TFloatFeatures, TCatFeatures, TTextFeatures, TEmbeddingFeatures>
 {
