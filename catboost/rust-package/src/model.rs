@@ -177,7 +177,7 @@ impl Model {
             .map(|object_embeddings_ptrs: &mut Vec<*const f32>| object_embeddings_ptrs.as_mut_ptr())
             .collect::<Vec<_>>();
 
-        let mut prediction = vec![0.0; object_count.unwrap()];
+        let mut prediction = vec![0.0; object_count.unwrap() * self.get_dimensions_count()];
         CatBoostError::check_return_value(unsafe {
             catboost_sys::CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFeatures(
                 self.handle,
