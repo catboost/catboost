@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 catboost-sys = { path = "catboost-sys", version = "0.1"}
 # catboost-sys = "0.1"
+approx = "0.5.1"
 
 [features]
 gpu = ["catboost-sys/gpu"]
