@@ -222,3 +222,16 @@ class HypothesisFixPositionalKeywonlyArgs(VisitorBasedCodemodCommand):
             for p, arg in zip(params, updated_node.args)
         ]
         return updated_node.with_changes(args=newargs)
+
+
+class HypothesisFixHealthcheckAll(VisitorBasedCodemodCommand):
+    """Replace Healthcheck.all() with list(Healthcheck)"""
+
+    DESCRIPTION = "Replace Healthcheck.all() with list(Healthcheck)"
+
+    @m.leave(m.Call(func=m.Attribute(m.Name("Healthcheck"), m.Name("all")), args=[]))
+    def replace_healthcheck(self, original_node, updated_node):
+        return updated_node.with_changes(
+            func=cst.Name("list"),
+            args=[cst.Arg(value=cst.Name("Healthcheck"))],
+        )
