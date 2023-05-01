@@ -40,14 +40,14 @@ private[spark] object RunClassInNewProcess {
 
   private def getClassPath() : Seq[String] = {
     val classPathURIs = (new io.github.classgraph.ClassGraph()).getClasspathURIs().asScala
-    classPathURIs.flatMap(
+    classPathURIs.iterator.flatMap(
         uri => {
           uri.getScheme match {
             case "file" | "local" => Seq(uri.getPath)
             case _ => Seq()
           }
         }
-    )
+    ).toSeq
   }
   
   // Strips trailing $ from Scala's object class name to get companion class with static "main" method.
