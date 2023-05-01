@@ -102,6 +102,13 @@ if (HAVE_CUDA)
       # nvcc concatenates the sources for clang, and clang reports unused
       # things from .h files as if they they were defined in a .cpp file.
       list(APPEND localCudaCommonFlags -Wno-unused-function -Wno-unused-parameter)
+      if (CMAKE_CXX_COMPILER_TARGET)
+        list(APPEND localCudaCompilerOptions "--target=${CMAKE_CXX_COMPILER_TARGET}") 
+      endif()
+    endif()
+
+    if (CMAKE_SYSROOT)
+      list(APPEND localCudaCompilerOptions "--sysroot=${CMAKE_SYSROOT}")
     endif()
 
     list(JOIN localCudaCommonFlags " " joinedLocalCudaCommonFlags)

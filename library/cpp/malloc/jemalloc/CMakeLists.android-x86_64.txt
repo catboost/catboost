@@ -10,7 +10,5 @@
 add_library(cpp-malloc-jemalloc INTERFACE)
 target_link_libraries(cpp-malloc-jemalloc INTERFACE
   contrib-libs-cxxsupp
-)
-target_allocator(cpp-malloc-jemalloc
   system_allocator
 )
