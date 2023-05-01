@@ -48,7 +48,7 @@ This allowed us to prepare the Python package in the source distribution form (a
 * Calc metrics: Throw catboost exception if column index exceeds column count.
 * Speedup `MultiLogloss` on CPU by 8% per tree (110K samples, 20 targets, 480 float features, 3 cat features, 16 cores CPU).
 * Update .NET projects from obsolete .NET Core 2.1 to .NET Core 3.1.
-* Code generation for new CUDA Compute Architectures 8.6, 8.9 and 9.0 is enabled by default (requires CUDA 11.8)
+* Code generation for new CUDA Compute Architectures 8.6, 8.9 and 9.0 is enabled by default (requires CUDA 11.8 to build from source).
 * Check that evaluator implementation is available in  `TFullModel::SetEvaluatorType` (it was possible to get a Segmentation fault when calling it for non-available implementstion). Add `TFullModel::GetSupportedEvaluatorTypes`.
 * Cross Validation on GPU no longer requires `allow_write_files=True`.
 
