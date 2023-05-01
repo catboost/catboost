@@ -15,6 +15,7 @@ This allowed us to prepare the Python package in the source distribution form (a
 
 ## Python package
 * Switch to the standard Python build and installation method that uses `setup.py` instead of the custom `mk_wheel.py` script. All common scenarios (`sdist`, `build`, `install`, editable `install`, `bdist_wheel`) are supported.
+* Switch wheel platform tag on Linux from obsolete `manylinux1` to `manylinux2014`.
 * The source distribution is now available on PyPI. #830
 * Support Python 3.11. #2213
 * Make wheels [PEP427](https://peps.python.org/pep-0427/)-compliant. #2165
