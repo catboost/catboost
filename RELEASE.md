@@ -33,6 +33,7 @@ This allowed us to prepare the Python package in the source distribution form (a
 
 ## New features
 * \[JVM applier\]: Support CUDA.
+* \[Spark\]: Support Spark 3.4.x (if you want to use Spark with python 3.11 use this version).
 * Static model applier library now works on Windows.
 * Add `binary-classification-threshold` parameter to the CLI model applier.
 * Support Multi-target regression with text features (but only Bag-of-Words features are generated for now). #2229
