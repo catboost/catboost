@@ -1,16 +1,11 @@
 """Implementation of the WebSocket protocol.
 
 `WebSockets <http://dev.w3.org/html5/websockets/>`_ allow for bidirectional
-communication between the browser and server.
-
-WebSockets are supported in the current versions of all major browsers,
-although older versions that do not support WebSockets are still in use
-(refer to http://caniuse.com/websockets for details).
+communication between the browser and server. WebSockets are supported in the
+current versions of all major browsers.
 
 This module implements the final version of the WebSocket protocol as
-defined in `RFC 6455 <http://tools.ietf.org/html/rfc6455>`_.  Certain
-browser versions (notably Safari 5.x) implemented an earlier draft of
-the protocol (known as "draft 76") and are not compatible with this module.
+defined in `RFC 6455 <http://tools.ietf.org/html/rfc6455>`_.
 
 .. versionchanged:: 4.0
    Removed support for the draft 76 protocol version.
@@ -23,8 +18,7 @@ import hashlib
 import os
 import sys
 import struct
-import tornado.escape
-import tornado.web
+import tornado
 from urllib.parse import urlparse
 import zlib
 
@@ -34,6 +28,7 @@ from tornado import gen, httpclient, httputil
 from tornado.ioloop import IOLoop, PeriodicCallback
 from tornado.iostream import StreamClosedError, IOStream
 from tornado.log import gen_log, app_log
+from tornado.netutil import Resolver
 from tornado import simple_httpclient
 from tornado.queues import Queue
 from tornado.tcpclient import TCPClient
@@ -822,7 +817,7 @@ class WebSocketProtocol13(WebSocketProtocol):
         self._masked_frame = None
         self._frame_mask = None  # type: Optional[bytes]
         self._frame_length = None
-        self._fragmented_message_buffer = None  # type: Optional[bytes]
+        self._fragmented_message_buffer = None  # type: Optional[bytearray]
         self._fragmented_message_opcode = None
         self._waiting = None  # type: object
         self._compression_options = params.compression_options
@@ -1177,10 +1172,10 @@ class WebSocketProtocol13(WebSocketProtocol):
                 # nothing to continue
                 self._abort()
                 return
-            self._fragmented_message_buffer += data
+            self._fragmented_message_buffer.extend(data)
             if is_final_frame:
                 opcode = self._fragmented_message_opcode
-                data = self._fragmented_message_buffer
+                data = bytes(self._fragmented_message_buffer)
                 self._fragmented_message_buffer = None
         else:  # start of new data message
             if self._fragmented_message_buffer is not None:
@@ -1189,7 +1184,7 @@ class WebSocketProtocol13(WebSocketProtocol):
                 return
             if not is_final_frame:
                 self._fragmented_message_opcode = opcode
-                self._fragmented_message_buffer = data
+                self._fragmented_message_buffer = bytearray(data)
 
         if is_final_frame:
             handled_future = self._handle_message(opcode, data)
@@ -1362,6 +1357,7 @@ class WebSocketClientConnection(simple_httpclient._HTTPConnection):
         ping_timeout: Optional[float] = None,
         max_message_size: int = _default_max_message_size,
         subprotocols: Optional[List[str]] = [],
+        resolver: Optional[Resolver] = None,
     ) -> None:
         self.connect_future = Future()  # type: Future[WebSocketClientConnection]
         self.read_queue = Queue(1)  # type: Queue[Union[None, str, bytes]]
@@ -1402,7 +1398,7 @@ class WebSocketClientConnection(simple_httpclient._HTTPConnection):
         # Websocket connection is currently unable to follow redirects
         request.follow_redirects = False
 
-        self.tcp_client = TCPClient()
+        self.tcp_client = TCPClient(resolver=resolver)
         super().__init__(
             None,
             request,
@@ -1588,6 +1584,7 @@ def websocket_connect(
     ping_timeout: Optional[float] = None,
     max_message_size: int = _default_max_message_size,
     subprotocols: Optional[List[str]] = None,
+    resolver: Optional[Resolver] = None,
 ) -> "Awaitable[WebSocketClientConnection]":
     """Client-side websocket support.
 
@@ -1631,6 +1628,9 @@ def websocket_connect(
 
     .. versionchanged:: 5.1
        Added the ``subprotocols`` argument.
+
+    .. versionchanged:: 6.3
+       Added the ``resolver`` argument.
     """
     if isinstance(url, httpclient.HTTPRequest):
         assert connect_timeout is None
@@ -1652,6 +1652,7 @@ def websocket_connect(
         ping_timeout=ping_timeout,
         max_message_size=max_message_size,
         subprotocols=subprotocols,
+        resolver=resolver,
     )
     if callback is not None:
         IOLoop.current().add_future(conn.connect_future, callback)
