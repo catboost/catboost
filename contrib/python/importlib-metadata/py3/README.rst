@@ -52,7 +52,7 @@ were contributed to different versions in the standard library:
 Usage
 =====
 
-See the `online documentation <https://importlib_metadata.readthedocs.io/>`_
+See the `online documentation <https://importlib-metadata.readthedocs.io/>`_
 for usage details.
 
 `Finder authors
@@ -76,7 +76,7 @@ Project details
  * Project home: https://github.com/python/importlib_metadata
  * Report bugs at: https://github.com/python/importlib_metadata/issues
  * Code hosting: https://github.com/python/importlib_metadata
- * Documentation: https://importlib_metadata.readthedocs.io/
+ * Documentation: https://importlib-metadata.readthedocs.io/
 
 For Enterprise
 ==============
