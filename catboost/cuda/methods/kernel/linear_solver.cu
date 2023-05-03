@@ -132,7 +132,7 @@ namespace NKernel {
                 }
 
                 float sum = ShuffleReduce(x, tmp, min(reduceSize, 32));
-                sum = __shfl_sync(0xFFFFFF, sum, 0, logicalWarpSize);
+                sum = __shfl_sync(0xFFFFFFFF, sum, 0, logicalWarpSize);
 
 
                 const float ljj = Ljj[0];
@@ -158,7 +158,7 @@ namespace NKernel {
                 }
 
                 float sum = ShuffleReduce(x, tmp, min(reduceSize, 32));
-                sum = __shfl_sync(0xFFFFFF, sum, 0, logicalWarpSize);
+                sum = __shfl_sync(0xFFFFFFFF, sum, 0, logicalWarpSize);
 
                 __syncwarp();
 
