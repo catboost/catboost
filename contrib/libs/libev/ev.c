@@ -40,7 +40,7 @@
 /* this big block deduces configuration from config.h */
 #ifndef EV_STANDALONE
 # ifdef EV_CONFIG_H
-#  include EV_CONFIG_H
+#  error #include EV_CONFIG_H
 # else
 #  include "config.h"
 # endif
@@ -217,7 +217,7 @@
 #include <signal.h>
 
 #ifdef EV_H
-# include EV_H
+# error #include EV_H
 #else
 # include "ev.h"
 #endif
