@@ -537,6 +537,10 @@ def execute(
     if popen_kwargs is None:
         popen_kwargs = {}
 
+    if 'text' not in popen_kwargs and six.PY3:
+        # Return str for python3 if it not setted
+        popen_kwargs['text'] = True
+
     # if subprocess.PIPE in [stdout, stderr]:
     #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
 
