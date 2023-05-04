@@ -201,7 +201,7 @@ using string = TProtoStringType;
 namespace NProtoBuf {
   using namespace google;
   using namespace google::protobuf;
-};
+}
 
 #include <google/protobuf/port_undef.inc>
 

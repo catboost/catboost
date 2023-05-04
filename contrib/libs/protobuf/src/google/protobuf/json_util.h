@@ -23,7 +23,7 @@ template<class T>
 inline IOutputStream& operator <<(IOutputStream& stream, const TAsJSON<T>& protoAsJSON) {
     protoAsJSON.T_.PrintJSON(stream);
     return stream;
-};
+}
 
 }
 }
