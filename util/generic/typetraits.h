@@ -197,7 +197,7 @@ class TTypeTraits<void>: public TTypeTraitsBase<void> {};
     template <class T, class = void>        \
     struct THas##name: std::false_type {};  \
     template <class T>                      \
-    struct THas##name<T, ::TVoidT<typename T::subtype>>: std::true_type {};
+    struct THas##name<T, ::TVoidT<typename T::subtype>>: std::true_type {}
 
 #define Y_HAS_SUBTYPE_IMPL_1(name) Y_HAS_SUBTYPE_IMPL_2(name, name)
 

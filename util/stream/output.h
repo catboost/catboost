@@ -60,7 +60,7 @@ public:
 
     IOutputStream& operator=(IOutputStream&&) noexcept {
         return *this;
-    };
+    }
 
     /**
      * Writes into this stream.

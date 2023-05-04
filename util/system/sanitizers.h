@@ -19,7 +19,7 @@ extern "C" { // sanitizers API
     void __tsan_release(void* a);
 #endif
 
-}; // sanitizers API
+} // sanitizers API
 
 namespace NSan {
     class TFiberContext {

@@ -161,7 +161,7 @@ namespace {
             for (int year = UNIX_TIME_BASE_YEAR + 1; year < UNIX_TIME_BASE_YEAR + TableSize; ++year) {
                 DaysSinceEpoch[year - UNIX_TIME_BASE_YEAR] = DaysSinceEpoch[year - UNIX_TIME_BASE_YEAR - 1] + YearSize(year);
             }
-        };
+        }
 
         // lookup year by days since epoch, decrement day counter to the corresponding amount of days.
         // The method returns the last year in the table, if year is too big

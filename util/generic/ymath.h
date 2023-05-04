@@ -145,7 +145,7 @@ T Power(T x, Int n) {
         n >>= 1;
     }
     return result;
-};
+}
 
 /**
  * Compares two floating point values and returns true if they are considered equal.

@@ -206,7 +206,7 @@
 template <class... Types>
 constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
     return 0;
-};
+}
 #endif
 
 /**
