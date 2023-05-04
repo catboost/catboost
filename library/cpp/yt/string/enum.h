@@ -10,6 +10,7 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+std::optional<TString> TryDecodeEnumValue(TStringBuf value);
 TString DecodeEnumValue(TStringBuf value);
 TString EncodeEnumValue(TStringBuf value);
 

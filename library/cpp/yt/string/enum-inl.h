@@ -4,6 +4,8 @@
 #include "enum.h"
 #endif
 
+#include "format.h"
+
 #include <library/cpp/yt/exception/exception.h>
 
 #include <util/string/printf.h>
@@ -30,29 +32,35 @@ template <class T>
 std::optional<T> TryParseEnum(TStringBuf value)
 {
     auto tryFromString = [] (TStringBuf value) -> std::optional<T> {
-        try {
-            return TEnumTraits<T>::FindValueByLiteral(DecodeEnumValue(value));
-        } catch (const TSimpleException&) {
-            TStringBuf typeName;
-            auto isTypeNameCorrect = value.NextTok('(', typeName) && typeName == TEnumTraits<T>::GetTypeName();
-            if (!isTypeNameCorrect) {
-                throw;
-            }
-
-            TStringBuf enumValue;
-            std::underlying_type_t<T> underlyingValue;
-            auto isEnumValueCorrect = value.NextTok(')', enumValue) && TryFromString(enumValue, underlyingValue);
-            if (!isEnumValueCorrect) {
-                throw;
-            }
-
-            auto isParsingComplete = value.empty();
-            if (!isParsingComplete) {
-                throw;
-            }
-
-            return static_cast<T>(underlyingValue);
+        if (auto decodedValue = TryDecodeEnumValue(value)) {
+            return TEnumTraits<T>::FindValueByLiteral(*decodedValue);
         }
+
+        auto reportError = [value] () {
+            throw TSimpleException(Format("Enum value %Qv is neither in a proper underscore case nor in a format \"%v(123)\"",
+                value,
+                TEnumTraits<T>::GetTypeName()));
+        };
+
+        TStringBuf typeName;
+        auto isTypeNameCorrect = value.NextTok('(', typeName) && typeName == TEnumTraits<T>::GetTypeName();
+        if (!isTypeNameCorrect) {
+            reportError();
+        }
+
+        TStringBuf enumValue;
+        std::underlying_type_t<T> underlyingValue = 0;
+        auto isEnumValueCorrect = value.NextTok(')', enumValue) && TryFromString(enumValue, underlyingValue);
+        if (!isEnumValueCorrect) {
+            reportError();
+        }
+
+        auto isParsingComplete = value.empty();
+        if (!isParsingComplete) {
+            reportError();
+        }
+
+        return static_cast<T>(underlyingValue);
     };
 
     if constexpr (TEnumTraits<T>::IsBitEnum) {
