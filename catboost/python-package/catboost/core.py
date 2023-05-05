@@ -1462,50 +1462,6 @@ def _get_catboost_widget(train_dirs):
         raise ImportError(str(e))
 
 
-def _get_plotly_figs(data):
-    try:
-        import plotly.graph_objs as go
-    except ImportError as e:
-        warnings.warn("To save plots to files you should install plotly.")
-        raise ImportError(str(e))
-
-    figs = []
-    for path, dir_data in data.items():
-        fig = go.Figure()
-        fig['layout']['title'] = go.layout.Title(text=dir_data['name'])
-
-        iterations = dir_data['content']['iterations']
-
-        learn_graph_color = 'rgb(160,0,0)'
-
-        fig.add_trace(go.Scatter(
-            x=[e['iteration'] for e in iterations],
-            y=[e['learn'][0] for e in iterations],
-            line=go.scatter.Line(color=learn_graph_color),
-            mode='lines+markers',
-            name='learn'
-        ))
-
-        test_graph_color = 'rgb(0,160,0)'
-
-        fig.add_trace(go.Scatter(
-            x=[e['iteration'] for e in iterations],
-            y=[e['test'][0] for e in iterations],
-            line=go.scatter.Line(color=test_graph_color),
-            mode='lines+markers',
-            name='test'
-        ))
-
-        fig.update_layout(
-            xaxis=dict(title='iterations'),
-            yaxis=dict(title='loss value')
-        )
-
-        figs.append(fig)
-
-    return figs
-
-
 @contextmanager
 def plot_wrapper(plot, plot_file, plot_title, train_dirs):
     if plot:
