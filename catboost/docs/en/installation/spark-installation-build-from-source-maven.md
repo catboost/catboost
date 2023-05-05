@@ -3,7 +3,7 @@
 ## Dependencies and requirements
 
 * Linux or macOS. Windows support in progress.
-* Python. 2.7 or 3.2+
+* Python. 3.6+
 * Maven 3.3.9+
 * JDK 8. Newer versions of JDK are not supported yet.
 * SWIG 4.0.2+
