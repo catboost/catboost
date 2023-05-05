@@ -750,7 +750,7 @@ if __name__ == '__main__':
         project_urls={
             'GitHub': 'https://github.com/catboost/catboost',
             'Bug Tracker': 'https://github.com/catboost/catboost/issues',
-            'Documentation': 'https://catboost.ai/docs/concepts/about.html',
+            'Documentation': 'https://catboost.ai/docs/',
             'Benchmarks': 'https://catboost.ai/#benchmark',
         },
         keywords=['catboost'],
