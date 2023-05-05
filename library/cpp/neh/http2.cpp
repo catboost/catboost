@@ -106,6 +106,7 @@ bool THttp2Options::TcpKeepAlive = false;
 i32 THttp2Options::LimitRequestsPerConnection = -1;
 bool THttp2Options::QuickAck = false;
 bool THttp2Options::UseAsyncSendRequest = false;
+bool THttp2Options::RespectHostInHttpServerNetworkAddress = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
@@ -1874,7 +1875,10 @@ namespace {
             , CB_(cb)
             , LimitRequestsPerConnection(THttp2Options::LimitRequestsPerConnection)
         {
-            TNetworkAddress addr(loc.GetPort());
+
+            TNetworkAddress addr = THttp2Options::RespectHostInHttpServerNetworkAddress ?
+                                    TNetworkAddress(TString(loc.Host), loc.GetPort())
+                                    : TNetworkAddress(loc.GetPort());
 
             for (TNetworkAddress::TIterator it = addr.Begin(); it != addr.End(); ++it) {
                 TEndpoint ep(new NAddr::TAddrInfo(&*it));

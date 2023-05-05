@@ -95,6 +95,9 @@ namespace NNeh {
         // enable write to socket via ScheduleOp
         static bool UseAsyncSendRequest;
 
+        //  Respect host name/address in THttpServer initialization (pass it it getaddrinfo)
+        static bool RespectHostInHttpServerNetworkAddress;
+
         //set option, - return false, if option name not recognized
         static bool Set(TStringBuf name, TStringBuf value);
     };
