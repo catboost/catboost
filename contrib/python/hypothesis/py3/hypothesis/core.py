@@ -23,7 +23,6 @@ import warnings
 import zlib
 from collections import defaultdict
 from functools import partial
-from io import StringIO
 from random import Random
 from typing import (
     TYPE_CHECKING,
@@ -793,9 +792,7 @@ class StateForActualGivenExecution:
                             text_repr = repr_call(test, args, kwargs)
 
                         if print_example or current_verbosity() >= Verbosity.verbose:
-                            output = StringIO()
-
-                            printer = RepresentationPrinter(output, context=context)
+                            printer = RepresentationPrinter(context=context)
                             if print_example:
                                 printer.text("Falsifying example:")
                             else:

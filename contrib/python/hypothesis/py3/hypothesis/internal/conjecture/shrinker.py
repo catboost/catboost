@@ -9,7 +9,7 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 from collections import defaultdict
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 
 import attr
 
@@ -19,7 +19,7 @@ from hypothesis.internal.conjecture.choicetree import (
     prefix_selection_order,
     random_selection_order,
 )
-from hypothesis.internal.conjecture.data import ConjectureResult, Status
+from hypothesis.internal.conjecture.data import ConjectureData, ConjectureResult, Status
 from hypothesis.internal.conjecture.floats import (
     DRAW_FLOAT_LABEL,
     float_to_lex,
@@ -32,6 +32,9 @@ from hypothesis.internal.conjecture.junkdrawer import (
 )
 from hypothesis.internal.conjecture.shrinking import Float, Integer, Lexical, Ordering
 from hypothesis.internal.conjecture.shrinking.learned_dfas import SHRINKING_DFAS
+
+if TYPE_CHECKING:
+    from hypothesis.internal.conjecture.engine import ConjectureRunner
 
 
 def sort_key(buffer):
@@ -268,7 +271,7 @@ class Shrinker:
         takes ConjectureData objects.
         """
         assert predicate is not None or allow_transition is not None
-        self.engine = engine
+        self.engine: "ConjectureRunner" = engine
         self.__predicate = predicate or (lambda data: True)
         self.__allow_transition = allow_transition or (lambda source, destination: True)
         self.__derived_values = {}
@@ -278,7 +281,7 @@ class Shrinker:
 
         # We keep track of the current best example on the shrink_target
         # attribute.
-        self.shrink_target = initial
+        self.shrink_target: ConjectureData = initial
         self.clear_change_tracking()
         self.shrinks = 0
 
