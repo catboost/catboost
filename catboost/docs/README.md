@@ -24,7 +24,7 @@ Before creating a pull request, build the docs locally for checking your changes
 
 1. Build the docs:
 
-   `yfm -i ./catboost/docs -o ./docs-gen --varsPreset "external" -c -en`, where `docs` is a folder with the source texts, `docs-gen` is a folder with the generated documentation.
+   `yfm -i ./catboost/docs -o ./docs-gen --varsPreset "external" -c -en --lang=en`, where `docs` is a folder with the source texts, `docs-gen` is a folder with the generated documentation.
 
 ## Licenses
 
