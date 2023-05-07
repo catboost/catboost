@@ -16,6 +16,12 @@ Dependencies:
 - `scipy`
 - `six`
 
+{% note info %}
+
+Note that in most cases dependencies will be installed automatically using mechanisms built into `setuptools`, `pip` or `conda`.
+
+{% endnote %}
+
 To install the {{ python-package }}:
 1. Choose an installation method:
     - [pip install](../installation/python-installation-method-pip-install.md)
