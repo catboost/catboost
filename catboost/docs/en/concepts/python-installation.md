@@ -8,9 +8,13 @@ Installation is only supported by the 64-bit version of Python.
 
 
 Dependencies:
-- `numpy`
+- `graphviz` (if you want to use [`plot_tree` function](python-reference_catboost_plot_tree.md))
+- `matplotlib`
+- `numpy (>=1.16.0)`
+- `pandas (>=0.24)`
+- `plotly`
+- `scipy`
 - `six`
-- `pandas`
 
 To install the {{ python-package }}:
 1. Choose an installation method:
