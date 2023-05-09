@@ -22,6 +22,11 @@
  */
 #if defined(thread_sanitizer_enabled)
     #define USE_UCONTEXT_CONT
+    #if defined(_darwin_)
+        #define _XOPEN_SOURCE 700
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    #endif
 #elif defined(_bionic_) || defined(__IOS__)
     #define USE_GENERIC_CONT
 #elif defined(_cygwin_)
@@ -170,6 +175,11 @@ static inline size_t MachineContextSize() noexcept {
     #undef PROGR_CNT
     #undef STACK_CNT
     #undef EXTRA_PUSH_ARGS
+#endif
+
+#if defined(_darwin_) && defined(thread_sanitizer_enabled)
+    #pragma clang diagnostic pop
+    #undef _XOPEN_SOURCE
 #endif
 
 struct TExceptionSafeContext: public TContMachineContext {
