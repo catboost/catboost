@@ -832,7 +832,6 @@ class MappedSearchStrategy(SearchStrategy[Ex]):
             ):
                 warnings.simplefilter("ignore", BytesWarning)
             for _ in range(3):
-                i = data.index
                 try:
                     data.start_example(MAPPED_SEARCH_STRATEGY_DO_DRAW_LABEL)
                     x = data.draw(self.mapped_strategy)
@@ -842,8 +841,6 @@ class MappedSearchStrategy(SearchStrategy[Ex]):
                     return result
                 except UnsatisfiedAssumption:
                     data.stop_example(discard=True)
-                    if data.index == i:
-                        raise
         raise UnsatisfiedAssumption()
 
     @property

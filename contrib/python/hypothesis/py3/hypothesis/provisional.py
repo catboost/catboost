@@ -34,10 +34,10 @@ FRAGMENT_SAFE_CHARACTERS = URL_SAFE_CHARACTERS | {"?", "/"}
 # The file contains additional information about the date that it was last updated.
 try:  # pragma: no cover
     traversable = resources.files("hypothesis.vendor") / "tlds-alpha-by-domain.txt"
-    _comment, *_tlds = traversable.read_text().splitlines()
+    _comment, *_tlds = traversable.read_text(encoding="utf-8").splitlines()
 except (AttributeError, ValueError):  # pragma: no cover  # .files() was added in 3.9
     _comment, *_tlds = resources.read_text(
-        "hypothesis.vendor", "tlds-alpha-by-domain.txt"
+        "hypothesis.vendor", "tlds-alpha-by-domain.txt", encoding="utf-8"
     ).splitlines()
 assert _comment.startswith("#")
 

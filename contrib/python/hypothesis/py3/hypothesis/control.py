@@ -80,6 +80,17 @@ class BuildContext:
             lambda obj, p, cycle: p.text("<...>") if cycle else p.repr_call(name, a, kw)
         )
 
+    def prep_args_kwargs_from_strategies(self, arg_strategies, kwarg_strategies):
+        arg_labels = {}
+        all_s = [(None, s) for s in arg_strategies] + list(kwarg_strategies.items())
+        args = []
+        kwargs = {}
+        for k, s in all_s:
+            obj = self.data.draw(s)
+            assert k is not None
+            kwargs[k] = obj
+        return args, kwargs, arg_labels
+
     def __enter__(self):
         self.assign_variable = _current_build_context.with_value(self)
         self.assign_variable.__enter__()

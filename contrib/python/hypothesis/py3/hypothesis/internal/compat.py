@@ -52,7 +52,7 @@ except ImportError:
     # remove at Python 3.7 end-of-life
     from collections.abc import Callable as _Callable
 
-    def get_origin(tp: Any) -> typing.Optional[Any]:  # pragma: no cover
+    def get_origin(tp: Any) -> typing.Optional[Any]:  # type: ignore # pragma: no cover
         """Get the unsubscripted version of a type.
         This supports generic types, Callable, Tuple, Union, Literal, Final and ClassVar.
         Return None for unsupported types. Examples::
