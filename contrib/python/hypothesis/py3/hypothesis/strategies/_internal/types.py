@@ -28,7 +28,12 @@ from types import FunctionType
 
 from hypothesis import strategies as st
 from hypothesis.errors import InvalidArgument, ResolutionFailed
-from hypothesis.internal.compat import PYPY, BaseExceptionGroup, ExceptionGroup
+from hypothesis.internal.compat import (
+    PYPY,
+    BaseExceptionGroup,
+    ExceptionGroup,
+    get_origin,
+)
 from hypothesis.internal.conjecture.utils import many as conjecture_utils_many
 from hypothesis.strategies._internal.datetime import zoneinfo  # type: ignore
 from hypothesis.strategies._internal.ipaddress import (
@@ -423,7 +428,7 @@ def from_typing_type(thing):
         else:
             union_elems = ()
         if not any(
-            isinstance(T, type) and issubclass(int, T)
+            isinstance(T, type) and issubclass(int, get_origin(T) or T)
             for T in list(union_elems) + [elem_type]
         ):
             mapping.pop(typing.ByteString, None)
