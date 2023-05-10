@@ -65,13 +65,13 @@ The {{ product }} model can be loaded from a file or initialized from the buffer
 
 #### Related information
 
-[Source code and a CMake usage example](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface)
+[Source code and a CMake usage example](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface/cmake_example)
 
 ## C API {#c-api}
 
 Perform the following steps to use this API:
 
-1. Use the methods from the `model_calcer_wrapper.h` file (refer to the [doxygen-style documentation](https://github.com/catboost/catboost/blob/master/catboost/libs/model_interface/model_calcer_wrapper.h) for details).
+1. Use the methods from the `c_api.h` file (refer to the [doxygen-style documentation](https://github.com/catboost/catboost/blob/master/catboost/libs/model_interface/c_api.h) for details).
 
     Sample C code without include statements:
 
