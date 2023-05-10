@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import json
+import six
 
 from .tools import to_str
 from .external import ExternalDataInfo
@@ -106,6 +107,17 @@ class Ya(object):
             for k, v in context.items():
                 if k not in self._context or v is not None:
                     self._context[k] = v
+
+        if self._env_file and os.path.exists(self._env_file):
+            yatest_logger.debug("Reading variables from env_file at %s", self._env_file)
+            var_list = []
+            with open(self._env_file) as file:
+                for ljson in file.readlines():
+                    variable = json.loads(ljson)
+                    for key, value in six.iteritems(variable):
+                        os.environ[key] = str(value)
+                        var_list.append(key)
+            yatest_logger.debug("Variables loaded: %s", var_list)
 
     @property
     def source_root(self):
