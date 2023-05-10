@@ -75,7 +75,7 @@ Perform the following steps to use this API:
 
     Sample C code without include statements:
 
-    ```
+    ```c
     float floatFeatures[100];
     char* catFeatures[2] = {"1", "2"};
     double result[1];
