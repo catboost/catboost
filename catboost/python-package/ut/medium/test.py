@@ -11006,3 +11006,16 @@ def test_ranker_with_fixed_splits(task_type):
     train_labels = [0, 1, 0]
     group_id = [10, 20, 20]
     model.fit(train_data, train_labels, group_id=group_id)
+
+
+def test_github_issue_2378_numpy_int_is_deprecated():
+    train_data = [[1, 4, 5, 6],
+                  [4, 5, 6, 7],
+                  [30, 40, 50, 60]]
+
+    train_labels = [10, 20, 30]
+    model = CatBoostRegressor(iterations=2,
+                              learning_rate=1,
+                              depth=2)
+    model.fit(train_data, train_labels)
+    model.calc_feature_statistics(train_data, train_labels, plot=False)

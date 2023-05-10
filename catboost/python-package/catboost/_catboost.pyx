@@ -1253,7 +1253,7 @@ cdef _vector_of_uints_to_np_array(const TVector[ui32]& vec):
 
 
 cdef _vector_of_ints_to_np_array(const TVector[int]& vec):
-    result = np.empty(vec.size(), dtype=np.int)
+    result = np.empty(vec.size(), dtype=int)
     for i in xrange(vec.size()):
         result[i] = vec[i]
     return result
