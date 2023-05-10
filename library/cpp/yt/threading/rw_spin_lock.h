@@ -3,6 +3,8 @@
 #include "public.h"
 #include "spin_lock_base.h"
 
+#include <library/cpp/yt/memory/public.h>
+
 #include <util/system/rwlock.h>
 
 #include <atomic>

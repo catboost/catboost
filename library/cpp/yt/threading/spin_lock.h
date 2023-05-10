@@ -7,6 +7,8 @@
 
 #include <library/cpp/yt/system/thread_id.h>
 
+#include <library/cpp/yt/memory/public.h>
+
 #include <util/system/src_location.h>
 #include <util/system/types.h>
 
@@ -78,4 +80,3 @@ private:
 #define SPIN_LOCK_INL_H_
 #include "spin_lock-inl.h"
 #undef SPIN_LOCK_INL_H_
-
