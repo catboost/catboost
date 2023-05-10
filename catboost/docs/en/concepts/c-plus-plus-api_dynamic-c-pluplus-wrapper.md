@@ -46,7 +46,9 @@ Perform the following steps to build the library:
 
         make -f make/model_interface_static.CLANG50-LINUX-X86_64.makefile
         ```
-        The output directory for the shared library `libcatboostmodel.a` is `catboost/libs/model_interface/static`.
+
+        The output directory `catboost/libs/model_interface/static` will contain a pair of artifacts:
+         `libcatboostmodel.a` and `liblibcatboostmodel.o`.
 
     {% endlist %}
 
