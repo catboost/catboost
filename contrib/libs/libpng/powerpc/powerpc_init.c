@@ -44,7 +44,7 @@
 
 #include <signal.h> /* for sig_atomic_t */
 static int png_have_vsx(png_structp png_ptr);
-#include PNG_POWERPC_VSX_FILE
+#error #include PNG_POWERPC_VSX_FILE
 
 #else  /* PNG_POWERPC_VSX_FILE */
 #  error "PNG_POWERPC_VSX_FILE undefined: no support for run-time POWERPC VSX checks"

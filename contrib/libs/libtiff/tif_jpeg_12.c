@@ -17,7 +17,7 @@
 
 int TIFFInitJPEG_12(TIFF *tif, int scheme);
 
-#include LIBJPEG_12_PATH
+#error #include LIBJPEG_12_PATH
 
 #include "tif_jpeg.c"
 

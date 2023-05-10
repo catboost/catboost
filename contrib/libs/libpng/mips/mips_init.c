@@ -44,7 +44,7 @@
 
 #include <signal.h> /* for sig_atomic_t */
 static int png_have_msa(png_structp png_ptr);
-#include PNG_MIPS_MSA_FILE
+#error #include PNG_MIPS_MSA_FILE
 
 #else  /* PNG_MIPS_MSA_FILE */
 #  error "PNG_MIPS_MSA_FILE undefined: no support for run-time MIPS MSA checks"
