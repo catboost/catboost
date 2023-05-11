@@ -1641,6 +1641,7 @@ def test_rmse_with_uncertainty():
         '-T', '4',
         '--border-count', '254',
         '--use-best-model', 'false',
+        '--eval-metric', 'RMSE',
     )
 
     fit_params += NO_RANDOM_PARAMS
