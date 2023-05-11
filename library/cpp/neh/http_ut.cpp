@@ -407,4 +407,43 @@ Y_UNIT_TEST_SUITE(NehHttp) {
             UNIT_ASSERT_STRING_CONTAINS(resp->FirstLine, "HTTP/1.1 503 service unavailable");
         }
     }
+
+    Y_UNIT_TEST(TTestRespectHostInHttpServer)  {
+        TServ serv;
+        TString err;
+        serv.Services = CreateLoop();
+        serv.ServerPort = 20000;
+        TStringStream pingEndpoint;
+        NNeh::THttp2Options::RespectHostInHttpServerNetworkAddress = true;
+        Y_DEFER {
+            NNeh::THttp2Options::RespectHostInHttpServerNetworkAddress = false;
+        };
+        auto responseFunc = TRequestServer([](const IRequestRef& req) {
+            TDataSaver responseData;
+            responseData << req->Data();
+            auto* httpReq = dynamic_cast<IHttpRequest*>(req.Get());
+            TString headers = "\r\nContent-Type: text/plain";
+            httpReq->SendReply(responseData, headers);
+        });
+        pingEndpoint << "http://127.0.0.1:" << serv.ServerPort << "/ping";
+
+
+        serv.Services->Add(pingEndpoint.Str(), responseFunc);
+        serv.Services->ForkLoop(16); //<< throw exception, if can not bind port
+
+        {
+            NNeh::THandleRef handle = NNeh::Request(TStringBuilder() << "http://127.0.0.1:" << serv.ServerPort << "/ping?", nullptr);
+            auto resp = handle->Wait();
+            UNIT_ASSERT(resp);
+            UNIT_ASSERT(!resp->IsError());
+        }
+        {
+            NNeh::THandleRef handle = NNeh::Request(TStringBuilder() << "http://[::]:" << serv.ServerPort << "/ping?", nullptr);
+            auto resp = handle->Wait();
+            UNIT_ASSERT(resp);
+            UNIT_ASSERT(resp->IsError());
+        }
+        UNIT_ASSERT_C(serv.Services.Get(), err.data());
+
+    }
 }
