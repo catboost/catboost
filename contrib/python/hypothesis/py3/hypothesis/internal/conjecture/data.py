@@ -776,6 +776,8 @@ class ConjectureResult:
     tags: FrozenSet[StructuralCoverageTag] = attr.ib()
     forced_indices: FrozenSet[int] = attr.ib(repr=False)
     examples: Examples = attr.ib(repr=False)
+    arg_slices: Set[Tuple[int, int]] = attr.ib(repr=False)
+    slice_comments: Dict[Tuple[int, int], str] = attr.ib(repr=False)
 
     index: int = attr.ib(init=False)
 
@@ -860,6 +862,11 @@ class ConjectureData:
         self.depth = -1
         self.__example_record = ExampleRecord()
 
+        # Slice indices for discrete reportable parts that which-parts-matter can
+        # try varying, to report if the minimal example always fails anyway.
+        self.arg_slices: Set[Tuple[int, int]] = set()
+        self.slice_comments: Dict[Tuple[int, int], str] = {}
+
         self.extra_information = ExtraInformation()
 
         self.start_example(TOP_LABEL)
@@ -893,6 +900,8 @@ class ConjectureData:
                 target_observations=self.target_observations,
                 tags=frozenset(self.tags),
                 forced_indices=frozenset(self.forced_indices),
+                arg_slices=self.arg_slices,
+                slice_comments=self.slice_comments,
             )
             assert self.__result is not None
             self.blocks.transfer_ownership(self.__result)

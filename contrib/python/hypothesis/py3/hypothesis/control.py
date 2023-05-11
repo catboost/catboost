@@ -74,10 +74,14 @@ class BuildContext:
         # The printer will discard duplicates which return different representations.
         self.known_object_printers = defaultdict(list)
 
-    def record_call(self, obj, func, a, kw):
+    def record_call(self, obj, func, args, kwargs, arg_slices=None):
         name = get_pretty_function_description(func)
         self.known_object_printers[IDKey(obj)].append(
-            lambda obj, p, cycle: p.text("<...>") if cycle else p.repr_call(name, a, kw)
+            lambda obj, p, cycle: (
+                p.text("<...>")
+                if cycle
+                else p.repr_call(name, args, kwargs, arg_slices=arg_slices)
+            )
         )
 
     def prep_args_kwargs_from_strategies(self, arg_strategies, kwarg_strategies):
@@ -85,10 +89,23 @@ class BuildContext:
         all_s = [(None, s) for s in arg_strategies] + list(kwarg_strategies.items())
         args = []
         kwargs = {}
-        for k, s in all_s:
+        for i, (k, s) in enumerate(all_s):
+            start_idx = self.data.index
             obj = self.data.draw(s)
+            end_idx = self.data.index
             assert k is not None
             kwargs[k] = obj
+
+            # This high up the stack, we can't see or really do much with the conjecture
+            # Example objects - not least because they're only materialized after the
+            # test case is completed.  Instead, we'll stash the (start_idx, end_idx)
+            # pair on our data object for the ConjectureRunner engine to deal with, and
+            # pass a dict of such out so that the pretty-printer knows where to place
+            # the which-parts-matter comments later.
+            if start_idx != end_idx:
+                arg_labels[k or i] = (start_idx, end_idx)
+                self.data.arg_slices.add((start_idx, end_idx))
+
         return args, kwargs, arg_labels
 
     def __enter__(self):

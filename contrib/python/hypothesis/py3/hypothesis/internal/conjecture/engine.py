@@ -985,7 +985,13 @@ class ConjectureRunner:
         return s.shrink_target
 
     def new_shrinker(self, example, predicate=None, allow_transition=None):
-        return Shrinker(self, example, predicate, allow_transition)
+        return Shrinker(
+            self,
+            example,
+            predicate,
+            allow_transition,
+            explain=Phase.explain in self.settings.phases,
+        )
 
     def cached_test_function(self, buffer, error_on_discard=False, extend=0):
         """Checks the tree to see if we've tested this buffer, and returns the
@@ -1075,6 +1081,17 @@ class ConjectureRunner:
         except TypeError:
             pass
         return result
+
+    def passing_buffers(self, prefix=b""):
+        """Return a collection of bytestrings which cause the test to pass.
+
+        Optionally restrict this by a certain prefix, which is useful for explain mode.
+        """
+        return frozenset(
+            buf
+            for buf in self.__data_cache
+            if buf.startswith(prefix) and self.__data_cache[buf].status == Status.VALID
+        )
 
 
 class ContainsDiscard(Exception):

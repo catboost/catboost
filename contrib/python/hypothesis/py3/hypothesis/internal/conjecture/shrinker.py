@@ -261,7 +261,7 @@ class Shrinker:
         accept.__name__ = fn.__name__
         return property(accept)
 
-    def __init__(self, engine, initial, predicate, allow_transition):
+    def __init__(self, engine, initial, predicate, allow_transition, explain):
         """Create a shrinker for a particular engine, with a given starting
         point and predicate. When shrink() is called it will attempt to find an
         example for which predicate is True and which is strictly smaller than
@@ -299,6 +299,8 @@ class Shrinker:
         # Extra DFAs that may be installed. This is used solely for
         # testing and learning purposes.
         self.extra_dfas = {}
+
+        self.should_explain = explain
 
     @derived_value  # type: ignore
     def cached_calculations(self):
@@ -437,12 +439,15 @@ class Shrinker:
         if not any(self.shrink_target.buffer) or self.incorporate_new_buffer(
             bytes(len(self.shrink_target.buffer))
         ):
+            self.explain()
             return
 
         try:
             self.greedy_shrink()
         except StopShrinking:
-            pass
+            # If we stopped shrinking because we're making slow progress (instead of
+            # reaching a local optimum), don't run the explain-phase logic.
+            self.should_explain = False
         finally:
             if self.engine.report_debug_info:
 
@@ -488,6 +493,138 @@ class Shrinker:
                             )
                         )
                 self.debug("")
+        self.explain()
+
+    def explain(self):
+        if not self.should_explain or not self.shrink_target.arg_slices:
+            return
+        from hypothesis.internal.conjecture.engine import BUFFER_SIZE
+
+        self.max_stall = 1e999
+        shrink_target = self.shrink_target
+        buffer = shrink_target.buffer
+        chunks = defaultdict(list)
+
+        # Before we start running experiments, let's check for known inputs which would
+        # make them redundant.  The shrinking process means that we've already tried many
+        # variations on the minimal example, so this can save a lot of time.
+        seen_passing_buffers = self.engine.passing_buffers(
+            prefix=buffer[: min(self.shrink_target.arg_slices)[0]]
+        )
+
+        # Now that we've shrunk to a minimal failing example, it's time to try
+        # varying each part that we've noted will go in the final report.  Consider
+        # slices in largest-first order
+        for start, end in sorted(
+            self.shrink_target.arg_slices, key=lambda x: (-(x[1] - x[0]), x)
+        ):
+            # Check for any previous examples that match the prefix and suffix,
+            # so we can skip if we found a passing example while shrinking.
+            if any(
+                seen.startswith(buffer[:start]) and seen.endswith(buffer[end:])
+                for seen in seen_passing_buffers
+            ):
+                continue
+
+            # Run our experiments
+            n_same_failures = 0
+            note = "or any other generated value"
+            # TODO: is 100 same-failures out of 500 attempts a good heuristic?
+            for n_attempt in range(500):  # pragma: no branch
+                # no-branch here because we don't coverage-test the abort-at-500 logic.
+
+                if n_attempt - 10 > n_same_failures * 5:
+                    # stop early if we're seeing mostly invalid examples
+                    break  # pragma: no cover
+
+                buf_attempt_fixed = bytearray(buffer)
+                buf_attempt_fixed[start:end] = [
+                    self.random.randint(0, 255) for _ in range(end - start)
+                ]
+                result = self.engine.cached_test_function(
+                    buf_attempt_fixed, extend=BUFFER_SIZE - len(buf_attempt_fixed)
+                )
+
+                # Turns out this was a variable-length part, so grab the infix...
+                if (
+                    result.status == Status.OVERRUN
+                    or len(buf_attempt_fixed) != len(result.buffer)
+                    or not result.buffer.endswith(buffer[end:])
+                ):
+                    for ex, res in zip(shrink_target.examples, result.examples):
+                        assert ex.start == res.start
+                        assert ex.start <= start
+                        assert ex.label == res.label
+                        if start == ex.start and end == ex.end:
+                            res_end = res.end
+                            break
+                    else:
+                        raise NotImplementedError("Expected matching prefixes")
+
+                    buf_attempt_fixed = (
+                        buffer[:start] + result.buffer[start:res_end] + buffer[end:]
+                    )
+                    chunks[(start, end)].append(result.buffer[start:res_end])
+                    result = self.engine.cached_test_function(buf_attempt_fixed)
+
+                    if (
+                        result.status == Status.OVERRUN
+                        or len(buf_attempt_fixed) != len(result.buffer)
+                        or not result.buffer.endswith(buffer[end:])
+                    ):
+                        raise NotImplementedError("This should never happen")
+                else:
+                    chunks[(start, end)].append(result.buffer[start:end])
+
+                if shrink_target is not self.shrink_target:  # pragma: no cover
+                    # If we've shrunk further without meaning to, bail out.
+                    self.shrink_target.slice_comments.clear()
+                    return
+                if result.status == Status.VALID:
+                    # The test passed, indicating that this param can't vary freely.
+                    # However, it's really hard to write a simple and reliable covering
+                    # test, because of our `seen_passing_buffers` check above.
+                    break  # pragma: no cover
+                elif self.__predicate(result):  # pragma: no branch
+                    n_same_failures += 1
+                    if n_same_failures >= 100:
+                        self.shrink_target.slice_comments[(start, end)] = note
+                        break
+
+        # Finally, if we've found multiple independently-variable parts, check whether
+        # they can all be varied together.
+        if len(self.shrink_target.slice_comments) <= 1:
+            return
+        n_same_failures_together = 0
+        chunks_by_start_index = sorted(chunks.items())
+        for _ in range(500):  # pragma: no branch
+            # no-branch here because we don't coverage-test the abort-at-500 logic.
+            new_buf = bytearray()
+            prev_end = 0
+            for (start, end), ls in chunks_by_start_index:
+                assert prev_end <= start < end, "these chunks must be nonoverlapping"
+                new_buf.extend(buffer[prev_end:start])
+                new_buf.extend(self.random.choice(ls))
+                prev_end = end
+
+            result = self.engine.cached_test_function(new_buf)
+
+            # This *can't* be a shrink because none of the components were.
+            assert shrink_target is self.shrink_target
+            if result.status == Status.VALID:
+                # TODO: cover this branch.
+                #       I might need to save or retrieve passing chunks too???
+                self.shrink_target.slice_comments[
+                    (0, 0)
+                ] = "The test sometimes passed when commented parts were varied together."
+                break  # Test passed, this param can't vary freely.
+            elif self.__predicate(result):  # pragma: no branch
+                n_same_failures_together += 1
+                if n_same_failures_together >= 100:
+                    self.shrink_target.slice_comments[
+                        (0, 0)
+                    ] = "The test always failed when commented parts were varied together."
+                    break
 
     def greedy_shrink(self):
         """Run a full set of greedy shrinks (that is, ones that will only ever

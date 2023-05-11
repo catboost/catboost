@@ -75,7 +75,7 @@ from hypothesis.internal.compat import (
     int_from_bytes,
 )
 from hypothesis.internal.conjecture.data import ConjectureData, Status
-from hypothesis.internal.conjecture.engine import ConjectureRunner
+from hypothesis.internal.conjecture.engine import BUFFER_SIZE, ConjectureRunner
 from hypothesis.internal.conjecture.shrinker import sort_key
 from hypothesis.internal.entropy import deterministic_PRNG
 from hypothesis.internal.escalation import (
@@ -760,12 +760,13 @@ class StateForActualGivenExecution:
                         args = self.stuff.args
                         kwargs = dict(self.stuff.kwargs)
                         if example_kwargs is None:
-                            a, kw, _ = context.prep_args_kwargs_from_strategies(
+                            a, kw, argslices = context.prep_args_kwargs_from_strategies(
                                 (), self.stuff.given_kwargs
                             )
                             assert not a, "strategies all moved to kwargs by now"
                         else:
                             kw = example_kwargs
+                            argslices = {}
                         kwargs.update(kw)
                         if expected_failure is not None:
                             nonlocal text_repr
@@ -785,7 +786,11 @@ class StateForActualGivenExecution:
                                     args,
                                     kwargs,
                                     force_split=True,
+                                    arg_slices=argslices,
                                 )
+                            if (0, 0) in context.data.slice_comments:
+                                printer.break_()
+                                printer.text("# " + context.data.slice_comments[(0, 0)])
                             report(printer.getvalue())
                         return test(*args, **kwargs)
 
@@ -966,6 +971,7 @@ class StateForActualGivenExecution:
             fragments = []
 
             ran_example = ConjectureData.for_buffer(falsifying_example.buffer)
+            ran_example.slice_comments = falsifying_example.slice_comments
             assert info.__expected_exception is not None
             try:
                 with with_reporter(fragments.append):
@@ -1413,7 +1419,7 @@ def given(
                 # This inner part is all that the fuzzer will actually run,
                 # so we keep it as small and as fast as possible.
                 if isinstance(buffer, io.IOBase):
-                    buffer = buffer.read()
+                    buffer = buffer.read(BUFFER_SIZE)
                 assert isinstance(buffer, (bytes, bytearray, memoryview))
                 data = ConjectureData.for_buffer(buffer)
                 try:

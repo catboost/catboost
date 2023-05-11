@@ -149,10 +149,18 @@ class RepresentationPrinter:
         self.singleton_pprinters = _singleton_pprinters.copy()
         self.type_pprinters = _type_pprinters.copy()
         self.deferred_pprinters = _deferred_type_pprinters.copy()
+
+        # for which-parts-matter, we track a mapping from the (start_idx, end_idx)
+        # of slices into the minimal failing example; this is per-interesting_origin
+        # but we report each separately so that's someone else's problem here.
+        # Invocations of self.repr_call() can report the slice for each argument,
+        # which will then be used to look up the relevant comment if any.
         if context is None:
             self.known_object_printers = defaultdict(list)
+            self.slice_comments = {}
         else:
             self.known_object_printers = context.known_object_printers
+            self.slice_comments = context.data.slice_comments
         assert all(isinstance(k, IDKey) for k in self.known_object_printers)
 
     def pretty(self, obj):
@@ -208,6 +216,9 @@ class RepresentationPrinter:
                     # object, which must have been returned from multiple calls due to
                     # e.g. memoization.  If they all return the same string, we'll use
                     # the first; otherwise we'll pretend that *none* were registered.
+                    #
+                    # It's annoying, but still seems to be the best option for which-
+                    # parts-matter too, as unreportable results aren't very useful.
                     strs = set()
                     for f in printers:
                         p = RepresentationPrinter()
@@ -341,18 +352,29 @@ class RepresentationPrinter:
         self.flush()
         return self.output.getvalue()
 
-    def repr_call(self, func_name, args, kwargs, *, force_split=None):
+    def repr_call(self, func_name, args, kwargs, *, force_split=None, arg_slices=None):
         """Helper function to represent a function call.
 
         - func_name, args, and kwargs should all be pretty obvious.
         - If split_lines, we'll force one-argument-per-line; otherwise we'll place
           calls that fit on a single line (and split otherwise).
+        - arg_slices is a mapping from pos-idx or keyword to (start_idx, end_idx)
+          of the Conjecture buffer, by which we can look up comments to add.
         """
         assert isinstance(func_name, str)
         if func_name.startswith(("lambda:", "lambda ")):
             func_name = f"({func_name})"
         self.text(func_name)
         all_args = [(None, v) for v in args] + list(kwargs.items())
+        comments = {
+            k: self.slice_comments[v]
+            for k, v in (arg_slices or {}).items()
+            if v in self.slice_comments
+        }
+
+        if any(k in comments for k, _ in all_args):
+            # We have to split one arg per line in order to leave comments on them.
+            force_split = True
         if force_split is None:
             # We're OK with printing this call on a single line, but will it fit?
             # If not, we'd rather fall back to one-argument-per-line instead.
@@ -374,6 +396,10 @@ class RepresentationPrinter:
                 self.pretty(v)
                 if force_split or i + 1 < len(all_args):
                     self.text(",")
+                # Optional comments are used to annotate which-parts-matter
+                comment = comments.get(i) or comments.get(k)
+                if comment:
+                    self.text(f"  # {comment}")
         if all_args and force_split:
             self.break_()
         self.text(")")  # after dedent
@@ -460,7 +486,6 @@ def _seq_pprinter_factory(start, end, basetype):
     """Factory that returns a pprint function useful for sequences.
 
     Used by the default pprint for tuples, dicts, and lists.
-
     """
 
     def inner(obj, p, cycle):
