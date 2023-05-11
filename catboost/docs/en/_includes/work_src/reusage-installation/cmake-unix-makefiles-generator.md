@@ -1,0 +1,1 @@
+`Unix Makefiles` CMake generator usage on macOS and Linux is possible but not recommended because of some issues with properly taking dependencies into account.

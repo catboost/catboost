@@ -1,0 +1,2 @@
+- `liblibcatboostmodel.o`. This part contains symbols that require forced initialization.
+- `libcatboostmodel.a`. This part contains all other symbols.

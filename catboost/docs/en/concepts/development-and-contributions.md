@@ -1,72 +1,18 @@
 # Development and contributions
 
-## Build from source {#build-from-source}
-
-The required steps for building {{ product }} depend on the implementation.
-
-{% note info %}
-
-Windows build currently requires Microsoft Visual studio 2015.3 toolset v140 and Windows 10 SDK (10.0.17134.0).
-
-{% endnote %}
-
-{% list tabs %}
-
-- Command-line version
-
-  1. Clone the repository:
-
-      ```no-highlight
-      {{ installation--git-clone }}
-      ```
-
-  1. Open the `catboost/catboost/app` directory from the local copy of the {{ product }} repository.
-
-  1. Run the following command:
-      ```no-highlight
-      ../../ya make -d [-o <output directory>]
-      ```
-
-      Use the `-j <number of threads>` option to change the number of threads used when building the project.
-
-
-- {{ python-package }}
-
-  {% include [installation-packages-for-installation](../_includes/work_src/reusage/packages-for-installation.md) %}
-
-
-    - `python3`
-    - `python3-dev`
-    - `numpy`
-    - `pandas`
-
-    To install the {{ python-package }}:
-
-    1. Clone the repository:
-
-        ```no-highlight
-        {{ installation--git-clone }}
-        ```
-
-    1. Open the `catboost/catboost/python-package/catboost` directory from the local copy of the {{ product }} repository.
-
-    1. {% include [installation-compile-the-library](../_includes/work_src/reusage-code-examples/compile-the-library.md) %}
-
-        {% include [installation-installation-example](../_includes/work_src/reusage-code-examples/installation-example.md) %}
-
-    1. Add the current directory to `PYTHONPATH` to use the built module on macOS or Linux:
-        ```
-        cd ../; export PYTHONPATH=$PYTHONPATH:$(pwd)
-        ```
-
-- {{ r-package }}
-
-    You can build an extension module by running the `ya make` command in the `catboost/R-package/src` directory.
-
-{% endlist %}
-
+## [Build from source](build-from-source.md) {#build-from-source}
 
 ## Run tests {#run-tests}
+
+{% note warning %}
+
+{% include [ya-make-to-cmake-switch](../_includes/work_src/reusage-installation/ya-make-to-cmake-switch.md) %}
+
+The following documentation describes running tests using Ya Make which is applicable only for versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb).
+
+Documentation for tests for CMake-based build is in progress.
+
+{% endnote %}
 
 {{ product }} provides tests that check the compliance of the canonical data with the resulting data.
 
@@ -161,7 +107,15 @@ The required steps for running these tests depend on the implementation.
 {% endlist %}
 
 
-## Develop in Windows {#compiling-in-windows}
+## Microsoft Visual Studio solution {#compiling-in-windows}
+
+{% note warning %}
+
+Ready Microsoft Visual Studio solution had been provided until [this commit](https://github.com/catboost/catboost/commit/cd63b6c7313a28bcb40cd0674d73e356ad633de4).
+
+For versions after this commit it is recommended [to generate Microsoft Visual Studio 2019 solution using the corresponding CMake generator](../installation/build-native-artifacts.md#build-cmake-conan-ninja).
+
+{% endnote %}
 
 A solution for Visual Studio is available in the {{ product }} repository:
 

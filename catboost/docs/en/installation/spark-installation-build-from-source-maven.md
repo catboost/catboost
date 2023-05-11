@@ -2,11 +2,28 @@
 
 ## Dependencies and requirements
 
+{% note warning %}
+
+{% include [ya-make-to-cmake-switch](../_includes/work_src/reusage-installation/ya-make-to-cmake-switch.md) %}
+
+Select the appropriate build environment setup below accordingly.
+
+{% endnote %}
+
 * Linux or macOS. Windows support in progress.
+
+* Set up build environment depending on build type:
+  - [For CMake](build-environment-setup-for-cmake.md)
+  - [For Ya Make](build-environment-setup-for-ya-make.md)
+
 * Python. 3.6+
 * Maven 3.3.9+
 * JDK 8. Newer versions of JDK are not supported yet.
-* SWIG 4.0.2+
+
+  Set `JAVA_HOME` environment variable to point to the path of JDK installation
+* [Only for Ya Make] SWIG 4.0.2+
+
+  Cmake-based build uses SWIG from Conan packages so an explicit installation is not required.
 
 ## Building steps
 

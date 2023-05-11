@@ -1,0 +1,1 @@
+Alternatively, on Windows you could also use `Visual Studio 16 2019` generator for CMake. In this case also specify the required toolset version when calling CMake by adding `-T version=14.28` to the command line.

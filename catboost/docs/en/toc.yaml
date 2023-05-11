@@ -16,15 +16,25 @@ items:
           - href: yandex_specific/python-installation-build-from-arcadia-sources.md
             when: audience == "internal"
             name: Build from Arcadia sources
-          - href: >-
-              installation/python-installation-method-build-from-source-linux-macos.md
-            name: Build from source on Linux and macOS
-          - href: >-
-              installation/python-installation-method-build-from-source-windows.md
-            name: Build from source on Windows
-          - href: >-
-              installation/python-installation-method-build-a-wheel-package.md
-            name: Build a wheel package
+          - items:
+              - href: installation/python-installation-method-build-from-source.md
+                name: Overview
+              - href: >-
+                  installation/python-installation-method-build-from-source-linux-macos.md
+                name: Build from source on Linux and macOS
+              - href: >-
+                  installation/python-installation-method-build-from-source-linux-macos-using-ya-make.md
+                name: Build from source on Linux and macOS using Ya Make
+              - href: >-
+                  installation/python-installation-method-build-from-source-windows.md
+                name: Build from source on Windows
+              - href: >-
+                  installation/python-installation-method-build-from-source-windows-using-ya-make.md
+                name: Build from source on Windows using Ya Make
+              - href: >-
+                  installation/python-installation-method-build-a-wheel-package.md
+                name: Build a wheel package
+            name: Build from source
           - href: >-
               installation/python-installation-additional-data-visualization-packages.md
             name: Additional packages for data visualization support
@@ -51,13 +61,13 @@ items:
           - href: installation/r-installation-conda-install.md
             name: conda install
           - href: installation/r-installation-github-installation.md
-            name: Build from source
+            name: Build from source directly from GitHub
           - href: installation/r-installation-local-copy-installation.md
             when: audience == "external"
-            name: Install from a local copy on Linux and macOS
+            name: Install from a local source repository copy
           - href: installation/r-installation-local-copy-installation-windows.md
             when: audience == "external"
-            name: Install from a local copy on Windows
+            name: Install from a local source repository copy on Windows
         name: R package installation
       - items:
           - href: concepts/cli-installation.md
@@ -69,18 +79,35 @@ items:
             name: Build from Arcadia sources
           - href: installation/cli-installation-local-copy-installation.md
             when: audience == "external"
-            name: Build the binary from a local copy on Linux and macOS
+            name: Build from a local source repository copy
           - href: >-
               installation/cli-installation-local-copy-installation-windows.md
             when: audience == "external"
-            name: Build the binary from a local copy on Windows
+            name: Build from a local source repository copy on Windows
           - href: installation/cli-installation-make-install.md
+            when: audience == "external"
             name: Build the binary with make on Linux (CPU only)
           - href: installation/cli-installation-multi-node-installation.md
-            name: Build the binary with MPI support from a local copy (GPU only)
+            when: audience == "external"
+            name: Build the binary with MPI support from a local source repository copy (GPU only)
           - href: installation/cli-installation-cmake-install.md
+            when: audience == "external"
             name: Build the binary with CMake
         name: Command-line version binary
+      - items:
+          - href: concepts/build-from-source.md
+            name: Overview
+          - items:
+              - href: installation/build-environment-setup-for-cmake.md
+                name: Build environment setup
+              - href: installation/build-native-artifacts.md
+                name: Build native artifacts
+            name: Using CMake
+          - items:
+              - href: installation/build-environment-setup-for-ya-make.md
+                name: Build environment setup
+            name: Using Ya Make (previous versions)
+        name: Build from source
   - name: Key Features
     items:
         - href: features/training.md
@@ -1078,5 +1105,3 @@ items:
     name: Development and contributions
   - href: concepts/contacts.md
     name: Contacts
-
-

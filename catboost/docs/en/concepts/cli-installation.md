@@ -1,23 +1,31 @@
 # Command-line version binary
 
+{% if audience == "internal" %}
+
 {% note alert %}
 
-{% include [installation-windows-visual-cplusplus-required](../_includes/work_src/reusage-code-examples/windows-visual-cplusplus-required.md) %}
-
-{% if audience == "internal" %} {% include [arc_users](../yandex_specific/_includes/arcadia_users_step.md) %} {% endif %}
+{% include [arc_users](../yandex_specific/_includes/arcadia_users_step.md) %}
 
 {% endnote %}
+
+{% endif %}
 
 
 {% include [installation-installation-methods](../_includes/work_src/reusage/installation-methods.md) %}
 
 
 - [Download](../installation/cli-installation-binaries.md)
-{% if audience == "internal" %} - [{#T}](../yandex_specific/cli-build-from-arcadia-sources.md){% endif %}
-{% if audience == "external" %} - [Build the binary from a local copy on Linux and macOS](../installation/cli-installation-local-copy-installation.md){% endif %}
-{% if audience == "external" %} - [Build the binary from a local copy on Windows](../installation/cli-installation-local-copy-installation-windows.md){% endif %}
-- [Build the binary with `make` on Linux (CPU only)](../installation/cli-installation-make-install.md)
-- [Build the binary with MPI support from a local copy (GPU only)](../installation/cli-installation-multi-node-installation.md)
+{% if audience == "internal" %}
+- [{#T}](../yandex_specific/cli-build-from-arcadia-sources.md)
+{% endif %}
+
+{% if audience == "external" %}
+- Build from source from a local source repository:
+    - [For versions after [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb)] [Build using CMake](../installation/cli-installation-local-copy-installation.md#cmake)
+    - [For versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb)] [Build using Ya Make](../installation/cli-installation-local-copy-installation.md#ya-make)
+    - [For versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb)] [Build with `make` on Linux (CPU only)](../installation/cli-installation-make-install.md)
+    - [For versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb)] [Build with MPI support from a local copy (GPU only)](../installation/cli-installation-multi-node-installation.md)
+{% endif %}
 
 Note that there are additional [system requirements](#gpu-system-requirements) and [specifics](#gpu-peculiarities) if training on GPU is required.
 
@@ -31,12 +39,6 @@ Note that there are additional [system requirements](#gpu-system-requirements) 
 
 
 {% include [installation-nvidia-driver-reqs](../_includes/work_src/reusage-code-examples/nvidia-driver-reqs.md) %}
-
-{% if audience == "external" %}
-The command-line version of {{ product }} for CUDA with compute capability 2.0 can be built from source. In this case the following steps are required:
-- Step [2](../installation/cli-installation-local-copy-installation.md#build-cuda-2) of the [Build the binary from a local copy on Linux and macOS](../installation/cli-installation-local-copy-installation.md) operation.
-- Step [2](../installation/cli-installation-local-copy-installation-windows.md#build-cuda-2) of the [Build the binary from a local copy on Windows](../installation/cli-installation-local-copy-installation-windows.md) operation.
-{% endif %}
 
 ## GPU specifics {#gpu-peculiarities}
 

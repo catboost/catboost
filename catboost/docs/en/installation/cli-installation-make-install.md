@@ -1,5 +1,13 @@
 # Build the binary with `make` on Linux (CPU only)
 
+{% note warning %}
+
+This approach will work only for versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb).
+
+For newer versions use [Build with CMake](cli-installation-local-copy-installation.md#cmake)
+
+{% endnote %}
+
 {% if audience == "internal" %}
 
 {% include [internal-note__use-outside-arcadia](../yandex_specific/_includes/note__use-outside-arcadia.md) %}

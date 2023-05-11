@@ -6,14 +6,19 @@
 
 {% endif %}
 
-{% include [installation-nvidia-driver-reqs](../_includes/work_src/reusage-code-examples/nvidia-driver-reqs.md) %}
+## Build using `setup.py bdist_wheel` or `build` {#standard}
 
+Since [this commit](https://github.com/catboost/catboost/commit/f37d091421089231ed3c74a0431fff1c3544d606) CatBoost uses standard Python procedures.
+
+See [documentation here](python-installation-method-build-from-source.md#build-wheel).
+
+## Build using mk_wheel.py {#mk-wheel}
+
+Recommended only for versions previous to [this commit](https://github.com/catboost/catboost/commit/f37d091421089231ed3c74a0431fff1c3544d606). For newer versions [build using `setup.py bdist_wheel` or `build`](#standard).
 
 To build a self-contained Python Wheel:
-1. Depending on the OS:
-    - Linux and macOS — Perform steps [1](python-installation-method-build-from-source-linux-macos.md#build-linux-macos-step1)–[5](python-installation-method-build-from-source-linux-macos.md#build-linux-macos-step5) of the [Build from source on Linux and macOS](python-installation-method-build-from-source-linux-macos.md) operation.
-    - Windows — Perform steps [1](python-installation-method-build-from-source-windows.md#build-windows-step1)–[5](python-installation-method-build-from-source-windows.md#build-windows-step5) of the [Build from source on Windows](python-installation-method-build-from-source-windows.md) operation.
 
+1. [Setup build environment](build-environment-setup-for-ya-make.md)
 1. Run the `catboost/catboost/python-package/mk_wheel.py` script.
 
 Optional parameters:

@@ -1,10 +1,8 @@
-# Build from source
+# Build R package from source directly from GitHub
 
 {% note info %}
 
 - {% include [r-package-r__recommended-installation-method](../_includes/work_src/reusage-installation/r__recommended-installation-method.md) %}
-
-- {% include [installation-windows-visual-cplusplus-required](../_includes/work_src/reusage-code-examples/windows-visual-cplusplus-required.md) %}
 
   {% if audience == "internal" %} {% include [arc_users](../yandex_specific/_includes/arcadia_users_step.md) %} {% endif %}
 
@@ -12,15 +10,11 @@
 
 {% endnote %}
 
-
 To install the {{ r-package }} directly from the {{ product }} repository:
 
-1. {% if audience == "internal" %} {% include [arcadia_users_step](../yandex_specific/_includes/arcadia_users_step.md) %} {% endif %} Install the `libc` header files on macOS and Linux.
+1. Set up build environment
 
-    Depending on the used OS:
-
-    - macOS: `xcode-select --install`
-    - Linux: Install the appropriate package (for example, `libc6-dev` on Ubuntu)
+{% include [setup-build-environment-alternatives](../_includes/work_src/reusage-installation/setup-build-environment-alternatives.md) %}
 
 1. Run the following commands:
 
@@ -30,4 +24,3 @@ To install the {{ r-package }} directly from the {{ product }} repository:
     ```
 
 {% include [r__troubleshooting](../_includes/work_src/reusage-installation/r__troubleshooting.md) %}
-

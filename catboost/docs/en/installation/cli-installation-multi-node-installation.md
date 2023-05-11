@@ -6,6 +6,12 @@
 
 {% endif %}
 
+{% note warning %}
+
+This approach will work only for versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb).
+
+{% endnote %}
+
 {{ product }} provides a beta version of multi-node GPU training. Only the <q>feature parallel</q> learning scheme is currently supported. Therefore, only datasets with many features gain the benefit from multi-host multi-GPU support.
 
 {% include [installation-nvidia-driver-reqs](../_includes/work_src/reusage-code-examples/nvidia-driver-reqs.md) %}

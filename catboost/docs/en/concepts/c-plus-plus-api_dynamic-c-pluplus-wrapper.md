@@ -2,72 +2,137 @@
 
 This is the fastest way to evaluate a model. The library provides a [C API](#c-api) and a simple [C++ wrapper API](#c-plus-plus-wrapper). The C API interface can be accessed from any programming language.
 
-Perform the following steps to build the library:
-1. Clone the repository:
+## Build
 
-    ```
-    {{ installation--git-clone }}
-    ```
+{% note warning %}
+
+{% include [ya-make-to-cmake-switch](../_includes/work_src/reusage-installation/ya-make-to-cmake-switch.md) %}
+
+Select the appropriate build method below accordingly.
+
+{% endnote %}
+
+### Source code
+
+{% include [get-source-code-from-github](../_includes/work_src/reusage-installation/get-source-code-from-github.md) %}
+
+### Build using CMake  {#cmake}
+
+{% list tabs %}
+
+- Shared library
+
+    Build `catboostmodel` target.
+
+    See [Build native artifacts](../installation/build-native-artifacts.md).
+
+    Built artifacts will be in `$CMAKE_BINARY_DIR/catboost/libs/model_interface`:
+
+    {% include [build-model-interface-shared-artifacts](../_includes/work_src/reusage-installation/build-model-interface-shared-artifacts.md) %}
+
+- Static library
+
+    Build `catboostmodel_static` target.
+
+    See [Build native artifacts](../installation/build-native-artifacts.md).
+
+    Built library will consist of two parts:
+        - `global` part. This part contains symbols that require forced initialization.
+        - non-`global` part. All other symbols.
+
+    Built artifacts will be in `$CMAKE_BINARY_DIR/catboost/libs/model_interface/static`:
+
+    |OS|Files|
+    |--|-----|
+    |Linux or macOS|`libcatboostmodel_static.a`, `libcatboostmodel_static.global.a`|
+    |Windows|`catboostmodel_static.lib`, `catboostmodel_static.global.lib`|
+
+{% endlist %}
+
+### Build using Ya Make  {#ya-make}
+
+1. [Setup build environment](../installation/build-environment-setup-for-ya-make.md)
 
 1. Open the `catboost` directory from the local copy of the {{ product }} repository.
 
-1. Choose the preferred way to use the evaluation library and compile it accordingly:
+1. Run the following command:
 
     {% list tabs %}
 
     - Shared library
 
-        ```bash
-        ./ya make -r catboost/libs/model_interface
         ```
-
-        Or (Linux-only):
-
-        ```bash
-        export CXX=/path/to/clang++
-        export CC=/path/to/clang
-
-        make -f make/model_interface.CLANG50-LINUX-X86_64.makefile
+        ./ya make -r [optional parameters] catboost/libs/model_interface
         ```
 
         The output directory `catboost/libs/model_interface` will contain:
 
-        |OS|Files|
-        |--|-----|
-        |Linux|`libcatboostmodel.so`|
-        |macOS|`libcatboostmodel.dylib`|
-        |Windows|`catboostmodel.lib` and `catboostmodel.dll`|
+        {% include [build-model-interface-shared-artifacts](../_includes/work_src/reusage-installation/build-model-interface-shared-artifacts.md) %}
 
-    - Static library (Linux or macOS only)
+    - Static library (only for Linux and macOS)
 
-        ```bash
-        ya make -r catboost/libs/model_interface/static
         ```
-
-        Or (Linux-only):
-
-        ```bash
-        export CXX=/path/to/clang++
-        export CC=/path/to/clang
-
-        make -f make/model_interface_static.CLANG50-LINUX-X86_64.makefile
+        ./ya make -r [optional parameters] catboost/libs/model_interface/static
         ```
 
         The output directory `catboost/libs/model_interface/static` will contain a pair of artifacts:
 
-        - `liblibcatboostmodel.o`. This part contains symbols that require forced initialization.
-        - `libcatboostmodel.a`. This part contains all other symbols.
+        {% include [build-model-interface-static-old-artifacts](../_includes/work_src/reusage-installation/build-model-interface-static-old-artifacts.md) %}
 
     {% endlist %}
 
+    Useful parameters:
+
+    Parameter | Description
+    ----- | -----
+    `-DCUDA_ROOT` | The path to CUDA. This parameter is required to support training on GPU.
+    `-DHAVE_CUDA=no` | Disable CUDA support. This speeds up compilation.<br/><br/>By default, the package is built with CUDA support if CUDA Toolkit is installed.
+
+### Build using Make (Linux-only)  {#make}
+
+{% note warning %}
+
+This approach will work only for versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb).
+
+For newer versions use [Build with CMake](#cmake)
+
+{% endnote %}
+
+Choose the preferred way to use the evaluation library and compile it accordingly:
+
+{% list tabs %}
+
+- Shared library
+
+    ```bash
+    export CXX=/path/to/clang++
+    export CC=/path/to/clang
+
+    make -f make/model_interface.CLANG50-LINUX-X86_64.makefile
+    ```
+
+    The output directory `catboost/libs/model_interface` will contain `libcatboostmodel.so`.
+
+- Static library
+
+    ```bash
+    export CXX=/path/to/clang++
+    export CC=/path/to/clang
+
+    make -f make/model_interface_static.CLANG50-LINUX-X86_64.makefile
+    ```
+
+    The output directory `catboost/libs/model_interface/static` will contain a pair of artifacts:
+
+    {% include [build-model-interface-static-old-artifacts](../_includes/work_src/reusage-installation/build-model-interface-static-old-artifacts.md) %}
+
+{% endlist %}
+
+## Usage
+
 The {{ product }} model can be loaded from a file or initialized from the buffer memory.
 
-
-#### Related information
-
-[Source code and a CMake usage example](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface/cmake_example)
-
-## C API {#c-api}
+### C API {#c-api}
 
 Perform the following steps to use this API:
 
@@ -122,7 +187,36 @@ Perform the following steps to use this API:
 
         The shared library must be accessible from the dynamic library loader search path. See your operating system documentation for the details.
 
-    - Static library (Linux or macOS only)
+    - Static library built using CMake
+
+        Add both `global` and non-`global` parts to the linker input. `global` part requires passing special platform-specific flags to force the required initialization of symbols.
+
+        See per-platform examples below:
+
+        - Linux
+
+            On Linux additional libraries `libdl` and `libpthread` have to be added to the linker input as well.
+
+            ```
+            clang++ <your sources and options> -nodefaultlibs -lpthread -ldl -Wl,--whole-archive <catboost_lib_dir>/libcatboostmodel_static.global.a -Wl,--no-whole-archive <catboost_lib_dir>/libcatboostmodel_static.a
+            ```
+
+        - macOS
+
+            ```
+            clang++ <your sources and options> <catboost_lib_dir>/libcatboostmodel_static.a
+            -Wl,-force_load,<catboost_lib_dir>/libcatboostmodel_static.global.a
+            ```
+
+       - Windows
+
+            When using `c_api.h` with the static library the additional define `CATBOOST_API_STATIC_LIB` is required.
+
+            ```
+            cl.exe <your sources and options> /DCATBOOST_API_STATIC_LIB /link /WHOLEARCHIVE:<catboost_lib_dir>\catboostmodel_static.global.lib <catboost_lib_dir>\catboostmodel_static.lib
+            ```
+
+    - Static library built using Ya Make or Make (Linux or macOS only)
 
         Add both `liblibcatboostmodel.o` and  `libcatboostmodel.a` to the linker input.
 
@@ -136,7 +230,7 @@ Perform the following steps to use this API:
 
     {% endlist %}
 
-## C++ wrapper API {#c-plus-plus-wrapper}
+### C++ wrapper API {#c-plus-plus-wrapper}
 
 A C++ wrapper for the C API interface is also available.
 
@@ -151,3 +245,7 @@ std::cout << calcer.Calc(floatFeatures, catFeatures) << std::endl;
 ```
 
 `ModelCalcerWrapper` also has a constructor to read data from the memory buffer.
+
+### Related information
+
+[Source code and a CMake usage example](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface/cmake_example)
