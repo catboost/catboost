@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: requests
-Version: 2.28.2
+Version: 2.29.0
 Summary: Python HTTP for Humans.
 Home-page: https://requests.readthedocs.io
 Author: Kenneth Reitz
@@ -27,7 +27,7 @@ Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Internet :: WWW/HTTP
 Classifier: Topic :: Software Development :: Libraries
-Requires-Python: >=3.7, <4
+Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 Requires-Dist: charset-normalizer (<4,>=2)
 Requires-Dist: idna (<4,>=2.5)
