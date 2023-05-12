@@ -92,8 +92,15 @@ def elements_and_dtype(elements, dtype, source=None):
         )
 
     if isinstance(dtype, type) and np.dtype(dtype).kind == "O" and dtype is not object:
+        err_msg = f"Passed dtype={dtype!r} is not a valid Pandas dtype."
+        if issubclass(dtype, datetime):
+            err_msg += ' To generate valid datetimes, pass `dtype="datetime64[ns]"`'
+            raise InvalidArgument(err_msg)
+        elif issubclass(dtype, timedelta):
+            err_msg += ' To generate valid timedeltas, pass `dtype="timedelta64[ns]"`'
+            raise InvalidArgument(err_msg)
         note_deprecation(
-            f"Passed dtype={dtype!r} is not a valid Pandas dtype.  We'll treat it as "
+            f"{err_msg}  We'll treat it as "
             "dtype=object for now, but this will be an error in a future version.",
             since="2021-12-31",
             has_codemod=False,
