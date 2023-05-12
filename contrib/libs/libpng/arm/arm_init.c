@@ -46,7 +46,7 @@
 
 static int png_have_neon(png_structp png_ptr);
 #ifdef PNG_ARM_NEON_FILE
-#  include PNG_ARM_NEON_FILE
+#  error #include PNG_ARM_NEON_FILE
 #endif
 #endif /* PNG_ARM_NEON_CHECK_SUPPORTED */
 
