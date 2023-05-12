@@ -8,6 +8,8 @@ TStringBuf HttpCodeStrEx(int code) noexcept {
             return TStringBuf("101 Switching protocols");
         case HTTP_PROCESSING:
             return TStringBuf("102 Processing");
+        case HTTP_EARLY_HINTS:
+            return TStringBuf ("103 Early Hints");
 
         case HTTP_OK:
             return TStringBuf("200 Ok");
