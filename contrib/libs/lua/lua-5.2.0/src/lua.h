@@ -115,7 +115,7 @@ typedef LUA_UNSIGNED lua_Unsigned;
 ** generic extra include file
 */
 #if defined(LUA_USER_H)
-#include LUA_USER_H
+#error #include LUA_USER_H
 #endif
 
 
