@@ -28,7 +28,7 @@
 
 #if defined(_LIBCPP_HAS_THREAD_API_EXTERNAL)
 # define _LIBCPP_EXTERNAL_THREADING <__external_threading>
-# include _LIBCPP_EXTERNAL_THREADING
+# #error include _LIBCPP_EXTERNAL_THREADING
 # undef _LIBCPP_EXTERNAL_THREADING
 #elif !defined(_LIBCPP_HAS_NO_THREADS)
 
