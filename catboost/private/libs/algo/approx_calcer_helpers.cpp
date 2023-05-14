@@ -10,6 +10,7 @@ void CreateBacktrackingObjective(
     const auto& treeOptions = ctx.Params.ObliviousTreeOptions.Get();
     CreateBacktrackingObjective(
         ctx.Params.MetricOptions->ObjectiveMetric,
+        ctx.EvalMetricDescriptor,
         treeOptions,
         ctx.LearnProgress->ApproxDimension,
         haveBacktrackingObjective,

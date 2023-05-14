@@ -6,6 +6,7 @@ void CreateBacktrackingObjectiveImpl(
     int leavesEstimationIterations,
     ELeavesEstimationStepBacktracking leavesEstimationBacktrackingType,
     const NCatboostOptions::TLossDescription& objectiveMetric,
+    const TMaybe<TCustomMetricDescriptor>& customMetric,
     bool* haveBacktrackingObjective,
     double* minimizationSign,
     TVector<THolder<IMetric>>* lossFunction
@@ -13,13 +14,21 @@ void CreateBacktrackingObjectiveImpl(
     *haveBacktrackingObjective = leavesEstimationIterations > 1
                                  && leavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::No;
     if (*haveBacktrackingObjective) {
-        *lossFunction = CreateMetricFromDescription(objectiveMetric, dimensionCount);
-        *minimizationSign = GetMinimizeSign((*lossFunction)[0]);
+        if (objectiveMetric.LossFunction == ELossFunction::PythonUserDefinedPerObject) {
+            CB_ENSURE(customMetric, "PythonUserDefinedPerObject requires a Python metric class");
+            lossFunction->resize(0);
+            lossFunction->emplace_back(MakeCustomMetric(*customMetric));
+            *minimizationSign = customMetric->IsMaxOptimalFunc(customMetric->CustomData) ? -1.0 : 1.0;
+        } else {
+            *lossFunction = CreateMetricFromDescription(objectiveMetric, dimensionCount);
+            *minimizationSign = GetMinimizeSign((*lossFunction)[0]);
+        }
     }
 }
 
 void CreateBacktrackingObjective(
     NCatboostOptions::TLossDescription metricDescriptions,
+    const TMaybe<TCustomMetricDescriptor>& customMetric,
     const NCatboostOptions::TObliviousTreeLearnerOptions& treeOptions,
     int approxDimension,
     bool* haveBacktrackingObjective,
@@ -31,6 +40,7 @@ void CreateBacktrackingObjective(
         int(treeOptions.LeavesEstimationIterations.Get()),
         treeOptions.LeavesEstimationBacktrackingType,
         metricDescriptions,
+        customMetric,
         haveBacktrackingObjective,
         minimizationSign,
         lossFunction);

@@ -13,7 +13,6 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
-#include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/model/fwd.h>

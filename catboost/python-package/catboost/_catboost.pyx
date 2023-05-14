@@ -611,6 +611,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
         TString (*GetDescriptionFunc)(void *customData) except * with gil
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
+        bool_t (*IsAdditiveFunc)(void *customData) except * with gil
         double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
     cdef bool_t IsMaxOptimal(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsMinOptimal(const TString& metricName) nogil except +ProcessException
@@ -1160,6 +1161,10 @@ cdef bool_t _MetricIsMaxOptimal(void* customData) except * with gil:
     cdef metricObject = <object>customData
     return metricObject.is_max_optimal()
 
+cdef bool_t _MetricIsAdditive(void* customData) except * with gil:
+    cdef metricObject = <object>customData
+    return hasattr(metricObject, 'is_additive') and metricObject.is_additive()
+
 cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) except * with gil:
     # TODO(nikitxskv): use error.Stats for custom metrics.
     cdef metricObject = <object>customData
@@ -1592,6 +1597,7 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
         descriptor.EvalFunc = &_MetricEval
     descriptor.GetDescriptionFunc = &_MetricGetDescription
     descriptor.IsMaxOptimalFunc = &_MetricIsMaxOptimal
+    descriptor.IsAdditiveFunc = &_MetricIsAdditive
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "logger.h"
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/options/enums.h>
@@ -8,14 +7,11 @@
 
 #include <util/generic/maybe.h>
 
+class TLogger;
+struct TProfileResults;
 
 struct TTimeInfo {
-    TTimeInfo(const TProfileResults& profileResults)
-        : IterationTime(profileResults.CurrentTime)
-        , PassedTime(profileResults.PassedTime)
-        , RemainingTime(profileResults.RemainingTime)
-    {
-    }
+    explicit TTimeInfo(const TProfileResults& profileResults);
     TTimeInfo() = default;
 
     double IterationTime = 0;

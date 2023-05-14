@@ -49,6 +49,7 @@ inline double CalcMethodDelta<ELeavesEstimation::Newton>(
 
 void CreateBacktrackingObjective(
     NCatboostOptions::TLossDescription metricDescriptions,
+    const TMaybe<TCustomMetricDescriptor>& customMetric,
     const NCatboostOptions::TObliviousTreeLearnerOptions& treeOptions,
     int approxDimension,
     bool* haveBacktrackingObjective,

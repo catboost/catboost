@@ -123,12 +123,14 @@ struct TCustomMetricDescriptor {
     using TGetDescriptionFuncPtr = TString (*)(void* customData);
     using TIsMaxOptimalFuncPtr = bool (*)(void* customData);
     using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
+    using TIsAdditiveFuncPtr = bool (*)(void* customData);
 
     void* CustomData = nullptr;
     TMaybe<TEvalFuncPtr> EvalFunc;
     TMaybe<TEvalMultiTargetFuncPtr> EvalMultiTargetFunc;
     TGetDescriptionFuncPtr GetDescriptionFunc = nullptr;
     TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
+    TIsAdditiveFuncPtr IsAdditiveFunc = nullptr;
     TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
 
     bool IsMultiTargetMetric() const {

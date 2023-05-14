@@ -658,10 +658,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         CB_ENSURE(
             ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
             "Backtracking type Armijo is supported only on GPU");
-        CB_ENSURE(
-            !IsUserDefined(lossFunction)
-            || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No,
-            "Backtracking is not supported for custom loss functions on CPU");
     }
 
     if (ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::No) {

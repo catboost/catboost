@@ -1,4 +1,12 @@
 #include "catboost_logger_helpers.h"
+#include "logger.h"
+
+TTimeInfo::TTimeInfo(const TProfileResults& profileResults)
+    : IterationTime(profileResults.CurrentTime)
+    , PassedTime(profileResults.PassedTime)
+    , RemainingTime(profileResults.RemainingTime)
+{
+}
 
 void TMetricsAndTimeLeftHistory::TryUpdateBestError(const IMetric& metric, double error, THashMap<TString, double>& bestError, bool updateBestIteration) {
     TString metricDescription = metric.GetDescription();

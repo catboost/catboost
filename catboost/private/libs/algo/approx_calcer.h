@@ -61,7 +61,6 @@ void CalcLeafDeltasSimple(
 void CalcLeafValues(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
-    const TFold& fold,
     const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* leafDeltas,

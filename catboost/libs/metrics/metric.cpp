@@ -4435,7 +4435,21 @@ namespace {
             int end,
             NPar::ILocalExecutor& /* executor */
         ) const override {
-            CB_ENSURE_INTERNAL(!isExpApprox && approxDelta.empty(), "Custom metrics do not support approx deltas and exponentiated approxes");
+            CB_ENSURE_INTERNAL(!isExpApprox, "Custom metrics do not support exponentiated approxes");
+            TVector<TConstArrayRef<double>> approxRef;
+            approxRef.assign(approx.begin(), approx.end());
+            TVector<TVector<double>> updatedApprox;
+            if (!approxDelta.empty()) {
+                const auto approxDim = approx.size();
+                ResizeRank2(approxDim, target.size(), updatedApprox); // allocate full approx, fill only [begin, end)
+                for (auto i : xrange(approxDim)) {
+                    for (auto j : xrange(begin, end)) {
+                        updatedApprox[i][j] = approx[i][j] + approxDelta[i][j];
+                    }
+                }
+                approxRef = To2DConstArrayRef<double>(updatedApprox);
+            }
+            approx = MakeArrayRef(approxRef);
             TMetricHolder result = (*(Descriptor.EvalFunc))(approx, target, UseWeights ? weight : TConstArrayRef<float>{}, begin, end, Descriptor.CustomData);
             CB_ENSURE(
                 result.Stats.ysize() == 2,
@@ -4447,10 +4461,7 @@ namespace {
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         double GetFinalError(const TMetricHolder& error) const override;
-        //we don't now anything about custom metrics
-        bool IsAdditiveMetric() const final {
-            return false;
-        }
+        bool IsAdditiveMetric() const final;
         // be conservative by default
         bool NeedTarget() const override {
             return true;
@@ -4479,6 +4490,10 @@ void TCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 double TCustomMetric::GetFinalError(const TMetricHolder& error) const {
     return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
+}
+
+bool TCustomMetric::IsAdditiveMetric() const {
+    return Descriptor.IsAdditiveFunc(Descriptor.CustomData);
 }
 
 /* CustomMultiTarget */

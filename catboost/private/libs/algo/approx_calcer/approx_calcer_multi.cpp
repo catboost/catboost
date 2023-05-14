@@ -84,24 +84,26 @@ void CalcExactLeafDeltasMulti(
 
 
 void CalcLeafValuesMulti(
-    const NCatboostOptions::TCatBoostOptions& params,
     int leafCount,
     const IDerCalcer& error,
     const TVector<TQueryInfo>& queryInfo,
     const TVector<TIndexType>& indices,
     const TVector<TConstArrayRef<float>>& label,
     TConstArrayRef<float> weight,
-    int approxDimension,
     double sumWeight,
     int l2RegSampleCount,
     int sampleCount,
-    NCatboostOptions::TLossDescription metricDescriptions,
-    TRestorableFastRng64* rng,
-    NPar::ILocalExecutor* localExecutor,
+    TLearnContext* ctx,
     TVector<TVector<double>>* sumLeafDeltas, // [dim][leafIdx]
     TVector<TVector<double>>* approx
 ) {
     CB_ENSURE(!error.GetIsExpApprox(), "Multi-class does not support exponentiated approxes");
+
+    const auto& params = ctx->Params;
+    const int approxDimension = ctx->LearnProgress->ApproxDimension;
+    const auto& metricDescriptions = ctx->Params.MetricOptions->ObjectiveMetric;
+    TRestorableFastRng64* rng = &ctx->LearnProgress->Rand;
+    NPar::ILocalExecutor* localExecutor = ctx->LocalExecutor;
 
     const auto& learnerOptions = params.ObliviousTreeOptions.Get();
     int gradientIterations = learnerOptions.LeavesEstimationIterations;
@@ -115,6 +117,7 @@ void CalcLeafValuesMulti(
     TVector<THolder<IMetric>> lossFunction;
     CreateBacktrackingObjective(
         metricDescriptions,
+        ctx->EvalMetricDescriptor,
         learnerOptions,
         approxDimension,
         &haveBacktrackingObjective,

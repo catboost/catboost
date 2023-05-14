@@ -1058,20 +1058,16 @@ inline void CalcLeafValuesMultiForAllLeaves(
     CopyApprox(fold.BodyTailArr[0].Approx, &approx, localExecutor);
 
     CalcLeafValuesMulti(
-        ctx->Params,
         leafCount,
         error,
         fold.LearnQueriesInfo,
         indices,
         To2DConstArrayRef<float>(fold.LearnTarget),
         fold.GetLearnWeights(),
-        ctx->LearnProgress->ApproxDimension,
         fold.GetSumWeight(),
         fold.GetLearnSampleCount(),
         fold.GetLearnSampleCount(),
-        ctx->Params.MetricOptions->ObjectiveMetric,
-        &ctx->LearnProgress->Rand,
-        localExecutor,
+        ctx,
         sumLeafDeltas,
         &approx
     );
@@ -1080,12 +1076,12 @@ inline void CalcLeafValuesMultiForAllLeaves(
 void CalcLeafValues(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
-    const TFold& fold,
     const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* leafDeltas,
     TVector<TIndexType>* indices) {
 
+    const TFold& fold = ctx->LearnProgress->AveragingFold;
     *indices = BuildIndices(fold, tree, data, EBuildIndicesDataParts::All, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
     CB_ENSURE(fold.GetLearnSampleCount() == data.Learn->GetObjectCount(), "Unexpected number of train samples");
