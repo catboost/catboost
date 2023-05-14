@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.13.0
+Version: 8.13.1
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -23,7 +23,7 @@ Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Topic :: System :: Shells
-Requires-Python: >=3.8
+Requires-Python: >=3.9
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 Requires-Dist: backcall
