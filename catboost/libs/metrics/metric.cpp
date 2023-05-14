@@ -1687,25 +1687,13 @@ TMetricHolder TFocalMetric::EvalSingleThread(
             const float w = hasWeight ? weight[k] : 1;
             double FocalAlpha = 0.75;
             double FocalGamma = 2;
-            double at, p, pt, y, margin;
-            double u, du, v, dv, der2;
+            double at, p, pt, margin;
 
             curApprox = 1 / (1 + exp(-curApprox));
             at = target[k] == 1 ? FocalAlpha : 1 - FocalAlpha;
             p = std::clamp(curApprox, 0.0000000000001, 0.9999999999999);
             pt = target[k] == 1 ? p : 1 - p;
-            y = 2 * target[k] - 1;
-            margin = at * y * pow((1 - pt), FocalGamma);
-            margin = margin * (FocalGamma * pt * log(pt) + pt - 1);
-
-            // second derivative
-            u = at * y * pow((1 - pt), FocalGamma);
-            du = -at * y * pow(FocalGamma * (1 - pt), FocalGamma - 1);
-            v = FocalGamma * pt * log(pt) + pt - 1;
-            dv = FocalGamma * log(pt) + FocalGamma + 1;
-            der2 = (du * v + u * dv) * y * (pt * (1 - pt));
-
-            margin = margin + der2;
+            margin =  -at * pow((1 - pt), FocalGamma) * log(pt);
             error.Stats[0] += w * margin;
             error.Stats[1] += w;
             }
