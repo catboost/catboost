@@ -132,6 +132,8 @@ def __getattr__(name):
         )
         return BaseExceptionGroup
 
+    raise AttributeError(f"Module 'hypothesis.errors' has no attribute {name}")
+
 
 class DeadlineExceeded(_Trimmable):
     """Raised when an individual test body has taken too long to run."""

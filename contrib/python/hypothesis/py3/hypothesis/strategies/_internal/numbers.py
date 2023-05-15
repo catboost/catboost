@@ -438,7 +438,7 @@ def floats(
 
     if math.copysign(1.0, -0.0) == 1.0:  # pragma: no cover
         raise FloatingPointError(
-            "You Python install can't represent -0.0, which is required by the "
+            "Your Python install can't represent -0.0, which is required by the "
             "IEEE-754 floating-point specification.  This is probably because it was "
             "compiled with an unsafe option like -ffast-math; for a more detailed "
             "explanation see https://simonbyrne.github.io/notes/fastmath/"

@@ -20,6 +20,7 @@ See https://github.com/HypothesisWorks/hypothesis/issues/3140 for details.
 """
 
 import base64
+import json
 import sys
 from inspect import signature
 
@@ -59,6 +60,7 @@ check to assure Hypothesis that you understand what you are doing.
 """
 
 STATS_KEY = "_hypothesis_stats"
+FAILING_EXAMPLES_KEY = "_hypothesis_failing_examples"
 
 
 class StoringReporter:
@@ -298,7 +300,12 @@ else:
             report.sections.append(
                 ("Hypothesis", "\n".join(item.hypothesis_report_information))
             )
-        if hasattr(item, "hypothesis_statistics") and report.when == "teardown":
+        if report.when != "teardown":
+            return
+
+        terminalreporter = item.config.pluginmanager.getplugin("terminalreporter")
+
+        if hasattr(item, "hypothesis_statistics"):
             stats = item.hypothesis_statistics
             stats_base64 = base64.b64encode(stats.encode()).decode()
 
@@ -314,10 +321,7 @@ else:
                 xml.add_global_property(name, stats_base64)
 
             # If there's a terminal report, include our summary stats for each test
-            terminalreporter = item.config.pluginmanager.getplugin("terminalreporter")
             if terminalreporter is not None:
-                # ideally, we would store this on terminalreporter.config.stash, but
-                # pytest-xdist doesn't copy that back to the controller
                 report.__dict__[STATS_KEY] = stats
 
             # If there's an HTML report, include our summary stats for each test
@@ -327,14 +331,49 @@ else:
                     pytest_html.extras.text(stats, name="Hypothesis stats")
                 ]
 
+        # This doesn't intrinsically have anything to do with the terminalreporter;
+        # we're just cargo-culting a way to get strings back to a single function
+        # even if the test were distributed with pytest-xdist.
+        failing_examples = getattr(item, FAILING_EXAMPLES_KEY, None)
+        if failing_examples and terminalreporter is not None:
+            try:
+                from hypothesis.extra.patching import get_patch_for
+            except ImportError:
+                return
+            # We'll save this as a triple of [filename, hunk_before, hunk_after].
+            triple = get_patch_for(item.obj, failing_examples)
+            if triple is not None:
+                report.__dict__[FAILING_EXAMPLES_KEY] = json.dumps(triple)
+
     def pytest_terminal_summary(terminalreporter):
-        if terminalreporter.config.getoption(PRINT_STATISTICS_OPTION):
+        failing_examples = []
+        print_stats = terminalreporter.config.getoption(PRINT_STATISTICS_OPTION)
+        if print_stats:
             terminalreporter.section("Hypothesis Statistics")
-            for reports in terminalreporter.stats.values():
-                for report in reports:
-                    stats = report.__dict__.get(STATS_KEY)
-                    if stats:
-                        terminalreporter.write_line(stats + "\n\n")
+        for reports in terminalreporter.stats.values():
+            for report in reports:
+                stats = report.__dict__.get(STATS_KEY)
+                if stats and print_stats:
+                    terminalreporter.write_line(stats + "\n\n")
+                fex = report.__dict__.get(FAILING_EXAMPLES_KEY)
+                if fex:
+                    failing_examples.append(json.loads(fex))
+
+        if failing_examples:
+            # This must have been imported already to write the failing examples
+            from hypothesis.extra.patching import gc_patches, make_patch, save_patch
+
+            patch = make_patch(failing_examples)
+            try:
+                gc_patches()
+                fname = save_patch(patch)
+            except Exception:
+                # fail gracefully if we hit any filesystem or permissions problems
+                return
+            terminalreporter.section("Hypothesis")
+            terminalreporter.write_line(
+                f"`git apply {fname}` to add failing examples to your code."
+            )
 
     def pytest_collection_modifyitems(items):
         if "hypothesis" not in sys.modules:

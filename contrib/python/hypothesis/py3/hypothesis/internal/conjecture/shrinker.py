@@ -546,10 +546,11 @@ class Shrinker:
                 )
 
                 # Turns out this was a variable-length part, so grab the infix...
-                if (
-                    result.status == Status.OVERRUN
-                    or len(buf_attempt_fixed) != len(result.buffer)
-                    or not result.buffer.endswith(buffer[end:])
+                if result.status == Status.OVERRUN:
+                    continue  # pragma: no cover
+                if not (
+                    len(buf_attempt_fixed) == len(result.buffer)
+                    and result.buffer.endswith(buffer[end:])
                 ):
                     for ex, res in zip(shrink_target.examples, result.examples):
                         assert ex.start == res.start
@@ -612,8 +613,6 @@ class Shrinker:
             # This *can't* be a shrink because none of the components were.
             assert shrink_target is self.shrink_target
             if result.status == Status.VALID:
-                # TODO: cover this branch.
-                #       I might need to save or retrieve passing chunks too???
                 self.shrink_target.slice_comments[
                     (0, 0)
                 ] = "The test sometimes passed when commented parts were varied together."

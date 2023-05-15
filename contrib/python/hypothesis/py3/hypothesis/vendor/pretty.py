@@ -352,7 +352,16 @@ class RepresentationPrinter:
         self.flush()
         return self.output.getvalue()
 
-    def repr_call(self, func_name, args, kwargs, *, force_split=None, arg_slices=None):
+    def repr_call(
+        self,
+        func_name,
+        args,
+        kwargs,
+        *,
+        force_split=None,
+        arg_slices=None,
+        leading_comment=None,
+    ):
         """Helper function to represent a function call.
 
         - func_name, args, and kwargs should all be pretty obvious.
@@ -372,7 +381,7 @@ class RepresentationPrinter:
             if v in self.slice_comments
         }
 
-        if any(k in comments for k, _ in all_args):
+        if leading_comment or any(k in comments for k, _ in all_args):
             # We have to split one arg per line in order to leave comments on them.
             force_split = True
         if force_split is None:
@@ -388,6 +397,9 @@ class RepresentationPrinter:
         with self.group(indent=4, open="(", close=""):
             for i, (k, v) in enumerate(all_args):
                 if force_split:
+                    if i == 0 and leading_comment:
+                        self.break_()
+                        self.text(leading_comment)
                     self.break_()
                 else:
                     self.breakable(" " if i else "")

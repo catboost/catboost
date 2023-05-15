@@ -336,7 +336,7 @@ def query(
     >>> query(min_codepoint=0, max_codepoint=128, include_categories=['Lu'])
     ((65, 90),)
     >>> query(min_codepoint=0, max_codepoint=128, include_categories=['Lu'],
-    ...       include_characters=u'☃')
+    ...       include_characters='☃')
     ((65, 90), (9731, 9731))
     """
     if min_codepoint is None:
