@@ -288,7 +288,7 @@ TRange<U> ReinterpretCastRange(TRange<T> range)
 {
     static_assert(sizeof(T) == sizeof(U), "T and U must have equal sizes.");
     return TRange<U>(reinterpret_cast<const U*>(range.Begin()), range.Size());
-};
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 

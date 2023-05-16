@@ -105,14 +105,16 @@ struct TEnumTraits<T, true>
     ENUM__CLASS(enumType, underlyingType, seq) \
     ENUM__BEGIN_TRAITS(enumType, underlyingType, false, false, seq) \
     ENUM__VALIDATE_UNIQUE(enumType) \
-    ENUM__END_TRAITS(enumType)
+    ENUM__END_TRAITS(enumType) \
+    static_assert(true)
 
 //! Defines a smart enumeration with a specific underlying type.
 //! Duplicate enumeration values are allowed.
 #define DEFINE_AMBIGUOUS_ENUM_WITH_UNDERLYING_TYPE(enumType, underlyingType, seq) \
     ENUM__CLASS(enumType, underlyingType, seq) \
     ENUM__BEGIN_TRAITS(enumType, underlyingType, false, false, seq) \
-    ENUM__END_TRAITS(enumType)
+    ENUM__END_TRAITS(enumType) \
+    static_assert(true)
 
 //! Defines a smart enumeration with the default |int| underlying type.
 #define DEFINE_ENUM(enumType, seq) \
@@ -129,7 +131,8 @@ struct TEnumTraits<T, true>
     ENUM__BEGIN_TRAITS(enumType, underlyingType, true, false, seq) \
     ENUM__VALIDATE_UNIQUE(enumType) \
     ENUM__END_TRAITS(enumType) \
-    ENUM__BITWISE_OPS(enumType)
+    ENUM__BITWISE_OPS(enumType) \
+    static_assert(true)
 
 //! Defines a smart enumeration with a specific underlying type.
 //! Duplicate enumeration values are allowed.
@@ -142,7 +145,8 @@ struct TEnumTraits<T, true>
     ENUM__CLASS(enumType, underlyingType, seq) \
     ENUM__BEGIN_TRAITS(enumType, underlyingType, true, false, seq) \
     ENUM__END_TRAITS(enumType) \
-    ENUM__BITWISE_OPS(enumType)
+    ENUM__BITWISE_OPS(enumType) \
+    static_assert(true)
 
 //! Defines a smart enumeration with the default |unsigned int| underlying type.
 /*!
@@ -163,13 +167,15 @@ struct TEnumTraits<T, true>
     ENUM__BEGIN_TRAITS(enumType, underlyingType, false, true, seq) \
     ENUM__VALIDATE_UNIQUE(enumType) \
     ENUM__END_TRAITS(enumType) \
+    static_assert(true)
 
 //! Defines a smart enumeration with a specific underlying type and IsStringSerializable attribute.
 //! Duplicate enumeration values are allowed.
 #define DEFINE_AMBIGUOUS_STRING_SERIALIZABLE_ENUM_WITH_UNDERLYING_TYPE(enumType, underlyingType, seq) \
     ENUM__CLASS(enumType, underlyingType, seq) \
     ENUM__BEGIN_TRAITS(enumType, underlyingType, false, true, seq) \
-    ENUM__END_TRAITS(enumType)
+    ENUM__END_TRAITS(enumType) \
+    static_assert(true)
 
 //! Defines a smart enumeration with the default |int| underlying type and IsStringSerializable attribute.
 #define DEFINE_STRING_SERIALIZABLE_ENUM(enumType, seq) \

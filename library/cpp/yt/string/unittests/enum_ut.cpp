@@ -27,7 +27,7 @@ DEFINE_BIT_ENUM(ELangs,
     ((Rust)       (0x04))
     ((Python)     (0x08))
     ((JavaScript) (0x10))
-)
+);
 
 TEST(TFormatTest, Enum)
 {
