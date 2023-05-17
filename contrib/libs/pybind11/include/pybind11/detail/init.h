@@ -302,6 +302,40 @@ struct factory<Func, void_type (*)(), Return(Args...)> {
     }
 };
 
+// Specialization for py::init(Func) if Func is marked as noexcept and we are compiling -std=c++17-or-above mode
+template <typename Func, typename Return, typename... Args>
+struct factory<Func, void_type (*)(), Return(Args...) noexcept> {
+    remove_reference_t<Func> class_factory;
+
+    // NOLINTNEXTLINE(google-explicit-constructor)
+    factory(Func &&f) : class_factory(std::forward<Func>(f)) {}
+
+    // The given class either has no alias or has no separate alias factory;
+    // this always constructs the class itself.  If the class is registered with an alias
+    // type and an alias instance is needed (i.e. because the final type is a Python class
+    // inheriting from the C++ type) the returned value needs to either already be an alias
+    // instance, or the alias needs to be constructible from a `Class &&` argument.
+    template <typename Class, typename... Extra>
+    void execute(Class &cl, const Extra &...extra) && {
+#if defined(PYBIND11_CPP14)
+        cl.def(
+            "__init__",
+            [func = std::move(class_factory)]
+#else
+        auto &func = class_factory;
+        cl.def(
+            "__init__",
+            [func]
+#endif
+            (value_and_holder &v_h, Args... args) {
+                construct<Class>(
+                    v_h, func(std::forward<Args>(args)...), Py_TYPE(v_h.inst) != v_h.type->type);
+            },
+            is_new_style_constructor(),
+            extra...);
+    }
+};
+
 // Specialization for py::init(Func, AliasFunc)
 template <typename CFunc,
           typename AFunc,
