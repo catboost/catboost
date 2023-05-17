@@ -15,7 +15,7 @@
 
 class TZtStringBuf: public TStringBuf {
 public:
-    TZtStringBuf(const char* s)
+    constexpr TZtStringBuf(const char* s)
         : TStringBuf(s)
     {
     }
