@@ -1159,7 +1159,12 @@ cdef TString _MetricGetDescription(void* customData) except * with gil:
 
 cdef bool_t _MetricIsMaxOptimal(void* customData) except * with gil:
     cdef metricObject = <object>customData
-    return metricObject.is_max_optimal()
+    try:
+        return metricObject.is_max_optimal()
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
 
 cdef bool_t _MetricIsAdditive(void* customData) except * with gil:
     cdef metricObject = <object>customData
@@ -1168,7 +1173,12 @@ cdef bool_t _MetricIsAdditive(void* customData) except * with gil:
 cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) except * with gil:
     # TODO(nikitxskv): use error.Stats for custom metrics.
     cdef metricObject = <object>customData
-    return metricObject.get_final_error(error.Stats[0], error.Stats[1])
+    try:
+        return metricObject.get_final_error(error.Stats[0], error.Stats[1])
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
 
 cdef bool_t _CallbackAfterIteration(
         const TMetricsAndTimeLeftHistory& history,
@@ -1182,7 +1192,12 @@ cdef bool_t _CallbackAfterIteration(
         info = Namespace()
     info.iteration = history.LearnMetricsHistory.size()
     info.metrics = _get_metrics_evals_pydict(history)
-    return callbackObject.after_iteration(info)
+    try:
+        return callbackObject.after_iteration(info)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
 
 cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
     result = np.empty(arr.size(), dtype=_npfloat64)
