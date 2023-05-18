@@ -100,7 +100,10 @@ def stringize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
 @library.python.func.memoize()
 def locale_encoding():
     try:
-        loc = locale.getdefaultlocale()[1]
+        if six.PY3:
+            loc = locale.getencoding()
+        else:
+            loc = locale.getdefaultlocale()[1]
         if loc:
             codecs.lookup(loc)
         return loc
