@@ -78,6 +78,7 @@ namespace NPrivate {
         TString TestOutputRamDrivePath;
         TString GdbPath;
         TString CoreSearchFile;
+        TString EnvFile;
         std::unordered_map<TString, TString> TestParameters;
         std::unordered_map<TString, TString> GlobalResources;
     };

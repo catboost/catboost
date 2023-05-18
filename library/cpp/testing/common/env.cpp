@@ -170,11 +170,12 @@ namespace NPrivate {
         TestOutputRamDrivePath = "";
         GdbPath = "";
         CoreSearchFile = "";
+        EnvFile = "";
         TestParameters.clear();
         GlobalResources.clear();
 
         const TString contextFilename = GetEnv("YA_TEST_CONTEXT_FILE");
-        if (contextFilename) {
+        if (contextFilename && TFsPath(contextFilename).Exists()) {
             NJson::TJsonValue context;
             NJson::ReadJsonTree(TFileInput(contextFilename).ReadAll(), &context);
 
@@ -237,6 +238,22 @@ namespace NPrivate {
             value = context.GetValueByPath("internal.core_search_file");
             if (value) {
                 CoreSearchFile = value->GetStringSafe("");
+            }
+
+            value = context.GetValueByPath("internal.env_file");
+            if (value) {
+                EnvFile = value->GetStringSafe("");
+                if (TFsPath(EnvFile).Exists()) {
+                    TFileInput file(EnvFile);
+                    NJson::TJsonValue envVar;
+                    TString ljson;
+                    while (file.ReadLine(ljson) > 0) {
+                        NJson::ReadJsonTree(ljson, &envVar);
+                        for (const auto& entry : envVar.GetMap()) {
+                            SetEnv(entry.first, entry.second.GetStringSafe(""));
+                        }
+                    }
+                }
             }
         }
 

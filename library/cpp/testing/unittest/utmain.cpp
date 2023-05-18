@@ -34,20 +34,20 @@
 #include <filesystem>
 
 #if defined(_win_)
-#include <fcntl.h>
-#include <io.h>
-#include <windows.h>
-#include <crtdbg.h>
+    #include <fcntl.h>
+    #include <io.h>
+    #include <windows.h>
+    #include <crtdbg.h>
 #endif
 
 #if defined(_unix_)
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 #ifdef WITH_VALGRIND
-#define NOTE_IN_VALGRIND(test) VALGRIND_PRINTF("%s::%s", test->unit->name.data(), test->name)
+    #define NOTE_IN_VALGRIND(test) VALGRIND_PRINTF("%s::%s", test->unit->name.data(), test->name)
 #else
-#define NOTE_IN_VALGRIND(test)
+    #define NOTE_IN_VALGRIND(test)
 #endif
 
 const size_t MAX_COMMENT_MESSAGE_LENGTH = 1024 * 1024; // 1 MB
@@ -705,6 +705,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
 #endif
     NTesting::THook::CallBeforeInit();
     InitNetworkSubSystem();
+    Singleton<::NPrivate::TTestEnv>();
 
     try {
         GetExecPath();
@@ -715,10 +716,14 @@ int NUnitTest::RunMain(int argc, char** argv) {
     try {
 #endif
         NTesting::THook::CallBeforeRun();
-        Y_DEFER { NTesting::THook::CallAfterRun(); };
+        Y_DEFER {
+            NTesting::THook::CallAfterRun();
+        };
 
         NPlugin::OnStartMain(argc, argv);
-        Y_DEFER { NPlugin::OnStopMain(argc, argv); };
+        Y_DEFER {
+            NPlugin::OnStopMain(argc, argv);
+        };
 
         TColoredProcessor processor(GetExecPath());
         IOutputStream* listStream = &Cout;
@@ -824,7 +829,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                 fileName = fileName.SubString(4, TStringBuf::npos);
                 NUnitTest::ShouldColorizeDiff = false;
                 traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName),
-                    std::filesystem::path(argv[0]).stem().string()));
+                                                                            std::filesystem::path(argv[0]).stem().string()));
             }
         }
 
