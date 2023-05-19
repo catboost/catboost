@@ -128,7 +128,7 @@ void NCB::ModeFstrSingleHostInner(
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
             CalcAndOutputFstr(model,
-                              inputPath.IsFile() ? poolLoader() : nullptr, // because InputPath has default value and is always inited
+                              params.DatasetReadingParams.PoolPath.Inited() ? poolLoader() : nullptr,
                               localExecutor.Get(),
                               fstrPathPtr,
                               internalFstrPathPtr,
