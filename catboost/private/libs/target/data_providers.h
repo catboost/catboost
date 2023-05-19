@@ -118,7 +118,8 @@ namespace NCB {
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::ILocalExecutor* localExecutor,
         bool metricsThatRequireTargetCanBeSkipped=false,
-        bool skipMinMaxPairsCheck=false);
+        bool skipMinMaxPairsCheck=false,
+        bool skipTargetConsistencyCheck=false);
 
     TProcessedDataProvider CreateClassificationCompatibleDataProvider(
         const TDataProvider& srcData,

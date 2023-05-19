@@ -916,7 +916,8 @@ namespace NCB {
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::ILocalExecutor* localExecutor,
         bool metricsThatRequireTargetCanBeSkipped,
-        bool skipMinMaxPairsCheck) {
+        bool skipMinMaxPairsCheck,
+        bool skipTargetConsistencyCheck) {
 
         TVector<NCatboostOptions::TLossDescription> updatedMetricsDescriptions(
             metricDescriptions.begin(),
@@ -1060,16 +1061,18 @@ namespace NCB {
             localExecutor,
             &outputPairsInfo
         );
-        CheckTargetConsistency(
-            result.TargetData,
-            updatedMetricsDescriptions,
-            modelLossDescription.Get(),
-            /*needTargetDataForCtrs*/ false,
-            metricsThatRequireTargetCanBeSkipped,
-            /*datasetName*/ TStringBuf(),
-            /*isNonEmptyAndNonConst*/false,
-            /*allowConstLabel*/ true
-        );
+        if (!skipTargetConsistencyCheck) {
+            CheckTargetConsistency(
+                result.TargetData,
+                updatedMetricsDescriptions,
+                modelLossDescription.Get(),
+                /*needTargetDataForCtrs*/ false,
+                metricsThatRequireTargetCanBeSkipped,
+                /*datasetName*/ TStringBuf(),
+                /*isNonEmptyAndNonConst*/false,
+                /*allowConstLabel*/ true
+            );
+        }
 
         result.MetaInfo.HasPairs = outputPairsInfo.HasPairs;
         classLabels = outputClassificationInfo.ClassLabels;

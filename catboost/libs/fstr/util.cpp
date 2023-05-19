@@ -35,7 +35,9 @@ TVector<double> CollectLeavesStatistics(
                 GetMonopolisticFreeCpuRam(),
                 &rand,
                 localExecutor,
-                /*metricsThatRequireTargetCanBeSkipped*/true
+                /*metricsThatRequireTargetCanBeSkipped*/true,
+                /*skipMinMaxPairsCheck*/true,
+                /*skipTargetConsistencyCheck*/true
             ).TargetData;
 
             weights = GetWeights(*targetData);

@@ -80,6 +80,7 @@ NONSYMMETRIC = ['Lossguide', 'Depthwise']
 TRAIN_FILE = data_file('adult', 'train_small')
 TEST_FILE = data_file('adult', 'test_small')
 CD_FILE = data_file('adult', 'train.cd')
+CD_FILE_NO_TARGET = data_file('adult', 'train_no_target.cd')
 
 NAN_TRAIN_FILE = data_file('adult_nan', 'train_small')
 NAN_TEST_FILE = data_file('adult_nan', 'test_small')
@@ -4235,6 +4236,31 @@ def test_shap_feature_importance(task_type, calc_shap_mode):
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(shaps), 9))
     return local_canonical_file(fimp_npy_path)
+
+
+def test_shap_feature_importance_with_user_metrics_and_no_target(task_type):
+    if task_type != 'CPU':
+        return
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        loss_function=LoglossObjective(),
+        eval_metric=metrics.Logloss(),
+    )
+    model.fit(pool)
+    test_pool = Pool(TRAIN_FILE, column_description=CD_FILE_NO_TARGET)
+    model.get_feature_importance(type=EFstrType.ShapValues, data=test_pool)
+
+    model_path = test_output_path('model.json')
+    model.save_model(model_path, format='json')
+    json_model = json.load(open(model_path))
+    for tree in json_model['oblivious_trees']:
+        del tree['leaf_weights']
+    json.dump(json_model, open(model_path, 'wt'))
+    model = model.load_model(model_path, format='json')
+    model.get_feature_importance(type=EFstrType.ShapValues, data=test_pool)
 
 
 def test_approximate_shap_feature_importance(task_type):
