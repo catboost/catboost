@@ -339,13 +339,21 @@ class MultiplexedDatabase(ExampleDatabase):
 
 class GitHubArtifactDatabase(ExampleDatabase):
     """
-    A file-based database loaded from a GitHub Actions artifact.
+    A file-based database loaded from a `GitHub Actions <https://docs.github.com/en/actions>`_ artifact.
 
     You can use this for sharing example databases between CI runs and developers, allowing
     the latter to get read-only access to the former. This is particularly useful for
-    continuous fuzzing (i.e. with `HypoFuzz <https://hypofuzz.com/>`__),
-    where the CI system can upload the resulting database as an artifact after each run,
-    allowing developers to reproduce any failures by just running hypothesis.
+    continuous fuzzing (i.e. with `HypoFuzz <https://hypofuzz.com/>`_),
+    where the CI system can help find new failing examples through fuzzing,
+    and developers can reproduce them locally without any manual effort.
+
+    .. note::
+        You must provide ``GITHUB_TOKEN`` as an environment variable. In CI, Github Actions provides
+        this automatically, but it needs to be set manually for local usage. In a developer machine,
+        this would usually be a `Personal Access Token <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_.
+        If the repository is private, it's necessary for the token to have `repo` scope
+        in the case of a classic token, or `actions:read` in the case of a fine-grained token.
+
 
     In most cases, this will be used
     through the :class:`~hypothesis.database.MultiplexedDatabase`,
@@ -366,14 +374,37 @@ class GitHubArtifactDatabase(ExampleDatabase):
         Because this database is read-only, you always need to wrap it with the
         :class:`ReadOnlyDatabase`.
 
-    If you're using a private repository, you must provide `GITHUB_TOKEN` as an environment variable,
-    which would usually be a `Personal Access Token <https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`_
-    with the `repo` scope.
+    A setup like this can be paired with a GitHub Actions workflow including
+    something like the following:
+
+    .. code-block:: yaml
+
+        - name: Download example database
+          uses: dawidd6/action-download-artifact@v2.24.3
+          with:
+            name: hypothesis-example-db
+            path: .hypothesis/examples
+            if_no_artifact_found: warn
+            workflow_conclusion: completed
+
+        - name: Run tests
+          run: pytest
+
+        - name: Upload example database
+          uses: actions/upload-artifact@v3
+          if: always()
+          with:
+            name: hypothesis-example-db
+            path: .hypothesis/examples
+
+    In this workflow, we use `dawidd6/action-download-artifact <https://github.com/dawidd6/action-download-artifact>`_
+    to download the latest artifact given that the official `actions/download-artifact <https://github.com/actions/download-artifact>`_
+    does not support downloading artifacts from previous workflow runs.
 
     The database automatically implements a simple file-based cache with a default expiration period
     of 1 day. You can adjust this through the `cache_timeout` property.
 
-    For mono-repo support, you can provide an unique `artifact_name` (e.g. `hypofuzz-example-db-frontend`).
+    For mono-repo support, you can provide a unique `artifact_name` (e.g. `hypofuzz-example-db-frontend`).
     """
 
     def __init__(
@@ -539,8 +570,7 @@ class GitHubArtifactDatabase(ExampleDatabase):
             if e.code == 401:
                 warning_message = (
                     "Authorization failed when trying to download artifact from GitHub. "
-                    "Check your $GITHUB_TOKEN environment variable "
-                    "or make the repository public."
+                    "Check that you have a valid GITHUB_TOKEN set in your environment."
                 )
             else:
                 warning_message = (
@@ -568,15 +598,17 @@ class GitHubArtifactDatabase(ExampleDatabase):
         response_bytes = self._get_bytes(url)
         if response_bytes is None:
             return None
+
         artifacts = json.loads(response_bytes)["artifacts"]
+        artifacts = [a for a in artifacts if a["name"] == self.artifact_name]
+
+        if not artifacts:
+            return None
 
         # Get the latest artifact from the list
-        artifact = sorted(
-            filter(lambda a: a["name"] == self.artifact_name, artifacts),
-            key=lambda a: a["created_at"],
-        )[-1]
-
+        artifact = max(artifacts, key=lambda a: a["created_at"])
         url = artifact["archive_download_url"]
+
         # Download the artifact
         artifact_bytes = self._get_bytes(url)
         if artifact_bytes is None:
