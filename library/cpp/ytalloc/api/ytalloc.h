@@ -71,35 +71,6 @@ size_t GetAllocationSize(const void* ptr);
 size_t GetAllocationSize(size_t size);
 
 ////////////////////////////////////////////////////////////////////////////////
-// Memory tagging API
-//
-// Each allocation can be tagged with a number (from 1 to MaxMemoryTag).
-// Setting this to NullMemoryTag disables tagging.
-// Internally, YTAlloc tracks the number of bytes used by each tag.
-//
-// Tagged allocations are somewhat slower. Others (large and huge) are not affected
-// (but for these performance implications are negligible anyway).
-//
-// The current memory tag used for allocations is stored in TLS.
-
-using TMemoryTag = ui32;
-constexpr TMemoryTag NullMemoryTag = 0;
-constexpr TMemoryTag MaxMemoryTag = (1ULL << 22) - 1;
-
-// Updates the current tag value in TLS.
-void SetCurrentMemoryTag(TMemoryTag tag);
-
-// Returns the current tag value from TLS.
-TMemoryTag GetCurrentMemoryTag();
-
-// Returns the memory usage for a given tag.
-// The value is somewhat approxiate and racy.
-size_t GetMemoryUsageForTag(TMemoryTag tag);
-
-// A batched version of GetMemoryUsageForTag.
-void GetMemoryUsageForTags(const TMemoryTag* tags, size_t count, size_t* results);
-
-////////////////////////////////////////////////////////////////////////////////
 // Memory zone API
 //
 // Each allocation is either in the "normal zone" or "undumpable zone".
@@ -387,25 +358,6 @@ struct TProfiledAllocation
 // To appear here, used bytes counter must be at least the value configured
 // via SetMinProfilingBytesUsedToReport.
 std::vector<TProfiledAllocation> GetProfiledAllocationStatistics();
-
-////////////////////////////////////////////////////////////////////////////////
-
-//! An RAII guard for setting the current memory tag in a scope.
-class TMemoryTagGuard
-{
-public:
-    TMemoryTagGuard();
-    explicit TMemoryTagGuard(TMemoryTag tag);
-
-    TMemoryTagGuard(const TMemoryTagGuard& other) = delete;
-    TMemoryTagGuard(TMemoryTagGuard&& other);
-
-    ~TMemoryTagGuard();
-
-private:
-    bool Active_;
-    TMemoryTag PreviousTag_;
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 

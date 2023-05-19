@@ -7,6 +7,8 @@
 
 #include <library/cpp/yt/containers/intrusive_linked_list.h>
 
+#include <library/cpp/yt/memory/memory_tag.h>
+
 #include <library/cpp/yt/threading/at_fork.h>
 #include <library/cpp/yt/threading/fork_aware_spin_lock.h>
 

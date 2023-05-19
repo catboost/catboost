@@ -4,6 +4,8 @@
 
 #include <library/cpp/malloc/api/malloc.h>
 
+#include <library/cpp/yt/memory/memory_tag.h>
+
 namespace NYT::NYTAlloc {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,11 +51,19 @@ size_t GetAllocationSize(size_t size)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT::NYTAlloc
+
+namespace NYT {
+
+using namespace NYTAlloc;
+
+////////////////////////////////////////////////////////////////////////////////
 // Memory tags API bridge
 
 TMemoryTag GetCurrentMemoryTag()
 {
-    return TThreadManager::GetCurrentMemoryTag();
+    return NYTAlloc::TThreadManager::GetCurrentMemoryTag();
 }
 
 void SetCurrentMemoryTag(TMemoryTag tag)
@@ -73,6 +83,12 @@ size_t GetMemoryUsageForTag(TMemoryTag tag)
     GetMemoryUsageForTags(&tag, 1, &result);
     return result;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT
+
+namespace NYT::NYTAlloc {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Memory zone API bridge

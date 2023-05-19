@@ -14,6 +14,10 @@ class TChunkedMemoryPool;
 DECLARE_REFCOUNTED_STRUCT(IMemoryChunkProvider)
 DECLARE_REFCOUNTED_STRUCT(TSharedRangeHolder)
 
+using TMemoryTag = ui32;
+constexpr TMemoryTag NullMemoryTag = 0;
+constexpr TMemoryTag MaxMemoryTag = (1ULL << 22) - 1;
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
