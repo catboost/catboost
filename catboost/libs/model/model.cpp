@@ -40,7 +40,6 @@ static void ReferenceMainFactoryRegistrators() {
     // We HAVE TO manually reference some pointers to make factory registrators work. Blessed static linking!
     CB_ENSURE(NCB::NModelEvaluation::CPUEvaluationBackendRegistratorPointer);
     CB_ENSURE(NCB::BinaryModelLoaderRegistratorPointer);
-    CB_ENSURE(NCB::JsonModelLoaderRegistratorPointer);
 }
 
 static ui32 GetModelFormatDescriptor() {

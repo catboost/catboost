@@ -2,6 +2,8 @@
 
 #include "model.h"
 
+#include <catboost/private/libs/options/json_helper.h>
+
 #include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/buffer.h>
@@ -31,6 +33,4 @@ namespace NCB {
     using TModelLoaderFactory = NObjectFactory::TParametrizedObjectFactory<IModelLoader, EModelType>;
 
     extern void* BinaryModelLoaderRegistratorPointer;
-
-    extern void* JsonModelLoaderRegistratorPointer;
 }
