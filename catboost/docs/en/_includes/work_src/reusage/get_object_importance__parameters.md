@@ -56,7 +56,7 @@ Possible values:
 
 **Possible types**
 
-{{ python-type--int }}
+{{ python-type--string }}
 
 **Default value**
 
