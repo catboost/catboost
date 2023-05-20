@@ -28,12 +28,6 @@ public:
     TStrongTypedef& operator=(const TStrongTypedef&) = default;
     TStrongTypedef& operator=(TStrongTypedef&&) = default;
 
-    constexpr TStrongTypedef& operator=(const T& rhs)
-        requires std::is_copy_assignable_v<T>;
-
-    constexpr TStrongTypedef& operator=(T&& rhs)
-        requires std::is_move_assignable_v<T>;
-
     constexpr explicit operator const T&() const;
     constexpr explicit operator T&();
 

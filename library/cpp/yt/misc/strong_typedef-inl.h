@@ -29,22 +29,6 @@ constexpr TStrongTypedef<T, TTag>::TStrongTypedef(T&& underlying)
 { }
 
 template <class T, class TTag>
-constexpr TStrongTypedef<T, TTag>& TStrongTypedef<T, TTag>::operator=(const T& rhs)
-    requires std::is_copy_assignable_v<T>
-{
-    Underlying_ = rhs;
-    return *this;
-}
-
-template <class T, class TTag>
-constexpr TStrongTypedef<T, TTag>& TStrongTypedef<T, TTag>::operator=(T&& rhs)
-    requires std::is_move_assignable_v<T>
-{
-    Underlying_ = std::move(rhs);
-    return *this;
-}
-
-template <class T, class TTag>
 constexpr TStrongTypedef<T, TTag>::operator const T&() const
 {
     return Underlying_;
