@@ -6,13 +6,17 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+thread_local TMemoryTag CurrentMemoryTag;
+
 Y_WEAK TMemoryTag GetCurrentMemoryTag()
 {
-    return NullMemoryTag;
+    return CurrentMemoryTag;
 }
 
-Y_WEAK void SetCurrentMemoryTag(TMemoryTag /*tag*/)
-{ }
+Y_WEAK void SetCurrentMemoryTag(TMemoryTag tag)
+{
+    CurrentMemoryTag = tag;
+}
 
 Y_WEAK size_t GetMemoryUsageForTag(TMemoryTag /*tag*/)
 {
