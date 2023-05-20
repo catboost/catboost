@@ -233,9 +233,22 @@ public class CatBoostModel implements AutoCloseable {
      */
     @NotNull
     public static CatBoostModel loadModel(final @NotNull String modelPath) throws CatBoostError {
+        return loadModel(modelPath, "bin");
+    }
+
+    /**
+     * Load CatBoost model from file modelPath.
+     *
+     * @param modelPath   Path to the model.
+     * @param modelFormat Model file format (bin or json)
+     * @return            CatBoost model.
+     * @throws CatBoostError When failed to load model.
+     */
+    @NotNull
+    public static CatBoostModel loadModel(final @NotNull String modelPath, @NotNull String modelFormat) throws CatBoostError {
         final long[] handles = new long[1];
 
-        implLibrary.catBoostLoadModelFromFile(modelPath, handles);
+        implLibrary.catBoostLoadModelFromFile(modelPath, handles, modelFormat);
         return new CatBoostModel(handles[0]);
     }
 
@@ -249,6 +262,20 @@ public class CatBoostModel implements AutoCloseable {
      */
     @NotNull
     public static CatBoostModel loadModel(final InputStream in) throws CatBoostError, IOException {
+        return loadModel(in, "bin");
+    }
+
+    /**
+     * Load CatBoost model from stream.
+     *
+     * @param in Input stream containing model.
+     * @param modelFormat Model file format (bin or json)
+     * @return   CatBoost model.
+     * @throws CatBoostError When failed to load model.
+     * @throws IOException When failed to read model from file.
+     */
+    @NotNull
+    public static CatBoostModel loadModel(final InputStream in, @NotNull String modelFormat) throws CatBoostError, IOException {
         final long[] handles = new long[1];
         final byte[] copyBuffer = new byte[4 * 1024];
 
@@ -259,7 +286,7 @@ public class CatBoostModel implements AutoCloseable {
             out.write(copyBuffer, 0, bytesRead);
         }
 
-        implLibrary.catBoostLoadModelFromArray(out.toByteArray(), handles);
+        implLibrary.catBoostLoadModelFromArray(out.toByteArray(), handles, modelFormat);
         return new CatBoostModel(handles[0]);
     }
 

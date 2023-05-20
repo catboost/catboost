@@ -18,14 +18,16 @@ class CatBoostJNI {
 
     final void catBoostLoadModelFromFile(
             final @NotNull String fname,
-            final @NotNull long[] handle) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromFile(fname, handle));
+            final @NotNull long[] handle,
+            final @Nullable String formatName) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromFile(fname, handle, formatName));
     }
 
     final void catBoostLoadModelFromArray(
             final @NotNull byte[] data,
-            final @NotNull long[] handle) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromArray(data, handle));
+            final @NotNull long[] handle,
+            final @Nullable String formatName) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromArray(data, handle, formatName));
     }
 
     final void catBoostFreeModel(final long handle) throws CatBoostError {
