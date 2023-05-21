@@ -905,7 +905,7 @@ model1.fit(X=batch1)
 
 model2 = CatBoostRegressor(**params)
 batch2 = Pool(train_data2, label=train_labels2)
-batch2.set_baseline(model1.predict(batch1))
+batch2.set_baseline(model1.predict(batch2))
 model2.fit(X=batch2)
 
 # build resulting model
@@ -1236,4 +1236,3 @@ class AccuracyMetric(object):
 ```python
 model = CatBoostClassifier(eval_metric=AccuracyMetric())
 ```
-
