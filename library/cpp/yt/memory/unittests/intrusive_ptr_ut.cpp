@@ -161,6 +161,18 @@ private:
 
 };
 
+class TObjectWithExceptionInConstructor
+    : public TRefCounted
+{
+public:
+    TObjectWithExceptionInConstructor()
+    {
+        throw int(1);
+    }
+
+    volatile int Number = 0;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 
 TEST(TIntrusivePtrTest, Empty)
@@ -616,6 +628,11 @@ TEST(TIntrusivePtrTest, Serialize)
     ::Save(&stream, TIntrusivePtr<TObject>(nullptr));
     ::Load(&stream, ptr);
     EXPECT_FALSE(ptr);
+}
+
+TEST(TIntrusivePtrTest, TestObjectConstructionFail)
+{
+    ASSERT_THROW(New<TObjectWithExceptionInConstructor>(), int);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

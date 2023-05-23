@@ -114,7 +114,7 @@ Y_FORCE_INLINE T* NewEpilogue(void* ptr, As&& ... args)
         new (instance) T(std::forward<As>(args)...);
         CustomInitialize(instance);
         return instance;
-    } catch (const std::exception& ex) {
+    } catch (...) {
         // Do not forget to free the memory.
         TFreeMemory<T>::Do(ptr);
         throw;
@@ -167,7 +167,7 @@ Y_FORCE_INLINE TIntrusivePtr<T> SafeConstruct(void* ptr, As&&... args)
     try {
         auto* instance = TConstructHelper<T>::Construct(ptr, std::forward<As>(args)...);
         return TIntrusivePtr<T>(instance, /*addReference*/ false);
-    } catch (const std::exception& ex) {
+    } catch (...) {
         // Do not forget to free the memory.
         TFreeMemory<T>::Do(ptr);
         throw;
