@@ -36,7 +36,7 @@ int toupper(int c);
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(ctype.h)
+#include Y_UCRT_INCLUDE_NEXT(ctype.h)
 #else
 #include_next <ctype.h>
 #endif

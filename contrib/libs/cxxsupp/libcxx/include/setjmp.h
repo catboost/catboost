@@ -32,7 +32,7 @@ void longjmp(jmp_buf env, int val);
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_MSVC_INCLUDE(setjmp.h)
+#include Y_MSVC_INCLUDE_NEXT(setjmp.h)
 #else
 #include_next <setjmp.h>
 #endif

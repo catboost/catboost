@@ -44,7 +44,7 @@ Functions:
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(locale.h)
+#include Y_UCRT_INCLUDE_NEXT(locale.h)
 #else
 #include_next <locale.h>
 #endif

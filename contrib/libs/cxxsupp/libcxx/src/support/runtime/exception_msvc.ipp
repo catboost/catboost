@@ -20,7 +20,7 @@
 // We don't want to depend on MSVC headers but
 // we have conflicting definitions otherwise due to
 // some other dependency on eh.h.
-#include _LIBCPP_MSVC_INCLUDE(eh.h)
+#include Y_MSVC_INCLUDE_NEXT(eh.h)
 
 #else
 extern "C" {

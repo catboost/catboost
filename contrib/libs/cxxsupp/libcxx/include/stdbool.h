@@ -26,7 +26,7 @@ Macros:
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_MSVC_INCLUDE(stdbool.h)
+#include Y_MSVC_INCLUDE_NEXT(stdbool.h)
 #else
 #include_next <stdbool.h>
 #endif

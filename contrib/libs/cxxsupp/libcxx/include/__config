@@ -42,8 +42,8 @@
 #  define _LIBCPP_STD_VER 14
 #endif
 
-#define _LIBCPP_UCRT_INCLUDE(x) <Y_UCRT_INCLUDE/x>
-#define _LIBCPP_MSVC_INCLUDE(x) <Y_MSVC_INCLUDE/x>
+#define Y_UCRT_INCLUDE_NEXT(x) <Y_UCRT_INCLUDE/x>
+#define Y_MSVC_INCLUDE_NEXT(x) <Y_MSVC_INCLUDE/x>
 #elif defined(__IBMCPP__)
 #define _LIBCPP_COMPILER_IBM
 #endif

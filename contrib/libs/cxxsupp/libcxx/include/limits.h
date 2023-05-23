@@ -45,7 +45,7 @@ Macros:
 
 #ifndef __GNUC__
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_MSVC_INCLUDE(limits.h)
+#include Y_MSVC_INCLUDE_NEXT(limits.h)
 #else
 #include_next <limits.h>
 #endif

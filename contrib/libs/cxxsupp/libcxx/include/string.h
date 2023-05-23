@@ -58,7 +58,7 @@ size_t strlen(const char* s);
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(string.h)
+#include Y_UCRT_INCLUDE_NEXT(string.h)
 #else
 #include_next <string.h>
 #endif

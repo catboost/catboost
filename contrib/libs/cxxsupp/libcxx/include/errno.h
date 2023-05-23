@@ -34,10 +34,10 @@ Macros:
 // undefine errno to avoid substitution in errno.h include file name.
 #pragma push_macro("errno")
 #undef errno
-#include _LIBCPP_UCRT_INCLUDE(errno.h)
+#include Y_UCRT_INCLUDE_NEXT(errno.h)
 #pragma pop_macro("errno")
 #else
-#include _LIBCPP_UCRT_INCLUDE(errno.h)
+#include Y_UCRT_INCLUDE_NEXT(errno.h)
 #endif
 #else
 #include_next <errno.h>

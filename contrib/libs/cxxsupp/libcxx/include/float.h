@@ -77,7 +77,7 @@ Macros:
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(float.h)
+#include Y_UCRT_INCLUDE_NEXT(float.h)
 #else
 #include_next <float.h>
 #endif

@@ -14,7 +14,7 @@
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(stdlib.h)
+#include Y_UCRT_INCLUDE_NEXT(stdlib.h)
 #else
 #include_next <stdlib.h>
 #endif
@@ -95,7 +95,7 @@ void *aligned_alloc(size_t alignment, size_t size);                       // C11
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(stdlib.h)
+#include Y_UCRT_INCLUDE_NEXT(stdlib.h)
 #ifdef __cplusplus
 extern "C" {
 #endif

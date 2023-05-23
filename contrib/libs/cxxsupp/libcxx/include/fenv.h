@@ -57,7 +57,7 @@ int feupdateenv(const fenv_t* envp);
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(fenv.h)
+#include Y_UCRT_INCLUDE_NEXT(fenv.h)
 #else
 #include_next <fenv.h>
 #endif

@@ -298,7 +298,7 @@ long double    truncl(long double x);
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(math.h)
+#include Y_UCRT_INCLUDE_NEXT(math.h)
 #else
 #include_next <math.h>
 #endif
@@ -1762,7 +1762,7 @@ trunc(_A1 __lcpp_x) _NOEXCEPT
 // has previously been included.
 #if defined(_LIBCPP_MSVCRT) && defined(_USE_MATH_DEFINES)
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(math.h)
+#include Y_UCRT_INCLUDE_NEXT(math.h)
 #else
 #include_next <math.h>
 #endif

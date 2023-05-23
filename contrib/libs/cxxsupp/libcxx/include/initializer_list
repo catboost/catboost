@@ -47,8 +47,8 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 
 #if defined(_LIBCPP_COMPILER_MSVC) && !defined(__clang__)
 
-#include _LIBCPP_MSVC_INCLUDE(yvals.h)
-#include _LIBCPP_MSVC_INCLUDE(initializer_list)
+#include Y_MSVC_INCLUDE_NEXT(yvals.h)
+#include Y_MSVC_INCLUDE_NEXT(initializer_list)
 
 #else
 

@@ -30,7 +30,7 @@
 #else  // __cplusplus
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(complex.h)
+#include Y_UCRT_INCLUDE_NEXT(complex.h)
 #else
 #include_next <complex.h>
 #endif

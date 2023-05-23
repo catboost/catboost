@@ -15,7 +15,7 @@
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(stddef.h)
+#include Y_UCRT_INCLUDE_NEXT(stddef.h)
 #else
 #include_next <stddef.h>
 #endif
@@ -47,7 +47,7 @@ Types:
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(stddef.h)
+#include Y_UCRT_INCLUDE_NEXT(stddef.h)
 typedef double max_align_t;
 #else
 #include_next <stddef.h>

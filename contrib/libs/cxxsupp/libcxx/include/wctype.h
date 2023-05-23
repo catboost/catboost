@@ -55,7 +55,7 @@ wctrans_t wctrans(const char* property);
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#   include _LIBCPP_UCRT_INCLUDE(wctype.h)
+#   include Y_UCRT_INCLUDE_NEXT(wctype.h)
 #   define _LIBCPP_INCLUDED_C_LIBRARY_WCTYPE_H
 #else
 // TODO:

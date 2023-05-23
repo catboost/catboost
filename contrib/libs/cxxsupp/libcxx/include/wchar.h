@@ -14,7 +14,7 @@
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(wchar.h)
+#include Y_UCRT_INCLUDE_NEXT(wchar.h)
 #else
 #include_next <wchar.h>
 #endif
@@ -125,7 +125,7 @@ size_t wcsrtombs(char* restrict dst, const wchar_t** restrict src, size_t len,
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_UCRT_INCLUDE(wchar.h)
+#include Y_UCRT_INCLUDE_NEXT(wchar.h)
 #else
 #include_next <wchar.h>
 #endif

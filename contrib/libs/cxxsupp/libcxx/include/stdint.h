@@ -121,7 +121,7 @@ Macros:
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
-#include _LIBCPP_MSVC_INCLUDE(stdint.h)
+#include Y_MSVC_INCLUDE_NEXT(stdint.h)
 #else
 #include_next <stdint.h>
 #endif
