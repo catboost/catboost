@@ -429,6 +429,8 @@ def pytest_deselected(items):
 @pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(items, config):
 
+    item_ids_order = [item.nodeid for item in items]
+
     def filter_items(filters):
         filtered_items = []
         deselected_items = []
@@ -490,10 +492,23 @@ def pytest_collection_modifyitems(items, config):
                     items_by_classes[class_name].append(item)
                 else:
                     res.append([item])
+
             chunk_items = test_splitter.get_splitted_tests(res, modulo, modulo_index, partition_mode, is_sorted=True)
+
+            item_by_id = {}
+            for item_group in chunk_items:
+                for item in item_group:
+                    item_by_id[item.nodeid] = item
+
+            # Should preserve the original order of the items.
+            # It is crucial for the correct application of test fixtures.
+            # See DEVTOOLSSUPPORT-28496 for details.
             items[:] = []
-            for item in chunk_items:
-                items.extend(item)
+            for item_id in item_ids_order:
+                item = item_by_id.get(item_id)
+                if item is not None:
+                    items.append(item)
+
             yatest_logger.info("Modulo %s tests are: %s", modulo_index, chunk_items)
 
     if config.option.mode == yatest_lib.ya.RunMode.Run:
