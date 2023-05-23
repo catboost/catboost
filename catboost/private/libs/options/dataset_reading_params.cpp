@@ -12,7 +12,6 @@ using namespace NCB;
 void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts* parser) {
     BindColumnarPoolFormatParams(parser, &ColumnarPoolFormatParams);
     parser->AddLongOption("input-path", "input path")
-        .DefaultValue("input.tsv")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PoolPath = TPathWithScheme(pathWithScheme, "dsv");
         });
