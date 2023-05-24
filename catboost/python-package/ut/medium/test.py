@@ -5718,6 +5718,7 @@ def test_eval_set_with_nans(task_type):
     model.fit(train_pool, eval_set=test_pool)
 
 
+@fails_on_gpu(how='Training continuation for GPU is not yet supported')
 def test_model_sum_and_init_with_differing_nan_processing_strategy(task_type):
     prng = np.random.RandomState(seed=20200803)
     features = prng.random_sample((10, 200))
