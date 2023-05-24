@@ -1436,6 +1436,9 @@ def fit_from_file(params, learn_file, test_file, cd_file):
 
 @pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression', 'multiregression'])
 def test_fit_with_texts(task_type, problem_type):
+    if (task_type == 'GPU') and (problem_type == 'multiregression'):
+        pytest.xfail('Catboost does not support MultiRMSE on GPU yet for categorical features')
+
     params = {
         'dictionaries': [
             {'dictionary_id': 'UniGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1'},
