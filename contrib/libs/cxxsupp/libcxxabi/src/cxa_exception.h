@@ -19,6 +19,25 @@
 
 namespace __cxxabiv1 {
 
+#ifdef __USING_EMSCRIPTEN_EXCEPTIONS__
+
+struct _LIBCXXABI_HIDDEN __cxa_exception {
+  size_t referenceCount;
+  std::type_info *exceptionType;
+  void (*exceptionDestructor)(void *);
+  uint8_t caught;
+  uint8_t rethrown;
+  void *adjustedPtr;
+  // Add padding to ensure that the size of __cxa_exception is a multiple of
+  // the maximum useful alignment for the target machine.  This ensures that
+  // the thrown object that follows has that correct alignment.
+  void *padding;
+};
+
+static_assert(sizeof(__cxa_exception) % alignof(max_align_t) == 0, "__cxa_exception must have a size that is multipl of max alignment");
+
+#else
+
 static const uint64_t kOurExceptionClass          = 0x434C4E47432B2B00; // CLNGC++\0
 static const uint64_t kOurDependentExceptionClass = 0x434C4E47432B2B01; // CLNGC++\1
 static const uint64_t get_vendor_and_language     = 0xFFFFFFFFFFFFFF00; // mask for CLNGC++
@@ -43,7 +62,12 @@ struct _LIBCXXABI_HIDDEN __cxa_exception {
 
     //  Manage the exception object itself.
     std::type_info *exceptionType;
+#ifdef __USING_WASM_EXCEPTIONS__
+    // In wasm, destructors return their argument
+    void *(*exceptionDestructor)(void *);
+#else
     void (*exceptionDestructor)(void *);
+#endif
     std::unexpected_handler unexpectedHandler;
     std::terminate_handler  terminateHandler;
 
@@ -158,6 +182,8 @@ extern "C" _LIBCXXABI_FUNC_VIS __cxa_eh_globals * __cxa_get_globals_fast ();
 
 extern "C" _LIBCXXABI_FUNC_VIS void * __cxa_allocate_dependent_exception ();
 extern "C" _LIBCXXABI_FUNC_VIS void __cxa_free_dependent_exception (void * dependent_exception);
+
+#endif // !__USING_EMSCRIPTEN_EXCEPTIONS__
 
 }  // namespace __cxxabiv1
 

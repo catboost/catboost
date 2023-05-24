@@ -180,7 +180,12 @@ extern "C" {
 //  object. Zero-fill the object. If memory can't be allocated, call
 //  std::terminate. Return a pointer to the memory to be used for the
 //  user's exception object.
-void *__cxa_allocate_exception(size_t thrown_size) throw() {
+#ifndef __EMSCRIPTEN__
+void *__cxa_allocate_exception(size_t thrown_size) throw()
+#else
+void *__cxa_allocate_exception(size_t thrown_size) _NOEXCEPT
+#endif
+{
     size_t actual_size = cxa_exception_size_from_exception_thrown_size(thrown_size);
 
     // Allocate extra space before the __cxa_exception header to ensure the
@@ -198,7 +203,12 @@ void *__cxa_allocate_exception(size_t thrown_size) throw() {
 
 
 //  Free a __cxa_exception object allocated with __cxa_allocate_exception.
-void __cxa_free_exception(void *thrown_object) throw() {
+#ifndef __EMSCRIPTEN__
+void __cxa_free_exception(void *thrown_object) throw()
+#else
+void __cxa_free_exception(void *thrown_object) _NOEXCEPT
+#endif
+{
     // Compute the size of the padding before the header.
     size_t header_offset = get_cxa_exception_offset();
     char *raw_buffer =
@@ -253,8 +263,21 @@ handler, _Unwind_RaiseException may return. In that case, __cxa_throw
 will call terminate, assuming that there was no handler for the
 exception.
 */
+
+#if defined(__USING_WASM_EXCEPTIONS__) && !defined(NDEBUG)
+extern "C" {
+void __throw_exception_with_stack_trace(_Unwind_Exception*);
+} // extern "C"
+#endif
+
 void
-__cxa_throw(void *thrown_object, std::type_info *tinfo, void (*dest)(void *)) {
+#ifdef __USING_WASM_EXCEPTIONS__
+// In wasm, destructors return their argument
+__cxa_throw(void *thrown_object, std::type_info *tinfo, void *(_LIBCXXABI_DTOR_FUNC *dest)(void *))
+#else
+__cxa_throw(void *thrown_object, std::type_info *tinfo, void (*dest)(void *))
+#endif
+{
     __cxa_eh_globals *globals = __cxa_get_globals();
     __cxa_exception* exception_header = cxa_exception_from_thrown_object(thrown_object);
 
@@ -273,10 +296,26 @@ __cxa_throw(void *thrown_object, std::type_info *tinfo, void (*dest)(void *)) {
     __asan_handle_no_return();
 #endif
 
+#ifdef __EMSCRIPTEN__
+#ifdef __USING_SJLJ_EXCEPTIONS__
+    _Unwind_SjLj_RaiseException(&exception_header->unwindHeader);
+#elif __USING_WASM_EXCEPTIONS__
+#ifdef NDEBUG
+    _Unwind_RaiseException(&exception_header->unwindHeader);
+#else
+    // In debug mode, call a JS library function to use WebAssembly.Exception JS
+    // API, which enables us to include stack traces
+    __throw_exception_with_stack_trace(&exception_header->unwindHeader);
+#endif
+#else
+    _Unwind_RaiseException(&exception_header->unwindHeader);
+#endif
+#else // !__EMSCRIPTEN__
 #ifdef __USING_SJLJ_EXCEPTIONS__
     _Unwind_SjLj_RaiseException(&exception_header->unwindHeader);
 #else
     _Unwind_RaiseException(&exception_header->unwindHeader);
+#endif
 #endif
     //  This only happens when there is no handler, or some unexpected unwinding
     //     error happens.
@@ -292,7 +331,12 @@ The adjusted pointer is computed by the personality routine during phase 1
 
   Requires:  exception is native
 */
-void *__cxa_get_exception_ptr(void *unwind_exception) throw() {
+#ifndef __EMSCRIPTEN__
+void *__cxa_get_exception_ptr(void *unwind_exception) throw()
+#else
+void *__cxa_get_exception_ptr(void *unwind_exception) _NOEXCEPT
+#endif
+{
 #if defined(_LIBCXXABI_ARM_EHABI)
     return reinterpret_cast<void*>(
         static_cast<_Unwind_Control_Block*>(unwind_exception)->barrier_cache.bitpattern[0]);
@@ -307,7 +351,12 @@ void *__cxa_get_exception_ptr(void *unwind_exception) throw() {
 The routine to be called before the cleanup.  This will save __cxa_exception in
 __cxa_eh_globals, so that __cxa_end_cleanup() can recover later.
 */
-bool __cxa_begin_cleanup(void *unwind_arg) throw() {
+#ifndef __EMSCRIPTEN__
+bool __cxa_begin_cleanup(void *unwind_arg) throw()
+#else
+bool __cxa_begin_cleanup(void *unwind_arg) _NOEXCEPT
+#endif
+{
     _Unwind_Exception* unwind_exception = static_cast<_Unwind_Exception*>(unwind_arg);
     __cxa_eh_globals* globals = __cxa_get_globals();
     __cxa_exception* exception_header =
@@ -425,8 +474,13 @@ to terminate or unexpected during unwinding.
 * If we haven't terminated, assume the exception object is just past the
   _Unwind_Exception and return a pointer to that.
 */
+#ifndef __EMSCRIPTEN__
 void*
 __cxa_begin_catch(void* unwind_arg) throw()
+#else
+void*
+__cxa_begin_catch(void* unwind_arg) _NOEXCEPT
+#endif
 {
     _Unwind_Exception* unwind_exception = static_cast<_Unwind_Exception*>(unwind_arg);
     bool native_exception = __isOurExceptionClass(unwind_exception);
@@ -633,8 +687,14 @@ void __cxa_rethrow() {
 
     Requires:  If thrown_object is not NULL, it is a native exception.
 */
+#ifndef __EMSCRIPTEN__
 void
-__cxa_increment_exception_refcount(void *thrown_object) throw() {
+__cxa_increment_exception_refcount(void *thrown_object) throw()
+#else
+void
+__cxa_increment_exception_refcount(void *thrown_object) _NOEXCEPT
+#endif
+{
     if (thrown_object != NULL )
     {
         __cxa_exception* exception_header = cxa_exception_from_thrown_object(thrown_object);
@@ -650,8 +710,14 @@ __cxa_increment_exception_refcount(void *thrown_object) throw() {
 
     Requires:  If thrown_object is not NULL, it is a native exception.
 */
+#ifndef __EMSCRIPTEN__
 _LIBCXXABI_NO_CFI
-void __cxa_decrement_exception_refcount(void *thrown_object) throw() {
+void __cxa_decrement_exception_refcount(void *thrown_object) throw()
+#else
+_LIBCXXABI_NO_CFI
+void __cxa_decrement_exception_refcount(void *thrown_object) _NOEXCEPT
+#endif
+{
     if (thrown_object != NULL )
     {
         __cxa_exception* exception_header = cxa_exception_from_thrown_object(thrown_object);
@@ -674,7 +740,12 @@ void __cxa_decrement_exception_refcount(void *thrown_object) throw() {
     been no exceptions thrown, ever, on this thread, we can return NULL without
     the need to allocate the exception-handling globals.
 */
-void *__cxa_current_primary_exception() throw() {
+#ifndef __EMSCRIPTEN__
+void *__cxa_current_primary_exception() throw()
+#else
+void *__cxa_current_primary_exception() _NOEXCEPT
+#endif
+{
 //  get the current exception
     __cxa_eh_globals* globals = __cxa_get_globals_fast();
     if (NULL == globals)
@@ -745,11 +816,21 @@ __cxa_rethrow_primary_exception(void* thrown_object)
     // If we return client will call terminate()
 }
 
+#ifndef __EMSCRIPTEN__
 bool
 __cxa_uncaught_exception() throw() { return __cxa_uncaught_exceptions() != 0; }
+#else
+bool
+__cxa_uncaught_exception() _NOEXCEPT { return __cxa_uncaught_exceptions() != 0; }
+#endif
 
+#ifndef __EMSCRIPTEN__
 unsigned int
 __cxa_uncaught_exceptions() throw()
+#else
+unsigned int
+__cxa_uncaught_exceptions() _NOEXCEPT
+#endif
 {
     // This does not report foreign exceptions in flight
     __cxa_eh_globals* globals = __cxa_get_globals_fast();

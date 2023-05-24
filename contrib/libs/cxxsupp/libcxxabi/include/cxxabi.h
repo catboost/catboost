@@ -39,21 +39,44 @@ namespace __cxxabiv1 {
 extern "C"  {
 
 // 2.4.2 Allocating the Exception Object
+#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void *
 __cxa_allocate_exception(size_t thrown_size) throw();
 extern _LIBCXXABI_FUNC_VIS void
 __cxa_free_exception(void *thrown_exception) throw();
+#else
+extern _LIBCXXABI_FUNC_VIS void *
+__cxa_allocate_exception(size_t thrown_size) _NOEXCEPT;
+extern _LIBCXXABI_FUNC_VIS void
+__cxa_free_exception(void *thrown_exception) _NOEXCEPT;
+#endif
 
 // 2.4.3 Throwing the Exception Object
+#ifdef __USING_WASM_EXCEPTIONS__
+extern _LIBCXXABI_FUNC_VIS _LIBCXXABI_NORETURN void
+__cxa_throw(void *thrown_exception, std::type_info *tinfo,
+            void *(*dest)(void *));
+#else
 extern _LIBCXXABI_FUNC_VIS _LIBCXXABI_NORETURN void
 __cxa_throw(void *thrown_exception, std::type_info *tinfo,
             void (*dest)(void *));
+#endif
 
 // 2.5.3 Exception Handlers
+#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void *
 __cxa_get_exception_ptr(void *exceptionObject) throw();
+#else
+extern _LIBCXXABI_FUNC_VIS void *
+__cxa_get_exception_ptr(void *exceptionObject) _NOEXCEPT;
+#endif
+#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void *
 __cxa_begin_catch(void *exceptionObject) throw();
+#else
+extern _LIBCXXABI_FUNC_VIS void *
+__cxa_begin_catch(void *exceptionObject) _NOEXCEPT;
+#endif
 extern _LIBCXXABI_FUNC_VIS void __cxa_end_catch();
 #if defined(_LIBCXXABI_ARM_EHABI)
 extern _LIBCXXABI_FUNC_VIS bool
@@ -148,17 +171,36 @@ extern _LIBCXXABI_FUNC_VIS char *__cxa_demangle(const char *mangled_name,
 
 // Apple additions to support C++ 0x exception_ptr class
 // These are primitives to wrap a smart pointer around an exception object
+#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void *__cxa_current_primary_exception() throw();
+#else
+extern _LIBCXXABI_FUNC_VIS void *__cxa_current_primary_exception() _NOEXCEPT;
+#endif
 extern _LIBCXXABI_FUNC_VIS void
 __cxa_rethrow_primary_exception(void *primary_exception);
+#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void
 __cxa_increment_exception_refcount(void *primary_exception) throw();
+#else
+extern _LIBCXXABI_FUNC_VIS void
+__cxa_increment_exception_refcount(void *primary_exception) _NOEXCEPT;
+#endif
+#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void
 __cxa_decrement_exception_refcount(void *primary_exception) throw();
+#else
+extern _LIBCXXABI_FUNC_VIS void
+__cxa_decrement_exception_refcount(void *primary_exception) _NOEXCEPT;
+#endif
 
 // Apple extension to support std::uncaught_exception()
+#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS bool __cxa_uncaught_exception() throw();
 extern _LIBCXXABI_FUNC_VIS unsigned int __cxa_uncaught_exceptions() throw();
+#else
+extern _LIBCXXABI_FUNC_VIS bool __cxa_uncaught_exception() _NOEXCEPT;
+extern _LIBCXXABI_FUNC_VIS unsigned int __cxa_uncaught_exceptions() _NOEXCEPT;
+#endif
 
 #if defined(__linux__) || defined(__Fuchsia__)
 // Linux and Fuchsia TLS support. Not yet an official part of the Itanium ABI.
