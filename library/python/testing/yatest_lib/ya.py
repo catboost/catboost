@@ -180,7 +180,23 @@ class Ya(object):
         if self._mode == RunMode.Run:
             raise TestMisconfigurationException(error_message)
 
+    def _build_root_rel(self, path):
+        real_build_root = os.path.realpath(self.build_root)
+        real_path = os.path.abspath(path)
+        if path.startswith(real_build_root):
+            return os.path.relpath(real_path, real_build_root)
+        return path
+
     def file(self, path, diff_tool=None, local=False, diff_file_name=None, diff_tool_timeout=None):
+        if diff_tool:
+            if isinstance(diff_tool, tuple):
+                diff_tool = list(diff_tool)
+            # Normalize path to diff_tool - abs path in run_test node won't be accessible in canonize node
+            if isinstance(diff_tool, list):
+                diff_tool[0] = self._build_root_rel(diff_tool[0])
+            else:
+                diff_tool = self._build_root_rel(diff_tool)
+
         return ExternalDataInfo.serialize_file(path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout)
 
     def get_param(self, key, default=None):
