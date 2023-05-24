@@ -274,6 +274,20 @@ public:
         }
     }
 
+    inline void FilterFromFile(TString filename) {
+        TString filterLine;
+
+        TFileInput filtersStream(filename);
+
+        while (filtersStream.ReadLine(filterLine)) {
+            if (filterLine.StartsWith("-")) {
+                Disable(filterLine.c_str() + 1);
+            } else if(filterLine.StartsWith("+")) {
+                Enable(filterLine.c_str() + 1);
+            }
+        }
+    }
+
     inline void SetPrintBeforeSuite(bool print) {
         PrintBeforeSuite_ = print;
     }
@@ -529,6 +543,7 @@ private:
             .SetLatency(1);
 
         PushDownEnvVar(&options, Y_UNITTEST_OUTPUT_CMDLINE_OPTION);
+        PushDownEnvVar(&options, Y_UNITTEST_TEST_FILTER_OPTION);
         PushDownEnvVar(&options, "TMPDIR");
 
         TShellCommand cmd(AppName, args, options);
@@ -677,7 +692,8 @@ static int DoUsage(const char* progname) {
          << "  --print-times         print wall clock duration of each test\n"
          << "  --fork-tests          run each test in a separate process\n"
          << "  --trace-path          path to the trace file to be generated\n"
-         << "  --trace-path-append   path to the trace file to be appended\n";
+         << "  --trace-path-append   path to the trace file to be appended\n"
+         << "  --test-filter         path to the test filters ([+|-]test) file (" << Y_UNITTEST_TEST_FILTER_OPTION << ")\n";
     return 0;
 }
 
@@ -740,6 +756,15 @@ int NUnitTest::RunMain(int argc, char** argv) {
         bool forkTests = false;
         bool isForked = false;
         std::vector<std::shared_ptr<ITestSuiteProcessor>> traceProcessors;
+
+
+        // load filters from environment variable
+        TString filterFn = GetEnv(Y_UNITTEST_TEST_FILTER_OPTION);
+        if (!filterFn.empty()) {
+            processor.FilterFromFile(filterFn);
+        }
+
+
 
         for (size_t i = 1; i < (size_t)argc; ++i) {
             const char* name = argv[i];
@@ -807,6 +832,10 @@ int NUnitTest::RunMain(int argc, char** argv) {
                         traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName), argv[0]));
                     }
                     hasJUnitProcessor = true;
+                } else if (strcmp(name, "--test-filter") == 0) {
+                    ++i;
+                    TString filename(argv[i]);
+                    processor.FilterFromFile(filename);
                 } else if (TString(name).StartsWith("--")) {
                     return DoUsage(argv[0]), 1;
                 } else if (*name == '-') {

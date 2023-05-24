@@ -7,6 +7,7 @@
 namespace NUnitTest {
 
 extern const TString Y_UNITTEST_OUTPUT_CMDLINE_OPTION;
+extern const TString Y_UNITTEST_TEST_FILTER_OPTION;
 
 class TJUnitProcessor : public ITestSuiteProcessor {
     struct TFailure {

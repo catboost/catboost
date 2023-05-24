@@ -24,6 +24,7 @@
 namespace NUnitTest {
 
 extern const TString Y_UNITTEST_OUTPUT_CMDLINE_OPTION = "Y_UNITTEST_OUTPUT";
+extern const TString Y_UNITTEST_TEST_FILTER_OPTION = "Y_TEST_FILTER";
 
 static bool IsAllowedInXml(wchar32 c) {
     // https://en.wikipedia.org/wiki/Valid_characters_in_XML
