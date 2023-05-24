@@ -42,7 +42,7 @@ class EnumTypeWrapper(object):
   """A utility for finding the names of enum values."""
 
   DESCRIPTOR = None
-  
+
   # This is a type alias, which mypy typing stubs can type as
   # a genericized parameter constrained to an int, allowing subclasses
   # to be typed with more constraint in .pyi stubs
