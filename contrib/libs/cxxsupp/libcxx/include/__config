@@ -117,7 +117,12 @@
 // Previously libc++ used "unsigned int" exclusively.
 #  define _LIBCPP_ABI_VARIANT_INDEX_TYPE_OPTIMIZATION
 // Unstable attempt to provide a more optimized std::function
+#ifdef __EMSCRIPTEN__
+// XXX EMSCRIPTEN https://github.com/emscripten-core/emscripten/issues/11022
+//#    define _LIBCPP_ABI_OPTIMIZED_FUNCTION
+#else
 #  define _LIBCPP_ABI_OPTIMIZED_FUNCTION
+#endif
 // All the regex constants must be distinct and nonzero.
 #  define _LIBCPP_ABI_REGEX_CONSTANTS_NONZERO
 // Use raw pointers, not wrapped ones, for std::span's iterator type.
