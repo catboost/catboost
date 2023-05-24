@@ -18,19 +18,11 @@
 #include "ares_setup.h"
 
 #include "ares.h"
-#include "ares_library_init.h"
 #include "ares_private.h"
 
 #include "atomic.h"
 
 /* library-private global and unique instance vars */
-
-#ifdef USE_WINSOCK
-fpGetNetworkParams_t ares_fpGetNetworkParams = ZERO_NULL;
-fpSystemFunction036_t ares_fpSystemFunction036 = ZERO_NULL;
-fpGetAdaptersAddresses_t ares_fpGetAdaptersAddresses = ZERO_NULL;
-fpGetBestRoute2_t ares_fpGetBestRoute2 = ZERO_NULL;
-#endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
 #include "ares_android.h"
@@ -62,95 +54,27 @@ void *(*ares_malloc)(size_t size) = default_malloc;
 void *(*ares_realloc)(void *ptr, size_t size) = default_realloc;
 void (*ares_free)(void *ptr) = default_free;
 
-#ifdef USE_WINSOCK
-static HMODULE hnd_iphlpapi;
-static HMODULE hnd_advapi32;
-#endif
-
-
-static int ares_win32_init(void)
+int ares_library_init_unsafe(int flags)
 {
-#ifdef USE_WINSOCK
-
-  hnd_iphlpapi = 0;
-  hnd_iphlpapi = LoadLibraryW(L"iphlpapi.dll");
-  if (!hnd_iphlpapi)
-    return ARES_ELOADIPHLPAPI;
-
-  ares_fpGetNetworkParams = (fpGetNetworkParams_t)
-    GetProcAddress(hnd_iphlpapi, "GetNetworkParams");
-  if (!ares_fpGetNetworkParams)
+  if (ares_initialized)
     {
-      FreeLibrary(hnd_iphlpapi);
-      return ARES_EADDRGETNETWORKPARAMS;
+      ares_initialized++;
+      return ARES_SUCCESS;
     }
+  ares_initialized++;
 
-  ares_fpGetAdaptersAddresses = (fpGetAdaptersAddresses_t)
-    GetProcAddress(hnd_iphlpapi, "GetAdaptersAddresses");
-  if (!ares_fpGetAdaptersAddresses)
-    {
-      /* This can happen on clients before WinXP, I don't
-         think it should be an error, unless we don't want to
-         support Windows 2000 anymore */
-    }
+  /* NOTE: ARES_LIB_INIT_WIN32 flag no longer used */
 
-  ares_fpGetBestRoute2 = (fpGetBestRoute2_t)
-    GetProcAddress(hnd_iphlpapi, "GetBestRoute2");
-  if (!ares_fpGetBestRoute2)
-    {
-      /* This can happen on clients before Vista, I don't
-         think it should be an error, unless we don't want to
-         support Windows XP anymore */
-    }
+  ares_init_flags = flags;
 
-  /*
-   * When advapi32.dll is unavailable or advapi32.dll has no SystemFunction036,
-   * also known as RtlGenRandom, which is the case for Windows versions prior
-   * to WinXP then c-ares uses portable rand() function. Then don't error here.
-   */
-
-  hnd_advapi32 = 0;
-  hnd_advapi32 = LoadLibraryW(L"advapi32.dll");
-  if (hnd_advapi32)
-    {
-      ares_fpSystemFunction036 = (fpSystemFunction036_t)
-        GetProcAddress(hnd_advapi32, "SystemFunction036");
-    }
-
-#endif
   return ARES_SUCCESS;
 }
 
-
-static void ares_win32_cleanup(void)
-{
-#ifdef USE_WINSOCK
-  if (hnd_advapi32)
-    FreeLibrary(hnd_advapi32);
-  if (hnd_iphlpapi)
-    FreeLibrary(hnd_iphlpapi);
-#endif
-}
-
-
 int ares_library_init(int flags)
 {
-  int res = ARES_SUCCESS;
-
   acquire_lock(&ares_init_lock);
-
-  ares_initialized++;
-  if (ares_initialized == 1)
-    {
-      if (flags & ARES_LIB_INIT_WIN32)
-        res = ares_win32_init();
-
-      if (res == ARES_SUCCESS)
-        ares_init_flags = flags;
-    }
-
+  int res = ares_library_init_unsafe(flags);
   release_lock(&ares_init_lock);
-
   return res;
 }
 
@@ -169,38 +93,47 @@ int ares_library_init_mem(int flags,
 }
 
 
+void ares_library_cleanup_unsafe(void)
+{
+  if (!ares_initialized)
+    return;
+  ares_initialized--;
+  if (ares_initialized)
+    return;
+
+  /* NOTE: ARES_LIB_INIT_WIN32 flag no longer used */
+
+#if defined(ANDROID) || defined(__ANDROID__)
+  ares_library_cleanup_android();
+#endif
+
+  ares_init_flags = ARES_LIB_INIT_NONE;
+  ares_malloc = malloc;
+  ares_realloc = realloc;
+  ares_free = free;
+}
+
 void ares_library_cleanup(void)
 {
   acquire_lock(&ares_init_lock);
-
-  if (ares_initialized)
-    {
-      ares_initialized--;
-      if (!ares_initialized)
-        {
-          if (ares_init_flags & ARES_LIB_INIT_WIN32)
-            ares_win32_cleanup();
-
-#if defined(ANDROID) || defined(__ANDROID__)
-          ares_library_cleanup_android();
-#endif
-
-          ares_init_flags = ARES_LIB_INIT_NONE;
-          ares_malloc = malloc;
-          ares_realloc = realloc;
-          ares_free = free;
-        }
-    }
-
+  ares_library_cleanup_unsafe();
   release_lock(&ares_init_lock);
 }
 
 
-int ares_library_initialized(void)
+int ares_library_initialized_unsafe(void)
 {
 #ifdef USE_WINSOCK
   if (!ares_initialized)
     return ARES_ENOTINITIALIZED;
 #endif
   return ARES_SUCCESS;
+}
+
+int ares_library_initialized(void)
+{
+  acquire_lock(&ares_init_lock);
+  int res = ares_library_initialized_unsafe();
+  release_lock(&ares_init_lock);
+  return res;
 }
