@@ -43,7 +43,7 @@ Y_FORCE_INLINE TRef TRef::FromStringBuf(TStringBuf strBuf)
 template <class T>
 Y_FORCE_INLINE TRef TRef::FromPod(const T& data)
 {
-    static_assert(TTypeTraits<T>::IsPod || std::is_pod<T>::value, "T must be a pod-type.");
+    static_assert(TTypeTraits<T>::IsPod || (std::is_standard_layout_v<T> && std::is_trivial_v<T>), "T must be a pod-type.");
     return TRef(&data, sizeof (data));
 }
 
@@ -81,7 +81,7 @@ Y_FORCE_INLINE TMutableRef::operator TRef() const
 template <class T>
 Y_FORCE_INLINE TMutableRef TMutableRef::FromPod(T& data)
 {
-    static_assert(TTypeTraits<T>::IsPod || std::is_pod<T>::value, "T must be a pod-type.");
+    static_assert(TTypeTraits<T>::IsPod || (std::is_standard_layout_v<T> && std::is_trivial_v<T>), "T must be a pod-type.");
     return TMutableRef(&data, sizeof (data));
 }
 
