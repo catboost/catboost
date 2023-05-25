@@ -12,6 +12,7 @@ from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.pens.momentsPen import OpenContourError
 from collections import OrderedDict
+import math
 import itertools
 import sys
 
@@ -137,12 +138,13 @@ def min_cost_perfect_bipartite_matching(G):
     return best, best_cost
 
 
-def test(glyphsets, glyphs=None, names=None):
-
+def test(glyphsets, glyphs=None, names=None, ignore_missing=False):
     if names is None:
         names = glyphsets
     if glyphs is None:
-        glyphs = glyphsets[0].keys()
+        # `glyphs = glyphsets[0].keys()` is faster, certainly, but doesn't allow for sparse TTFs/OTFs given out of order
+        # ... risks the sparse master being the first one, and only processing a subset of the glyphs
+        glyphs = {g for glyphset in glyphsets for g in glyphset.keys()}
 
     hist = []
     problems = OrderedDict()
@@ -151,19 +153,21 @@ def test(glyphsets, glyphs=None, names=None):
         problems.setdefault(glyphname, []).append(problem)
 
     for glyph_name in glyphs:
-        # print()
-        # print(glyph_name)
-
         try:
+            m0idx = 0
             allVectors = []
             allNodeTypes = []
             allContourIsomorphisms = []
             for glyphset, name in zip(glyphsets, names):
-                # print('.', end='')
-                if glyph_name not in glyphset:
-                    add_problem(glyph_name, {"type": "missing", "master": name})
-                    continue
                 glyph = glyphset[glyph_name]
+
+                if glyph is None:
+                    if not ignore_missing:
+                        add_problem(glyph_name, {"type": "missing", "master": name})
+                    allNodeTypes.append(None)
+                    allVectors.append(None)
+                    allContourIsomorphisms.append(None)
+                    continue
 
                 perContourPen = PerContourOrComponentPen(
                     RecordingPen, glyphset=glyphset
@@ -182,7 +186,6 @@ def test(glyphsets, glyphs=None, names=None):
                 allVectors.append(contourVectors)
                 allContourIsomorphisms.append(contourIsomorphisms)
                 for ix, contour in enumerate(contourPens):
-
                     nodeVecs = tuple(instruction[0] for instruction in contour.value)
                     nodeTypes.append(nodeVecs)
 
@@ -195,7 +198,7 @@ def test(glyphsets, glyphs=None, names=None):
                             {"master": name, "contour": ix, "type": "open_path"},
                         )
                         continue
-                    size = abs(stats.area) ** 0.5 * 0.5
+                    size = math.sqrt(abs(stats.area)) * 0.5
                     vector = (
                         int(size),
                         int(stats.meanX),
@@ -243,16 +246,23 @@ def test(glyphsets, glyphs=None, names=None):
                                 _rot_list([complex(*pt) for pt, bl in mirrored], i)
                             )
 
-            # Check each master against the first on in the list.
-            m0 = allNodeTypes[0]
-            for i, m1 in enumerate(allNodeTypes[1:]):
+            # m0idx should be the index of the first non-None item in allNodeTypes,
+            # else give it the first index of None, which is likely 0
+            m0idx = allNodeTypes.index(
+                next((x for x in allNodeTypes if x is not None), None)
+            )
+            # m0 is the first non-None item in allNodeTypes, or the first item if all are None
+            m0 = allNodeTypes[m0idx]
+            for i, m1 in enumerate(allNodeTypes[m0idx + 1 :]):
+                if m1 is None:
+                    continue
                 if len(m0) != len(m1):
                     add_problem(
                         glyph_name,
                         {
                             "type": "path_count",
-                            "master_1": names[0],
-                            "master_2": names[i + 1],
+                            "master_1": names[m0idx],
+                            "master_2": names[m0idx + i + 1],
                             "value_1": len(m0),
                             "value_2": len(m1),
                         },
@@ -268,8 +278,8 @@ def test(glyphsets, glyphs=None, names=None):
                             {
                                 "type": "node_count",
                                 "path": pathIx,
-                                "master_1": names[0],
-                                "master_2": names[i + 1],
+                                "master_1": names[m0idx],
+                                "master_2": names[m0idx + i + 1],
                                 "value_1": len(nodes1),
                                 "value_2": len(nodes2),
                             },
@@ -283,16 +293,24 @@ def test(glyphsets, glyphs=None, names=None):
                                     "type": "node_incompatibility",
                                     "path": pathIx,
                                     "node": nodeIx,
-                                    "master_1": names[0],
-                                    "master_2": names[i + 1],
+                                    "master_1": names[m0idx],
+                                    "master_2": names[m0idx + i + 1],
                                     "value_1": n1,
                                     "value_2": n2,
                                 },
                             )
                             continue
 
-            m0 = allVectors[0]
-            for i, m1 in enumerate(allVectors[1:]):
+            # m0idx should be the index of the first non-None item in allVectors,
+            # else give it the first index of None, which is likely 0
+            m0idx = allVectors.index(
+                next((x for x in allVectors if x is not None), None)
+            )
+            # m0 is the first non-None item in allVectors, or the first item if all are None
+            m0 = allVectors[m0idx]
+            for i, m1 in enumerate(allVectors[m0idx + 1 :]):
+                if m1 is None:
+                    continue
                 if len(m0) != len(m1):
                     # We already reported this
                     continue
@@ -310,16 +328,24 @@ def test(glyphsets, glyphs=None, names=None):
                         glyph_name,
                         {
                             "type": "contour_order",
-                            "master_1": names[0],
-                            "master_2": names[i + 1],
+                            "master_1": names[m0idx],
+                            "master_2": names[m0idx + i + 1],
                             "value_1": list(range(len(m0))),
                             "value_2": matching,
                         },
                     )
                     break
 
-            m0 = allContourIsomorphisms[0]
-            for i, m1 in enumerate(allContourIsomorphisms[1:]):
+            # m0idx should be the index of the first non-None item in allContourIsomorphisms,
+            # else give it the first index of None, which is likely 0
+            m0idx = allContourIsomorphisms.index(
+                next((x for x in allContourIsomorphisms if x is not None), None)
+            )
+            # m0 is the first non-None item in allContourIsomorphisms, or the first item if all are None
+            m0 = allContourIsomorphisms[m0idx]
+            for i, m1 in enumerate(allContourIsomorphisms[m0idx + 1 :]):
+                if m1 is None:
+                    continue
                 if len(m0) != len(m1):
                     # We already reported this
                     continue
@@ -338,8 +364,8 @@ def test(glyphsets, glyphs=None, names=None):
                             {
                                 "type": "wrong_start_point",
                                 "contour": ix,
-                                "master_1": names[0],
-                                "master_2": names[i + 1],
+                                "master_1": names[m0idx],
+                                "master_2": names[m0idx + i + 1],
                             },
                         )
 
@@ -365,7 +391,21 @@ def main(args=None):
         help="Output report in JSON format",
     )
     parser.add_argument(
-        "inputs", metavar="FILE", type=str, nargs="+", help="Input TTF/UFO files"
+        "--quiet",
+        action="store_true",
+        help="Only exit with code 1 or 0, no output",
+    )
+    parser.add_argument(
+        "--ignore-missing",
+        action="store_true",
+        help="Will not report glyphs missing from sparse masters as errors",
+    )
+    parser.add_argument(
+        "inputs",
+        metavar="FILE",
+        type=str,
+        nargs="+",
+        help="Input a single DesignSpace/Glyphs file, or multiple TTF/UFO files",
     )
 
     args = parser.parse_args(args)
@@ -439,71 +479,96 @@ def main(args=None):
 
         names.append(basename(filename).rsplit(".", 1)[0])
 
-    if hasattr(fonts[0], "getGlyphSet"):
-        glyphsets = [font.getGlyphSet() for font in fonts]
-    else:
-        glyphsets = fonts
+    glyphsets = []
+    for font in fonts:
+        if hasattr(font, "getGlyphSet"):
+            glyphset = font.getGlyphSet()
+        else:
+            glyphset = font
+        glyphsets.append({k: glyphset[k] for k in glyphset.keys()})
 
-    problems = test(glyphsets, glyphs=glyphs, names=names)
-    if args.json:
-        import json
+    if not glyphs:
+        glyphs = set([gn for glyphset in glyphsets for gn in glyphset.keys()])
 
-        print(json.dumps(problems))
-    else:
-        for glyph, glyph_problems in problems.items():
-            print(f"Glyph {glyph} was not compatible: ")
-            for p in glyph_problems:
-                if p["type"] == "missing":
-                    print("    Glyph was missing in master %s" % p["master"])
-                if p["type"] == "open_path":
-                    print("    Glyph has an open path in master %s" % p["master"])
-                if p["type"] == "path_count":
-                    print(
-                        "    Path count differs: %i in %s, %i in %s"
-                        % (p["value_1"], p["master_1"], p["value_2"], p["master_2"])
-                    )
-                if p["type"] == "node_count":
-                    print(
-                        "    Node count differs in path %i: %i in %s, %i in %s"
-                        % (
-                            p["path"],
-                            p["value_1"],
-                            p["master_1"],
-                            p["value_2"],
-                            p["master_2"],
+    for glyphset in glyphsets:
+        glyphSetGlyphNames = set(glyphset.keys())
+        diff = glyphs - glyphSetGlyphNames
+        if diff:
+            for gn in diff:
+                glyphset[gn] = None
+
+    problems = test(
+        glyphsets, glyphs=glyphs, names=names, ignore_missing=args.ignore_missing
+    )
+
+    if not args.quiet:
+        if args.json:
+            import json
+
+            print(json.dumps(problems))
+        else:
+            for glyph, glyph_problems in problems.items():
+                print(f"Glyph {glyph} was not compatible: ")
+                for p in glyph_problems:
+                    if p["type"] == "missing":
+                        print("    Glyph was missing in master %s" % p["master"])
+                    if p["type"] == "open_path":
+                        print("    Glyph has an open path in master %s" % p["master"])
+                    if p["type"] == "path_count":
+                        print(
+                            "    Path count differs: %i in %s, %i in %s"
+                            % (p["value_1"], p["master_1"], p["value_2"], p["master_2"])
                         )
-                    )
-                if p["type"] == "node_incompatibility":
-                    print(
-                        "    Node %o incompatible in path %i: %s in %s, %s in %s"
-                        % (
-                            p["node"],
-                            p["path"],
-                            p["value_1"],
-                            p["master_1"],
-                            p["value_2"],
-                            p["master_2"],
+                    if p["type"] == "node_count":
+                        print(
+                            "    Node count differs in path %i: %i in %s, %i in %s"
+                            % (
+                                p["path"],
+                                p["value_1"],
+                                p["master_1"],
+                                p["value_2"],
+                                p["master_2"],
+                            )
                         )
-                    )
-                if p["type"] == "contour_order":
-                    print(
-                        "    Contour order differs: %s in %s, %s in %s"
-                        % (
-                            p["value_1"],
-                            p["master_1"],
-                            p["value_2"],
-                            p["master_2"],
+                    if p["type"] == "node_incompatibility":
+                        print(
+                            "    Node %o incompatible in path %i: %s in %s, %s in %s"
+                            % (
+                                p["node"],
+                                p["path"],
+                                p["value_1"],
+                                p["master_1"],
+                                p["value_2"],
+                                p["master_2"],
+                            )
                         )
-                    )
-                if p["type"] == "wrong_start_point":
-                    print(
-                        "    Contour %d start point differs: %s, %s"
-                        % (
-                            p["contour"],
-                            p["master_1"],
-                            p["master_2"],
+                    if p["type"] == "contour_order":
+                        print(
+                            "    Contour order differs: %s in %s, %s in %s"
+                            % (
+                                p["value_1"],
+                                p["master_1"],
+                                p["value_2"],
+                                p["master_2"],
+                            )
                         )
-                    )
+                    if p["type"] == "wrong_start_point":
+                        print(
+                            "    Contour %d start point differs: %s, %s"
+                            % (
+                                p["contour"],
+                                p["master_1"],
+                                p["master_2"],
+                            )
+                        )
+                    if p["type"] == "math_error":
+                        print(
+                            "    Miscellaneous error in %s: %s"
+                            % (
+                                p["master"],
+                                p["error"],
+                            )
+                        )
     if problems:
         return problems
 

@@ -1,3 +1,13 @@
+try:
+    import cython
+
+    COMPILED = cython.compiled
+except (AttributeError, ImportError):
+    # if cython not installed, use mock module with no-op decorators and types
+    from fontTools.misc import cython
+
+    COMPILED = False
+
 from typing import (
     Sequence,
     Tuple,
@@ -28,9 +38,21 @@ _Endpoints = Sequence[Integral]
 MAX_LOOKBACK = 8
 
 
+@cython.cfunc
+@cython.locals(
+    j=cython.int,
+    n=cython.int,
+    x1=cython.double,
+    x2=cython.double,
+    d1=cython.double,
+    d2=cython.double,
+    scale=cython.double,
+    x=cython.double,
+    d=cython.double,
+)
 def iup_segment(
     coords: _PointSegment, rc1: _Point, rd1: _Delta, rc2: _Point, rd2: _Delta
-) -> _DeltaSegment:
+):  # -> _DeltaSegment:
     """Given two reference coordinates `rc1` & `rc2` and their respective
     delta vectors `rd1` & `rd2`, returns interpolated deltas for the set of
     coordinates `coords`."""
@@ -150,24 +172,32 @@ def iup_delta(
 # Optimizer
 
 
+@cython.cfunc
+@cython.inline
+@cython.locals(
+    i=cython.int,
+    j=cython.int,
+    tolerance=cython.double,
+    x=cython.double,
+    y=cython.double,
+    p=cython.double,
+    q=cython.double,
+)
+@cython.returns(int)
 def can_iup_in_between(
     deltas: _DeltaSegment,
     coords: _PointSegment,
     i: Integral,
     j: Integral,
     tolerance: Real,
-) -> bool:
+):  # -> bool:
     """Return true if the deltas for points at `i` and `j` (`i < j`) can be
     successfully used to interpolate deltas for points in between them within
     provided error tolerance."""
 
     assert j - i >= 2
-    interp = list(
-        iup_segment(coords[i + 1 : j], coords[i], deltas[i], coords[j], deltas[j])
-    )
+    interp = iup_segment(coords[i + 1 : j], coords[i], deltas[i], coords[j], deltas[j])
     deltas = deltas[i + 1 : j]
-
-    assert len(deltas) == len(interp)
 
     return all(
         abs(complex(x - p, y - q)) <= tolerance
@@ -175,6 +205,16 @@ def can_iup_in_between(
     )
 
 
+@cython.locals(
+    cj=cython.double,
+    dj=cython.double,
+    lcj=cython.double,
+    ldj=cython.double,
+    ncj=cython.double,
+    ndj=cython.double,
+    force=cython.int,
+    forced=set,
+)
 def _iup_contour_bound_forced_set(
     deltas: _DeltaSegment, coords: _PointSegment, tolerance: Real = 0
 ) -> set:
@@ -256,10 +296,19 @@ def _iup_contour_bound_forced_set(
     return forced
 
 
+@cython.locals(
+    i=cython.int,
+    j=cython.int,
+    best_cost=cython.double,
+    best_j=cython.int,
+    cost=cython.double,
+    forced=set,
+    tolerance=cython.double,
+)
 def _iup_contour_optimize_dp(
     deltas: _DeltaSegment,
     coords: _PointSegment,
-    forced={},
+    forced=set(),
     tolerance: Real = 0,
     lookback: Integral = None,
 ):
@@ -288,7 +337,6 @@ def _iup_contour_optimize_dp(
             continue
 
         for j in range(i - 2, max(i - lookback, -2), -1):
-
             cost = costs[j] + 1
 
             if cost < best_cost and can_iup_in_between(deltas, coords, j, i, tolerance):

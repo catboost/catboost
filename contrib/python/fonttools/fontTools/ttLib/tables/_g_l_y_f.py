@@ -746,7 +746,7 @@ class Glyph(object):
             for compo in self.components:
                 compo.toXML(writer, ttFont)
             haveInstructions = hasattr(self, "program")
-        if self.isVarComposite():
+        elif self.isVarComposite():
             for compo in self.components:
                 compo.toXML(writer, ttFont)
             haveInstructions = False

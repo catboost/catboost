@@ -194,7 +194,6 @@ ttLib.getTableClass("GDEF").mergeMap = ttLib.getTableClass(
 
 @add_method(ttLib.getTableClass("GSUB"))
 def merge(self, m, tables):
-
     assert len(tables) == len(m.duplicateGlyphsPerFont)
     for i, (table, dups) in enumerate(zip(tables, m.duplicateGlyphsPerFont)):
         if not dups:
@@ -445,7 +444,11 @@ def layoutPreMerge(font):
             t.table.LookupList.mapLookups(lookupMap)
             t.table.FeatureList.mapLookups(lookupMap)
 
-            if GDEF and GDEF.table.Version >= 0x00010002:
+            if (
+                GDEF
+                and GDEF.table.Version >= 0x00010002
+                and GDEF.table.MarkGlyphSetsDef
+            ):
                 markFilteringSetMap = {
                     i: v for i, v in enumerate(GDEF.table.MarkGlyphSetsDef.Coverage)
                 }
@@ -470,7 +473,6 @@ def layoutPostMerge(font):
             continue
 
         if t.table.FeatureList and t.table.ScriptList:
-
             # Collect unregistered (new) features.
             featureMap = GregariousIdentityDict(t.table.FeatureList.FeatureRecord)
             t.table.ScriptList.mapFeatures(featureMap)
@@ -496,7 +498,6 @@ def layoutPostMerge(font):
             t.table.FeatureList.FeatureCount = len(t.table.FeatureList.FeatureRecord)
 
         if t.table.LookupList:
-
             # Collect unregistered (new) lookups.
             lookupMap = GregariousIdentityDict(t.table.LookupList.Lookup)
             t.table.FeatureList.mapLookups(lookupMap)

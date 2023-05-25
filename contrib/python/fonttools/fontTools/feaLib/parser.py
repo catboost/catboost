@@ -925,22 +925,27 @@ class Parser(object):
 
         # GSUB lookup type 2: Multiple substitution.
         # Format: "substitute f_f_i by f f i;"
-        if (
-            not reverse
-            and len(old) == 1
-            and len(old[0].glyphSet()) == 1
-            and len(new) > 1
-            and max([len(n.glyphSet()) for n in new]) == 1
-            and num_lookups == 0
-        ):
+        #
+        # GlyphsApp introduces two additional formats:
+        # Format 1: "substitute [f_i f_l] by [f f] [i l];"
+        # Format 2: "substitute [f_i f_l] by f [i l];"
+        # http://handbook.glyphsapp.com/en/layout/multiple-substitution-with-classes/
+        if not reverse and len(old) == 1 and len(new) > 1 and num_lookups == 0:
+            count = len(old[0].glyphSet())
             for n in new:
                 if not list(n.glyphSet()):
                     raise FeatureLibError("Empty class in replacement", location)
+                if len(n.glyphSet()) != 1 and len(n.glyphSet()) != count:
+                    raise FeatureLibError(
+                        f'Expected a glyph class with 1 or {count} elements after "by", '
+                        f"but found a glyph class with {len(n.glyphSet())} elements",
+                        location,
+                    )
             return self.ast.MultipleSubstStatement(
                 old_prefix,
-                tuple(old[0].glyphSet())[0],
+                old[0],
                 old_suffix,
-                tuple([list(n.glyphSet())[0] for n in new]),
+                new,
                 forceChain=hasMarks,
                 location=location,
             )

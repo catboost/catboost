@@ -45,6 +45,8 @@ def addFeatureVariations(font, conditionalSubstitutions, featureTag="rvrn"):
     # >>> f.save(dstPath)
     """
 
+    processLast = featureTag != "rvrn"
+
     _checkSubstitutionGlyphsExist(
         glyphNames=set(font.getGlyphOrder()),
         substitutions=conditionalSubstitutions,
@@ -60,7 +62,9 @@ def addFeatureVariations(font, conditionalSubstitutions, featureTag="rvrn"):
         font["GSUB"] = buildGSUB()
 
     # setup lookups
-    lookupMap = buildSubstitutionLookups(font["GSUB"].table, allSubstitutions)
+    lookupMap = buildSubstitutionLookups(
+        font["GSUB"].table, allSubstitutions, processLast
+    )
 
     # addFeatureVariationsRaw takes a list of
     #  ( {condition}, [ lookup indices ] )
@@ -320,6 +324,8 @@ def addFeatureVariationsRaw(font, table, conditionalSubstitutions, featureTag="r
     """Low level implementation of addFeatureVariations that directly
     models the possibilities of the FeatureVariations table."""
 
+    processLast = featureTag != "rvrn"
+
     #
     # if there is no <featureTag> feature:
     #     make empty <featureTag> feature
@@ -378,9 +384,15 @@ def addFeatureVariationsRaw(font, table, conditionalSubstitutions, featureTag="r
             existingLookupIndices = table.FeatureList.FeatureRecord[
                 varFeatureIndex
             ].Feature.LookupListIndex
+            combinedLookupIndices = (
+                existingLookupIndices + lookupIndices
+                if processLast
+                else lookupIndices + existingLookupIndices
+            )
+
             records.append(
                 buildFeatureTableSubstitutionRecord(
-                    varFeatureIndex, lookupIndices + existingLookupIndices
+                    varFeatureIndex, combinedLookupIndices
                 )
             )
         featureVariationRecords.append(
@@ -463,27 +475,32 @@ def visit(visitor, obj, attr, value):
     setattr(obj, attr, visitor.shift + value)
 
 
-def buildSubstitutionLookups(gsub, allSubstitutions):
+def buildSubstitutionLookups(gsub, allSubstitutions, processLast=False):
     """Build the lookups for the glyph substitutions, return a dict mapping
     the substitution to lookup indices."""
 
     # Insert lookups at the beginning of the lookup vector
     # https://github.com/googlefonts/fontmake/issues/950
 
+    firstIndex = len(gsub.LookupList.Lookup) if processLast else 0
     lookupMap = {}
     for i, substitutionMap in enumerate(allSubstitutions):
-        lookupMap[substitutionMap] = i
+        lookupMap[substitutionMap] = firstIndex + i
 
-    # Shift all lookup indices in gsub by len(allSubstitutions)
-    shift = len(allSubstitutions)
-    visitor = ShifterVisitor(shift)
-    visitor.visit(gsub.FeatureList.FeatureRecord)
-    visitor.visit(gsub.LookupList.Lookup)
+    if not processLast:
+        # Shift all lookup indices in gsub by len(allSubstitutions)
+        shift = len(allSubstitutions)
+        visitor = ShifterVisitor(shift)
+        visitor.visit(gsub.FeatureList.FeatureRecord)
+        visitor.visit(gsub.LookupList.Lookup)
 
     for i, subst in enumerate(allSubstitutions):
         substMap = dict(subst)
         lookup = buildLookup([buildSingleSubstSubtable(substMap)])
-        gsub.LookupList.Lookup.insert(i, lookup)
+        if processLast:
+            gsub.LookupList.Lookup.append(lookup)
+        else:
+            gsub.LookupList.Lookup.insert(i, lookup)
         assert gsub.LookupList.Lookup[lookupMap[subst]] is lookup
     gsub.LookupList.LookupCount = len(gsub.LookupList.Lookup)
     return lookupMap

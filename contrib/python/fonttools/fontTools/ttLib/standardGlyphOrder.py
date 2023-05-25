@@ -2,8 +2,8 @@
 # 'post' table formats 1.0 and 2.0 rely on this list of "standard"
 # glyphs.
 #
-# My list is correct according to the Apple documentation for the 'post'
-# table: http://developer.apple.com/fonts/TTRefMan/RM06/Chap6post.html
+# My list is correct according to the Apple documentation for the 'post'  table:
+# https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6post.html
 # (However, it seems that TTFdump (from MS) and FontLab disagree, at
 # least with respect to the last glyph, which they list as 'dslash'
 # instead of 'dcroat'.)

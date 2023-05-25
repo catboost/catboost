@@ -3,6 +3,7 @@
 # Google Author(s): Behdad Esfahbod, Roozbeh Pournader
 
 from fontTools import ttLib, cffLib
+from fontTools.misc.psCharStrings import T2WidthExtractor
 from fontTools.ttLib.tables.DefaultTable import DefaultTable
 from fontTools.merge.base import add_method, mergeObjects
 from fontTools.merge.cmap import computeMegaCmap
@@ -238,7 +239,6 @@ ttLib.getTableClass("gasp").mergeMap = lambda self, lst: first(
 
 @add_method(ttLib.getTableClass("CFF "))
 def merge(self, m, tables):
-
     if any(hasattr(table, "FDSelect") for table in tables):
         raise NotImplementedError("Merging CID-keyed CFF tables is not supported yet")
 
@@ -248,6 +248,7 @@ def merge(self, m, tables):
     newcff = tables[0]
     newfont = newcff.cff[0]
     private = newfont.Private
+    newDefaultWidthX, newNominalWidthX = private.defaultWidthX, private.nominalWidthX
     storedNamesStrings = []
     glyphOrderStrings = []
     glyphOrder = set(newfont.getGlyphOrder())
@@ -264,6 +265,13 @@ def merge(self, m, tables):
 
     for i, table in enumerate(tables[1:], start=1):
         font = table.cff[0]
+        defaultWidthX, nominalWidthX = (
+            font.Private.defaultWidthX,
+            font.Private.nominalWidthX,
+        )
+        widthsDiffer = (
+            defaultWidthX != newDefaultWidthX or nominalWidthX != newNominalWidthX
+        )
         font.Private = private
         fontGlyphOrder = set(font.getGlyphOrder())
         for name in font.strings.strings:
@@ -278,6 +286,18 @@ def merge(self, m, tables):
                 newcs.charStrings[name] = i
                 newcs.charStringsIndex.items.append(None)
         for name in cs.charStrings:
+            if widthsDiffer:
+                c = cs[name]
+                defaultWidthXToken = object()
+                extractor = T2WidthExtractor([], [], nominalWidthX, defaultWidthXToken)
+                extractor.execute(c)
+                width = extractor.width
+                if width is not defaultWidthXToken:
+                    c.program.pop(0)
+                else:
+                    width = defaultWidthX
+                if width != newDefaultWidthX:
+                    c.program.insert(0, width - newNominalWidthX)
             newcs[name] = cs[name]
 
     newfont.charset = chrset
@@ -289,7 +309,6 @@ def merge(self, m, tables):
 
 @add_method(ttLib.getTableClass("cmap"))
 def merge(self, m, tables):
-
     # TODO Handle format=14.
     if not hasattr(m, "cmap"):
         computeMegaCmap(m, tables)

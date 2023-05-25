@@ -83,6 +83,7 @@ def calc_cubic_parameters(p0, p1, p2, p3):
 
 
 @cython.cfunc
+@cython.inline
 @cython.locals(
     p0=cython.complex, p1=cython.complex, p2=cython.complex, p3=cython.complex
 )
@@ -109,10 +110,16 @@ def split_cubic_into_n_iter(p0, p1, p2, p3, n):
         return iter(split_cubic_into_three(p0, p1, p2, p3))
     if n == 4:
         a, b = split_cubic_into_two(p0, p1, p2, p3)
-        return iter(split_cubic_into_two(*a) + split_cubic_into_two(*b))
+        return iter(
+            split_cubic_into_two(a[0], a[1], a[2], a[3])
+            + split_cubic_into_two(b[0], b[1], b[2], b[3])
+        )
     if n == 6:
         a, b = split_cubic_into_two(p0, p1, p2, p3)
-        return iter(split_cubic_into_three(*a) + split_cubic_into_three(*b))
+        return iter(
+            split_cubic_into_three(a[0], a[1], a[2], a[3])
+            + split_cubic_into_three(b[0], b[1], b[2], b[3])
+        )
 
     return _split_cubic_into_n_gen(p0, p1, p2, p3, n)
 
@@ -147,6 +154,8 @@ def _split_cubic_into_n_gen(p0, p1, p2, p3, n):
         yield calc_cubic_points(a1, b1, c1, d1)
 
 
+@cython.cfunc
+@cython.inline
 @cython.locals(
     p0=cython.complex, p1=cython.complex, p2=cython.complex, p3=cython.complex
 )
@@ -174,12 +183,13 @@ def split_cubic_into_two(p0, p1, p2, p3):
     )
 
 
+@cython.cfunc
+@cython.inline
 @cython.locals(
     p0=cython.complex,
     p1=cython.complex,
     p2=cython.complex,
     p3=cython.complex,
-    _27=cython.double,
 )
 @cython.locals(
     mid1=cython.complex,
@@ -187,7 +197,7 @@ def split_cubic_into_two(p0, p1, p2, p3):
     mid2=cython.complex,
     deriv2=cython.complex,
 )
-def split_cubic_into_three(p0, p1, p2, p3, _27=1 / 27):
+def split_cubic_into_three(p0, p1, p2, p3):
     """Split a cubic Bezier into three equal parts.
 
     Splits the curve into three equal parts at t = 1/3 and t = 2/3
@@ -202,12 +212,10 @@ def split_cubic_into_three(p0, p1, p2, p3, _27=1 / 27):
         tuple: Three cubic Beziers (each expressed as a tuple of four complex
         values).
     """
-    # we define 1/27 as a keyword argument so that it will be evaluated only
-    # once but still in the scope of this function
-    mid1 = (8 * p0 + 12 * p1 + 6 * p2 + p3) * _27
-    deriv1 = (p3 + 3 * p2 - 4 * p0) * _27
-    mid2 = (p0 + 6 * p1 + 12 * p2 + 8 * p3) * _27
-    deriv2 = (4 * p3 - 3 * p1 - p0) * _27
+    mid1 = (8 * p0 + 12 * p1 + 6 * p2 + p3) * (1 / 27)
+    deriv1 = (p3 + 3 * p2 - 4 * p0) * (1 / 27)
+    mid2 = (p0 + 6 * p1 + 12 * p2 + 8 * p3) * (1 / 27)
+    deriv2 = (4 * p3 - 3 * p1 - p0) * (1 / 27)
     return (
         (p0, (2 * p0 + p1) / 3.0, mid1 - deriv1, mid1),
         (mid1, mid1 + deriv1, mid2 - deriv2, mid2),
@@ -215,6 +223,8 @@ def split_cubic_into_three(p0, p1, p2, p3, _27=1 / 27):
     )
 
 
+@cython.cfunc
+@cython.inline
 @cython.returns(cython.complex)
 @cython.locals(
     t=cython.double,
@@ -242,6 +252,8 @@ def cubic_approx_control(t, p0, p1, p2, p3):
     return _p1 + (_p2 - _p1) * t
 
 
+@cython.cfunc
+@cython.inline
 @cython.returns(cython.complex)
 @cython.locals(a=cython.complex, b=cython.complex, c=cython.complex, d=cython.complex)
 @cython.locals(ab=cython.complex, cd=cython.complex, p=cython.complex, h=cython.double)
@@ -311,7 +323,8 @@ def cubic_farthest_fit_inside(p0, p1, p2, p3, tolerance):
 
 
 @cython.cfunc
-@cython.locals(tolerance=cython.double, _2_3=cython.double)
+@cython.inline
+@cython.locals(tolerance=cython.double)
 @cython.locals(
     q1=cython.complex,
     c0=cython.complex,
@@ -319,7 +332,7 @@ def cubic_farthest_fit_inside(p0, p1, p2, p3, tolerance):
     c2=cython.complex,
     c3=cython.complex,
 )
-def cubic_approx_quadratic(cubic, tolerance, _2_3=2 / 3):
+def cubic_approx_quadratic(cubic, tolerance):
     """Approximate a cubic Bezier with a single quadratic within a given tolerance.
 
     Args:
@@ -332,24 +345,23 @@ def cubic_approx_quadratic(cubic, tolerance, _2_3=2 / 3):
         curve if it fits within the given tolerance, or ``None`` if no suitable
         curve could be calculated.
     """
-    # we define 2/3 as a keyword argument so that it will be evaluated only
-    # once but still in the scope of this function
 
-    q1 = calc_intersect(*cubic)
+    q1 = calc_intersect(cubic[0], cubic[1], cubic[2], cubic[3])
     if math.isnan(q1.imag):
         return None
     c0 = cubic[0]
     c3 = cubic[3]
-    c1 = c0 + (q1 - c0) * _2_3
-    c2 = c3 + (q1 - c3) * _2_3
+    c1 = c0 + (q1 - c0) * (2 / 3)
+    c2 = c3 + (q1 - c3) * (2 / 3)
     if not cubic_farthest_fit_inside(0, c1 - cubic[1], c2 - cubic[2], 0, tolerance):
         return None
     return c0, q1, c3
 
 
 @cython.cfunc
-@cython.locals(n=cython.int, tolerance=cython.double, _2_3=cython.double)
+@cython.locals(n=cython.int, tolerance=cython.double)
 @cython.locals(i=cython.int)
+@cython.locals(all_quadratic=cython.int)
 @cython.locals(
     c0=cython.complex, c1=cython.complex, c2=cython.complex, c3=cython.complex
 )
@@ -360,7 +372,7 @@ def cubic_approx_quadratic(cubic, tolerance, _2_3=2 / 3):
     q2=cython.complex,
     d1=cython.complex,
 )
-def cubic_approx_spline(cubic, n, tolerance, all_quadratic, _2_3=2 / 3):
+def cubic_approx_spline(cubic, n, tolerance, all_quadratic):
     """Approximate a cubic Bezier curve with a spline of n quadratics.
 
     Args:
@@ -374,8 +386,6 @@ def cubic_approx_spline(cubic, n, tolerance, all_quadratic, _2_3=2 / 3):
         quadratic spline if it fits within the given tolerance, or ``None`` if
         no suitable spline could be calculated.
     """
-    # we define 2/3 as a keyword argument so that it will be evaluated only
-    # once but still in the scope of this function
 
     if n == 1:
         return cubic_approx_quadratic(cubic, tolerance)
@@ -386,12 +396,13 @@ def cubic_approx_spline(cubic, n, tolerance, all_quadratic, _2_3=2 / 3):
 
     # calculate the spline of quadratics and check errors at the same time.
     next_cubic = next(cubics)
-    next_q1 = cubic_approx_control(0, *next_cubic)
+    next_q1 = cubic_approx_control(
+        0, next_cubic[0], next_cubic[1], next_cubic[2], next_cubic[3]
+    )
     q2 = cubic[0]
     d1 = 0j
     spline = [cubic[0], next_q1]
     for i in range(1, n + 1):
-
         # Current cubic to convert
         c0, c1, c2, c3 = next_cubic
 
@@ -400,7 +411,9 @@ def cubic_approx_spline(cubic, n, tolerance, all_quadratic, _2_3=2 / 3):
         q1 = next_q1
         if i < n:
             next_cubic = next(cubics)
-            next_q1 = cubic_approx_control(i / (n - 1), *next_cubic)
+            next_q1 = cubic_approx_control(
+                i / (n - 1), next_cubic[0], next_cubic[1], next_cubic[2], next_cubic[3]
+            )
             spline.append(next_q1)
             q2 = (q1 + next_q1) * 0.5
         else:
@@ -411,7 +424,11 @@ def cubic_approx_spline(cubic, n, tolerance, all_quadratic, _2_3=2 / 3):
         d1 = q2 - c3
 
         if abs(d1) > tolerance or not cubic_farthest_fit_inside(
-            d0, q0 + (q1 - q0) * _2_3 - c1, q2 + (q1 - q2) * _2_3 - c2, d1, tolerance
+            d0,
+            q0 + (q1 - q0) * (2 / 3) - c1,
+            q2 + (q1 - q2) * (2 / 3) - c2,
+            d1,
+            tolerance,
         ):
             return None
     spline.append(cubic[3])
@@ -421,6 +438,7 @@ def cubic_approx_spline(cubic, n, tolerance, all_quadratic, _2_3=2 / 3):
 
 @cython.locals(max_err=cython.double)
 @cython.locals(n=cython.int)
+@cython.locals(all_quadratic=cython.int)
 def curve_to_quadratic(curve, max_err, all_quadratic=True):
     """Approximate a cubic Bezier curve with a spline of n quadratics.
 
@@ -454,6 +472,7 @@ def curve_to_quadratic(curve, max_err, all_quadratic=True):
 
 
 @cython.locals(l=cython.int, last_i=cython.int, i=cython.int)
+@cython.locals(all_quadratic=cython.int)
 def curves_to_quadratic(curves, max_errors, all_quadratic=True):
     """Return quadratic Bezier splines approximating the input cubic Beziers.
 

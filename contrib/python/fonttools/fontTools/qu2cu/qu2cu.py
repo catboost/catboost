@@ -82,26 +82,26 @@ def cubic_farthest_fit_inside(p0, p1, p2, p3, tolerance):
     ) and cubic_farthest_fit_inside(mid, mid + deriv3, (p2 + p3) * 0.5, p3, tolerance)
 
 
-@cython.locals(_1_3=cython.double, _2_3=cython.double)
 @cython.locals(
     p0=cython.complex,
     p1=cython.complex,
     p2=cython.complex,
     p1_2_3=cython.complex,
 )
-def elevate_quadratic(p0, p1, p2, _1_3=1 / 3, _2_3=2 / 3):
+def elevate_quadratic(p0, p1, p2):
     """Given a quadratic bezier curve, return its degree-elevated cubic."""
 
     # https://pomax.github.io/bezierinfo/#reordering
-    p1_2_3 = p1 * _2_3
+    p1_2_3 = p1 * (2 / 3)
     return (
         p0,
-        (p0 * _1_3 + p1_2_3),
-        (p2 * _1_3 + p1_2_3),
+        (p0 * (1 / 3) + p1_2_3),
+        (p2 * (1 / 3) + p1_2_3),
         p2,
     )
 
 
+@cython.cfunc
 @cython.locals(
     start=cython.int,
     n=cython.int,
@@ -299,7 +299,6 @@ def spline_to_curves(q, costs, tolerance=0.5, all_cubic=False):
     for i in range(1, len(elevated_quadratics) + 1):
         best_sol = impossible
         for j in range(start, i):
-
             j_sol_count, j_sol_error = sols[j].num_points, sols[j].error
 
             if not all_cubic:

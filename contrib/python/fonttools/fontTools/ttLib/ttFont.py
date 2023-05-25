@@ -323,12 +323,11 @@ class TTFont(object):
             writer.newline()
         else:
             path, ext = os.path.splitext(writer.filename)
-            fileNameTemplate = path + ".%s" + ext
 
         for i in range(numTables):
             tag = tables[i]
             if splitTables:
-                tablePath = fileNameTemplate % tagToIdentifier(tag)
+                tablePath = path + "." + tagToIdentifier(tag) + ext
                 tableWriter = xmlWriter.XMLWriter(
                     tablePath, newlinestr=writer.newlinestr
                 )
