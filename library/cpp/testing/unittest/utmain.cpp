@@ -543,7 +543,7 @@ private:
             .SetLatency(1);
 
         PushDownEnvVar(&options, Y_UNITTEST_OUTPUT_CMDLINE_OPTION);
-        PushDownEnvVar(&options, Y_UNITTEST_TEST_FILTER_OPTION);
+        PushDownEnvVar(&options, Y_UNITTEST_TEST_FILTER_FILE_OPTION);
         PushDownEnvVar(&options, "TMPDIR");
 
         TShellCommand cmd(AppName, args, options);
@@ -693,7 +693,7 @@ static int DoUsage(const char* progname) {
          << "  --fork-tests          run each test in a separate process\n"
          << "  --trace-path          path to the trace file to be generated\n"
          << "  --trace-path-append   path to the trace file to be appended\n"
-         << "  --test-filter         path to the test filters ([+|-]test) file (" << Y_UNITTEST_TEST_FILTER_OPTION << ")\n";
+         << "  --filter-file         path to the test filters ([+|-]test) file (" << Y_UNITTEST_TEST_FILTER_FILE_OPTION << ")\n";
     return 0;
 }
 
@@ -759,7 +759,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
 
 
         // load filters from environment variable
-        TString filterFn = GetEnv(Y_UNITTEST_TEST_FILTER_OPTION);
+        TString filterFn = GetEnv(Y_UNITTEST_TEST_FILTER_FILE_OPTION);
         if (!filterFn.empty()) {
             processor.FilterFromFile(filterFn);
         }
@@ -832,7 +832,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                         traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName), argv[0]));
                     }
                     hasJUnitProcessor = true;
-                } else if (strcmp(name, "--test-filter") == 0) {
+                } else if (strcmp(name, "--filter-file") == 0) {
                     ++i;
                     TString filename(argv[i]);
                     processor.FilterFromFile(filename);
