@@ -22,7 +22,7 @@ namespace NCB {
 
     void TCatboostModelToPythonConverter::WriteCTRStructs() {
         Out << NResource::Find("catboost_model_export_python_ctr_structs");
-    };
+    }
 
     static void WriteModelCTRs(IOutputStream& out, const TFullModel& model, TIndent& indent) {
         auto applyData = model.ModelTrees->GetApplyData();
