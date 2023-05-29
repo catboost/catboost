@@ -522,7 +522,7 @@ def wrap_in_sync(
             return
         task = asyncio.ensure_future(coro, loop=_loop)
         try:
-            _loop.run_until_complete(task)
+            return _loop.run_until_complete(task)
         except BaseException:
             # run_until_complete doesn't get the result from exceptions
             # that are not subclasses of `Exception`. Consume all
