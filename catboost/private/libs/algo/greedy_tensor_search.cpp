@@ -273,6 +273,10 @@ static void CompressCandidates(
 
 
     for (auto packIdx : xrange(SafeIntegerCast<ui32>(perBinaryPackMasks.size()))) {
+        if (!perBinaryPackMasks[packIdx]) {
+            continue;
+        }
+
         TCandidateInfo candidate;
         candidate.SplitEnsemble = TSplitEnsemble(
             TBinarySplitsPackRef{packIdx},
