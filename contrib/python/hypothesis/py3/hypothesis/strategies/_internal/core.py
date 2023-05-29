@@ -64,6 +64,7 @@ from hypothesis.internal.conjecture.utils import (
     integer_range,
 )
 from hypothesis.internal.entropy import get_seeder_and_restorer
+from hypothesis.internal.floats import float_of
 from hypothesis.internal.reflection import (
     define_function_signature,
     get_pretty_function_description,
@@ -1715,19 +1716,32 @@ def complex_numbers(
 
     @composite
     def constrained_complex(draw):
+        # We downcast drawn floats to the desired (component) width so we
+        # guarantee the resulting complex values are representable. Note
+        # truncating the mantissa bits with float_of() cannot increase the
+        # magnitude of a float, so we are guaranteed to stay within the allowed
+        # range. See https://github.com/HypothesisWorks/hypothesis/issues/3573
+
         # Draw the imaginary part, and determine the maximum real part given
         # this and the max_magnitude
         if max_magnitude is None:
             zi = draw(floats(**allow_kw))
             rmax = None
         else:
-            zi = draw(floats(-max_magnitude, max_magnitude, **allow_kw))
-            rmax = cathetus(max_magnitude, zi)
+            zi = draw(
+                floats(
+                    -float_of(max_magnitude, component_width),
+                    float_of(max_magnitude, component_width),
+                    **allow_kw,
+                )
+            )
+            rmax = float_of(cathetus(max_magnitude, zi), component_width)
         # Draw the real part from the allowed range given the imaginary part
         if min_magnitude == 0 or math.fabs(zi) >= min_magnitude:
             zr = draw(floats(None if rmax is None else -rmax, rmax, **allow_kw))
         else:
-            zr = draw(floats(cathetus(min_magnitude, zi), rmax, **allow_kw))
+            rmin = float_of(cathetus(min_magnitude, zi), component_width)
+            zr = draw(floats(rmin, rmax, **allow_kw))
         # Order of conditions carefully tuned so that for a given pair of
         # magnitude arguments, we always either draw or do not draw the bool
         # (crucial for good shrinking behaviour) but only invert when needed.
