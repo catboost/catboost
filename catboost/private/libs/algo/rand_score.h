@@ -5,8 +5,9 @@
 #include <util/random/fast.h>
 #include <util/random/normal.h>
 
+#include <limits>
 
-constexpr double MINIMAL_SCORE = -1e38;
+constexpr double MINIMAL_SCORE = std::numeric_limits<double>::lowest();
 
 struct TRandomScore {
     double Val;
