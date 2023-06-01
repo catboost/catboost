@@ -214,7 +214,10 @@ TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction, const TLoss
         : TAdditiveSingleTargetMetric(lossFunction, params)
         , LossFunction(lossFunction)
 {
-    Y_ASSERT(lossFunction == ELossFunction::Logloss || lossFunction == ELossFunction::CrossEntropy);
+    CB_ENSURE_INTERNAL(
+        lossFunction == ELossFunction::Logloss || lossFunction == ELossFunction::CrossEntropy,
+        "lossFunction " << lossFunction
+    );
     if (lossFunction == ELossFunction::CrossEntropy) {
         CB_ENSURE(TargetBorder == GetDefaultTargetBorder(), "TargetBorder is meaningless for crossEntropy metric");
     }
@@ -1048,8 +1051,14 @@ TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, const TLossParams& 
         , Alpha(alpha)
         , Delta(delta)
 {
-    Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
-    Y_ASSERT(lossFunction == ELossFunction::Quantile || lossFunction == ELossFunction::MAE);
+    CB_ENSURE(
+            Delta >= 0 && Delta <= 1e-2,
+            "Parameter delta for quantile metric should be in interval [0, 0.01]"
+    );
+    CB_ENSURE_INTERNAL(
+        lossFunction == ELossFunction::Quantile || lossFunction == ELossFunction::MAE,
+        "lossFunction " << lossFunction
+    );
     CB_ENSURE(lossFunction == ELossFunction::Quantile || alpha == 0.5, "Alpha parameter should not be used for MAE loss");
     CB_ENSURE(Alpha > -1e-6 && Alpha < 1.0 + 1e-6, "Alpha parameter for quantile metric should be in interval [0, 1]");
 }
@@ -1498,7 +1507,7 @@ TMetricHolder TPoissonMetric::EvalSingleThread(
     // Sum_d[approx(d) - target(d) * log(approx(d))]
     // approx(d) == exp(Sum(tree_value))
 
-    Y_ASSERT(approxRef.size() == 1);
+    CB_ENSURE(approxRef.size() == 1, "Metric Poisson supports only single-dimensional data");
     const auto impl = [=] (auto isExpApprox, auto hasDelta, auto hasWeight) {
         TConstArrayRef<double> approx = approxRef[0];
         TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
@@ -2032,7 +2041,10 @@ TVector<THolder<IMetric>> TMultiClassMetric::Create(const TMetricConfig& config)
 
 static void GetMultiDimensionalApprox(int idx, TConstArrayRef<TConstArrayRef<double>> approx, TConstArrayRef<TConstArrayRef<double>> approxDelta, TArrayRef<double> evaluatedApprox) {
     const auto approxDimension = approx.size();
-    Y_ASSERT(approxDimension == evaluatedApprox.size());
+    CB_ENSURE(
+        approxDimension == evaluatedApprox.size(),
+        "evaluatedApprox size " << evaluatedApprox.size() << " != " << approxDimension
+    );
     if (!approxDelta.empty()) {
         for (auto dimensionIdx : xrange(approxDimension)) {
             evaluatedApprox[dimensionIdx] = approx[dimensionIdx][idx] + approxDelta[dimensionIdx][idx];
@@ -2054,7 +2066,6 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    // Y_ASSERT(target.size() == approx[0].size());
     const int approxDimension = approx.ysize();
     Y_ASSERT(!isExpApprox);
 
@@ -2073,7 +2084,10 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
             }
 
             const int targetClass = static_cast<int>(target[idx + unrollIdx]);
-            Y_ASSERT(targetClass >= 0 && targetClass < approxDimension);
+            CB_ENSURE_INTERNAL(
+                targetClass >= 0 && targetClass < approxDimension,
+                "Inappropriate targetClass " << targetClass
+            );
             const double targetClassApprox = approxRef[targetClass];
 
             FastExpInplace(approxRef.data(), approxRef.size());
@@ -2151,7 +2165,10 @@ TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
         }
 
         const int targetClass = static_cast<int>(target[k]);
-        Y_ASSERT(targetClass >= 0 && targetClass < approxDimension);
+        CB_ENSURE_INTERNAL(
+            targetClass >= 0 && targetClass < approxDimension,
+            "Inappropriate targetClass " << targetClass
+        );
         sumDimErrors += evaluatedApprox[targetClass];
 
         const float w = weight.empty() ? 1 : weight[k];
@@ -2215,7 +2232,10 @@ TMultiQuantileMetric::TMultiQuantileMetric(const TLossParams& params, const TVec
         , Alpha(alpha)
         , Delta(delta)
 {
-    Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
+    CB_ENSURE(
+        Delta >= 0 && Delta <= 1e-2,
+        "Parameter delta for quantile metric should be in interval [0, 0.01]"
+    );
     CB_ENSURE(AllOf(Alpha, [] (double a) { return a > -1e-6 && a < 1.0 + 1e-6; }), "Parameter alpha for quantile metric should be in interval [0, 1]");
 }
 
@@ -3257,8 +3277,14 @@ TMetricHolder TAUCMetric::Eval(
     NPar::ILocalExecutor& executor
 ) const {
     Y_ASSERT(!isExpApprox);
-    Y_ASSERT((approx.size() > 1) == (Type == EAucType::Mu || Type == EAucType::OneVsAll));
-    Y_ASSERT(approx.front().size() == target.size());
+    CB_ENSURE(
+        (approx.size() > 1) == (Type == EAucType::Mu || Type == EAucType::OneVsAll),
+        "Not single dimension approxes are supported only for AUC::Mu and AUC::OneVsAll"
+    );
+    CB_ENSURE_INTERNAL(
+        approx.front().size() == target.size(),
+        "Inconsistent approx and target dimension"
+    );
     if (Type == EAucType::Mu && MisclassCostMatrix) {
         CB_ENSURE(MisclassCostMatrix->size() == approx.size(), "Number of classes should be equal to the size of the misclass cost matrix.");
     }
@@ -3426,8 +3452,14 @@ TMetricHolder TNormalizedGini::Eval(
     NPar::ILocalExecutor& executor
 ) const {
     Y_ASSERT(!isExpApprox);
-    Y_ASSERT((approx.size() > 1) == IsMultiClass);
-    Y_ASSERT(approx.front().size() == target.size());
+    CB_ENSURE(
+            (approx.size() > 1) == IsMultiClass,
+            "Not single dimension approxes are supported only for Multiclass"
+    );
+    CB_ENSURE_INTERNAL(
+        approx.front().size() == target.size(),
+        "Inconsistent approx and target dimension"
+    );
 
     const auto realApprox = [&](int idx) {
         return approx[IsMultiClass ? PositiveClass : 0][idx]
@@ -3492,7 +3524,7 @@ namespace {
         explicit TFairLossMetric(const TLossParams& params, double smoothness)
             : TAdditiveSingleTargetMetric(ELossFunction::FairLoss, params)
             , Smoothness(smoothness) {
-            Y_ASSERT(smoothness > 0.0 && "Fair loss is not defined for negative smoothness");
+            CB_ENSURE(smoothness > 0.0, "Fair loss is not defined for negative smoothness");
         }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
@@ -3531,7 +3563,7 @@ TMetricHolder TFairLossMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    Y_ASSERT(approx.size() == 1 && "Fair Loss metric supports only single-dimentional data");
+    CB_ENSURE(approx.size() == 1, "Fair Loss metric supports only single-dimentional data");
     Y_ASSERT(approx.front().size() == target.size());
     Y_ASSERT(!isExpApprox);
     const auto realApprox = [&](int idx) { return approx[0][idx] + (approxDelta.empty() ? 0.0 : approxDelta[0][idx]);  };
@@ -4296,8 +4328,11 @@ TMetricHolder TPRAUCMetric::Eval(
     NPar::ILocalExecutor& /*executor*/
 ) const {
     Y_ASSERT(!isExpApprox);
-    Y_ASSERT((approx.size() > 1) == IsMultiClass);
-    Y_ASSERT(approx[0].size() == target.size());
+    CB_ENSURE(
+        (approx.size() > 1) == IsMultiClass,
+        "Not single dimension approxes are supported only for Multiclass"
+    );
+    CB_ENSURE_INTERNAL(approx[0].size() == target.size(), "Inconsistent approx and target size");
 
     TMetricHolder error(2);
     error.Stats[1] = 1;
@@ -4865,7 +4900,7 @@ TMetricHolder TFilteredDcgMetric::EvalSingleThread(
         int queryEnd
 ) const {
     Y_ASSERT(!isExpApprox);
-    Y_ASSERT(weight.empty());
+    CB_ENSURE(weight.empty(), "Weights are not supported for DCG metric");
 
     TMetricHolder metric(2);
     TVector<double> filteredApprox;
@@ -5767,7 +5802,10 @@ namespace {
 TMultiCrossEntropyMetric::TMultiCrossEntropyMetric(ELossFunction lossFunction, const TLossParams& params)
     : TAdditiveMultiTargetMetric(lossFunction, params)
 {
-    Y_ASSERT(lossFunction == ELossFunction::MultiLogloss || lossFunction == ELossFunction::MultiCrossEntropy);
+    CB_ENSURE_INTERNAL(
+        lossFunction == ELossFunction::MultiLogloss || lossFunction == ELossFunction::MultiCrossEntropy,
+        "lossFunction " << lossFunction
+    );
 }
 
 TVector<THolder<IMetric>> TMultiCrossEntropyMetric::Create(const TMetricConfig& config) {
