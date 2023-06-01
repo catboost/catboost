@@ -103,9 +103,14 @@ bool THttpClientRequestExtension::ProcessHeaders(TBaseServerRequestData& rd, TBl
             break;
 
         case Options:
-            Output() << "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
-            return false;
-            
+            if (!OptionsAllowed()) {
+                Output() << "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+                return false;
+            } else if (!Parse(urlStart, rd)) {
+                return false;
+            }
+            break;
+
         case NotImplemented:
             Output() << "HTTP/1.1 501 Not Implemented\r\n\r\n";
             return false;
