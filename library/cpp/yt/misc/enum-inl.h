@@ -60,6 +60,23 @@ constexpr bool CheckValuesUnique(const TValues& values)
     return true;
 }
 
+template <typename TNames>
+constexpr bool CheckDomainNames(const TNames& names)
+{
+    for (size_t i = 0; i < std::size(names); ++i) {
+        if (std::size(names[i]) == 0) {
+            return false;
+        }
+        for (size_t j = 1; j < std::size(names[i]); ++j) {
+            // If name does not start with a capital letter, all the others must be in lowercase.
+            if (('A' <= names[i][j] && names[i][j] <= 'Z') && ('A' > names[i][0] || names[i][0] > 'Z')) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 } // namespace NDetail
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +98,8 @@ constexpr bool CheckValuesUnique(const TValues& values)
         static constexpr std::array<TStringBuf, DomainSize> Names{{ \
             PP_FOR_EACH(ENUM__GET_DOMAIN_NAMES_ITEM, seq) \
         }}; \
+        static_assert(::NYT::NDetail::CheckDomainNames(Names), \
+            "Enumeration " #enumType " contains names in wrong format"); \
         static constexpr std::array<T, DomainSize> Values{{ \
             PP_FOR_EACH(ENUM__GET_DOMAIN_VALUES_ITEM, seq) \
         }}; \
