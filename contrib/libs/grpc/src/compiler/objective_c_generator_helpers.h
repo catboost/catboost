@@ -29,6 +29,7 @@
 namespace grpc_objective_c_generator {
 
 using ::grpc::protobuf::FileDescriptor;
+using ::grpc::protobuf::MethodDescriptor;
 using ::grpc::protobuf::ServiceDescriptor;
 using ::TString;
 
@@ -109,6 +110,16 @@ inline ::TString PreprocIfNotElse(const ::TString& symbol,
                                       const ::TString& if_false) {
   return ::TString("#if " + PreprocConditional(symbol, true) + "\n" +
                        if_true + "#else\n" + if_false + "#endif\n");
+}
+
+inline bool ShouldIncludeMethod(const MethodDescriptor* method) {
+#ifdef OBJC_SKIP_METHODS_WITHOUT_MESSAGE_PREFIX
+  return (method->input_type()->file()->options().has_objc_class_prefix() &&
+          method->output_type()->file()->options().has_objc_class_prefix());
+#else
+  (void)method;  // to silence the unused warning for method.
+  return true;
+#endif
 }
 
 }  // namespace grpc_objective_c_generator
