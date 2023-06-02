@@ -30,7 +30,7 @@
 #	include <CommonCrypto/CommonDigest.h>
 #elif defined(HAVE_SHA256_H)
 #	include <sys/types.h>
-#	include <sha256.h>
+#	error #include <sha256.h>
 #elif defined(HAVE_SHA2_H)
 #	include <sys/types.h>
 #	error #include <sha2.h>
