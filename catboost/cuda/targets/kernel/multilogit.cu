@@ -238,7 +238,7 @@ namespace NKernel {
             const float approx0 = __ldg(predictions + loadApproxIndex);
             const float approx1 = __ldg(predictions + loadApproxIndex + predictionsAlignSize);
             const float direction = __ldg(target + idx) - approx0;
-            const float expApprox1 = __expf(-2 * approx1);
+            const float expApprox1 = __expf(min(-2 * approx1, 70.0f));
 
             if (der) { // -gradient
                 der[idx] = weight * direction;
@@ -293,7 +293,7 @@ namespace NKernel {
                     const float approx1 = __ldg(predictions + idx + predictionsAlignSize);
                     const float weight = weights ? __ldg(weights + idx) : 1.0f;
                     const float miss = __ldg(target + idx) - approx0;
-                    const float expApprox1 = __expf(-2 * approx1);
+                    const float expApprox1 = __expf(min(-2 * approx1, 70.0f));
                     der2[idx] = 0.0f;
                     der2[idx + der2AlignSize] = 2 * weight * miss * miss * expApprox1;
                 }

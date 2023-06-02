@@ -532,7 +532,11 @@ namespace NCatboostCuda {
         }
 
         if (IsObliviousSplit()) {
-            CB_ENSURE(bestSplits.size() == 1);
+            CB_ENSURE(
+                bestSplits.size() == 1 && bestSplits[0].FeatureId != static_cast<ui32>(-1),
+                "All splits have infinite score. "
+                "Probably, numerical overflow occurs in loss function and/or split score calculation. "
+                "Try increasing l2_leaf_reg, and/or decreasing learning_rate, etc.");
             for (const auto& leafId : leavesToVisit) {
                 subsets->Leaves[leafId].UpdateBestSplit(bestSplits[0]);
             }

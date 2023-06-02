@@ -72,7 +72,7 @@ namespace NCatboostCuda {
         bool UseForTreeCtr(const TFeatureTensor& tensor) const;
 
         bool IsCtr(ui32 featureId) const {
-            CB_ENSURE(featureId < Cursor);
+            CB_ENSURE(featureId < Cursor, "featureId " << featureId << ", Cursor " << Cursor);
             return InverseCtrs.contains(featureId);
         }
 
