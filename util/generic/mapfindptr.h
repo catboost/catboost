@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 /** MapFindPtr usage:
 
@@ -38,11 +39,9 @@ struct TMapOps {
     }
 
     template <class K, class DefaultValue>
-    inline auto Value(const K& key, const DefaultValue& defaultValue) const -> std::remove_reference_t<decltype(*this->FindPtr(key))> {
-        if (auto found = FindPtr(key)) {
-            return *found;
-        }
-        return defaultValue;
+    inline auto Value(const K& key, DefaultValue&& defaultValue) const {
+        auto found = FindPtr(key);
+        return found ? *found : std::forward<DefaultValue>(defaultValue);
     }
 
     template <class K, class V>

@@ -50,6 +50,7 @@ Y_UNIT_TEST_SUITE(TMapFindPtrTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(a.Value(1, "123"), "lol");
         UNIT_ASSERT_VALUES_EQUAL(a.Value(2, "123"), "123");
+        UNIT_ASSERT_VALUES_EQUAL(a.Value(2, "123"sv), "123"sv);
     }
 
     Y_UNIT_TEST(TestValueRef) {
