@@ -1,0 +1,16 @@
+#pragma once
+
+namespace NYT {
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class F,  class... Args>
+auto HandleEintr(F f, Args&&... args) -> decltype(f(args...));
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace NYT
+
+#define HANDLE_EINTR_INL_H_
+#include "handle_eintr-inl.h"
+#undef HANDLE_EINTR_INL_H_
