@@ -1,7 +1,7 @@
 #pragma once
 
 /*!
- * \file preprocesor.h
+ * \file preprocessor.h
  * \brief Preprocessor metaprogramming macros
  */
 

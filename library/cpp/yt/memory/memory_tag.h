@@ -23,7 +23,7 @@ void SetCurrentMemoryTag(TMemoryTag tag);
 TMemoryTag GetCurrentMemoryTag();
 
 // Returns the memory usage for a given tag.
-// The value is somewhat approxiate and racy.
+// The value is somewhat approximate and racy.
 size_t GetMemoryUsageForTag(TMemoryTag tag);
 
 // A batched version of GetMemoryUsageForTag.

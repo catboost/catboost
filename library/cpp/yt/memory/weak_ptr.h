@@ -268,7 +268,7 @@ int ResetAndGetResidualRefCount(TIntrusivePtr<T>& pointer)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO(sandello): Kill comparsions.
+// TODO(sandello): Kill comparisons.
 template <class T>
 bool operator<(const TWeakPtr<T>& lhs, const TWeakPtr<T>& rhs)
 {
