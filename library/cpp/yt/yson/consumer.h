@@ -83,7 +83,7 @@ struct IYsonConsumer
 
     //! Starts attributes.
     /*!
-     *  An arbitrary node may be preceeded by attributes.
+     *  An arbitrary node may be preceded by attributes.
      *
      *  The events describing attributes are raised as follows:
      *  - #OnBeginAttributes
