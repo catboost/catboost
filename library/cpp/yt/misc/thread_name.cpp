@@ -10,10 +10,18 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TString TThreadName::ToString() const
+TStringBuf TThreadName::ToStringBuf() const
 {
     // Buffer is zero terminated.
-    return Buffer.data();
+    return TStringBuf(Buffer.data(), Length);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+TThreadName::TThreadName(const TString& name)
+{
+    Length = std::min<int>(TThreadName::BufferCapacity - 1, name.length());
+    ::memcpy(Buffer.data(), name.data(), Length);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

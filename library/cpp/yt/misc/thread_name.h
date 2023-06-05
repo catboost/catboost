@@ -10,11 +10,14 @@ namespace NYT {
 
 struct TThreadName
 {
+    TThreadName() = default;
+    TThreadName(const TString& name);
+
+    TStringBuf ToStringBuf() const;
+
     static constexpr int BufferCapacity = 16; // including zero terminator
     std::array<char, BufferCapacity> Buffer{}; // zero-terminated
     int Length; // not including zero terminator
-
-    TString ToString() const;
 };
 
 TThreadName GetCurrentThreadName();
