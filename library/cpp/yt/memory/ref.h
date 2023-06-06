@@ -302,6 +302,10 @@ public:
     std::vector<TSharedRef> ToVector() const;
     TString ToString() const;
 
+    //! Creates a copy of a given TSharedRefArray.
+    //! The memory is marked with a given tag.
+    static TSharedRefArray MakeCopy(const TSharedRefArray& array, TRefCountedTypeCookie tagCookie);
+
 private:
     friend class TSharedRefArrayBuilder;
 
