@@ -465,6 +465,7 @@ def on_timeout_gen_coredump(exec_obj, _):
     """
     try:
         os.kill(exec_obj.process.pid, signal.SIGQUIT)
+        exec_obj.process.wait()
     except OSError:
         # process might be already terminated
         pass
