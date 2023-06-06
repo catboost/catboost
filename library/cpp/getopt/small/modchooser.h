@@ -80,6 +80,11 @@ public:
     //! Set short command representation in Usage block
     void SetPrintShortCommandInUsage(bool printShortCommandInUsage);
 
+    //! Help can be printed either to stdout and stderr. If set to false, then "--help" will be printed to stdout
+    void SetHelpAlwaysToStdErr(bool helpAlwaysToStdErr) {
+        HelpAlwaysToStdErr = helpAlwaysToStdErr;
+    }
+
     void DisableSvnRevisionOption();
 
     void AddCompletions(TString progName, const TString& name = "completion", bool hidden = false, bool noCompletion = false);
@@ -100,7 +105,7 @@ public:
     //! Run appropriate mode. Same as Run(const int, const char**)
     int Run(const TVector<TString>& argv) const;
 
-    void PrintHelp(const TString& progName) const;
+    void PrintHelp(const TString& progName, bool toStdErr = false) const;
 
     struct TMode {
         TString Name;
@@ -169,6 +174,16 @@ private:
 
     //! Mode that generates completions
     THolder<TMainClass> CompletionsGenerator;
+
+    /*! Help message always output to StdErr
+     *
+     * If an error occurs, the help information will be printed to stderr regardless of the settings.
+     * Setting below for success cases (return code == 0) like "./bin --help".
+     * In this case by default help will be printed to stderr,
+     * but it can be overridden by setting "HelpAlwaysToStdErr" to false see SetHelpAlwaysToStdErr() above,
+     * then help message will be printed to stdout
+    */
+    bool HelpAlwaysToStdErr{true};
 };
 
 //! Mode class that allows introspecting its console arguments.

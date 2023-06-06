@@ -5,6 +5,7 @@
 
 #include <library/cpp/colorizer/colors.h>
 
+#include <util/folder/path.h>
 #include <util/stream/output.h>
 #include <util/generic/yexception.h>
 #include <util/generic/ptr.h>
@@ -167,7 +168,7 @@ int TModChooser::Run(const int argc, const char** argv) const {
     TString modeName;
     if (argc == 1) {
         if (DefaultMode.empty()) {
-            PrintHelp(argv[0]);
+            PrintHelp(argv[0], HelpAlwaysToStdErr);
             return 0;
         } else {
             modeName = DefaultMode;
@@ -178,7 +179,7 @@ int TModChooser::Run(const int argc, const char** argv) const {
     }
 
     if (modeName == "-h" || modeName == "--help" || modeName == "-?") {
-        PrintHelp(argv[0]);
+        PrintHelp(argv[0], HelpAlwaysToStdErr);
         return 0;
     }
     if (VersionHandler && (modeName == "-v" || modeName == "--version")) {
@@ -197,7 +198,7 @@ int TModChooser::Run(const int argc, const char** argv) const {
 
     if (modeIter == Modes.end()) {
         Cerr << "Unknown mode " << modeName.Quote() << "." << Endl;
-        PrintHelp(argv[0]);
+        PrintHelp(argv[0], true);
         return 1;
     }
 
@@ -274,11 +275,14 @@ TString TModChooser::TMode::FormatFullName(size_t pad) const {
     return name;
 }
 
-void TModChooser::PrintHelp(const TString& progName) const {
-    Cerr << Description << Endl << Endl;
-    Cerr << NColorizer::StdErr().BoldColor() << "Usage" << NColorizer::StdErr().OldColor() << ": " << progName << " MODE [MODE_OPTIONS]" << Endl;
-    Cerr << Endl;
-    Cerr << NColorizer::StdErr().BoldColor() << "Modes" << NColorizer::StdErr().OldColor() << ":" << Endl;
+void TModChooser::PrintHelp(const TString& progName, bool toStdErr) const {
+    auto baseName = TFsPath(progName).Basename();
+    auto& out = toStdErr ? Cerr : Cout;
+    const auto& colors = toStdErr ? NColorizer::StdErr() : NColorizer::StdOut();
+    out << Description << Endl << Endl;
+    out << colors.BoldColor() << "Usage" << colors.OldColor() << ": " << baseName << " MODE [MODE_OPTIONS]" << Endl;
+    out << Endl;
+    out << colors.BoldColor() << "Modes" << colors.OldColor() << ":" << Endl;
     size_t maxModeLen = 0;
     for (const auto& [name, mode] : Modes) {
         if (name != mode->Name)
@@ -290,10 +294,10 @@ void TModChooser::PrintHelp(const TString& progName) const {
         for (const auto& unsortedMode : UnsortedModes)
             if (!unsortedMode->Hidden) {
                 if (unsortedMode->Name.size()) {
-                    Cerr << "  " << unsortedMode->FormatFullName(maxModeLen + 4) << unsortedMode->Description << Endl;
+                    out << "  " << unsortedMode->FormatFullName(maxModeLen + 4) << unsortedMode->Description << Endl;
                 } else {
-                    Cerr << SeparationString << Endl;
-                    Cerr << unsortedMode->Description << Endl;
+                    out << SeparationString << Endl;
+                    out << unsortedMode->Description << Endl;
                 }
             }
     } else {
@@ -302,19 +306,18 @@ void TModChooser::PrintHelp(const TString& progName) const {
                 continue;  // this is an alias
 
             if (!mode.second->Hidden) {
-                Cerr << "  " << mode.second->FormatFullName(maxModeLen + 4) << mode.second->Description << Endl;
+                out << "  " << mode.second->FormatFullName(maxModeLen + 4) << mode.second->Description << Endl;
             }
         }
     }
 
-    Cerr << Endl;
-    Cerr << "To get help for specific mode type '" << progName << " MODE " << ModesHelpOption << "'" << Endl;
+    out << Endl;
+    out << "To get help for specific mode type '" << baseName << " MODE " << ModesHelpOption << "'" << Endl;
     if (VersionHandler)
-        Cerr << "To print program version type '" << progName << " --version'" << Endl;
+        out << "To print program version type '" << baseName << " --version'" << Endl;
     if (!SvnRevisionOptionDisabled) {
-        Cerr << "To print svn revision type --svnrevision" << Endl;
+        out << "To print svn revision type '" << baseName << " --svnrevision'" << Endl;
     }
-    return;
 }
 
 TVersionHandlerPtr TModChooser::GetVersionHandler() const {
