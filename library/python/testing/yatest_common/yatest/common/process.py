@@ -481,6 +481,7 @@ def execute(
     stdin=None,
     stdout=None,
     stderr=None,
+    text=None,
     creationflags=0,
     wait=True,
     process_progress_listener=None,
@@ -504,6 +505,8 @@ def execute(
     :param stdin: command stdin
     :param stdout: command stdout
     :param stderr: command stderr
+    :param text: 'subprocess.Popen'-specific argument, specifies the type of returned data https://docs.python.org/3/library/subprocess.html#subprocess.run
+    :type text: bool, optional (only for backward compatibility, do not use it!)
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
     :param process_progress_listener=object that is polled while execution is in progress
@@ -542,17 +545,21 @@ def execute(
         # Return str for python3 if it not setted
         popen_kwargs['text'] = True
 
+    if text and six.PY3:
+        popen_kwargs['text'] = True
+
     # if subprocess.PIPE in [stdout, stderr]:
     #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
 
     def get_out_stream(stream, default_name):
+        mode = 'wt+' if text else 'wb+'
         if stream is None:
             # No stream is supplied: open new temp file
-            return _get_command_output_file(command, default_name), False
+            return _get_command_output_file(command, default_name, mode), False
 
         if isinstance(stream, six.string_types):
             # User filename is supplied: open file for writing
-            return open(stream, 'wb+'), stream.startswith('/dev/')
+            return open(stream, mode), stream.startswith('/dev/')
 
         # Open file or PIPE sentinel is supplied
         is_pipe = stream == subprocess.PIPE
@@ -649,7 +656,7 @@ def execute(
     return res
 
 
-def _get_command_output_file(cmd, ext):
+def _get_command_output_file(cmd, ext, mode):
     parts = [get_command_name(cmd)]
     if 'YA_RETRY_INDEX' in os.environ:
         parts.append('retry{}'.format(os.environ.get('YA_RETRY_INDEX')))
@@ -666,9 +673,9 @@ def _get_command_output_file(cmd, ext):
             raise ImportError("not in test")
         filename = path.get_unique_file_path(yatest.common.output_path(), filename)
         yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(filename))
-        return open(filename, "wb+")
+        return open(filename, mode)
     except ImportError:
-        return tempfile.NamedTemporaryFile(delete=False, suffix=filename)
+        return tempfile.NamedTemporaryFile(mode=mode, delete=False, suffix=filename)
 
 
 def _get_proc_tree_info(pids):
