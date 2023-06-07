@@ -80,7 +80,7 @@ public:
     }
 
     SAVELOAD(CatFeatures, BinFeatures, OneHotFeatures);
-    Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures)
+    Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures);
 
     void Add(const TProjection& proj) {
         CatFeatures.insert(CatFeatures.end(), proj.CatFeatures.begin(), proj.CatFeatures.end());

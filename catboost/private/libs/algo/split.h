@@ -514,7 +514,7 @@ struct TSplitTree {
 
 public:
     SAVELOAD(Splits);
-    Y_SAVELOAD_DEFINE(Splits)
+    Y_SAVELOAD_DEFINE(Splits);
 
     void AddSplit(const TSplit& split) {
         Splits.push_back(split);

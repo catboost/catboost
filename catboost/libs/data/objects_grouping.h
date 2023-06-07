@@ -61,7 +61,7 @@ namespace NCB {
             return Groups == rhs.Groups;
         }
 
-        SAVELOAD(GroupCount, Groups)
+        SAVELOAD(GroupCount, Groups);
 
         ui32 GetObjectCount() const {
             return IsTrivial() ? GroupCount : Groups.back().End;

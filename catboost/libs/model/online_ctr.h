@@ -53,7 +53,7 @@ public:
         return MultiHash(FloatFeature, Split);
     }
 
-    Y_SAVELOAD_DEFINE(FloatFeature, Split)
+    Y_SAVELOAD_DEFINE(FloatFeature, Split);
 
     /* make sure floating-point values do not contain negative zeros -
      * flatbuffers serializer will deserialize them as positive zeros
@@ -131,7 +131,7 @@ public:
         OneHotFeatures.clear();
     }
 
-    Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures)
+    Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures);
 
     bool IsSingleCatFeature() const {
         return BinFeatures.empty() && OneHotFeatures.empty() && CatFeatures.ysize() == 1;

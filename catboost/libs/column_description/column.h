@@ -64,5 +64,5 @@ public:
     }
 
     Y_SAVELOAD_DEFINE(Type, Id);
-    SAVELOAD(Type, Id)
+    SAVELOAD(Type, Id);
 };

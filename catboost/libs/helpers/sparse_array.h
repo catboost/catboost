@@ -113,7 +113,7 @@ namespace NCB {
             , BlockLengths(TMaybeOwningConstArrayHolder<TSize>::CreateOwning(std::move(blockLengths)))
         {}
 
-        SAVELOAD(BlockStarts, BlockLengths)
+        SAVELOAD(BlockStarts, BlockLengths);
 
         bool operator==(const TSparseSubsetBlocks& rhs) const {
             return std::tie(BlockStarts, BlockLengths) == std::tie(rhs.BlockStarts, rhs.BlockLengths);
@@ -184,7 +184,7 @@ namespace NCB {
         TVector<ui64> BlockBitmaps;
 
     public:
-        SAVELOAD(BlockIndices, BlockBitmaps)
+        SAVELOAD(BlockIndices, BlockBitmaps);
 
         bool operator==(const TSparseSubsetHybridIndex& rhs) const {
             return std::tie(BlockIndices, BlockBitmaps) == std::tie(rhs.BlockIndices, rhs.BlockBitmaps);

@@ -67,7 +67,7 @@ public:
         return TargetClassifiers;
     }
 
-    Y_SAVELOAD_DEFINE(TargetClassifiers, SimpleCtrs, PerFeatureCtrs, TreeCtrs)
+    Y_SAVELOAD_DEFINE(TargetClassifiers, SimpleCtrs, PerFeatureCtrs, TreeCtrs);
 
 private:
     TVector<TTargetClassifier> TargetClassifiers;
