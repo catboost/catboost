@@ -9,7 +9,7 @@ depends on which build system you use, and is usually straightforward.
 ### Build with CMake
 
 GoogleTest comes with a CMake build script
-([CMakeLists.txt](https://github.com/google/googletest/blob/master/CMakeLists.txt))
+([CMakeLists.txt](https://github.com/google/googletest/blob/main/CMakeLists.txt))
 that can be used on a wide range of platforms ("C" stands for cross-platform.).
 If you don't have CMake installed already, you can download it for free from
 <http://www.cmake.org/>.
@@ -25,7 +25,7 @@ When building GoogleTest as a standalone project, the typical workflow starts
 with
 
 ```
-git clone https://github.com/google/googletest.git -b release-1.11.0
+git clone https://github.com/google/googletest.git -b release-1.12.1
 cd googletest        # Main directory of the cloned repository.
 mkdir build          # Create a directory to hold the build output.
 cd build
@@ -94,7 +94,7 @@ include(FetchContent)
 FetchContent_Declare(
   googletest
   # Specify the commit you depend on and update it regularly.
-  URL https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip
+  URL https://github.com/google/googletest/archive/5376968f6948923e2411081fd9372e71a59d8e77.zip
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -140,7 +140,7 @@ command line. Generally, these macros are named like `GTEST_XYZ` and you define
 them to either 1 or 0 to enable or disable a certain feature.
 
 We list the most frequently used macros below. For a complete list, see file
-[include/gtest/internal/gtest-port.h](https://github.com/google/googletest/blob/master/googletest/include/gtest/internal/gtest-port.h).
+[include/gtest/internal/gtest-port.h](https://github.com/google/googletest/blob/main/googletest/include/gtest/internal/gtest-port.h).
 
 ### Multi-threaded Tests
 
@@ -186,9 +186,9 @@ to the compiler flags.
 Note: while the above steps aren't technically necessary today when using some
 compilers (e.g. GCC), they may become necessary in the future, if we decide to
 improve the speed of loading the library (see
-<http://gcc.gnu.org/wiki/Visibility> for details). Therefore you are recommended
-to always add the above flags when using GoogleTest as a shared library.
-Otherwise a future release of GoogleTest may break your build script.
+<https://gcc.gnu.org/wiki/Visibility> for details). Therefore you are
+recommended to always add the above flags when using GoogleTest as a shared
+library. Otherwise a future release of GoogleTest may break your build script.
 
 ### Avoiding Macro Name Clashes
 

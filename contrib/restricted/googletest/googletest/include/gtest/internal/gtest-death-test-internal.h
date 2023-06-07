@@ -42,6 +42,7 @@
 #include <stdio.h>
 
 #include <memory>
+#include <string>
 
 #include "gtest/gtest-matchers.h"
 #include "gtest/internal/gtest-internal.h"
@@ -99,7 +100,7 @@ class GTEST_API_ DeathTest {
     DeathTest* const test_;
     ReturnSentinel(const ReturnSentinel&) = delete;
     ReturnSentinel& operator=(const ReturnSentinel&) = delete;
-  } GTEST_ATTRIBUTE_UNUSED_;
+  };
 
   // An enumeration of possible roles that may be taken when a death
   // test is encountered.  EXECUTE means that the death test logic should
