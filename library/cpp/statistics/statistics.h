@@ -302,7 +302,7 @@ namespace NStatistics {
             return *this;
         }
 
-        Y_SAVELOAD_DEFINE(Count_, M1_, M2_)
+        Y_SAVELOAD_DEFINE(Count_, M1_, M2_);
 
     private:
         TCounterType Count_;

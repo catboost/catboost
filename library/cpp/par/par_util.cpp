@@ -81,12 +81,12 @@ namespace NPar {
     };
 
     class TRemoteReduce: public IDistrCmd {
-        OBJECT_NOCOPY_METHODS(TRemoteReduce)
+        OBJECT_NOCOPY_METHODS(TRemoteReduce);
         TObj<IDistrCmd> FinalMap;
         ERROp Op;
         TVector<char> FinalMapSerialized;
 
-        SAVELOAD_OVERRIDE(IDistrCmd, FinalMap, Op, FinalMapSerialized)
+        SAVELOAD_OVERRIDE(IDistrCmd, FinalMap, Op, FinalMapSerialized);
     public:
         TRemoteReduce() {
         }
@@ -171,7 +171,7 @@ namespace NPar {
         int Start, Finish;
     };
     class TRemoteRangeExecutor: public IDistrCmd {
-        OBJECT_NOCOPY_METHODS(TRemoteRangeExecutor)
+        OBJECT_NOCOPY_METHODS(TRemoteRangeExecutor);
 
         class TSharedCmd: public TThrRefBase {
             ~TSharedCmd() override {

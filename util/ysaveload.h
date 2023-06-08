@@ -8,6 +8,7 @@
 #include <util/generic/algorithm.h>
 #include <util/stream/output.h>
 #include <util/stream/input.h>
+#include <util/system/compiler.h>
 
 #ifndef __NVCC__
     // cuda is compiled in C++14 mode at the time
@@ -710,7 +711,8 @@ static inline void LoadMany(S* s, Ts&... t) {
                                                \
     inline void Load(IInputStream* s) {        \
         ::LoadMany(s, __VA_ARGS__);            \
-    }
+    }                                          \
+    Y_SEMICOLON_GUARD
 
 #define Y_SAVELOAD_DEFINE_OVERRIDE(...)          \
     void Save(IOutputStream* s) const override { \
@@ -719,7 +721,8 @@ static inline void LoadMany(S* s, Ts&... t) {
                                                  \
     void Load(IInputStream* s) override {        \
         ::LoadMany(s, __VA_ARGS__);              \
-    }
+    }                                            \
+    Y_SEMICOLON_GUARD
 
 template <class T>
 struct TNonVirtualSaver {

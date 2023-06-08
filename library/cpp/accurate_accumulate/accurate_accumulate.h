@@ -83,7 +83,7 @@ public:
         return *this = TValueType(*this) / TValueType(x);
     }
 
-    Y_SAVELOAD_DEFINE(Sum_, Compensation_)
+    Y_SAVELOAD_DEFINE(Sum_, Compensation_);
 
 private:
     TValueType Sum_;

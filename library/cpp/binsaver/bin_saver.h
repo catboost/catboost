@@ -14,6 +14,7 @@
 #include <util/generic/ylimits.h>
 #include <util/memory/blob.h>
 #include <util/digest/murmur.h>
+#include <util/system/compiler.h>
 
 #include <array>
 #include <bitset>
@@ -623,24 +624,24 @@ struct TRegisterSaveLoadType {
     int operator&(IBinSaver& f) { \
         f.AddMulti(__VA_ARGS__);  \
         return 0;                 \
-    }
+    } Y_SEMICOLON_GUARD
 
 #define SAVELOAD_OVERRIDE_WITHOUT_BASE(...) \
     int operator&(IBinSaver& f) override {  \
         f.AddMulti(__VA_ARGS__);            \
         return 0;                           \
-    }
+    } Y_SEMICOLON_GUARD
 
 #define SAVELOAD_OVERRIDE(base, ...)       \
     int operator&(IBinSaver& f) override { \
         base::operator&(f);                \
         f.AddMulti(__VA_ARGS__);           \
         return 0;                          \
-    }
+    } Y_SEMICOLON_GUARD
 
 #define SAVELOAD_BASE(...)        \
     int operator&(IBinSaver& f) { \
         TBase::operator&(f);      \
         f.AddMulti(__VA_ARGS__);  \
         return 0;                 \
-    }
+    } Y_SEMICOLON_GUARD

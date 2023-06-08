@@ -57,7 +57,7 @@ class TSaveLoadTest: public TTestBase {
         TString Str;
         ui32 Int;
 
-        Y_SAVELOAD_DEFINE(Str, Int)
+        Y_SAVELOAD_DEFINE(Str, Int);
     };
 
 private:

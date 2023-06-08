@@ -24,7 +24,7 @@ namespace NPar {
         TArray2D<TVector<float>> DelayMatrixData;
         TVector<TNetworkAddress> BaseSearcherAddrs;
 
-        SAVELOAD(DelayMatrixData, BaseSearcherAddrs)
+        SAVELOAD(DelayMatrixData, BaseSearcherAddrs);
     };
 
     struct THostInitData {
@@ -32,7 +32,7 @@ namespace NPar {
         TNetworkAddress MasterAddress;
         TVector<TNetworkAddress> BaseSearcherAddrs;
 
-        SAVELOAD(CompId, MasterAddress, BaseSearcherAddrs)
+        SAVELOAD(CompId, MasterAddress, BaseSearcherAddrs);
 
         THostInitData()
             : CompId(-1)
@@ -59,7 +59,7 @@ namespace NPar {
     struct TAllPingResults {
         TVector<TPingResult> PingResults;
 
-        SAVELOAD(PingResults)
+        SAVELOAD(PingResults);
     };
 
     class TMetaRequester: public IRemoteQueryResponseNotify {

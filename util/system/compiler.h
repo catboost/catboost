@@ -613,6 +613,10 @@ _YandexAbort();
     #define Y_REINITIALIZES_OBJECT
 #endif
 
+// Use at the end of macros declaration. It allows macros usage only with semicolon at the end.
+// It prevents from warnings for extra semicolons when building with flag `-Wextra-semi`.
+#define Y_SEMICOLON_GUARD static_assert(true, "")
+
 #ifdef __cplusplus
 
 void UseCharPointerImpl(volatile const char*);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>
 #include <util/system/tls.h>
@@ -209,7 +210,9 @@ protected:                                                        \
         this->ObjData += nHoldObjs;                               \
     }                                                             \
                                                                   \
-private:
+private:                                                          \
+    Y_SEMICOLON_GUARD
+
 #define OBJECT_NOCOPY_METHODS(classname) OBJECT_METHODS(classname)
 #define BASIC_REGISTER_CLASS(classname)                                              \
     Y_PRAGMA_DIAGNOSTIC_PUSH                                                         \

@@ -6,7 +6,7 @@ namespace NNetliba_v12 {
     struct TCollectiveInit {
         int Size, Rank;
 
-        SAVELOAD(Size, Rank)
+        SAVELOAD(Size, Rank);
     };
 
     struct TCollectiveLinkSet {
@@ -17,7 +17,7 @@ namespace NNetliba_v12 {
         TVector<TVector<int>> HostGroup; // HostGroup[0] - switchId, HostGroup[1] - hostId within the switch
         TVector<TLinkInfo> Links;
 
-        SAVELOAD(Hosts, HostGroup, Links)
+        SAVELOAD(Hosts, HostGroup, Links);
     };
 
     struct IAllDataSync: public TThrRefBase {

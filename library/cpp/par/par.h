@@ -65,7 +65,7 @@ namespace NPar {
         TVector<int> ParamsPtr;
         TVector<TJobParams> ExecList;
 
-        SAVELOAD(Cmds, ParamsData, ParamsPtr, ExecList)
+        SAVELOAD(Cmds, ParamsData, ParamsPtr, ExecList);
 
     private:
         void AddJob(int hostId, int paramId, int reduceId);
