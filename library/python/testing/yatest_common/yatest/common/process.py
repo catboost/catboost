@@ -481,7 +481,7 @@ def execute(
     stdin=None,
     stdout=None,
     stderr=None,
-    text=None,
+    text=False,
     creationflags=0,
     wait=True,
     process_progress_listener=None,
@@ -506,7 +506,7 @@ def execute(
     :param stdout: command stdout
     :param stderr: command stderr
     :param text: 'subprocess.Popen'-specific argument, specifies the type of returned data https://docs.python.org/3/library/subprocess.html#subprocess.run
-    :type text: bool, optional (only for backward compatibility, do not use it!)
+    :type text: bool
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
     :param process_progress_listener=object that is polled while execution is in progress
@@ -540,13 +540,6 @@ def execute(
         raise ValueError("Incompatible arguments 'timeout' and wait=False")
     if popen_kwargs is None:
         popen_kwargs = {}
-
-    if 'text' not in popen_kwargs and six.PY3:
-        # Return str for python3 if it not setted
-        popen_kwargs['text'] = True
-
-    if text and six.PY3:
-        popen_kwargs['text'] = True
 
     # if subprocess.PIPE in [stdout, stderr]:
     #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
@@ -613,7 +606,7 @@ def execute(
     process = subprocess.Popen(
         command,
         shell=shell,
-        universal_newlines=True,
+        universal_newlines=text,
         stdout=out_file,
         stderr=err_file,
         stdin=in_file,
