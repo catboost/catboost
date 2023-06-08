@@ -14,16 +14,16 @@ struct TFsPath::TSplit: public TAtomicRefCount<TSplit>, public TPathSplit {
         : TPathSplit(path)
     {
     }
-    inline TSplit(const TSplit& that, const TString& path, const TString& other) {
-        for (const auto& part : that) {
-            emplace_back(path.begin() + (part.data() - other.begin()), part.size());
+    inline TSplit(const TString& path, const TSimpleIntrusivePtr<TSplit>& thatSplit, const TString::char_type* thatPathData) {
+        for (const auto& thatPart : *thatSplit) {
+            emplace_back(path.data() + (thatPart.data() - thatPathData), thatPart.size());
         }
 
-        if (!that.Drive.empty()) {
-            Drive = TStringBuf(path.begin() + (that.Drive.data() - other.begin()), that.Drive.size());
+        if (!thatSplit->Drive.empty()) {
+            Drive = TStringBuf(path.data() + (thatSplit->Drive.data() - thatPathData), thatSplit->Drive.size());
         }
 
-        IsAbsolute = that.IsAbsolute;
+        IsAbsolute = thatSplit->IsAbsolute;
     }
 };
 
@@ -198,14 +198,6 @@ TFsPath::TSplit& TFsPath::GetSplit() const {
     return *Split_;
 }
 
-void TFsPath::CopySplitFrom(const TFsPath& that) const {
-    if (that.Split_) {
-        Split_ = new TSplit(*that.Split_, Path_, that.Path_);
-    } else {
-        Split_ = that.Split_;
-    }
-}
-
 static Y_FORCE_INLINE void VerifyPath(const TStringBuf path) {
     Y_VERIFY(!path.Contains('\0'), "wrong format of TFsPath: %s", EscapeC(path).c_str());
 }
@@ -230,15 +222,41 @@ TFsPath::TFsPath(const char* path)
 {
 }
 
-TFsPath::TFsPath(const TFsPath& that)
-    : Path_(that.Path_)
-{
-    CopySplitFrom(that);
+TFsPath::TFsPath(const TFsPath& that) {
+    *this = that;
+}
+
+TFsPath::TFsPath(TFsPath&& that) {
+    *this = std::move(that);
 }
 
 TFsPath& TFsPath::operator=(const TFsPath& that) {
     Path_ = that.Path_;
-    CopySplitFrom(that);
+    if (that.Split_) {
+        Split_ = new TSplit(Path_, that.Split_, that.Path_.begin());
+    } else {
+        Split_ = nullptr;
+    }
+    return *this;
+}
+
+TFsPath& TFsPath::operator=(TFsPath&& that) {
+#ifdef TSTRING_IS_STD_STRING
+    const auto thatPathData = that.Path_.data();
+    Path_ = std::move(that.Path_);
+    if (that.Split_) {
+        if (Path_.data() == thatPathData) { // Path_ moved,  can move Split_
+            Split_ = std::move(that.Split_);
+        } else { // Path_ copied, rebuild Split_ using that.Split_
+            Split_ = new TSplit(Path_, that.Split_, that.Path_.data());
+        }
+    } else {
+        Split_ = nullptr;
+    }
+#else
+    Path_ = std::move(that.Path_);
+    Split_ = std::move(that.Split_);
+#endif
     return *this;
 }
 

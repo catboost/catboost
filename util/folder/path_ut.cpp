@@ -830,4 +830,80 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
         path1 = path2;
         UNIT_ASSERT_VALUES_EQUAL(path1.PathSplit().at(1), "file_in_folder_2");
     }
+
+    static constexpr TStringBuf a("a");
+    static constexpr TStringBuf b("b");
+    static constexpr TStringBuf c("c");
+    static constexpr size_t n = 64;
+    static const TString an(n, 'a');
+    static const TString bn(n, 'b');
+    static const TString cn(n, 'c');
+
+    Y_UNIT_TEST(TestCopySplitSSOSupport) {
+        TFsPath path1 = TFsPath(a) / TFsPath(b);
+        const auto& split1 = path1.PathSplit();
+        UNIT_ASSERT_VALUES_EQUAL(split1.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(split1.at(0), a);
+        UNIT_ASSERT_VALUES_EQUAL(split1.at(1), b);
+        TFsPath path2(static_cast<const TFsPath&>(path1)); // copy constructor
+        const auto& split2 = path2.PathSplit();
+        path1 = TFsPath(c); // invalidate previous Path_ in path1
+        const auto& newsplit1 = path1.PathSplit();
+        UNIT_ASSERT_VALUES_EQUAL(newsplit1.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(newsplit1.at(0), c);
+        UNIT_ASSERT_VALUES_EQUAL(split2.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(split2.at(0), a);
+        UNIT_ASSERT_VALUES_EQUAL(split2.at(1), b);
+    }
+
+    Y_UNIT_TEST(TestMoveSplitSSOSupport) {
+        TFsPath path1 = TFsPath(a) / TFsPath(b);
+        const auto& split1 = path1.PathSplit();
+        UNIT_ASSERT_VALUES_EQUAL(split1.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(split1.at(0), a);
+        UNIT_ASSERT_VALUES_EQUAL(split1.at(1), b);
+        TFsPath path2(std::move(path1)); // move constructor
+        const auto& split2 = path2.PathSplit();
+        path1 = TFsPath(c); // invalidate previous Path_ in path1
+        const auto& newsplit1 = path1.PathSplit();
+        UNIT_ASSERT_VALUES_EQUAL(newsplit1.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(newsplit1.at(0), c);
+        UNIT_ASSERT_VALUES_EQUAL(split2.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(split2.at(0), a);
+        UNIT_ASSERT_VALUES_EQUAL(split2.at(1), b);
+    }
+
+    Y_UNIT_TEST(TestCopySplitNoneSSO) {
+        TFsPath path1 = TFsPath(an) / TFsPath(bn);
+        const auto& split1 = path1.PathSplit();
+        UNIT_ASSERT_VALUES_EQUAL(split1.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(split1.at(0), an);
+        UNIT_ASSERT_VALUES_EQUAL(split1.at(1), bn);
+        TFsPath path2(static_cast<const TFsPath&>(path1)); // copy constructor
+        const auto& split2 = path2.PathSplit();
+        path1 = TFsPath(cn); // invalidate previous Path_ in path1
+        const auto& newsplit1 = path1.PathSplit();
+        UNIT_ASSERT_VALUES_EQUAL(newsplit1.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(newsplit1.at(0), cn);
+        UNIT_ASSERT_VALUES_EQUAL(split2.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(split2.at(0), an);
+        UNIT_ASSERT_VALUES_EQUAL(split2.at(1), bn);
+    }
+
+    Y_UNIT_TEST(TestMoveSplitNoneSSO) {
+        TFsPath path1 = TFsPath(an) / TFsPath(bn);
+        const auto& split1 = path1.PathSplit();
+        UNIT_ASSERT_VALUES_EQUAL(split1.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(split1.at(0), an);
+        UNIT_ASSERT_VALUES_EQUAL(split1.at(1), bn);
+        TFsPath path2(std::move(path1)); // move constructor
+        const auto& split2 = path2.PathSplit();
+        path1 = TFsPath(cn); // invalidate previous Path_ in path1
+        const auto& newsplit1 = path1.PathSplit();
+        UNIT_ASSERT_VALUES_EQUAL(newsplit1.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(newsplit1.at(0), cn);
+        UNIT_ASSERT_VALUES_EQUAL(split2.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(split2.at(0), an);
+        UNIT_ASSERT_VALUES_EQUAL(split2.at(1), bn);
+    }
 }

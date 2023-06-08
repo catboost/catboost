@@ -35,10 +35,10 @@ public:
     }
 
     TFsPath(const TFsPath& that);
-    TFsPath(TFsPath&& that) = default;
+    TFsPath(TFsPath&& that);
 
     TFsPath& operator=(const TFsPath& that);
-    TFsPath& operator=(TFsPath&& that) = default;
+    TFsPath& operator=(TFsPath&& that);
 
     ~TFsPath() = default;
 
@@ -213,7 +213,6 @@ public:
 private:
     void InitSplit() const;
     TSplit& GetSplit() const;
-    void CopySplitFrom(const TFsPath& that) const;
 
 private:
     TString Path_;
