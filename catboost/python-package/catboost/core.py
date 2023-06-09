@@ -5808,6 +5808,10 @@ class CatBoostRegressor(CatBoost):
         loss = self._object._get_loss_function_name()
         if loss == 'RMSEWithUncertainty':
             predictions = predictions[:, 0]
+        if predictions.size != y.size:
+            msg = "labels and predictions should have same size. But y.size={} != preds.size={}"
+            raise CatBoostError(msg.format(y.size, predictions.size))
+        y = y.reshape(predictions.shape)
         total_sum_of_squares = np.sum((y - y.mean(axis=0)) ** 2)
         residual_sum_of_squares = np.sum((y - predictions) ** 2)
         return 1 - residual_sum_of_squares / total_sum_of_squares
