@@ -452,7 +452,7 @@ class many:
             self.data.stop_example()
             return False
 
-    def reject(self):
+    def reject(self, why: Optional[str] = None) -> None:
         """Reject the last example (i.e. don't count it towards our budget of
         elements because it's not going to go in the final collection)."""
         assert self.count > 0
@@ -463,7 +463,7 @@ class many:
         # failing too fast when we reject the first draw.
         if self.rejections > max(3, 2 * self.count):
             if self.count < self.min_size:
-                self.data.mark_invalid()
+                self.data.mark_invalid(why)
             else:
                 self.force_stop = True
 

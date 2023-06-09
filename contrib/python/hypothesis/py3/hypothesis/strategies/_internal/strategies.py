@@ -529,8 +529,7 @@ class SampledFromStrategy(SearchStrategy):
     def do_draw(self, data):
         result = self.do_filtered_draw(data)
         if result is filter_not_satisfied:
-            data.note_event(f"Aborted test because unable to satisfy {self!r}")
-            data.mark_invalid()
+            data.mark_invalid(f"Aborted test because unable to satisfy {self!r}")
         return result
 
     def get_element(self, i):
@@ -944,8 +943,7 @@ class FilteredStrategy(SearchStrategy[Ex]):
         if result is not filter_not_satisfied:
             return result
 
-        data.note_event(f"Aborted test because unable to satisfy {self!r}")
-        data.mark_invalid()
+        data.mark_invalid(f"Aborted test because unable to satisfy {self!r}")
         raise NotImplementedError("Unreachable, for Mypy")
 
     def note_retried(self, data):

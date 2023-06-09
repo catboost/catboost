@@ -156,7 +156,7 @@ class DatetimeStrategy(SearchStrategy):
 
         # If we happened to end up with a disallowed imaginary time, reject it.
         if (not self.allow_imaginary) and datetime_does_not_exist(result):
-            data.mark_invalid()
+            data.mark_invalid("nonexistent datetime")
         return result
 
     def draw_naive_datetime_and_combine(self, data, tz):
@@ -165,8 +165,7 @@ class DatetimeStrategy(SearchStrategy):
             return replace_tzinfo(dt.datetime(**result), timezone=tz)
         except (ValueError, OverflowError):
             msg = "Failed to draw a datetime between %r and %r with timezone from %r."
-            data.note_event(msg % (self.min_value, self.max_value, self.tz_strat))
-            data.mark_invalid()
+            data.mark_invalid(msg % (self.min_value, self.max_value, self.tz_strat))
 
 
 @defines_strategy(force_reusable_values=True)

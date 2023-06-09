@@ -234,7 +234,7 @@ class UniqueListStrategy(ListStrategy):
         while elements.more():
             value = filtered.do_filtered_draw(data)
             if value is filter_not_satisfied:
-                elements.reject()
+                elements.reject("Aborted test because unable to satisfy {filtered!r}")
             else:
                 for key, seen in zip(self.keys, seen_sets):
                     seen.add(key(value))
@@ -274,7 +274,9 @@ class UniqueSampledListStrategy(UniqueListStrategy):
                     value = (value,) + data.draw(self.tuple_suffixes)
                 result.append(value)
             else:
-                should_draw.reject()
+                should_draw.reject(
+                    "UniqueSampledListStrategy filter not satisfied or value already seen"
+                )
         assert self.max_size >= len(result) >= self.min_size
         return result
 
