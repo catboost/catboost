@@ -12,6 +12,7 @@
 
 #ifndef __NVCC__
     // cuda is compiled in C++14 mode at the time
+    #include <optional>
     #include <variant>
 #endif
 
@@ -641,6 +642,27 @@ public:
 };
 
 #ifndef __NVCC__
+
+template <typename T>
+struct TSerializer<std::optional<T>> {
+    static inline void Save(IOutputStream* os, const std::optional<T>& v) {
+        ::Save(os, v.has_value());
+        if (v.has_value()) {
+            ::Save(os, *v);
+        }
+    }
+
+    static inline void Load(IInputStream* is, std::optional<T>& v) {
+        v.reset();
+
+        bool hasValue;
+        ::Load(is, hasValue);
+
+        if (hasValue) {
+            ::Load(is, v.emplace());
+        }
+    }
+};
 
 namespace NPrivate {
     template <class Variant, class T, size_t I>
