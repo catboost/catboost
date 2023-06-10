@@ -6352,6 +6352,92 @@ def _convert_to_catboost(models):
     return output_models
 
 
+def sample_gaussian_process(X, y, eval_set=None, column_description=None, cat_features=None, seed=0, samples=10, posterior_iterations=900, prior_iterations=100, depth=6, learning_rate=0.1, sigma=0.3, delta=0, random_strength=0.1, eps=1e-4, verbose=True, **params):
+    assert(sigma > 0)
+    assert(samples > 0)
+    assert(random_strength > 0)
+    assert(eps > 0)
+    
+    random_generator = numpy.random.default_rng(seed)
+    prior_seeds = random_generator.integers(low=0, high=2**63-1, size=samples)
+    posterior_seeds = random_generator.integers(low=0, high=2**63-1, size=samples)
+    
+    N = len(X)
+    model_shrink_rate = (random_strength / sigma) ** 2 / N
+    
+    output_models = []
+    
+    prior_model_tmp_file = _get_train_dir(params) + "/_prior_model.json" 
+    
+    for sample in range(samples):
+        prior_y = random_generator.normal(scale=eps, size=N)
+        prior = CatBoostRegressor(
+            random_seed=prior_seeds[sample], 
+            iterations=prior_iterations, 
+            learning_rate=eps, 
+            loss_function='RMSE',
+            bootstrap_type='No', 
+            depth=depth,
+            verbose=False,
+            leaf_estimation_backtracking="No",
+            boost_from_average=False, 
+            random_strength=1/eps,
+            l2_leaf_reg=0,
+            score_function="L2",
+            boosting_type='Plain'
+        )
+        prior.fit(X, prior_y,
+            column_description=column_description,
+            cat_features=cat_features,
+            use_best_model=False
+        )
+        
+        prior.save_model(prior_model_tmp_file, format="json", pool=X)
+        with open(prior_model_tmp_file, "r", encoding='utf-8') as prior_file:
+            prior_json = json.load(prior_file)
+        for tree in prior_json["oblivious_trees"]:
+            for ind, (val, weight) in enumerate(zip(tree["leaf_values"], tree["leaf_weights"])):
+                    tree["leaf_values"][ind] = random_generator.normal(scale=numpy.sqrt(N / numpy.sqrt(max(1, weight))))
+        with open(prior_model_tmp_file, "w") as prior_file:
+            json.dump(prior_json, prior_file)
+        prior.load_model(prior_model_tmp_file, format="json")
+        try:
+            os.remove(prior_model_tmp_file)
+        except OSError:
+            pass
+
+        scale, bias = prior.get_scale_and_bias()
+        prior.set_scale_and_bias(scale * sigma / numpy.sqrt(prior_iterations),  bias * sigma / numpy.sqrt(prior_iterations))
+        
+        posterior_y = y - prior.predict(X) + random_generator.normal(scale=delta, size=N)
+        posterior = CatBoostRegressor(
+            random_seed=posterior_seeds[sample], 
+            iterations=posterior_iterations, 
+            learning_rate=learning_rate, 
+            model_shrink_rate=model_shrink_rate,
+            loss_function='RMSE',
+            bootstrap_type='No', 
+            depth=depth,
+            verbose=verbose,
+            leaf_estimation_backtracking="No",
+            boost_from_average=False,
+            random_strength=random_strength,
+            l2_leaf_reg=0,
+            score_function="L2",
+            boosting_type='Plain'
+        )
+        posterior.fit(X, posterior_y, 
+            eval_set=eval_set,
+            column_description=column_description,
+            cat_features=cat_features,
+            use_best_model=False
+        )
+        
+        output_models.append(sum_models([prior, posterior], weights=[1, 1]))
+
+    return output_models
+    
+
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None,
