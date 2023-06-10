@@ -55,7 +55,7 @@ TStringBuf NCsvFormat::CsvSplitter::Consume() {
             ++TokenEnd;
         }
     }
-};
+}
 
 TString NCsvFormat::TLinesSplitter::ConsumeLine() {
     bool Escape = false;
@@ -79,4 +79,4 @@ TString NCsvFormat::TLinesSplitter::ConsumeLine() {
         }
     }
     return result;
-};
+}

@@ -14,7 +14,7 @@ static void AssertStringSplit(const TString& str, const TString& delim, const TV
         ++it;
     }
     UNIT_ASSERT(!it.Valid());
-};
+}
 
 Y_UNIT_TEST_SUITE(TDelimStrokaIterTestSuite) {
     Y_UNIT_TEST(SingleCharacterAsDelimiter) {

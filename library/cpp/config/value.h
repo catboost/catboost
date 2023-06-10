@@ -65,7 +65,7 @@ namespace NConfig {
 
             return ConstructValueImpl(t);
         }
-    };
+    }
 
     template <class T>
     inline IValue* ConstructValue(const T& t) {

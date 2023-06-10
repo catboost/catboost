@@ -109,7 +109,7 @@ struct TNalfAllocator {
     ~TNalfAllocator() noexcept = default;
 
     template <typename U>
-    explicit TNalfAllocator(TNalfAllocator<U, Hint>) noexcept {};
+    explicit TNalfAllocator(TNalfAllocator<U, Hint>) noexcept {}
     template <typename U>
     struct rebind { typedef TNalfAllocator<U, Hint> other; };
 

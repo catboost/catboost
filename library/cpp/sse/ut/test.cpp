@@ -1716,7 +1716,7 @@ void TSSEEmulTest::Test_mm_cvtepi32_ps() {
     };
     Test_mm_convertop<i32, float, 4, __m128i, __m128,
                       THelper, WrapF(_mm_cvtepi32_ps), float32x4_t>();
-};
+}
 
 void TSSEEmulTest::Test_mm_cvtps_epi32() {
     struct THelper {
@@ -1726,7 +1726,7 @@ void TSSEEmulTest::Test_mm_cvtps_epi32() {
     };
     Test_mm_convertop<float, i32, 4, __m128, __m128i,
                       THelper, T_mm_CallWrapper<__m128i, decltype(_mm_cvtps_epi32), _mm_cvtps_epi32>, int32x4_t>();
-};
+}
 
 void TSSEEmulTest::Test_mm_cvttps_epi32() {
     struct THelper {
@@ -1736,7 +1736,7 @@ void TSSEEmulTest::Test_mm_cvttps_epi32() {
     };
     Test_mm_convertop<float, i32, 4, __m128, __m128i,
                       THelper, Wrap(_mm_cvttps_epi32), int32x4_t>();
-};
+}
 
 template <typename TLoadVector, typename TCastVector,
           typename TFunc, TFunc* func>
@@ -1756,7 +1756,7 @@ void TSSEEmulTest::Test_mm_castXX() {
 
     UNIT_ASSERT(memcmp(&data, &verify, 16) == 0);
     UNIT_ASSERT(memcmp(&data, &constverify, 16) == 0);
-};
+}
 
 void TSSEEmulTest::Test_mm_castsi128_ps() {
     Test_mm_castXX<__m128i, __m128,

@@ -46,7 +46,7 @@ namespace NPrivate {
 
     public:
         //NOTE: it is important to make this syntax; using =default will lead to memset https://godbolt.org/z/vTqzK9aWr
-        TStackBasedAllocator() noexcept {};
+        TStackBasedAllocator() noexcept {}
 
         template <
             typename... TArgs,

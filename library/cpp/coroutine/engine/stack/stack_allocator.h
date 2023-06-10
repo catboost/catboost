@@ -31,7 +31,7 @@ namespace NCoro::NStack {
             if (stack.GetAlignedMemory()) {
                 DoFreeStack(stack);
             }
-        };
+        }
 
         virtual TAllocatorStats GetStackStats() const noexcept = 0;
 

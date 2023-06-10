@@ -95,4 +95,4 @@ Y_UNIT_TEST_SUITE(TCompositeLogTest)
         UNIT_ASSERT(newCfg.ParseJson(ILogBackendCreator::Create(ctx)->AsJson()));
         DoTestComposite(TLogBackendCreatorInitContextYConf(*newCfg.GetRootSection()), "yconf_log_");
     }
-};
+}

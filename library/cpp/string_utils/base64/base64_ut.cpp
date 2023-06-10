@@ -74,12 +74,12 @@ using namespace std::string_view_literals;
     }
 
 namespace NB64Etalon {
-    BASE64_UT_DECLARE_BASE64_IMPL(PLAIN32, plain32_base64_encode, plain32_base64_decode);
-    BASE64_UT_DECLARE_BASE64_IMPL(PLAIN64, plain64_base64_encode, plain64_base64_decode);
-    BASE64_UT_DECLARE_BASE64_IMPL(NEON32, neon32_base64_encode, neon32_base64_decode);
-    BASE64_UT_DECLARE_BASE64_IMPL(NEON64, neon64_base64_encode, neon64_base64_decode);
-    BASE64_UT_DECLARE_BASE64_IMPL(AVX2, avx2_base64_encode, avx2_base64_decode);
-    BASE64_UT_DECLARE_BASE64_IMPL(SSSE3, ssse3_base64_encode, ssse3_base64_decode);
+    BASE64_UT_DECLARE_BASE64_IMPL(PLAIN32, plain32_base64_encode, plain32_base64_decode)
+    BASE64_UT_DECLARE_BASE64_IMPL(PLAIN64, plain64_base64_encode, plain64_base64_decode)
+    BASE64_UT_DECLARE_BASE64_IMPL(NEON32, neon32_base64_encode, neon32_base64_decode)
+    BASE64_UT_DECLARE_BASE64_IMPL(NEON64, neon64_base64_encode, neon64_base64_decode)
+    BASE64_UT_DECLARE_BASE64_IMPL(AVX2, avx2_base64_encode, avx2_base64_decode)
+    BASE64_UT_DECLARE_BASE64_IMPL(SSSE3, ssse3_base64_encode, ssse3_base64_decode)
 
 #undef BASE64_UT_DECLARE_BASE64_IMPL
 

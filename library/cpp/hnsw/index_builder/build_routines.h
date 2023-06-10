@@ -90,7 +90,7 @@ namespace NHnsw {
                 Ids.reserve(maxSize * NeighborsCount);
             }
 
-            size_t GetSize() const { return Size; };
+            size_t GetSize() const { return Size; }
 
             size_t GetNeighborsCount() const { return NeighborsCount; }
 

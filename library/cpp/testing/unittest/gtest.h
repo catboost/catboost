@@ -64,7 +64,7 @@ namespace testing {
             }                                 \
             void NN();                        \
         };                                    \
-    };                                        \
+    }                                         \
     TEST_IMPL(N, NN, FF) {                    \
         NTestSuite##N##NN::TTestSuite().NN(); \
     }                                         \

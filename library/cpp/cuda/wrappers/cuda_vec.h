@@ -211,11 +211,11 @@ public:
 
     operator TArrayRef<T>() {
         return AsArrayRef();
-    };
+    }
 
     operator TConstArrayRef<T>() const {
         return AsArrayRef();
-    };
+    }
 
     TArrayRef<T> AsArrayRef() {
         CUDA_ENSURE(*this);

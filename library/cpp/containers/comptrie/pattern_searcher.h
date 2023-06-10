@@ -26,7 +26,7 @@ namespace NCompactTrie {
 
     const size_t FLAGS_SIZE = sizeof(char);
     const size_t SYMBOL_SIZE = sizeof(char);
-};
+}
 
 template <class T = char, class D = ui64, class S = TCompactTriePacker<D>>
 class TCompactPatternSearcherBuilder : protected TCompactTrieBuilder<T, D, S> {

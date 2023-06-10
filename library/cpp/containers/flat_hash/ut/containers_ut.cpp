@@ -27,8 +27,8 @@ namespace {
         TAlmostDummy(const TAlmostDummy& d) : Junk(d.Junk) { ++Count; }
         ~TAlmostDummy() { --Count; }
 
-        bool operator==(const TAlmostDummy& r) const { return Junk == r.Junk; };
-        bool operator!=(const TAlmostDummy& r) const { return !operator==(r); };
+        bool operator==(const TAlmostDummy& r) const { return Junk == r.Junk; }
+        bool operator!=(const TAlmostDummy& r) const { return !operator==(r); }
 
         int Junk;
     };

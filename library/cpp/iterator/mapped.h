@@ -12,7 +12,7 @@ namespace NIteratorPrivate {
         return std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category,
                               std::random_access_iterator_tag>;
     }
-};
+}
 
 
 template <class TIterator, class TMapper>
