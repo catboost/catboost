@@ -34,7 +34,14 @@
 #define _LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS
 #define _LIBCPP_NO_AUTO_LINK
 #define _LIBCPP_DISABLE_DEPRECATION_WARNINGS
+
+// should be removed in https://st.yandex-team.ru/IGNIETFERRO-1957
+#define _LIBCPP_ENABLE_CXX17_REMOVED_FEATURES
+
+// should be removed in https://st.yandex-team.ru/IGNIETFERRO-1955
 #define _LIBCPP_ENABLE_CXX20_REMOVED_ALLOCATOR_MEMBERS
+
+// should be removed in https://st.yandex-team.ru/IGNIETFERRO-1956
 #define _LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS
 #define _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
 
