@@ -11,7 +11,6 @@ add_library(libs-cxxsupp-libcxx)
 target_compile_options(libs-cxxsupp-libcxx PUBLIC
   -D_LIBCPP_VASPRINTF_DEFINED
   -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_
-  -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES
 )
 target_compile_options(libs-cxxsupp-libcxx PRIVATE
   -D_LIBCPP_BUILDING_LIBRARY
