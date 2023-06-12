@@ -145,5 +145,5 @@ if __name__ == "__main__":
     # To test without skipping to a known answer, uncomment the following line and
     # change the last element of key from `name` to `-len(name)` so that we check
     # grequests before gevent.
-    ## KNOWN_EVER_CULPRITS = [c for c in KNOWN_EVER_CULPRITS if c != "gevent"]
+    # KNOWN_EVER_CULPRITS = [c for c in KNOWN_EVER_CULPRITS if c != "gevent"]
     print(identify_ftz_culprits())

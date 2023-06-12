@@ -50,7 +50,7 @@ try:
     from typing import get_origin as get_origin
 except ImportError:
     # remove at Python 3.7 end-of-life
-    from collections.abc import Callable as _Callable
+    from collections.abc import Callable as _Callable  # noqa: F811
 
     def get_origin(tp: Any) -> typing.Optional[Any]:  # type: ignore # pragma: no cover
         """Get the unsubscripted version of a type.

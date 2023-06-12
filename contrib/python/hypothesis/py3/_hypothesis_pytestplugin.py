@@ -190,7 +190,7 @@ else:
         from hypothesis import core
         from hypothesis.internal.detection import is_hypothesis_test
 
-        ## See https://github.com/pytest-dev/pytest/issues/9159
+        # See https://github.com/pytest-dev/pytest/issues/9159
         # TODO: add `pytest_version >= (7, 2) or` once the issue above is fixed.
         core.pytest_shows_exceptiongroups = (
             item.config.getoption("tbstyle", "auto") == "native"
@@ -221,7 +221,7 @@ else:
                 ("reproduce_example", "_hypothesis_internal_use_reproduce_failure"),
             ]:
                 if hasattr(item.obj, attribute):
-                    from hypothesis.errors import InvalidArgument
+                    from hypothesis.errors import InvalidArgument  # noqa: F811
 
                     raise_hypothesis_usage_error(message % (name,))
             yield
@@ -237,7 +237,9 @@ else:
             # work, the test object is probably something weird
             # (e.g a stateful test wrapper), so we skip the function-scoped
             # fixture check.
-            settings = getattr(item.obj, "_hypothesis_internal_use_settings", None)
+            settings = getattr(  # noqa: F811
+                item.obj, "_hypothesis_internal_use_settings", None
+            )
 
             # Check for suspicious use of function-scoped fixtures, but only
             # if the corresponding health check is not suppressed.

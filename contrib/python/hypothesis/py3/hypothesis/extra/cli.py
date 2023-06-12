@@ -131,7 +131,7 @@ else:
                     # Likely attempted to pass a local file (Eg., "myscript.py") instead of a module name
                     raise click.UsageError(
                         "Remember that the ghostwriter should be passed the name of a module, not a file."
-                        + f"\n\tTry: hypothesis write {s[:-3]}"
+                        f"\n\tTry: hypothesis write {s[:-3]}"
                     ) from None
                 raise click.UsageError(
                     f"Found the {modulename!r} module, but it doesn't have a "

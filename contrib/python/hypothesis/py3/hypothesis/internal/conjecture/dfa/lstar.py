@@ -11,6 +11,8 @@
 from bisect import bisect_right, insort
 from collections import Counter
 
+import attr
+
 from hypothesis.errors import InvalidState
 from hypothesis.internal.conjecture.dfa import DFA, cached
 from hypothesis.internal.conjecture.junkdrawer import (
@@ -77,8 +79,6 @@ is somewhat intrinsic. We should only use it in testing or for
 learning languages offline that we can record for later use.
 
 """
-
-import attr
 
 
 @attr.s(slots=True)

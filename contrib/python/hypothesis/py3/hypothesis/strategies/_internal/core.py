@@ -1562,7 +1562,7 @@ def _composite(f):
     if not is_first_param_referenced_in_function(f):
         note_deprecation(
             "There is no reason to use @st.composite on a function which "
-            + "does not call the provided draw() function internally.",
+            "does not call the provided draw() function internally.",
             since="2022-07-17",
             has_codemod=False,
         )
