@@ -106,7 +106,7 @@ private:
         } catch (...) {
             UNIT_ASSERT_C(false, "Unexpected exception type");
         }
-    };
+    }
 
     inline void TestEnsureWithBackTrace1() {
         try {

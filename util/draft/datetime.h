@@ -84,7 +84,7 @@ namespace NDatetime {
 
         operator time_t() const {
             return AsTimeT();
-        };
+        }
 
         struct tm AsStructTmLocal() const;
 

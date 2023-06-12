@@ -103,4 +103,4 @@ Y_UNIT_TEST_SUITE(TestVaArgs) {
 #undef I2
 #undef I1
     }
-};
+}

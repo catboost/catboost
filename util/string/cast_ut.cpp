@@ -122,7 +122,7 @@ struct TRet<bool> {
 template <class A>
 inline TRet<A> F() {
     return TRet<A>();
-};
+}
 
 #if 0
 template <class T>
@@ -153,7 +153,7 @@ Y_UNIT_TEST_SUITE(TCastTest) {
     template <class A>
     inline TRet<A> F() {
         return TRet<A>();
-    };
+    }
 
     template <class TFloat>
     void GoodFloatTester(const char* str, const TFloat canonValue, const double eps) {
@@ -605,4 +605,4 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(127)), TStringBuf("1111111"));
         UNIT_ASSERT_VALUES_EQUAL(TStringBuf(TIntStringBuf<i8, 2>(-128)), TStringBuf("-10000000"));
     }
-};
+}

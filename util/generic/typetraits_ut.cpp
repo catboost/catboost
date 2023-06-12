@@ -257,7 +257,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_trivially_copyable<TNonTriviallyCopyConstructible>::value);
         UNIT_ASSERT(!std::is_trivially_copyable<TNonTriviallyDestructible>::value);
     }
-};
+}
 
 namespace {
     template <typename T>
