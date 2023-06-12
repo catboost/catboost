@@ -635,6 +635,15 @@ Y_FORCE_INLINE void DoNotOptimizeAway(T&& datum) {
     #endif
 }
 
+/**
+ * The usage for `const T&` is prohibited.
+ * The compiler assume that a constant reference, even though escaped via asm volatile, is unchanged.
+ * The const-ref interface is deleted to discourage new uses of it, as subtle compiler optimizations (invariant hoisting, etc.) can occur.
+ * For more details see https://github.com/google/benchmark/pull/1493.
+ */
+template <typename T>
+Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
+
     /**
      * Use this macro to prevent unused variables elimination.
      */
