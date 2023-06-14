@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "library/cpp/testing/gtest/gtest.h"
+#include "gtest/gtest.h"
 #include "util/logging.h"
 #include "re2/regexp.h"
 
