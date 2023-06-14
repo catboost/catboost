@@ -23,11 +23,13 @@ import hashlib
 import inspect
 import re
 import sys
+from ast import literal_eval
 from contextlib import suppress
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import libcst as cst
+from libcst import matchers as m
 from libcst.codemod import CodemodContext, VisitorBasedCodemodCommand
 
 from hypothesis.configuration import storage_directory
@@ -47,6 +49,7 @@ Subject: [PATCH] {{msg}}
 
 ---
 """
+FAIL_MSG = "discovered failure"
 _space_only_re = re.compile("^ +$", re.MULTILINE)
 _leading_space_re = re.compile("(^[ ]*)(?:[^ \n])", re.MULTILINE)
 
@@ -66,34 +69,53 @@ class AddExamplesCodemod(VisitorBasedCodemodCommand):
     DESCRIPTION = "Add explicit examples to failing tests."
 
     @classmethod
-    def refactor(cls, code: str, fn_examples: dict) -> str:
+    def refactor(cls, code, fn_examples, *, strip_via=(), dec="example"):
         """Add @example() decorator(s) for failing test(s).
 
         `code` is the source code of the module where the test functions are defined.
         `fn_examples` is a dict of function name to list-of-failing-examples.
         """
+        assert not isinstance(strip_via, str), "expected a collection of strings"
         dedented, prefix = dedent(code)
         with _native_parser():
             mod = cst.parse_module(dedented)
-        modded = cls(CodemodContext(), fn_examples, prefix).transform_module(mod).code
+        modded = (
+            cls(CodemodContext(), fn_examples, prefix, strip_via, dec)
+            .transform_module(mod)
+            .code
+        )
         return indent(modded, prefix=prefix)
 
-    def __init__(self, context, fn_examples, prefix="", via="discovered failure"):
+    def __init__(self, context, fn_examples, prefix="", strip_via=(), dec="example"):
         assert fn_examples, "This codemod does nothing without fn_examples."
         super().__init__(context)
 
-        # Codemod the failing examples to Call nodes usable as decorators
-        self.via = via
+        self.decorator_func = cst.parse_expression(dec)
         self.line_length = 88 - len(prefix)  # to match Black's default formatting
+        value_in_strip_via = m.MatchIfTrue(lambda x: literal_eval(x.value) in strip_via)
+        self.strip_matching = m.Call(
+            m.Attribute(m.Call(), m.Name("via")),
+            [m.Arg(m.SimpleString() & value_in_strip_via)],
+        )
+
+        # Codemod the failing examples to Call nodes usable as decorators
         self.fn_examples = {
-            k: tuple(self.__call_node_to_example_dec(ex) for ex in nodes)
+            k: tuple(self.__call_node_to_example_dec(ex, via) for ex, via in nodes)
             for k, nodes in fn_examples.items()
         }
 
-    def __call_node_to_example_dec(self, node):
+    def __call_node_to_example_dec(self, node, via):
+        # If we have black installed, remove trailing comma, _unless_ there's a comment
         node = node.with_changes(
-            func=cst.Name("example"),
-            args=[a.with_changes(comma=cst.MaybeSentinel.DEFAULT) for a in node.args]
+            func=self.decorator_func,
+            args=[
+                a.with_changes(
+                    comma=a.comma
+                    if m.findall(a.comma, m.Comment())
+                    else cst.MaybeSentinel.DEFAULT
+                )
+                for a in node.args
+            ]
             if black
             else node.args,
         )
@@ -101,7 +123,7 @@ class AddExamplesCodemod(VisitorBasedCodemodCommand):
         # but plumbing two cases through doesn't seem worth the trouble :-/
         via = cst.Call(
             func=cst.Attribute(node, cst.Name("via")),
-            args=[cst.Arg(cst.SimpleString(repr(self.via)))],
+            args=[cst.Arg(cst.SimpleString(repr(via)))],
         )
         if black:  # pragma: no branch
             pretty = black.format_str(
@@ -114,15 +136,21 @@ class AddExamplesCodemod(VisitorBasedCodemodCommand):
     def leave_FunctionDef(self, _, updated_node):
         return updated_node.with_changes(
             # TODO: improve logic for where in the list to insert this decorator
-            decorators=updated_node.decorators
+            decorators=tuple(
+                d
+                for d in updated_node.decorators
+                # `findall()` to see through the identity function workaround on py38
+                if not m.findall(d, self.strip_matching)
+            )
             + self.fn_examples.get(updated_node.name.value, ())
         )
 
 
-def get_patch_for(func, failing_examples):
+def get_patch_for(func, failing_examples, *, strip_via=()):
     # Skip this if we're unable to find the location or source of this function.
     try:
-        fname = Path(sys.modules[func.__module__].__file__).relative_to(Path.cwd())
+        module = sys.modules[func.__module__]
+        fname = Path(module.__file__).relative_to(Path.cwd())
         before = inspect.getsource(func)
     except Exception:
         return None
@@ -130,23 +158,33 @@ def get_patch_for(func, failing_examples):
     # The printed examples might include object reprs which are invalid syntax,
     # so we parse here and skip over those.  If _none_ are valid, there's no patch.
     call_nodes = []
-    for ex in failing_examples:
+    for ex, via in failing_examples:
         with suppress(Exception):
             node = cst.parse_expression(ex)
             assert isinstance(node, cst.Call), node
-            call_nodes.append(node)
+            call_nodes.append((node, via))
     if not call_nodes:
         return None
+
+    if (
+        module.__dict__.get("hypothesis") is sys.modules["hypothesis"]
+        and "given" not in module.__dict__  # more reliably present than `example`
+    ):
+        decorator_func = "hypothesis.example"
+    else:
+        decorator_func = "example"
 
     # Do the codemod and return a triple containing location and replacement info.
     after = AddExamplesCodemod.refactor(
         before,
         fn_examples={func.__name__: call_nodes},
+        strip_via=strip_via,
+        dec=decorator_func,
     )
     return (str(fname), before, after)
 
 
-def make_patch(triples, *, msg="Hypothesis: add failing examples", when=None):
+def make_patch(triples, *, msg="Hypothesis: add explicit examples", when=None):
     """Create a patch for (fname, before, after) triples."""
     assert triples, "attempted to create empty patch"
     when = when or datetime.now(tz=timezone.utc)
@@ -159,7 +197,7 @@ def make_patch(triples, *, msg="Hypothesis: add failing examples", when=None):
     for fname, changes in sorted(by_fname.items()):
         source_before = source_after = fname.read_text(encoding="utf-8")
         for before, after in changes:
-            source_after = source_after.replace(before, after, 1)
+            source_after = source_after.replace(before.rstrip(), after.rstrip(), 1)
         ud = difflib.unified_diff(
             source_before.splitlines(keepends=True),
             source_after.splitlines(keepends=True),
@@ -170,17 +208,21 @@ def make_patch(triples, *, msg="Hypothesis: add failing examples", when=None):
     return "".join(diffs)
 
 
-def save_patch(patch: str) -> Path:  # pragma: no cover
-    today = date.today().isoformat()
-    hash = hashlib.sha1(patch.encode()).hexdigest()[:8]
-    fname = Path(storage_directory("patches", f"{today}--{hash}.patch"))
+def save_patch(patch: str, *, slug: str = "") -> Path:  # pragma: no cover
+    assert re.fullmatch(r"|[a-z]+-", slug), f"malformed slug={slug!r}"
+    now = date.today().isoformat()
+    cleaned = re.sub(r"^Date: .+?$", "", patch, count=1, flags=re.MULTILINE)
+    hash8 = hashlib.sha1(cleaned.encode()).hexdigest()[:8]
+    fname = Path(storage_directory("patches", f"{now}--{slug}{hash8}.patch"))
     fname.parent.mkdir(parents=True, exist_ok=True)
     fname.write_text(patch, encoding="utf-8")
     return fname.relative_to(Path.cwd())
 
 
-def gc_patches():  # pragma: no cover
+def gc_patches(slug: str = "") -> None:  # pragma: no cover
     cutoff = date.today() - timedelta(days=7)
-    for fname in Path(storage_directory("patches")).glob("????-??-??--????????.patch"):
+    for fname in Path(storage_directory("patches")).glob(
+        f"????-??-??--{slug}????????.patch"
+    ):
         if date.fromisoformat(fname.stem.split("--")[0]) < cutoff:
             fname.unlink()

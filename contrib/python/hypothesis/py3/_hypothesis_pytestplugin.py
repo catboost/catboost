@@ -339,11 +339,11 @@ else:
         failing_examples = getattr(item, FAILING_EXAMPLES_KEY, None)
         if failing_examples and terminalreporter is not None:
             try:
-                from hypothesis.extra.patching import get_patch_for
+                from hypothesis.extra._patching import FAIL_MSG, get_patch_for
             except ImportError:
                 return
             # We'll save this as a triple of [filename, hunk_before, hunk_after].
-            triple = get_patch_for(item.obj, failing_examples)
+            triple = get_patch_for(item.obj, [(x, FAIL_MSG) for x in failing_examples])
             if triple is not None:
                 report.__dict__[FAILING_EXAMPLES_KEY] = json.dumps(triple)
 
@@ -363,7 +363,7 @@ else:
 
         if failing_examples:
             # This must have been imported already to write the failing examples
-            from hypothesis.extra.patching import gc_patches, make_patch, save_patch
+            from hypothesis.extra._patching import gc_patches, make_patch, save_patch
 
             patch = make_patch(failing_examples)
             try:
