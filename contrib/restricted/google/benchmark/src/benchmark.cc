@@ -65,16 +65,25 @@ BM_DEFINE_bool(benchmark_list_tests, false);
 // linked into the binary are run.
 BM_DEFINE_string(benchmark_filter, "");
 
-// Minimum number of seconds we should run benchmark before results are
-// considered significant.  For cpu-time based tests, this is the lower bound
+// Specification of how long to run the benchmark.
+//
+// It can be either an exact number of iterations (specified as `<integer>x`),
+// or a minimum number of seconds (specified as `<float>s`). If the latter
+// format (ie., min seconds) is used, the system may run the benchmark longer
+// until the results are considered significant.
+//
+// For backward compatibility, the `s` suffix may be omitted, in which case,
+// the specified number is interpreted as the number of seconds.
+//
+// For cpu-time based tests, this is the lower bound
 // on the total cpu time used by all threads that make up the test.  For
 // real-time based tests, this is the lower bound on the elapsed time of the
 // benchmark execution, regardless of number of threads.
-BM_DEFINE_double(benchmark_min_time, 0.5);
+BM_DEFINE_string(benchmark_min_time, kDefaultMinTimeStr);
 
 // Minimum number of seconds a benchmark should be run before results should be
-// taken into account. This e.g can be neccessary for benchmarks of code which
-// needs to fill some form of cache before performance is of interrest.
+// taken into account. This e.g can be necessary for benchmarks of code which
+// needs to fill some form of cache before performance is of interest.
 // Note: results gathered within this period are discarded and not used for
 // reported result.
 BM_DEFINE_double(benchmark_min_warmup_time, 0.0);
@@ -148,18 +157,19 @@ void UseCharPointer(char const volatile*) {}
 
 }  // namespace internal
 
-State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
-             int thread_i, int n_threads, internal::ThreadTimer* timer,
-             internal::ThreadManager* manager,
+State::State(std::string name, IterationCount max_iters,
+             const std::vector<int64_t>& ranges, int thread_i, int n_threads,
+             internal::ThreadTimer* timer, internal::ThreadManager* manager,
              internal::PerfCountersMeasurement* perf_counters_measurement)
     : total_iterations_(0),
       batch_leftover_(0),
       max_iterations(max_iters),
       started_(false),
       finished_(false),
-      error_occurred_(false),
+      skipped_(internal::NotSkipped),
       range_(ranges),
       complexity_n_(0),
+      name_(std::move(name)),
       thread_index_(thread_i),
       threads_(n_threads),
       timer_(timer),
@@ -186,11 +196,14 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
 #pragma nv_diagnostic push
 #pragma nv_diag_suppress 1427
 #endif
+#if defined(__NVCOMPILER)
+#pragma diagnostic push
+#pragma diag_suppress offset_in_non_POD_nonstandard
+#endif
   // Offset tests to ensure commonly accessed data is on the first cache line.
   const int cache_line_size = 64;
-  static_assert(offsetof(State, error_occurred_) <=
-                    (cache_line_size - sizeof(error_occurred_)),
-                "");
+  static_assert(
+      offsetof(State, skipped_) <= (cache_line_size - sizeof(skipped_)), "");
 #if defined(__INTEL_COMPILER)
 #pragma warning pop
 #elif defined(__GNUC__)
@@ -199,11 +212,14 @@ State::State(IterationCount max_iters, const std::vector<int64_t>& ranges,
 #if defined(__NVCC__)
 #pragma nv_diagnostic pop
 #endif
+#if defined(__NVCOMPILER)
+#pragma diagnostic pop
+#endif
 }
 
 void State::PauseTiming() {
   // Add in time accumulated so far
-  BM_CHECK(started_ && !finished_ && !error_occurred_);
+  BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StopTimer();
   if (perf_counters_measurement_) {
     std::vector<std::pair<std::string, double>> measurements;
@@ -220,21 +236,33 @@ void State::PauseTiming() {
 }
 
 void State::ResumeTiming() {
-  BM_CHECK(started_ && !finished_ && !error_occurred_);
+  BM_CHECK(started_ && !finished_ && !skipped());
   timer_->StartTimer();
   if (perf_counters_measurement_) {
     perf_counters_measurement_->Start();
   }
 }
 
-void State::SkipWithError(const char* msg) {
-  BM_CHECK(msg);
-  error_occurred_ = true;
+void State::SkipWithMessage(const std::string& msg) {
+  skipped_ = internal::SkippedWithMessage;
   {
     MutexLock l(manager_->GetBenchmarkMutex());
-    if (manager_->results.has_error_ == false) {
-      manager_->results.error_message_ = msg;
-      manager_->results.has_error_ = true;
+    if (internal::NotSkipped == manager_->results.skipped_) {
+      manager_->results.skip_message_ = msg;
+      manager_->results.skipped_ = skipped_;
+    }
+  }
+  total_iterations_ = 0;
+  if (timer_->running()) timer_->StopTimer();
+}
+
+void State::SkipWithError(const std::string& msg) {
+  skipped_ = internal::SkippedWithError;
+  {
+    MutexLock l(manager_->GetBenchmarkMutex());
+    if (internal::NotSkipped == manager_->results.skipped_) {
+      manager_->results.skip_message_ = msg;
+      manager_->results.skipped_ = skipped_;
     }
   }
   total_iterations_ = 0;
@@ -245,7 +273,7 @@ void State::SetIterationTime(double seconds) {
   timer_->SetIterationTime(seconds);
 }
 
-void State::SetLabel(const char* label) {
+void State::SetLabel(const std::string& label) {
   MutexLock l(manager_->GetBenchmarkMutex());
   manager_->results.report_label_ = label;
 }
@@ -253,14 +281,14 @@ void State::SetLabel(const char* label) {
 void State::StartKeepRunning() {
   BM_CHECK(!started_ && !finished_);
   started_ = true;
-  total_iterations_ = error_occurred_ ? 0 : max_iterations;
+  total_iterations_ = skipped() ? 0 : max_iterations;
   manager_->StartStopBarrier();
-  if (!error_occurred_) ResumeTiming();
+  if (!skipped()) ResumeTiming();
 }
 
 void State::FinishKeepRunning() {
-  BM_CHECK(started_ && (!finished_ || error_occurred_));
-  if (!error_occurred_) {
+  BM_CHECK(started_ && (!finished_ || skipped()));
+  if (!skipped()) {
     PauseTiming();
   }
   // Total iterations has now wrapped around past 0. Fix this.
@@ -338,20 +366,43 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
 
     size_t num_repetitions_total = 0;
 
+    // This perfcounters object needs to be created before the runners vector
+    // below so it outlasts their lifetime.
+    PerfCountersMeasurement perfcounters(
+        StrSplit(FLAGS_benchmark_perf_counters, ','));
+
+    // Vector of benchmarks to run
     std::vector<internal::BenchmarkRunner> runners;
     runners.reserve(benchmarks.size());
+
+    // Count the number of benchmarks with threads to warn the user in case
+    // performance counters are used.
+    int benchmarks_with_threads = 0;
+
+    // Loop through all benchmarks
     for (const BenchmarkInstance& benchmark : benchmarks) {
       BenchmarkReporter::PerFamilyRunReports* reports_for_family = nullptr;
       if (benchmark.complexity() != oNone)
         reports_for_family = &per_family_reports[benchmark.family_index()];
-
-      runners.emplace_back(benchmark, reports_for_family);
+      benchmarks_with_threads += (benchmark.threads() > 0);
+      runners.emplace_back(benchmark, &perfcounters, reports_for_family);
       int num_repeats_of_this_instance = runners.back().GetNumRepeats();
       num_repetitions_total += num_repeats_of_this_instance;
       if (reports_for_family)
         reports_for_family->num_runs_total += num_repeats_of_this_instance;
     }
     assert(runners.size() == benchmarks.size() && "Unexpected runner count.");
+
+    // The use of performance counters with threads would be unintuitive for
+    // the average user so we need to warn them about this case
+    if ((benchmarks_with_threads > 0) && (perfcounters.num_counters() > 0)) {
+      GetErrorLogInstance()
+          << "***WARNING*** There are " << benchmarks_with_threads
+          << " benchmarks with threads and " << perfcounters.num_counters()
+          << " performance counters were requested. Beware counters will "
+             "reflect the combined usage across all "
+             "threads.\n";
+    }
 
     std::vector<size_t> repetition_indices;
     repetition_indices.reserve(num_repetitions_total);
@@ -375,6 +426,12 @@ void RunBenchmarks(const std::vector<BenchmarkInstance>& benchmarks,
       runner.DoOneRepetition();
       if (runner.HasRepeatsRemaining()) continue;
       // FIXME: report each repetition separately, not all of them in bulk.
+
+      display_reporter->ReportRunsConfig(
+          runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
+      if (file_reporter)
+        file_reporter->ReportRunsConfig(
+            runner.GetMinTime(), runner.HasExplicitIters(), runner.GetIters());
 
       RunResults run_results = runner.GetResults();
 
@@ -409,14 +466,15 @@ std::unique_ptr<BenchmarkReporter> CreateReporter(
   typedef std::unique_ptr<BenchmarkReporter> PtrType;
   if (name == "console") {
     return PtrType(new ConsoleReporter(output_opts));
-  } else if (name == "json") {
-    return PtrType(new JSONReporter());
-  } else if (name == "csv") {
-    return PtrType(new CSVReporter());
-  } else {
-    std::cerr << "Unexpected format: '" << name << "'\n";
-    std::exit(1);
   }
+  if (name == "json") {
+    return PtrType(new JSONReporter());
+  }
+  if (name == "csv") {
+    return PtrType(new CSVReporter());
+  }
+  std::cerr << "Unexpected format: '" << name << "'\n";
+  std::exit(1);
 }
 
 BENCHMARK_RESTORE_DEPRECATED_WARNING
@@ -585,13 +643,17 @@ void PrintUsageAndExit() {
 void SetDefaultTimeUnitFromFlag(const std::string& time_unit_flag) {
   if (time_unit_flag == "s") {
     return SetDefaultTimeUnit(kSecond);
-  } else if (time_unit_flag == "ms") {
+  }
+  if (time_unit_flag == "ms") {
     return SetDefaultTimeUnit(kMillisecond);
-  } else if (time_unit_flag == "us") {
+  }
+  if (time_unit_flag == "us") {
     return SetDefaultTimeUnit(kMicrosecond);
-  } else if (time_unit_flag == "ns") {
+  }
+  if (time_unit_flag == "ns") {
     return SetDefaultTimeUnit(kNanosecond);
-  } else if (!time_unit_flag.empty()) {
+  }
+  if (!time_unit_flag.empty()) {
     PrintUsageAndExit();
   }
 }
@@ -604,7 +666,7 @@ void ParseCommandLineFlags(int* argc, char** argv) {
     if (ParseBoolFlag(argv[i], "benchmark_list_tests",
                       &FLAGS_benchmark_list_tests) ||
         ParseStringFlag(argv[i], "benchmark_filter", &FLAGS_benchmark_filter) ||
-        ParseDoubleFlag(argv[i], "benchmark_min_time",
+        ParseStringFlag(argv[i], "benchmark_min_time",
                         &FLAGS_benchmark_min_time) ||
         ParseDoubleFlag(argv[i], "benchmark_min_warmup_time",
                         &FLAGS_benchmark_min_warmup_time) ||
@@ -665,7 +727,7 @@ void PrintDefaultHelp() {
           "benchmark"
           " [--benchmark_list_tests={true|false}]\n"
           "          [--benchmark_filter=<regex>]\n"
-          "          [--benchmark_min_time=<min_time>]\n"
+          "          [--benchmark_min_time=`<integer>x` OR `<float>s` ]\n"
           "          [--benchmark_min_warmup_time=<min_warmup_time>]\n"
           "          [--benchmark_repetitions=<num_repetitions>]\n"
           "          [--benchmark_enable_random_interleaving={true|false}]\n"
@@ -676,6 +738,9 @@ void PrintDefaultHelp() {
           "          [--benchmark_out_format=<json|console|csv>]\n"
           "          [--benchmark_color={auto|true|false}]\n"
           "          [--benchmark_counters_tabular={true|false}]\n"
+#if defined HAVE_LIBPFM
+          "          [--benchmark_perf_counters=<counter>,...]\n"
+#endif
           "          [--benchmark_context=<key>=<value>,...]\n"
           "          [--benchmark_time_unit={ns|us|ms|s}]\n"
           "          [--v=<verbosity>]\n");

@@ -96,18 +96,18 @@ std::string FormatString(const char* msg, va_list args) {
   // currently there is no error handling for failure, so this is hack.
   BM_CHECK(ret >= 0);
 
-  if (ret == 0)  // handle empty expansion
+  if (ret == 0) {  // handle empty expansion
     return {};
-  else if (static_cast<size_t>(ret) < size)
-    return local_buff;
-  else {
-    // we did not provide a long enough buffer on our first attempt.
-    size = static_cast<size_t>(ret) + 1;  // + 1 for the null byte
-    std::unique_ptr<char[]> buff(new char[size]);
-    ret = vsnprintf(buff.get(), size, msg, args);
-    BM_CHECK(ret > 0 && (static_cast<size_t>(ret)) < size);
-    return buff.get();
   }
+  if (static_cast<size_t>(ret) < size) {
+    return local_buff;
+  }
+  // we did not provide a long enough buffer on our first attempt.
+  size = static_cast<size_t>(ret) + 1;  // + 1 for the null byte
+  std::unique_ptr<char[]> buff(new char[size]);
+  ret = vsnprintf(buff.get(), size, msg, args);
+  BM_CHECK(ret > 0 && (static_cast<size_t>(ret)) < size);
+  return buff.get();
 }
 
 std::string FormatString(const char* msg, ...) {
@@ -163,7 +163,7 @@ bool IsColorTerminal() {
 #else
   // On non-Windows platforms, we rely on the TERM variable. This list of
   // supported TERM values is copied from Google Test:
-  // <https://github.com/google/googletest/blob/master/googletest/src/gtest.cc#L2925>.
+  // <https://github.com/google/googletest/blob/main/googletest/src/gtest.cc#L2925>.
   const char* const SUPPORTED_TERM_VALUES[] = {
       "xterm",         "xterm-color",     "xterm-256color",
       "screen",        "screen-256color", "tmux",
