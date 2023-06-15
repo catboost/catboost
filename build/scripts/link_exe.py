@@ -2,6 +2,8 @@ import sys
 import subprocess
 import optparse
 
+import process_command_files as pcf
+
 from process_whole_archive_option import ProcessWholeArchiveOption
 
 
@@ -155,6 +157,7 @@ def parse_args():
 
 if __name__ == '__main__':
     opts, args = parse_args()
+    args = pcf.skip_markers(args)
 
     cmd = fix_blas_resolving(args)
     cmd = remove_excessive_flags(cmd)

@@ -2,6 +2,8 @@ import argparse
 import subprocess
 import sys
 
+import process_command_files as pcf
+
 from process_whole_archive_option import ProcessWholeArchiveOption
 
 YA_ARG_PREFIX = '-Ya,'
@@ -19,7 +21,7 @@ def get_args():
 
     groups = {}
     args_list = groups.setdefault('default', [])
-    for arg in sys.argv[1:]:
+    for arg in pcf.iter_args(sys.argv[1:]):
         if arg == '--with-own-obj':
             groups['default'].append(arg)
         elif arg == '--globals-lib':
