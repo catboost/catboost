@@ -20,7 +20,7 @@
 
     #define PSUF(NAME) NAME
     #define PSUF_LOCAL(NAME) NAME##Local
-    #include __FILE__
+    #include <util/folder/pathsplit_ut.cpp>
     #undef PSUF
     #undef PSUF_LOCAL
 
@@ -30,7 +30,7 @@
         #undef _win_
         #define REVERT_WIN
     #endif
-    #include __FILE__
+    #include <util/folder/pathsplit_ut.cpp>
     #ifdef REVERT_WIN
         #define _win_
         #undef REVERT_WIN
@@ -44,7 +44,7 @@
         #define _win_
         #define REVERT_WIN
     #endif
-    #include __FILE__
+    #include <util/folder/pathsplit_ut.cpp>
     #ifdef REVERT_WIN
         #undef _win_
         #undef REVERT_WIN
