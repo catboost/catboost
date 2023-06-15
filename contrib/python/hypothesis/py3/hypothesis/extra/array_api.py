@@ -401,21 +401,8 @@ class ArrayStrategy(st.SearchStrategy):
             # our elements strategy to those indices.
 
             fill_val = data.draw(self.fill)
-            try:
-                result = self.xp.full(self.array_size, fill_val, dtype=self.dtype)
-            except Exception as e:
-                raise InvalidArgument(
-                    f"Could not create full array of dtype={self.dtype} "
-                    f"with fill value {fill_val!r}"
-                ) from e
-            sample = result[0]
-            self.check_set_value(fill_val, sample, self.fill)
-            if self.unique and not self.xp.all(self.xp.isnan(result)):
-                raise InvalidArgument(
-                    f"Array module {self.xp.__name__} did not recognise fill "
-                    f"value {fill_val!r} as NaN - instead got {sample!r}. "
-                    "Cannot fill unique array with non-NaN values."
-                )
+            result_obj = [fill_val for _ in range(self.array_size)]
+            fill_mask = [True for _ in range(self.array_size)]
 
             elements = cu.many(
                 data,
@@ -445,15 +432,27 @@ class ArrayStrategy(st.SearchStrategy):
                         continue
                     else:
                         seen.add(val)
-                try:
-                    result[i] = val
-                except Exception as e:
-                    raise InvalidArgument(
-                        f"Could not add generated array element {val!r} "
-                        f"of type {type(val)} to array of dtype {result.dtype}."
-                    ) from e
-                self.check_set_value(val, result[i], self.elements_strategy)
+                result_obj[i] = val
                 assigned.add(i)
+                fill_mask[i] = False
+
+            try:
+                result = self.xp.asarray(result_obj, dtype=self.dtype)
+            except Exception as e:
+                f_expr = f"xp.asarray({result_obj}, dtype={self.dtype})"
+                raise InvalidArgument(f"Could not create array via {f_expr}") from e
+
+            for i, val in enumerate(result_obj):
+                val_0d = result[i]
+                if fill_mask[i] and self.unique:
+                    if not self.xp.isnan(val_0d):
+                        raise InvalidArgument(
+                            f"Array module {self.xp.__name__} did not recognise fill "
+                            f"value {fill_val!r} as NaN - instead got {val_0d!r}. "
+                            "Cannot fill unique array with non-NaN values."
+                        )
+                else:
+                    self.check_set_value(val, val_0d, self.elements_strategy)
 
         result = self.xp.reshape(result, self.shape)
 
@@ -540,7 +539,7 @@ def _arrays(
     your tests to run in reasonable time.
     """
     check_xp_attributes(
-        xp, ["finfo", "asarray", "zeros", "full", "all", "isnan", "isfinite", "reshape"]
+        xp, ["finfo", "asarray", "zeros", "all", "isnan", "isfinite", "reshape"]
     )
 
     if isinstance(dtype, st.SearchStrategy):
@@ -950,28 +949,6 @@ def make_strategies_namespace(
             exclude_max=exclude_max,
         )
 
-    # torch.full() does not accept integers as the shape argument (n.b.
-    # technically "size" in torch), but such behaviour is expected in
-    # xps.arrays(), so we copy xp and patch in a working function.
-    if xp is sys.modules.get("torch", object()):
-
-        class PatchedArrayModule:
-            def __getattr__(self, attr):
-                return getattr(xp, attr)
-
-            @property
-            def __name__(self):
-                return "torch<modified>"
-
-            def full(self, shape, *a, **kw):
-                if isinstance(shape, int):
-                    shape = (shape,)
-                return xp.full(shape, *a, **kw)
-
-        arrays_xp = PatchedArrayModule()
-    else:
-        arrays_xp = xp
-
     @defines_strategy(force_reusable_values=True)
     def arrays(
         dtype: Union[
@@ -984,7 +961,7 @@ def make_strategies_namespace(
         unique: bool = False,
     ) -> st.SearchStrategy:
         return _arrays(
-            arrays_xp,
+            xp,
             api_version,  # type: ignore[arg-type]
             dtype,
             shape,
@@ -1167,10 +1144,8 @@ if np is not None:
         arange=np.arange,
         asarray=np.asarray,
         empty=np.empty,
-        full=np.full,
         zeros=np.zeros,
         ones=np.ones,
-        linspace=np.linspace,
         # Manipulation functions
         reshape=np.reshape,
         # Element-wise functions

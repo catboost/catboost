@@ -168,3 +168,10 @@ class Found(Exception):
     """Signal that the example matches condition. Internal use only."""
 
     hypothesis_internal_never_escalate = True
+
+
+class RewindRecursive(Exception):
+    """Signal that the type inference should be rewound due to recursive types. Internal use only."""
+
+    def __init__(self, target):
+        self.target = target
