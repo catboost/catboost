@@ -108,6 +108,11 @@ def test_format():
     assert result == "<bar/>"
 
 
+def test_format_map():
+    result = Markup("<em>{value}</em>").format_map({"value": "<value>"})
+    assert result == "<em>&lt;value&gt;</em>"
+
+
 def test_formatting_empty():
     formatted = Markup("{}").format(0)
     assert formatted == Markup("0")
