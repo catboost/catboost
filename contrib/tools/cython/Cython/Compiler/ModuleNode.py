@@ -294,14 +294,14 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                 cname = env.mangle(Naming.func_prefix_api, entry.name)
                 sig = entry.type.signature_string()
                 h_code.putln(
-                    'if (__Pyx_ImportFunction(module, "%s", (void (**)(void))&%s, "%s") < 0) goto bad;'
-                    % (entry.name, cname, sig))
+                    'if (__Pyx_ImportFunction_%s(module, "%s", (void (**)(void))&%s, "%s") < 0) goto bad;'
+                    % (Naming.cyversion, entry.name, cname, sig))
             for entry in api_vars:
                 cname = env.mangle(Naming.varptr_prefix_api, entry.name)
                 sig = entry.type.empty_declaration_code()
                 h_code.putln(
-                    'if (__Pyx_ImportVoidPtr(module, "%s", (void **)&%s, "%s") < 0) goto bad;'
-                    % (entry.name, cname, sig))
+                    'if (__Pyx_ImportVoidPtr_%s(module, "%s", (void **)&%s, "%s") < 0) goto bad;'
+                    % (Naming.cyversion, entry.name, cname, sig))
             with ModuleImportGenerator(h_code, imported_modules={env.qualified_name: 'module'}) as import_generator:
                 for entry in api_extension_types:
                     self.generate_type_import_call(entry.type, h_code, import_generator, error_code="goto bad;")
@@ -1508,28 +1508,25 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                                              have_gil=True)
 
         if base_type:
+            base_cname = base_type.typeptr_cname
             if needs_gc:
                 # The base class deallocator probably expects this to be tracked,
                 # so undo the untracking above.
                 if base_type.scope and base_type.scope.needs_gc():
                     code.putln("PyObject_GC_Track(o);")
                 else:
-                    code.putln("#if CYTHON_USE_TYPE_SLOTS")
-                    code.putln("if (PyType_IS_GC(Py_TYPE(o)->tp_base))")
-                    code.putln("#endif")
-                    code.putln("PyObject_GC_Track(o);")
+                    code.putln("if (PyType_IS_GC(%s)) PyObject_GC_Track(o);" % base_cname)
 
             tp_dealloc = TypeSlots.get_base_slot_function(scope, tp_slot)
             if tp_dealloc is not None:
                 code.putln("%s(o);" % tp_dealloc)
             elif base_type.is_builtin_type:
-                code.putln("%s->tp_dealloc(o);" % base_type.typeptr_cname)
+                code.putln("%s->tp_dealloc(o);" % base_cname)
             else:
                 # This is an externally defined type.  Calling through the
                 # cimported base type pointer directly interacts badly with
                 # the module cleanup, which may already have cleared it.
                 # In that case, fall back to traversing the type hierarchy.
-                base_cname = base_type.typeptr_cname
                 code.putln("if (likely(%s)) %s->tp_dealloc(o); "
                            "else __Pyx_call_next_tp_dealloc(o, %s);" % (
                                base_cname, base_cname, slot_func_cname))
@@ -2964,7 +2961,8 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                     cname = module.mangle(Naming.varptr_prefix, entry.name)
                 signature = entry.type.empty_declaration_code()
                 code.putln(
-                    'if (__Pyx_ImportVoidPtr(%s, "%s", (void **)&%s, "%s") < 0) %s' % (
+                    'if (__Pyx_ImportVoidPtr_%s(%s, "%s", (void **)&%s, "%s") < 0) %s' % (
+                        Naming.cyversion,
                         temp, entry.name, cname, signature,
                         code.error_goto(self.pos)))
             code.put_decref_clear(temp, py_object_type)
@@ -2989,7 +2987,8 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
             code.put_gotref(temp)
             for entry in entries:
                 code.putln(
-                    'if (__Pyx_ImportFunction(%s, "%s", (void (**)(void))&%s, "%s") < 0) %s' % (
+                    'if (__Pyx_ImportFunction_%s(%s, "%s", (void (**)(void))&%s, "%s") < 0) %s' % (
+                        Naming.cyversion,
                         temp,
                         entry.name,
                         entry.cname,
@@ -3066,8 +3065,9 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
             error_code = code.error_goto(error_pos)
 
         module = import_generator.imported_module(module_name, error_code)
-        code.put('%s = __Pyx_ImportType(%s, %s,' % (
+        code.put('%s = __Pyx_ImportType_%s(%s, %s,' % (
             type.typeptr_cname,
+            Naming.cyversion,
             module,
             module_name))
 
@@ -3085,12 +3085,15 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
             if not condition:
                 code.putln("")  # start in new line
             code.putln("#if defined(PYPY_VERSION_NUM) && PYPY_VERSION_NUM < 0x050B0000")
-            code.putln('sizeof(%s), __PYX_GET_STRUCT_ALIGNMENT(%s),' % (objstruct, objstruct))
+            code.putln('sizeof(%s), __PYX_GET_STRUCT_ALIGNMENT_%s(%s),' % (
+                objstruct, Naming.cyversion, objstruct))
             code.putln("#else")
-            code.putln('sizeof(%s), __PYX_GET_STRUCT_ALIGNMENT(%s),' % (sizeof_objstruct, sizeof_objstruct))
+            code.putln('sizeof(%s), __PYX_GET_STRUCT_ALIGNMENT_%s(%s),' % (
+                sizeof_objstruct, Naming.cyversion, sizeof_objstruct))
             code.putln("#endif")
         else:
-            code.putln('sizeof(%s), __PYX_GET_STRUCT_ALIGNMENT(%s),' % (objstruct, objstruct))
+            code.put('sizeof(%s), __PYX_GET_STRUCT_ALIGNMENT_%s(%s),' % (
+                objstruct, Naming.cyversion, objstruct))
 
         # check_size
         if type.check_size and type.check_size in ('error', 'warn', 'ignore'):
@@ -3100,7 +3103,8 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         else:
             raise RuntimeError("invalid value for check_size '%s' when compiling %s.%s" % (
                 type.check_size, module_name, type.name))
-        code.putln('__Pyx_ImportType_CheckSize_%s);' % check_size.title())
+        code.put('__Pyx_ImportType_CheckSize_%s_%s);' % (
+            check_size.title(), Naming.cyversion))
 
         code.putln(' if (!%s) %s' % (type.typeptr_cname, error_code))
 
