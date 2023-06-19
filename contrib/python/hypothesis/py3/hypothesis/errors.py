@@ -175,3 +175,8 @@ class RewindRecursive(Exception):
 
     def __init__(self, target):
         self.target = target
+
+
+class SmallSearchSpaceWarning(HypothesisWarning):
+    """Indicates that an inferred strategy does not span the search space
+    in a meaningful way, for example by only creating default instances."""

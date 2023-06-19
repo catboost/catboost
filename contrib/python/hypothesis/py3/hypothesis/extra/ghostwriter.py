@@ -80,6 +80,7 @@ import os
 import re
 import sys
 import types
+import warnings
 from collections import OrderedDict, defaultdict
 from itertools import permutations, zip_longest
 from keyword import iskeyword
@@ -107,7 +108,7 @@ from typing import (
 import black
 
 from hypothesis import Verbosity, find, settings, strategies as st
-from hypothesis.errors import InvalidArgument
+from hypothesis.errors import InvalidArgument, SmallSearchSpaceWarning
 from hypothesis.internal.compat import get_args, get_origin, get_type_hints
 from hypothesis.internal.reflection import get_signature, is_mock
 from hypothesis.internal.validation import check_type
@@ -608,12 +609,13 @@ def _imports_for_strategy(strategy):
                 for imp in _imports_for_object(arg)
             }
         elif _get_module(strategy.function).startswith("hypothesis.extra."):
-            return {(_get_module(strategy.function), strategy.function.__name__)}
             module = _get_module(strategy.function).replace("._array_helpers", ".numpy")
             return {(module, strategy.function.__name__)}
 
     imports = set()
-    strategy = unwrap_strategies(strategy)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", SmallSearchSpaceWarning)
+        strategy = unwrap_strategies(strategy)
 
     # Get imports for s.map(f), s.filter(f), s.flatmap(f), including both s and f
     if isinstance(strategy, MappedSearchStrategy):

@@ -571,6 +571,7 @@ _global_type_lookup: typing.Dict[
     filter: st.builds(filter, st.just(lambda _: None), st.just(())),
     map: st.builds(map, st.just(lambda _: None), st.just(())),
     reversed: st.builds(reversed, st.just(())),
+    property: st.builds(property, st.just(lambda _: None)),
     classmethod: st.builds(classmethod, st.just(lambda self: self)),
     staticmethod: st.builds(staticmethod, st.just(lambda self: self)),
     super: st.builds(super, st.from_type(type)),
