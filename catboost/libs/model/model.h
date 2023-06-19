@@ -961,6 +961,33 @@ public:
     }
 
     /**
+     * Call CalcFlatTransposed on all model trees
+     * @param features
+     * @param results
+     */
+    void CalcFlatTransposed(
+        TConstArrayRef<TConstArrayRef<float>> features,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        CalcFlatTransposed(features, 0, GetTreeCount(), results, featureInfo);
+    }
+
+    /**
+     * Call CalcFlatTransposed on all model trees
+     * @param features
+     * @param results
+     */
+    void CalcFlatTransposed(
+        TConstArrayRef<TVector<float>> features,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        TVector<TConstArrayRef<float>> featureRefs{features.begin(), features.end()};
+        CalcFlatTransposed(featureRefs, results, featureInfo);
+    }
+
+    /**
      * Same as CalcFlat method but for one object
      * @param[in] features flat features array reference. First dimension is object index, second dimension is
      *  feature index.
