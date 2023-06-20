@@ -212,7 +212,8 @@ public:
      */
     std::vector<double> CalcFlat(const std::vector<std::vector<float>>& features) const {
         std::vector<double> result(features.size() * DimensionsCount);
-        std::vector<const float*> ptrsVector(features.size());
+        std::vector<const float*> ptrsVector;
+        ptrsVector.reserve(features.size());
         size_t flatVecSize = 0;
         for (const auto& flatVec : features) {
             flatVecSize = flatVec.size();
@@ -232,7 +233,8 @@ public:
      * @return vector of raw prediction values
      */
     std::vector<double> CalcFlatTransposed(const std::vector<std::vector<float>>& transposedFeatures) const {
-        std::vector<const float*> ptrsVector(transposedFeatures.size());
+        std::vector<const float*> ptrsVector;
+        ptrsVector.reserve(transposedFeatures.size());
         size_t docCount = 0;
         for (const auto& feature : transposedFeatures) {
             docCount = feature.size();
