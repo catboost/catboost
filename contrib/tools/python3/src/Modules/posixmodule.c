@@ -170,6 +170,14 @@
 #    define HAVE_PWRITEV_RUNTIME (pwritev != NULL)
 #  endif
 
+#  ifdef HAVE_MKFIFOAT
+#    define HAVE_MKFIFOAT_RUNTIME (mkfifoat != NULL)
+#  endif
+
+#  ifdef HAVE_MKNODAT
+#    define HAVE_MKNODAT_RUNTIME (mknodat != NULL)
+#  endif
+
 #endif
 
 #ifdef HAVE_FUTIMESAT
@@ -273,8 +281,9 @@ corresponding Unix manual entries for more information on calls.");
 #  undef HAVE_SCHED_SETAFFINITY
 #endif
 
-#if defined(HAVE_SYS_XATTR_H) && defined(__GLIBC__) && !defined(__FreeBSD_kernel__) && !defined(__GNU__)
+#if defined(HAVE_SYS_XATTR_H) && defined(__linux__) && !defined(__FreeBSD_kernel__) && !defined(__GNU__)
 #  define USE_XATTRS
+#  include <linux/limits.h>  // Needed for XATTR_SIZE_MAX on musl libc.
 #endif
 
 #ifdef USE_XATTRS

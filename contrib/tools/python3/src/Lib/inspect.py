@@ -1829,8 +1829,10 @@ def getattr_static(obj, attr, default=_sentinel):
     klass_result = _check_class(klass, attr)
 
     if instance_result is not _sentinel and klass_result is not _sentinel:
-        if (_check_class(type(klass_result), '__get__') is not _sentinel and
-            _check_class(type(klass_result), '__set__') is not _sentinel):
+        if _check_class(type(klass_result), "__get__") is not _sentinel and (
+            _check_class(type(klass_result), "__set__") is not _sentinel
+            or _check_class(type(klass_result), "__delete__") is not _sentinel
+        ):
             return klass_result
 
     if instance_result is not _sentinel:
@@ -2536,17 +2538,18 @@ def _signature_from_callable(obj, *,
             factory_method = None
             new = _signature_get_user_defined_method(obj, '__new__')
             init = _signature_get_user_defined_method(obj, '__init__')
-            # Now we check if the 'obj' class has an own '__new__' method
-            if '__new__' in obj.__dict__:
-                factory_method = new
-            # or an own '__init__' method
-            elif '__init__' in obj.__dict__:
-                factory_method = init
-            # If not, we take inherited '__new__' or '__init__', if present
-            elif new is not None:
-                factory_method = new
-            elif init is not None:
-                factory_method = init
+
+            # Go through the MRO and see if any class has user-defined
+            # pure Python __new__ or __init__ method
+            for base in obj.__mro__:
+                # Now we check if the 'obj' class has an own '__new__' method
+                if new is not None and '__new__' in base.__dict__:
+                    factory_method = new
+                    break
+                # or an own '__init__' method
+                elif init is not None and '__init__' in base.__dict__:
+                    factory_method = init
+                    break
 
             if factory_method is not None:
                 sig = _get_signature_of(factory_method)
@@ -2978,7 +2981,7 @@ class Signature:
             if __validate_parameters__:
                 params = OrderedDict()
                 top_kind = _POSITIONAL_ONLY
-                kind_defaults = False
+                seen_default = False
 
                 for param in parameters:
                     kind = param.kind
@@ -2993,21 +2996,19 @@ class Signature:
                                          kind.description)
                         raise ValueError(msg)
                     elif kind > top_kind:
-                        kind_defaults = False
                         top_kind = kind
 
                     if kind in (_POSITIONAL_ONLY, _POSITIONAL_OR_KEYWORD):
                         if param.default is _empty:
-                            if kind_defaults:
+                            if seen_default:
                                 # No default for this parameter, but the
-                                # previous parameter of the same kind had
-                                # a default
+                                # previous parameter of had a default
                                 msg = 'non-default argument follows default ' \
                                       'argument'
                                 raise ValueError(msg)
                         else:
                             # There is a default for this parameter.
-                            kind_defaults = True
+                            seen_default = True
 
                     if name in params:
                         msg = 'duplicate parameter name: {!r}'.format(name)
