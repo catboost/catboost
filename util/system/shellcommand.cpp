@@ -687,22 +687,8 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         }
 
         if (Options_.CloseAllFdsOnExec) {
-            int maxOpenFiles = NSystemInfo::MaxOpenFiles();
-            TFsPath fdDir("/proc/self/fd");
-            // For a big MaxOpenFiles value directory listing overhead is negligible against useless fcntl calls
-            if (maxOpenFiles > 1024 && fdDir.IsDirectory()) {
-                TVector<TString> files;
-                fdDir.ListNames(files);
-                for (const TString& f : files) {
-                    int fd;
-                    if (TryFromString(f, fd) && fd > STDERR_FILENO) {
-                        fcntl(fd, F_SETFD, FD_CLOEXEC);
-                    }
-                }
-            } else {
-                for (int fd = maxOpenFiles; fd > STDERR_FILENO; --fd) {
-                    fcntl(fd, F_SETFD, FD_CLOEXEC);
-                }
+            for (int fd = NSystemInfo::MaxOpenFiles(); fd > STDERR_FILENO; --fd) {
+                fcntl(fd, F_SETFD, FD_CLOEXEC);
             }
         }
 
