@@ -1,6 +1,6 @@
 from .core import (
     FeaturesData, EFstrType, EShapCalcType, EFeaturesSelectionAlgorithm, EFeaturesSelectionGrouping,
-    Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatBoostRanker, CatBoostError, cv, train,
+    Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatBoostRanker, CatBoostError, cv, sample_gaussian_process, train,
     sum_models, _have_equal_features, to_regressor, to_classifier, to_ranker, MultiRegressionCustomMetric,
     MultiRegressionCustomObjective, MultiTargetCustomMetric, MultiTargetCustomObjective
 )  # noqa
@@ -8,7 +8,7 @@ from .version import VERSION as __version__  # noqa
 __all__ = [
     'FeaturesData', 'EFstrType', 'EShapCalcType', 'EFeaturesSelectionAlgorithm', 'EFeaturesSelectionGrouping',
     'Pool', 'CatBoost', 'CatBoostClassifier', 'CatBoostRegressor', 'CatBoostRanker', 'CatboostError',
-    'cv', 'train', 'sum_models', '_have_equal_features',
+    'cv', 'sample_gaussian_process', 'train', 'sum_models', '_have_equal_features',
     'to_regressor', 'to_classifier', 'to_ranker', 'MultiRegressionCustomMetric', 'MultiRegressionCustomObjective',
     'MultiTargetCustomMetric', 'MultiTargetCustomObjective'
 ]
