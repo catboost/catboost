@@ -139,6 +139,23 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
 #endif
     }
 
+    Y_UNIT_TEST(TestCollapseUtf16) {
+        TUtf16String s;
+        Collapse(UTF8ToWide<true>("  123    456  "), s);
+        UNIT_ASSERT(s == UTF8ToWide<true>(" 123 456 "));
+        Collapse(UTF8ToWide<true>("  123    456  "), s, 10);
+        UNIT_ASSERT(s == UTF8ToWide<true>(" 123 456  "));
+
+        s = UTF8ToWide<true>(" a b c ");
+        TUtf16String s2 = s;
+        CollapseInPlace(s2);
+
+        UNIT_ASSERT(s == s2);
+#ifndef TSTRING_IS_STD_STRING
+        UNIT_ASSERT(s.c_str() == s2.c_str()); // Collapse() does not change the string at all
+#endif
+    }
+
     Y_UNIT_TEST(TestCollapse) {
         TString s;
         Collapse(TString("  123    456  "), s);
