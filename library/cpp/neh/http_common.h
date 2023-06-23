@@ -267,8 +267,8 @@ namespace NNeh {
             AbsoluteUri = 1,
         };
 
-        Y_DECLARE_FLAGS(ERequestFlags, ERequestFlag)
-        Y_DECLARE_OPERATORS_FOR_FLAGS(ERequestFlags)
+        Y_DECLARE_FLAGS(ERequestFlags, ERequestFlag);
+        Y_DECLARE_OPERATORS_FOR_FLAGS(ERequestFlags);
 
         static constexpr ERequestType DefaultRequestType = ERequestType::Any;
 

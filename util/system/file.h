@@ -49,8 +49,8 @@ enum EOpenModeFlag {
     AMask = 0x0FFF0000,
 };
 
-Y_DECLARE_FLAGS(EOpenMode, EOpenModeFlag)
-Y_DECLARE_OPERATORS_FOR_FLAGS(EOpenMode)
+Y_DECLARE_FLAGS(EOpenMode, EOpenModeFlag);
+Y_DECLARE_OPERATORS_FOR_FLAGS(EOpenMode);
 
 TString DecodeOpenMode(ui32 openMode);
 

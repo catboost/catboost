@@ -23,12 +23,12 @@ namespace NPrivate {
  *         Vertical = 1,
  *         Horizontal = 2
  *     };
- *     Y_DECLARE_FLAGS(EOrientations, EOrientation)
+ *     Y_DECLARE_FLAGS(EOrientations, EOrientation);
  *
  *     // ...
  * };
  *
- * Y_DECLARE_OPERATORS_FOR_FLAGS(TAligner::EOrientations)
+ * Y_DECLARE_OPERATORS_FOR_FLAGS(TAligner::EOrientations);
  * @endcode
  */
 template <class Enum>
@@ -224,7 +224,7 @@ struct THash<TFlags<Enum>> {
  * @param ENUM                          Name of the base enum type to use.
  */
 #define Y_DECLARE_FLAGS(FLAGS, ENUM) \
-    using FLAGS = TFlags<ENUM>;
+    using FLAGS = TFlags<ENUM>
 
 /**
  * This macro declares global operator functions for enum base of `FLAGS` type.
@@ -241,4 +241,5 @@ struct THash<TFlags<Enum>> {
     Y_DECLARE_UNUSED                                                   \
     constexpr inline FLAGS operator~(FLAGS::TEnum value) {             \
         return ~FLAGS(value);                                          \
-    }
+    }                                                                  \
+    Y_SEMICOLON_GUARD

@@ -21,7 +21,7 @@ namespace NFs {
         FP_NONSECRET_FILE = 0744,
     };
 
-    Y_DECLARE_FLAGS(EFilePermissions, EFilePermission)
+    Y_DECLARE_FLAGS(EFilePermissions, EFilePermission);
 
     /// Remove a file or empty directory
     ///
@@ -154,4 +154,4 @@ namespace NFs {
     }
 }
 
-Y_DECLARE_OPERATORS_FOR_FLAGS(NFs::EFilePermissions)
+Y_DECLARE_OPERATORS_FOR_FLAGS(NFs::EFilePermissions);

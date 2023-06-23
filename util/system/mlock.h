@@ -23,8 +23,8 @@ enum ELockAllMemoryFlag {
     /** Since Linux 4.4, with LockCurrentMemory or LockFutureMemory or both, lock only pages that are or once they are present in memory. */
     LockMemoryOnFault = 4,
 };
-Y_DECLARE_FLAGS(ELockAllMemoryFlags, ELockAllMemoryFlag)
-Y_DECLARE_OPERATORS_FOR_FLAGS(ELockAllMemoryFlags)
+Y_DECLARE_FLAGS(ELockAllMemoryFlags, ELockAllMemoryFlag);
+Y_DECLARE_OPERATORS_FOR_FLAGS(ELockAllMemoryFlags);
 
 /**
  * Performs provided locking operation.

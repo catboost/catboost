@@ -13,8 +13,8 @@ enum ENumberFormatFlag {
     HF_FULL = 0x01, /**< Output number with leading zeros. */
     HF_ADDX = 0x02, /**< Output '0x' or '0b' before hex/bin digits. */
 };
-Y_DECLARE_FLAGS(ENumberFormat, ENumberFormatFlag)
-Y_DECLARE_OPERATORS_FOR_FLAGS(ENumberFormat)
+Y_DECLARE_FLAGS(ENumberFormat, ENumberFormatFlag);
+Y_DECLARE_OPERATORS_FOR_FLAGS(ENumberFormat);
 
 enum ESizeFormat {
     SF_QUANTITY, /**< Base 1000, usual suffixes. 1100 gets turned into "1.1K". */

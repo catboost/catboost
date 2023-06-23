@@ -58,7 +58,7 @@ struct TMemoryMapCommon {
         oPrecharge = 16,
         oPopulate = 32, // Populate page table entries (see mmap's MAP_POPULATE)
     };
-    Y_DECLARE_FLAGS(EOpenMode, EOpenModeFlag)
+    Y_DECLARE_FLAGS(EOpenMode, EOpenModeFlag);
 
     /**
      * Name that will be printed in exceptions if not specified.
@@ -66,7 +66,7 @@ struct TMemoryMapCommon {
      */
     static const TString& UnknownFileName();
 };
-Y_DECLARE_OPERATORS_FOR_FLAGS(TMemoryMapCommon::EOpenMode)
+Y_DECLARE_OPERATORS_FOR_FLAGS(TMemoryMapCommon::EOpenMode);
 
 class TMemoryMap: public TMemoryMapCommon {
 public:
