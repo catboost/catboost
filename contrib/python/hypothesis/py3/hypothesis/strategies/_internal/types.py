@@ -594,17 +594,6 @@ if sys.version_info[:2] >= (3, 9):
     _global_type_lookup[os._Environ] = st.just(os.environ)
 
 
-try:  # pragma: no cover
-    import numpy as np
-
-    from hypothesis.extra.numpy import array_dtypes, array_shapes, arrays, scalar_dtypes
-
-    _global_type_lookup[np.dtype] = array_dtypes()
-    _global_type_lookup[np.ndarray] = arrays(scalar_dtypes(), array_shapes(max_dims=2))
-except ImportError:
-    pass
-
-
 _global_type_lookup.update(
     {
         # Note: while ByteString notionally also represents the bytearray and
@@ -665,6 +654,26 @@ _global_type_lookup.update(
 )
 if hasattr(typing, "SupportsIndex"):  # pragma: no branch  # new in Python 3.8
     _global_type_lookup[typing.SupportsIndex] = st.integers() | st.booleans()
+
+
+# The "extra" lookups define a callable that either resolves to a strategy for
+# this narrowly extra-specific type, or returns None to proceed with normal
+# type resolution. The callable will only be called if the module is
+# installed. To avoid the performance hit of importing anything here, we defer
+# it until the method is called the first time, at which point we replace the
+# entry in the lookup table with the direct call.
+def _from_numpy_type(thing: typing.Type) -> typing.Optional[st.SearchStrategy]:
+    from hypothesis.extra.numpy import _from_type
+
+    _global_extra_lookup["numpy"] = _from_type
+    return _from_type(thing)
+
+
+_global_extra_lookup: typing.Dict[
+    str, typing.Callable[[typing.Type], typing.Optional[st.SearchStrategy]]
+] = {
+    "numpy": _from_numpy_type,
+}
 
 
 def register(type_, fallback=None, *, module=typing):

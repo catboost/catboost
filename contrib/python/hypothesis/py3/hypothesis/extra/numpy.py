@@ -8,6 +8,7 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import importlib
 import math
 from typing import (
     TYPE_CHECKING,
@@ -16,6 +17,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Type,
     TypeVar,
     Union,
 )
@@ -44,11 +46,27 @@ from hypothesis.internal.coverage import check_function
 from hypothesis.internal.reflection import proxies
 from hypothesis.internal.validation import check_type
 from hypothesis.strategies._internal.numbers import Real
-from hypothesis.strategies._internal.strategies import T, check_strategy
+from hypothesis.strategies._internal.strategies import Ex, T, check_strategy
 from hypothesis.strategies._internal.utils import defines_strategy
+
+
+def _try_import(mod_name: str, attr_name: str) -> Any:
+    assert "." not in attr_name
+    try:
+        mod = importlib.import_module(mod_name)
+        return getattr(mod, attr_name, None)
+    except ImportError:
+        return None
+
 
 if TYPE_CHECKING:
     from numpy.typing import DTypeLike, NDArray
+else:
+    NDArray = _try_import("numpy.typing", "NDArray")
+
+ArrayLike = _try_import("numpy.typing", "ArrayLike")
+_NestedSequence = _try_import("numpy._typing._nested_sequence", "_NestedSequence")
+_SupportsArray = _try_import("numpy._typing._array_like", "_SupportsArray")
 
 __all__ = [
     "BroadcastableShapes",
@@ -978,3 +996,138 @@ def integer_array_indices(
     return result_shape.flatmap(
         lambda index_shape: st.tuples(*(array_for(index_shape, size) for size in shape))
     )
+
+
+def _unpack_generic(thing):
+    # get_origin and get_args fail on python<3.9 because (some of) the
+    # relevant types do not inherit from _GenericAlias.  So just pick the
+    # value out directly.
+    real_thing = getattr(thing, "__origin__", None)
+    if real_thing is not None:
+        return (real_thing, getattr(thing, "__args__", ()))
+    else:
+        return (thing, ())
+
+
+def _unpack_dtype(dtype):
+    dtype_args = getattr(dtype, "__args__", ())
+    if dtype_args:
+        assert len(dtype_args) == 1
+        if isinstance(dtype_args[0], TypeVar):
+            # numpy.dtype[+ScalarType]
+            assert dtype_args[0].__bound__ == np.generic
+            dtype = Any
+        else:
+            # plain dtype
+            dtype = dtype_args[0]
+    return dtype
+
+
+def _dtype_and_shape_from_args(args):
+    if len(args) <= 1:
+        # Zero args: ndarray, _SupportsArray
+        # One arg: ndarray[type], _SupportsArray[type]
+        shape = Any
+        dtype = _unpack_dtype(args[0]) if args else Any
+    else:
+        # Two args: ndarray[shape, type], NDArray[*]
+        assert len(args) == 2
+        shape = args[0]
+        assert shape is Any
+        dtype = _unpack_dtype(args[1])
+    return (
+        scalar_dtypes() if dtype is Any else np.dtype(dtype),
+        array_shapes(max_dims=2) if shape is Any else shape,
+    )
+
+
+def _from_type(thing: Type[Ex]) -> Optional[st.SearchStrategy[Ex]]:
+    """Called by st.from_type to try to infer a strategy for thing using numpy.
+
+    If we can infer a numpy-specific strategy for thing, we return that; otherwise,
+    we return None.
+    """
+
+    base_strats = st.one_of(
+        [
+            st.booleans(),
+            st.integers(),
+            st.floats(),
+            st.complex_numbers(),
+            st.text(),
+            st.binary(),
+        ]
+    )
+    # don't mix strings and non-ascii bytestrings (ex: ['', b'\x80']). See
+    # https://github.com/numpy/numpy/issues/23899.
+    base_strats_ascii = st.one_of(
+        [
+            st.booleans(),
+            st.integers(),
+            st.floats(),
+            st.complex_numbers(),
+            st.text(),
+            st.binary().filter(bytes.isascii),
+        ]
+    )
+
+    if thing == np.dtype:
+        # Note: Parameterized dtypes and DTypeLike are not supported.
+        return st.one_of(
+            scalar_dtypes(),
+            byte_string_dtypes(),
+            unicode_string_dtypes(),
+            array_dtypes(),
+            nested_dtypes(),
+        )
+
+    if thing == ArrayLike:
+        # We override the default type resolution to ensure the "coercible to
+        # array" contract is honoured. See
+        # https://github.com/HypothesisWorks/hypothesis/pull/3670#issuecomment-1578140422.
+        # The actual type is (as of np 1.24), with
+        # scalars:=[bool, int, float, complex, str, bytes]:
+        # Union[
+        #     _SupportsArray,
+        #     _NestedSequence[_SupportsArray],
+        #     *scalars,
+        #     _NestedSequence[Union[*scalars]]
+        # ]
+        return st.one_of(
+            # *scalars
+            base_strats,
+            # The two recursive strategies below cover the following cases:
+            # - _SupportsArray (using plain ndarrays)
+            # - _NestedSequence[Union[*scalars]] (but excluding non-ascii binary)
+            # - _NestedSequence[_SupportsArray] (but with a single leaf element
+            # .  to avoid the issue of unequally sized leaves)
+            st.recursive(st.lists(base_strats_ascii), extend=st.tuples),
+            st.recursive(st.from_type(np.ndarray), extend=st.tuples),
+        )
+
+    if isinstance(thing, type) and issubclass(thing, np.generic):
+        dtype = np.dtype(thing)
+        return from_dtype(dtype) if dtype.kind not in "OV" else None
+
+    real_thing, args = _unpack_generic(thing)
+
+    if real_thing == _NestedSequence:
+        # We have to override the default resolution to ensure sequences are of
+        # equal length. Actually they are still not, if the arg specialization
+        # returns arbitrary-shaped sequences or arrays - hence the even more special
+        # resolution of ArrayLike, above.
+        assert len(args) <= 1
+        base_strat = st.from_type(args[0]) if args else base_strats
+        return st.one_of(
+            st.lists(base_strat),
+            st.recursive(st.tuples(), st.tuples),
+            st.recursive(st.tuples(base_strat), st.tuples),
+            st.recursive(st.tuples(base_strat, base_strat), st.tuples),
+        )
+
+    if real_thing in [np.ndarray, _SupportsArray]:
+        dtype, shape = _dtype_and_shape_from_args(args)
+        return arrays(dtype, shape)
+
+    # We didn't find a type to resolve, continue
+    return None

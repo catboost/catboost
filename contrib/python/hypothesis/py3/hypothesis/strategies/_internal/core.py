@@ -1104,6 +1104,14 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
         finally:
             recurse_guard.pop()
 
+    # Let registered extra modules handle their own recognized types first, before
+    # e.g. Unions are resolved
+    if thing not in types._global_type_lookup:
+        for module, resolver in types._global_extra_lookup.items():
+            if module in sys.modules:
+                strat = resolver(thing)
+                if strat is not None:
+                    return strat
     if not isinstance(thing, type):
         if types.is_a_new_type(thing):
             # Check if we have an explicitly registered strategy for this thing,
@@ -1187,6 +1195,7 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
     # We need to work with their type instead.
     if isinstance(thing, TypeVar) and type(thing) in types._global_type_lookup:
         return as_strategy(types._global_type_lookup[type(thing)], thing)
+
     # If there's no explicitly registered strategy, maybe a subtype of thing
     # is registered - if so, we can resolve it to the subclass strategy.
     # We'll start by checking if thing is from from the typing module,
@@ -1215,16 +1224,6 @@ def _from_type(thing: Type[Ex], recurse_guard: List[Type[Ex]]) -> SearchStrategy
     # may be able to fall back on type annotations.
     if issubclass(thing, enum.Enum):
         return sampled_from(thing)
-    # Handle numpy types. If numpy is not imported, the type cannot be numpy related.
-    if "numpy" in sys.modules:
-        import numpy as np
-
-        if issubclass(thing, np.generic):
-            dtype = np.dtype(thing)
-            if dtype.kind not in "OV":
-                from hypothesis.extra.numpy import from_dtype
-
-                return from_dtype(dtype)
     # Finally, try to build an instance by calling the type object.  Unlike builds(),
     # this block *does* try to infer strategies for arguments with default values.
     # That's because of the semantic different; builds() -> "call this with ..."
