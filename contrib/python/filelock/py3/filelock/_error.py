@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 
-class Timeout(TimeoutError):
+class Timeout(TimeoutError):  # noqa: N818
     """Raised when the lock could not be acquired in *timeout* seconds."""
 
     def __init__(self, lock_file: str) -> None:

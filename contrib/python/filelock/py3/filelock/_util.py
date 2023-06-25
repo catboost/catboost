@@ -12,12 +12,12 @@ def raise_on_not_writable_file(filename: str) -> None:
     This is done so files that will never be writable can be separated from
     files that are writable but currently locked
     :param filename: file to check
-    :raises OSError: as if the file was opened for writing
+    :raises OSError: as if the file was opened for writing.
     """
-    try:
-        file_stat = os.stat(filename)  # use stat to do exists + can write to check without race condition
+    try:  # use stat to do exists + can write to check without race condition
+        file_stat = os.stat(filename)  # noqa: PTH116
     except OSError:
-        return None  # swallow does not exist or other errors
+        return  # swallow does not exist or other errors
 
     if file_stat.st_mtime != 0:  # if os.stat returns but modification is zero that's an invalid os.stat - ignore it
         if not (file_stat.st_mode & stat.S_IWUSR):
@@ -27,7 +27,7 @@ def raise_on_not_writable_file(filename: str) -> None:
             if sys.platform == "win32":  # pragma: win32 cover
                 # On Windows, this is PermissionError
                 raise PermissionError(EACCES, "Permission denied", filename)
-            else:  # pragma: win32 no cover
+            else:  # pragma: win32 no cover # noqa: RET506
                 # On linux / macOS, this is IsADirectoryError
                 raise IsADirectoryError(EISDIR, "Is a directory", filename)
 
