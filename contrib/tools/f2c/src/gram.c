@@ -797,9 +797,9 @@ yystack:
 		printf("char %s in %s", yytokname(yychar), yystatname(yystate));
 
 	yyp++;
-	if(yyp >= &yys[YYMAXDEPTH]) {
-		yyerror("yacc stack overflow");
-		goto ret1;
+	if(yyp >= &yys[YYMAXDEPTH]) { 
+		yyerror("yacc stack overflow"); 
+		goto ret1; 
 	}
 	yyp->yys = yystate;
 	yyp->yyv = yyval;
@@ -904,7 +904,7 @@ yyerrlab:
 	if(yyj >= YYLAST || yychk[yystate=yyact[yyj]] != -yyn)
 		yystate = yyact[yyg];
 	switch(yym) {
-
+		
 case 3:
 /* #line	220	"/n/bopp/v5/dmg/f2c/gram.in" */
 {

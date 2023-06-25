@@ -116,8 +116,7 @@ nextdata(ftnint *elenp)
 			ip = &(p->impldoblock);
 			if(ip->implb==NULL || ip->impub==NULL || ip->varnp==NULL) {
 				char buf[100];
-				sprintf(buf, "bad impldoblock #%lx",
-					(unsigned long)ip);
+				sprintf(buf, "bad impldoblock #" Addrfmt, (Addr)ip);
 				Fatal(buf);
 				}
 			if(ip->isactive)

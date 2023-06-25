@@ -3502,3 +3502,22 @@ Thanks to Ole Streicher for pointing out the need for this change.
 
 20190311
   main.c:  update URL's in "f2c -?" and "f2c --help" output.
+
+20191129
+  pread.c: fix a glitch not known to have caused any trouble:
+355c355
+< 		if (c < '0' && c > '9')
+---
+> 		if (c < '0' || c > '9')
+
+20200425
+  sysdeptest.c: add #include <stdlib.h>
+
+20200916
+  data.c exec.c format.c formatdata.c ftypes.h mem.c output.c
+p1output.c proc.c sysdep.c:  introduce type Addr, an unsigned
+integer type that can hold an address.  The changes allow compilation
+of the f2c source on platforms that actually use more than 32 bits
+for addresses.  (Many 64-bit platforms keep addresses <= 32 bits
+long when possible.  One that does not and for which today's changes
+are relevant is Microsoft Windows with Microsoft's cl compiler.)

@@ -71,6 +71,7 @@ static void do_p1_set_line Argdcl((FILEP));
 static void do_p1_subr_ret Argdcl((FILEP, FILEP));
 static int get_p1_token Argdcl((FILEP));
 static int p1get_const Argdcl((FILEP, int, Constp*));
+static int p1geta Argdcl((FILEP, Addr*));
 static int p1getd Argdcl((FILEP, long int*));
 static int p1getf Argdcl((FILEP, char**));
 static int p1getn Argdcl((FILEP, int, char**));
@@ -381,13 +382,13 @@ do_p1_name_pointer(FILE *infile)
     Namep namep = (Namep) NULL;
     int status;
 
-    status = p1getd (infile, (long *) &namep);
+    status = p1geta (infile, (Addr *) &namep);
 
     if (status == EOF)
 	err ("do_p1_name_pointer:  Missing pointer at end of file\n");
     else if (status == 0 || namep == (Namep) NULL)
-	erri ("do_p1_name_pointer:  Illegal name pointer in p1 file: '#%lx'\n",
-		(unsigned long) namep);
+	erri ("do_p1_name_pointer:  Illegal name pointer in p1 file: '#" Addrfmt "'\n",
+		(Addr) namep);
 
     return (expptr) namep;
 } /* do_p1_name_pointer */
@@ -2328,7 +2329,7 @@ p1get_const(FILE *infile, int type, struct Constblock **resultp)
 #endif
 {
     int status;
-    unsigned long a;
+    Addr a;
     struct Constblock *result;
 
 	if (type != TYCHAR) {
@@ -2364,7 +2365,7 @@ p1get_const(FILE *infile, int type, struct Constblock **resultp)
 	    result->vstg = 1;
 	    break;
 	case TYCHAR:
-	    status = fscanf(infile, "%lx", &a);
+	    status = fscanf(infile, Addrfmt, &a);
 	    *resultp = (struct Constblock *) a;
 	    break;
 	default:
@@ -2375,6 +2376,18 @@ p1get_const(FILE *infile, int type, struct Constblock **resultp)
 
     return status;
 } /* p1get_const */
+
+ static int
+#ifdef KR_headers
+p1geta(infile, result)
+	FILE *infile;
+	Addr *result;
+#else
+p1geta(FILE *infile, Addr *result)
+#endif
+{
+    return fscanf (infile, Addrfmt, result);
+} /* p1getd */
 
  static int
 #ifdef KR_headers

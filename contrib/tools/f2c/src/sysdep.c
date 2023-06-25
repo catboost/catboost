@@ -22,7 +22,6 @@ use or performance of this software.
 ****************************************************************/
 #include "defs.h"
 #include "usignal.h"
-#include <stdlib.h>
 
 char binread[] = "rb", textread[] = "r";
 char binwrite[] = "wb", textwrite[] = "w";
@@ -95,15 +94,18 @@ Un_link_all(int cdelete)
 	if (!debugflag) {
 		unlink(c_functions);
 		unlink(initfname);
-                unlink(initbname);
 		unlink(p1_file);
-                unlink(p1_bakfile);
 		unlink(sortfname);
 		unlink(blkdfname);
 		if (cdelete && coutput)
 			unlink(coutput);
 		}
 	}
+
+#ifndef MSDOS
+#include "sysdep.hd"
+#include <unistd.h> /* for mkdtemp and rmdir */
+#endif
 
 #ifndef NO_TEMPDIR
  static void
@@ -116,13 +118,6 @@ rmtdir(Void)
 		}
 	}
 #endif /*NO_TEMPDIR*/
-
-#ifndef MSDOS
-#include "sysdep.hd"
-#ifndef NO_MKDTEMP
-#include <unistd.h> /* for mkdtemp */
-#endif
-#endif
 
  static void
 alloc_names(Void)
@@ -236,9 +231,6 @@ set_tmp_names(Void)
 #endif /*NO_TEMPDIR*/
 		}
 	alloc_names();
-        /* What follows is safe if tmpdir is really
-        a private diectory created by us -- otherwise
-        the file could be a sym link somewhere else....*/
 	sprintf(c_functions, "%s/f2c%ld_func", tmpdir, pid);
 	sprintf(initfname, "%s/f2c%ld_rd", tmpdir, pid);
 	sprintf(blkdfname, "%s/f2c%ld_blkd", tmpdir, pid);

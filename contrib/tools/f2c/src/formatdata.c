@@ -332,13 +332,13 @@ wr_one_init(FILE *outfile, char *varname, chainp *Values, int keepit)
     if (type == TYCHAR) {
 	for(last = 0; values; values = values->nextp) {
 		cp = (chainp)values->datap;
-		loc = (ftnint)cp->datap;
+		loc = (ftnint)(Addr)cp->datap;
 		if (loc > last) {
 			write_char_init(outfile, Values, namep);
 			goto done;
 			}
-		last = (Ulong)cp->nextp->datap == TYBLANK
-			? loc + (Ulong)cp->nextp->nextp->datap
+		last = (Addr)cp->nextp->datap == TYBLANK
+			? loc + (Addr)cp->nextp->nextp->datap
 			: loc + 1;
 		}
 	if (halign && info.name->tag == TNAME) {
@@ -362,11 +362,11 @@ wr_one_init(FILE *outfile, char *varname, chainp *Values, int keepit)
 	size = typesize[type];
 	loc = 0;
 	for(; values; values = values->nextp) {
-		if ((Ulong)((chainp)values->datap)->nextp->datap == TYCHAR) {
+		if ((Addr)((chainp)values->datap)->nextp->datap == TYCHAR) {
 			write_char_init(outfile, Values, namep);
 			goto done;
 			}
-		last = ((long) ((chainp) values->datap)->datap) / size;
+		last = (long) (((Addr)((chainp) values->datap)->datap) / size);
 		if (last - loc > 4) {
 			write_char_init(outfile, Values, namep);
 			goto done;
@@ -472,7 +472,7 @@ data_value(FILE *infile, ftnint offset, int type)
 #endif
 		newval = cpstring(pointer);
 	else
-		newval = (char *)atol(pointer);
+		newval = (char *)Atol(pointer);
 	if (vals) {
 	    prev_val->nextp = mkchain(newval, CHNULL);
 	    prev_val = prev_val -> nextp;
@@ -482,7 +482,7 @@ data_value(FILE *infile, ftnint offset, int type)
 	pointer = end_ptr;
     } /* while *pointer */
 
-    return mkchain((char *)offset, mkchain((char *)(Ulong)type, vals));
+    return mkchain((char *)(Addr)offset, mkchain((char *)(Addr)type, (chainp)(Addr)vals));
 } /* data_value */
 
  static void
@@ -580,7 +580,7 @@ wr_array_init(FILE *outfile, int type, chainp values)
     while (values) {
 	struct Constblock Const;
 
-	index = ((long) ((chainp) values->datap)->datap) / size;
+	index = (long)((Addr)(((chainp) values->datap)->datap) / size);
 	while (index > main_index) {
 
 /* Fill with zeros.  The structure shorthand works because the compiler
@@ -616,9 +616,9 @@ wr_array_init(FILE *outfile, int type, chainp values)
 			nice_printf(outfile, "\" \"");
 			k = 0;
 			}
-		this_char = (int)(Ulong) ((chainp) values->datap)->
+		this_char = (int)(Addr) ((chainp) values->datap)->
 				nextp->nextp->datap;
-		if ((Ulong)((chainp)values->datap)->nextp->datap == TYBLANK) {
+		if ((Addr)((chainp)values->datap)->nextp->datap == TYBLANK) {
 			main_index += this_char;
 			k += this_char;
 			while(--this_char >= 0)
@@ -695,19 +695,19 @@ make_one_const(int type, union Constant *storage, chainp values)
 	for(k = 1, prev = CHNULL, v = values; v; prev = v, v = v->nextp)
 	    ;
 	if (prev != CHNULL)
-	    k = ((int)(Ulong) (((chainp) prev->datap)->datap)) + 2;
+	    k = ((int)(Addr) (((chainp) prev->datap)->datap)) + 2;
 		/* + 2 above for null char at end */
 	str = Alloc (k);
 	for (str_ptr = str; values; str_ptr++) {
-	    int index = (int)(Ulong) (((chainp) values->datap)->datap);
+	    int index = (int)(Addr) (((chainp) values->datap)->datap);
 
 	    if (index < main_index)
 		overlapping();
 	    while (index > main_index++)
 		*str_ptr++ = ' ';
 
-		k = (int)(Ulong)(((chainp)values->datap)->nextp->nextp->datap);
-		if ((Ulong)((chainp)values->datap)->nextp->datap == TYBLANK) {
+		k = (int)(Addr)(((chainp)values->datap)->nextp->nextp->datap);
+		if ((Addr)((chainp)values->datap)->nextp->datap == TYBLANK) {
 			b = k;
 			break;
 			}
@@ -847,12 +847,12 @@ do_string(FILE *outfile, register chainp v, ftnint *nloc)
 
 	nice_printf(outfile, "{");
 	cp = (chainp)v->datap;
-	loc = (ftnint)cp->datap;
+	loc = (ftnint)(Addr)cp->datap;
 	comma = "";
 	for(v0 = v;;) {
-		switch((Ulong)cp->nextp->datap) {
+		switch((Addr)cp->nextp->datap) {
 			case TYBLANK:
-				k = (ftnint)cp->nextp->nextp->datap;
+				k = (ftnint)(Addr)cp->nextp->nextp->datap;
 				loc += k;
 				while(--k >= 0) {
 					nice_printf(outfile, "%s' '", comma);
@@ -860,7 +860,7 @@ do_string(FILE *outfile, register chainp v, ftnint *nloc)
 					}
 				break;
 			case TYCHAR:
-				uk = (ftnint)cp->nextp->nextp->datap;
+				uk = (ftnint)(Addr)cp->nextp->nextp->datap;
 				sprintf(buf, chr_fmt[uk], uk);
 				nice_printf(outfile, "%s'%s'", comma, buf);
 				comma = ", ";
@@ -872,7 +872,7 @@ do_string(FILE *outfile, register chainp v, ftnint *nloc)
 		v0 = v;
 		if (!(v = v->nextp) || !(cp = (chainp)v->datap))
 			break;
-		dloc = (ftnint)cp->datap;
+		dloc = (ftnint)(Addr)cp->datap;
 		if (loc != dloc)
 			break;
 		}
@@ -897,17 +897,17 @@ Ado_string(FILE *outfile, register chainp v, ftnint *nloc)
 
 	nice_printf(outfile, "\"");
 	cp = (chainp)v->datap;
-	loc = (ftnint)cp->datap;
+	loc = (ftnint)(Addr)cp->datap;
 	for(v0 = v;;) {
-		switch((Ulong)cp->nextp->datap) {
+		switch((Addr)cp->nextp->datap) {
 			case TYBLANK:
-				k = (ftnint)cp->nextp->nextp->datap;
+				k = (ftnint)(Addr)cp->nextp->nextp->datap;
 				loc += k;
 				while(--k >= 0)
 					nice_printf(outfile, " ");
 				break;
 			case TYCHAR:
-				k = (ftnint)cp->nextp->nextp->datap;
+				k = (ftnint)(Addr)cp->nextp->nextp->datap;
 				nice_printf(outfile, str_fmt[k]);
 				loc++;
 				break;
@@ -917,7 +917,7 @@ Ado_string(FILE *outfile, register chainp v, ftnint *nloc)
 		v0 = v;
 		if (!(v = v->nextp) || !(cp = (chainp)v->datap))
 			break;
-		dloc = (ftnint)cp->datap;
+		dloc = (ftnint)(Addr)cp->datap;
 		if (loc != dloc)
 			break;
 		}
@@ -1071,8 +1071,8 @@ wr_equiv_init(FILE *outfile, int memno, chainp *Values, int iscomm)
 				k = typesize[dtype];
 				if (j = (int)(L % k))
 					L += k - j;
-				v = mkchain((char *)L,
-					mkchain((char *)(Ulong)dtype,
+				v = mkchain((char *)(Addr)L,
+					mkchain((char *)(Addr)dtype,
 						mkchain(z, CHNULL)));
 				vlast = vlast->nextp =
 					mkchain((char *)v, CHNULL);
@@ -1080,9 +1080,9 @@ wr_equiv_init(FILE *outfile, int memno, chainp *Values, int iscomm)
 				break;
 				}
 			cp = (chainp)v->datap;
-			if (basetype[(Ulong)cp->nextp->datap] == btype)
+			if (basetype[(Addr)cp->nextp->datap] == btype)
 				break;
-			dloc = (ftnint)cp->datap;
+			dloc = (ftnint)(Addr)cp->datap;
 			if (get_fill(dloc, loc, &t0, &t1, &L0, &L1, xtype)) {
 				xfilled = 0;
 				break;
@@ -1094,20 +1094,20 @@ wr_equiv_init(FILE *outfile, int memno, chainp *Values, int iscomm)
 			 && btype <= type_choice[L1/szshort % 4]
 			 && btype <= type_choice[loc/szshort % 4])
 				break;
-			dtype = (int)(Ulong)cp->nextp->datap;
+			dtype = (int)(Addr)cp->nextp->datap;
 			loc = dloc + (dtype == TYBLANK
-					? (ftnint)cp->nextp->nextp->datap
+					? (ftnint)(Addr)cp->nextp->nextp->datap
 					: typesize[dtype]);
 			}
 		}
-	sentinel = mkchain((char *)L, mkchain((char *)TYERROR,CHNULL));
+	sentinel = mkchain((char *)(Addr)L, mkchain((char *)(Addr)TYERROR,CHNULL));
 	vlast->nextp = mkchain((char *)sentinel, CHNULL);
 
 	/* use doublereal fillers only if there are doublereal values */
 
 	k = TYLONG;
 	for(v = values; v; v = v->nextp)
-		if (ONEOF((Ulong)((chainp)v->datap)->nextp->datap,
+		if (ONEOF((Addr)((chainp)v->datap)->nextp->datap,
 				M(TYDREAL)|M(TYDCOMPLEX))) {
 			k = TYDREAL;
 			break;
@@ -1120,18 +1120,18 @@ wr_equiv_init(FILE *outfile, int memno, chainp *Values, int iscomm)
 	curtype = -1;
 	for(v = values; v; v = v->nextp) {
 		cp = (chainp)v->datap;
-		dloc = (ftnint)cp->datap;
+		dloc = (ftnint)(Addr)cp->datap;
 		L = dloc - loc;
 		if (L < 0) {
 			overlapping();
-			if ((Ulong)cp->nextp->datap != TYERROR) {
+			if ((Addr)cp->nextp->datap != TYERROR) {
 				v1 = cp;
 				frchain(&v1);
 				v->datap = 0;
 				}
 			continue;
 			}
-		dtype = (int)(Ulong)cp->nextp->datap;
+		dtype = (int)(Addr)cp->nextp->datap;
 		if (dtype == TYBLANK) {
 			dtype = TYCHAR;
 			wasblank = 1;
@@ -1165,7 +1165,7 @@ wr_equiv_init(FILE *outfile, int memno, chainp *Values, int iscomm)
 			loc = dloc;
 			}
 		if (wasblank) {
-			loc += (ftnint)cp->nextp->nextp->datap;
+			loc += (ftnint)(Addr)cp->nextp->nextp->datap;
 			dL = 1;
 			}
 		else {
@@ -1182,10 +1182,10 @@ wr_equiv_init(FILE *outfile, int memno, chainp *Values, int iscomm)
 		cp = (chainp)v->datap;
 		if (!cp)
 			continue;
-		dtype = (int)(Ulong)cp->nextp->datap;
+		dtype = (int)(Addr)cp->nextp->datap;
 		if (dtype == TYERROR)
 			break;
-		dloc = (ftnint)cp->datap;
+		dloc = (ftnint)(Addr)cp->datap;
 		if (dloc > loc) {
 			n = 1;
 			if (!xfilled && (L2 = get_fill(dloc, loc, &t0, &t1,

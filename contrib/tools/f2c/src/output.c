@@ -1571,7 +1571,7 @@ out_asgoto(FILE *outfile, expptr expr)
     for(k = 0, value = namep -> varxptr.assigned_values; value;
 	    value = value->nextp, k++) {
 	nice_printf (outfile, "case %d: goto %s;\n", k,
-		user_label((long)value->datap));
+		user_label((Addr)value->datap));
     } /* for value */
     prev_tab (outfile);
 

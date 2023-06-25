@@ -352,7 +352,7 @@ comlen(register FILE *pf)
 			return 1;
 		if (c == ' ')
 			break;
-		if (c < '0' && c > '9')
+		if (c < '0' || c > '9')
 			goto ret0;
 		L = 10*L + c - '0';
 		}
@@ -809,7 +809,7 @@ argverify(int ftype, Extsym *p)
 			Pbadmsg("differing calling sequences",p);
 			i = t - tfirst + 1;
 			fprintf(stderr,
-				"arg %d: here %s, previously %s\n",
+				"arg %d: here %s, prevously %s\n",
 				i, Argtype(k,buf1), Argtype(j,buf2));
 			return;
 			}

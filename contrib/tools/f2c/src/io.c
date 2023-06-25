@@ -273,15 +273,15 @@ LOCAL char **io_fields;
 #define zork(n,t) n, sizeof(n)/sizeof(char *) - 1, t
 
 LOCAL io_setup io_stuff[] = {
-	{zork(cilist_names, TYCILIST)},	/* external read/write */
-	{zork(inlist_names, TYINLIST)},	/* inquire */
-	{zork(olist_names,  TYOLIST)},	/* open */
-	{zork(cllist_names, TYCLLIST)},	/* close */
-	{zork(alist_names,  TYALIST)},	/* rewind */
-	{zork(alist_names,  TYALIST)},	/* backspace */
-	{zork(alist_names,  TYALIST)},	/* endfile */
-	{zork(icilist_names,TYICILIST)},	/* internal read */
-	{zork(icilist_names,TYICILIST)}	/* internal write */
+	zork(cilist_names, TYCILIST),	/* external read/write */
+	zork(inlist_names, TYINLIST),	/* inquire */
+	zork(olist_names,  TYOLIST),	/* open */
+	zork(cllist_names, TYCLLIST),	/* close */
+	zork(alist_names,  TYALIST),	/* rewind */
+	zork(alist_names,  TYALIST),	/* backspace */
+	zork(alist_names,  TYALIST),	/* endfile */
+	zork(icilist_names,TYICILIST),	/* internal read */
+	zork(icilist_names,TYICILIST)	/* internal write */
 	};
 
 #undef zork

@@ -26,6 +26,20 @@ typedef unsigned long long ULlong;
 #endif /*NO_LONG_LONG*/
 #endif /*NO_TYQUAD*/
 
+#ifdef _WIN64
+#define USE_LONGLONG
+#endif
+
+#ifdef USE_LONGLONG
+typedef unsigned long long Addr;
+#define Addrfmt "%llx"
+#define Atol atoll
+#else
+typedef unsigned long Addr;
+#define Addrfmt "%lx"
+#define Atol atol
+#endif
+
 #define TYUNKNOWN 0
 #define TYADDR 1
 #define TYINT1 2

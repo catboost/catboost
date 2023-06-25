@@ -44,15 +44,15 @@ gmem(int n, int round)
 	char *rv;
 	if (round)
 #ifdef CRAY
-		if ((long)next & 0xe000000000000000)
-			next = (char *)(((long)next & 0x1fffffffffffffff) + 1);
+		if ((Addr)next & 0xe000000000000000)
+			next = (char *)(((Addr)next & 0x1fffffffffffffff) + 1);
 #else
 #ifdef MSDOS
 		if ((int)next & 1)
 			next++;
 #else
-		next = (char *)(((long)next + sizeof(char *)-1)
-				& ~((long)sizeof(char *)-1));
+		next = (char *)(((Addr)next + sizeof(char *)-1)
+				& ~((Addr)sizeof(char *)-1));
 #endif
 #endif
 	rv = next;
@@ -102,15 +102,15 @@ mem(int n, int round)
 
 	if (round)
 #ifdef CRAY
-		if ((long)mem_next & 0xe000000000000000)
-			mem_next = (char *)(((long)mem_next & 0x1fffffffffffffff) + 1);
+		if ((Addr)mem_next & 0xe000000000000000)
+			mem_next = (char *)(((Addr)mem_next & 0x1fffffffffffffff) + 1);
 #else
 #ifdef MSDOS
 		if ((int)mem_next & 1)
 			mem_next++;
 #else
-		mem_next = (char *)(((long)mem_next + sizeof(char *)-1)
-				& ~((long)sizeof(char *)-1));
+		mem_next = (char *)(((Addr)mem_next + sizeof(char *)-1)
+				& ~((Addr)sizeof(char *)-1));
 #endif
 #endif
 	rv = mem_next;

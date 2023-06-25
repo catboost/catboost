@@ -415,7 +415,7 @@ enddcl(Void)
 	freetemps();
 	if (earlylabs) {
 		for(cp = earlylabs = revchain(earlylabs); cp; cp = cp->nextp)
-			p1_label((long)cp->datap);
+			p1_label((Addr)cp->datap);
 		frchain(&earlylabs);
 		}
 	p1_line_number(lineno); /* for files that start with a MAIN program */

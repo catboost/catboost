@@ -35,6 +35,7 @@ static void p1_list Argdcl((struct Listblock*));
 static void p1_literal Argdcl((long int));
 static void p1_name Argdcl((Namep));
 static void p1_unary Argdcl((Exprp));
+static void p1puta Argdcl((int, Addr));
 static void p1putd Argdcl((int, long int));
 static void p1putdd Argdcl((int, int, int));
 static void p1putddd Argdcl((int, int, int, int));
@@ -90,7 +91,7 @@ p1_name(namep)
 p1_name(Namep namep)
 #endif
 {
-	p1putd (P1_NAME_POINTER, (long) namep);
+	p1puta (P1_NAME_POINTER, (Addr) namep);
 	namep->visused = 1;
 } /* p1_name */
 
@@ -206,8 +207,8 @@ p1_const(register Constp cp)
 	    if (vleng && !ISICON (vleng))
 		err("p1_const:  bad vleng\n");
 	    else
-		fprintf(pass1_file, "%d: %d %lx\n", P1_CONST, type,
-			(unsigned long)cpexpr((expptr)cp));
+		fprintf(pass1_file, "%d: %d " Addrfmt "\n", P1_CONST, type,
+			(Addr)cpexpr((expptr)cp));
 	    break;
 	default:
 	    erri ("p1_const:  bad constant type '%d'", type);
@@ -351,7 +352,7 @@ p1_label(long lab)
 #endif
 {
 	if (parstate < INDATA)
-		earlylabs = mkchain((char *)lab, earlylabs);
+		earlylabs = mkchain((char *)(Addr)lab, earlylabs);
 	else
 		p1putd (P1_LABEL, lab);
 	}
@@ -491,7 +492,6 @@ p1_binary(struct Exprblock *e)
 {
     if (e == (struct Exprblock *) NULL)
 	return;
-
     p1putdd (P1_EXPR, e -> opcode, e -> vtype);
     p1_expr (e -> vleng);
     p1_expr (e -> leftp);
@@ -608,6 +608,21 @@ p1puts(int type, char *str)
 {
     fprintf (pass1_file, "%d: %s\n", type, str);
 } /* p1puts */
+
+
+/* p1puta -- Put an Addr into the Pass 1 intermediate file. */
+
+ static void
+#ifdef KR_headers
+p1puta(type, value)
+	int type;
+	Addr value;
+#else
+p1puta(int type, Addr value)
+#endif
+{
+    fprintf (pass1_file, "%d: " Addrfmt "\n", type, value);
+} /* p1_puta */
 
 
 /* p1putd -- Put a typed integer into the Pass 1 intermediate file. */

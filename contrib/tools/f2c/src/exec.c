@@ -612,6 +612,7 @@ exdo(int range, Namep loopname, chainp spec)
 /* Declare the loop increment value, casting it to the type of the index
    variable */
 
+	incsign = 0;
 	if( ISCONST(DOINCR) )
 	{
 		ctlstack->dostep = mkconv(dotype, DOINCR);
@@ -817,10 +818,10 @@ exassign(register Namep vname, struct Labelblock *labelval)
 		cpprev = 0;
 		for(k = 0, cp = vname->varxptr.assigned_values;
 				cp; cpprev = cp, cp = cp->nextp, k++)
-			if ((ftnint)cp->datap == stno)
+			if ((ftnint)(Addr)cp->datap == stno)
 				break;
 		if (!cp) {
-			cp = mkchain((char *)stno, CHNULL);
+			cp = mkchain((char *)(Addr)stno, CHNULL);
 			if (cpprev)
 				cpprev->nextp = cp;
 			else

@@ -158,36 +158,36 @@ LOCAL struct Keylist *keystart[26], *keyend[26];
 
 static struct Punctlist puncts[ ] =
 {
-	{'(', SLPAR},
-	{')', SRPAR},
-	{'=', SEQUALS},
-	{',', SCOMMA},
-	{'+', SPLUS},
-	{'-', SMINUS},
-	{'*', SSTAR},
-	{'/', SSLASH},
-	{'$', SCURRENCY},
-	{':', SCOLON},
-	{'<', SLT},
-	{'>', SGT},
-	{0, 0}};
+	'(', SLPAR,
+	')', SRPAR,
+	'=', SEQUALS,
+	',', SCOMMA,
+	'+', SPLUS,
+	'-', SMINUS,
+	'*', SSTAR,
+	'/', SSLASH,
+	'$', SCURRENCY,
+	':', SCOLON,
+	'<', SLT,
+	'>', SGT,
+	0, 0 };
 
 LOCAL struct Dotlist  dots[ ] =
 {
-	{"and.", SAND},
-	    {"or.", SOR},
-	    {"not.", SNOT},
-	    {"true.", STRUE},
-	    {"false.", SFALSE},
-	    {"eq.", SEQ},
-	    {"ne.", SNE},
-	    {"lt.", SLT},
-	    {"le.", SLE},
-	    {"gt.", SGT},
-	    {"ge.", SGE},
-	    {"neqv.", SNEQV},
-	    {"eqv.", SEQV},
-	    {0, 0}};
+	"and.", SAND,
+	    "or.", SOR,
+	    "not.", SNOT,
+	    "true.", STRUE,
+	    "false.", SFALSE,
+	    "eq.", SEQ,
+	    "ne.", SNE,
+	    "lt.", SLT,
+	    "le.", SLE,
+	    "gt.", SGT,
+	    "ge.", SGE,
+	    "neqv.", SNEQV,
+	    "eqv.", SEQV,
+	    0, 0 };
 
 LOCAL struct Keylist  keys[ ] =
 {
