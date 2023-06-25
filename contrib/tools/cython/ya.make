@@ -17,4 +17,11 @@ ORIGINAL_SOURCE(mirror://pypi/C/Cython/Cython-0.29.35.tar.gz)
 
 NO_LINT()
 
+RESOURCE_FILES(
+    PREFIX contrib/tools/cython/
+    .dist-info/METADATA
+    .dist-info/entry_points.txt
+    .dist-info/top_level.txt
+)
+
 END()
