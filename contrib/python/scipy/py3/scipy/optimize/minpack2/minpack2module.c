@@ -416,11 +416,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("dddy",stp,f,g,task);
-#else
-    capi_buildvalue = Py_BuildValue("dddz",stp,f,g,task);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/

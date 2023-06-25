@@ -4520,11 +4520,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("NNNyNNNNfNNi",capi_a_tmp,capi_af_tmp,capi_ipiv_tmp,equed,capi_r_tmp,capi_c_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#else
-    capi_buildvalue = Py_BuildValue("NNNzNNNNfNNi",capi_a_tmp,capi_af_tmp,capi_ipiv_tmp,equed,capi_r_tmp,capi_c_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/
@@ -4873,11 +4869,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("NNNyNNNNdNNi",capi_a_tmp,capi_af_tmp,capi_ipiv_tmp,equed,capi_r_tmp,capi_c_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#else
-    capi_buildvalue = Py_BuildValue("NNNzNNNNdNNi",capi_a_tmp,capi_af_tmp,capi_ipiv_tmp,equed,capi_r_tmp,capi_c_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/
@@ -5226,11 +5218,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("NNNyNNNNfNNi",capi_a_tmp,capi_af_tmp,capi_ipiv_tmp,equed,capi_r_tmp,capi_c_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#else
-    capi_buildvalue = Py_BuildValue("NNNzNNNNfNNi",capi_a_tmp,capi_af_tmp,capi_ipiv_tmp,equed,capi_r_tmp,capi_c_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/
@@ -5579,11 +5567,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("NNNyNNNNdNNi",capi_a_tmp,capi_af_tmp,capi_ipiv_tmp,equed,capi_r_tmp,capi_c_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#else
-    capi_buildvalue = Py_BuildValue("NNNzNNNNdNNi",capi_a_tmp,capi_af_tmp,capi_ipiv_tmp,equed,capi_r_tmp,capi_c_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/
@@ -43343,11 +43327,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("NNyNNNfNNi",capi_a_tmp,capi_af_tmp,equed,capi_s_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#else
-    capi_buildvalue = Py_BuildValue("NNzNNNfNNi",capi_a_tmp,capi_af_tmp,equed,capi_s_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/
@@ -43658,11 +43638,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("NNyNNNdNNi",capi_a_tmp,capi_af_tmp,equed,capi_s_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#else
-    capi_buildvalue = Py_BuildValue("NNzNNNdNNi",capi_a_tmp,capi_af_tmp,equed,capi_s_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/
@@ -43973,11 +43949,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("NNyNNNfNNi",capi_a_tmp,capi_af_tmp,equed,capi_s_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#else
-    capi_buildvalue = Py_BuildValue("NNzNNNfNNi",capi_a_tmp,capi_af_tmp,equed,capi_s_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/
@@ -44288,11 +44260,7 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
     CFUNCSMESS("Building return value.\n");
-#if PY_VERSION_HEX >= 0x03000000
     capi_buildvalue = Py_BuildValue("NNyNNNdNNi",capi_a_tmp,capi_af_tmp,equed,capi_s_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#else
-    capi_buildvalue = Py_BuildValue("NNzNNNdNNi",capi_a_tmp,capi_af_tmp,equed,capi_s_tmp,capi_b_tmp,capi_x_tmp,rcond,capi_ferr_tmp,capi_berr_tmp,info);
-#endif
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
     } /*if (f2py_success) after callfortranroutine*/
