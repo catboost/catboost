@@ -873,6 +873,15 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 case ELossFunction::NDCG:
                     validParams = {"top", "type", "denominator", "hints"};
                     break;
+                case ELossFunction::MRR:
+                    validParams = {"hints"};
+                    break;
+                case ELossFunction::ERR:
+                    validParams = {"hints"};
+                    break;
+                case ELossFunction::MAP:
+                    validParams = {"hints"};
+                    break;
                 default:
                     CB_ENSURE(false, "LambdaMart does not support target_metric " << targetMetric);
             }
@@ -905,6 +914,12 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                     break;
                 case ELossFunction::FilteredDCG:
                     validParams = {"type", "denominator", "hints"};
+                    break;
+                case ELossFunction::MRR:
+                    validParams = {"hints"};
+                    break;
+                case ELossFunction::ERR:
+                    validParams = {"hints"};
                     break;
                 default:
                     CB_ENSURE(false, "StochasticRank does not support target_metric " << targetMetric);

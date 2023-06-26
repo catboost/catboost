@@ -2,6 +2,8 @@
 
 #include "approx_updater_helpers.h"
 
+#include <catboost/libs/metrics/dcg.h>
+#include <catboost/libs/metrics/sample.h>
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/loss_description.h>
@@ -9,17 +11,293 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
+#include <util/random/normal.h>
+#include <util/string/cast.h>
+
+
+namespace {
+
+    enum class EYetiRankWeightsMode {
+        Classic,
+        DCG,
+        NDCG,
+        MRR,
+        ERR,
+        MAP
+    };
+
+    EYetiRankWeightsMode ModeFromString(const TString& mode) {
+        if (mode == "NDCG")
+            return EYetiRankWeightsMode::NDCG;
+        if (mode == "DCG")
+            return EYetiRankWeightsMode::DCG;
+        if (mode == "MRR")
+            return EYetiRankWeightsMode::MRR;
+        if (mode == "ERR")
+            return EYetiRankWeightsMode::ERR;
+        if (mode == "MAP")
+            return EYetiRankWeightsMode::MAP;
+        CB_ENSURE(false, "Unknown weights mode " << mode);
+        Y_UNREACHABLE();
+    }
+
+    enum class EYetiRankNoiseType {
+        Gumbel,
+        Gauss,
+        No
+    };
+
+    EYetiRankNoiseType NoiseFromString(const TString& noise) {
+        if (noise == "Gumbel") {
+            return EYetiRankNoiseType::Gumbel;
+        }
+        if (noise == "Gauss") {
+            return EYetiRankNoiseType::Gauss;
+        }
+        if (noise == "No") {
+            return EYetiRankNoiseType::No;
+        }
+        CB_ENSURE(false, "Unknown noise type " << noise);
+        Y_UNREACHABLE();
+    }
+
+
+    class TYetiRankPairWeightsCalcer {
+    public:
+        TYetiRankPairWeightsCalcer(
+            const NCatboostOptions::TLossDescription& lossDescription,
+            const float* relevs,
+            ui32 querySize
+        ) : Relevs(relevs), QuerySize(querySize)
+        {
+            CB_ENSURE(
+                EqualToOneOf(lossDescription.GetLossFunction(), ELossFunction::YetiRank, ELossFunction::YetiRankPairwise),
+                "Loss should be YetiRank or YetiRankPairwise"
+            );
+            const auto& params = lossDescription.GetLossParamsMap();
+            if (auto it = params.find("mode"); it != params.end()) {
+                Mode = ModeFromString(it->second);
+            }
+            Decay = NCatboostOptions::GetYetiRankDecay(lossDescription);
+            if (auto it = params.find("top"); it != params.end()) {
+                TopSize = FromString<int>(it->second);
+            }
+            if (auto it = params.find("dcg_type"); it != params.end()) {
+                DcgType = FromString<ENdcgMetricType>(it->second);
+            }
+            if (auto it = params.find("dcg_denominator"); it != params.end()) {
+                DcgDenominator = FromString<ENdcgDenominatorType>(it->second);
+            }
+            if (auto it = params.find("noise"); it != params.end()) {
+                NoiseType = NoiseFromString(it->second);
+            }
+            if (auto it = params.find("noise_power"); it != params.end()) {
+                NoisePower = FromString<double>(it->second);
+            }
+            NumNeighbors = NCatboostOptions::GetParamOrDefault(params, "num_neighbors", 1);
+        }
+
+        void CalcWeights(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
+            switch (Mode) {
+                case EYetiRankWeightsMode::Classic:
+                    CalcWeightsClassic(permutation, competitorsWeights);
+                    return;
+                case EYetiRankWeightsMode::DCG:
+                    CalcWeightsDCG(permutation, competitorsWeights, 1.0);
+                    return;
+                case EYetiRankWeightsMode::NDCG:
+                    CalcWeightsDCG(permutation, competitorsWeights, 1.0 / GetIDcg());
+                    return;
+                case EYetiRankWeightsMode::MRR:
+                    CalcWeightsMRR(permutation, competitorsWeights);
+                    return;
+                case EYetiRankWeightsMode::ERR:
+                    CalcWeightsERR(permutation, competitorsWeights);
+                    return;
+                case EYetiRankWeightsMode::MAP:
+                    CalcWeightsMAP(permutation, competitorsWeights);
+                    return;
+            }
+        }
+
+        void AddNoise(TArrayRef<double> expApproxes, TFastRng64& rand) {
+            switch (NoiseType) {
+                case EYetiRankNoiseType::Gumbel:
+                    for (ui32 docId = 0; docId < QuerySize; ++docId) {
+                        const float uniformValue = rand.GenRandReal1();
+                        expApproxes[docId] *= uniformValue / (1.000001f - uniformValue);
+                    }
+                    return;
+                case EYetiRankNoiseType::Gauss:
+                    for (ui32 docId = 0; docId < QuerySize; ++docId) {
+                        const double gaussNoise = NormalDistribution<double>(rand, 0, NoisePower);
+                        expApproxes[docId] *= exp(gaussNoise);
+                    }
+                    return;
+                case EYetiRankNoiseType::No:
+                    return;
+            }
+        }
+
+    private:
+        const float* Relevs;
+        const ui32 QuerySize;
+
+        EYetiRankWeightsMode Mode = EYetiRankWeightsMode::Classic;
+        double Decay = 0.99;
+        ui32 TopSize = Max<ui32>();
+        ENdcgMetricType DcgType = ENdcgMetricType::Base;
+        ENdcgDenominatorType DcgDenominator = ENdcgDenominatorType::LogPosition;
+
+        EYetiRankNoiseType NoiseType = EYetiRankNoiseType::Gumbel;
+        double NoisePower = 1.0;
+
+        int NumNeighbors = 1;
+
+        TMaybe<double> IDcg = Nothing();
+
+    private:
+        double GetIDcg() {
+            if (!IDcg.Defined()) {
+                TVector<NMetrics::TSample> samples(QuerySize);
+                for (ui32 i = 0; i < QuerySize; ++i) {
+                    samples[i] = NMetrics::TSample(Relevs[i], 0.0);
+                }
+                IDcg = CalcIDcg(samples, DcgType, Nothing(), TopSize, DcgDenominator);
+            }
+            return *IDcg;
+        }
+
+        void AddWeight(int firstCandidate, int secondCandidate, float pairWeight, TVector<TVector<float>>* competitorsWeights) {
+            if (Relevs[firstCandidate] > Relevs[secondCandidate]) {
+                (*competitorsWeights)[firstCandidate][secondCandidate] += pairWeight;
+            } else if (Relevs[firstCandidate] < Relevs[secondCandidate]) {
+                (*competitorsWeights)[secondCandidate][firstCandidate] += pairWeight;
+            }
+        }
+
+        void CalcWeightsClassic(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
+            double decayCoefficient = 1;
+            for (ui32 docId = 1; docId < QuerySize; ++docId) {
+                const int firstCandidate = permutation[docId - 1];
+                const int secondCandidate = permutation[docId];
+                const double magicConst = 0.15; // Like in GPU
+
+                const float pairWeight = magicConst * decayCoefficient
+                    * Abs(Relevs[firstCandidate] - Relevs[secondCandidate]);
+                AddWeight(firstCandidate, secondCandidate, pairWeight, competitorsWeights);
+                decayCoefficient *= Decay;
+            }
+        }
+
+        double CalcDcgValue(float relevance, ui32 position) {
+            const double numerator = DcgType == ENdcgMetricType::Base ? relevance : Exp2(relevance) - 1;
+            const double denominator = DcgDenominator == ENdcgDenominatorType::Position ? position + 1 : Log2(position + 2);
+            return position < TopSize ? numerator / denominator : 0.0;
+        }
+
+        void CalcWeightsDCG(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights, double coef) {
+            const ui32 topSize = Min(TopSize, QuerySize);
+            for (ui32 docId = 1; docId <= topSize; ++docId) {
+                const ui32 bound = NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + NumNeighbors);
+                for (ui32 neighborId = docId + 1; neighborId <= bound; ++neighborId) {
+                    const int firstCandidate = permutation[docId - 1];
+                    const int secondCandidate = permutation[neighborId - 1];
+
+                    const float pairWeight = coef * (
+                        + CalcDcgValue(Relevs[firstCandidate], docId - 1) + CalcDcgValue(Relevs[secondCandidate], neighborId - 1)
+                        - CalcDcgValue(Relevs[firstCandidate], neighborId - 1) - CalcDcgValue(Relevs[secondCandidate], docId - 1)
+                    );
+                    AddWeight(firstCandidate, secondCandidate, Abs(pairWeight), competitorsWeights);
+                }
+            }
+        }
+
+        void CalcWeightsMRR(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
+            const ui32 topSize = Min(TopSize, QuerySize);
+            bool wasRelevant = false;
+            for (ui32 docId = 1; docId <= topSize && !wasRelevant; ++docId) {
+                const int firstCandidate = permutation[docId - 1];
+                const bool isFirstRelevant = Relevs[firstCandidate] > 0;
+                const ui32 bound = NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + NumNeighbors);
+                for (ui32 neighborId = docId + 1; neighborId <= bound; ++neighborId) {
+                    const int secondCandidate = permutation[neighborId - 1];
+                    const bool isSecondRelevant = Relevs[secondCandidate] > 0;
+
+                    if (isFirstRelevant ^ isSecondRelevant) {
+                        const float pairWeight = 1.0 / docId - 1.0 / neighborId;
+                        AddWeight(firstCandidate, secondCandidate, pairWeight, competitorsWeights);
+                    }
+                }
+                wasRelevant |= isFirstRelevant;
+            }
+        }
+
+        void CalcWeightsERR(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
+            const ui32 topSize = Min(TopSize, QuerySize);
+            double pFirstLook = 1.0;
+            for (ui32 docId = 1; docId <= topSize; ++docId) {
+                const int firstCandidate = permutation[docId - 1];
+
+                double pMiddleLook = 1.0;
+                double middleRR = 0.0;
+                const ui32 bound = NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + NumNeighbors);
+                for (ui32 neighborId = docId + 1; neighborId <= bound; ++neighborId) {
+                    const int secondCandidate = permutation[neighborId - 1];
+
+                    const double firstDelta = (Relevs[firstCandidate] - Relevs[secondCandidate]) / docId;
+                    const double middleDelta = middleRR * (Relevs[secondCandidate] - Relevs[firstCandidate]);
+                    const double secondDelta = pMiddleLook * (Relevs[secondCandidate] - Relevs[firstCandidate]) / neighborId;
+
+                    const float pairWeight = pFirstLook * (firstDelta + middleDelta + secondDelta);
+                    AddWeight(firstCandidate, secondCandidate, Abs(pairWeight), competitorsWeights);
+
+                    middleRR += pMiddleLook * Relevs[secondCandidate] / neighborId;
+                    pMiddleLook *= (1 - Relevs[secondCandidate]);
+                }
+
+                pFirstLook *= 1 - Relevs[firstCandidate];
+            }
+        }
+
+        void CalcWeightsMAP(const TVector<int>& permutation, TVector<TVector<float>>* competitorsWeights) {
+            const ui32 topSize = Min(TopSize, QuerySize);
+            for (ui32 docId = 1; docId <= topSize; ++docId) {
+                const int firstCandidate = permutation[docId - 1];
+                const bool isFirstRelevant = Relevs[firstCandidate] > 0;
+
+                double sumRR = 1.0 / docId;
+                const ui32 bound = NumNeighbors == -1 ? QuerySize : Min(QuerySize, docId + NumNeighbors);
+                for (ui32 neighborId = docId + 1; neighborId <= bound; ++neighborId) {
+                    const int secondCandidate = permutation[neighborId - 1];
+                    const bool isSecondRelevant = Relevs[secondCandidate] > 0;
+
+                    const float pairWeight = isFirstRelevant ^ isSecondRelevant
+                        ? sumRR
+                        : 0.0;
+                    AddWeight(firstCandidate, secondCandidate, pairWeight, competitorsWeights);
+
+                    if (isSecondRelevant) {
+                        sumRR += 1.0 / neighborId;
+                    }
+                }
+            }
+        }
+
+    };
+}
 
 
 static void GenerateYetiRankPairsForQuery(
-    const float* relevs,
+    const float* /*relevs*/,
     const double* expApproxes,
     float queryWeight,
     ui32 querySize,
     int permutationCount,
-    double decaySpeed,
+    double /*decaySpeed*/,
     ui64 randomSeed,
-    TVector<TVector<TCompetitor>>* competitors
+    TVector<TVector<TCompetitor>>* competitors,
+    TYetiRankPairWeightsCalcer* weightsCalcer
 ) {
     TFastRng64 rand(randomSeed);
     TVector<TVector<TCompetitor>>& competitorsRef = *competitors;
@@ -31,11 +309,7 @@ static void GenerateYetiRankPairsForQuery(
     for (int permutationIndex = 0; permutationIndex < permutationCount; ++permutationIndex) {
         std::iota(indices.begin(), indices.end(), 0);
         TVector<double> bootstrappedApprox(expApproxes, expApproxes + querySize);
-        for (ui32 docId = 0; docId < querySize; ++docId) {
-            const float uniformValue = rand.GenRandReal1();
-            // TODO(nikitxskv): try to experiment with different bootstraps.
-            bootstrappedApprox[docId] *= uniformValue / (1.000001f - uniformValue);
-        }
+        weightsCalcer->AddNoise(bootstrappedApprox, rand);
 
         Sort(
             indices,
@@ -43,22 +317,7 @@ static void GenerateYetiRankPairsForQuery(
                 return bootstrappedApprox[i] > bootstrappedApprox[j];
             }
         );
-
-        double decayCoefficient = 1;
-        for (ui32 docId = 1; docId < querySize; ++docId) {
-            const int firstCandidate = indices[docId - 1];
-            const int secondCandidate = indices[docId];
-            const double magicConst = 0.15; // Like in GPU
-
-            const float pairWeight = magicConst * decayCoefficient
-                * Abs(relevs[firstCandidate] - relevs[secondCandidate]);
-            if (relevs[firstCandidate] > relevs[secondCandidate]) {
-                competitorsWeights[firstCandidate][secondCandidate] += pairWeight;
-            } else if (relevs[firstCandidate] < relevs[secondCandidate]) {
-                competitorsWeights[secondCandidate][firstCandidate] += pairWeight;
-            }
-            decayCoefficient *= decaySpeed;
-        }
+        weightsCalcer->CalcWeights(indices, &competitorsWeights);
     }
 
     // TODO(nikitxskv): Can be optimized
@@ -101,6 +360,11 @@ void UpdatePairsForYetiRank(
             const int to = Min<int>(queryBegin + (blockId + 1) * blockSize, queryEnd);
             for (int queryIndex = from; queryIndex < to; ++queryIndex) {
                 TQueryInfo& queryInfoRef = (*queriesInfo)[queryIndex];
+                TYetiRankPairWeightsCalcer weightsCalcer(
+                    lossDescription,
+                    relevances.data() + queryInfoRef.Begin,
+                    queryInfoRef.End - queryInfoRef.Begin
+                );
                 GenerateYetiRankPairsForQuery(
                     relevances.data() + queryInfoRef.Begin,
                     approxes.data() + queryInfoRef.Begin,
@@ -109,7 +373,8 @@ void UpdatePairsForYetiRank(
                     permutationCount,
                     decaySpeed,
                     rand.GenRand(),
-                    &queryInfoRef.Competitors
+                    &queryInfoRef.Competitors,
+                    &weightsCalcer
                 );
             }
         }

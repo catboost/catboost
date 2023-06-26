@@ -1253,6 +1253,38 @@ private:
     }
 
     double CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
+
+    void CalcDersNDCG(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<size_t> order,
+        TArrayRef<TDers> ders,
+        double& sumDer1
+    ) const;
+
+    void CalcDersMRR(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<size_t> order,
+        TArrayRef<TDers> ders,
+        double& sumDer1
+    ) const;
+
+    void CalcDersERR(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<size_t> order,
+        TArrayRef<TDers> ders,
+        double& sumDer1
+    ) const;
+
+    void CalcDersMAP(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<size_t> order,
+        TArrayRef<TDers> ders,
+        double& sumDer1
+    ) const;
 };
 
 class TStochasticRankError final : public IDerCalcer {
@@ -1332,6 +1364,27 @@ private:
         const TVector<double>& cumSum
     ) const;
 
+    double CalcERRMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        size_t queryTopSize,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const TVector<double>& cumSum,
+        const TVector<double>& cumSumUp,
+        const TVector<double>& cumSumLow
+    ) const;
+
+    double CalcMRRMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        int firstRelevPos,
+        int secondRelevPos
+    ) const;
+
     double CalcMetricDiff(
         size_t oldPos,
         size_t newPos,
@@ -1342,7 +1395,9 @@ private:
         const TVector<double>& scores,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
-        const TVector<double>& cumSumLow
+        const TVector<double>& cumSumLow,
+        int firstRelevPos,
+        int secondRelevPos
     ) const;
 
     void CalcDCGCumulativeStatistics(
@@ -1362,11 +1417,32 @@ private:
         TArrayRef<double> cumSum
     ) const;
 
+    void CalcERRCumulativeStatistics(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        TArrayRef<double> cumSumRef,
+        TArrayRef<double> cumSumUpRef,
+        TArrayRef<double> cumSumLowRef
+    ) const;
+
+    void CalcMRRStatistics(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        int* firstRelevPos,
+        int* secondRelevPos
+    ) const;
+
     TVector<double> ComputeDCGPosWeights(
         TConstArrayRef<float> targets
     ) const;
 
     TVector<double> ComputePFoundPosWeights(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order
+    ) const;
+
+    TVector<double> ComputeERRPosWeights(
         TConstArrayRef<float> targets,
         const TVector<size_t>& order
     ) const;
