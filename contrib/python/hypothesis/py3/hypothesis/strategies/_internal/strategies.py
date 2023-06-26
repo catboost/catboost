@@ -978,6 +978,7 @@ class FilteredStrategy(SearchStrategy[Ex]):
 
 @check_function
 def check_strategy(arg, name=""):
+    assert isinstance(name, str)
     if not isinstance(arg, SearchStrategy):
         hint = ""
         if isinstance(arg, (list, tuple)):

@@ -11,8 +11,10 @@
 import threading
 from contextlib import contextmanager
 
+from hypothesis.errors import InvalidArgument
 from hypothesis.internal.lazyformat import lazyformat
 from hypothesis.internal.reflection import get_pretty_function_description
+from hypothesis.internal.validation import check_type
 from hypothesis.strategies._internal.strategies import (
     OneOfStrategy,
     SearchStrategy,
@@ -97,6 +99,11 @@ class RecursiveStrategy(SearchStrategy):
         check_strategy(extended, f"extend({self.limited_base!r})")
         self.limited_base.validate()
         extended.validate()
+        check_type(int, self.max_leaves, "max_leaves")
+        if self.max_leaves <= 0:
+            raise InvalidArgument(
+                f"max_leaves={self.max_leaves!r} must be greater than zero"
+            )
 
     def do_draw(self, data):
         count = 0
