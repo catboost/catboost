@@ -1,5 +1,5 @@
 /* File: _flinalgmodule.c
- * This file is auto-generated with f2py (version:2).
+ * This file is auto-generated with f2py (version:1.23.5).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Mon Jan 20 20:54:49 2020
@@ -10,8 +10,15 @@
 extern "C" {
 #endif
 
+#ifndef PY_SSIZE_T_CLEAN
+#define PY_SSIZE_T_CLEAN
+#endif /* PY_SSIZE_T_CLEAN */
+
+/* Unconditionally included */
+#include <Python.h>
+#include <numpy/npy_os.h>
+
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include "Python.h"
 #include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
@@ -131,33 +138,49 @@ static int f2py_size(PyArrayObject* var, ...)
   return sz;
 }
 
-static int int_from_pyobj(int* v,PyObject *obj,const char *errmess) {
+static int
+int_from_pyobj(int* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
-    if (PyInt_Check(obj)) {
-        *v = (int)PyInt_AS_LONG(obj);
-        return 1;
+
+    if (PyLong_Check(obj)) {
+        *v = Npy__PyLong_AsInt(obj);
+        return !(*v == -1 && PyErr_Occurred());
     }
-    tmp = PyNumber_Int(obj);
+
+    tmp = PyNumber_Long(obj);
     if (tmp) {
-        *v = PyInt_AS_LONG(tmp);
+        *v = Npy__PyLong_AsInt(tmp);
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
-        if (int_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
+        if (int_from_pyobj(v, tmp, errmess)) {
+            Py_DECREF(tmp);
+            return 1;
+        }
         Py_DECREF(tmp);
     }
+
     {
         PyObject* err = PyErr_Occurred();
-        if (err==NULL) err = _flinalg_error;
-        PyErr_SetString(err,errmess);
+        if (err == NULL) {
+            err = _flinalg_error;
+        }
+        PyErr_SetString(err, errmess);
     }
     return 0;
 }
@@ -207,106 +230,110 @@ static PyObject *f2py_rout__flinalg_ddet_c(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,double*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double det = 0;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int n = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  static char *capi_kwlist[] = {"a","overwrite_a",NULL};
+    double det = 0;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int n = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    static char *capi_kwlist[] = {"a","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|i:_flinalg.ddet_c",\
-    capi_kwlist,&a_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|i:_flinalg.ddet_c",\
+        capi_kwlist,&a_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable det */
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.ddet_c to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable det */
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.ddet_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
-  /* Processing variable info */
-  /* Processing variable n */
-  n = shape(a,0);
-  /* Processing variable piv */
-  piv_Dims[0]=n;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.ddet_c to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
+    /* Processing variable info */
+    /* Processing variable n */
+    n = shape(a,0);
+    /* Processing variable piv */
+    piv_Dims[0]=n;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.ddet_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&det,a,&n,piv,&info);
+                (*f2py_func)(&det,a,&n,piv,&info);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("di",det,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("di",det,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  /* End of cleaning variable n */
-  /* End of cleaning variable info */
-  } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable det */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    /* End of cleaning variable n */
+    /* End of cleaning variable info */
+    } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable det */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of ddet_c *******************************/
 
@@ -325,106 +352,110 @@ static PyObject *f2py_rout__flinalg_ddet_r(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,double*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double det = 0;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int n = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  static char *capi_kwlist[] = {"a","overwrite_a",NULL};
+    double det = 0;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int n = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    static char *capi_kwlist[] = {"a","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|i:_flinalg.ddet_r",\
-    capi_kwlist,&a_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|i:_flinalg.ddet_r",\
+        capi_kwlist,&a_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable det */
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_C;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.ddet_r to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable det */
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_C;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.ddet_r to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
-  /* Processing variable info */
-  /* Processing variable n */
-  n = shape(a,0);
-  /* Processing variable piv */
-  piv_Dims[0]=n;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.ddet_r to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
+    /* Processing variable info */
+    /* Processing variable n */
+    n = shape(a,0);
+    /* Processing variable piv */
+    piv_Dims[0]=n;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.ddet_r to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&det,a,&n,piv,&info);
+                (*f2py_func)(&det,a,&n,piv,&info);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("di",det,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("di",det,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  /* End of cleaning variable n */
-  /* End of cleaning variable info */
-  } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable det */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    /* End of cleaning variable n */
+    /* End of cleaning variable info */
+    } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable det */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of ddet_r *******************************/
 
@@ -443,106 +474,110 @@ static PyObject *f2py_rout__flinalg_sdet_c(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,float*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float det = 0;
-  float *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int n = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  static char *capi_kwlist[] = {"a","overwrite_a",NULL};
+    float det = 0;
+    float *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int n = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    static char *capi_kwlist[] = {"a","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|i:_flinalg.sdet_c",\
-    capi_kwlist,&a_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|i:_flinalg.sdet_c",\
+        capi_kwlist,&a_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable det */
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.sdet_c to C/Fortran array" );
-  } else {
-    a = (float *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable det */
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.sdet_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (float *)(PyArray_DATA(capi_a_tmp));
 
-  CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
-  /* Processing variable info */
-  /* Processing variable n */
-  n = shape(a,0);
-  /* Processing variable piv */
-  piv_Dims[0]=n;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.sdet_c to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
+    /* Processing variable info */
+    /* Processing variable n */
+    n = shape(a,0);
+    /* Processing variable piv */
+    piv_Dims[0]=n;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.sdet_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&det,a,&n,piv,&info);
+                (*f2py_func)(&det,a,&n,piv,&info);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("fi",det,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("fi",det,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  /* End of cleaning variable n */
-  /* End of cleaning variable info */
-  } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable det */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    /* End of cleaning variable n */
+    /* End of cleaning variable info */
+    } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable det */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of sdet_c *******************************/
 
@@ -561,106 +596,110 @@ static PyObject *f2py_rout__flinalg_sdet_r(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,float*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float det = 0;
-  float *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int n = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  static char *capi_kwlist[] = {"a","overwrite_a",NULL};
+    float det = 0;
+    float *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int n = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    static char *capi_kwlist[] = {"a","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|i:_flinalg.sdet_r",\
-    capi_kwlist,&a_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|i:_flinalg.sdet_r",\
+        capi_kwlist,&a_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable det */
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_C;
-  capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.sdet_r to C/Fortran array" );
-  } else {
-    a = (float *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable det */
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_C;
+    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.sdet_r to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (float *)(PyArray_DATA(capi_a_tmp));
 
-  CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
-  /* Processing variable info */
-  /* Processing variable n */
-  n = shape(a,0);
-  /* Processing variable piv */
-  piv_Dims[0]=n;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.sdet_r to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
+    /* Processing variable info */
+    /* Processing variable n */
+    n = shape(a,0);
+    /* Processing variable piv */
+    piv_Dims[0]=n;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.sdet_r to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&det,a,&n,piv,&info);
+                (*f2py_func)(&det,a,&n,piv,&info);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("fi",det,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("fi",det,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  /* End of cleaning variable n */
-  /* End of cleaning variable info */
-  } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable det */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    /* End of cleaning variable n */
+    /* End of cleaning variable info */
+    } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable det */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of sdet_r *******************************/
 
@@ -679,108 +718,112 @@ static PyObject *f2py_rout__flinalg_zdet_c(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_double*,complex_double*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_double det;
-  PyObject *det_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int n = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  static char *capi_kwlist[] = {"a","overwrite_a",NULL};
+    complex_double det;
+    PyObject *det_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int n = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    static char *capi_kwlist[] = {"a","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|i:_flinalg.zdet_c",\
-    capi_kwlist,&a_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|i:_flinalg.zdet_c",\
+        capi_kwlist,&a_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable det */
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.zdet_c to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable det */
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.zdet_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
-  /* Processing variable info */
-  /* Processing variable n */
-  n = shape(a,0);
-  /* Processing variable piv */
-  piv_Dims[0]=n;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.zdet_c to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
+    /* Processing variable info */
+    /* Processing variable n */
+    n = shape(a,0);
+    /* Processing variable piv */
+    piv_Dims[0]=n;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.zdet_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&det,a,&n,piv,&info);
+                (*f2py_func)(&det,a,&n,piv,&info);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  det_capi = pyobj_from_complex_double1(det);
+    det_capi = pyobj_from_complex_double1(det);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Ni",det_capi,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Ni",det_capi,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  /* End of cleaning variable n */
-  /* End of cleaning variable info */
-  } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable det */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    /* End of cleaning variable n */
+    /* End of cleaning variable info */
+    } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable det */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of zdet_c *******************************/
 
@@ -799,108 +842,112 @@ static PyObject *f2py_rout__flinalg_zdet_r(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_double*,complex_double*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_double det;
-  PyObject *det_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int n = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  static char *capi_kwlist[] = {"a","overwrite_a",NULL};
+    complex_double det;
+    PyObject *det_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int n = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    static char *capi_kwlist[] = {"a","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|i:_flinalg.zdet_r",\
-    capi_kwlist,&a_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|i:_flinalg.zdet_r",\
+        capi_kwlist,&a_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable det */
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_C;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.zdet_r to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable det */
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_C;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.zdet_r to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
-  /* Processing variable info */
-  /* Processing variable n */
-  n = shape(a,0);
-  /* Processing variable piv */
-  piv_Dims[0]=n;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.zdet_r to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
+    /* Processing variable info */
+    /* Processing variable n */
+    n = shape(a,0);
+    /* Processing variable piv */
+    piv_Dims[0]=n;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.zdet_r to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&det,a,&n,piv,&info);
+                (*f2py_func)(&det,a,&n,piv,&info);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  det_capi = pyobj_from_complex_double1(det);
+    det_capi = pyobj_from_complex_double1(det);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Ni",det_capi,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Ni",det_capi,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  /* End of cleaning variable n */
-  /* End of cleaning variable info */
-  } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable det */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    /* End of cleaning variable n */
+    /* End of cleaning variable info */
+    } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable det */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of zdet_r *******************************/
 
@@ -919,108 +966,112 @@ static PyObject *f2py_rout__flinalg_cdet_c(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_float*,complex_float*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_float det;
-  PyObject *det_capi = Py_None;
-  complex_float *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int n = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  static char *capi_kwlist[] = {"a","overwrite_a",NULL};
+    complex_float det;
+    PyObject *det_capi = Py_None;
+    complex_float *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int n = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    static char *capi_kwlist[] = {"a","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|i:_flinalg.cdet_c",\
-    capi_kwlist,&a_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|i:_flinalg.cdet_c",\
+        capi_kwlist,&a_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable det */
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.cdet_c to C/Fortran array" );
-  } else {
-    a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable det */
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.cdet_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
 
-  CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
-  /* Processing variable info */
-  /* Processing variable n */
-  n = shape(a,0);
-  /* Processing variable piv */
-  piv_Dims[0]=n;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.cdet_c to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
+    /* Processing variable info */
+    /* Processing variable n */
+    n = shape(a,0);
+    /* Processing variable piv */
+    piv_Dims[0]=n;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.cdet_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&det,a,&n,piv,&info);
+                (*f2py_func)(&det,a,&n,piv,&info);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  det_capi = pyobj_from_complex_float1(det);
+    det_capi = pyobj_from_complex_float1(det);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Ni",det_capi,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Ni",det_capi,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  /* End of cleaning variable n */
-  /* End of cleaning variable info */
-  } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable det */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    /* End of cleaning variable n */
+    /* End of cleaning variable info */
+    } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable det */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of cdet_c *******************************/
 
@@ -1039,108 +1090,112 @@ static PyObject *f2py_rout__flinalg_cdet_r(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_float*,complex_float*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_float det;
-  PyObject *det_capi = Py_None;
-  complex_float *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int n = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  static char *capi_kwlist[] = {"a","overwrite_a",NULL};
+    complex_float det;
+    PyObject *det_capi = Py_None;
+    complex_float *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int n = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    static char *capi_kwlist[] = {"a","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|i:_flinalg.cdet_r",\
-    capi_kwlist,&a_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|i:_flinalg.cdet_r",\
+        capi_kwlist,&a_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable det */
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_C;
-  capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.cdet_r to C/Fortran array" );
-  } else {
-    a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable det */
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_C;
+    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.cdet_r to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
 
-  CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
-  /* Processing variable info */
-  /* Processing variable n */
-  n = shape(a,0);
-  /* Processing variable piv */
-  piv_Dims[0]=n;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.cdet_r to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    CHECKARRAY(shape(a,0)==shape(a,1),"shape(a,0)==shape(a,1)","1st argument a") {
+    /* Processing variable info */
+    /* Processing variable n */
+    n = shape(a,0);
+    /* Processing variable piv */
+    piv_Dims[0]=n;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.cdet_r to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&det,a,&n,piv,&info);
+                (*f2py_func)(&det,a,&n,piv,&info);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  det_capi = pyobj_from_complex_float1(det);
+    det_capi = pyobj_from_complex_float1(det);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Ni",det_capi,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Ni",det_capi,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  /* End of cleaning variable n */
-  /* End of cleaning variable info */
-  } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable det */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    /* End of cleaning variable n */
+    /* End of cleaning variable info */
+    } /*CHECKARRAY(shape(a,0)==shape(a,1))*/
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable det */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of cdet_r *******************************/
 
@@ -1162,172 +1217,182 @@ static PyObject *f2py_rout__flinalg_dlu_c(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,double*,double*,double*,int*,int*,int*,int*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *p = NULL;
-  npy_intp p_Dims[2] = {-1, -1};
-  const int p_Rank = 2;
-  PyArrayObject *capi_p_tmp = NULL;
-  int capi_p_intent = 0;
-  double *l = NULL;
-  npy_intp l_Dims[2] = {-1, -1};
-  const int l_Rank = 2;
-  PyArrayObject *capi_l_tmp = NULL;
-  int capi_l_intent = 0;
-  double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int m = 0;
-  int n = 0;
-  int k = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  int permute_l = 0;
-  PyObject *permute_l_capi = Py_None;
-  int m1 = 0;
-  static char *capi_kwlist[] = {"a","permute_l","overwrite_a",NULL};
+    double *p = NULL;
+    npy_intp p_Dims[2] = {-1, -1};
+    const int p_Rank = 2;
+    PyArrayObject *capi_p_tmp = NULL;
+    int capi_p_intent = 0;
+    double *l = NULL;
+    npy_intp l_Dims[2] = {-1, -1};
+    const int l_Rank = 2;
+    PyArrayObject *capi_l_tmp = NULL;
+    int capi_l_intent = 0;
+    double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int m = 0;
+    int n = 0;
+    int k = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    int permute_l = 0;
+    PyObject *permute_l_capi = Py_None;
+    int m1 = 0;
+    static char *capi_kwlist[] = {"a","permute_l","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|Oi:_flinalg.dlu_c",\
-    capi_kwlist,&a_capi,&permute_l_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|Oi:_flinalg.dlu_c",\
+        capi_kwlist,&a_capi,&permute_l_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable permute_l */
-  if (permute_l_capi == Py_None) permute_l = 0; else
-    f2py_success = int_from_pyobj(&permute_l,permute_l_capi,"_flinalg.dlu_c() 1st keyword (permute_l) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.dlu_c to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable permute_l */
+    if (permute_l_capi == Py_None) permute_l = 0; else
+        f2py_success = int_from_pyobj(&permute_l,permute_l_capi,"_flinalg.dlu_c() 1st keyword (permute_l) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.dlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable info */
-  /* Processing variable m */
-  m = shape(a,0);
-  /* Processing variable n */
-  n = shape(a,1);
-  /* Processing variable k */
-  k = (m<n?m:n);
-  /* Processing variable m1 */
-  m1 = (permute_l?1:m);
-  /* Processing variable l */
-  l_Dims[0]=m,l_Dims[1]=k;
-  capi_l_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_l_tmp = array_from_pyobj(NPY_DOUBLE,l_Dims,l_Rank,capi_l_intent,Py_None);
-  if (capi_l_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `l' of _flinalg.dlu_c to C/Fortran array" );
-  } else {
-    l = (double *)(PyArray_DATA(capi_l_tmp));
+    /* Processing variable info */
+    /* Processing variable m */
+    m = shape(a,0);
+    /* Processing variable n */
+    n = shape(a,1);
+    /* Processing variable k */
+    k = (m<n?m:n);
+    /* Processing variable m1 */
+    m1 = (permute_l?1:m);
+    /* Processing variable l */
+    l_Dims[0]=m,l_Dims[1]=k;
+    capi_l_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_l_tmp = array_from_pyobj(NPY_DOUBLE,l_Dims,l_Rank,capi_l_intent,Py_None);
+    if (capi_l_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `l' of _flinalg.dlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        l = (double *)(PyArray_DATA(capi_l_tmp));
 
-  /* Processing variable u */
-  u_Dims[0]=k,u_Dims[1]=n;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `u' of _flinalg.dlu_c to C/Fortran array" );
-  } else {
-    u = (double *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable u */
+    u_Dims[0]=k,u_Dims[1]=n;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `u' of _flinalg.dlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable p */
-  p_Dims[0]=m1,p_Dims[1]=m1;
-  capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_p_tmp = array_from_pyobj(NPY_DOUBLE,p_Dims,p_Rank,capi_p_intent,Py_None);
-  if (capi_p_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `p' of _flinalg.dlu_c to C/Fortran array" );
-  } else {
-    p = (double *)(PyArray_DATA(capi_p_tmp));
+    /* Processing variable p */
+    p_Dims[0]=m1,p_Dims[1]=m1;
+    capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_p_tmp = array_from_pyobj(NPY_DOUBLE,p_Dims,p_Rank,capi_p_intent,Py_None);
+    if (capi_p_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `p' of _flinalg.dlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        p = (double *)(PyArray_DATA(capi_p_tmp));
 
-  /* Processing variable piv */
-  piv_Dims[0]=k;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.dlu_c to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    /* Processing variable piv */
+    piv_Dims[0]=k;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.dlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(p,l,u,a,&m,&n,&k,piv,&info,&permute_l,&m1);
+                (*f2py_func)(p,l,u,a,&m,&n,&k,piv,&info,&permute_l,&m1);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_p_tmp,capi_l_tmp,capi_u_tmp,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_p_tmp,capi_l_tmp,capi_u_tmp,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  }  /*if (capi_p_tmp == NULL) ... else of p*/
-  /* End of cleaning variable p */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  }  /*if (capi_l_tmp == NULL) ... else of l*/
-  /* End of cleaning variable l */
-  /* End of cleaning variable m1 */
-  /* End of cleaning variable k */
-  /* End of cleaning variable n */
-  /* End of cleaning variable m */
-  /* End of cleaning variable info */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of permute_l*/
-  /* End of cleaning variable permute_l */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    }  /*if (capi_p_tmp == NULL) ... else of p*/
+    /* End of cleaning variable p */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    }  /*if (capi_l_tmp == NULL) ... else of l*/
+    /* End of cleaning variable l */
+    /* End of cleaning variable m1 */
+    /* End of cleaning variable k */
+    /* End of cleaning variable n */
+    /* End of cleaning variable m */
+    /* End of cleaning variable info */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of permute_l*/
+    /* End of cleaning variable permute_l */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dlu_c ********************************/
 
@@ -1349,172 +1414,182 @@ static PyObject *f2py_rout__flinalg_zlu_c(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,complex_double*,complex_double*,complex_double*,int*,int*,int*,int*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *p = NULL;
-  npy_intp p_Dims[2] = {-1, -1};
-  const int p_Rank = 2;
-  PyArrayObject *capi_p_tmp = NULL;
-  int capi_p_intent = 0;
-  complex_double *l = NULL;
-  npy_intp l_Dims[2] = {-1, -1};
-  const int l_Rank = 2;
-  PyArrayObject *capi_l_tmp = NULL;
-  int capi_l_intent = 0;
-  complex_double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int m = 0;
-  int n = 0;
-  int k = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  int permute_l = 0;
-  PyObject *permute_l_capi = Py_None;
-  int m1 = 0;
-  static char *capi_kwlist[] = {"a","permute_l","overwrite_a",NULL};
+    double *p = NULL;
+    npy_intp p_Dims[2] = {-1, -1};
+    const int p_Rank = 2;
+    PyArrayObject *capi_p_tmp = NULL;
+    int capi_p_intent = 0;
+    complex_double *l = NULL;
+    npy_intp l_Dims[2] = {-1, -1};
+    const int l_Rank = 2;
+    PyArrayObject *capi_l_tmp = NULL;
+    int capi_l_intent = 0;
+    complex_double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int m = 0;
+    int n = 0;
+    int k = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    int permute_l = 0;
+    PyObject *permute_l_capi = Py_None;
+    int m1 = 0;
+    static char *capi_kwlist[] = {"a","permute_l","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|Oi:_flinalg.zlu_c",\
-    capi_kwlist,&a_capi,&permute_l_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|Oi:_flinalg.zlu_c",\
+        capi_kwlist,&a_capi,&permute_l_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable permute_l */
-  if (permute_l_capi == Py_None) permute_l = 0; else
-    f2py_success = int_from_pyobj(&permute_l,permute_l_capi,"_flinalg.zlu_c() 1st keyword (permute_l) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.zlu_c to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable permute_l */
+    if (permute_l_capi == Py_None) permute_l = 0; else
+        f2py_success = int_from_pyobj(&permute_l,permute_l_capi,"_flinalg.zlu_c() 1st keyword (permute_l) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.zlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable info */
-  /* Processing variable m */
-  m = shape(a,0);
-  /* Processing variable n */
-  n = shape(a,1);
-  /* Processing variable k */
-  k = (m<n?m:n);
-  /* Processing variable m1 */
-  m1 = (permute_l?1:m);
-  /* Processing variable l */
-  l_Dims[0]=m,l_Dims[1]=k;
-  capi_l_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_l_tmp = array_from_pyobj(NPY_CDOUBLE,l_Dims,l_Rank,capi_l_intent,Py_None);
-  if (capi_l_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `l' of _flinalg.zlu_c to C/Fortran array" );
-  } else {
-    l = (complex_double *)(PyArray_DATA(capi_l_tmp));
+    /* Processing variable info */
+    /* Processing variable m */
+    m = shape(a,0);
+    /* Processing variable n */
+    n = shape(a,1);
+    /* Processing variable k */
+    k = (m<n?m:n);
+    /* Processing variable m1 */
+    m1 = (permute_l?1:m);
+    /* Processing variable l */
+    l_Dims[0]=m,l_Dims[1]=k;
+    capi_l_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_l_tmp = array_from_pyobj(NPY_CDOUBLE,l_Dims,l_Rank,capi_l_intent,Py_None);
+    if (capi_l_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `l' of _flinalg.zlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        l = (complex_double *)(PyArray_DATA(capi_l_tmp));
 
-  /* Processing variable u */
-  u_Dims[0]=k,u_Dims[1]=n;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `u' of _flinalg.zlu_c to C/Fortran array" );
-  } else {
-    u = (complex_double *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable u */
+    u_Dims[0]=k,u_Dims[1]=n;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `u' of _flinalg.zlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (complex_double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable p */
-  p_Dims[0]=m1,p_Dims[1]=m1;
-  capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_p_tmp = array_from_pyobj(NPY_DOUBLE,p_Dims,p_Rank,capi_p_intent,Py_None);
-  if (capi_p_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `p' of _flinalg.zlu_c to C/Fortran array" );
-  } else {
-    p = (double *)(PyArray_DATA(capi_p_tmp));
+    /* Processing variable p */
+    p_Dims[0]=m1,p_Dims[1]=m1;
+    capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_p_tmp = array_from_pyobj(NPY_DOUBLE,p_Dims,p_Rank,capi_p_intent,Py_None);
+    if (capi_p_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `p' of _flinalg.zlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        p = (double *)(PyArray_DATA(capi_p_tmp));
 
-  /* Processing variable piv */
-  piv_Dims[0]=k;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.zlu_c to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    /* Processing variable piv */
+    piv_Dims[0]=k;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.zlu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(p,l,u,a,&m,&n,&k,piv,&info,&permute_l,&m1);
+                (*f2py_func)(p,l,u,a,&m,&n,&k,piv,&info,&permute_l,&m1);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_p_tmp,capi_l_tmp,capi_u_tmp,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_p_tmp,capi_l_tmp,capi_u_tmp,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  }  /*if (capi_p_tmp == NULL) ... else of p*/
-  /* End of cleaning variable p */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  }  /*if (capi_l_tmp == NULL) ... else of l*/
-  /* End of cleaning variable l */
-  /* End of cleaning variable m1 */
-  /* End of cleaning variable k */
-  /* End of cleaning variable n */
-  /* End of cleaning variable m */
-  /* End of cleaning variable info */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of permute_l*/
-  /* End of cleaning variable permute_l */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    }  /*if (capi_p_tmp == NULL) ... else of p*/
+    /* End of cleaning variable p */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    }  /*if (capi_l_tmp == NULL) ... else of l*/
+    /* End of cleaning variable l */
+    /* End of cleaning variable m1 */
+    /* End of cleaning variable k */
+    /* End of cleaning variable n */
+    /* End of cleaning variable m */
+    /* End of cleaning variable info */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of permute_l*/
+    /* End of cleaning variable permute_l */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of zlu_c ********************************/
 
@@ -1536,172 +1611,182 @@ static PyObject *f2py_rout__flinalg_slu_c(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,float*,float*,float*,int*,int*,int*,int*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *p = NULL;
-  npy_intp p_Dims[2] = {-1, -1};
-  const int p_Rank = 2;
-  PyArrayObject *capi_p_tmp = NULL;
-  int capi_p_intent = 0;
-  float *l = NULL;
-  npy_intp l_Dims[2] = {-1, -1};
-  const int l_Rank = 2;
-  PyArrayObject *capi_l_tmp = NULL;
-  int capi_l_intent = 0;
-  float *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  float *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int m = 0;
-  int n = 0;
-  int k = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  int permute_l = 0;
-  PyObject *permute_l_capi = Py_None;
-  int m1 = 0;
-  static char *capi_kwlist[] = {"a","permute_l","overwrite_a",NULL};
+    float *p = NULL;
+    npy_intp p_Dims[2] = {-1, -1};
+    const int p_Rank = 2;
+    PyArrayObject *capi_p_tmp = NULL;
+    int capi_p_intent = 0;
+    float *l = NULL;
+    npy_intp l_Dims[2] = {-1, -1};
+    const int l_Rank = 2;
+    PyArrayObject *capi_l_tmp = NULL;
+    int capi_l_intent = 0;
+    float *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    float *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int m = 0;
+    int n = 0;
+    int k = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    int permute_l = 0;
+    PyObject *permute_l_capi = Py_None;
+    int m1 = 0;
+    static char *capi_kwlist[] = {"a","permute_l","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|Oi:_flinalg.slu_c",\
-    capi_kwlist,&a_capi,&permute_l_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|Oi:_flinalg.slu_c",\
+        capi_kwlist,&a_capi,&permute_l_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable permute_l */
-  if (permute_l_capi == Py_None) permute_l = 0; else
-    f2py_success = int_from_pyobj(&permute_l,permute_l_capi,"_flinalg.slu_c() 1st keyword (permute_l) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.slu_c to C/Fortran array" );
-  } else {
-    a = (float *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable permute_l */
+    if (permute_l_capi == Py_None) permute_l = 0; else
+        f2py_success = int_from_pyobj(&permute_l,permute_l_capi,"_flinalg.slu_c() 1st keyword (permute_l) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.slu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (float *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable info */
-  /* Processing variable m */
-  m = shape(a,0);
-  /* Processing variable n */
-  n = shape(a,1);
-  /* Processing variable k */
-  k = (m<n?m:n);
-  /* Processing variable m1 */
-  m1 = (permute_l?1:m);
-  /* Processing variable l */
-  l_Dims[0]=m,l_Dims[1]=k;
-  capi_l_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_l_tmp = array_from_pyobj(NPY_FLOAT,l_Dims,l_Rank,capi_l_intent,Py_None);
-  if (capi_l_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `l' of _flinalg.slu_c to C/Fortran array" );
-  } else {
-    l = (float *)(PyArray_DATA(capi_l_tmp));
+    /* Processing variable info */
+    /* Processing variable m */
+    m = shape(a,0);
+    /* Processing variable n */
+    n = shape(a,1);
+    /* Processing variable k */
+    k = (m<n?m:n);
+    /* Processing variable m1 */
+    m1 = (permute_l?1:m);
+    /* Processing variable l */
+    l_Dims[0]=m,l_Dims[1]=k;
+    capi_l_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_l_tmp = array_from_pyobj(NPY_FLOAT,l_Dims,l_Rank,capi_l_intent,Py_None);
+    if (capi_l_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `l' of _flinalg.slu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        l = (float *)(PyArray_DATA(capi_l_tmp));
 
-  /* Processing variable u */
-  u_Dims[0]=k,u_Dims[1]=n;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_FLOAT,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `u' of _flinalg.slu_c to C/Fortran array" );
-  } else {
-    u = (float *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable u */
+    u_Dims[0]=k,u_Dims[1]=n;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_FLOAT,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `u' of _flinalg.slu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (float *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable p */
-  p_Dims[0]=m1,p_Dims[1]=m1;
-  capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_p_tmp = array_from_pyobj(NPY_FLOAT,p_Dims,p_Rank,capi_p_intent,Py_None);
-  if (capi_p_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `p' of _flinalg.slu_c to C/Fortran array" );
-  } else {
-    p = (float *)(PyArray_DATA(capi_p_tmp));
+    /* Processing variable p */
+    p_Dims[0]=m1,p_Dims[1]=m1;
+    capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_p_tmp = array_from_pyobj(NPY_FLOAT,p_Dims,p_Rank,capi_p_intent,Py_None);
+    if (capi_p_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `p' of _flinalg.slu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        p = (float *)(PyArray_DATA(capi_p_tmp));
 
-  /* Processing variable piv */
-  piv_Dims[0]=k;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.slu_c to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    /* Processing variable piv */
+    piv_Dims[0]=k;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.slu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(p,l,u,a,&m,&n,&k,piv,&info,&permute_l,&m1);
+                (*f2py_func)(p,l,u,a,&m,&n,&k,piv,&info,&permute_l,&m1);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_p_tmp,capi_l_tmp,capi_u_tmp,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_p_tmp,capi_l_tmp,capi_u_tmp,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  }  /*if (capi_p_tmp == NULL) ... else of p*/
-  /* End of cleaning variable p */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  }  /*if (capi_l_tmp == NULL) ... else of l*/
-  /* End of cleaning variable l */
-  /* End of cleaning variable m1 */
-  /* End of cleaning variable k */
-  /* End of cleaning variable n */
-  /* End of cleaning variable m */
-  /* End of cleaning variable info */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of permute_l*/
-  /* End of cleaning variable permute_l */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    }  /*if (capi_p_tmp == NULL) ... else of p*/
+    /* End of cleaning variable p */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    }  /*if (capi_l_tmp == NULL) ... else of l*/
+    /* End of cleaning variable l */
+    /* End of cleaning variable m1 */
+    /* End of cleaning variable k */
+    /* End of cleaning variable n */
+    /* End of cleaning variable m */
+    /* End of cleaning variable info */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of permute_l*/
+    /* End of cleaning variable permute_l */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of slu_c ********************************/
 
@@ -1723,172 +1808,182 @@ static PyObject *f2py_rout__flinalg_clu_c(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,complex_float*,complex_float*,complex_float*,int*,int*,int*,int*,int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *p = NULL;
-  npy_intp p_Dims[2] = {-1, -1};
-  const int p_Rank = 2;
-  PyArrayObject *capi_p_tmp = NULL;
-  int capi_p_intent = 0;
-  complex_float *l = NULL;
-  npy_intp l_Dims[2] = {-1, -1};
-  const int l_Rank = 2;
-  PyArrayObject *capi_l_tmp = NULL;
-  int capi_l_intent = 0;
-  complex_float *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  complex_float *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  int capi_overwrite_a = 0;
-  PyObject *a_capi = Py_None;
-  int m = 0;
-  int n = 0;
-  int k = 0;
-  int *piv = NULL;
-  npy_intp piv_Dims[1] = {-1};
-  const int piv_Rank = 1;
-  PyArrayObject *capi_piv_tmp = NULL;
-  int capi_piv_intent = 0;
-  int info = 0;
-  int permute_l = 0;
-  PyObject *permute_l_capi = Py_None;
-  int m1 = 0;
-  static char *capi_kwlist[] = {"a","permute_l","overwrite_a",NULL};
+    float *p = NULL;
+    npy_intp p_Dims[2] = {-1, -1};
+    const int p_Rank = 2;
+    PyArrayObject *capi_p_tmp = NULL;
+    int capi_p_intent = 0;
+    complex_float *l = NULL;
+    npy_intp l_Dims[2] = {-1, -1};
+    const int l_Rank = 2;
+    PyArrayObject *capi_l_tmp = NULL;
+    int capi_l_intent = 0;
+    complex_float *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    complex_float *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    int capi_overwrite_a = 0;
+    PyObject *a_capi = Py_None;
+    int m = 0;
+    int n = 0;
+    int k = 0;
+    int *piv = NULL;
+    npy_intp piv_Dims[1] = {-1};
+    const int piv_Rank = 1;
+    PyArrayObject *capi_piv_tmp = NULL;
+    int capi_piv_intent = 0;
+    int info = 0;
+    int permute_l = 0;
+    PyObject *permute_l_capi = Py_None;
+    int m1 = 0;
+    static char *capi_kwlist[] = {"a","permute_l","overwrite_a",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|Oi:_flinalg.clu_c",\
-    capi_kwlist,&a_capi,&permute_l_capi,&capi_overwrite_a))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|Oi:_flinalg.clu_c",\
+        capi_kwlist,&a_capi,&permute_l_capi,&capi_overwrite_a))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable permute_l */
-  if (permute_l_capi == Py_None) permute_l = 0; else
-    f2py_success = int_from_pyobj(&permute_l,permute_l_capi,"_flinalg.clu_c() 1st keyword (permute_l) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable a */
-  capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting 1st argument `a' of _flinalg.clu_c to C/Fortran array" );
-  } else {
-    a = (complex_float *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable permute_l */
+    if (permute_l_capi == Py_None) permute_l = 0; else
+        f2py_success = int_from_pyobj(&permute_l,permute_l_capi,"_flinalg.clu_c() 1st keyword (permute_l) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable a */
+    capi_a_intent |= (capi_overwrite_a?0:F2PY_INTENT_COPY);
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CFLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting 1st argument `a' of _flinalg.clu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_float *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable info */
-  /* Processing variable m */
-  m = shape(a,0);
-  /* Processing variable n */
-  n = shape(a,1);
-  /* Processing variable k */
-  k = (m<n?m:n);
-  /* Processing variable m1 */
-  m1 = (permute_l?1:m);
-  /* Processing variable l */
-  l_Dims[0]=m,l_Dims[1]=k;
-  capi_l_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_l_tmp = array_from_pyobj(NPY_CFLOAT,l_Dims,l_Rank,capi_l_intent,Py_None);
-  if (capi_l_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `l' of _flinalg.clu_c to C/Fortran array" );
-  } else {
-    l = (complex_float *)(PyArray_DATA(capi_l_tmp));
+    /* Processing variable info */
+    /* Processing variable m */
+    m = shape(a,0);
+    /* Processing variable n */
+    n = shape(a,1);
+    /* Processing variable k */
+    k = (m<n?m:n);
+    /* Processing variable m1 */
+    m1 = (permute_l?1:m);
+    /* Processing variable l */
+    l_Dims[0]=m,l_Dims[1]=k;
+    capi_l_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_l_tmp = array_from_pyobj(NPY_CFLOAT,l_Dims,l_Rank,capi_l_intent,Py_None);
+    if (capi_l_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `l' of _flinalg.clu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        l = (complex_float *)(PyArray_DATA(capi_l_tmp));
 
-  /* Processing variable u */
-  u_Dims[0]=k,u_Dims[1]=n;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_CFLOAT,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `u' of _flinalg.clu_c to C/Fortran array" );
-  } else {
-    u = (complex_float *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable u */
+    u_Dims[0]=k,u_Dims[1]=n;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_CFLOAT,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `u' of _flinalg.clu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (complex_float *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable p */
-  p_Dims[0]=m1,p_Dims[1]=m1;
-  capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_p_tmp = array_from_pyobj(NPY_FLOAT,p_Dims,p_Rank,capi_p_intent,Py_None);
-  if (capi_p_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `p' of _flinalg.clu_c to C/Fortran array" );
-  } else {
-    p = (float *)(PyArray_DATA(capi_p_tmp));
+    /* Processing variable p */
+    p_Dims[0]=m1,p_Dims[1]=m1;
+    capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_p_tmp = array_from_pyobj(NPY_FLOAT,p_Dims,p_Rank,capi_p_intent,Py_None);
+    if (capi_p_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `p' of _flinalg.clu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        p = (float *)(PyArray_DATA(capi_p_tmp));
 
-  /* Processing variable piv */
-  piv_Dims[0]=k;
-  capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
-  capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
-  if (capi_piv_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_flinalg_error,"failed in converting hidden `piv' of _flinalg.clu_c to C/Fortran array" );
-  } else {
-    piv = (int *)(PyArray_DATA(capi_piv_tmp));
+    /* Processing variable piv */
+    piv_Dims[0]=k;
+    capi_piv_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_piv_tmp = array_from_pyobj(NPY_INT,piv_Dims,piv_Rank,capi_piv_intent,Py_None);
+    if (capi_piv_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _flinalg_error,"failed in converting hidden `piv' of _flinalg.clu_c to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        piv = (int *)(PyArray_DATA(capi_piv_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(p,l,u,a,&m,&n,&k,piv,&info,&permute_l,&m1);
+                (*f2py_func)(p,l,u,a,&m,&n,&k,piv,&info,&permute_l,&m1);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_p_tmp,capi_l_tmp,capi_u_tmp,info);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_p_tmp,capi_l_tmp,capi_u_tmp,info);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-    Py_XDECREF(capi_piv_tmp);
-  }  /*if (capi_piv_tmp == NULL) ... else of piv*/
-  /* End of cleaning variable piv */
-  }  /*if (capi_p_tmp == NULL) ... else of p*/
-  /* End of cleaning variable p */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  }  /*if (capi_l_tmp == NULL) ... else of l*/
-  /* End of cleaning variable l */
-  /* End of cleaning variable m1 */
-  /* End of cleaning variable k */
-  /* End of cleaning variable n */
-  /* End of cleaning variable m */
-  /* End of cleaning variable info */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of permute_l*/
-  /* End of cleaning variable permute_l */
+        Py_XDECREF(capi_piv_tmp);
+    }  /*if (capi_piv_tmp == NULL) ... else of piv*/
+    /* End of cleaning variable piv */
+    }  /*if (capi_p_tmp == NULL) ... else of p*/
+    /* End of cleaning variable p */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    }  /*if (capi_l_tmp == NULL) ... else of l*/
+    /* End of cleaning variable l */
+    /* End of cleaning variable m1 */
+    /* End of cleaning variable k */
+    /* End of cleaning variable n */
+    /* End of cleaning variable m */
+    /* End of cleaning variable info */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of permute_l*/
+    /* End of cleaning variable permute_l */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of clu_c ********************************/
 /*eof body*/
@@ -1905,87 +2000,84 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-  {"ddet_c",-1,{{-1}},0,(char *)F_FUNC_US(ddet_c,DDET_C),(f2py_init_func)f2py_rout__flinalg_ddet_c,doc_f2py_rout__flinalg_ddet_c},
-  {"ddet_r",-1,{{-1}},0,(char *)F_FUNC_US(ddet_r,DDET_R),(f2py_init_func)f2py_rout__flinalg_ddet_r,doc_f2py_rout__flinalg_ddet_r},
-  {"sdet_c",-1,{{-1}},0,(char *)F_FUNC_US(sdet_c,SDET_C),(f2py_init_func)f2py_rout__flinalg_sdet_c,doc_f2py_rout__flinalg_sdet_c},
-  {"sdet_r",-1,{{-1}},0,(char *)F_FUNC_US(sdet_r,SDET_R),(f2py_init_func)f2py_rout__flinalg_sdet_r,doc_f2py_rout__flinalg_sdet_r},
-  {"zdet_c",-1,{{-1}},0,(char *)F_FUNC_US(zdet_c,ZDET_C),(f2py_init_func)f2py_rout__flinalg_zdet_c,doc_f2py_rout__flinalg_zdet_c},
-  {"zdet_r",-1,{{-1}},0,(char *)F_FUNC_US(zdet_r,ZDET_R),(f2py_init_func)f2py_rout__flinalg_zdet_r,doc_f2py_rout__flinalg_zdet_r},
-  {"cdet_c",-1,{{-1}},0,(char *)F_FUNC_US(cdet_c,CDET_C),(f2py_init_func)f2py_rout__flinalg_cdet_c,doc_f2py_rout__flinalg_cdet_c},
-  {"cdet_r",-1,{{-1}},0,(char *)F_FUNC_US(cdet_r,CDET_R),(f2py_init_func)f2py_rout__flinalg_cdet_r,doc_f2py_rout__flinalg_cdet_r},
-  {"dlu_c",-1,{{-1}},0,(char *)F_FUNC_US(dlu_c,DLU_C),(f2py_init_func)f2py_rout__flinalg_dlu_c,doc_f2py_rout__flinalg_dlu_c},
-  {"zlu_c",-1,{{-1}},0,(char *)F_FUNC_US(zlu_c,ZLU_C),(f2py_init_func)f2py_rout__flinalg_zlu_c,doc_f2py_rout__flinalg_zlu_c},
-  {"slu_c",-1,{{-1}},0,(char *)F_FUNC_US(slu_c,SLU_C),(f2py_init_func)f2py_rout__flinalg_slu_c,doc_f2py_rout__flinalg_slu_c},
-  {"clu_c",-1,{{-1}},0,(char *)F_FUNC_US(clu_c,CLU_C),(f2py_init_func)f2py_rout__flinalg_clu_c,doc_f2py_rout__flinalg_clu_c},
+    {"ddet_c",-1,{{-1}},0,(char *)F_FUNC_US(ddet_c,DDET_C),(f2py_init_func)f2py_rout__flinalg_ddet_c,doc_f2py_rout__flinalg_ddet_c},
+    {"ddet_r",-1,{{-1}},0,(char *)F_FUNC_US(ddet_r,DDET_R),(f2py_init_func)f2py_rout__flinalg_ddet_r,doc_f2py_rout__flinalg_ddet_r},
+    {"sdet_c",-1,{{-1}},0,(char *)F_FUNC_US(sdet_c,SDET_C),(f2py_init_func)f2py_rout__flinalg_sdet_c,doc_f2py_rout__flinalg_sdet_c},
+    {"sdet_r",-1,{{-1}},0,(char *)F_FUNC_US(sdet_r,SDET_R),(f2py_init_func)f2py_rout__flinalg_sdet_r,doc_f2py_rout__flinalg_sdet_r},
+    {"zdet_c",-1,{{-1}},0,(char *)F_FUNC_US(zdet_c,ZDET_C),(f2py_init_func)f2py_rout__flinalg_zdet_c,doc_f2py_rout__flinalg_zdet_c},
+    {"zdet_r",-1,{{-1}},0,(char *)F_FUNC_US(zdet_r,ZDET_R),(f2py_init_func)f2py_rout__flinalg_zdet_r,doc_f2py_rout__flinalg_zdet_r},
+    {"cdet_c",-1,{{-1}},0,(char *)F_FUNC_US(cdet_c,CDET_C),(f2py_init_func)f2py_rout__flinalg_cdet_c,doc_f2py_rout__flinalg_cdet_c},
+    {"cdet_r",-1,{{-1}},0,(char *)F_FUNC_US(cdet_r,CDET_R),(f2py_init_func)f2py_rout__flinalg_cdet_r,doc_f2py_rout__flinalg_cdet_r},
+    {"dlu_c",-1,{{-1}},0,(char *)F_FUNC_US(dlu_c,DLU_C),(f2py_init_func)f2py_rout__flinalg_dlu_c,doc_f2py_rout__flinalg_dlu_c},
+    {"zlu_c",-1,{{-1}},0,(char *)F_FUNC_US(zlu_c,ZLU_C),(f2py_init_func)f2py_rout__flinalg_zlu_c,doc_f2py_rout__flinalg_zlu_c},
+    {"slu_c",-1,{{-1}},0,(char *)F_FUNC_US(slu_c,SLU_C),(f2py_init_func)f2py_rout__flinalg_slu_c,doc_f2py_rout__flinalg_slu_c},
+    {"clu_c",-1,{{-1}},0,(char *)F_FUNC_US(clu_c,CLU_C),(f2py_init_func)f2py_rout__flinalg_clu_c,doc_f2py_rout__flinalg_clu_c},
 
 /*eof routine_defs*/
-  {NULL}
+    {NULL}
 };
 
 static PyMethodDef f2py_module_methods[] = {
 
-  {NULL,NULL}
+    {NULL,NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT,
-  "_flinalg",
-  NULL,
-  -1,
-  f2py_module_methods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+    PyModuleDef_HEAD_INIT,
+    "_flinalg",
+    NULL,
+    -1,
+    f2py_module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
-#endif
 
-#if PY_VERSION_HEX >= 0x03000000
-#define RETVAL m
 PyMODINIT_FUNC PyInit__flinalg(void) {
-#else
-#define RETVAL
-PyMODINIT_FUNC init_flinalg(void) {
-#endif
-  int i;
-  PyObject *m,*d, *s;
-#if PY_VERSION_HEX >= 0x03000000
-  m = _flinalg_module = PyModule_Create(&moduledef);
-#else
-  m = _flinalg_module = Py_InitModule("_flinalg", f2py_module_methods);
-#endif
-  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
-  import_array();
-  if (PyErr_Occurred())
-    {PyErr_SetString(PyExc_ImportError, "can't initialize module _flinalg (failed to import numpy)"); return RETVAL;}
-  d = PyModule_GetDict(m);
-  s = PyString_FromString("$Revision: $");
-  PyDict_SetItemString(d, "__version__", s);
-#if PY_VERSION_HEX >= 0x03000000
-  s = PyUnicode_FromString(
-#else
-  s = PyString_FromString(
-#endif
-    "This module '_flinalg' is auto-generated with f2py (version:2).\nFunctions:\n"
-"  det,info = ddet_c(a,overwrite_a=0)\n"
-"  det,info = ddet_r(a,overwrite_a=0)\n"
-"  det,info = sdet_c(a,overwrite_a=0)\n"
-"  det,info = sdet_r(a,overwrite_a=0)\n"
-"  det,info = zdet_c(a,overwrite_a=0)\n"
-"  det,info = zdet_r(a,overwrite_a=0)\n"
-"  det,info = cdet_c(a,overwrite_a=0)\n"
-"  det,info = cdet_r(a,overwrite_a=0)\n"
-"  p,l,u,info = dlu_c(a,permute_l=0,overwrite_a=0)\n"
-"  p,l,u,info = zlu_c(a,permute_l=0,overwrite_a=0)\n"
-"  p,l,u,info = slu_c(a,permute_l=0,overwrite_a=0)\n"
-"  p,l,u,info = clu_c(a,permute_l=0,overwrite_a=0)\n"
+    int i;
+    PyObject *m,*d, *s, *tmp;
+    m = _flinalg_module = PyModule_Create(&moduledef);
+    Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
+    import_array();
+    if (PyErr_Occurred())
+        {PyErr_SetString(PyExc_ImportError, "can't initialize module _flinalg (failed to import numpy)"); return m;}
+    d = PyModule_GetDict(m);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__version__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString(
+        "This module '_flinalg' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+"    det,info = ddet_c(a,overwrite_a=0)\n"
+"    det,info = ddet_r(a,overwrite_a=0)\n"
+"    det,info = sdet_c(a,overwrite_a=0)\n"
+"    det,info = sdet_r(a,overwrite_a=0)\n"
+"    det,info = zdet_c(a,overwrite_a=0)\n"
+"    det,info = zdet_r(a,overwrite_a=0)\n"
+"    det,info = cdet_c(a,overwrite_a=0)\n"
+"    det,info = cdet_r(a,overwrite_a=0)\n"
+"    p,l,u,info = dlu_c(a,permute_l=0,overwrite_a=0)\n"
+"    p,l,u,info = zlu_c(a,permute_l=0,overwrite_a=0)\n"
+"    p,l,u,info = slu_c(a,permute_l=0,overwrite_a=0)\n"
+"    p,l,u,info = clu_c(a,permute_l=0,overwrite_a=0)\n"
 ".");
-  PyDict_SetItemString(d, "__doc__", s);
-  _flinalg_error = PyErr_NewException ("_flinalg.error", NULL, NULL);
-  Py_DECREF(s);
-  for(i=0;f2py_routine_defs[i].name!=NULL;i++)
-    PyDict_SetItemString(d, f2py_routine_defs[i].name,PyFortranObject_NewAsAttr(&f2py_routine_defs[i]));
+    PyDict_SetItemString(d, "__doc__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__f2py_numpy_version__", s);
+    Py_DECREF(s);
+    _flinalg_error = PyErr_NewException ("_flinalg.error", NULL, NULL);
+    /*
+     * Store the error object inside the dict, so that it could get deallocated.
+     * (in practice, this is a module, so it likely will not and cannot.)
+     */
+    PyDict_SetItemString(d, "__flinalg_error", _flinalg_error);
+    Py_DECREF(_flinalg_error);
+    for(i=0;f2py_routine_defs[i].name!=NULL;i++) {
+        tmp = PyFortranObject_NewAsAttr(&f2py_routine_defs[i]);
+        PyDict_SetItemString(d, f2py_routine_defs[i].name, tmp);
+        Py_DECREF(tmp);
+    }
 
 
 
@@ -2005,11 +2097,10 @@ PyMODINIT_FUNC init_flinalg(void) {
 
 
 #ifdef F2PY_REPORT_ATEXIT
-  if (! PyErr_Occurred())
-    on_exit(f2py_report_on_exit,(void*)"_flinalg");
+    if (! PyErr_Occurred())
+        on_exit(f2py_report_on_exit,(void*)"_flinalg");
 #endif
-
-  return RETVAL;
+    return m;
 }
 #ifdef __cplusplus
 }

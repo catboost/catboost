@@ -1,5 +1,5 @@
 /* File: statlibmodule.c
- * This file is auto-generated with f2py (version:2).
+ * This file is auto-generated with f2py (version:1.23.5).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Mon Jan 20 20:54:49 2020
@@ -10,8 +10,15 @@
 extern "C" {
 #endif
 
+#ifndef PY_SSIZE_T_CLEAN
+#define PY_SSIZE_T_CLEAN
+#endif /* PY_SSIZE_T_CLEAN */
+
+/* Unconditionally included */
+#include <Python.h>
+#include <numpy/npy_os.h>
+
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include "Python.h"
 #include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
@@ -130,33 +137,49 @@ static int f2py_size(PyArrayObject* var, ...)
   return sz;
 }
 
-static int int_from_pyobj(int* v,PyObject *obj,const char *errmess) {
+static int
+int_from_pyobj(int* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
-    if (PyInt_Check(obj)) {
-        *v = (int)PyInt_AS_LONG(obj);
-        return 1;
+
+    if (PyLong_Check(obj)) {
+        *v = Npy__PyLong_AsInt(obj);
+        return !(*v == -1 && PyErr_Occurred());
     }
-    tmp = PyNumber_Int(obj);
+
+    tmp = PyNumber_Long(obj);
     if (tmp) {
-        *v = PyInt_AS_LONG(tmp);
+        *v = Npy__PyLong_AsInt(tmp);
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
-        if (int_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
+        if (int_from_pyobj(v, tmp, errmess)) {
+            Py_DECREF(tmp);
+            return 1;
+        }
         Py_DECREF(tmp);
     }
+
     {
         PyObject* err = PyErr_Occurred();
-        if (err==NULL) err = statlib_error;
-        PyErr_SetString(err,errmess);
+        if (err == NULL) {
+            err = statlib_error;
+        }
+        PyErr_SetString(err, errmess);
     }
     return 0;
 }
@@ -201,128 +224,132 @@ static PyObject *f2py_rout_statlib_swilk(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,float*,int*,int*,int*,float*,float*,float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int init = 0;
-  PyObject *init_capi = Py_None;
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  int n1 = 0;
-  PyObject *n1_capi = Py_None;
-  int n2 = 0;
-  float *a = NULL;
-  npy_intp a_Dims[1] = {-1};
-  const int a_Rank = 1;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  float w = 0;
-  float pw = 0;
-  int ifault = 0;
-  static char *capi_kwlist[] = {"x","a","init","n1",NULL};
+    int init = 0;
+    PyObject *init_capi = Py_None;
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    int n1 = 0;
+    PyObject *n1_capi = Py_None;
+    int n2 = 0;
+    float *a = NULL;
+    npy_intp a_Dims[1] = {-1};
+    const int a_Rank = 1;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    float w = 0;
+    float pw = 0;
+    int ifault = 0;
+    static char *capi_kwlist[] = {"x","a","init","n1",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:statlib.swilk",\
-    capi_kwlist,&x_capi,&a_capi,&init_capi,&n1_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:statlib.swilk",\
+        capi_kwlist,&x_capi,&a_capi,&init_capi,&n1_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable init */
-  if (init_capi == Py_None) init = 0; else
-    init = (int)PyObject_IsTrue(init_capi);
-    f2py_success = 1;
-  if (f2py_success) {
-  /* Processing variable x */
-  ;
-  capi_x_intent |= F2PY_INTENT_IN;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(statlib_error,"failed in converting 1st argument `x' of statlib.swilk to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable init */
+    if (init_capi == Py_None) init = 0; else
+        init = (int)PyObject_IsTrue(init_capi);
+        f2py_success = 1;
+    if (f2py_success) {
+    /* Processing variable x */
+    ;
+    capi_x_intent |= F2PY_INTENT_IN;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : statlib_error,"failed in converting 1st argument `x' of statlib.swilk to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable w */
-  /* Processing variable pw */
-  /* Processing variable ifault */
-  /* Processing variable n */
-  n = shape(x,0);
-  /* Processing variable n1 */
-  if (n1_capi == Py_None) n1 = n; else
-    f2py_success = int_from_pyobj(&n1,n1_capi,"statlib.swilk() 2nd keyword (n1) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n1<=n,"n1<=n","2nd keyword n1","swilk:n1=%d",n1) {
-  /* Processing variable n2 */
-  n2 = n/2;
-  /* Processing variable a */
-  a_Dims[0]=n2;
-  capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(statlib_error,"failed in converting 2nd argument `a' of statlib.swilk to C/Fortran array" );
-  } else {
-    a = (float *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable w */
+    /* Processing variable pw */
+    /* Processing variable ifault */
+    /* Processing variable n */
+    n = shape(x,0);
+    /* Processing variable n1 */
+    if (n1_capi == Py_None) n1 = n; else
+        f2py_success = int_from_pyobj(&n1,n1_capi,"statlib.swilk() 2nd keyword (n1) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n1<=n,"n1<=n","2nd keyword n1","swilk:n1=%d",n1) {
+    /* Processing variable n2 */
+    n2 = n/2;
+    /* Processing variable a */
+    a_Dims[0]=n2;
+    capi_a_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_a_tmp = array_from_pyobj(NPY_FLOAT,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : statlib_error,"failed in converting 2nd argument `a' of statlib.swilk to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (float *)(PyArray_DATA(capi_a_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&init,x,&n,&n1,&n2,a,&w,&pw,&ifault);
+                (*f2py_func)(&init,x,&n,&n1,&n2,a,&w,&pw,&ifault);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nffi",capi_a_tmp,w,pw,ifault);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nffi",capi_a_tmp,w,pw,ifault);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  /* End of cleaning variable n2 */
-  } /*CHECKSCALAR(n1<=n)*/
-  } /*if (f2py_success) of n1*/
-  /* End of cleaning variable n1 */
-  /* End of cleaning variable n */
-  /* End of cleaning variable ifault */
-  /* End of cleaning variable pw */
-  /* End of cleaning variable w */
-  if((PyObject *)capi_x_tmp!=x_capi) {
-    Py_XDECREF(capi_x_tmp); }
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  } /*if (f2py_success) of init*/
-  /* End of cleaning variable init */
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    /* End of cleaning variable n2 */
+    } /*CHECKSCALAR(n1<=n)*/
+    } /*if (f2py_success) of n1*/
+    /* End of cleaning variable n1 */
+    /* End of cleaning variable n */
+    /* End of cleaning variable ifault */
+    /* End of cleaning variable pw */
+    /* End of cleaning variable w */
+    if((PyObject *)capi_x_tmp!=x_capi) {
+        Py_XDECREF(capi_x_tmp); }
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    } /*if (f2py_success) of init*/
+    /* End of cleaning variable init */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of swilk ********************************/
 
@@ -341,131 +368,137 @@ static PyObject *f2py_rout_statlib_gscale(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,float*,float*,int*,float*,float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int test = 0;
-  PyObject *test_capi = Py_None;
-  int other = 0;
-  PyObject *other_capi = Py_None;
-  float astart = 0;
-  float *a1 = NULL;
-  npy_intp a1_Dims[1] = {-1};
-  const int a1_Rank = 1;
-  PyArrayObject *capi_a1_tmp = NULL;
-  int capi_a1_intent = 0;
-  int l1 = 0;
-  float *a2 = NULL;
-  npy_intp a2_Dims[1] = {-1};
-  const int a2_Rank = 1;
-  PyArrayObject *capi_a2_tmp = NULL;
-  int capi_a2_intent = 0;
-  float *a3 = NULL;
-  npy_intp a3_Dims[1] = {-1};
-  const int a3_Rank = 1;
-  PyArrayObject *capi_a3_tmp = NULL;
-  int capi_a3_intent = 0;
-  int ifault = 0;
-  static char *capi_kwlist[] = {"test","other",NULL};
+    int test = 0;
+    PyObject *test_capi = Py_None;
+    int other = 0;
+    PyObject *other_capi = Py_None;
+    float astart = 0;
+    float *a1 = NULL;
+    npy_intp a1_Dims[1] = {-1};
+    const int a1_Rank = 1;
+    PyArrayObject *capi_a1_tmp = NULL;
+    int capi_a1_intent = 0;
+    int l1 = 0;
+    float *a2 = NULL;
+    npy_intp a2_Dims[1] = {-1};
+    const int a2_Rank = 1;
+    PyArrayObject *capi_a2_tmp = NULL;
+    int capi_a2_intent = 0;
+    float *a3 = NULL;
+    npy_intp a3_Dims[1] = {-1};
+    const int a3_Rank = 1;
+    PyArrayObject *capi_a3_tmp = NULL;
+    int capi_a3_intent = 0;
+    int ifault = 0;
+    static char *capi_kwlist[] = {"test","other",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO:statlib.gscale",\
-    capi_kwlist,&test_capi,&other_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|:statlib.gscale",\
+        capi_kwlist,&test_capi,&other_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable test */
-    f2py_success = int_from_pyobj(&test,test_capi,"statlib.gscale() 1st argument (test) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable other */
-    f2py_success = int_from_pyobj(&other,other_capi,"statlib.gscale() 2nd argument (other) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable astart */
-  /* Processing variable ifault */
-  /* Processing variable l1 */
-  l1 = (1+(test*other)/2);
-  /* Processing variable a2 */
-  a2_Dims[0]=l1;
-  capi_a2_intent |= F2PY_INTENT_HIDE;
-  capi_a2_tmp = array_from_pyobj(NPY_FLOAT,a2_Dims,a2_Rank,capi_a2_intent,Py_None);
-  if (capi_a2_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(statlib_error,"failed in converting hidden `a2' of statlib.gscale to C/Fortran array" );
-  } else {
-    a2 = (float *)(PyArray_DATA(capi_a2_tmp));
+    /* Processing variable test */
+        f2py_success = int_from_pyobj(&test,test_capi,"statlib.gscale() 1st argument (test) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable other */
+        f2py_success = int_from_pyobj(&other,other_capi,"statlib.gscale() 2nd argument (other) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable astart */
+    /* Processing variable ifault */
+    /* Processing variable l1 */
+    l1 = (1+(test*other)/2);
+    /* Processing variable a2 */
+    a2_Dims[0]=l1;
+    capi_a2_intent |= F2PY_INTENT_HIDE;
+    capi_a2_tmp = array_from_pyobj(NPY_FLOAT,a2_Dims,a2_Rank,capi_a2_intent,Py_None);
+    if (capi_a2_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : statlib_error,"failed in converting hidden `a2' of statlib.gscale to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a2 = (float *)(PyArray_DATA(capi_a2_tmp));
 
-  /* Processing variable a3 */
-  a3_Dims[0]=l1;
-  capi_a3_intent |= F2PY_INTENT_HIDE;
-  capi_a3_tmp = array_from_pyobj(NPY_FLOAT,a3_Dims,a3_Rank,capi_a3_intent,Py_None);
-  if (capi_a3_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(statlib_error,"failed in converting hidden `a3' of statlib.gscale to C/Fortran array" );
-  } else {
-    a3 = (float *)(PyArray_DATA(capi_a3_tmp));
+    /* Processing variable a3 */
+    a3_Dims[0]=l1;
+    capi_a3_intent |= F2PY_INTENT_HIDE;
+    capi_a3_tmp = array_from_pyobj(NPY_FLOAT,a3_Dims,a3_Rank,capi_a3_intent,Py_None);
+    if (capi_a3_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : statlib_error,"failed in converting hidden `a3' of statlib.gscale to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a3 = (float *)(PyArray_DATA(capi_a3_tmp));
 
-  /* Processing variable a1 */
-  a1_Dims[0]=l1;
-  capi_a1_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_a1_tmp = array_from_pyobj(NPY_FLOAT,a1_Dims,a1_Rank,capi_a1_intent,Py_None);
-  if (capi_a1_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(statlib_error,"failed in converting hidden `a1' of statlib.gscale to C/Fortran array" );
-  } else {
-    a1 = (float *)(PyArray_DATA(capi_a1_tmp));
+    /* Processing variable a1 */
+    a1_Dims[0]=l1;
+    capi_a1_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_a1_tmp = array_from_pyobj(NPY_FLOAT,a1_Dims,a1_Rank,capi_a1_intent,Py_None);
+    if (capi_a1_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : statlib_error,"failed in converting hidden `a1' of statlib.gscale to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a1 = (float *)(PyArray_DATA(capi_a1_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&test,&other,&astart,a1,&l1,a2,a3,&ifault);
+                (*f2py_func)(&test,&other,&astart,a1,&l1,a2,a3,&ifault);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("fNi",astart,capi_a1_tmp,ifault);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("fNi",astart,capi_a1_tmp,ifault);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_a1_tmp == NULL) ... else of a1*/
-  /* End of cleaning variable a1 */
-    Py_XDECREF(capi_a3_tmp);
-  }  /*if (capi_a3_tmp == NULL) ... else of a3*/
-  /* End of cleaning variable a3 */
-    Py_XDECREF(capi_a2_tmp);
-  }  /*if (capi_a2_tmp == NULL) ... else of a2*/
-  /* End of cleaning variable a2 */
-  /* End of cleaning variable l1 */
-  /* End of cleaning variable ifault */
-  /* End of cleaning variable astart */
-  } /*if (f2py_success) of other*/
-  /* End of cleaning variable other */
-  } /*if (f2py_success) of test*/
-  /* End of cleaning variable test */
+    }  /*if (capi_a1_tmp == NULL) ... else of a1*/
+    /* End of cleaning variable a1 */
+        Py_XDECREF(capi_a3_tmp);
+    }  /*if (capi_a3_tmp == NULL) ... else of a3*/
+    /* End of cleaning variable a3 */
+        Py_XDECREF(capi_a2_tmp);
+    }  /*if (capi_a2_tmp == NULL) ... else of a2*/
+    /* End of cleaning variable a2 */
+    /* End of cleaning variable l1 */
+    /* End of cleaning variable ifault */
+    /* End of cleaning variable astart */
+    } /*if (f2py_success) of other*/
+    /* End of cleaning variable other */
+    } /*if (f2py_success) of test*/
+    /* End of cleaning variable test */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of gscale *******************************/
 
@@ -483,72 +516,72 @@ static PyObject *f2py_rout_statlib_prho(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            double (*f2py_func)(int*,int*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double prho_return_value=0;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int is = 0;
-  PyObject *is_capi = Py_None;
-  int ifault = 0;
-  static char *capi_kwlist[] = {"n","is",NULL};
+    double prho_return_value=0;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int is = 0;
+    PyObject *is_capi = Py_None;
+    int ifault = 0;
+    static char *capi_kwlist[] = {"n","is",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO:statlib.prho",\
-    capi_kwlist,&n_capi,&is_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|:statlib.prho",\
+        capi_kwlist,&n_capi,&is_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"statlib.prho() 1st argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable is */
-    f2py_success = int_from_pyobj(&is,is_capi,"statlib.prho() 2nd argument (is) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ifault */
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"statlib.prho() 1st argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable is */
+        f2py_success = int_from_pyobj(&is,is_capi,"statlib.prho() 2nd argument (is) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ifault */
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-  prho_return_value = (*f2py_func)(&n,&is,&ifault);
+    prho_return_value = (*f2py_func)(&n,&is,&ifault);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("i",ifault);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("i",ifault);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  /* End of cleaning variable ifault */
-  } /*if (f2py_success) of is*/
-  /* End of cleaning variable is */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
+    /* End of cleaning variable ifault */
+    } /*if (f2py_success) of is*/
+    /* End of cleaning variable is */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of prho ********************************/
 /*eof body*/
@@ -565,69 +598,66 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-  {"swilk",-1,{{-1}},0,(char *)F_FUNC(swilk,SWILK),(f2py_init_func)f2py_rout_statlib_swilk,doc_f2py_rout_statlib_swilk},
-  {"gscale",-1,{{-1}},0,(char *)F_FUNC(gscale,GSCALE),(f2py_init_func)f2py_rout_statlib_gscale,doc_f2py_rout_statlib_gscale},
-  {"prho",-1,{{-1}},0,(char *)F_FUNC(prho,PRHO),(f2py_init_func)f2py_rout_statlib_prho,doc_f2py_rout_statlib_prho},
+    {"swilk",-1,{{-1}},0,(char *)F_FUNC(swilk,SWILK),(f2py_init_func)f2py_rout_statlib_swilk,doc_f2py_rout_statlib_swilk},
+    {"gscale",-1,{{-1}},0,(char *)F_FUNC(gscale,GSCALE),(f2py_init_func)f2py_rout_statlib_gscale,doc_f2py_rout_statlib_gscale},
+    {"prho",-1,{{-1}},0,(char *)F_FUNC(prho,PRHO),(f2py_init_func)f2py_rout_statlib_prho,doc_f2py_rout_statlib_prho},
 
 /*eof routine_defs*/
-  {NULL}
+    {NULL}
 };
 
 static PyMethodDef f2py_module_methods[] = {
 
-  {NULL,NULL}
+    {NULL,NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT,
-  "statlib",
-  NULL,
-  -1,
-  f2py_module_methods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+    PyModuleDef_HEAD_INIT,
+    "statlib",
+    NULL,
+    -1,
+    f2py_module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
-#endif
 
-#if PY_VERSION_HEX >= 0x03000000
-#define RETVAL m
 PyMODINIT_FUNC PyInit_statlib(void) {
-#else
-#define RETVAL
-PyMODINIT_FUNC initstatlib(void) {
-#endif
-  int i;
-  PyObject *m,*d, *s;
-#if PY_VERSION_HEX >= 0x03000000
-  m = statlib_module = PyModule_Create(&moduledef);
-#else
-  m = statlib_module = Py_InitModule("statlib", f2py_module_methods);
-#endif
-  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
-  import_array();
-  if (PyErr_Occurred())
-    {PyErr_SetString(PyExc_ImportError, "can't initialize module statlib (failed to import numpy)"); return RETVAL;}
-  d = PyModule_GetDict(m);
-  s = PyString_FromString("$Revision: $");
-  PyDict_SetItemString(d, "__version__", s);
-#if PY_VERSION_HEX >= 0x03000000
-  s = PyUnicode_FromString(
-#else
-  s = PyString_FromString(
-#endif
-    "This module 'statlib' is auto-generated with f2py (version:2).\nFunctions:\n"
-"  a,w,pw,ifault = swilk(x,a,init=0,n1=n)\n"
-"  astart,a1,ifault = gscale(test,other)\n"
-"  ifault = prho(n,is)\n"
+    int i;
+    PyObject *m,*d, *s, *tmp;
+    m = statlib_module = PyModule_Create(&moduledef);
+    Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
+    import_array();
+    if (PyErr_Occurred())
+        {PyErr_SetString(PyExc_ImportError, "can't initialize module statlib (failed to import numpy)"); return m;}
+    d = PyModule_GetDict(m);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__version__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString(
+        "This module 'statlib' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+"    a,w,pw,ifault = swilk(x,a,init=0,n1=n)\n"
+"    astart,a1,ifault = gscale(test,other)\n"
+"    ifault = prho(n,is)\n"
 ".");
-  PyDict_SetItemString(d, "__doc__", s);
-  statlib_error = PyErr_NewException ("statlib.error", NULL, NULL);
-  Py_DECREF(s);
-  for(i=0;f2py_routine_defs[i].name!=NULL;i++)
-    PyDict_SetItemString(d, f2py_routine_defs[i].name,PyFortranObject_NewAsAttr(&f2py_routine_defs[i]));
+    PyDict_SetItemString(d, "__doc__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__f2py_numpy_version__", s);
+    Py_DECREF(s);
+    statlib_error = PyErr_NewException ("statlib.error", NULL, NULL);
+    /*
+     * Store the error object inside the dict, so that it could get deallocated.
+     * (in practice, this is a module, so it likely will not and cannot.)
+     */
+    PyDict_SetItemString(d, "_statlib_error", statlib_error);
+    Py_DECREF(statlib_error);
+    for(i=0;f2py_routine_defs[i].name!=NULL;i++) {
+        tmp = PyFortranObject_NewAsAttr(&f2py_routine_defs[i]);
+        PyDict_SetItemString(d, f2py_routine_defs[i].name, tmp);
+        Py_DECREF(tmp);
+    }
 
 
 
@@ -638,11 +668,10 @@ PyMODINIT_FUNC initstatlib(void) {
 
 
 #ifdef F2PY_REPORT_ATEXIT
-  if (! PyErr_Occurred())
-    on_exit(f2py_report_on_exit,(void*)"statlib");
+    if (! PyErr_Occurred())
+        on_exit(f2py_report_on_exit,(void*)"statlib");
 #endif
-
-  return RETVAL;
+    return m;
 }
 #ifdef __cplusplus
 }

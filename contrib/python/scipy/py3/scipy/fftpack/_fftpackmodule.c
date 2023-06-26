@@ -1,5 +1,5 @@
 /* File: _fftpackmodule.c
- * This file is auto-generated with f2py (version:2).
+ * This file is auto-generated with f2py (version:1.23.5).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Mon Jan 20 20:54:49 2020
@@ -10,8 +10,15 @@
 extern "C" {
 #endif
 
+#ifndef PY_SSIZE_T_CLEAN
+#define PY_SSIZE_T_CLEAN
+#endif /* PY_SSIZE_T_CLEAN */
+
+/* Unconditionally included */
+#include <Python.h>
+#include <numpy/npy_os.h>
+
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include "Python.h"
 #include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
@@ -136,33 +143,49 @@ static int f2py_size(PyArrayObject* var, ...)
   return sz;
 }
 
-static int int_from_pyobj(int* v,PyObject *obj,const char *errmess) {
+static int
+int_from_pyobj(int* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
-    if (PyInt_Check(obj)) {
-        *v = (int)PyInt_AS_LONG(obj);
-        return 1;
+
+    if (PyLong_Check(obj)) {
+        *v = Npy__PyLong_AsInt(obj);
+        return !(*v == -1 && PyErr_Occurred());
     }
-    tmp = PyNumber_Int(obj);
+
+    tmp = PyNumber_Long(obj);
     if (tmp) {
-        *v = PyInt_AS_LONG(tmp);
+        *v = Npy__PyLong_AsInt(tmp);
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
-        if (int_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
+        if (int_from_pyobj(v, tmp, errmess)) {
+            Py_DECREF(tmp);
+            return 1;
+        }
         Py_DECREF(tmp);
     }
+
     {
         PyObject* err = PyErr_Occurred();
-        if (err==NULL) err = _fftpack_error;
-        PyErr_SetString(err,errmess);
+        if (err == NULL) {
+            err = _fftpack_error;
+        }
+        PyErr_SetString(err, errmess);
     }
     return 0;
 }
@@ -281,106 +304,108 @@ static PyObject *f2py_rout__fftpack_zfft(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_double*,int,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int direction = 0;
-  PyObject *direction_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int direction = 0;
+    PyObject *direction_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOOi:_fftpack.zfft",\
-    capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOOi:_fftpack.zfft",\
+        capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.zfft to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.zfft to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable direction */
-  if (direction_capi == Py_None) direction = 1; else
-    f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.zfft() 2nd keyword (direction) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.zfft() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0,"n>0","1st keyword n","zfft:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","zfft:howmany=%d",howmany) {
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = (direction<0); else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.zfft() 3rd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
+    /* Processing variable direction */
+    if (direction_capi == Py_None) direction = 1; else
+        f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.zfft() 2nd keyword (direction) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.zfft() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0,"n>0","1st keyword n","zfft:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","zfft:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = (direction<0); else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.zfft() 3rd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,direction,howmany,normalize);
+                (*f2py_func)(x,n,direction,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0)*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of direction*/
-  /* End of cleaning variable direction */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0)*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of direction*/
+    /* End of cleaning variable direction */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of zfft ********************************/
 
@@ -401,106 +426,108 @@ static PyObject *f2py_rout__fftpack_drfft(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int direction = 0;
-  PyObject *direction_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int direction = 0;
+    PyObject *direction_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOOi:_fftpack.drfft",\
-    capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOOi:_fftpack.drfft",\
+        capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.drfft to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.drfft to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable direction */
-  if (direction_capi == Py_None) direction = 1; else
-    f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.drfft() 2nd keyword (direction) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.drfft() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","drfft:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","drfft:howmany=%d",howmany) {
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = (direction<0); else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.drfft() 3rd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
+    /* Processing variable direction */
+    if (direction_capi == Py_None) direction = 1; else
+        f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.drfft() 2nd keyword (direction) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.drfft() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","drfft:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","drfft:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = (direction<0); else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.drfft() 3rd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,direction,howmany,normalize);
+                (*f2py_func)(x,n,direction,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of direction*/
-  /* End of cleaning variable direction */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of direction*/
+    /* End of cleaning variable direction */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of drfft ********************************/
 
@@ -521,106 +548,108 @@ static PyObject *f2py_rout__fftpack_zrfft(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_double*,int,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 1;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int direction = 0;
-  PyObject *direction_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 1;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int direction = 0;
+    PyObject *direction_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOOi:_fftpack.zrfft",\
-    capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOOi:_fftpack.zrfft",\
+        capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.zrfft to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.zrfft to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable direction */
-  if (direction_capi == Py_None) direction = 1; else
-    f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.zrfft() 2nd keyword (direction) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.zrfft() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","zrfft:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","zrfft:howmany=%d",howmany) {
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = (direction<0); else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.zrfft() 3rd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
+    /* Processing variable direction */
+    if (direction_capi == Py_None) direction = 1; else
+        f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.zrfft() 2nd keyword (direction) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.zrfft() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","zrfft:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","zrfft:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = (direction<0); else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.zrfft() 3rd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,direction,howmany,normalize);
+                (*f2py_func)(x,n,direction,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of direction*/
-  /* End of cleaning variable direction */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of direction*/
+    /* End of cleaning variable direction */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of zrfft ********************************/
 
@@ -641,141 +670,147 @@ static PyObject *f2py_rout__fftpack_zfftnd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_double*,int,int*,int,int,int )) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int r = 0;
-  int *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  PyObject *s_capi = Py_None;
-  int direction = 0;
-  PyObject *direction_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  int j = 0;
-  static char *capi_kwlist[] = {"x","s","direction","normalize","overwrite_x",NULL};
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int r = 0;
+    int *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    PyObject *s_capi = Py_None;
+    int direction = 0;
+    PyObject *direction_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    int j = 0;
+    static char *capi_kwlist[] = {"x","s","direction","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOOi:_fftpack.zfftnd",\
-    capi_kwlist,&x_capi,&s_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOOi:_fftpack.zfftnd",\
+        capi_kwlist,&x_capi,&s_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.zfftnd to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
-
-  /* Processing variable j */
-  j = 0;
-  /* Processing variable howmany */
-  howmany = 1;
-  /* Processing variable direction */
-  if (direction_capi == Py_None) direction = 1; else
-    f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.zfftnd() 2nd keyword (direction) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable r */
-  r = old_rank(x);
-  /* Processing variable s */
-  s_Dims[0]=r;
-  capi_s_intent |= F2PY_INTENT_IN|F2PY_INTENT_C|F2PY_OPTIONAL;
-  capi_s_tmp = array_from_pyobj(NPY_INT,s_Dims,s_Rank,capi_s_intent,s_capi);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st keyword `s' of _fftpack.zfftnd to C/Fortran array" );
-  } else {
-    s = (int *)(PyArray_DATA(capi_s_tmp));
-
-  if (s_capi == Py_None) {
-
-
-    int *_i,capi_i=0;
-    CFUNCSMESS("zfftnd: Initializing s=old_shape(x,j++)\n");
-    if (initforcomb(PyArray_DIMS(capi_s_tmp),PyArray_NDIM(capi_s_tmp),1)) {
-      while ((_i = nextforcomb()))
-        s[capi_i++] = old_shape(x,j++); /* fortran way */
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.zfftnd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
     } else {
-      if (!PyErr_Occurred())
-        PyErr_SetString(_fftpack_error,"Initialization of 1st keyword s failed (initforcomb).");
-      f2py_success = 0;
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+
+    /* Processing variable j */
+    j = 0;
+    /* Processing variable howmany */
+    howmany = 1;
+    /* Processing variable direction */
+    if (direction_capi == Py_None) direction = 1; else
+        f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.zfftnd() 2nd keyword (direction) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable r */
+    r = old_rank(x);
+    /* Processing variable s */
+    s_Dims[0]=r;
+    capi_s_intent |= F2PY_INTENT_IN|F2PY_INTENT_C|F2PY_OPTIONAL;
+    capi_s_tmp = array_from_pyobj(NPY_INT,s_Dims,s_Rank,capi_s_intent,s_capi);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st keyword `s' of _fftpack.zfftnd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (int *)(PyArray_DATA(capi_s_tmp));
+
+    if (s_capi == Py_None) {
+
+
+        int *_i,capi_i=0;
+        CFUNCSMESS("zfftnd: Initializing s=old_shape(x,j++)\n");
+        if (initforcomb(PyArray_DIMS(capi_s_tmp),PyArray_NDIM(capi_s_tmp),1)) {
+            while ((_i = nextforcomb()))
+                s[capi_i++] = old_shape(x,j++); /* fortran way */
+        } else {
+            PyObject *exc, *val, *tb;
+            PyErr_Fetch(&exc, &val, &tb);
+            PyErr_SetString(exc ? exc : _fftpack_error,"Initialization of 1st keyword s failed (initforcomb).");
+            npy_PyErr_ChainExceptionsCause(exc, val, tb);
+            f2py_success = 0;
+        }
     }
-  }
-  if (f2py_success) {
-  CHECKARRAY(r>=len(s),"r>=len(s)","1st keyword s") {
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = (direction<0); else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.zfftnd() 3rd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
+    if (f2py_success) {
+    CHECKARRAY(r>=len(s),"r>=len(s)","1st keyword s") {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = (direction<0); else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.zfftnd() 3rd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        {              int i,sz=1,xsz=size(x);               for (i=0;i<r;++i) sz *= s[i];               howmany = xsz/sz;               if (sz*howmany==xsz)                 (*f2py_func)(x,r,s,direction,howmany,normalize);               else {                f2py_success = 0;                 PyErr_SetString(_fftpack_error,                   "inconsistency in x.shape and s argument");                 }               } ;
-        /*(*f2py_func)(x,r,s,direction,howmany,normalize,j);*/
+                {              int i,sz=1,xsz=size(x);               for (i=0;i<r;++i) sz *= s[i];               howmany = xsz/sz;               if (sz*howmany==xsz)                 (*f2py_func)(x,r,s,direction,howmany,normalize);               else {                f2py_success = 0;                 PyErr_SetString(_fftpack_error,                   "inconsistency in x.shape and s argument");                 }               } ;
+                /*(*f2py_func)(x,r,s,direction,howmany,normalize,j);*/
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  } /*CHECKARRAY(r>=len(s))*/
-  }  /*if (f2py_success) of s init*/
-  if((PyObject *)capi_s_tmp!=s_capi) {
-    Py_XDECREF(capi_s_tmp); }
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  /* End of cleaning variable r */
-  } /*if (f2py_success) of direction*/
-  /* End of cleaning variable direction */
-  /* End of cleaning variable howmany */
-  /* End of cleaning variable j */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    } /*CHECKARRAY(r>=len(s))*/
+    }  /*if (f2py_success) of s init*/
+    if((PyObject *)capi_s_tmp!=s_capi) {
+        Py_XDECREF(capi_s_tmp); }
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    /* End of cleaning variable r */
+    } /*if (f2py_success) of direction*/
+    /* End of cleaning variable direction */
+    /* End of cleaning variable howmany */
+    /* End of cleaning variable j */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of zfftnd *******************************/
 
@@ -788,54 +823,54 @@ static PyObject *f2py_rout__fftpack_destroy_zfft_cache(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_zfft_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_zfft_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_zfft_cache *************************/
 
@@ -848,54 +883,54 @@ static PyObject *f2py_rout__fftpack_destroy_zfftnd_cache(const PyObject *capi_se
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_zfftnd_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_zfftnd_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************ end of destroy_zfftnd_cache ************************/
 
@@ -908,54 +943,54 @@ static PyObject *f2py_rout__fftpack_destroy_drfft_cache(const PyObject *capi_sel
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_drfft_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_drfft_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_drfft_cache *************************/
 
@@ -976,106 +1011,108 @@ static PyObject *f2py_rout__fftpack_cfft(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_float*,int,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int direction = 0;
-  PyObject *direction_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int direction = 0;
+    PyObject *direction_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOOi:_fftpack.cfft",\
-    capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOOi:_fftpack.cfft",\
+        capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.cfft to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.cfft to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable direction */
-  if (direction_capi == Py_None) direction = 1; else
-    f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.cfft() 2nd keyword (direction) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.cfft() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0,"n>0","1st keyword n","cfft:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","cfft:howmany=%d",howmany) {
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = (direction<0); else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.cfft() 3rd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
+    /* Processing variable direction */
+    if (direction_capi == Py_None) direction = 1; else
+        f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.cfft() 2nd keyword (direction) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.cfft() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0,"n>0","1st keyword n","cfft:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","cfft:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = (direction<0); else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.cfft() 3rd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,direction,howmany,normalize);
+                (*f2py_func)(x,n,direction,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0)*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of direction*/
-  /* End of cleaning variable direction */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0)*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of direction*/
+    /* End of cleaning variable direction */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of cfft ********************************/
 
@@ -1096,106 +1133,108 @@ static PyObject *f2py_rout__fftpack_rfft(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int direction = 0;
-  PyObject *direction_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int direction = 0;
+    PyObject *direction_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOOi:_fftpack.rfft",\
-    capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOOi:_fftpack.rfft",\
+        capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.rfft to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.rfft to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable direction */
-  if (direction_capi == Py_None) direction = 1; else
-    f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.rfft() 2nd keyword (direction) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.rfft() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","rfft:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","rfft:howmany=%d",howmany) {
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = (direction<0); else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.rfft() 3rd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
+    /* Processing variable direction */
+    if (direction_capi == Py_None) direction = 1; else
+        f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.rfft() 2nd keyword (direction) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.rfft() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","rfft:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","rfft:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = (direction<0); else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.rfft() 3rd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,direction,howmany,normalize);
+                (*f2py_func)(x,n,direction,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of direction*/
-  /* End of cleaning variable direction */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of direction*/
+    /* End of cleaning variable direction */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of rfft ********************************/
 
@@ -1216,106 +1255,108 @@ static PyObject *f2py_rout__fftpack_crfft(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_float*,int,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 1;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int direction = 0;
-  PyObject *direction_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 1;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int direction = 0;
+    PyObject *direction_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","direction","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOOi:_fftpack.crfft",\
-    capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOOi:_fftpack.crfft",\
+        capi_kwlist,&x_capi,&n_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.crfft to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.crfft to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable direction */
-  if (direction_capi == Py_None) direction = 1; else
-    f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.crfft() 2nd keyword (direction) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.crfft() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","crfft:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","crfft:howmany=%d",howmany) {
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = (direction<0); else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.crfft() 3rd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
+    /* Processing variable direction */
+    if (direction_capi == Py_None) direction = 1; else
+        f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.crfft() 2nd keyword (direction) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.crfft() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","crfft:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","crfft:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = (direction<0); else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.crfft() 3rd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,direction,howmany,normalize);
+                (*f2py_func)(x,n,direction,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of direction*/
-  /* End of cleaning variable direction */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of direction*/
+    /* End of cleaning variable direction */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of crfft ********************************/
 
@@ -1336,141 +1377,147 @@ static PyObject *f2py_rout__fftpack_cfftnd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(complex_float*,int,int*,int,int,int )) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int r = 0;
-  int *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  PyObject *s_capi = Py_None;
-  int direction = 0;
-  PyObject *direction_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  int j = 0;
-  static char *capi_kwlist[] = {"x","s","direction","normalize","overwrite_x",NULL};
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int r = 0;
+    int *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    PyObject *s_capi = Py_None;
+    int direction = 0;
+    PyObject *direction_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    int j = 0;
+    static char *capi_kwlist[] = {"x","s","direction","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOOi:_fftpack.cfftnd",\
-    capi_kwlist,&x_capi,&s_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOOi:_fftpack.cfftnd",\
+        capi_kwlist,&x_capi,&s_capi,&direction_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.cfftnd to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
-
-  /* Processing variable j */
-  j = 0;
-  /* Processing variable howmany */
-  howmany = 1;
-  /* Processing variable direction */
-  if (direction_capi == Py_None) direction = 1; else
-    f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.cfftnd() 2nd keyword (direction) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable r */
-  r = old_rank(x);
-  /* Processing variable s */
-  s_Dims[0]=r;
-  capi_s_intent |= F2PY_INTENT_IN|F2PY_INTENT_C|F2PY_OPTIONAL;
-  capi_s_tmp = array_from_pyobj(NPY_INT,s_Dims,s_Rank,capi_s_intent,s_capi);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st keyword `s' of _fftpack.cfftnd to C/Fortran array" );
-  } else {
-    s = (int *)(PyArray_DATA(capi_s_tmp));
-
-  if (s_capi == Py_None) {
-
-
-    int *_i,capi_i=0;
-    CFUNCSMESS("cfftnd: Initializing s=old_shape(x,j++)\n");
-    if (initforcomb(PyArray_DIMS(capi_s_tmp),PyArray_NDIM(capi_s_tmp),1)) {
-      while ((_i = nextforcomb()))
-        s[capi_i++] = old_shape(x,j++); /* fortran way */
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.cfftnd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
     } else {
-      if (!PyErr_Occurred())
-        PyErr_SetString(_fftpack_error,"Initialization of 1st keyword s failed (initforcomb).");
-      f2py_success = 0;
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+
+    /* Processing variable j */
+    j = 0;
+    /* Processing variable howmany */
+    howmany = 1;
+    /* Processing variable direction */
+    if (direction_capi == Py_None) direction = 1; else
+        f2py_success = int_from_pyobj(&direction,direction_capi,"_fftpack.cfftnd() 2nd keyword (direction) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable r */
+    r = old_rank(x);
+    /* Processing variable s */
+    s_Dims[0]=r;
+    capi_s_intent |= F2PY_INTENT_IN|F2PY_INTENT_C|F2PY_OPTIONAL;
+    capi_s_tmp = array_from_pyobj(NPY_INT,s_Dims,s_Rank,capi_s_intent,s_capi);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st keyword `s' of _fftpack.cfftnd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (int *)(PyArray_DATA(capi_s_tmp));
+
+    if (s_capi == Py_None) {
+
+
+        int *_i,capi_i=0;
+        CFUNCSMESS("cfftnd: Initializing s=old_shape(x,j++)\n");
+        if (initforcomb(PyArray_DIMS(capi_s_tmp),PyArray_NDIM(capi_s_tmp),1)) {
+            while ((_i = nextforcomb()))
+                s[capi_i++] = old_shape(x,j++); /* fortran way */
+        } else {
+            PyObject *exc, *val, *tb;
+            PyErr_Fetch(&exc, &val, &tb);
+            PyErr_SetString(exc ? exc : _fftpack_error,"Initialization of 1st keyword s failed (initforcomb).");
+            npy_PyErr_ChainExceptionsCause(exc, val, tb);
+            f2py_success = 0;
+        }
     }
-  }
-  if (f2py_success) {
-  CHECKARRAY(r>=len(s),"r>=len(s)","1st keyword s") {
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = (direction<0); else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.cfftnd() 3rd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
+    if (f2py_success) {
+    CHECKARRAY(r>=len(s),"r>=len(s)","1st keyword s") {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = (direction<0); else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.cfftnd() 3rd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        {              int i,sz=1,xsz=size(x);               for (i=0;i<r;++i) sz *= s[i];               howmany = xsz/sz;               if (sz*howmany==xsz)                 (*f2py_func)(x,r,s,direction,howmany,normalize);               else {                f2py_success = 0;                 PyErr_SetString(_fftpack_error,                   "inconsistency in x.shape and s argument");                 }               } ;
-        /*(*f2py_func)(x,r,s,direction,howmany,normalize,j);*/
+                {              int i,sz=1,xsz=size(x);               for (i=0;i<r;++i) sz *= s[i];               howmany = xsz/sz;               if (sz*howmany==xsz)                 (*f2py_func)(x,r,s,direction,howmany,normalize);               else {                f2py_success = 0;                 PyErr_SetString(_fftpack_error,                   "inconsistency in x.shape and s argument");                 }               } ;
+                /*(*f2py_func)(x,r,s,direction,howmany,normalize,j);*/
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  } /*CHECKARRAY(r>=len(s))*/
-  }  /*if (f2py_success) of s init*/
-  if((PyObject *)capi_s_tmp!=s_capi) {
-    Py_XDECREF(capi_s_tmp); }
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  /* End of cleaning variable r */
-  } /*if (f2py_success) of direction*/
-  /* End of cleaning variable direction */
-  /* End of cleaning variable howmany */
-  /* End of cleaning variable j */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    } /*CHECKARRAY(r>=len(s))*/
+    }  /*if (f2py_success) of s init*/
+    if((PyObject *)capi_s_tmp!=s_capi) {
+        Py_XDECREF(capi_s_tmp); }
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    /* End of cleaning variable r */
+    } /*if (f2py_success) of direction*/
+    /* End of cleaning variable direction */
+    /* End of cleaning variable howmany */
+    /* End of cleaning variable j */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of cfftnd *******************************/
 
@@ -1483,54 +1530,54 @@ static PyObject *f2py_rout__fftpack_destroy_cfft_cache(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_cfft_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_cfft_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_cfft_cache *************************/
 
@@ -1543,54 +1590,54 @@ static PyObject *f2py_rout__fftpack_destroy_cfftnd_cache(const PyObject *capi_se
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_cfftnd_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_cfftnd_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************ end of destroy_cfftnd_cache ************************/
 
@@ -1603,54 +1650,54 @@ static PyObject *f2py_rout__fftpack_destroy_rfft_cache(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_rfft_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_rfft_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_rfft_cache *************************/
 
@@ -1670,98 +1717,100 @@ static PyObject *f2py_rout__fftpack_ddct1(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.ddct1",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.ddct1",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddct1 to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddct1 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddct1() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddct1() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddct1:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddct1:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddct1() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddct1() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddct1:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddct1:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of ddct1 ********************************/
 
@@ -1781,98 +1830,100 @@ static PyObject *f2py_rout__fftpack_ddct2(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.ddct2",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.ddct2",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddct2 to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddct2 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddct2() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddct2() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddct2:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddct2:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddct2() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddct2() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddct2:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddct2:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of ddct2 ********************************/
 
@@ -1892,98 +1943,100 @@ static PyObject *f2py_rout__fftpack_ddct3(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.ddct3",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.ddct3",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddct3 to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddct3 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddct3() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddct3() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddct3:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddct3:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddct3() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddct3() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddct3:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddct3:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of ddct3 ********************************/
 
@@ -2003,98 +2056,100 @@ static PyObject *f2py_rout__fftpack_ddct4(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.ddct4",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.ddct4",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddct4 to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddct4 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddct4() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddct4() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddct4:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddct4:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddct4() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddct4() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddct4:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddct4:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of ddct4 ********************************/
 
@@ -2114,98 +2169,100 @@ static PyObject *f2py_rout__fftpack_dct1(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.dct1",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.dct1",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.dct1 to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.dct1 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dct1() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dct1() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dct1:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dct1:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dct1() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dct1() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dct1:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dct1:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dct1 ********************************/
 
@@ -2225,98 +2282,100 @@ static PyObject *f2py_rout__fftpack_dct2(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.dct2",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.dct2",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.dct2 to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.dct2 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dct2() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dct2() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dct2:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dct2:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dct2() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dct2() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dct2:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dct2:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dct2 ********************************/
 
@@ -2336,98 +2395,100 @@ static PyObject *f2py_rout__fftpack_dct3(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.dct3",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.dct3",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.dct3 to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.dct3 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dct3() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dct3() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dct3:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dct3:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dct3() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dct3() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dct3:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dct3:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dct3 ********************************/
 
@@ -2447,98 +2508,100 @@ static PyObject *f2py_rout__fftpack_dct4(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.dct4",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.dct4",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.dct4 to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.dct4 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dct4() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dct4() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dct4:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dct4:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dct4() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dct4() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dct4:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dct4:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dct4 ********************************/
 
@@ -2551,54 +2614,54 @@ static PyObject *f2py_rout__fftpack_destroy_ddct2_cache(const PyObject *capi_sel
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_ddct2_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_ddct2_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_ddct2_cache *************************/
 
@@ -2611,54 +2674,54 @@ static PyObject *f2py_rout__fftpack_destroy_ddct1_cache(const PyObject *capi_sel
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_ddct1_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_ddct1_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_ddct1_cache *************************/
 
@@ -2671,54 +2734,54 @@ static PyObject *f2py_rout__fftpack_destroy_ddct4_cache(const PyObject *capi_sel
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_ddct4_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_ddct4_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_ddct4_cache *************************/
 
@@ -2731,54 +2794,54 @@ static PyObject *f2py_rout__fftpack_destroy_dct2_cache(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_dct2_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_dct2_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_dct2_cache *************************/
 
@@ -2791,54 +2854,54 @@ static PyObject *f2py_rout__fftpack_destroy_dct1_cache(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_dct1_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_dct1_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_dct1_cache *************************/
 
@@ -2851,54 +2914,54 @@ static PyObject *f2py_rout__fftpack_destroy_dct4_cache(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_dct4_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_dct4_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_dct4_cache *************************/
 
@@ -2918,98 +2981,100 @@ static PyObject *f2py_rout__fftpack_ddst1(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.ddst1",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.ddst1",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddst1 to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddst1 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddst1() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddst1() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddst1:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddst1:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddst1() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddst1() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddst1:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddst1:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of ddst1 ********************************/
 
@@ -3029,98 +3094,100 @@ static PyObject *f2py_rout__fftpack_ddst2(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.ddst2",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.ddst2",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddst2 to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddst2 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddst2() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddst2() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddst2:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddst2:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddst2() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddst2() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddst2:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddst2:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of ddst2 ********************************/
 
@@ -3140,98 +3207,100 @@ static PyObject *f2py_rout__fftpack_ddst3(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.ddst3",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.ddst3",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddst3 to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddst3 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddst3() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddst3() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddst3:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddst3:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddst3() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddst3() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddst3:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddst3:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of ddst3 ********************************/
 
@@ -3251,98 +3320,100 @@ static PyObject *f2py_rout__fftpack_ddst4(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.ddst4",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.ddst4",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddst4 to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.ddst4 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddst4() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddst4() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddst4:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddst4:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.ddst4() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.ddst4() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","ddst4:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","ddst4:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of ddst4 ********************************/
 
@@ -3362,98 +3433,100 @@ static PyObject *f2py_rout__fftpack_dst1(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.dst1",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.dst1",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.dst1 to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.dst1 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dst1() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dst1() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dst1:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dst1:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dst1() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dst1() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dst1:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dst1:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dst1 ********************************/
 
@@ -3473,98 +3546,100 @@ static PyObject *f2py_rout__fftpack_dst2(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.dst2",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.dst2",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.dst2 to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.dst2 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dst2() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dst2() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dst2:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dst2:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dst2() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dst2() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dst2:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dst2:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dst2 ********************************/
 
@@ -3584,98 +3659,100 @@ static PyObject *f2py_rout__fftpack_dst3(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.dst3",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.dst3",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.dst3 to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.dst3 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dst3() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dst3() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dst3:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dst3:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dst3() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dst3() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dst3:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dst3:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dst3 ********************************/
 
@@ -3695,98 +3772,100 @@ static PyObject *f2py_rout__fftpack_dst4(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(float*,int,int,int)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  int capi_overwrite_x = 0;
-  PyObject *x_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int howmany = 0;
-  int normalize = 0;
-  PyObject *normalize_capi = Py_None;
-  static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    int capi_overwrite_x = 0;
+    PyObject *x_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int howmany = 0;
+    int normalize = 0;
+    PyObject *normalize_capi = Py_None;
+    static char *capi_kwlist[] = {"x","n","normalize","overwrite_x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O|OOi:_fftpack.dst4",\
-    capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|OOi:_fftpack.dst4",\
+        capi_kwlist,&x_capi,&n_capi,&normalize_capi,&capi_overwrite_x))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable x */
-  capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
-  ;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_fftpack_error,"failed in converting 1st argument `x' of _fftpack.dst4 to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable x */
+    capi_x_intent |= (capi_overwrite_x?0:F2PY_INTENT_COPY);
+    ;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT|F2PY_INTENT_C;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _fftpack_error,"failed in converting 1st argument `x' of _fftpack.dst4 to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable normalize */
-  if (normalize_capi == Py_None) normalize = 0; else
-    f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dst4() 2nd keyword (normalize) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = size(x); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dst4() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dst4:n=%d",n) {
-  /* Processing variable howmany */
-  howmany = size(x)/n;
-  CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dst4:howmany=%d",howmany) {
+    /* Processing variable normalize */
+    if (normalize_capi == Py_None) normalize = 0; else
+        f2py_success = int_from_pyobj(&normalize,normalize_capi,"_fftpack.dst4() 2nd keyword (normalize) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = size(x); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_fftpack.dst4() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(n>0&&n<=size(x),"n>0&&n<=size(x)","1st keyword n","dst4:n=%d",n) {
+    /* Processing variable howmany */
+    howmany = size(x)/n;
+    CHECKSCALAR(n*howmany==size(x),"n*howmany==size(x)","hidden howmany","dst4:howmany=%d",howmany) {
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(x,n,howmany,normalize);
+                (*f2py_func)(x,n,howmany,normalize);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_x_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  } /*CHECKSCALAR(n*howmany==size(x))*/
-  /* End of cleaning variable howmany */
-  } /*CHECKSCALAR(n>0&&n<=size(x))*/
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of normalize*/
-  /* End of cleaning variable normalize */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
+    } /*CHECKSCALAR(n*howmany==size(x))*/
+    /* End of cleaning variable howmany */
+    } /*CHECKSCALAR(n>0&&n<=size(x))*/
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of normalize*/
+    /* End of cleaning variable normalize */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of dst4 ********************************/
 
@@ -3799,54 +3878,54 @@ static PyObject *f2py_rout__fftpack_destroy_ddst2_cache(const PyObject *capi_sel
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_ddst2_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_ddst2_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_ddst2_cache *************************/
 
@@ -3859,54 +3938,54 @@ static PyObject *f2py_rout__fftpack_destroy_ddst1_cache(const PyObject *capi_sel
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_ddst1_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_ddst1_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_ddst1_cache *************************/
 
@@ -3919,54 +3998,54 @@ static PyObject *f2py_rout__fftpack_destroy_dst2_cache(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_dst2_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_dst2_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_dst2_cache *************************/
 
@@ -3979,54 +4058,54 @@ static PyObject *f2py_rout__fftpack_destroy_dst1_cache(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_fftpack.destroy_dst1_cache",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_fftpack.destroy_dst1_cache",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /************************* end of destroy_dst1_cache *************************/
 /*eof body*/
@@ -4043,143 +4122,140 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-  {"zfft",-1,{{-1}},0,(char *)zfft,(f2py_init_func)f2py_rout__fftpack_zfft,doc_f2py_rout__fftpack_zfft},
-  {"drfft",-1,{{-1}},0,(char *)drfft,(f2py_init_func)f2py_rout__fftpack_drfft,doc_f2py_rout__fftpack_drfft},
-  {"zrfft",-1,{{-1}},0,(char *)zrfft,(f2py_init_func)f2py_rout__fftpack_zrfft,doc_f2py_rout__fftpack_zrfft},
-  {"zfftnd",-1,{{-1}},0,(char *)zfftnd,(f2py_init_func)f2py_rout__fftpack_zfftnd,doc_f2py_rout__fftpack_zfftnd},
-  {"destroy_zfft_cache",-1,{{-1}},0,(char *)destroy_zfft_cache,(f2py_init_func)f2py_rout__fftpack_destroy_zfft_cache,doc_f2py_rout__fftpack_destroy_zfft_cache},
-  {"destroy_zfftnd_cache",-1,{{-1}},0,(char *)destroy_zfftnd_cache,(f2py_init_func)f2py_rout__fftpack_destroy_zfftnd_cache,doc_f2py_rout__fftpack_destroy_zfftnd_cache},
-  {"destroy_drfft_cache",-1,{{-1}},0,(char *)destroy_drfft_cache,(f2py_init_func)f2py_rout__fftpack_destroy_drfft_cache,doc_f2py_rout__fftpack_destroy_drfft_cache},
-  {"cfft",-1,{{-1}},0,(char *)cfft,(f2py_init_func)f2py_rout__fftpack_cfft,doc_f2py_rout__fftpack_cfft},
-  {"rfft",-1,{{-1}},0,(char *)rfft,(f2py_init_func)f2py_rout__fftpack_rfft,doc_f2py_rout__fftpack_rfft},
-  {"crfft",-1,{{-1}},0,(char *)crfft,(f2py_init_func)f2py_rout__fftpack_crfft,doc_f2py_rout__fftpack_crfft},
-  {"cfftnd",-1,{{-1}},0,(char *)cfftnd,(f2py_init_func)f2py_rout__fftpack_cfftnd,doc_f2py_rout__fftpack_cfftnd},
-  {"destroy_cfft_cache",-1,{{-1}},0,(char *)destroy_cfft_cache,(f2py_init_func)f2py_rout__fftpack_destroy_cfft_cache,doc_f2py_rout__fftpack_destroy_cfft_cache},
-  {"destroy_cfftnd_cache",-1,{{-1}},0,(char *)destroy_cfftnd_cache,(f2py_init_func)f2py_rout__fftpack_destroy_cfftnd_cache,doc_f2py_rout__fftpack_destroy_cfftnd_cache},
-  {"destroy_rfft_cache",-1,{{-1}},0,(char *)destroy_rfft_cache,(f2py_init_func)f2py_rout__fftpack_destroy_rfft_cache,doc_f2py_rout__fftpack_destroy_rfft_cache},
-  {"ddct1",-1,{{-1}},0,(char *)ddct1,(f2py_init_func)f2py_rout__fftpack_ddct1,doc_f2py_rout__fftpack_ddct1},
-  {"ddct2",-1,{{-1}},0,(char *)ddct2,(f2py_init_func)f2py_rout__fftpack_ddct2,doc_f2py_rout__fftpack_ddct2},
-  {"ddct3",-1,{{-1}},0,(char *)ddct3,(f2py_init_func)f2py_rout__fftpack_ddct3,doc_f2py_rout__fftpack_ddct3},
-  {"ddct4",-1,{{-1}},0,(char *)ddct4,(f2py_init_func)f2py_rout__fftpack_ddct4,doc_f2py_rout__fftpack_ddct4},
-  {"dct1",-1,{{-1}},0,(char *)dct1,(f2py_init_func)f2py_rout__fftpack_dct1,doc_f2py_rout__fftpack_dct1},
-  {"dct2",-1,{{-1}},0,(char *)dct2,(f2py_init_func)f2py_rout__fftpack_dct2,doc_f2py_rout__fftpack_dct2},
-  {"dct3",-1,{{-1}},0,(char *)dct3,(f2py_init_func)f2py_rout__fftpack_dct3,doc_f2py_rout__fftpack_dct3},
-  {"dct4",-1,{{-1}},0,(char *)dct4,(f2py_init_func)f2py_rout__fftpack_dct4,doc_f2py_rout__fftpack_dct4},
-  {"destroy_ddct2_cache",-1,{{-1}},0,(char *)destroy_ddct2_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddct2_cache,doc_f2py_rout__fftpack_destroy_ddct2_cache},
-  {"destroy_ddct1_cache",-1,{{-1}},0,(char *)destroy_ddct1_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddct1_cache,doc_f2py_rout__fftpack_destroy_ddct1_cache},
-  {"destroy_ddct4_cache",-1,{{-1}},0,(char *)destroy_ddct4_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddct4_cache,doc_f2py_rout__fftpack_destroy_ddct4_cache},
-  {"destroy_dct2_cache",-1,{{-1}},0,(char *)destroy_dct2_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dct2_cache,doc_f2py_rout__fftpack_destroy_dct2_cache},
-  {"destroy_dct1_cache",-1,{{-1}},0,(char *)destroy_dct1_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dct1_cache,doc_f2py_rout__fftpack_destroy_dct1_cache},
-  {"destroy_dct4_cache",-1,{{-1}},0,(char *)destroy_dct4_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dct4_cache,doc_f2py_rout__fftpack_destroy_dct4_cache},
-  {"ddst1",-1,{{-1}},0,(char *)ddst1,(f2py_init_func)f2py_rout__fftpack_ddst1,doc_f2py_rout__fftpack_ddst1},
-  {"ddst2",-1,{{-1}},0,(char *)ddst2,(f2py_init_func)f2py_rout__fftpack_ddst2,doc_f2py_rout__fftpack_ddst2},
-  {"ddst3",-1,{{-1}},0,(char *)ddst3,(f2py_init_func)f2py_rout__fftpack_ddst3,doc_f2py_rout__fftpack_ddst3},
-  {"ddst4",-1,{{-1}},0,(char *)ddst4,(f2py_init_func)f2py_rout__fftpack_ddst4,doc_f2py_rout__fftpack_ddst4},
-  {"dst1",-1,{{-1}},0,(char *)dst1,(f2py_init_func)f2py_rout__fftpack_dst1,doc_f2py_rout__fftpack_dst1},
-  {"dst2",-1,{{-1}},0,(char *)dst2,(f2py_init_func)f2py_rout__fftpack_dst2,doc_f2py_rout__fftpack_dst2},
-  {"dst3",-1,{{-1}},0,(char *)dst3,(f2py_init_func)f2py_rout__fftpack_dst3,doc_f2py_rout__fftpack_dst3},
-  {"dst4",-1,{{-1}},0,(char *)dst4,(f2py_init_func)f2py_rout__fftpack_dst4,doc_f2py_rout__fftpack_dst4},
-  {"destroy_ddst2_cache",-1,{{-1}},0,(char *)destroy_ddst2_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddst2_cache,doc_f2py_rout__fftpack_destroy_ddst2_cache},
-  {"destroy_ddst1_cache",-1,{{-1}},0,(char *)destroy_ddst1_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddst1_cache,doc_f2py_rout__fftpack_destroy_ddst1_cache},
-  {"destroy_dst2_cache",-1,{{-1}},0,(char *)destroy_dst2_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dst2_cache,doc_f2py_rout__fftpack_destroy_dst2_cache},
-  {"destroy_dst1_cache",-1,{{-1}},0,(char *)destroy_dst1_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dst1_cache,doc_f2py_rout__fftpack_destroy_dst1_cache},
+    {"zfft",-1,{{-1}},0,(char *)zfft,(f2py_init_func)f2py_rout__fftpack_zfft,doc_f2py_rout__fftpack_zfft},
+    {"drfft",-1,{{-1}},0,(char *)drfft,(f2py_init_func)f2py_rout__fftpack_drfft,doc_f2py_rout__fftpack_drfft},
+    {"zrfft",-1,{{-1}},0,(char *)zrfft,(f2py_init_func)f2py_rout__fftpack_zrfft,doc_f2py_rout__fftpack_zrfft},
+    {"zfftnd",-1,{{-1}},0,(char *)zfftnd,(f2py_init_func)f2py_rout__fftpack_zfftnd,doc_f2py_rout__fftpack_zfftnd},
+    {"destroy_zfft_cache",-1,{{-1}},0,(char *)destroy_zfft_cache,(f2py_init_func)f2py_rout__fftpack_destroy_zfft_cache,doc_f2py_rout__fftpack_destroy_zfft_cache},
+    {"destroy_zfftnd_cache",-1,{{-1}},0,(char *)destroy_zfftnd_cache,(f2py_init_func)f2py_rout__fftpack_destroy_zfftnd_cache,doc_f2py_rout__fftpack_destroy_zfftnd_cache},
+    {"destroy_drfft_cache",-1,{{-1}},0,(char *)destroy_drfft_cache,(f2py_init_func)f2py_rout__fftpack_destroy_drfft_cache,doc_f2py_rout__fftpack_destroy_drfft_cache},
+    {"cfft",-1,{{-1}},0,(char *)cfft,(f2py_init_func)f2py_rout__fftpack_cfft,doc_f2py_rout__fftpack_cfft},
+    {"rfft",-1,{{-1}},0,(char *)rfft,(f2py_init_func)f2py_rout__fftpack_rfft,doc_f2py_rout__fftpack_rfft},
+    {"crfft",-1,{{-1}},0,(char *)crfft,(f2py_init_func)f2py_rout__fftpack_crfft,doc_f2py_rout__fftpack_crfft},
+    {"cfftnd",-1,{{-1}},0,(char *)cfftnd,(f2py_init_func)f2py_rout__fftpack_cfftnd,doc_f2py_rout__fftpack_cfftnd},
+    {"destroy_cfft_cache",-1,{{-1}},0,(char *)destroy_cfft_cache,(f2py_init_func)f2py_rout__fftpack_destroy_cfft_cache,doc_f2py_rout__fftpack_destroy_cfft_cache},
+    {"destroy_cfftnd_cache",-1,{{-1}},0,(char *)destroy_cfftnd_cache,(f2py_init_func)f2py_rout__fftpack_destroy_cfftnd_cache,doc_f2py_rout__fftpack_destroy_cfftnd_cache},
+    {"destroy_rfft_cache",-1,{{-1}},0,(char *)destroy_rfft_cache,(f2py_init_func)f2py_rout__fftpack_destroy_rfft_cache,doc_f2py_rout__fftpack_destroy_rfft_cache},
+    {"ddct1",-1,{{-1}},0,(char *)ddct1,(f2py_init_func)f2py_rout__fftpack_ddct1,doc_f2py_rout__fftpack_ddct1},
+    {"ddct2",-1,{{-1}},0,(char *)ddct2,(f2py_init_func)f2py_rout__fftpack_ddct2,doc_f2py_rout__fftpack_ddct2},
+    {"ddct3",-1,{{-1}},0,(char *)ddct3,(f2py_init_func)f2py_rout__fftpack_ddct3,doc_f2py_rout__fftpack_ddct3},
+    {"ddct4",-1,{{-1}},0,(char *)ddct4,(f2py_init_func)f2py_rout__fftpack_ddct4,doc_f2py_rout__fftpack_ddct4},
+    {"dct1",-1,{{-1}},0,(char *)dct1,(f2py_init_func)f2py_rout__fftpack_dct1,doc_f2py_rout__fftpack_dct1},
+    {"dct2",-1,{{-1}},0,(char *)dct2,(f2py_init_func)f2py_rout__fftpack_dct2,doc_f2py_rout__fftpack_dct2},
+    {"dct3",-1,{{-1}},0,(char *)dct3,(f2py_init_func)f2py_rout__fftpack_dct3,doc_f2py_rout__fftpack_dct3},
+    {"dct4",-1,{{-1}},0,(char *)dct4,(f2py_init_func)f2py_rout__fftpack_dct4,doc_f2py_rout__fftpack_dct4},
+    {"destroy_ddct2_cache",-1,{{-1}},0,(char *)destroy_ddct2_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddct2_cache,doc_f2py_rout__fftpack_destroy_ddct2_cache},
+    {"destroy_ddct1_cache",-1,{{-1}},0,(char *)destroy_ddct1_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddct1_cache,doc_f2py_rout__fftpack_destroy_ddct1_cache},
+    {"destroy_ddct4_cache",-1,{{-1}},0,(char *)destroy_ddct4_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddct4_cache,doc_f2py_rout__fftpack_destroy_ddct4_cache},
+    {"destroy_dct2_cache",-1,{{-1}},0,(char *)destroy_dct2_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dct2_cache,doc_f2py_rout__fftpack_destroy_dct2_cache},
+    {"destroy_dct1_cache",-1,{{-1}},0,(char *)destroy_dct1_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dct1_cache,doc_f2py_rout__fftpack_destroy_dct1_cache},
+    {"destroy_dct4_cache",-1,{{-1}},0,(char *)destroy_dct4_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dct4_cache,doc_f2py_rout__fftpack_destroy_dct4_cache},
+    {"ddst1",-1,{{-1}},0,(char *)ddst1,(f2py_init_func)f2py_rout__fftpack_ddst1,doc_f2py_rout__fftpack_ddst1},
+    {"ddst2",-1,{{-1}},0,(char *)ddst2,(f2py_init_func)f2py_rout__fftpack_ddst2,doc_f2py_rout__fftpack_ddst2},
+    {"ddst3",-1,{{-1}},0,(char *)ddst3,(f2py_init_func)f2py_rout__fftpack_ddst3,doc_f2py_rout__fftpack_ddst3},
+    {"ddst4",-1,{{-1}},0,(char *)ddst4,(f2py_init_func)f2py_rout__fftpack_ddst4,doc_f2py_rout__fftpack_ddst4},
+    {"dst1",-1,{{-1}},0,(char *)dst1,(f2py_init_func)f2py_rout__fftpack_dst1,doc_f2py_rout__fftpack_dst1},
+    {"dst2",-1,{{-1}},0,(char *)dst2,(f2py_init_func)f2py_rout__fftpack_dst2,doc_f2py_rout__fftpack_dst2},
+    {"dst3",-1,{{-1}},0,(char *)dst3,(f2py_init_func)f2py_rout__fftpack_dst3,doc_f2py_rout__fftpack_dst3},
+    {"dst4",-1,{{-1}},0,(char *)dst4,(f2py_init_func)f2py_rout__fftpack_dst4,doc_f2py_rout__fftpack_dst4},
+    {"destroy_ddst2_cache",-1,{{-1}},0,(char *)destroy_ddst2_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddst2_cache,doc_f2py_rout__fftpack_destroy_ddst2_cache},
+    {"destroy_ddst1_cache",-1,{{-1}},0,(char *)destroy_ddst1_cache,(f2py_init_func)f2py_rout__fftpack_destroy_ddst1_cache,doc_f2py_rout__fftpack_destroy_ddst1_cache},
+    {"destroy_dst2_cache",-1,{{-1}},0,(char *)destroy_dst2_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dst2_cache,doc_f2py_rout__fftpack_destroy_dst2_cache},
+    {"destroy_dst1_cache",-1,{{-1}},0,(char *)destroy_dst1_cache,(f2py_init_func)f2py_rout__fftpack_destroy_dst1_cache,doc_f2py_rout__fftpack_destroy_dst1_cache},
 
 /*eof routine_defs*/
-  {NULL}
+    {NULL}
 };
 
 static PyMethodDef f2py_module_methods[] = {
 
-  {NULL,NULL}
+    {NULL,NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT,
-  "_fftpack",
-  NULL,
-  -1,
-  f2py_module_methods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+    PyModuleDef_HEAD_INIT,
+    "_fftpack",
+    NULL,
+    -1,
+    f2py_module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
-#endif
 
-#if PY_VERSION_HEX >= 0x03000000
-#define RETVAL m
 PyMODINIT_FUNC PyInit__fftpack(void) {
-#else
-#define RETVAL
-PyMODINIT_FUNC init_fftpack(void) {
-#endif
-  int i;
-  PyObject *m,*d, *s;
-#if PY_VERSION_HEX >= 0x03000000
-  m = _fftpack_module = PyModule_Create(&moduledef);
-#else
-  m = _fftpack_module = Py_InitModule("_fftpack", f2py_module_methods);
-#endif
-  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
-  import_array();
-  if (PyErr_Occurred())
-    {PyErr_SetString(PyExc_ImportError, "can't initialize module _fftpack (failed to import numpy)"); return RETVAL;}
-  d = PyModule_GetDict(m);
-  s = PyString_FromString("$Revision: $");
-  PyDict_SetItemString(d, "__version__", s);
-#if PY_VERSION_HEX >= 0x03000000
-  s = PyUnicode_FromString(
-#else
-  s = PyString_FromString(
-#endif
-    "This module '_fftpack' is auto-generated with f2py (version:2).\nFunctions:\n"
-"  y = zfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=0)\n"
-"  y = drfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=0)\n"
-"  y = zrfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=1)\n"
-"  y = zfftnd(x,s=old_shape(x,j++),direction=1,normalize=(direction<0),overwrite_x=0)\n"
-"  destroy_zfft_cache()\n"
-"  destroy_zfftnd_cache()\n"
-"  destroy_drfft_cache()\n"
-"  y = cfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=0)\n"
-"  y = rfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=0)\n"
-"  y = crfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=1)\n"
-"  y = cfftnd(x,s=old_shape(x,j++),direction=1,normalize=(direction<0),overwrite_x=0)\n"
-"  destroy_cfft_cache()\n"
-"  destroy_cfftnd_cache()\n"
-"  destroy_rfft_cache()\n"
-"  y = ddct1(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = ddct2(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = ddct3(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = ddct4(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = dct1(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = dct2(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = dct3(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = dct4(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  destroy_ddct2_cache()\n"
-"  destroy_ddct1_cache()\n"
-"  destroy_ddct4_cache()\n"
-"  destroy_dct2_cache()\n"
-"  destroy_dct1_cache()\n"
-"  destroy_dct4_cache()\n"
-"  y = ddst1(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = ddst2(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = ddst3(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = ddst4(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = dst1(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = dst2(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = dst3(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  y = dst4(x,n=size(x),normalize=0,overwrite_x=0)\n"
-"  destroy_ddst2_cache()\n"
-"  destroy_ddst1_cache()\n"
-"  destroy_dst2_cache()\n"
-"  destroy_dst1_cache()\n"
+    int i;
+    PyObject *m,*d, *s, *tmp;
+    m = _fftpack_module = PyModule_Create(&moduledef);
+    Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
+    import_array();
+    if (PyErr_Occurred())
+        {PyErr_SetString(PyExc_ImportError, "can't initialize module _fftpack (failed to import numpy)"); return m;}
+    d = PyModule_GetDict(m);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__version__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString(
+        "This module '_fftpack' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+"    y = zfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=0)\n"
+"    y = drfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=0)\n"
+"    y = zrfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=1)\n"
+"    y = zfftnd(x,s=old_shape(x,j++),direction=1,normalize=(direction<0),overwrite_x=0)\n"
+"    destroy_zfft_cache()\n"
+"    destroy_zfftnd_cache()\n"
+"    destroy_drfft_cache()\n"
+"    y = cfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=0)\n"
+"    y = rfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=0)\n"
+"    y = crfft(x,n=size(x),direction=1,normalize=(direction<0),overwrite_x=1)\n"
+"    y = cfftnd(x,s=old_shape(x,j++),direction=1,normalize=(direction<0),overwrite_x=0)\n"
+"    destroy_cfft_cache()\n"
+"    destroy_cfftnd_cache()\n"
+"    destroy_rfft_cache()\n"
+"    y = ddct1(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = ddct2(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = ddct3(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = ddct4(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = dct1(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = dct2(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = dct3(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = dct4(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    destroy_ddct2_cache()\n"
+"    destroy_ddct1_cache()\n"
+"    destroy_ddct4_cache()\n"
+"    destroy_dct2_cache()\n"
+"    destroy_dct1_cache()\n"
+"    destroy_dct4_cache()\n"
+"    y = ddst1(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = ddst2(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = ddst3(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = ddst4(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = dst1(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = dst2(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = dst3(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    y = dst4(x,n=size(x),normalize=0,overwrite_x=0)\n"
+"    destroy_ddst2_cache()\n"
+"    destroy_ddst1_cache()\n"
+"    destroy_dst2_cache()\n"
+"    destroy_dst1_cache()\n"
 ".");
-  PyDict_SetItemString(d, "__doc__", s);
-  _fftpack_error = PyErr_NewException ("_fftpack.error", NULL, NULL);
-  Py_DECREF(s);
-  for(i=0;f2py_routine_defs[i].name!=NULL;i++)
-    PyDict_SetItemString(d, f2py_routine_defs[i].name,PyFortranObject_NewAsAttr(&f2py_routine_defs[i]));
+    PyDict_SetItemString(d, "__doc__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__f2py_numpy_version__", s);
+    Py_DECREF(s);
+    _fftpack_error = PyErr_NewException ("_fftpack.error", NULL, NULL);
+    /*
+     * Store the error object inside the dict, so that it could get deallocated.
+     * (in practice, this is a module, so it likely will not and cannot.)
+     */
+    PyDict_SetItemString(d, "__fftpack_error", _fftpack_error);
+    Py_DECREF(_fftpack_error);
+    for(i=0;f2py_routine_defs[i].name!=NULL;i++) {
+        tmp = PyFortranObject_NewAsAttr(&f2py_routine_defs[i]);
+        PyDict_SetItemString(d, f2py_routine_defs[i].name, tmp);
+        Py_DECREF(tmp);
+    }
 
 
 
@@ -4227,11 +4303,10 @@ PyMODINIT_FUNC init_fftpack(void) {
 
 
 #ifdef F2PY_REPORT_ATEXIT
-  if (! PyErr_Occurred())
-    on_exit(f2py_report_on_exit,(void*)"_fftpack");
+    if (! PyErr_Occurred())
+        on_exit(f2py_report_on_exit,(void*)"_fftpack");
 #endif
-
-  return RETVAL;
+    return m;
 }
 #ifdef __cplusplus
 }

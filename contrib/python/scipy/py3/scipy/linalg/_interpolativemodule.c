@@ -1,5 +1,5 @@
 /* File: _interpolativemodule.c
- * This file is auto-generated with f2py (version:2).
+ * This file is auto-generated with f2py (version:1.23.5).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Mon Jan 20 20:54:49 2020
@@ -10,8 +10,15 @@
 extern "C" {
 #endif
 
+#ifndef PY_SSIZE_T_CLEAN
+#define PY_SSIZE_T_CLEAN
+#endif /* PY_SSIZE_T_CLEAN */
+
+/* Unconditionally included */
+#include <Python.h>
+#include <numpy/npy_os.h>
+
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include "Python.h"
 #include <stdarg.h>
 #include "fortranobject.h"
 #include <string.h>
@@ -53,7 +60,7 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
 #define MEMCOPY(to,from,n)\
     do { FAILNULL(to); FAILNULL(from); (void)memcpy(to,from,n); } while (0)
 
-#define pyobj_from_int1(v) (PyInt_FromLong(v))
+#define pyobj_from_int1(v) (PyLong_FromLong(v))
 #define pyobj_from_double1(v) (PyFloat_FromDouble(v))
 #ifdef DEBUGCFUNCS
 #define CFUNCSMESS(mess) fprintf(stderr,"debug-capi:"mess);
@@ -63,6 +70,29 @@ typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,do
 #else
 #define CFUNCSMESS(mess)
 #define CFUNCSMESSPY(mess,obj)
+#endif
+
+#ifndef F2PY_THREAD_LOCAL_DECL
+#if defined(_MSC_VER)
+#define F2PY_THREAD_LOCAL_DECL __declspec(thread)
+#elif defined(NPY_OS_MINGW)
+#define F2PY_THREAD_LOCAL_DECL __thread
+#elif defined(__STDC_VERSION__) \
+      && (__STDC_VERSION__ >= 201112L) \
+      && !defined(__STDC_NO_THREADS__) \
+      && (!defined(__GLIBC__) || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 12)) \
+      && !defined(NPY_OS_OPENBSD)
+/* __STDC_NO_THREADS__ was first defined in a maintenance release of glibc 2.12,
+   see https://lists.gnu.org/archive/html/commit-hurd/2012-07/msg00180.html,
+   so `!defined(__STDC_NO_THREADS__)` may give false positive for the existence
+   of `threads.h` when using an older release of glibc 2.12
+   See gh-19437 for details on OpenBSD */
+#include <threads.h>
+#define F2PY_THREAD_LOCAL_DECL thread_local
+#elif defined(__GNUC__) \
+      && (__GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ >= 4)))
+#define F2PY_THREAD_LOCAL_DECL __thread
+#endif
 #endif
 
 #define pyobj_from_complex_double1(v) (PyComplex_FromDoubles(v.r,v.i))
@@ -165,65 +195,82 @@ static int f2py_size(PyArrayObject* var, ...)
   return sz;
 }
 
-static int int_from_pyobj(int* v,PyObject *obj,const char *errmess) {
+static int
+int_from_pyobj(int* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
-    if (PyInt_Check(obj)) {
-        *v = (int)PyInt_AS_LONG(obj);
-        return 1;
+
+    if (PyLong_Check(obj)) {
+        *v = Npy__PyLong_AsInt(obj);
+        return !(*v == -1 && PyErr_Occurred());
     }
-    tmp = PyNumber_Int(obj);
+
+    tmp = PyNumber_Long(obj);
     if (tmp) {
-        *v = PyInt_AS_LONG(tmp);
+        *v = Npy__PyLong_AsInt(tmp);
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
-        if (int_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
+        if (int_from_pyobj(v, tmp, errmess)) {
+            Py_DECREF(tmp);
+            return 1;
+        }
         Py_DECREF(tmp);
     }
+
     {
         PyObject* err = PyErr_Occurred();
-        if (err==NULL) err = _interpolative_error;
-        PyErr_SetString(err,errmess);
+        if (err == NULL) {
+            err = _interpolative_error;
+        }
+        PyErr_SetString(err, errmess);
     }
     return 0;
 }
 
-static int double_from_pyobj(double* v,PyObject *obj,const char *errmess) {
+static int
+double_from_pyobj(double* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
     if (PyFloat_Check(obj)) {
-#ifdef __sgi
         *v = PyFloat_AsDouble(obj);
-#else
-        *v = PyFloat_AS_DOUBLE(obj);
-#endif
-        return 1;
+        return !(*v == -1.0 && PyErr_Occurred());
     }
+
     tmp = PyNumber_Float(obj);
     if (tmp) {
-#ifdef __sgi
         *v = PyFloat_AsDouble(tmp);
-#else
-        *v = PyFloat_AS_DOUBLE(tmp);
-#endif
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1.0 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
         if (double_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
         Py_DECREF(tmp);
     }
@@ -235,15 +282,21 @@ static int double_from_pyobj(double* v,PyObject *obj,const char *errmess) {
     return 0;
 }
 
-static int create_cb_arglist(PyObject* fun,PyTupleObject* xa,const int maxnofargs,const int nofoptargs,int *nofargs,PyTupleObject **args,const char *errmess) {
+static int
+create_cb_arglist(PyObject* fun, PyTupleObject* xa , const int maxnofargs,
+                  const int nofoptargs, int *nofargs, PyTupleObject **args,
+                  const char *errmess)
+{
     PyObject *tmp = NULL;
     PyObject *tmp_fun = NULL;
-    int tot,opt,ext,siz,i,di=0;
+    Py_ssize_t tot, opt, ext, siz, i, di = 0;
     CFUNCSMESS("create_cb_arglist\n");
     tot=opt=ext=siz=0;
     /* Get the total number of arguments */
-    if (PyFunction_Check(fun))
+    if (PyFunction_Check(fun)) {
         tmp_fun = fun;
+        Py_INCREF(tmp_fun);
+    }
     else {
         di = 1;
         if (PyObject_HasAttrString(fun,"im_func")) {
@@ -255,7 +308,12 @@ static int create_cb_arglist(PyObject* fun,PyTupleObject* xa,const int maxnofarg
                 tmp_fun = PyObject_GetAttrString(tmp,"im_func");
             else {
                 tmp_fun = fun; /* built-in function */
+                Py_INCREF(tmp_fun);
                 tot = maxnofargs;
+                if (PyCFunction_Check(fun)) {
+                    /* In case the function has a co_argcount (like on PyPy) */
+                    di = 0;
+                }
                 if (xa != NULL)
                     tot += PyTuple_Size((PyObject *)xa);
             }
@@ -266,6 +324,7 @@ static int create_cb_arglist(PyObject* fun,PyTupleObject* xa,const int maxnofarg
             if (xa != NULL)
                 tot += PyTuple_Size((PyObject *)xa);
             tmp_fun = fun;
+            Py_INCREF(tmp_fun);
         }
         else if (F2PyCapsule_Check(fun)) {
             tot = maxnofargs;
@@ -276,30 +335,32 @@ static int create_cb_arglist(PyObject* fun,PyTupleObject* xa,const int maxnofarg
                 goto capi_fail;
             }
             tmp_fun = fun;
+            Py_INCREF(tmp_fun);
         }
     }
-if (tmp_fun==NULL) {
-fprintf(stderr,"Call-back argument must be function|instance|instance.__call__|f2py-function but got %s.\n",(fun==NULL?"NULL":Py_TYPE(fun)->tp_name));
-goto capi_fail;
-}
-#if PY_VERSION_HEX >= 0x03000000
+
+    if (tmp_fun == NULL) {
+        fprintf(stderr,
+                "Call-back argument must be function|instance|instance.__call__|f2py-function "
+                "but got %s.\n",
+                ((fun == NULL) ? "NULL" : Py_TYPE(fun)->tp_name));
+        goto capi_fail;
+    }
+
     if (PyObject_HasAttrString(tmp_fun,"__code__")) {
-        if (PyObject_HasAttrString(tmp = PyObject_GetAttrString(tmp_fun,"__code__"),"co_argcount"))
-#else
-    if (PyObject_HasAttrString(tmp_fun,"func_code")) {
-        if (PyObject_HasAttrString(tmp = PyObject_GetAttrString(tmp_fun,"func_code"),"co_argcount"))
-#endif
-            tot = PyInt_AsLong(PyObject_GetAttrString(tmp,"co_argcount")) - di;
-        Py_XDECREF(tmp);
+        if (PyObject_HasAttrString(tmp = PyObject_GetAttrString(tmp_fun,"__code__"),"co_argcount")) {
+            PyObject *tmp_argcount = PyObject_GetAttrString(tmp,"co_argcount");
+            Py_DECREF(tmp);
+            if (tmp_argcount == NULL) {
+                goto capi_fail;
+            }
+            tot = PyLong_AsSsize_t(tmp_argcount) - di;
+            Py_DECREF(tmp_argcount);
+        }
     }
     /* Get the number of optional arguments */
-#if PY_VERSION_HEX >= 0x03000000
     if (PyObject_HasAttrString(tmp_fun,"__defaults__")) {
         if (PyTuple_Check(tmp = PyObject_GetAttrString(tmp_fun,"__defaults__")))
-#else
-    if (PyObject_HasAttrString(tmp_fun,"func_defaults")) {
-        if (PyTuple_Check(tmp = PyObject_GetAttrString(tmp_fun,"func_defaults")))
-#endif
             opt = PyTuple_Size(tmp);
         Py_XDECREF(tmp);
     }
@@ -309,13 +370,23 @@ goto capi_fail;
     /* Calculate the size of call-backs argument list */
     siz = MIN(maxnofargs+ext,tot);
     *nofargs = MAX(0,siz-ext);
+
 #ifdef DEBUGCFUNCS
-    fprintf(stderr,"debug-capi:create_cb_arglist:maxnofargs(-nofoptargs),tot,opt,ext,siz,nofargs=%d(-%d),%d,%d,%d,%d,%d\n",maxnofargs,nofoptargs,tot,opt,ext,siz,*nofargs);
+    fprintf(stderr,
+            "debug-capi:create_cb_arglist:maxnofargs(-nofoptargs),"
+            "tot,opt,ext,siz,nofargs = %d(-%d), %zd, %zd, %zd, %zd, %d\n",
+            maxnofargs, nofoptargs, tot, opt, ext, siz, *nofargs);
 #endif
-    if (siz<tot-opt) {
-        fprintf(stderr,"create_cb_arglist: Failed to build argument list (siz) with enough arguments (tot-opt) required by user-supplied function (siz,tot,opt=%d,%d,%d).\n",siz,tot,opt);
+
+    if (siz < tot-opt) {
+        fprintf(stderr,
+                "create_cb_arglist: Failed to build argument list "
+                "(siz) with enough arguments (tot-opt) required by "
+                "user-supplied function (siz,tot,opt=%zd, %zd, %zd).\n",
+                siz, tot, opt);
         goto capi_fail;
     }
+
     /* Initialize argument list */
     *args = (PyTupleObject *)PyTuple_New(siz);
     for (i=0;i<*nofargs;i++) {
@@ -329,18 +400,23 @@ goto capi_fail;
             PyTuple_SET_ITEM(*args,i,tmp);
         }
     CFUNCSMESS("create_cb_arglist-end\n");
+    Py_DECREF(tmp_fun);
     return 1;
+
 capi_fail:
-    if ((PyErr_Occurred())==NULL)
-        PyErr_SetString(_interpolative_error,errmess);
+    if (PyErr_Occurred() == NULL)
+        PyErr_SetString(_interpolative_error, errmess);
+    Py_XDECREF(tmp_fun);
     return 0;
 }
 
-static int complex_double_from_pyobj(complex_double* v,PyObject *obj,const char *errmess) {
+static int
+complex_double_from_pyobj(complex_double* v, PyObject *obj, const char *errmess) {
     Py_complex c;
     if (PyComplex_Check(obj)) {
-        c=PyComplex_AsCComplex(obj);
-        (*v).r=c.real, (*v).i=c.imag;
+        c = PyComplex_AsCComplex(obj);
+        (*v).r = c.real;
+        (*v).i = c.imag;
         return 1;
     }
     if (PyArray_IsScalar(obj, ComplexFloating)) {
@@ -362,37 +438,32 @@ static int complex_double_from_pyobj(complex_double* v,PyObject *obj,const char 
         return 1;
     }
     if (PyArray_CheckScalar(obj)) { /* 0-dim array or still array scalar */
-        PyObject *arr;
+        PyArrayObject *arr;
         if (PyArray_Check(obj)) {
-            arr = PyArray_Cast((PyArrayObject *)obj, NPY_CDOUBLE);
+            arr = (PyArrayObject *)PyArray_Cast((PyArrayObject *)obj, NPY_CDOUBLE);
         }
         else {
-            arr = PyArray_FromScalar(obj, PyArray_DescrFromType(NPY_CDOUBLE));
+            arr = (PyArrayObject *)PyArray_FromScalar(obj, PyArray_DescrFromType(NPY_CDOUBLE));
         }
-        if (arr==NULL) return 0;
+        if (arr == NULL) {
+            return 0;
+        }
         (*v).r = ((npy_cdouble *)PyArray_DATA(arr))->real;
         (*v).i = ((npy_cdouble *)PyArray_DATA(arr))->imag;
+        Py_DECREF(arr);
         return 1;
     }
     /* Python does not provide PyNumber_Complex function :-( */
-    (*v).i=0.0;
+    (*v).i = 0.0;
     if (PyFloat_Check(obj)) {
-#ifdef __sgi
         (*v).r = PyFloat_AsDouble(obj);
-#else
-        (*v).r = PyFloat_AS_DOUBLE(obj);
-#endif
-        return 1;
-    }
-    if (PyInt_Check(obj)) {
-        (*v).r = (double)PyInt_AS_LONG(obj);
-        return 1;
+        return !((*v).r == -1.0 && PyErr_Occurred());
     }
     if (PyLong_Check(obj)) {
         (*v).r = PyLong_AsDouble(obj);
-        return (!PyErr_Occurred());
+        return !((*v).r == -1.0 && PyErr_Occurred());
     }
-    if (PySequence_Check(obj) && !(PyString_Check(obj) || PyUnicode_Check(obj))) {
+    if (PySequence_Check(obj) && !(PyBytes_Check(obj) || PyUnicode_Check(obj))) {
         PyObject *tmp = PySequence_GetItem(obj,0);
         if (tmp) {
             if (complex_double_from_pyobj(v,tmp,errmess)) {
@@ -480,1336 +551,1672 @@ extern void F_FUNC_US(idzr_rsvd,IDZR_RSVD)(int*,int*,cb_matveca_in_idz__user__ro
 /******************* See f2py2e/cb_rules.py: buildcallback *******************/
 
 /********************* cb_matvect_in_idd__user__routines *********************/
-PyObject *cb_matvect_in_idd__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_matvect_in_idd__user__routines_args_capi = NULL;
-int cb_matvect_in_idd__user__routines_nofargs = 0;
-jmp_buf cb_matvect_in_idd__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_matvect_in_idd__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_matvect_in_idd__user__routines_t *_active_cb_matvect_in_idd__user__routines = NULL;
+
+static cb_matvect_in_idd__user__routines_t *swap_active_cb_matvect_in_idd__user__routines(cb_matvect_in_idd__user__routines_t *ptr) {
+    cb_matvect_in_idd__user__routines_t *prev = _active_cb_matvect_in_idd__user__routines;
+    _active_cb_matvect_in_idd__user__routines = ptr;
+    return prev;
+}
+
+static cb_matvect_in_idd__user__routines_t *get_active_cb_matvect_in_idd__user__routines(void) {
+    return _active_cb_matvect_in_idd__user__routines;
+}
+
+#else
+
+static cb_matvect_in_idd__user__routines_t *swap_active_cb_matvect_in_idd__user__routines(cb_matvect_in_idd__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_matvect_in_idd__user__routines";
+    return (cb_matvect_in_idd__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_matvect_in_idd__user__routines_t *get_active_cb_matvect_in_idd__user__routines(void) {
+    char *key = "__f2py_cb_cb_matvect_in_idd__user__routines";
+    return (cb_matvect_in_idd__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_matvect_in_idd__user__routines_typedef)(int *,double *,int *,double *,double *,double *,double *,double *);*/
 static void cb_matvect_in_idd__user__routines (int *m_cb_capi,double *x,int *n_cb_capi,double *y,double *p1_cb_capi,double *p2_cb_capi,double *p3_cb_capi,double *p4_cb_capi) {
-  PyTupleObject *capi_arglist = cb_matvect_in_idd__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_matvect_in_idd__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_matvect_in_idd__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int m=(*m_cb_capi);
-  int n=(*n_cb_capi);
-  double p1=(*p1_cb_capi);
-  double p2=(*p2_cb_capi);
-  double p3=(*p3_cb_capi);
-  double p4=(*p4_cb_capi);
-  npy_intp x_Dims[1] = {-1};
-  npy_intp y_Dims[1] = {-1};
+    int m=(*m_cb_capi);
+    int n=(*n_cb_capi);
+    double p1=(*p1_cb_capi);
+    double p2=(*p2_cb_capi);
+    double p3=(*p3_cb_capi);
+    double p4=(*p4_cb_capi);
+    npy_intp x_Dims[1] = {-1};
+    npy_intp y_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_matvect_in_idd__user__routines (maxnofargs=7(-6))\n");
-  CFUNCSMESSPY("cb:cb_matvect_in_idd__user__routines_capi=",cb_matvect_in_idd__user__routines_capi);
-  if (cb_matvect_in_idd__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_matvect_in_idd__user__routines_capi = PyObject_GetAttrString(_interpolative_module,"matvect");
-  }
-  if (cb_matvect_in_idd__user__routines_capi==NULL) {
-    PyErr_SetString(_interpolative_error,"cb: Callback matvect not defined (as an argument or module _interpolative attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_matvect_in_idd__user__routines_capi)) {
-  cb_matvect_in_idd__user__routines_typedef cb_matvect_in_idd__user__routines_cptr;
-  cb_matvect_in_idd__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_matvect_in_idd__user__routines_capi);
-  (*cb_matvect_in_idd__user__routines_cptr)(m_cb_capi,x,n_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvect_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvect_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_matvect_in_idd__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(_interpolative_error,"Callback matvect argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_matvect_in_idd__user__routines (maxnofargs=7(-6))\n");
+    CFUNCSMESSPY("cb:cb_matvect_in_idd__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(_interpolative_module,"matvect");
+        CFUNCSMESSPY("cb:cb_matvect_in_idd__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(_interpolative_error,"cb: Callback matvect not defined (as an argument or module _interpolative attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_matvect_in_idd__user__routines_typedef cb_matvect_in_idd__user__routines_cptr;
+    cb_matvect_in_idd__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_matvect_in_idd__user__routines_cptr)(m_cb_capi,x,n_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvect_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvect_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(_interpolative_error,"Callback matvect argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  x_Dims[0]=m;
-  y_Dims[0]=n;
+    x_Dims[0]=m;
+    y_Dims[0]=n;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_matvect_in_idd__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
-  if (cb_matvect_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
-      goto capi_fail;
-  if (cb_matvect_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
-      goto capi_fail;
-  if (cb_matvect_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p1)))
-      goto capi_fail;
-  if (cb_matvect_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p2)))
-      goto capi_fail;
-  if (cb_matvect_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p3)))
-      goto capi_fail;
-  if (cb_matvect_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p4)))
-      goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p1)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p2)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p3)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p4)))
+            goto capi_fail;
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function matvect.\n");
+    CFUNCSMESS("cb:Call-back calling Python function matvect.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_matvect_in_idd__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_matvect_in_idd__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,y_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,y_Dims,1,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_matvect_in_idd__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_matvect_in_idd__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_matvect_in_idd__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_matvect_in_idd__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_matvect_in_idd__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /****************** end of cb_matvect_in_idd__user__routines ******************/
 
 
 /********************** cb_matvec_in_idd__user__routines **********************/
-PyObject *cb_matvec_in_idd__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_matvec_in_idd__user__routines_args_capi = NULL;
-int cb_matvec_in_idd__user__routines_nofargs = 0;
-jmp_buf cb_matvec_in_idd__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_matvec_in_idd__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_matvec_in_idd__user__routines_t *_active_cb_matvec_in_idd__user__routines = NULL;
+
+static cb_matvec_in_idd__user__routines_t *swap_active_cb_matvec_in_idd__user__routines(cb_matvec_in_idd__user__routines_t *ptr) {
+    cb_matvec_in_idd__user__routines_t *prev = _active_cb_matvec_in_idd__user__routines;
+    _active_cb_matvec_in_idd__user__routines = ptr;
+    return prev;
+}
+
+static cb_matvec_in_idd__user__routines_t *get_active_cb_matvec_in_idd__user__routines(void) {
+    return _active_cb_matvec_in_idd__user__routines;
+}
+
+#else
+
+static cb_matvec_in_idd__user__routines_t *swap_active_cb_matvec_in_idd__user__routines(cb_matvec_in_idd__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_matvec_in_idd__user__routines";
+    return (cb_matvec_in_idd__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_matvec_in_idd__user__routines_t *get_active_cb_matvec_in_idd__user__routines(void) {
+    char *key = "__f2py_cb_cb_matvec_in_idd__user__routines";
+    return (cb_matvec_in_idd__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_matvec_in_idd__user__routines_typedef)(int *,double *,int *,double *,double *,double *,double *,double *);*/
 static void cb_matvec_in_idd__user__routines (int *n_cb_capi,double *x,int *m_cb_capi,double *y,double *p1_cb_capi,double *p2_cb_capi,double *p3_cb_capi,double *p4_cb_capi) {
-  PyTupleObject *capi_arglist = cb_matvec_in_idd__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_matvec_in_idd__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_matvec_in_idd__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int n=(*n_cb_capi);
-  int m=(*m_cb_capi);
-  double p1=(*p1_cb_capi);
-  double p2=(*p2_cb_capi);
-  double p3=(*p3_cb_capi);
-  double p4=(*p4_cb_capi);
-  npy_intp x_Dims[1] = {-1};
-  npy_intp y_Dims[1] = {-1};
+    int n=(*n_cb_capi);
+    int m=(*m_cb_capi);
+    double p1=(*p1_cb_capi);
+    double p2=(*p2_cb_capi);
+    double p3=(*p3_cb_capi);
+    double p4=(*p4_cb_capi);
+    npy_intp x_Dims[1] = {-1};
+    npy_intp y_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_matvec_in_idd__user__routines (maxnofargs=7(-6))\n");
-  CFUNCSMESSPY("cb:cb_matvec_in_idd__user__routines_capi=",cb_matvec_in_idd__user__routines_capi);
-  if (cb_matvec_in_idd__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_matvec_in_idd__user__routines_capi = PyObject_GetAttrString(_interpolative_module,"matvec");
-  }
-  if (cb_matvec_in_idd__user__routines_capi==NULL) {
-    PyErr_SetString(_interpolative_error,"cb: Callback matvec not defined (as an argument or module _interpolative attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_matvec_in_idd__user__routines_capi)) {
-  cb_matvec_in_idd__user__routines_typedef cb_matvec_in_idd__user__routines_cptr;
-  cb_matvec_in_idd__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_matvec_in_idd__user__routines_capi);
-  (*cb_matvec_in_idd__user__routines_cptr)(n_cb_capi,x,m_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvec_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvec_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_matvec_in_idd__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(_interpolative_error,"Callback matvec argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_matvec_in_idd__user__routines (maxnofargs=7(-6))\n");
+    CFUNCSMESSPY("cb:cb_matvec_in_idd__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(_interpolative_module,"matvec");
+        CFUNCSMESSPY("cb:cb_matvec_in_idd__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(_interpolative_error,"cb: Callback matvec not defined (as an argument or module _interpolative attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_matvec_in_idd__user__routines_typedef cb_matvec_in_idd__user__routines_cptr;
+    cb_matvec_in_idd__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_matvec_in_idd__user__routines_cptr)(n_cb_capi,x,m_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvec_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvec_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(_interpolative_error,"Callback matvec argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  x_Dims[0]=n;
-  y_Dims[0]=m;
+    x_Dims[0]=n;
+    y_Dims[0]=m;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_matvec_in_idd__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
-  if (cb_matvec_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
-      goto capi_fail;
-  if (cb_matvec_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
-      goto capi_fail;
-  if (cb_matvec_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p1)))
-      goto capi_fail;
-  if (cb_matvec_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p2)))
-      goto capi_fail;
-  if (cb_matvec_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p3)))
-      goto capi_fail;
-  if (cb_matvec_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p4)))
-      goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p1)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p2)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p3)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p4)))
+            goto capi_fail;
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function matvec.\n");
+    CFUNCSMESS("cb:Call-back calling Python function matvec.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_matvec_in_idd__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_matvec_in_idd__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,y_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,y_Dims,1,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_matvec_in_idd__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_matvec_in_idd__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_matvec_in_idd__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_matvec_in_idd__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_matvec_in_idd__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /****************** end of cb_matvec_in_idd__user__routines ******************/
 
 
 /********************* cb_matvect2_in_idd__user__routines *********************/
-PyObject *cb_matvect2_in_idd__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_matvect2_in_idd__user__routines_args_capi = NULL;
-int cb_matvect2_in_idd__user__routines_nofargs = 0;
-jmp_buf cb_matvect2_in_idd__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_matvect2_in_idd__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_matvect2_in_idd__user__routines_t *_active_cb_matvect2_in_idd__user__routines = NULL;
+
+static cb_matvect2_in_idd__user__routines_t *swap_active_cb_matvect2_in_idd__user__routines(cb_matvect2_in_idd__user__routines_t *ptr) {
+    cb_matvect2_in_idd__user__routines_t *prev = _active_cb_matvect2_in_idd__user__routines;
+    _active_cb_matvect2_in_idd__user__routines = ptr;
+    return prev;
+}
+
+static cb_matvect2_in_idd__user__routines_t *get_active_cb_matvect2_in_idd__user__routines(void) {
+    return _active_cb_matvect2_in_idd__user__routines;
+}
+
+#else
+
+static cb_matvect2_in_idd__user__routines_t *swap_active_cb_matvect2_in_idd__user__routines(cb_matvect2_in_idd__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_matvect2_in_idd__user__routines";
+    return (cb_matvect2_in_idd__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_matvect2_in_idd__user__routines_t *get_active_cb_matvect2_in_idd__user__routines(void) {
+    char *key = "__f2py_cb_cb_matvect2_in_idd__user__routines";
+    return (cb_matvect2_in_idd__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_matvect2_in_idd__user__routines_typedef)(int *,double *,int *,double *,double *,double *,double *,double *);*/
 static void cb_matvect2_in_idd__user__routines (int *m_cb_capi,double *x,int *n_cb_capi,double *y,double *p1_cb_capi,double *p2_cb_capi,double *p3_cb_capi,double *p4_cb_capi) {
-  PyTupleObject *capi_arglist = cb_matvect2_in_idd__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_matvect2_in_idd__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_matvect2_in_idd__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int m=(*m_cb_capi);
-  int n=(*n_cb_capi);
-  double p1=(*p1_cb_capi);
-  double p2=(*p2_cb_capi);
-  double p3=(*p3_cb_capi);
-  double p4=(*p4_cb_capi);
-  npy_intp x_Dims[1] = {-1};
-  npy_intp y_Dims[1] = {-1};
+    int m=(*m_cb_capi);
+    int n=(*n_cb_capi);
+    double p1=(*p1_cb_capi);
+    double p2=(*p2_cb_capi);
+    double p3=(*p3_cb_capi);
+    double p4=(*p4_cb_capi);
+    npy_intp x_Dims[1] = {-1};
+    npy_intp y_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_matvect2_in_idd__user__routines (maxnofargs=7(-6))\n");
-  CFUNCSMESSPY("cb:cb_matvect2_in_idd__user__routines_capi=",cb_matvect2_in_idd__user__routines_capi);
-  if (cb_matvect2_in_idd__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_matvect2_in_idd__user__routines_capi = PyObject_GetAttrString(_interpolative_module,"matvect2");
-  }
-  if (cb_matvect2_in_idd__user__routines_capi==NULL) {
-    PyErr_SetString(_interpolative_error,"cb: Callback matvect2 not defined (as an argument or module _interpolative attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_matvect2_in_idd__user__routines_capi)) {
-  cb_matvect2_in_idd__user__routines_typedef cb_matvect2_in_idd__user__routines_cptr;
-  cb_matvect2_in_idd__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_matvect2_in_idd__user__routines_capi);
-  (*cb_matvect2_in_idd__user__routines_cptr)(m_cb_capi,x,n_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvect2_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvect2_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_matvect2_in_idd__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(_interpolative_error,"Callback matvect2 argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_matvect2_in_idd__user__routines (maxnofargs=7(-6))\n");
+    CFUNCSMESSPY("cb:cb_matvect2_in_idd__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(_interpolative_module,"matvect2");
+        CFUNCSMESSPY("cb:cb_matvect2_in_idd__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(_interpolative_error,"cb: Callback matvect2 not defined (as an argument or module _interpolative attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_matvect2_in_idd__user__routines_typedef cb_matvect2_in_idd__user__routines_cptr;
+    cb_matvect2_in_idd__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_matvect2_in_idd__user__routines_cptr)(m_cb_capi,x,n_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvect2_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvect2_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(_interpolative_error,"Callback matvect2 argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  x_Dims[0]=m;
-  y_Dims[0]=n;
+    x_Dims[0]=m;
+    y_Dims[0]=n;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_matvect2_in_idd__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
-  if (cb_matvect2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
-      goto capi_fail;
-  if (cb_matvect2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
-      goto capi_fail;
-  if (cb_matvect2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p1)))
-      goto capi_fail;
-  if (cb_matvect2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p2)))
-      goto capi_fail;
-  if (cb_matvect2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p3)))
-      goto capi_fail;
-  if (cb_matvect2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p4)))
-      goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p1)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p2)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p3)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p4)))
+            goto capi_fail;
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function matvect2.\n");
+    CFUNCSMESS("cb:Call-back calling Python function matvect2.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_matvect2_in_idd__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_matvect2_in_idd__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,y_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,y_Dims,1,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_matvect2_in_idd__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_matvect2_in_idd__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_matvect2_in_idd__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_matvect2_in_idd__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_matvect2_in_idd__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /***************** end of cb_matvect2_in_idd__user__routines *****************/
 
 
 /********************* cb_matvec2_in_idd__user__routines *********************/
-PyObject *cb_matvec2_in_idd__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_matvec2_in_idd__user__routines_args_capi = NULL;
-int cb_matvec2_in_idd__user__routines_nofargs = 0;
-jmp_buf cb_matvec2_in_idd__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_matvec2_in_idd__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_matvec2_in_idd__user__routines_t *_active_cb_matvec2_in_idd__user__routines = NULL;
+
+static cb_matvec2_in_idd__user__routines_t *swap_active_cb_matvec2_in_idd__user__routines(cb_matvec2_in_idd__user__routines_t *ptr) {
+    cb_matvec2_in_idd__user__routines_t *prev = _active_cb_matvec2_in_idd__user__routines;
+    _active_cb_matvec2_in_idd__user__routines = ptr;
+    return prev;
+}
+
+static cb_matvec2_in_idd__user__routines_t *get_active_cb_matvec2_in_idd__user__routines(void) {
+    return _active_cb_matvec2_in_idd__user__routines;
+}
+
+#else
+
+static cb_matvec2_in_idd__user__routines_t *swap_active_cb_matvec2_in_idd__user__routines(cb_matvec2_in_idd__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_matvec2_in_idd__user__routines";
+    return (cb_matvec2_in_idd__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_matvec2_in_idd__user__routines_t *get_active_cb_matvec2_in_idd__user__routines(void) {
+    char *key = "__f2py_cb_cb_matvec2_in_idd__user__routines";
+    return (cb_matvec2_in_idd__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_matvec2_in_idd__user__routines_typedef)(int *,double *,int *,double *,double *,double *,double *,double *);*/
 static void cb_matvec2_in_idd__user__routines (int *n_cb_capi,double *x,int *m_cb_capi,double *y,double *p1_cb_capi,double *p2_cb_capi,double *p3_cb_capi,double *p4_cb_capi) {
-  PyTupleObject *capi_arglist = cb_matvec2_in_idd__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_matvec2_in_idd__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_matvec2_in_idd__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int n=(*n_cb_capi);
-  int m=(*m_cb_capi);
-  double p1=(*p1_cb_capi);
-  double p2=(*p2_cb_capi);
-  double p3=(*p3_cb_capi);
-  double p4=(*p4_cb_capi);
-  npy_intp x_Dims[1] = {-1};
-  npy_intp y_Dims[1] = {-1};
+    int n=(*n_cb_capi);
+    int m=(*m_cb_capi);
+    double p1=(*p1_cb_capi);
+    double p2=(*p2_cb_capi);
+    double p3=(*p3_cb_capi);
+    double p4=(*p4_cb_capi);
+    npy_intp x_Dims[1] = {-1};
+    npy_intp y_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_matvec2_in_idd__user__routines (maxnofargs=7(-6))\n");
-  CFUNCSMESSPY("cb:cb_matvec2_in_idd__user__routines_capi=",cb_matvec2_in_idd__user__routines_capi);
-  if (cb_matvec2_in_idd__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_matvec2_in_idd__user__routines_capi = PyObject_GetAttrString(_interpolative_module,"matvec2");
-  }
-  if (cb_matvec2_in_idd__user__routines_capi==NULL) {
-    PyErr_SetString(_interpolative_error,"cb: Callback matvec2 not defined (as an argument or module _interpolative attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_matvec2_in_idd__user__routines_capi)) {
-  cb_matvec2_in_idd__user__routines_typedef cb_matvec2_in_idd__user__routines_cptr;
-  cb_matvec2_in_idd__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_matvec2_in_idd__user__routines_capi);
-  (*cb_matvec2_in_idd__user__routines_cptr)(n_cb_capi,x,m_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvec2_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvec2_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_matvec2_in_idd__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(_interpolative_error,"Callback matvec2 argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_matvec2_in_idd__user__routines (maxnofargs=7(-6))\n");
+    CFUNCSMESSPY("cb:cb_matvec2_in_idd__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(_interpolative_module,"matvec2");
+        CFUNCSMESSPY("cb:cb_matvec2_in_idd__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(_interpolative_error,"cb: Callback matvec2 not defined (as an argument or module _interpolative attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_matvec2_in_idd__user__routines_typedef cb_matvec2_in_idd__user__routines_cptr;
+    cb_matvec2_in_idd__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_matvec2_in_idd__user__routines_cptr)(n_cb_capi,x,m_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvec2_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvec2_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(_interpolative_error,"Callback matvec2 argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  x_Dims[0]=n;
-  y_Dims[0]=m;
+    x_Dims[0]=n;
+    y_Dims[0]=m;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_matvec2_in_idd__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_DOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
-  if (cb_matvec2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
-      goto capi_fail;
-  if (cb_matvec2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
-      goto capi_fail;
-  if (cb_matvec2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p1)))
-      goto capi_fail;
-  if (cb_matvec2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p2)))
-      goto capi_fail;
-  if (cb_matvec2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p3)))
-      goto capi_fail;
-  if (cb_matvec2_in_idd__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p4)))
-      goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p1)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p2)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p3)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(p4)))
+            goto capi_fail;
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function matvec2.\n");
+    CFUNCSMESS("cb:Call-back calling Python function matvec2.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_matvec2_in_idd__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_matvec2_in_idd__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,y_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,y_Dims,1,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_matvec2_in_idd__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_matvec2_in_idd__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_matvec2_in_idd__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_matvec2_in_idd__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_matvec2_in_idd__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /****************** end of cb_matvec2_in_idd__user__routines ******************/
 
 
 /********************* cb_matveca_in_idz__user__routines *********************/
-PyObject *cb_matveca_in_idz__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_matveca_in_idz__user__routines_args_capi = NULL;
-int cb_matveca_in_idz__user__routines_nofargs = 0;
-jmp_buf cb_matveca_in_idz__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_matveca_in_idz__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_matveca_in_idz__user__routines_t *_active_cb_matveca_in_idz__user__routines = NULL;
+
+static cb_matveca_in_idz__user__routines_t *swap_active_cb_matveca_in_idz__user__routines(cb_matveca_in_idz__user__routines_t *ptr) {
+    cb_matveca_in_idz__user__routines_t *prev = _active_cb_matveca_in_idz__user__routines;
+    _active_cb_matveca_in_idz__user__routines = ptr;
+    return prev;
+}
+
+static cb_matveca_in_idz__user__routines_t *get_active_cb_matveca_in_idz__user__routines(void) {
+    return _active_cb_matveca_in_idz__user__routines;
+}
+
+#else
+
+static cb_matveca_in_idz__user__routines_t *swap_active_cb_matveca_in_idz__user__routines(cb_matveca_in_idz__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_matveca_in_idz__user__routines";
+    return (cb_matveca_in_idz__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_matveca_in_idz__user__routines_t *get_active_cb_matveca_in_idz__user__routines(void) {
+    char *key = "__f2py_cb_cb_matveca_in_idz__user__routines";
+    return (cb_matveca_in_idz__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_matveca_in_idz__user__routines_typedef)(int *,complex_double *,int *,complex_double *,complex_double *,complex_double *,complex_double *,complex_double *);*/
 static void cb_matveca_in_idz__user__routines (int *m_cb_capi,complex_double *x,int *n_cb_capi,complex_double *y,complex_double *p1_cb_capi,complex_double *p2_cb_capi,complex_double *p3_cb_capi,complex_double *p4_cb_capi) {
-  PyTupleObject *capi_arglist = cb_matveca_in_idz__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_matveca_in_idz__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_matveca_in_idz__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int m=(*m_cb_capi);
-  int n=(*n_cb_capi);
-  complex_double p1=(*p1_cb_capi);
-  complex_double p2=(*p2_cb_capi);
-  complex_double p3=(*p3_cb_capi);
-  complex_double p4=(*p4_cb_capi);
-  npy_intp x_Dims[1] = {-1};
-  npy_intp y_Dims[1] = {-1};
+    int m=(*m_cb_capi);
+    int n=(*n_cb_capi);
+    complex_double p1=(*p1_cb_capi);
+    complex_double p2=(*p2_cb_capi);
+    complex_double p3=(*p3_cb_capi);
+    complex_double p4=(*p4_cb_capi);
+    npy_intp x_Dims[1] = {-1};
+    npy_intp y_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_matveca_in_idz__user__routines (maxnofargs=7(-6))\n");
-  CFUNCSMESSPY("cb:cb_matveca_in_idz__user__routines_capi=",cb_matveca_in_idz__user__routines_capi);
-  if (cb_matveca_in_idz__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_matveca_in_idz__user__routines_capi = PyObject_GetAttrString(_interpolative_module,"matveca");
-  }
-  if (cb_matveca_in_idz__user__routines_capi==NULL) {
-    PyErr_SetString(_interpolative_error,"cb: Callback matveca not defined (as an argument or module _interpolative attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_matveca_in_idz__user__routines_capi)) {
-  cb_matveca_in_idz__user__routines_typedef cb_matveca_in_idz__user__routines_cptr;
-  cb_matveca_in_idz__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_matveca_in_idz__user__routines_capi);
-  (*cb_matveca_in_idz__user__routines_cptr)(m_cb_capi,x,n_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(_interpolative_module,"matveca_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matveca_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_matveca_in_idz__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(_interpolative_error,"Callback matveca argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_matveca_in_idz__user__routines (maxnofargs=7(-6))\n");
+    CFUNCSMESSPY("cb:cb_matveca_in_idz__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(_interpolative_module,"matveca");
+        CFUNCSMESSPY("cb:cb_matveca_in_idz__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(_interpolative_error,"cb: Callback matveca not defined (as an argument or module _interpolative attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_matveca_in_idz__user__routines_typedef cb_matveca_in_idz__user__routines_cptr;
+    cb_matveca_in_idz__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_matveca_in_idz__user__routines_cptr)(m_cb_capi,x,n_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(_interpolative_module,"matveca_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matveca_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(_interpolative_error,"Callback matveca argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  x_Dims[0]=m;
-  y_Dims[0]=n;
+    x_Dims[0]=m;
+    y_Dims[0]=n;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_matveca_in_idz__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_CDOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_CDOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_CDOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_CDOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
-  if (cb_matveca_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
-      goto capi_fail;
-  if (cb_matveca_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
-      goto capi_fail;
-  if (cb_matveca_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p1)))
-      goto capi_fail;
-  if (cb_matveca_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p2)))
-      goto capi_fail;
-  if (cb_matveca_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p3)))
-      goto capi_fail;
-  if (cb_matveca_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p4)))
-      goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p1)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p2)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p3)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p4)))
+            goto capi_fail;
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function matveca.\n");
+    CFUNCSMESS("cb:Call-back calling Python function matveca.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_matveca_in_idz__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_matveca_in_idz__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_CDOUBLE,y_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_CDOUBLE,y_Dims,1,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_matveca_in_idz__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_matveca_in_idz__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_matveca_in_idz__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_matveca_in_idz__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_matveca_in_idz__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /****************** end of cb_matveca_in_idz__user__routines ******************/
 
 
 /********************** cb_matvec_in_idz__user__routines **********************/
-PyObject *cb_matvec_in_idz__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_matvec_in_idz__user__routines_args_capi = NULL;
-int cb_matvec_in_idz__user__routines_nofargs = 0;
-jmp_buf cb_matvec_in_idz__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_matvec_in_idz__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_matvec_in_idz__user__routines_t *_active_cb_matvec_in_idz__user__routines = NULL;
+
+static cb_matvec_in_idz__user__routines_t *swap_active_cb_matvec_in_idz__user__routines(cb_matvec_in_idz__user__routines_t *ptr) {
+    cb_matvec_in_idz__user__routines_t *prev = _active_cb_matvec_in_idz__user__routines;
+    _active_cb_matvec_in_idz__user__routines = ptr;
+    return prev;
+}
+
+static cb_matvec_in_idz__user__routines_t *get_active_cb_matvec_in_idz__user__routines(void) {
+    return _active_cb_matvec_in_idz__user__routines;
+}
+
+#else
+
+static cb_matvec_in_idz__user__routines_t *swap_active_cb_matvec_in_idz__user__routines(cb_matvec_in_idz__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_matvec_in_idz__user__routines";
+    return (cb_matvec_in_idz__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_matvec_in_idz__user__routines_t *get_active_cb_matvec_in_idz__user__routines(void) {
+    char *key = "__f2py_cb_cb_matvec_in_idz__user__routines";
+    return (cb_matvec_in_idz__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_matvec_in_idz__user__routines_typedef)(int *,complex_double *,int *,complex_double *,complex_double *,complex_double *,complex_double *,complex_double *);*/
 static void cb_matvec_in_idz__user__routines (int *n_cb_capi,complex_double *x,int *m_cb_capi,complex_double *y,complex_double *p1_cb_capi,complex_double *p2_cb_capi,complex_double *p3_cb_capi,complex_double *p4_cb_capi) {
-  PyTupleObject *capi_arglist = cb_matvec_in_idz__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_matvec_in_idz__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_matvec_in_idz__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int n=(*n_cb_capi);
-  int m=(*m_cb_capi);
-  complex_double p1=(*p1_cb_capi);
-  complex_double p2=(*p2_cb_capi);
-  complex_double p3=(*p3_cb_capi);
-  complex_double p4=(*p4_cb_capi);
-  npy_intp x_Dims[1] = {-1};
-  npy_intp y_Dims[1] = {-1};
+    int n=(*n_cb_capi);
+    int m=(*m_cb_capi);
+    complex_double p1=(*p1_cb_capi);
+    complex_double p2=(*p2_cb_capi);
+    complex_double p3=(*p3_cb_capi);
+    complex_double p4=(*p4_cb_capi);
+    npy_intp x_Dims[1] = {-1};
+    npy_intp y_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_matvec_in_idz__user__routines (maxnofargs=7(-6))\n");
-  CFUNCSMESSPY("cb:cb_matvec_in_idz__user__routines_capi=",cb_matvec_in_idz__user__routines_capi);
-  if (cb_matvec_in_idz__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_matvec_in_idz__user__routines_capi = PyObject_GetAttrString(_interpolative_module,"matvec");
-  }
-  if (cb_matvec_in_idz__user__routines_capi==NULL) {
-    PyErr_SetString(_interpolative_error,"cb: Callback matvec not defined (as an argument or module _interpolative attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_matvec_in_idz__user__routines_capi)) {
-  cb_matvec_in_idz__user__routines_typedef cb_matvec_in_idz__user__routines_cptr;
-  cb_matvec_in_idz__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_matvec_in_idz__user__routines_capi);
-  (*cb_matvec_in_idz__user__routines_cptr)(n_cb_capi,x,m_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvec_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvec_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_matvec_in_idz__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(_interpolative_error,"Callback matvec argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_matvec_in_idz__user__routines (maxnofargs=7(-6))\n");
+    CFUNCSMESSPY("cb:cb_matvec_in_idz__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(_interpolative_module,"matvec");
+        CFUNCSMESSPY("cb:cb_matvec_in_idz__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(_interpolative_error,"cb: Callback matvec not defined (as an argument or module _interpolative attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_matvec_in_idz__user__routines_typedef cb_matvec_in_idz__user__routines_cptr;
+    cb_matvec_in_idz__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_matvec_in_idz__user__routines_cptr)(n_cb_capi,x,m_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvec_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvec_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(_interpolative_error,"Callback matvec argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  x_Dims[0]=n;
-  y_Dims[0]=m;
+    x_Dims[0]=n;
+    y_Dims[0]=m;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_matvec_in_idz__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_CDOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_CDOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_CDOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_CDOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
-  if (cb_matvec_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
-      goto capi_fail;
-  if (cb_matvec_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
-      goto capi_fail;
-  if (cb_matvec_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p1)))
-      goto capi_fail;
-  if (cb_matvec_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p2)))
-      goto capi_fail;
-  if (cb_matvec_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p3)))
-      goto capi_fail;
-  if (cb_matvec_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p4)))
-      goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p1)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p2)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p3)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p4)))
+            goto capi_fail;
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function matvec.\n");
+    CFUNCSMESS("cb:Call-back calling Python function matvec.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_matvec_in_idz__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_matvec_in_idz__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_CDOUBLE,y_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_CDOUBLE,y_Dims,1,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_matvec_in_idz__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_matvec_in_idz__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_matvec_in_idz__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_matvec_in_idz__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_matvec_in_idz__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /****************** end of cb_matvec_in_idz__user__routines ******************/
 
 
 /********************* cb_matveca2_in_idz__user__routines *********************/
-PyObject *cb_matveca2_in_idz__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_matveca2_in_idz__user__routines_args_capi = NULL;
-int cb_matveca2_in_idz__user__routines_nofargs = 0;
-jmp_buf cb_matveca2_in_idz__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_matveca2_in_idz__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_matveca2_in_idz__user__routines_t *_active_cb_matveca2_in_idz__user__routines = NULL;
+
+static cb_matveca2_in_idz__user__routines_t *swap_active_cb_matveca2_in_idz__user__routines(cb_matveca2_in_idz__user__routines_t *ptr) {
+    cb_matveca2_in_idz__user__routines_t *prev = _active_cb_matveca2_in_idz__user__routines;
+    _active_cb_matveca2_in_idz__user__routines = ptr;
+    return prev;
+}
+
+static cb_matveca2_in_idz__user__routines_t *get_active_cb_matveca2_in_idz__user__routines(void) {
+    return _active_cb_matveca2_in_idz__user__routines;
+}
+
+#else
+
+static cb_matveca2_in_idz__user__routines_t *swap_active_cb_matveca2_in_idz__user__routines(cb_matveca2_in_idz__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_matveca2_in_idz__user__routines";
+    return (cb_matveca2_in_idz__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_matveca2_in_idz__user__routines_t *get_active_cb_matveca2_in_idz__user__routines(void) {
+    char *key = "__f2py_cb_cb_matveca2_in_idz__user__routines";
+    return (cb_matveca2_in_idz__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_matveca2_in_idz__user__routines_typedef)(int *,complex_double *,int *,complex_double *,complex_double *,complex_double *,complex_double *,complex_double *);*/
 static void cb_matveca2_in_idz__user__routines (int *m_cb_capi,complex_double *x,int *n_cb_capi,complex_double *y,complex_double *p1_cb_capi,complex_double *p2_cb_capi,complex_double *p3_cb_capi,complex_double *p4_cb_capi) {
-  PyTupleObject *capi_arglist = cb_matveca2_in_idz__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_matveca2_in_idz__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_matveca2_in_idz__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int m=(*m_cb_capi);
-  int n=(*n_cb_capi);
-  complex_double p1=(*p1_cb_capi);
-  complex_double p2=(*p2_cb_capi);
-  complex_double p3=(*p3_cb_capi);
-  complex_double p4=(*p4_cb_capi);
-  npy_intp x_Dims[1] = {-1};
-  npy_intp y_Dims[1] = {-1};
+    int m=(*m_cb_capi);
+    int n=(*n_cb_capi);
+    complex_double p1=(*p1_cb_capi);
+    complex_double p2=(*p2_cb_capi);
+    complex_double p3=(*p3_cb_capi);
+    complex_double p4=(*p4_cb_capi);
+    npy_intp x_Dims[1] = {-1};
+    npy_intp y_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_matveca2_in_idz__user__routines (maxnofargs=7(-6))\n");
-  CFUNCSMESSPY("cb:cb_matveca2_in_idz__user__routines_capi=",cb_matveca2_in_idz__user__routines_capi);
-  if (cb_matveca2_in_idz__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_matveca2_in_idz__user__routines_capi = PyObject_GetAttrString(_interpolative_module,"matveca2");
-  }
-  if (cb_matveca2_in_idz__user__routines_capi==NULL) {
-    PyErr_SetString(_interpolative_error,"cb: Callback matveca2 not defined (as an argument or module _interpolative attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_matveca2_in_idz__user__routines_capi)) {
-  cb_matveca2_in_idz__user__routines_typedef cb_matveca2_in_idz__user__routines_cptr;
-  cb_matveca2_in_idz__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_matveca2_in_idz__user__routines_capi);
-  (*cb_matveca2_in_idz__user__routines_cptr)(m_cb_capi,x,n_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(_interpolative_module,"matveca2_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matveca2_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_matveca2_in_idz__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(_interpolative_error,"Callback matveca2 argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_matveca2_in_idz__user__routines (maxnofargs=7(-6))\n");
+    CFUNCSMESSPY("cb:cb_matveca2_in_idz__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(_interpolative_module,"matveca2");
+        CFUNCSMESSPY("cb:cb_matveca2_in_idz__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(_interpolative_error,"cb: Callback matveca2 not defined (as an argument or module _interpolative attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_matveca2_in_idz__user__routines_typedef cb_matveca2_in_idz__user__routines_cptr;
+    cb_matveca2_in_idz__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_matveca2_in_idz__user__routines_cptr)(m_cb_capi,x,n_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(_interpolative_module,"matveca2_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matveca2_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(_interpolative_error,"Callback matveca2 argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  x_Dims[0]=m;
-  y_Dims[0]=n;
+    x_Dims[0]=m;
+    y_Dims[0]=n;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_matveca2_in_idz__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_CDOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_CDOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_CDOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_CDOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
-  if (cb_matveca2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
-      goto capi_fail;
-  if (cb_matveca2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
-      goto capi_fail;
-  if (cb_matveca2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p1)))
-      goto capi_fail;
-  if (cb_matveca2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p2)))
-      goto capi_fail;
-  if (cb_matveca2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p3)))
-      goto capi_fail;
-  if (cb_matveca2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p4)))
-      goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p1)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p2)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p3)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p4)))
+            goto capi_fail;
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function matveca2.\n");
+    CFUNCSMESS("cb:Call-back calling Python function matveca2.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_matveca2_in_idz__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_matveca2_in_idz__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_CDOUBLE,y_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_CDOUBLE,y_Dims,1,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_matveca2_in_idz__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_matveca2_in_idz__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_matveca2_in_idz__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_matveca2_in_idz__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_matveca2_in_idz__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /***************** end of cb_matveca2_in_idz__user__routines *****************/
 
 
 /********************* cb_matvec2_in_idz__user__routines *********************/
-PyObject *cb_matvec2_in_idz__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_matvec2_in_idz__user__routines_args_capi = NULL;
-int cb_matvec2_in_idz__user__routines_nofargs = 0;
-jmp_buf cb_matvec2_in_idz__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_matvec2_in_idz__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_matvec2_in_idz__user__routines_t *_active_cb_matvec2_in_idz__user__routines = NULL;
+
+static cb_matvec2_in_idz__user__routines_t *swap_active_cb_matvec2_in_idz__user__routines(cb_matvec2_in_idz__user__routines_t *ptr) {
+    cb_matvec2_in_idz__user__routines_t *prev = _active_cb_matvec2_in_idz__user__routines;
+    _active_cb_matvec2_in_idz__user__routines = ptr;
+    return prev;
+}
+
+static cb_matvec2_in_idz__user__routines_t *get_active_cb_matvec2_in_idz__user__routines(void) {
+    return _active_cb_matvec2_in_idz__user__routines;
+}
+
+#else
+
+static cb_matvec2_in_idz__user__routines_t *swap_active_cb_matvec2_in_idz__user__routines(cb_matvec2_in_idz__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_matvec2_in_idz__user__routines";
+    return (cb_matvec2_in_idz__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_matvec2_in_idz__user__routines_t *get_active_cb_matvec2_in_idz__user__routines(void) {
+    char *key = "__f2py_cb_cb_matvec2_in_idz__user__routines";
+    return (cb_matvec2_in_idz__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_matvec2_in_idz__user__routines_typedef)(int *,complex_double *,int *,complex_double *,complex_double *,complex_double *,complex_double *,complex_double *);*/
 static void cb_matvec2_in_idz__user__routines (int *n_cb_capi,complex_double *x,int *m_cb_capi,complex_double *y,complex_double *p1_cb_capi,complex_double *p2_cb_capi,complex_double *p3_cb_capi,complex_double *p4_cb_capi) {
-  PyTupleObject *capi_arglist = cb_matvec2_in_idz__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_matvec2_in_idz__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_matvec2_in_idz__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int n=(*n_cb_capi);
-  int m=(*m_cb_capi);
-  complex_double p1=(*p1_cb_capi);
-  complex_double p2=(*p2_cb_capi);
-  complex_double p3=(*p3_cb_capi);
-  complex_double p4=(*p4_cb_capi);
-  npy_intp x_Dims[1] = {-1};
-  npy_intp y_Dims[1] = {-1};
+    int n=(*n_cb_capi);
+    int m=(*m_cb_capi);
+    complex_double p1=(*p1_cb_capi);
+    complex_double p2=(*p2_cb_capi);
+    complex_double p3=(*p3_cb_capi);
+    complex_double p4=(*p4_cb_capi);
+    npy_intp x_Dims[1] = {-1};
+    npy_intp y_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_matvec2_in_idz__user__routines (maxnofargs=7(-6))\n");
-  CFUNCSMESSPY("cb:cb_matvec2_in_idz__user__routines_capi=",cb_matvec2_in_idz__user__routines_capi);
-  if (cb_matvec2_in_idz__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_matvec2_in_idz__user__routines_capi = PyObject_GetAttrString(_interpolative_module,"matvec2");
-  }
-  if (cb_matvec2_in_idz__user__routines_capi==NULL) {
-    PyErr_SetString(_interpolative_error,"cb: Callback matvec2 not defined (as an argument or module _interpolative attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_matvec2_in_idz__user__routines_capi)) {
-  cb_matvec2_in_idz__user__routines_typedef cb_matvec2_in_idz__user__routines_cptr;
-  cb_matvec2_in_idz__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_matvec2_in_idz__user__routines_capi);
-  (*cb_matvec2_in_idz__user__routines_cptr)(n_cb_capi,x,m_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvec2_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvec2_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_matvec2_in_idz__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(_interpolative_error,"Callback matvec2 argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_matvec2_in_idz__user__routines (maxnofargs=7(-6))\n");
+    CFUNCSMESSPY("cb:cb_matvec2_in_idz__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(_interpolative_module,"matvec2");
+        CFUNCSMESSPY("cb:cb_matvec2_in_idz__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(_interpolative_error,"cb: Callback matvec2 not defined (as an argument or module _interpolative attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_matvec2_in_idz__user__routines_typedef cb_matvec2_in_idz__user__routines_cptr;
+    cb_matvec2_in_idz__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_matvec2_in_idz__user__routines_cptr)(n_cb_capi,x,m_cb_capi,y,p1_cb_capi,p2_cb_capi,p3_cb_capi,p4_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(_interpolative_module,"matvec2_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(_interpolative_error,"Failed to convert _interpolative.matvec2_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(_interpolative_error,"Callback matvec2 argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  x_Dims[0]=n;
-  y_Dims[0]=m;
+    x_Dims[0]=n;
+    y_Dims[0]=m;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_matvec2_in_idz__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_CDOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_CDOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_CDOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,x_Dims,NPY_CDOUBLE,NULL,(char*)x,itemsize_,NPY_ARRAY_FARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
-  if (cb_matvec2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
-      goto capi_fail;
-  if (cb_matvec2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
-      goto capi_fail;
-  if (cb_matvec2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p1)))
-      goto capi_fail;
-  if (cb_matvec2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p2)))
-      goto capi_fail;
-  if (cb_matvec2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p3)))
-      goto capi_fail;
-  if (cb_matvec2_in_idz__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p4)))
-      goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(n)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_int1(m)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p1)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p2)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p3)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_complex_double1(p4)))
+            goto capi_fail;
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function matvec2.\n");
+    CFUNCSMESS("cb:Call-back calling Python function matvec2.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_matvec2_in_idz__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_matvec2_in_idz__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_CDOUBLE,y_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_CDOUBLE,y_Dims,1,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(y,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_matvec2_in_idz__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_matvec2_in_idz__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_matvec2_in_idz__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_matvec2_in_idz__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_matvec2_in_idz__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /****************** end of cb_matvec2_in_idz__user__routines ******************/
@@ -1829,78 +2236,80 @@ static PyObject *f2py_rout__interpolative_id_srand(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *r = NULL;
-  npy_intp r_Dims[1] = {-1};
-  const int r_Rank = 1;
-  PyArrayObject *capi_r_tmp = NULL;
-  int capi_r_intent = 0;
-  static char *capi_kwlist[] = {"n",NULL};
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *r = NULL;
+    npy_intp r_Dims[1] = {-1};
+    const int r_Rank = 1;
+    PyArrayObject *capi_r_tmp = NULL;
+    int capi_r_intent = 0;
+    static char *capi_kwlist[] = {"n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O:_interpolative.id_srand",\
-    capi_kwlist,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|:_interpolative.id_srand",\
+        capi_kwlist,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.id_srand() 1st argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable r */
-  r_Dims[0]=n;
-  capi_r_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_r_tmp = array_from_pyobj(NPY_DOUBLE,r_Dims,r_Rank,capi_r_intent,Py_None);
-  if (capi_r_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `r' of _interpolative.id_srand to C/Fortran array" );
-  } else {
-    r = (double *)(PyArray_DATA(capi_r_tmp));
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.id_srand() 1st argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable r */
+    r_Dims[0]=n;
+    capi_r_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_r_tmp = array_from_pyobj(NPY_DOUBLE,r_Dims,r_Rank,capi_r_intent,Py_None);
+    if (capi_r_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `r' of _interpolative.id_srand to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        r = (double *)(PyArray_DATA(capi_r_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,r);
+                (*f2py_func)(&n,r);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_r_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_r_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_r_tmp == NULL) ... else of r*/
-  /* End of cleaning variable r */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
+    }  /*if (capi_r_tmp == NULL) ... else of r*/
+    /* End of cleaning variable r */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of id_srand ******************************/
 
@@ -1914,74 +2323,76 @@ static PyObject *f2py_rout__interpolative_id_srandi(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double *t = NULL;
-  npy_intp t_Dims[1] = {-1};
-  const int t_Rank = 1;
-  PyArrayObject *capi_t_tmp = NULL;
-  int capi_t_intent = 0;
-  PyObject *t_capi = Py_None;
-  static char *capi_kwlist[] = {"t",NULL};
+    double *t = NULL;
+    npy_intp t_Dims[1] = {-1};
+    const int t_Rank = 1;
+    PyArrayObject *capi_t_tmp = NULL;
+    int capi_t_intent = 0;
+    PyObject *t_capi = Py_None;
+    static char *capi_kwlist[] = {"t",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O:_interpolative.id_srandi",\
-    capi_kwlist,&t_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|:_interpolative.id_srandi",\
+        capi_kwlist,&t_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable t */
-  t_Dims[0]=55;
-  capi_t_intent |= F2PY_INTENT_IN;
-  capi_t_tmp = array_from_pyobj(NPY_DOUBLE,t_Dims,t_Rank,capi_t_intent,t_capi);
-  if (capi_t_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `t' of _interpolative.id_srandi to C/Fortran array" );
-  } else {
-    t = (double *)(PyArray_DATA(capi_t_tmp));
+    /* Processing variable t */
+    t_Dims[0]=55;
+    capi_t_intent |= F2PY_INTENT_IN;
+    capi_t_tmp = array_from_pyobj(NPY_DOUBLE,t_Dims,t_Rank,capi_t_intent,t_capi);
+    if (capi_t_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `t' of _interpolative.id_srandi to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        t = (double *)(PyArray_DATA(capi_t_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(t);
+                (*f2py_func)(t);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_t_tmp!=t_capi) {
-    Py_XDECREF(capi_t_tmp); }
-  }  /*if (capi_t_tmp == NULL) ... else of t*/
-  /* End of cleaning variable t */
+    if((PyObject *)capi_t_tmp!=t_capi) {
+        Py_XDECREF(capi_t_tmp); }
+    }  /*if (capi_t_tmp == NULL) ... else of t*/
+    /* End of cleaning variable t */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of id_srandi ******************************/
 
@@ -1994,54 +2405,54 @@ static PyObject *f2py_rout__interpolative_id_srando(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(void)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  static char *capi_kwlist[] = {NULL};
+    static char *capi_kwlist[] = {NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    ":_interpolative.id_srando",\
-    capi_kwlist))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "|:_interpolative.id_srando",\
+        capi_kwlist))
+        return NULL;
 /*frompyobj*/
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)();
+                (*f2py_func)();
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("");
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("");
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of id_srando ******************************/
 
@@ -2050,7 +2461,7 @@ static char doc_f2py_rout__interpolative_idd_frm[] = "\
 y = idd_frm(n,w,x,[m])\n\nWrapper for ``idd_frm``.\
 \n\nParameters\n----------\n"
 "n : input int\n"
-"w : input rank-1 array('d') with bounds (17 * m + 70)\n"
+"w : input rank-1 array('d') with bounds (70 + 17 * m)\n"
 "x : input rank-1 array('d') with bounds (m)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: len(x)\n"
@@ -2061,126 +2472,132 @@ static PyObject *f2py_rout__interpolative_idd_frm(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*,double*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  double *y = NULL;
-  npy_intp y_Dims[1] = {-1};
-  const int y_Rank = 1;
-  PyArrayObject *capi_y_tmp = NULL;
-  int capi_y_intent = 0;
-  static char *capi_kwlist[] = {"n","w","x","m",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    double *y = NULL;
+    npy_intp y_Dims[1] = {-1};
+    const int y_Rank = 1;
+    PyArrayObject *capi_y_tmp = NULL;
+    int capi_y_intent = 0;
+    static char *capi_kwlist[] = {"n","w","x","m",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|O:_interpolative.idd_frm",\
-    capi_kwlist,&n_capi,&w_capi,&x_capi,&m_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|O:_interpolative.idd_frm",\
+        capi_kwlist,&n_capi,&w_capi,&x_capi,&m_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_frm() 1st argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable x */
-  ;
-  capi_x_intent |= F2PY_INTENT_IN;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `x' of _interpolative.idd_frm to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_frm() 1st argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable x */
+    ;
+    capi_x_intent |= F2PY_INTENT_IN;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `x' of _interpolative.idd_frm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = len(x); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_frm() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=17 * m + 70;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `w' of _interpolative.idd_frm to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = len(x); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_frm() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=70 + 17 * m;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `w' of _interpolative.idd_frm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable y */
-  y_Dims[0]=n;
-  capi_y_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,Py_None);
-  if (capi_y_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `y' of _interpolative.idd_frm to C/Fortran array" );
-  } else {
-    y = (double *)(PyArray_DATA(capi_y_tmp));
+    /* Processing variable y */
+    y_Dims[0]=n;
+    capi_y_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,Py_None);
+    if (capi_y_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `y' of _interpolative.idd_frm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        y = (double *)(PyArray_DATA(capi_y_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,w,x,y);
+                (*f2py_func)(&m,&n,w,x,y);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_y_tmp == NULL) ... else of y*/
-  /* End of cleaning variable y */
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  if((PyObject *)capi_x_tmp!=x_capi) {
-    Py_XDECREF(capi_x_tmp); }
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
+    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    /* End of cleaning variable y */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    if((PyObject *)capi_x_tmp!=x_capi) {
+        Py_XDECREF(capi_x_tmp); }
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of idd_frm *******************************/
 
@@ -2190,7 +2607,7 @@ y = idd_sfrm(l,n,w,x,[m])\n\nWrapper for ``idd_sfrm``.\
 \n\nParameters\n----------\n"
 "l : input int\n"
 "n : input int\n"
-"w : input rank-1 array('d') with bounds (27 * m + 90)\n"
+"w : input rank-1 array('d') with bounds (90 + 27 * m)\n"
 "x : input rank-1 array('d') with bounds (m)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: len(x)\n"
@@ -2201,135 +2618,141 @@ static PyObject *f2py_rout__interpolative_idd_sfrm(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,int*,double*,double*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int l = 0;
-  PyObject *l_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  double *y = NULL;
-  npy_intp y_Dims[1] = {-1};
-  const int y_Rank = 1;
-  PyArrayObject *capi_y_tmp = NULL;
-  int capi_y_intent = 0;
-  static char *capi_kwlist[] = {"l","n","w","x","m",NULL};
+    int l = 0;
+    PyObject *l_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    double *y = NULL;
+    npy_intp y_Dims[1] = {-1};
+    const int y_Rank = 1;
+    PyArrayObject *capi_y_tmp = NULL;
+    int capi_y_intent = 0;
+    static char *capi_kwlist[] = {"l","n","w","x","m",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|O:_interpolative.idd_sfrm",\
-    capi_kwlist,&l_capi,&n_capi,&w_capi,&x_capi,&m_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|O:_interpolative.idd_sfrm",\
+        capi_kwlist,&l_capi,&n_capi,&w_capi,&x_capi,&m_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_sfrm() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable x */
-  ;
-  capi_x_intent |= F2PY_INTENT_IN;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th argument `x' of _interpolative.idd_sfrm to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_sfrm() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable x */
+    ;
+    capi_x_intent |= F2PY_INTENT_IN;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th argument `x' of _interpolative.idd_sfrm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable l */
-    f2py_success = int_from_pyobj(&l,l_capi,"_interpolative.idd_sfrm() 1st argument (l) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(l<=n,"l<=n","1st argument l","idd_sfrm:l=%d",l) {
-  /* Processing variable m */
-  if (m_capi == Py_None) m = len(x); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_sfrm() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=27 * m + 90;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idd_sfrm to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable l */
+        f2py_success = int_from_pyobj(&l,l_capi,"_interpolative.idd_sfrm() 1st argument (l) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(l<=n,"l<=n","1st argument l","idd_sfrm:l=%d",l) {
+    /* Processing variable m */
+    if (m_capi == Py_None) m = len(x); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_sfrm() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=90 + 27 * m;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idd_sfrm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable y */
-  y_Dims[0]=l;
-  capi_y_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,Py_None);
-  if (capi_y_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `y' of _interpolative.idd_sfrm to C/Fortran array" );
-  } else {
-    y = (double *)(PyArray_DATA(capi_y_tmp));
+    /* Processing variable y */
+    y_Dims[0]=l;
+    capi_y_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,Py_None);
+    if (capi_y_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `y' of _interpolative.idd_sfrm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        y = (double *)(PyArray_DATA(capi_y_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&l,&m,&n,w,x,y);
+                (*f2py_func)(&l,&m,&n,w,x,y);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_y_tmp == NULL) ... else of y*/
-  /* End of cleaning variable y */
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*CHECKSCALAR(l<=n)*/
-  } /*if (f2py_success) of l*/
-  /* End of cleaning variable l */
-  if((PyObject *)capi_x_tmp!=x_capi) {
-    Py_XDECREF(capi_x_tmp); }
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
+    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    /* End of cleaning variable y */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*CHECKSCALAR(l<=n)*/
+    } /*if (f2py_success) of l*/
+    /* End of cleaning variable l */
+    if((PyObject *)capi_x_tmp!=x_capi) {
+        Py_XDECREF(capi_x_tmp); }
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idd_sfrm ******************************/
 
@@ -2340,87 +2763,89 @@ n,w = idd_frmi(m)\n\nWrapper for ``idd_frmi``.\
 "m : input int\n"
 "\nReturns\n-------\n"
 "n : int\n"
-"w : rank-1 array('d') with bounds (17 * m + 70)";
+"w : rank-1 array('d') with bounds (70 + 17 * m)";
 /* extern void F_FUNC_US(idd_frmi,IDD_FRMI)(int*,int*,double*); */
 static PyObject *f2py_rout__interpolative_idd_frmi(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  static char *capi_kwlist[] = {"m",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    static char *capi_kwlist[] = {"m",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O:_interpolative.idd_frmi",\
-    capi_kwlist,&m_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|:_interpolative.idd_frmi",\
+        capi_kwlist,&m_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_frmi() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  /* Processing variable w */
-  w_Dims[0]=17 * m + 70;
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.idd_frmi to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_frmi() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    /* Processing variable w */
+    w_Dims[0]=70 + 17 * m;
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.idd_frmi to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,w);
+                (*f2py_func)(&m,&n,w);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iN",n,capi_w_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iN",n,capi_w_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idd_frmi ******************************/
 
@@ -2432,94 +2857,96 @@ n,w = idd_sfrmi(l,m)\n\nWrapper for ``idd_sfrmi``.\
 "m : input int\n"
 "\nReturns\n-------\n"
 "n : int\n"
-"w : rank-1 array('d') with bounds (27 * m + 90)";
+"w : rank-1 array('d') with bounds (90 + 27 * m)";
 /* extern void F_FUNC_US(idd_sfrmi,IDD_SFRMI)(int*,int*,int*,double*); */
 static PyObject *f2py_rout__interpolative_idd_sfrmi(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int l = 0;
-  PyObject *l_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  static char *capi_kwlist[] = {"l","m",NULL};
+    int l = 0;
+    PyObject *l_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    static char *capi_kwlist[] = {"l","m",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO:_interpolative.idd_sfrmi",\
-    capi_kwlist,&l_capi,&m_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|:_interpolative.idd_sfrmi",\
+        capi_kwlist,&l_capi,&m_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable l */
-    f2py_success = int_from_pyobj(&l,l_capi,"_interpolative.idd_sfrmi() 1st argument (l) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_sfrmi() 2nd argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  /* Processing variable w */
-  w_Dims[0]=27 * m + 90;
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.idd_sfrmi to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable l */
+        f2py_success = int_from_pyobj(&l,l_capi,"_interpolative.idd_sfrmi() 1st argument (l) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_sfrmi() 2nd argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    /* Processing variable w */
+    w_Dims[0]=90 + 27 * m;
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.idd_sfrmi to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&l,&m,&n,w);
+                (*f2py_func)(&l,&m,&n,w);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iN",n,capi_w_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iN",n,capi_w_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of l*/
-  /* End of cleaning variable l */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of l*/
+    /* End of cleaning variable l */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idd_sfrmi ******************************/
 
@@ -2541,134 +2968,140 @@ static PyObject *f2py_rout__interpolative_iddp_id(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int*,int*,double*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  double *rnorms = NULL;
-  npy_intp rnorms_Dims[1] = {-1};
-  const int rnorms_Rank = 1;
-  PyArrayObject *capi_rnorms_tmp = NULL;
-  int capi_rnorms_intent = 0;
-  static char *capi_kwlist[] = {"eps","a","m","n",NULL};
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    double *rnorms = NULL;
+    npy_intp rnorms_Dims[1] = {-1};
+    const int rnorms_Rank = 1;
+    PyArrayObject *capi_rnorms_tmp = NULL;
+    int capi_rnorms_intent = 0;
+    static char *capi_kwlist[] = {"eps","a","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:_interpolative.iddp_id",\
-    capi_kwlist,&eps_capi,&a_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:_interpolative.iddp_id",\
+        capi_kwlist,&eps_capi,&a_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_id() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.iddp_id to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_id() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.iddp_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_id() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_id() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.iddp_id to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable krank */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_id() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_id() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.iddp_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable rnorms */
-  rnorms_Dims[0]=n;
-  capi_rnorms_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_rnorms_tmp = array_from_pyobj(NPY_DOUBLE,rnorms_Dims,rnorms_Rank,capi_rnorms_intent,Py_None);
-  if (capi_rnorms_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `rnorms' of _interpolative.iddp_id to C/Fortran array" );
-  } else {
-    rnorms = (double *)(PyArray_DATA(capi_rnorms_tmp));
+    /* Processing variable rnorms */
+    rnorms_Dims[0]=n;
+    capi_rnorms_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_rnorms_tmp = array_from_pyobj(NPY_DOUBLE,rnorms_Dims,rnorms_Rank,capi_rnorms_intent,Py_None);
+    if (capi_rnorms_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `rnorms' of _interpolative.iddp_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        rnorms = (double *)(PyArray_DATA(capi_rnorms_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&eps,&m,&n,a,&krank,list,rnorms);
+                (*f2py_func)(&eps,&m,&n,a,&krank,list,rnorms);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iNN",krank,capi_list_tmp,capi_rnorms_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iNN",krank,capi_list_tmp,capi_rnorms_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_rnorms_tmp == NULL) ... else of rnorms*/
-  /* End of cleaning variable rnorms */
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    }  /*if (capi_rnorms_tmp == NULL) ... else of rnorms*/
+    /* End of cleaning variable rnorms */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of iddp_id *******************************/
 
@@ -2689,131 +3122,137 @@ static PyObject *f2py_rout__interpolative_iddr_id(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  double *rnorms = NULL;
-  npy_intp rnorms_Dims[1] = {-1};
-  const int rnorms_Rank = 1;
-  PyArrayObject *capi_rnorms_tmp = NULL;
-  int capi_rnorms_intent = 0;
-  static char *capi_kwlist[] = {"a","krank","m","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    double *rnorms = NULL;
+    npy_intp rnorms_Dims[1] = {-1};
+    const int rnorms_Rank = 1;
+    PyArrayObject *capi_rnorms_tmp = NULL;
+    int capi_rnorms_intent = 0;
+    static char *capi_kwlist[] = {"a","krank","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:_interpolative.iddr_id",\
-    capi_kwlist,&a_capi,&krank_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:_interpolative.iddr_id",\
+        capi_kwlist,&a_capi,&krank_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.iddr_id to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.iddr_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_id() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_id() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_id() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.iddr_id to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_id() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_id() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_id() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.iddr_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable rnorms */
-  rnorms_Dims[0]=n;
-  capi_rnorms_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_rnorms_tmp = array_from_pyobj(NPY_DOUBLE,rnorms_Dims,rnorms_Rank,capi_rnorms_intent,Py_None);
-  if (capi_rnorms_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `rnorms' of _interpolative.iddr_id to C/Fortran array" );
-  } else {
-    rnorms = (double *)(PyArray_DATA(capi_rnorms_tmp));
+    /* Processing variable rnorms */
+    rnorms_Dims[0]=n;
+    capi_rnorms_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_rnorms_tmp = array_from_pyobj(NPY_DOUBLE,rnorms_Dims,rnorms_Rank,capi_rnorms_intent,Py_None);
+    if (capi_rnorms_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `rnorms' of _interpolative.iddr_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        rnorms = (double *)(PyArray_DATA(capi_rnorms_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,list,rnorms);
+                (*f2py_func)(&m,&n,a,&krank,list,rnorms);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_rnorms_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_rnorms_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_rnorms_tmp == NULL) ... else of rnorms*/
-  /* End of cleaning variable rnorms */
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    }  /*if (capi_rnorms_tmp == NULL) ... else of rnorms*/
+    /* End of cleaning variable rnorms */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of iddr_id *******************************/
 
@@ -2823,7 +3262,7 @@ approx = idd_reconid(col,list,proj,[m,krank,n])\n\nWrapper for ``idd_reconid``.\
 \n\nParameters\n----------\n"
 "col : input rank-2 array('d') with bounds (m,krank)\n"
 "list : input rank-1 array('i') with bounds (n)\n"
-"proj : input rank-2 array('d') with bounds (krank,n-krank)\n"
+"proj : input rank-2 array('d') with bounds (krank,-krank + n)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(col,0)\n"
 "krank : input int, optional\n    Default: shape(col,1)\n"
@@ -2835,155 +3274,163 @@ static PyObject *f2py_rout__interpolative_idd_reconid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*,int*,int*,double*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  double *col = NULL;
-  npy_intp col_Dims[2] = {-1, -1};
-  const int col_Rank = 2;
-  PyArrayObject *capi_col_tmp = NULL;
-  int capi_col_intent = 0;
-  PyObject *col_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  PyObject *list_capi = Py_None;
-  double *proj = NULL;
-  npy_intp proj_Dims[2] = {-1, -1};
-  const int proj_Rank = 2;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  double *approx = NULL;
-  npy_intp approx_Dims[2] = {-1, -1};
-  const int approx_Rank = 2;
-  PyArrayObject *capi_approx_tmp = NULL;
-  int capi_approx_intent = 0;
-  static char *capi_kwlist[] = {"col","list","proj","m","krank","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    double *col = NULL;
+    npy_intp col_Dims[2] = {-1, -1};
+    const int col_Rank = 2;
+    PyArrayObject *capi_col_tmp = NULL;
+    int capi_col_intent = 0;
+    PyObject *col_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    PyObject *list_capi = Py_None;
+    double *proj = NULL;
+    npy_intp proj_Dims[2] = {-1, -1};
+    const int proj_Rank = 2;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    double *approx = NULL;
+    npy_intp approx_Dims[2] = {-1, -1};
+    const int approx_Rank = 2;
+    PyArrayObject *capi_approx_tmp = NULL;
+    int capi_approx_intent = 0;
+    static char *capi_kwlist[] = {"col","list","proj","m","krank","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OOO:_interpolative.idd_reconid",\
-    capi_kwlist,&col_capi,&list_capi,&proj_capi,&m_capi,&krank_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OOO:_interpolative.idd_reconid",\
+        capi_kwlist,&col_capi,&list_capi,&proj_capi,&m_capi,&krank_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable col */
-  ;
-  capi_col_intent |= F2PY_INTENT_IN;
-  capi_col_tmp = array_from_pyobj(NPY_DOUBLE,col_Dims,col_Rank,capi_col_intent,col_capi);
-  if (capi_col_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `col' of _interpolative.idd_reconid to C/Fortran array" );
-  } else {
-    col = (double *)(PyArray_DATA(capi_col_tmp));
+    /* Processing variable col */
+    ;
+    capi_col_intent |= F2PY_INTENT_IN;
+    capi_col_tmp = array_from_pyobj(NPY_DOUBLE,col_Dims,col_Rank,capi_col_intent,col_capi);
+    if (capi_col_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `col' of _interpolative.idd_reconid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        col = (double *)(PyArray_DATA(capi_col_tmp));
 
-  /* Processing variable list */
-  ;
-  capi_list_intent |= F2PY_INTENT_IN;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `list' of _interpolative.idd_reconid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    ;
+    capi_list_intent |= F2PY_INTENT_IN;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `list' of _interpolative.idd_reconid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(col,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_reconid() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-  if (krank_capi == Py_None) krank = shape(col,1); else
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idd_reconid() 2nd keyword (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = len(list); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_reconid() 3rd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable proj */
-  proj_Dims[0]=krank,proj_Dims[1]=n-krank;
-  capi_proj_intent |= F2PY_INTENT_IN;
-  capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `proj' of _interpolative.idd_reconid to C/Fortran array" );
-  } else {
-    proj = (double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(col,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_reconid() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+    if (krank_capi == Py_None) krank = shape(col,1); else
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idd_reconid() 2nd keyword (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = len(list); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_reconid() 3rd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable proj */
+    proj_Dims[0]=krank,proj_Dims[1]=-krank + n;
+    capi_proj_intent |= F2PY_INTENT_IN;
+    capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `proj' of _interpolative.idd_reconid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (double *)(PyArray_DATA(capi_proj_tmp));
 
-  /* Processing variable approx */
-  approx_Dims[0]=m,approx_Dims[1]=n;
-  capi_approx_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_approx_tmp = array_from_pyobj(NPY_DOUBLE,approx_Dims,approx_Rank,capi_approx_intent,Py_None);
-  if (capi_approx_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `approx' of _interpolative.idd_reconid to C/Fortran array" );
-  } else {
-    approx = (double *)(PyArray_DATA(capi_approx_tmp));
+    /* Processing variable approx */
+    approx_Dims[0]=m,approx_Dims[1]=n;
+    capi_approx_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_approx_tmp = array_from_pyobj(NPY_DOUBLE,approx_Dims,approx_Rank,capi_approx_intent,Py_None);
+    if (capi_approx_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `approx' of _interpolative.idd_reconid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        approx = (double *)(PyArray_DATA(capi_approx_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&krank,col,&n,list,proj,approx);
+                (*f2py_func)(&m,&krank,col,&n,list,proj,approx);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_approx_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_approx_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_approx_tmp == NULL) ... else of approx*/
-  /* End of cleaning variable approx */
-  if((PyObject *)capi_proj_tmp!=proj_capi) {
-    Py_XDECREF(capi_proj_tmp); }
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  if((PyObject *)capi_list_tmp!=list_capi) {
-    Py_XDECREF(capi_list_tmp); }
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  if((PyObject *)capi_col_tmp!=col_capi) {
-    Py_XDECREF(capi_col_tmp); }
-  }  /*if (capi_col_tmp == NULL) ... else of col*/
-  /* End of cleaning variable col */
+    }  /*if (capi_approx_tmp == NULL) ... else of approx*/
+    /* End of cleaning variable approx */
+    if((PyObject *)capi_proj_tmp!=proj_capi) {
+        Py_XDECREF(capi_proj_tmp); }
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    if((PyObject *)capi_list_tmp!=list_capi) {
+        Py_XDECREF(capi_list_tmp); }
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    if((PyObject *)capi_col_tmp!=col_capi) {
+        Py_XDECREF(capi_col_tmp); }
+    }  /*if (capi_col_tmp == NULL) ... else of col*/
+    /* End of cleaning variable col */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of idd_reconid *****************************/
 
@@ -2992,7 +3439,7 @@ static char doc_f2py_rout__interpolative_idd_reconint[] = "\
 p = idd_reconint(list,proj,[n,krank])\n\nWrapper for ``idd_reconint``.\
 \n\nParameters\n----------\n"
 "list : input rank-1 array('i') with bounds (n)\n"
-"proj : input rank-2 array('d') with bounds (krank,n-krank)\n"
+"proj : input rank-2 array('d') with bounds (krank,-krank + n)\n"
 "\nOther Parameters\n----------------\n"
 "n : input int, optional\n    Default: len(list)\n"
 "krank : input int, optional\n    Default: shape(proj,0)\n"
@@ -3003,127 +3450,133 @@ static PyObject *f2py_rout__interpolative_idd_reconint(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,int*,double*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  PyObject *list_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  double *proj = NULL;
-  npy_intp proj_Dims[2] = {-1, -1};
-  const int proj_Rank = 2;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  double *p = NULL;
-  npy_intp p_Dims[2] = {-1, -1};
-  const int p_Rank = 2;
-  PyArrayObject *capi_p_tmp = NULL;
-  int capi_p_intent = 0;
-  static char *capi_kwlist[] = {"list","proj","n","krank",NULL};
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    PyObject *list_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    double *proj = NULL;
+    npy_intp proj_Dims[2] = {-1, -1};
+    const int proj_Rank = 2;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    double *p = NULL;
+    npy_intp p_Dims[2] = {-1, -1};
+    const int p_Rank = 2;
+    PyArrayObject *capi_p_tmp = NULL;
+    int capi_p_intent = 0;
+    static char *capi_kwlist[] = {"list","proj","n","krank",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:_interpolative.idd_reconint",\
-    capi_kwlist,&list_capi,&proj_capi,&n_capi,&krank_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:_interpolative.idd_reconint",\
+        capi_kwlist,&list_capi,&proj_capi,&n_capi,&krank_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable list */
-  ;
-  capi_list_intent |= F2PY_INTENT_IN;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `list' of _interpolative.idd_reconint to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    ;
+    capi_list_intent |= F2PY_INTENT_IN;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `list' of _interpolative.idd_reconint to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable n */
-  if (n_capi == Py_None) n = len(list); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_reconint() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable proj */
-  ;
-  capi_proj_intent |= F2PY_INTENT_IN;
-  capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `proj' of _interpolative.idd_reconint to C/Fortran array" );
-  } else {
-    proj = (double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable n */
+    if (n_capi == Py_None) n = len(list); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_reconint() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable proj */
+    ;
+    capi_proj_intent |= F2PY_INTENT_IN;
+    capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `proj' of _interpolative.idd_reconint to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (double *)(PyArray_DATA(capi_proj_tmp));
 
-  /* Processing variable krank */
-  if (krank_capi == Py_None) krank = shape(proj,0); else
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idd_reconint() 2nd keyword (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable p */
-  p_Dims[0]=krank,p_Dims[1]=n;
-  capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_p_tmp = array_from_pyobj(NPY_DOUBLE,p_Dims,p_Rank,capi_p_intent,Py_None);
-  if (capi_p_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `p' of _interpolative.idd_reconint to C/Fortran array" );
-  } else {
-    p = (double *)(PyArray_DATA(capi_p_tmp));
+    /* Processing variable krank */
+    if (krank_capi == Py_None) krank = shape(proj,0); else
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idd_reconint() 2nd keyword (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable p */
+    p_Dims[0]=krank,p_Dims[1]=n;
+    capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_p_tmp = array_from_pyobj(NPY_DOUBLE,p_Dims,p_Rank,capi_p_intent,Py_None);
+    if (capi_p_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `p' of _interpolative.idd_reconint to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        p = (double *)(PyArray_DATA(capi_p_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,list,&krank,proj,p);
+                (*f2py_func)(&n,list,&krank,proj,p);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_p_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_p_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_p_tmp == NULL) ... else of p*/
-  /* End of cleaning variable p */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_proj_tmp!=proj_capi) {
-    Py_XDECREF(capi_proj_tmp); }
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  if((PyObject *)capi_list_tmp!=list_capi) {
-    Py_XDECREF(capi_list_tmp); }
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
+    }  /*if (capi_p_tmp == NULL) ... else of p*/
+    /* End of cleaning variable p */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_proj_tmp!=proj_capi) {
+        Py_XDECREF(capi_proj_tmp); }
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    if((PyObject *)capi_list_tmp!=list_capi) {
+        Py_XDECREF(capi_list_tmp); }
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of idd_reconint ****************************/
 
@@ -3144,134 +3597,140 @@ static PyObject *f2py_rout__interpolative_idd_copycols(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  PyObject *list_capi = Py_None;
-  double *col = NULL;
-  npy_intp col_Dims[2] = {-1, -1};
-  const int col_Rank = 2;
-  PyArrayObject *capi_col_tmp = NULL;
-  int capi_col_intent = 0;
-  static char *capi_kwlist[] = {"a","krank","list","m","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    PyObject *list_capi = Py_None;
+    double *col = NULL;
+    npy_intp col_Dims[2] = {-1, -1};
+    const int col_Rank = 2;
+    PyArrayObject *capi_col_tmp = NULL;
+    int capi_col_intent = 0;
+    static char *capi_kwlist[] = {"a","krank","list","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OO:_interpolative.idd_copycols",\
-    capi_kwlist,&a_capi,&krank_capi,&list_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OO:_interpolative.idd_copycols",\
+        capi_kwlist,&a_capi,&krank_capi,&list_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.idd_copycols to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.idd_copycols to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idd_copycols() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable list */
-  ;
-  capi_list_intent |= F2PY_INTENT_IN;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `list' of _interpolative.idd_copycols to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idd_copycols() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable list */
+    ;
+    capi_list_intent |= F2PY_INTENT_IN;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `list' of _interpolative.idd_copycols to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_copycols() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_copycols() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable col */
-  col_Dims[0]=m,col_Dims[1]=krank;
-  capi_col_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_col_tmp = array_from_pyobj(NPY_DOUBLE,col_Dims,col_Rank,capi_col_intent,Py_None);
-  if (capi_col_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `col' of _interpolative.idd_copycols to C/Fortran array" );
-  } else {
-    col = (double *)(PyArray_DATA(capi_col_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_copycols() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_copycols() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable col */
+    col_Dims[0]=m,col_Dims[1]=krank;
+    capi_col_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_col_tmp = array_from_pyobj(NPY_DOUBLE,col_Dims,col_Rank,capi_col_intent,Py_None);
+    if (capi_col_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `col' of _interpolative.idd_copycols to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        col = (double *)(PyArray_DATA(capi_col_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,list,col);
+                (*f2py_func)(&m,&n,a,&krank,list,col);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_col_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_col_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_col_tmp == NULL) ... else of col*/
-  /* End of cleaning variable col */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  if((PyObject *)capi_list_tmp!=list_capi) {
-    Py_XDECREF(capi_list_tmp); }
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    }  /*if (capi_col_tmp == NULL) ... else of col*/
+    /* End of cleaning variable col */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    if((PyObject *)capi_list_tmp!=list_capi) {
+        Py_XDECREF(capi_list_tmp); }
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of idd_copycols ****************************/
 
@@ -3281,12 +3740,12 @@ u,v,s,ier = idd_id2svd(b,list,proj,[m,krank,n,w])\n\nWrapper for ``idd_id2svd``.
 \n\nParameters\n----------\n"
 "b : input rank-2 array('d') with bounds (m,krank)\n"
 "list : input rank-1 array('i') with bounds (n)\n"
-"proj : input rank-2 array('d') with bounds (krank,n-krank)\n"
+"proj : input rank-2 array('d') with bounds (krank,-krank + n)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(b,0)\n"
 "krank : input int, optional\n    Default: shape(b,1)\n"
 "n : input int, optional\n    Default: len(list)\n"
-"w : input rank-1 array('d') with bounds ((krank+1)*(m+3*n)+26*pow(krank,2))\n"
+"w : input rank-1 array('d') with bounds (m + 3 * n + 26 * pow(krank, 2) + krank * m + 3 * krank * n)\n"
 "\nReturns\n-------\n"
 "u : rank-2 array('d') with bounds (m,krank)\n"
 "v : rank-2 array('d') with bounds (n,krank)\n"
@@ -3297,212 +3756,226 @@ static PyObject *f2py_rout__interpolative_idd_id2svd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*,int*,int*,double*,double*,double*,double*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  double *b = NULL;
-  npy_intp b_Dims[2] = {-1, -1};
-  const int b_Rank = 2;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  PyObject *list_capi = Py_None;
-  double *proj = NULL;
-  npy_intp proj_Dims[2] = {-1, -1};
-  const int proj_Rank = 2;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  double *v = NULL;
-  npy_intp v_Dims[2] = {-1, -1};
-  const int v_Rank = 2;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  int ier = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  static char *capi_kwlist[] = {"b","list","proj","m","krank","n","w",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    double *b = NULL;
+    npy_intp b_Dims[2] = {-1, -1};
+    const int b_Rank = 2;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    PyObject *list_capi = Py_None;
+    double *proj = NULL;
+    npy_intp proj_Dims[2] = {-1, -1};
+    const int proj_Rank = 2;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    double *v = NULL;
+    npy_intp v_Dims[2] = {-1, -1};
+    const int v_Rank = 2;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    int ier = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    static char *capi_kwlist[] = {"b","list","proj","m","krank","n","w",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OOOO:_interpolative.idd_id2svd",\
-    capi_kwlist,&b_capi,&list_capi,&proj_capi,&m_capi,&krank_capi,&n_capi,&w_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OOOO:_interpolative.idd_id2svd",\
+        capi_kwlist,&b_capi,&list_capi,&proj_capi,&m_capi,&krank_capi,&n_capi,&w_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `b' of _interpolative.idd_id2svd to C/Fortran array" );
-  } else {
-    b = (double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `b' of _interpolative.idd_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable list */
-  ;
-  capi_list_intent |= F2PY_INTENT_IN;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `list' of _interpolative.idd_id2svd to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    ;
+    capi_list_intent |= F2PY_INTENT_IN;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `list' of _interpolative.idd_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable ier */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(b,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_id2svd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-  if (krank_capi == Py_None) krank = shape(b,1); else
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idd_id2svd() 2nd keyword (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = len(list); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_id2svd() 3rd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable proj */
-  proj_Dims[0]=krank,proj_Dims[1]=n-krank;
-  capi_proj_intent |= F2PY_INTENT_IN;
-  capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `proj' of _interpolative.idd_id2svd to C/Fortran array" );
-  } else {
-    proj = (double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable ier */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(b,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_id2svd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+    if (krank_capi == Py_None) krank = shape(b,1); else
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idd_id2svd() 2nd keyword (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = len(list); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_id2svd() 3rd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable proj */
+    proj_Dims[0]=krank,proj_Dims[1]=-krank + n;
+    capi_proj_intent |= F2PY_INTENT_IN;
+    capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `proj' of _interpolative.idd_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (double *)(PyArray_DATA(capi_proj_tmp));
 
-  /* Processing variable u */
-  u_Dims[0]=m,u_Dims[1]=krank;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `u' of _interpolative.idd_id2svd to C/Fortran array" );
-  } else {
-    u = (double *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable u */
+    u_Dims[0]=m,u_Dims[1]=krank;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `u' of _interpolative.idd_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable v */
-  v_Dims[0]=n,v_Dims[1]=krank;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.idd_id2svd to C/Fortran array" );
-  } else {
-    v = (double *)(PyArray_DATA(capi_v_tmp));
+    /* Processing variable v */
+    v_Dims[0]=n,v_Dims[1]=krank;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.idd_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (double *)(PyArray_DATA(capi_v_tmp));
 
-  /* Processing variable s */
-  s_Dims[0]=krank;
-  capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `s' of _interpolative.idd_id2svd to C/Fortran array" );
-  } else {
-    s = (double *)(PyArray_DATA(capi_s_tmp));
+    /* Processing variable s */
+    s_Dims[0]=krank;
+    capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `s' of _interpolative.idd_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (double *)(PyArray_DATA(capi_s_tmp));
 
-  /* Processing variable w */
-  w_Dims[0]=(krank+1)*(m+3*n)+26*pow(krank,2);
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th keyword `w' of _interpolative.idd_id2svd to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable w */
+    w_Dims[0]=m + 3 * n + 26 * pow(krank, 2) + krank * m + 3 * krank * n;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th keyword `w' of _interpolative.idd_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&krank,b,&n,list,proj,u,v,s,&ier,w);
+                (*f2py_func)(&m,&krank,b,&n,list,proj,u,v,s,&ier,w);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  if((PyObject *)capi_proj_tmp!=proj_capi) {
-    Py_XDECREF(capi_proj_tmp); }
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable ier */
-  if((PyObject *)capi_list_tmp!=list_capi) {
-    Py_XDECREF(capi_list_tmp); }
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    if((PyObject *)capi_proj_tmp!=proj_capi) {
+        Py_XDECREF(capi_proj_tmp); }
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable ier */
+    if((PyObject *)capi_list_tmp!=list_capi) {
+        Py_XDECREF(capi_list_tmp); }
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of idd_id2svd *****************************/
 
@@ -3531,266 +4004,256 @@ snorm,v = idd_snorm(m,n,matvect,matvec,its,[p1t,p2t,p3t,p4t,p1,p2,p3,p4,u,matvec
 "snorm : float\n"
 "v : rank-1 array('d') with bounds (n)\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (n)\n"
-"  def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (m)";
+"    def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (n)\n"
+"    def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (m)";
 /* extern void F_FUNC_US(idd_snorm,IDD_SNORM)(int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,double*,double*,double*); */
 static PyObject *f2py_rout__interpolative_idd_snorm(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,double*,double*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matvect_capi = Py_None;
-  PyTupleObject *matvect_xa_capi = NULL;
-  PyTupleObject *matvect_args_capi = NULL;
-  int matvect_nofargs_capi = 0;
-  cb_matvect_in_idd__user__routines_typedef matvect_cptr;
-  double p1t = 0;
-  PyObject *p1t_capi = Py_None;
-  double p2t = 0;
-  PyObject *p2t_capi = Py_None;
-  double p3t = 0;
-  PyObject *p3t_capi = Py_None;
-  double p4t = 0;
-  PyObject *p4t_capi = Py_None;
-  PyObject *matvec_capi = Py_None;
-  PyTupleObject *matvec_xa_capi = NULL;
-  PyTupleObject *matvec_args_capi = NULL;
-  int matvec_nofargs_capi = 0;
-  cb_matvec_in_idd__user__routines_typedef matvec_cptr;
-  double p1 = 0;
-  PyObject *p1_capi = Py_None;
-  double p2 = 0;
-  PyObject *p2_capi = Py_None;
-  double p3 = 0;
-  PyObject *p3_capi = Py_None;
-  double p4 = 0;
-  PyObject *p4_capi = Py_None;
-  int its = 0;
-  PyObject *its_capi = Py_None;
-  double snorm = 0;
-  double *v = NULL;
-  npy_intp v_Dims[1] = {-1};
-  const int v_Rank = 1;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *u = NULL;
-  npy_intp u_Dims[1] = {-1};
-  const int u_Rank = 1;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  PyObject *u_capi = Py_None;
-  static char *capi_kwlist[] = {"m","n","matvect","matvec","its","p1t","p2t","p3t","p4t","p1","p2","p3","p4","u","matvect_extra_args","matvec_extra_args",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matvect_in_idd__user__routines_t matvect_cb = { Py_None, NULL, 0 };
+    cb_matvect_in_idd__user__routines_t *matvect_cb_ptr = &matvect_cb;
+    PyTupleObject *matvect_xa_capi = NULL;
+    cb_matvect_in_idd__user__routines_typedef matvect_cptr;
+    double p1t = 0;
+    PyObject *p1t_capi = Py_None;
+    double p2t = 0;
+    PyObject *p2t_capi = Py_None;
+    double p3t = 0;
+    PyObject *p3t_capi = Py_None;
+    double p4t = 0;
+    PyObject *p4t_capi = Py_None;
+    cb_matvec_in_idd__user__routines_t matvec_cb = { Py_None, NULL, 0 };
+    cb_matvec_in_idd__user__routines_t *matvec_cb_ptr = &matvec_cb;
+    PyTupleObject *matvec_xa_capi = NULL;
+    cb_matvec_in_idd__user__routines_typedef matvec_cptr;
+    double p1 = 0;
+    PyObject *p1_capi = Py_None;
+    double p2 = 0;
+    PyObject *p2_capi = Py_None;
+    double p3 = 0;
+    PyObject *p3_capi = Py_None;
+    double p4 = 0;
+    PyObject *p4_capi = Py_None;
+    int its = 0;
+    PyObject *its_capi = Py_None;
+    double snorm = 0;
+    double *v = NULL;
+    npy_intp v_Dims[1] = {-1};
+    const int v_Rank = 1;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *u = NULL;
+    npy_intp u_Dims[1] = {-1};
+    const int u_Rank = 1;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    PyObject *u_capi = Py_None;
+    static char *capi_kwlist[] = {"m","n","matvect","matvec","its","p1t","p2t","p3t","p4t","p1","p2","p3","p4","u","matvect_extra_args","matvec_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOO|OOOOOOOOOO!O!:_interpolative.idd_snorm",\
-    capi_kwlist,&m_capi,&n_capi,&matvect_capi,&matvec_capi,&its_capi,&p1t_capi,&p2t_capi,&p3t_capi,&p4t_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&u_capi,&PyTuple_Type,&matvect_xa_capi,&PyTuple_Type,&matvec_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOO|OOOOOOOOOO!O!:_interpolative.idd_snorm",\
+        capi_kwlist,&m_capi,&n_capi,&matvect_cb.capi,&matvec_cb.capi,&its_capi,&p1t_capi,&p2t_capi,&p3t_capi,&p4t_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&u_capi,&PyTuple_Type,&matvect_xa_capi,&PyTuple_Type,&matvec_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_snorm() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_snorm() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable its */
-    f2py_success = int_from_pyobj(&its,its_capi,"_interpolative.idd_snorm() 5th argument (its) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matvect */
-if(F2PyCapsule_Check(matvect_capi)) {
-  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_capi);
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_snorm() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_snorm() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable its */
+        f2py_success = int_from_pyobj(&its,its_capi,"_interpolative.idd_snorm() 5th argument (its) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matvect */
+if(F2PyCapsule_Check(matvect_cb.capi)) {
+  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_cb.capi);
 } else {
   matvect_cptr = cb_matvect_in_idd__user__routines;
 }
 
-  matvect_nofargs_capi = cb_matvect_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvect_capi,matvect_xa_capi,7,6,&cb_matvect_in_idd__user__routines_nofargs,&matvect_args_capi,"failed in processing argument list for call-back matvect.")) {
-    jmp_buf matvect_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvect`.\n");
-    SWAP(matvect_capi,cb_matvect_in_idd__user__routines_capi,PyObject);
-    SWAP(matvect_args_capi,cb_matvect_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvect_jmpbuf,&cb_matvect_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec */
-if(F2PyCapsule_Check(matvec_capi)) {
-  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_capi);
+    if (create_cb_arglist(matvect_cb.capi,matvect_xa_capi,7,6,&matvect_cb.nofargs,&matvect_cb.args_capi,"failed in processing argument list for call-back matvect.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+    /* Processing variable matvec */
+if(F2PyCapsule_Check(matvec_cb.capi)) {
+  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_cb.capi);
 } else {
   matvec_cptr = cb_matvec_in_idd__user__routines;
 }
 
-  matvec_nofargs_capi = cb_matvec_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvec_capi,matvec_xa_capi,7,6,&cb_matvec_in_idd__user__routines_nofargs,&matvec_args_capi,"failed in processing argument list for call-back matvec.")) {
-    jmp_buf matvec_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec`.\n");
-    SWAP(matvec_capi,cb_matvec_in_idd__user__routines_capi,PyObject);
-    SWAP(matvec_args_capi,cb_matvec_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec_jmpbuf,&cb_matvec_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1t */
-  if (p1t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1t,p1t_capi,"_interpolative.idd_snorm() 1st keyword (p1t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2t */
-  if (p2t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2t,p2t_capi,"_interpolative.idd_snorm() 2nd keyword (p2t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3t */
-  if (p3t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3t,p3t_capi,"_interpolative.idd_snorm() 3rd keyword (p3t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4t */
-  if (p4t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4t,p4t_capi,"_interpolative.idd_snorm() 4th keyword (p4t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.idd_snorm() 5th keyword (p1) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.idd_snorm() 6th keyword (p2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.idd_snorm() 7th keyword (p3) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.idd_snorm() 8th keyword (p4) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable snorm */
-  /* Processing variable v */
-  v_Dims[0]=n;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.idd_snorm to C/Fortran array" );
-  } else {
-    v = (double *)(PyArray_DATA(capi_v_tmp));
+    if (create_cb_arglist(matvec_cb.capi,matvec_xa_capi,7,6,&matvec_cb.nofargs,&matvec_cb.args_capi,"failed in processing argument list for call-back matvec.")) {
 
-  /* Processing variable u */
-  u_Dims[0]=m;
-  capi_u_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,u_capi);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 9th keyword `u' of _interpolative.idd_snorm to C/Fortran array" );
-  } else {
-    u = (double *)(PyArray_DATA(capi_u_tmp));
+        CFUNCSMESS("Saving callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idd__user__routines(matvec_cb_ptr);
+    /* Processing variable p1t */
+    if (p1t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1t,p1t_capi,"_interpolative.idd_snorm() 1st keyword (p1t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2t */
+    if (p2t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2t,p2t_capi,"_interpolative.idd_snorm() 2nd keyword (p2t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3t */
+    if (p3t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3t,p3t_capi,"_interpolative.idd_snorm() 3rd keyword (p3t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4t */
+    if (p4t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4t,p4t_capi,"_interpolative.idd_snorm() 4th keyword (p4t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.idd_snorm() 5th keyword (p1) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.idd_snorm() 6th keyword (p2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.idd_snorm() 7th keyword (p3) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.idd_snorm() 8th keyword (p4) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable snorm */
+    /* Processing variable v */
+    v_Dims[0]=n;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.idd_snorm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (double *)(PyArray_DATA(capi_v_tmp));
+
+    /* Processing variable u */
+    u_Dims[0]=m;
+    capi_u_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,u_capi);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 9th keyword `u' of _interpolative.idd_snorm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (double *)(PyArray_DATA(capi_u_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matvect_in_idd__user__routines_jmpbuf)) || (setjmp(cb_matvec_in_idd__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&m,&n,matvect_cptr,&p1t,&p2t,&p3t,&p4t,matvec_cptr,&p1,&p2,&p3,&p4,&its,&snorm,v,u);
-    }
+        if ((setjmp(matvect_cb.jmpbuf)) || (setjmp(matvec_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&m,&n,matvect_cptr,&p1t,&p2t,&p3t,&p4t,matvec_cptr,&p1,&p2,&p3,&p4,&its,&snorm,v,u);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("dN",snorm,capi_v_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("dN",snorm,capi_v_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_u_tmp!=u_capi) {
-    Py_XDECREF(capi_u_tmp); }
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  /* End of cleaning variable snorm */
-  } /*if (f2py_success) of p4*/
-  /* End of cleaning variable p4 */
-  } /*if (f2py_success) of p3*/
-  /* End of cleaning variable p3 */
-  } /*if (f2py_success) of p2*/
-  /* End of cleaning variable p2 */
-  } /*if (f2py_success) of p1*/
-  /* End of cleaning variable p1 */
-  } /*if (f2py_success) of p4t*/
-  /* End of cleaning variable p4t */
-  } /*if (f2py_success) of p3t*/
-  /* End of cleaning variable p3t */
-  } /*if (f2py_success) of p2t*/
-  /* End of cleaning variable p2t */
-  } /*if (f2py_success) of p1t*/
-  /* End of cleaning variable p1t */
-    CFUNCSMESS("Restoring jmpbuf for `matvec`.\n");
-    cb_matvec_in_idd__user__routines_capi = matvec_capi;
-    Py_DECREF(cb_matvec_in_idd__user__routines_args_capi);
-    cb_matvec_in_idd__user__routines_args_capi = matvec_args_capi;
-    cb_matvec_in_idd__user__routines_nofargs = matvec_nofargs_capi;
-    memcpy(&cb_matvec_in_idd__user__routines_jmpbuf,&matvec_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec */
-    CFUNCSMESS("Restoring jmpbuf for `matvect`.\n");
-    cb_matvect_in_idd__user__routines_capi = matvect_capi;
-    Py_DECREF(cb_matvect_in_idd__user__routines_args_capi);
-    cb_matvect_in_idd__user__routines_args_capi = matvect_args_capi;
-    cb_matvect_in_idd__user__routines_nofargs = matvect_nofargs_capi;
-    memcpy(&cb_matvect_in_idd__user__routines_jmpbuf,&matvect_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvect */
-  } /*if (f2py_success) of its*/
-  /* End of cleaning variable its */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    if((PyObject *)capi_u_tmp!=u_capi) {
+        Py_XDECREF(capi_u_tmp); }
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    /* End of cleaning variable snorm */
+    } /*if (f2py_success) of p4*/
+    /* End of cleaning variable p4 */
+    } /*if (f2py_success) of p3*/
+    /* End of cleaning variable p3 */
+    } /*if (f2py_success) of p2*/
+    /* End of cleaning variable p2 */
+    } /*if (f2py_success) of p1*/
+    /* End of cleaning variable p1 */
+    } /*if (f2py_success) of p4t*/
+    /* End of cleaning variable p4t */
+    } /*if (f2py_success) of p3t*/
+    /* End of cleaning variable p3t */
+    } /*if (f2py_success) of p2t*/
+    /* End of cleaning variable p2t */
+    } /*if (f2py_success) of p1t*/
+    /* End of cleaning variable p1t */
+        CFUNCSMESS("Restoring callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idd__user__routines(matvec_cb_ptr);
+        Py_DECREF(matvec_cb.args_capi);
+    }
+    /* End of cleaning variable matvec */
+        CFUNCSMESS("Restoring callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+        Py_DECREF(matvect_cb.args_capi);
+    }
+    /* End of cleaning variable matvect */
+    } /*if (f2py_success) of its*/
+    /* End of cleaning variable its */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idd_snorm ******************************/
 
@@ -3826,395 +4289,369 @@ snorm = idd_diffsnorm(m,n,matvect,matvect2,matvec,matvec2,its,[p1t,p2t,p3t,p4t,p
 "p22 : input float\n"
 "p32 : input float\n"
 "p42 : input float\n"
-"w : input rank-1 array('d') with bounds (3*(m+n))\n"
+"w : input rank-1 array('d') with bounds (3 * m + 3 * n)\n"
 "\nReturns\n-------\n"
 "snorm : float\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (n)\n"
-"  def matvect2(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (n)\n"
-"  def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (m)\n"
-"  def matvec2(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (m)";
+"    def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (n)\n"
+"    def matvect2(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (n)\n"
+"    def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (m)\n"
+"    def matvec2(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (m)";
 /* extern void F_FUNC_US(idd_diffsnorm,IDD_DIFFSNORM)(int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvect2_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec2_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,double*,double*); */
 static PyObject *f2py_rout__interpolative_idd_diffsnorm(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvect2_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec2_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,double*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matvect_capi = Py_None;
-  PyTupleObject *matvect_xa_capi = NULL;
-  PyTupleObject *matvect_args_capi = NULL;
-  int matvect_nofargs_capi = 0;
-  cb_matvect_in_idd__user__routines_typedef matvect_cptr;
-  double p1t = 0;
-  PyObject *p1t_capi = Py_None;
-  double p2t = 0;
-  PyObject *p2t_capi = Py_None;
-  double p3t = 0;
-  PyObject *p3t_capi = Py_None;
-  double p4t = 0;
-  PyObject *p4t_capi = Py_None;
-  PyObject *matvect2_capi = Py_None;
-  PyTupleObject *matvect2_xa_capi = NULL;
-  PyTupleObject *matvect2_args_capi = NULL;
-  int matvect2_nofargs_capi = 0;
-  cb_matvect2_in_idd__user__routines_typedef matvect2_cptr;
-  double p1t2 = 0;
-  PyObject *p1t2_capi = Py_None;
-  double p2t2 = 0;
-  PyObject *p2t2_capi = Py_None;
-  double p3t2 = 0;
-  PyObject *p3t2_capi = Py_None;
-  double p4t2 = 0;
-  PyObject *p4t2_capi = Py_None;
-  PyObject *matvec_capi = Py_None;
-  PyTupleObject *matvec_xa_capi = NULL;
-  PyTupleObject *matvec_args_capi = NULL;
-  int matvec_nofargs_capi = 0;
-  cb_matvec_in_idd__user__routines_typedef matvec_cptr;
-  double p1 = 0;
-  PyObject *p1_capi = Py_None;
-  double p2 = 0;
-  PyObject *p2_capi = Py_None;
-  double p3 = 0;
-  PyObject *p3_capi = Py_None;
-  double p4 = 0;
-  PyObject *p4_capi = Py_None;
-  PyObject *matvec2_capi = Py_None;
-  PyTupleObject *matvec2_xa_capi = NULL;
-  PyTupleObject *matvec2_args_capi = NULL;
-  int matvec2_nofargs_capi = 0;
-  cb_matvec2_in_idd__user__routines_typedef matvec2_cptr;
-  double p12 = 0;
-  PyObject *p12_capi = Py_None;
-  double p22 = 0;
-  PyObject *p22_capi = Py_None;
-  double p32 = 0;
-  PyObject *p32_capi = Py_None;
-  double p42 = 0;
-  PyObject *p42_capi = Py_None;
-  int its = 0;
-  PyObject *its_capi = Py_None;
-  double snorm = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  static char *capi_kwlist[] = {"m","n","matvect","matvect2","matvec","matvec2","its","p1t","p2t","p3t","p4t","p1t2","p2t2","p3t2","p4t2","p1","p2","p3","p4","p12","p22","p32","p42","w","matvect_extra_args","matvect2_extra_args","matvec_extra_args","matvec2_extra_args",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matvect_in_idd__user__routines_t matvect_cb = { Py_None, NULL, 0 };
+    cb_matvect_in_idd__user__routines_t *matvect_cb_ptr = &matvect_cb;
+    PyTupleObject *matvect_xa_capi = NULL;
+    cb_matvect_in_idd__user__routines_typedef matvect_cptr;
+    double p1t = 0;
+    PyObject *p1t_capi = Py_None;
+    double p2t = 0;
+    PyObject *p2t_capi = Py_None;
+    double p3t = 0;
+    PyObject *p3t_capi = Py_None;
+    double p4t = 0;
+    PyObject *p4t_capi = Py_None;
+    cb_matvect2_in_idd__user__routines_t matvect2_cb = { Py_None, NULL, 0 };
+    cb_matvect2_in_idd__user__routines_t *matvect2_cb_ptr = &matvect2_cb;
+    PyTupleObject *matvect2_xa_capi = NULL;
+    cb_matvect2_in_idd__user__routines_typedef matvect2_cptr;
+    double p1t2 = 0;
+    PyObject *p1t2_capi = Py_None;
+    double p2t2 = 0;
+    PyObject *p2t2_capi = Py_None;
+    double p3t2 = 0;
+    PyObject *p3t2_capi = Py_None;
+    double p4t2 = 0;
+    PyObject *p4t2_capi = Py_None;
+    cb_matvec_in_idd__user__routines_t matvec_cb = { Py_None, NULL, 0 };
+    cb_matvec_in_idd__user__routines_t *matvec_cb_ptr = &matvec_cb;
+    PyTupleObject *matvec_xa_capi = NULL;
+    cb_matvec_in_idd__user__routines_typedef matvec_cptr;
+    double p1 = 0;
+    PyObject *p1_capi = Py_None;
+    double p2 = 0;
+    PyObject *p2_capi = Py_None;
+    double p3 = 0;
+    PyObject *p3_capi = Py_None;
+    double p4 = 0;
+    PyObject *p4_capi = Py_None;
+    cb_matvec2_in_idd__user__routines_t matvec2_cb = { Py_None, NULL, 0 };
+    cb_matvec2_in_idd__user__routines_t *matvec2_cb_ptr = &matvec2_cb;
+    PyTupleObject *matvec2_xa_capi = NULL;
+    cb_matvec2_in_idd__user__routines_typedef matvec2_cptr;
+    double p12 = 0;
+    PyObject *p12_capi = Py_None;
+    double p22 = 0;
+    PyObject *p22_capi = Py_None;
+    double p32 = 0;
+    PyObject *p32_capi = Py_None;
+    double p42 = 0;
+    PyObject *p42_capi = Py_None;
+    int its = 0;
+    PyObject *its_capi = Py_None;
+    double snorm = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    static char *capi_kwlist[] = {"m","n","matvect","matvect2","matvec","matvec2","its","p1t","p2t","p3t","p4t","p1t2","p2t2","p3t2","p4t2","p1","p2","p3","p4","p12","p22","p32","p42","w","matvect_extra_args","matvect2_extra_args","matvec_extra_args","matvec2_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOO|OOOOOOOOOOOOOOOOOO!O!O!O!:_interpolative.idd_diffsnorm",\
-    capi_kwlist,&m_capi,&n_capi,&matvect_capi,&matvect2_capi,&matvec_capi,&matvec2_capi,&its_capi,&p1t_capi,&p2t_capi,&p3t_capi,&p4t_capi,&p1t2_capi,&p2t2_capi,&p3t2_capi,&p4t2_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&p12_capi,&p22_capi,&p32_capi,&p42_capi,&w_capi,&PyTuple_Type,&matvect_xa_capi,&PyTuple_Type,&matvect2_xa_capi,&PyTuple_Type,&matvec_xa_capi,&PyTuple_Type,&matvec2_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOO|OOOOOOOOOOOOOOOOOO!O!O!O!:_interpolative.idd_diffsnorm",\
+        capi_kwlist,&m_capi,&n_capi,&matvect_cb.capi,&matvect2_cb.capi,&matvec_cb.capi,&matvec2_cb.capi,&its_capi,&p1t_capi,&p2t_capi,&p3t_capi,&p4t_capi,&p1t2_capi,&p2t2_capi,&p3t2_capi,&p4t2_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&p12_capi,&p22_capi,&p32_capi,&p42_capi,&w_capi,&PyTuple_Type,&matvect_xa_capi,&PyTuple_Type,&matvect2_xa_capi,&PyTuple_Type,&matvec_xa_capi,&PyTuple_Type,&matvec2_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_diffsnorm() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_diffsnorm() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable its */
-    f2py_success = int_from_pyobj(&its,its_capi,"_interpolative.idd_diffsnorm() 7th argument (its) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matvect */
-if(F2PyCapsule_Check(matvect_capi)) {
-  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_capi);
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_diffsnorm() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_diffsnorm() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable its */
+        f2py_success = int_from_pyobj(&its,its_capi,"_interpolative.idd_diffsnorm() 7th argument (its) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matvect */
+if(F2PyCapsule_Check(matvect_cb.capi)) {
+  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_cb.capi);
 } else {
   matvect_cptr = cb_matvect_in_idd__user__routines;
 }
 
-  matvect_nofargs_capi = cb_matvect_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvect_capi,matvect_xa_capi,7,6,&cb_matvect_in_idd__user__routines_nofargs,&matvect_args_capi,"failed in processing argument list for call-back matvect.")) {
-    jmp_buf matvect_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvect`.\n");
-    SWAP(matvect_capi,cb_matvect_in_idd__user__routines_capi,PyObject);
-    SWAP(matvect_args_capi,cb_matvect_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvect_jmpbuf,&cb_matvect_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvect2 */
-if(F2PyCapsule_Check(matvect2_capi)) {
-  matvect2_cptr = F2PyCapsule_AsVoidPtr(matvect2_capi);
+    if (create_cb_arglist(matvect_cb.capi,matvect_xa_capi,7,6,&matvect_cb.nofargs,&matvect_cb.args_capi,"failed in processing argument list for call-back matvect.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+    /* Processing variable matvect2 */
+if(F2PyCapsule_Check(matvect2_cb.capi)) {
+  matvect2_cptr = F2PyCapsule_AsVoidPtr(matvect2_cb.capi);
 } else {
   matvect2_cptr = cb_matvect2_in_idd__user__routines;
 }
 
-  matvect2_nofargs_capi = cb_matvect2_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvect2_capi,matvect2_xa_capi,7,6,&cb_matvect2_in_idd__user__routines_nofargs,&matvect2_args_capi,"failed in processing argument list for call-back matvect2.")) {
-    jmp_buf matvect2_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvect2`.\n");
-    SWAP(matvect2_capi,cb_matvect2_in_idd__user__routines_capi,PyObject);
-    SWAP(matvect2_args_capi,cb_matvect2_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvect2_jmpbuf,&cb_matvect2_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec */
-if(F2PyCapsule_Check(matvec_capi)) {
-  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_capi);
+    if (create_cb_arglist(matvect2_cb.capi,matvect2_xa_capi,7,6,&matvect2_cb.nofargs,&matvect2_cb.args_capi,"failed in processing argument list for call-back matvect2.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvect2`.\n");
+        matvect2_cb_ptr = swap_active_cb_matvect2_in_idd__user__routines(matvect2_cb_ptr);
+    /* Processing variable matvec */
+if(F2PyCapsule_Check(matvec_cb.capi)) {
+  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_cb.capi);
 } else {
   matvec_cptr = cb_matvec_in_idd__user__routines;
 }
 
-  matvec_nofargs_capi = cb_matvec_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvec_capi,matvec_xa_capi,7,6,&cb_matvec_in_idd__user__routines_nofargs,&matvec_args_capi,"failed in processing argument list for call-back matvec.")) {
-    jmp_buf matvec_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec`.\n");
-    SWAP(matvec_capi,cb_matvec_in_idd__user__routines_capi,PyObject);
-    SWAP(matvec_args_capi,cb_matvec_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec_jmpbuf,&cb_matvec_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec2 */
-if(F2PyCapsule_Check(matvec2_capi)) {
-  matvec2_cptr = F2PyCapsule_AsVoidPtr(matvec2_capi);
+    if (create_cb_arglist(matvec_cb.capi,matvec_xa_capi,7,6,&matvec_cb.nofargs,&matvec_cb.args_capi,"failed in processing argument list for call-back matvec.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idd__user__routines(matvec_cb_ptr);
+    /* Processing variable matvec2 */
+if(F2PyCapsule_Check(matvec2_cb.capi)) {
+  matvec2_cptr = F2PyCapsule_AsVoidPtr(matvec2_cb.capi);
 } else {
   matvec2_cptr = cb_matvec2_in_idd__user__routines;
 }
 
-  matvec2_nofargs_capi = cb_matvec2_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvec2_capi,matvec2_xa_capi,7,6,&cb_matvec2_in_idd__user__routines_nofargs,&matvec2_args_capi,"failed in processing argument list for call-back matvec2.")) {
-    jmp_buf matvec2_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec2`.\n");
-    SWAP(matvec2_capi,cb_matvec2_in_idd__user__routines_capi,PyObject);
-    SWAP(matvec2_args_capi,cb_matvec2_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec2_jmpbuf,&cb_matvec2_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1t */
-  if (p1t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1t,p1t_capi,"_interpolative.idd_diffsnorm() 1st keyword (p1t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2t */
-  if (p2t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2t,p2t_capi,"_interpolative.idd_diffsnorm() 2nd keyword (p2t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3t */
-  if (p3t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3t,p3t_capi,"_interpolative.idd_diffsnorm() 3rd keyword (p3t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4t */
-  if (p4t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4t,p4t_capi,"_interpolative.idd_diffsnorm() 4th keyword (p4t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p1t2 */
-  if (p1t2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1t2,p1t2_capi,"_interpolative.idd_diffsnorm() 5th keyword (p1t2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2t2 */
-  if (p2t2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2t2,p2t2_capi,"_interpolative.idd_diffsnorm() 6th keyword (p2t2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3t2 */
-  if (p3t2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3t2,p3t2_capi,"_interpolative.idd_diffsnorm() 7th keyword (p3t2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4t2 */
-  if (p4t2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4t2,p4t2_capi,"_interpolative.idd_diffsnorm() 8th keyword (p4t2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.idd_diffsnorm() 9th keyword (p1) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.idd_diffsnorm() 10th keyword (p2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.idd_diffsnorm() 11st keyword (p3) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.idd_diffsnorm() 12nd keyword (p4) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p12 */
-  if (p12_capi != Py_None)
-    f2py_success = double_from_pyobj(&p12,p12_capi,"_interpolative.idd_diffsnorm() 13rd keyword (p12) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p22 */
-  if (p22_capi != Py_None)
-    f2py_success = double_from_pyobj(&p22,p22_capi,"_interpolative.idd_diffsnorm() 14th keyword (p22) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p32 */
-  if (p32_capi != Py_None)
-    f2py_success = double_from_pyobj(&p32,p32_capi,"_interpolative.idd_diffsnorm() 15th keyword (p32) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p42 */
-  if (p42_capi != Py_None)
-    f2py_success = double_from_pyobj(&p42,p42_capi,"_interpolative.idd_diffsnorm() 16th keyword (p42) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable snorm */
-  /* Processing variable w */
-  w_Dims[0]=3*(m+n);
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 17th keyword `w' of _interpolative.idd_diffsnorm to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    if (create_cb_arglist(matvec2_cb.capi,matvec2_xa_capi,7,6,&matvec2_cb.nofargs,&matvec2_cb.args_capi,"failed in processing argument list for call-back matvec2.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvec2`.\n");
+        matvec2_cb_ptr = swap_active_cb_matvec2_in_idd__user__routines(matvec2_cb_ptr);
+    /* Processing variable p1t */
+    if (p1t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1t,p1t_capi,"_interpolative.idd_diffsnorm() 1st keyword (p1t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2t */
+    if (p2t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2t,p2t_capi,"_interpolative.idd_diffsnorm() 2nd keyword (p2t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3t */
+    if (p3t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3t,p3t_capi,"_interpolative.idd_diffsnorm() 3rd keyword (p3t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4t */
+    if (p4t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4t,p4t_capi,"_interpolative.idd_diffsnorm() 4th keyword (p4t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p1t2 */
+    if (p1t2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1t2,p1t2_capi,"_interpolative.idd_diffsnorm() 5th keyword (p1t2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2t2 */
+    if (p2t2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2t2,p2t2_capi,"_interpolative.idd_diffsnorm() 6th keyword (p2t2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3t2 */
+    if (p3t2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3t2,p3t2_capi,"_interpolative.idd_diffsnorm() 7th keyword (p3t2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4t2 */
+    if (p4t2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4t2,p4t2_capi,"_interpolative.idd_diffsnorm() 8th keyword (p4t2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.idd_diffsnorm() 9th keyword (p1) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.idd_diffsnorm() 10th keyword (p2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.idd_diffsnorm() 11st keyword (p3) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.idd_diffsnorm() 12nd keyword (p4) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p12 */
+    if (p12_capi != Py_None)
+        f2py_success = double_from_pyobj(&p12,p12_capi,"_interpolative.idd_diffsnorm() 13rd keyword (p12) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p22 */
+    if (p22_capi != Py_None)
+        f2py_success = double_from_pyobj(&p22,p22_capi,"_interpolative.idd_diffsnorm() 14th keyword (p22) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p32 */
+    if (p32_capi != Py_None)
+        f2py_success = double_from_pyobj(&p32,p32_capi,"_interpolative.idd_diffsnorm() 15th keyword (p32) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p42 */
+    if (p42_capi != Py_None)
+        f2py_success = double_from_pyobj(&p42,p42_capi,"_interpolative.idd_diffsnorm() 16th keyword (p42) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable snorm */
+    /* Processing variable w */
+    w_Dims[0]=3 * m + 3 * n;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 17th keyword `w' of _interpolative.idd_diffsnorm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matvect_in_idd__user__routines_jmpbuf)) || (setjmp(cb_matvect2_in_idd__user__routines_jmpbuf)) || (setjmp(cb_matvec_in_idd__user__routines_jmpbuf)) || (setjmp(cb_matvec2_in_idd__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&m,&n,matvect_cptr,&p1t,&p2t,&p3t,&p4t,matvect2_cptr,&p1t2,&p2t2,&p3t2,&p4t2,matvec_cptr,&p1,&p2,&p3,&p4,matvec2_cptr,&p12,&p22,&p32,&p42,&its,&snorm,w);
-    }
+        if ((setjmp(matvect_cb.jmpbuf)) || (setjmp(matvect2_cb.jmpbuf)) || (setjmp(matvec_cb.jmpbuf)) || (setjmp(matvec2_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&m,&n,matvect_cptr,&p1t,&p2t,&p3t,&p4t,matvect2_cptr,&p1t2,&p2t2,&p3t2,&p4t2,matvec_cptr,&p1,&p2,&p3,&p4,matvec2_cptr,&p12,&p22,&p32,&p42,&its,&snorm,w);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("d",snorm);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("d",snorm);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable snorm */
-  } /*if (f2py_success) of p42*/
-  /* End of cleaning variable p42 */
-  } /*if (f2py_success) of p32*/
-  /* End of cleaning variable p32 */
-  } /*if (f2py_success) of p22*/
-  /* End of cleaning variable p22 */
-  } /*if (f2py_success) of p12*/
-  /* End of cleaning variable p12 */
-  } /*if (f2py_success) of p4*/
-  /* End of cleaning variable p4 */
-  } /*if (f2py_success) of p3*/
-  /* End of cleaning variable p3 */
-  } /*if (f2py_success) of p2*/
-  /* End of cleaning variable p2 */
-  } /*if (f2py_success) of p1*/
-  /* End of cleaning variable p1 */
-  } /*if (f2py_success) of p4t2*/
-  /* End of cleaning variable p4t2 */
-  } /*if (f2py_success) of p3t2*/
-  /* End of cleaning variable p3t2 */
-  } /*if (f2py_success) of p2t2*/
-  /* End of cleaning variable p2t2 */
-  } /*if (f2py_success) of p1t2*/
-  /* End of cleaning variable p1t2 */
-  } /*if (f2py_success) of p4t*/
-  /* End of cleaning variable p4t */
-  } /*if (f2py_success) of p3t*/
-  /* End of cleaning variable p3t */
-  } /*if (f2py_success) of p2t*/
-  /* End of cleaning variable p2t */
-  } /*if (f2py_success) of p1t*/
-  /* End of cleaning variable p1t */
-    CFUNCSMESS("Restoring jmpbuf for `matvec2`.\n");
-    cb_matvec2_in_idd__user__routines_capi = matvec2_capi;
-    Py_DECREF(cb_matvec2_in_idd__user__routines_args_capi);
-    cb_matvec2_in_idd__user__routines_args_capi = matvec2_args_capi;
-    cb_matvec2_in_idd__user__routines_nofargs = matvec2_nofargs_capi;
-    memcpy(&cb_matvec2_in_idd__user__routines_jmpbuf,&matvec2_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec2 */
-    CFUNCSMESS("Restoring jmpbuf for `matvec`.\n");
-    cb_matvec_in_idd__user__routines_capi = matvec_capi;
-    Py_DECREF(cb_matvec_in_idd__user__routines_args_capi);
-    cb_matvec_in_idd__user__routines_args_capi = matvec_args_capi;
-    cb_matvec_in_idd__user__routines_nofargs = matvec_nofargs_capi;
-    memcpy(&cb_matvec_in_idd__user__routines_jmpbuf,&matvec_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec */
-    CFUNCSMESS("Restoring jmpbuf for `matvect2`.\n");
-    cb_matvect2_in_idd__user__routines_capi = matvect2_capi;
-    Py_DECREF(cb_matvect2_in_idd__user__routines_args_capi);
-    cb_matvect2_in_idd__user__routines_args_capi = matvect2_args_capi;
-    cb_matvect2_in_idd__user__routines_nofargs = matvect2_nofargs_capi;
-    memcpy(&cb_matvect2_in_idd__user__routines_jmpbuf,&matvect2_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvect2 */
-    CFUNCSMESS("Restoring jmpbuf for `matvect`.\n");
-    cb_matvect_in_idd__user__routines_capi = matvect_capi;
-    Py_DECREF(cb_matvect_in_idd__user__routines_args_capi);
-    cb_matvect_in_idd__user__routines_args_capi = matvect_args_capi;
-    cb_matvect_in_idd__user__routines_nofargs = matvect_nofargs_capi;
-    memcpy(&cb_matvect_in_idd__user__routines_jmpbuf,&matvect_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvect */
-  } /*if (f2py_success) of its*/
-  /* End of cleaning variable its */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable snorm */
+    } /*if (f2py_success) of p42*/
+    /* End of cleaning variable p42 */
+    } /*if (f2py_success) of p32*/
+    /* End of cleaning variable p32 */
+    } /*if (f2py_success) of p22*/
+    /* End of cleaning variable p22 */
+    } /*if (f2py_success) of p12*/
+    /* End of cleaning variable p12 */
+    } /*if (f2py_success) of p4*/
+    /* End of cleaning variable p4 */
+    } /*if (f2py_success) of p3*/
+    /* End of cleaning variable p3 */
+    } /*if (f2py_success) of p2*/
+    /* End of cleaning variable p2 */
+    } /*if (f2py_success) of p1*/
+    /* End of cleaning variable p1 */
+    } /*if (f2py_success) of p4t2*/
+    /* End of cleaning variable p4t2 */
+    } /*if (f2py_success) of p3t2*/
+    /* End of cleaning variable p3t2 */
+    } /*if (f2py_success) of p2t2*/
+    /* End of cleaning variable p2t2 */
+    } /*if (f2py_success) of p1t2*/
+    /* End of cleaning variable p1t2 */
+    } /*if (f2py_success) of p4t*/
+    /* End of cleaning variable p4t */
+    } /*if (f2py_success) of p3t*/
+    /* End of cleaning variable p3t */
+    } /*if (f2py_success) of p2t*/
+    /* End of cleaning variable p2t */
+    } /*if (f2py_success) of p1t*/
+    /* End of cleaning variable p1t */
+        CFUNCSMESS("Restoring callback variables for `matvec2`.\n");
+        matvec2_cb_ptr = swap_active_cb_matvec2_in_idd__user__routines(matvec2_cb_ptr);
+        Py_DECREF(matvec2_cb.args_capi);
+    }
+    /* End of cleaning variable matvec2 */
+        CFUNCSMESS("Restoring callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idd__user__routines(matvec_cb_ptr);
+        Py_DECREF(matvec_cb.args_capi);
+    }
+    /* End of cleaning variable matvec */
+        CFUNCSMESS("Restoring callback variables for `matvect2`.\n");
+        matvect2_cb_ptr = swap_active_cb_matvect2_in_idd__user__routines(matvect2_cb_ptr);
+        Py_DECREF(matvect2_cb.args_capi);
+    }
+    /* End of cleaning variable matvect2 */
+        CFUNCSMESS("Restoring callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+        Py_DECREF(matvect_cb.args_capi);
+    }
+    /* End of cleaning variable matvect */
+    } /*if (f2py_success) of its*/
+    /* End of cleaning variable its */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of idd_diffsnorm ****************************/
 
@@ -4227,7 +4664,7 @@ u,v,s,ier = iddr_svd(a,krank,[m,n,r])\n\nWrapper for ``iddr_svd``.\
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
 "n : input int, optional\n    Default: shape(a,1)\n"
-"r : input rank-1 array('d') with bounds ((krank+2)*n+8*min(m,n)+15*pow(krank,2)+8*krank)\n"
+"r : input rank-1 array('d') with bounds (8 * krank + 2 * n + 8 * min(m, n) + 15 * pow(krank, 2) + krank * n)\n"
 "\nReturns\n-------\n"
 "u : rank-2 array('d') with bounds (m,krank)\n"
 "v : rank-2 array('d') with bounds (n,krank)\n"
@@ -4238,171 +4675,181 @@ static PyObject *f2py_rout__interpolative_iddr_svd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*,int*,double*,double*,double*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  double *v = NULL;
-  npy_intp v_Dims[2] = {-1, -1};
-  const int v_Rank = 2;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  int ier = 0;
-  double *r = NULL;
-  npy_intp r_Dims[1] = {-1};
-  const int r_Rank = 1;
-  PyArrayObject *capi_r_tmp = NULL;
-  int capi_r_intent = 0;
-  PyObject *r_capi = Py_None;
-  static char *capi_kwlist[] = {"a","krank","m","n","r",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    double *v = NULL;
+    npy_intp v_Dims[2] = {-1, -1};
+    const int v_Rank = 2;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    int ier = 0;
+    double *r = NULL;
+    npy_intp r_Dims[1] = {-1};
+    const int r_Rank = 1;
+    PyArrayObject *capi_r_tmp = NULL;
+    int capi_r_intent = 0;
+    PyObject *r_capi = Py_None;
+    static char *capi_kwlist[] = {"a","krank","m","n","r",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OOO:_interpolative.iddr_svd",\
-    capi_kwlist,&a_capi,&krank_capi,&m_capi,&n_capi,&r_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OOO:_interpolative.iddr_svd",\
+        capi_kwlist,&a_capi,&krank_capi,&m_capi,&n_capi,&r_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.iddr_svd to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.iddr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_svd() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ier */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_svd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_svd() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable u */
-  u_Dims[0]=m,u_Dims[1]=krank;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `u' of _interpolative.iddr_svd to C/Fortran array" );
-  } else {
-    u = (double *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_svd() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ier */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_svd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_svd() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable u */
+    u_Dims[0]=m,u_Dims[1]=krank;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `u' of _interpolative.iddr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable v */
-  v_Dims[0]=n,v_Dims[1]=krank;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.iddr_svd to C/Fortran array" );
-  } else {
-    v = (double *)(PyArray_DATA(capi_v_tmp));
+    /* Processing variable v */
+    v_Dims[0]=n,v_Dims[1]=krank;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.iddr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (double *)(PyArray_DATA(capi_v_tmp));
 
-  /* Processing variable s */
-  s_Dims[0]=krank;
-  capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `s' of _interpolative.iddr_svd to C/Fortran array" );
-  } else {
-    s = (double *)(PyArray_DATA(capi_s_tmp));
+    /* Processing variable s */
+    s_Dims[0]=krank;
+    capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `s' of _interpolative.iddr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (double *)(PyArray_DATA(capi_s_tmp));
 
-  /* Processing variable r */
-  r_Dims[0]=(krank+2)*n+8*min(m,n)+15*pow(krank,2)+8*krank;
-  capi_r_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_r_tmp = array_from_pyobj(NPY_DOUBLE,r_Dims,r_Rank,capi_r_intent,r_capi);
-  if (capi_r_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd keyword `r' of _interpolative.iddr_svd to C/Fortran array" );
-  } else {
-    r = (double *)(PyArray_DATA(capi_r_tmp));
+    /* Processing variable r */
+    r_Dims[0]=8 * krank + 2 * n + 8 * min(m, n) + 15 * pow(krank, 2) + krank * n;
+    capi_r_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_r_tmp = array_from_pyobj(NPY_DOUBLE,r_Dims,r_Rank,capi_r_intent,r_capi);
+    if (capi_r_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd keyword `r' of _interpolative.iddr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        r = (double *)(PyArray_DATA(capi_r_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,u,v,s,&ier,r);
+                (*f2py_func)(&m,&n,a,&krank,u,v,s,&ier,r);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_r_tmp!=r_capi) {
-    Py_XDECREF(capi_r_tmp); }
-  }  /*if (capi_r_tmp == NULL) ... else of r*/
-  /* End of cleaning variable r */
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable ier */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    if((PyObject *)capi_r_tmp!=r_capi) {
+        Py_XDECREF(capi_r_tmp); }
+    }  /*if (capi_r_tmp == NULL) ... else of r*/
+    /* End of cleaning variable r */
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable ier */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddr_svd ******************************/
 
@@ -4420,140 +4867,144 @@ krank,iu,iv,is,w,ier = iddp_svd(eps,a,[m,n])\n\nWrapper for ``iddp_svd``.\
 "iu : int\n"
 "iv : int\n"
 "is : int\n"
-"w : rank-1 array('d') with bounds ((min(m,n)+1)*(m+2*n+9)+8*min(m,n)+15*pow(min(m,n),2))\n"
+"w : rank-1 array('d') with bounds (9 + m + 2 * n + 17 * min(m, n) + 15 * pow(min(m, n), 2) + m * min(m, n) + 2 * n * min(m, n))\n"
 "ier : int";
 /* extern void F_FUNC_US(iddp_svd,IDDP_SVD)(int*,double*,int*,int*,double*,int*,int*,int*,int*,double*,int*); */
 static PyObject *f2py_rout__interpolative_iddp_svd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,double*,int*,int*,int*,int*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lw = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  int iu = 0;
-  int iv = 0;
-  int is = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  int ier = 0;
-  static char *capi_kwlist[] = {"eps","a","m","n",NULL};
+    int lw = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    int iu = 0;
+    int iv = 0;
+    int is = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    int ier = 0;
+    static char *capi_kwlist[] = {"eps","a","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:_interpolative.iddp_svd",\
-    capi_kwlist,&eps_capi,&a_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:_interpolative.iddp_svd",\
+        capi_kwlist,&eps_capi,&a_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_svd() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.iddp_svd to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_svd() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.iddp_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable iu */
-  /* Processing variable iv */
-  /* Processing variable is */
-  /* Processing variable ier */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_svd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_svd() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=(min(m,n)+1)*(m+2*n+9)+8*min(m,n)+15*pow(min(m,n),2);
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.iddp_svd to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable krank */
+    /* Processing variable iu */
+    /* Processing variable iv */
+    /* Processing variable is */
+    /* Processing variable ier */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_svd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_svd() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=9 + m + 2 * n + 17 * min(m, n) + 15 * pow(min(m, n), 2) + m * min(m, n) + 2 * n * min(m, n);
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.iddp_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable lw */
-  lw = (min(m,n)+1)*(m+2*n+9)+8*min(m,n)+15*pow(min(m,n),2);
+    /* Processing variable lw */
+    lw = (min(m,n)+1)*(m+2*n+9)+8*min(m,n)+15*pow(min(m,n),2);
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&lw,&eps,&m,&n,a,&krank,&iu,&iv,&is,w,&ier);
+                (*f2py_func)(&lw,&eps,&m,&n,a,&krank,&iu,&iv,&is,w,&ier);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  /* End of cleaning variable lw */
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable is */
-  /* End of cleaning variable iv */
-  /* End of cleaning variable iu */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    /* End of cleaning variable lw */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable is */
+    /* End of cleaning variable iv */
+    /* End of cleaning variable iu */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddp_svd ******************************/
 
@@ -4563,7 +5014,7 @@ krank,list,proj = iddp_aid(eps,a,work,proj,[m,n])\n\nWrapper for ``iddp_aid``.\
 \n\nParameters\n----------\n"
 "eps : input float\n"
 "a : input rank-2 array('d') with bounds (m,n)\n"
-"work : input rank-1 array('d') with bounds (17 * m + 70)\n"
+"work : input rank-1 array('d') with bounds (70 + 17 * m)\n"
 "proj : input rank-1 array('d') with bounds (*)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
@@ -4577,155 +5028,163 @@ static PyObject *f2py_rout__interpolative_iddp_aid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int*,int*,double*,double*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int krank = 0;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  double *proj = NULL;
-  npy_intp proj_Dims[1] = {-1};
-  const int proj_Rank = 1;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  static char *capi_kwlist[] = {"eps","a","work","proj","m","n",NULL};
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int krank = 0;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    double *proj = NULL;
+    npy_intp proj_Dims[1] = {-1};
+    const int proj_Rank = 1;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    static char *capi_kwlist[] = {"eps","a","work","proj","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OO:_interpolative.iddp_aid",\
-    capi_kwlist,&eps_capi,&a_capi,&work_capi,&proj_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OO:_interpolative.iddp_aid",\
+        capi_kwlist,&eps_capi,&a_capi,&work_capi,&proj_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_aid() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.iddp_aid to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_aid() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.iddp_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable proj */
-  ;
-  capi_proj_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th argument `proj' of _interpolative.iddp_aid to C/Fortran array" );
-  } else {
-    proj = (double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable krank */
+    /* Processing variable proj */
+    ;
+    capi_proj_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th argument `proj' of _interpolative.iddp_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (double *)(PyArray_DATA(capi_proj_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_aid() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_aid() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable work */
-  work_Dims[0]=17 * m + 70;
-  capi_work_intent |= F2PY_INTENT_IN;
-  capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `work' of _interpolative.iddp_aid to C/Fortran array" );
-  } else {
-    work = (double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_aid() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_aid() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable work */
+    work_Dims[0]=70 + 17 * m;
+    capi_work_intent |= F2PY_INTENT_IN;
+    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `work' of _interpolative.iddp_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (double *)(PyArray_DATA(capi_work_tmp));
 
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.iddp_aid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.iddp_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&eps,&m,&n,a,work,&krank,list,proj);
+                (*f2py_func)(&eps,&m,&n,a,work,&krank,list,proj);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iNN",krank,capi_list_tmp,capi_proj_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iNN",krank,capi_list_tmp,capi_proj_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddp_aid ******************************/
 
@@ -4735,7 +5194,7 @@ krank,ra = idd_estrank(eps,a,w,ra,[m,n])\n\nWrapper for ``idd_estrank``.\
 \n\nParameters\n----------\n"
 "eps : input float\n"
 "a : input rank-2 array('d') with bounds (m,n)\n"
-"w : input rank-1 array('d') with bounds (17 * m + 70)\n"
+"w : input rank-1 array('d') with bounds (70 + 17 * m)\n"
 "ra : input rank-1 array('d') with bounds (*)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
@@ -4748,138 +5207,144 @@ static PyObject *f2py_rout__interpolative_idd_estrank(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int*,int*,double*,double*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  int krank = 0;
-  double *ra = NULL;
-  npy_intp ra_Dims[1] = {-1};
-  const int ra_Rank = 1;
-  PyArrayObject *capi_ra_tmp = NULL;
-  int capi_ra_intent = 0;
-  PyObject *ra_capi = Py_None;
-  static char *capi_kwlist[] = {"eps","a","w","ra","m","n",NULL};
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    int krank = 0;
+    double *ra = NULL;
+    npy_intp ra_Dims[1] = {-1};
+    const int ra_Rank = 1;
+    PyArrayObject *capi_ra_tmp = NULL;
+    int capi_ra_intent = 0;
+    PyObject *ra_capi = Py_None;
+    static char *capi_kwlist[] = {"eps","a","w","ra","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OO:_interpolative.idd_estrank",\
-    capi_kwlist,&eps_capi,&a_capi,&w_capi,&ra_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OO:_interpolative.idd_estrank",\
+        capi_kwlist,&eps_capi,&a_capi,&w_capi,&ra_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idd_estrank() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idd_estrank to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idd_estrank() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idd_estrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable ra */
-  ;
-  capi_ra_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_ra_tmp = array_from_pyobj(NPY_DOUBLE,ra_Dims,ra_Rank,capi_ra_intent,ra_capi);
-  if (capi_ra_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th argument `ra' of _interpolative.idd_estrank to C/Fortran array" );
-  } else {
-    ra = (double *)(PyArray_DATA(capi_ra_tmp));
+    /* Processing variable krank */
+    /* Processing variable ra */
+    ;
+    capi_ra_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_ra_tmp = array_from_pyobj(NPY_DOUBLE,ra_Dims,ra_Rank,capi_ra_intent,ra_capi);
+    if (capi_ra_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th argument `ra' of _interpolative.idd_estrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        ra = (double *)(PyArray_DATA(capi_ra_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_estrank() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_estrank() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=17 * m + 70;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idd_estrank to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_estrank() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_estrank() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=70 + 17 * m;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idd_estrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&eps,&m,&n,a,w,&krank,ra);
+                (*f2py_func)(&eps,&m,&n,a,w,&krank,ra);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iN",krank,capi_ra_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iN",krank,capi_ra_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  }  /*if (capi_ra_tmp == NULL) ... else of ra*/
-  /* End of cleaning variable ra */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    }  /*if (capi_ra_tmp == NULL) ... else of ra*/
+    /* End of cleaning variable ra */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of idd_estrank *****************************/
 
@@ -4889,7 +5354,7 @@ krank,iu,iv,is,w,ier = iddp_asvd(eps,a,winit,w,[m,n])\n\nWrapper for ``iddp_asvd
 \n\nParameters\n----------\n"
 "eps : input float\n"
 "a : input rank-2 array('d') with bounds (m,n)\n"
-"winit : input rank-1 array('d') with bounds (17 * m + 70)\n"
+"winit : input rank-1 array('d') with bounds (70 + 17 * m)\n"
 "w : input rank-1 array('d') with bounds (*)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
@@ -4906,154 +5371,160 @@ static PyObject *f2py_rout__interpolative_iddp_asvd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,double*,double*,int*,int*,int*,int*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lw = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  double *winit = NULL;
-  npy_intp winit_Dims[1] = {-1};
-  const int winit_Rank = 1;
-  PyArrayObject *capi_winit_tmp = NULL;
-  int capi_winit_intent = 0;
-  PyObject *winit_capi = Py_None;
-  int krank = 0;
-  int iu = 0;
-  int iv = 0;
-  int is = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  int ier = 0;
-  static char *capi_kwlist[] = {"eps","a","winit","w","m","n",NULL};
+    int lw = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    double *winit = NULL;
+    npy_intp winit_Dims[1] = {-1};
+    const int winit_Rank = 1;
+    PyArrayObject *capi_winit_tmp = NULL;
+    int capi_winit_intent = 0;
+    PyObject *winit_capi = Py_None;
+    int krank = 0;
+    int iu = 0;
+    int iv = 0;
+    int is = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    int ier = 0;
+    static char *capi_kwlist[] = {"eps","a","winit","w","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OO:_interpolative.iddp_asvd",\
-    capi_kwlist,&eps_capi,&a_capi,&winit_capi,&w_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OO:_interpolative.iddp_asvd",\
+        capi_kwlist,&eps_capi,&a_capi,&winit_capi,&w_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_asvd() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.iddp_asvd to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_asvd() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.iddp_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable iu */
-  /* Processing variable iv */
-  /* Processing variable is */
-  /* Processing variable ier */
-  /* Processing variable w */
-  ;
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th argument `w' of _interpolative.iddp_asvd to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable krank */
+    /* Processing variable iu */
+    /* Processing variable iv */
+    /* Processing variable is */
+    /* Processing variable ier */
+    /* Processing variable w */
+    ;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th argument `w' of _interpolative.iddp_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_asvd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_asvd() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable winit */
-  winit_Dims[0]=17 * m + 70;
-  capi_winit_intent |= F2PY_INTENT_IN;
-  capi_winit_tmp = array_from_pyobj(NPY_DOUBLE,winit_Dims,winit_Rank,capi_winit_intent,winit_capi);
-  if (capi_winit_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `winit' of _interpolative.iddp_asvd to C/Fortran array" );
-  } else {
-    winit = (double *)(PyArray_DATA(capi_winit_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_asvd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_asvd() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable winit */
+    winit_Dims[0]=70 + 17 * m;
+    capi_winit_intent |= F2PY_INTENT_IN;
+    capi_winit_tmp = array_from_pyobj(NPY_DOUBLE,winit_Dims,winit_Rank,capi_winit_intent,winit_capi);
+    if (capi_winit_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `winit' of _interpolative.iddp_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        winit = (double *)(PyArray_DATA(capi_winit_tmp));
 
-  /* Processing variable lw */
-  lw = max((min(m,n)+1)*(3*m+5*n+1)+25*pow(min(m,n),2),(2*n+1)*(m+1));
+    /* Processing variable lw */
+    lw = max((min(m,n)+1)*(3*m+5*n+1)+25*pow(min(m,n),2),(2*n+1)*(m+1));
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&lw,&eps,&m,&n,a,winit,&krank,&iu,&iv,&is,w,&ier);
+                (*f2py_func)(&lw,&eps,&m,&n,a,winit,&krank,&iu,&iv,&is,w,&ier);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  /* End of cleaning variable lw */
-  if((PyObject *)capi_winit_tmp!=winit_capi) {
-    Py_XDECREF(capi_winit_tmp); }
-  }  /*if (capi_winit_tmp == NULL) ... else of winit*/
-  /* End of cleaning variable winit */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable is */
-  /* End of cleaning variable iv */
-  /* End of cleaning variable iu */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    /* End of cleaning variable lw */
+    if((PyObject *)capi_winit_tmp!=winit_capi) {
+        Py_XDECREF(capi_winit_tmp); }
+    }  /*if (capi_winit_tmp == NULL) ... else of winit*/
+    /* End of cleaning variable winit */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable is */
+    /* End of cleaning variable iv */
+    /* End of cleaning variable iu */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddp_asvd ******************************/
 
@@ -5078,200 +5549,197 @@ krank,list,proj,ier = iddp_rid(eps,m,n,matvect,proj,[p1,p2,p3,p4,matvect_extra_a
 "proj : rank-1 array('d') with bounds (*)\n"
 "ier : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (n)";
+"    def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (n)";
 /* extern void F_FUNC_US(iddp_rid,IDDP_RID)(int*,double*,int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,int*,double*,int*); */
 static PyObject *f2py_rout__interpolative_iddp_rid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,int*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lproj = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matvect_capi = Py_None;
-  PyTupleObject *matvect_xa_capi = NULL;
-  PyTupleObject *matvect_args_capi = NULL;
-  int matvect_nofargs_capi = 0;
-  cb_matvect_in_idd__user__routines_typedef matvect_cptr;
-  double p1 = 0;
-  PyObject *p1_capi = Py_None;
-  double p2 = 0;
-  PyObject *p2_capi = Py_None;
-  double p3 = 0;
-  PyObject *p3_capi = Py_None;
-  double p4 = 0;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  double *proj = NULL;
-  npy_intp proj_Dims[1] = {-1};
-  const int proj_Rank = 1;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  int ier = 0;
-  static char *capi_kwlist[] = {"eps","m","n","matvect","proj","p1","p2","p3","p4","matvect_extra_args",NULL};
+    int lproj = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matvect_in_idd__user__routines_t matvect_cb = { Py_None, NULL, 0 };
+    cb_matvect_in_idd__user__routines_t *matvect_cb_ptr = &matvect_cb;
+    PyTupleObject *matvect_xa_capi = NULL;
+    cb_matvect_in_idd__user__routines_typedef matvect_cptr;
+    double p1 = 0;
+    PyObject *p1_capi = Py_None;
+    double p2 = 0;
+    PyObject *p2_capi = Py_None;
+    double p3 = 0;
+    PyObject *p3_capi = Py_None;
+    double p4 = 0;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    double *proj = NULL;
+    npy_intp proj_Dims[1] = {-1};
+    const int proj_Rank = 1;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    int ier = 0;
+    static char *capi_kwlist[] = {"eps","m","n","matvect","proj","p1","p2","p3","p4","matvect_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOO|OOOOO!:_interpolative.iddp_rid",\
-    capi_kwlist,&eps_capi,&m_capi,&n_capi,&matvect_capi,&proj_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matvect_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOO|OOOOO!:_interpolative.iddp_rid",\
+        capi_kwlist,&eps_capi,&m_capi,&n_capi,&matvect_cb.capi,&proj_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matvect_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_rid() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_rid() 2nd argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_rid() 3rd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matvect */
-if(F2PyCapsule_Check(matvect_capi)) {
-  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_capi);
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_rid() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_rid() 2nd argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_rid() 3rd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matvect */
+if(F2PyCapsule_Check(matvect_cb.capi)) {
+  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_cb.capi);
 } else {
   matvect_cptr = cb_matvect_in_idd__user__routines;
 }
 
-  matvect_nofargs_capi = cb_matvect_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvect_capi,matvect_xa_capi,7,6,&cb_matvect_in_idd__user__routines_nofargs,&matvect_args_capi,"failed in processing argument list for call-back matvect.")) {
-    jmp_buf matvect_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvect`.\n");
-    SWAP(matvect_capi,cb_matvect_in_idd__user__routines_capi,PyObject);
-    SWAP(matvect_args_capi,cb_matvect_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvect_jmpbuf,&cb_matvect_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.iddp_rid() 1st keyword (p1) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.iddp_rid() 2nd keyword (p2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.iddp_rid() 3rd keyword (p3) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.iddp_rid() 4th keyword (p4) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable krank */
-  /* Processing variable ier */
-  /* Processing variable proj */
-  ;
-  capi_proj_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 5th argument `proj' of _interpolative.iddp_rid to C/Fortran array" );
-  } else {
-    proj = (double *)(PyArray_DATA(capi_proj_tmp));
+    if (create_cb_arglist(matvect_cb.capi,matvect_xa_capi,7,6,&matvect_cb.nofargs,&matvect_cb.args_capi,"failed in processing argument list for call-back matvect.")) {
 
-  /* Processing variable lproj */
-  lproj = m+1+2*n*(min(m,n)+1);
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.iddp_rid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+        CFUNCSMESS("Saving callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.iddp_rid() 1st keyword (p1) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.iddp_rid() 2nd keyword (p2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.iddp_rid() 3rd keyword (p3) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.iddp_rid() 4th keyword (p4) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable krank */
+    /* Processing variable ier */
+    /* Processing variable proj */
+    ;
+    capi_proj_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 5th argument `proj' of _interpolative.iddp_rid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (double *)(PyArray_DATA(capi_proj_tmp));
+
+    /* Processing variable lproj */
+    lproj = m+1+2*n*(min(m,n)+1);
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.iddp_rid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matvect_in_idd__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&lproj,&eps,&m,&n,matvect_cptr,&p1,&p2,&p3,&p4,&krank,list,proj,&ier);
-    }
+        if ((setjmp(matvect_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&lproj,&eps,&m,&n,matvect_cptr,&p1,&p2,&p3,&p4,&krank,list,proj,&ier);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iNNi",krank,capi_list_tmp,capi_proj_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iNNi",krank,capi_list_tmp,capi_proj_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  /* End of cleaning variable lproj */
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of p4*/
-  /* End of cleaning variable p4 */
-  } /*if (f2py_success) of p3*/
-  /* End of cleaning variable p3 */
-  } /*if (f2py_success) of p2*/
-  /* End of cleaning variable p2 */
-  } /*if (f2py_success) of p1*/
-  /* End of cleaning variable p1 */
-    CFUNCSMESS("Restoring jmpbuf for `matvect`.\n");
-    cb_matvect_in_idd__user__routines_capi = matvect_capi;
-    Py_DECREF(cb_matvect_in_idd__user__routines_args_capi);
-    cb_matvect_in_idd__user__routines_args_capi = matvect_args_capi;
-    cb_matvect_in_idd__user__routines_nofargs = matvect_nofargs_capi;
-    memcpy(&cb_matvect_in_idd__user__routines_jmpbuf,&matvect_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvect */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    /* End of cleaning variable lproj */
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of p4*/
+    /* End of cleaning variable p4 */
+    } /*if (f2py_success) of p3*/
+    /* End of cleaning variable p3 */
+    } /*if (f2py_success) of p2*/
+    /* End of cleaning variable p2 */
+    } /*if (f2py_success) of p1*/
+    /* End of cleaning variable p1 */
+        CFUNCSMESS("Restoring callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+        Py_DECREF(matvect_cb.args_capi);
+    }
+    /* End of cleaning variable matvect */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddp_rid ******************************/
 
@@ -5289,208 +5757,205 @@ krank,ra,ier = idd_findrank(eps,m,n,matvect,[p1,p2,p3,p4,w,matvect_extra_args])\
 "p2 : input float\n"
 "p3 : input float\n"
 "p4 : input float\n"
-"w : input rank-1 array('d') with bounds (m+2*n+1)\n"
+"w : input rank-1 array('d') with bounds (1 + m + 2 * n)\n"
 "\nReturns\n-------\n"
 "krank : int\n"
-"ra : rank-1 array('d') with bounds (2*n*min(m,n))\n"
+"ra : rank-1 array('d') with bounds (2 * n * min(m, n))\n"
 "ier : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (n)";
+"    def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (n)";
 /* extern void F_FUNC_US(idd_findrank,IDD_FINDRANK)(int*,double*,int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,double*,int*,double*); */
 static PyObject *f2py_rout__interpolative_idd_findrank(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,double*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lra = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matvect_capi = Py_None;
-  PyTupleObject *matvect_xa_capi = NULL;
-  PyTupleObject *matvect_args_capi = NULL;
-  int matvect_nofargs_capi = 0;
-  cb_matvect_in_idd__user__routines_typedef matvect_cptr;
-  double p1 = 0;
-  PyObject *p1_capi = Py_None;
-  double p2 = 0;
-  PyObject *p2_capi = Py_None;
-  double p3 = 0;
-  PyObject *p3_capi = Py_None;
-  double p4 = 0;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  double *ra = NULL;
-  npy_intp ra_Dims[1] = {-1};
-  const int ra_Rank = 1;
-  PyArrayObject *capi_ra_tmp = NULL;
-  int capi_ra_intent = 0;
-  int ier = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  static char *capi_kwlist[] = {"eps","m","n","matvect","p1","p2","p3","p4","w","matvect_extra_args",NULL};
+    int lra = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matvect_in_idd__user__routines_t matvect_cb = { Py_None, NULL, 0 };
+    cb_matvect_in_idd__user__routines_t *matvect_cb_ptr = &matvect_cb;
+    PyTupleObject *matvect_xa_capi = NULL;
+    cb_matvect_in_idd__user__routines_typedef matvect_cptr;
+    double p1 = 0;
+    PyObject *p1_capi = Py_None;
+    double p2 = 0;
+    PyObject *p2_capi = Py_None;
+    double p3 = 0;
+    PyObject *p3_capi = Py_None;
+    double p4 = 0;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    double *ra = NULL;
+    npy_intp ra_Dims[1] = {-1};
+    const int ra_Rank = 1;
+    PyArrayObject *capi_ra_tmp = NULL;
+    int capi_ra_intent = 0;
+    int ier = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    static char *capi_kwlist[] = {"eps","m","n","matvect","p1","p2","p3","p4","w","matvect_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OOOOOO!:_interpolative.idd_findrank",\
-    capi_kwlist,&eps_capi,&m_capi,&n_capi,&matvect_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&w_capi,&PyTuple_Type,&matvect_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OOOOOO!:_interpolative.idd_findrank",\
+        capi_kwlist,&eps_capi,&m_capi,&n_capi,&matvect_cb.capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&w_capi,&PyTuple_Type,&matvect_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idd_findrank() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_findrank() 2nd argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_findrank() 3rd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matvect */
-if(F2PyCapsule_Check(matvect_capi)) {
-  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_capi);
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idd_findrank() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idd_findrank() 2nd argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idd_findrank() 3rd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matvect */
+if(F2PyCapsule_Check(matvect_cb.capi)) {
+  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_cb.capi);
 } else {
   matvect_cptr = cb_matvect_in_idd__user__routines;
 }
 
-  matvect_nofargs_capi = cb_matvect_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvect_capi,matvect_xa_capi,7,6,&cb_matvect_in_idd__user__routines_nofargs,&matvect_args_capi,"failed in processing argument list for call-back matvect.")) {
-    jmp_buf matvect_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvect`.\n");
-    SWAP(matvect_capi,cb_matvect_in_idd__user__routines_capi,PyObject);
-    SWAP(matvect_args_capi,cb_matvect_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvect_jmpbuf,&cb_matvect_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.idd_findrank() 1st keyword (p1) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.idd_findrank() 2nd keyword (p2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.idd_findrank() 3rd keyword (p3) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.idd_findrank() 4th keyword (p4) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable krank */
-  /* Processing variable ier */
-  /* Processing variable lra */
-  lra = 2*n*min(m,n);
-  /* Processing variable ra */
-  ra_Dims[0]=2*n*min(m,n);
-  capi_ra_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_ra_tmp = array_from_pyobj(NPY_DOUBLE,ra_Dims,ra_Rank,capi_ra_intent,Py_None);
-  if (capi_ra_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `ra' of _interpolative.idd_findrank to C/Fortran array" );
-  } else {
-    ra = (double *)(PyArray_DATA(capi_ra_tmp));
+    if (create_cb_arglist(matvect_cb.capi,matvect_xa_capi,7,6,&matvect_cb.nofargs,&matvect_cb.args_capi,"failed in processing argument list for call-back matvect.")) {
 
-  /* Processing variable w */
-  w_Dims[0]=m+2*n+1;
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 5th keyword `w' of _interpolative.idd_findrank to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+        CFUNCSMESS("Saving callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.idd_findrank() 1st keyword (p1) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.idd_findrank() 2nd keyword (p2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.idd_findrank() 3rd keyword (p3) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.idd_findrank() 4th keyword (p4) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable krank */
+    /* Processing variable ier */
+    /* Processing variable lra */
+    lra = 2*n*min(m,n);
+    /* Processing variable ra */
+    ra_Dims[0]=2 * n * min(m, n);
+    capi_ra_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_ra_tmp = array_from_pyobj(NPY_DOUBLE,ra_Dims,ra_Rank,capi_ra_intent,Py_None);
+    if (capi_ra_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `ra' of _interpolative.idd_findrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        ra = (double *)(PyArray_DATA(capi_ra_tmp));
+
+    /* Processing variable w */
+    w_Dims[0]=1 + m + 2 * n;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 5th keyword `w' of _interpolative.idd_findrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matvect_in_idd__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&lra,&eps,&m,&n,matvect_cptr,&p1,&p2,&p3,&p4,&krank,ra,&ier,w);
-    }
+        if ((setjmp(matvect_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&lra,&eps,&m,&n,matvect_cptr,&p1,&p2,&p3,&p4,&krank,ra,&ier,w);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iNi",krank,capi_ra_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iNi",krank,capi_ra_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  }  /*if (capi_ra_tmp == NULL) ... else of ra*/
-  /* End of cleaning variable ra */
-  /* End of cleaning variable lra */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of p4*/
-  /* End of cleaning variable p4 */
-  } /*if (f2py_success) of p3*/
-  /* End of cleaning variable p3 */
-  } /*if (f2py_success) of p2*/
-  /* End of cleaning variable p2 */
-  } /*if (f2py_success) of p1*/
-  /* End of cleaning variable p1 */
-    CFUNCSMESS("Restoring jmpbuf for `matvect`.\n");
-    cb_matvect_in_idd__user__routines_capi = matvect_capi;
-    Py_DECREF(cb_matvect_in_idd__user__routines_args_capi);
-    cb_matvect_in_idd__user__routines_args_capi = matvect_args_capi;
-    cb_matvect_in_idd__user__routines_nofargs = matvect_nofargs_capi;
-    memcpy(&cb_matvect_in_idd__user__routines_jmpbuf,&matvect_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvect */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    }  /*if (capi_ra_tmp == NULL) ... else of ra*/
+    /* End of cleaning variable ra */
+    /* End of cleaning variable lra */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of p4*/
+    /* End of cleaning variable p4 */
+    } /*if (f2py_success) of p3*/
+    /* End of cleaning variable p3 */
+    } /*if (f2py_success) of p2*/
+    /* End of cleaning variable p2 */
+    } /*if (f2py_success) of p1*/
+    /* End of cleaning variable p1 */
+        CFUNCSMESS("Restoring callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+        Py_DECREF(matvect_cb.args_capi);
+    }
+    /* End of cleaning variable matvect */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of idd_findrank ****************************/
 
@@ -5519,265 +5984,253 @@ krank,iu,iv,is,w,ier = iddp_rsvd(eps,m,n,matvect,matvec,[p1t,p2t,p3t,p4t,p1,p2,p
 "iu : int\n"
 "iv : int\n"
 "is : int\n"
-"w : rank-1 array('d') with bounds ((min(m,n)+1)*(3*m+5*n+1)+25*pow(min(m,n),2))\n"
+"w : rank-1 array('d') with bounds (1 + 3 * m + 5 * n + min(m, n) + 25 * pow(min(m, n), 2) + 3 * m * min(m, n) + 5 * n * min(m, n))\n"
 "ier : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (n)\n"
-"  def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (m)";
+"    def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (n)\n"
+"    def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (m)";
 /* extern void F_FUNC_US(iddp_rsvd,IDDP_RSVD)(int*,double*,int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,int*,int*,int*,double*,int*); */
 static PyObject *f2py_rout__interpolative_iddp_rsvd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,int*,int*,int*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lw = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matvect_capi = Py_None;
-  PyTupleObject *matvect_xa_capi = NULL;
-  PyTupleObject *matvect_args_capi = NULL;
-  int matvect_nofargs_capi = 0;
-  cb_matvect_in_idd__user__routines_typedef matvect_cptr;
-  double p1t = 0;
-  PyObject *p1t_capi = Py_None;
-  double p2t = 0;
-  PyObject *p2t_capi = Py_None;
-  double p3t = 0;
-  PyObject *p3t_capi = Py_None;
-  double p4t = 0;
-  PyObject *p4t_capi = Py_None;
-  PyObject *matvec_capi = Py_None;
-  PyTupleObject *matvec_xa_capi = NULL;
-  PyTupleObject *matvec_args_capi = NULL;
-  int matvec_nofargs_capi = 0;
-  cb_matvec_in_idd__user__routines_typedef matvec_cptr;
-  double p1 = 0;
-  PyObject *p1_capi = Py_None;
-  double p2 = 0;
-  PyObject *p2_capi = Py_None;
-  double p3 = 0;
-  PyObject *p3_capi = Py_None;
-  double p4 = 0;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  int iu = 0;
-  int iv = 0;
-  int is = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  int ier = 0;
-  static char *capi_kwlist[] = {"eps","m","n","matvect","matvec","p1t","p2t","p3t","p4t","p1","p2","p3","p4","matvect_extra_args","matvec_extra_args",NULL};
+    int lw = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matvect_in_idd__user__routines_t matvect_cb = { Py_None, NULL, 0 };
+    cb_matvect_in_idd__user__routines_t *matvect_cb_ptr = &matvect_cb;
+    PyTupleObject *matvect_xa_capi = NULL;
+    cb_matvect_in_idd__user__routines_typedef matvect_cptr;
+    double p1t = 0;
+    PyObject *p1t_capi = Py_None;
+    double p2t = 0;
+    PyObject *p2t_capi = Py_None;
+    double p3t = 0;
+    PyObject *p3t_capi = Py_None;
+    double p4t = 0;
+    PyObject *p4t_capi = Py_None;
+    cb_matvec_in_idd__user__routines_t matvec_cb = { Py_None, NULL, 0 };
+    cb_matvec_in_idd__user__routines_t *matvec_cb_ptr = &matvec_cb;
+    PyTupleObject *matvec_xa_capi = NULL;
+    cb_matvec_in_idd__user__routines_typedef matvec_cptr;
+    double p1 = 0;
+    PyObject *p1_capi = Py_None;
+    double p2 = 0;
+    PyObject *p2_capi = Py_None;
+    double p3 = 0;
+    PyObject *p3_capi = Py_None;
+    double p4 = 0;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    int iu = 0;
+    int iv = 0;
+    int is = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    int ier = 0;
+    static char *capi_kwlist[] = {"eps","m","n","matvect","matvec","p1t","p2t","p3t","p4t","p1","p2","p3","p4","matvect_extra_args","matvec_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOO|OOOOOOOOO!O!:_interpolative.iddp_rsvd",\
-    capi_kwlist,&eps_capi,&m_capi,&n_capi,&matvect_capi,&matvec_capi,&p1t_capi,&p2t_capi,&p3t_capi,&p4t_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matvect_xa_capi,&PyTuple_Type,&matvec_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOO|OOOOOOOOO!O!:_interpolative.iddp_rsvd",\
+        capi_kwlist,&eps_capi,&m_capi,&n_capi,&matvect_cb.capi,&matvec_cb.capi,&p1t_capi,&p2t_capi,&p3t_capi,&p4t_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matvect_xa_capi,&PyTuple_Type,&matvec_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_rsvd() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_rsvd() 2nd argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_rsvd() 3rd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matvect */
-if(F2PyCapsule_Check(matvect_capi)) {
-  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_capi);
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.iddp_rsvd() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddp_rsvd() 2nd argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddp_rsvd() 3rd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matvect */
+if(F2PyCapsule_Check(matvect_cb.capi)) {
+  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_cb.capi);
 } else {
   matvect_cptr = cb_matvect_in_idd__user__routines;
 }
 
-  matvect_nofargs_capi = cb_matvect_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvect_capi,matvect_xa_capi,7,6,&cb_matvect_in_idd__user__routines_nofargs,&matvect_args_capi,"failed in processing argument list for call-back matvect.")) {
-    jmp_buf matvect_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvect`.\n");
-    SWAP(matvect_capi,cb_matvect_in_idd__user__routines_capi,PyObject);
-    SWAP(matvect_args_capi,cb_matvect_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvect_jmpbuf,&cb_matvect_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec */
-if(F2PyCapsule_Check(matvec_capi)) {
-  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_capi);
+    if (create_cb_arglist(matvect_cb.capi,matvect_xa_capi,7,6,&matvect_cb.nofargs,&matvect_cb.args_capi,"failed in processing argument list for call-back matvect.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+    /* Processing variable matvec */
+if(F2PyCapsule_Check(matvec_cb.capi)) {
+  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_cb.capi);
 } else {
   matvec_cptr = cb_matvec_in_idd__user__routines;
 }
 
-  matvec_nofargs_capi = cb_matvec_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvec_capi,matvec_xa_capi,7,6,&cb_matvec_in_idd__user__routines_nofargs,&matvec_args_capi,"failed in processing argument list for call-back matvec.")) {
-    jmp_buf matvec_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec`.\n");
-    SWAP(matvec_capi,cb_matvec_in_idd__user__routines_capi,PyObject);
-    SWAP(matvec_args_capi,cb_matvec_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec_jmpbuf,&cb_matvec_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1t */
-  if (p1t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1t,p1t_capi,"_interpolative.iddp_rsvd() 1st keyword (p1t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2t */
-  if (p2t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2t,p2t_capi,"_interpolative.iddp_rsvd() 2nd keyword (p2t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3t */
-  if (p3t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3t,p3t_capi,"_interpolative.iddp_rsvd() 3rd keyword (p3t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4t */
-  if (p4t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4t,p4t_capi,"_interpolative.iddp_rsvd() 4th keyword (p4t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.iddp_rsvd() 5th keyword (p1) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.iddp_rsvd() 6th keyword (p2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.iddp_rsvd() 7th keyword (p3) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.iddp_rsvd() 8th keyword (p4) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable krank */
-  /* Processing variable iu */
-  /* Processing variable iv */
-  /* Processing variable is */
-  /* Processing variable ier */
-  /* Processing variable lw */
-  lw = (min(m,n)+1)*(3*m+5*n+1)+25*pow(min(m,n),2);
-  /* Processing variable w */
-  w_Dims[0]=(min(m,n)+1)*(3*m+5*n+1)+25*pow(min(m,n),2);
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.iddp_rsvd to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    if (create_cb_arglist(matvec_cb.capi,matvec_xa_capi,7,6,&matvec_cb.nofargs,&matvec_cb.args_capi,"failed in processing argument list for call-back matvec.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idd__user__routines(matvec_cb_ptr);
+    /* Processing variable p1t */
+    if (p1t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1t,p1t_capi,"_interpolative.iddp_rsvd() 1st keyword (p1t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2t */
+    if (p2t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2t,p2t_capi,"_interpolative.iddp_rsvd() 2nd keyword (p2t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3t */
+    if (p3t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3t,p3t_capi,"_interpolative.iddp_rsvd() 3rd keyword (p3t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4t */
+    if (p4t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4t,p4t_capi,"_interpolative.iddp_rsvd() 4th keyword (p4t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.iddp_rsvd() 5th keyword (p1) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.iddp_rsvd() 6th keyword (p2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.iddp_rsvd() 7th keyword (p3) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.iddp_rsvd() 8th keyword (p4) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable krank */
+    /* Processing variable iu */
+    /* Processing variable iv */
+    /* Processing variable is */
+    /* Processing variable ier */
+    /* Processing variable lw */
+    lw = (min(m,n)+1)*(3*m+5*n+1)+25*pow(min(m,n),2);
+    /* Processing variable w */
+    w_Dims[0]=1 + 3 * m + 5 * n + min(m, n) + 25 * pow(min(m, n), 2) + 3 * m * min(m, n) + 5 * n * min(m, n);
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.iddp_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matvect_in_idd__user__routines_jmpbuf)) || (setjmp(cb_matvec_in_idd__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&lw,&eps,&m,&n,matvect_cptr,&p1t,&p2t,&p3t,&p4t,matvec_cptr,&p1,&p2,&p3,&p4,&krank,&iu,&iv,&is,w,&ier);
-    }
+        if ((setjmp(matvect_cb.jmpbuf)) || (setjmp(matvec_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&lw,&eps,&m,&n,matvect_cptr,&p1t,&p2t,&p3t,&p4t,matvec_cptr,&p1,&p2,&p3,&p4,&krank,&iu,&iv,&is,w,&ier);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable lw */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable is */
-  /* End of cleaning variable iv */
-  /* End of cleaning variable iu */
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of p4*/
-  /* End of cleaning variable p4 */
-  } /*if (f2py_success) of p3*/
-  /* End of cleaning variable p3 */
-  } /*if (f2py_success) of p2*/
-  /* End of cleaning variable p2 */
-  } /*if (f2py_success) of p1*/
-  /* End of cleaning variable p1 */
-  } /*if (f2py_success) of p4t*/
-  /* End of cleaning variable p4t */
-  } /*if (f2py_success) of p3t*/
-  /* End of cleaning variable p3t */
-  } /*if (f2py_success) of p2t*/
-  /* End of cleaning variable p2t */
-  } /*if (f2py_success) of p1t*/
-  /* End of cleaning variable p1t */
-    CFUNCSMESS("Restoring jmpbuf for `matvec`.\n");
-    cb_matvec_in_idd__user__routines_capi = matvec_capi;
-    Py_DECREF(cb_matvec_in_idd__user__routines_args_capi);
-    cb_matvec_in_idd__user__routines_args_capi = matvec_args_capi;
-    cb_matvec_in_idd__user__routines_nofargs = matvec_nofargs_capi;
-    memcpy(&cb_matvec_in_idd__user__routines_jmpbuf,&matvec_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec */
-    CFUNCSMESS("Restoring jmpbuf for `matvect`.\n");
-    cb_matvect_in_idd__user__routines_capi = matvect_capi;
-    Py_DECREF(cb_matvect_in_idd__user__routines_args_capi);
-    cb_matvect_in_idd__user__routines_args_capi = matvect_args_capi;
-    cb_matvect_in_idd__user__routines_nofargs = matvect_nofargs_capi;
-    memcpy(&cb_matvect_in_idd__user__routines_jmpbuf,&matvect_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvect */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable lw */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable is */
+    /* End of cleaning variable iv */
+    /* End of cleaning variable iu */
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of p4*/
+    /* End of cleaning variable p4 */
+    } /*if (f2py_success) of p3*/
+    /* End of cleaning variable p3 */
+    } /*if (f2py_success) of p2*/
+    /* End of cleaning variable p2 */
+    } /*if (f2py_success) of p1*/
+    /* End of cleaning variable p1 */
+    } /*if (f2py_success) of p4t*/
+    /* End of cleaning variable p4t */
+    } /*if (f2py_success) of p3t*/
+    /* End of cleaning variable p3t */
+    } /*if (f2py_success) of p2t*/
+    /* End of cleaning variable p2t */
+    } /*if (f2py_success) of p1t*/
+    /* End of cleaning variable p1t */
+        CFUNCSMESS("Restoring callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idd__user__routines(matvec_cb_ptr);
+        Py_DECREF(matvec_cb.args_capi);
+    }
+    /* End of cleaning variable matvec */
+        CFUNCSMESS("Restoring callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+        Py_DECREF(matvect_cb.args_capi);
+    }
+    /* End of cleaning variable matvect */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddp_rsvd ******************************/
 
@@ -5787,163 +6240,171 @@ list,proj = iddr_aid(a,krank,w,[m,n])\n\nWrapper for ``iddr_aid``.\
 \n\nParameters\n----------\n"
 "a : input rank-2 array('d') with bounds (m,n)\n"
 "krank : input int\n"
-"w : input rank-1 array('d') with bounds ((2*krank+17)*n+27*m+100)\n"
+"w : input rank-1 array('d') with bounds (100 + 27 * m + 17 * n + 2 * krank * n)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
 "n : input int, optional\n    Default: shape(a,1)\n"
 "\nReturns\n-------\n"
 "list : rank-1 array('i') with bounds (n)\n"
-"proj : rank-1 array('d') with bounds (max(krank*(n-krank),1))";
+"proj : rank-1 array('d') with bounds (max(krank * n - krank * krank, 1))";
 /* extern void F_FUNC_US(iddr_aid,IDDR_AID)(int*,int*,double*,int*,double*,int*,double*); */
 static PyObject *f2py_rout__interpolative_iddr_aid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*,int*,double*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  double *proj = NULL;
-  npy_intp proj_Dims[1] = {-1};
-  const int proj_Rank = 1;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  static char *capi_kwlist[] = {"a","krank","w","m","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    double *proj = NULL;
+    npy_intp proj_Dims[1] = {-1};
+    const int proj_Rank = 1;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    static char *capi_kwlist[] = {"a","krank","w","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OO:_interpolative.iddr_aid",\
-    capi_kwlist,&a_capi,&krank_capi,&w_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OO:_interpolative.iddr_aid",\
+        capi_kwlist,&a_capi,&krank_capi,&w_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.iddr_aid to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.iddr_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_aid() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_aid() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_aid() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=(2*krank+17)*n+27*m+100;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `w' of _interpolative.iddr_aid to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_aid() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_aid() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_aid() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=100 + 27 * m + 17 * n + 2 * krank * n;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `w' of _interpolative.iddr_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.iddr_aid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.iddr_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable proj */
-  proj_Dims[0]=max(krank*(n-krank),1);
-  capi_proj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,Py_None);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `proj' of _interpolative.iddr_aid to C/Fortran array" );
-  } else {
-    proj = (double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable proj */
+    proj_Dims[0]=max(krank * n - krank * krank, 1);
+    capi_proj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,Py_None);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `proj' of _interpolative.iddr_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (double *)(PyArray_DATA(capi_proj_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,w,list,proj);
+                (*f2py_func)(&m,&n,a,&krank,w,list,proj);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_proj_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_proj_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddr_aid ******************************/
 
@@ -5955,98 +6416,100 @@ w = iddr_aidi(m,n,krank)\n\nWrapper for ``iddr_aidi``.\
 "n : input int\n"
 "krank : input int\n"
 "\nReturns\n-------\n"
-"w : rank-1 array('d') with bounds ((2*krank+17)*n+27*m+100)";
+"w : rank-1 array('d') with bounds (100 + 27 * m + 17 * n + 2 * krank * n)";
 /* extern void F_FUNC_US(iddr_aidi,IDDR_AIDI)(int*,int*,int*,double*); */
 static PyObject *f2py_rout__interpolative_iddr_aidi(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  static char *capi_kwlist[] = {"m","n","krank",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    static char *capi_kwlist[] = {"m","n","krank",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO:_interpolative.iddr_aidi",\
-    capi_kwlist,&m_capi,&n_capi,&krank_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|:_interpolative.iddr_aidi",\
+        capi_kwlist,&m_capi,&n_capi,&krank_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_aidi() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_aidi() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_aidi() 3rd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=(2*krank+17)*n+27*m+100;
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.iddr_aidi to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_aidi() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_aidi() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_aidi() 3rd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=100 + 27 * m + 17 * n + 2 * krank * n;
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.iddr_aidi to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,&krank,w);
+                (*f2py_func)(&m,&n,&krank,w);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_w_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_w_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddr_aidi ******************************/
 
@@ -6056,7 +6519,7 @@ u,v,s,ier = iddr_asvd(a,krank,w,[m,n])\n\nWrapper for ``iddr_asvd``.\
 \n\nParameters\n----------\n"
 "a : input rank-2 array('d') with bounds (m,n)\n"
 "krank : input int\n"
-"w : input rank-1 array('d') with bounds ((2*krank+28)*m+(6*krank+21)*n+25*pow(krank,2)+100)\n"
+"w : input rank-1 array('d') with bounds (100 + 28 * m + 21 * n + 25 * pow(krank, 2) + 2 * krank * m + 6 * krank * n)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
 "n : input int, optional\n    Default: shape(a,1)\n"
@@ -6070,171 +6533,181 @@ static PyObject *f2py_rout__interpolative_iddr_asvd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,double*,int*,double*,double*,double*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  double *v = NULL;
-  npy_intp v_Dims[2] = {-1, -1};
-  const int v_Rank = 2;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  int ier = 0;
-  static char *capi_kwlist[] = {"a","krank","w","m","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    double *v = NULL;
+    npy_intp v_Dims[2] = {-1, -1};
+    const int v_Rank = 2;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    int ier = 0;
+    static char *capi_kwlist[] = {"a","krank","w","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OO:_interpolative.iddr_asvd",\
-    capi_kwlist,&a_capi,&krank_capi,&w_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OO:_interpolative.iddr_asvd",\
+        capi_kwlist,&a_capi,&krank_capi,&w_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.iddr_asvd to C/Fortran array" );
-  } else {
-    a = (double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_DOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.iddr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_asvd() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ier */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_asvd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_asvd() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=(2*krank+28)*m+(6*krank+21)*n+25*pow(krank,2)+100;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `w' of _interpolative.iddr_asvd to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_asvd() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ier */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_asvd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_asvd() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=100 + 28 * m + 21 * n + 25 * pow(krank, 2) + 2 * krank * m + 6 * krank * n;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `w' of _interpolative.iddr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable u */
-  u_Dims[0]=m,u_Dims[1]=krank;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `u' of _interpolative.iddr_asvd to C/Fortran array" );
-  } else {
-    u = (double *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable u */
+    u_Dims[0]=m,u_Dims[1]=krank;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `u' of _interpolative.iddr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable v */
-  v_Dims[0]=n,v_Dims[1]=krank;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.iddr_asvd to C/Fortran array" );
-  } else {
-    v = (double *)(PyArray_DATA(capi_v_tmp));
+    /* Processing variable v */
+    v_Dims[0]=n,v_Dims[1]=krank;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.iddr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (double *)(PyArray_DATA(capi_v_tmp));
 
-  /* Processing variable s */
-  s_Dims[0]=krank;
-  capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `s' of _interpolative.iddr_asvd to C/Fortran array" );
-  } else {
-    s = (double *)(PyArray_DATA(capi_s_tmp));
+    /* Processing variable s */
+    s_Dims[0]=krank;
+    capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `s' of _interpolative.iddr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (double *)(PyArray_DATA(capi_s_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,w,u,v,s,&ier);
+                (*f2py_func)(&m,&n,a,&krank,w,u,v,s,&ier);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable ier */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable ier */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddr_asvd ******************************/
 
@@ -6254,191 +6727,188 @@ list,proj = iddr_rid(m,n,matvect,krank,[p1,p2,p3,p4,matvect_extra_args])\n\nWrap
 "p4 : input float\n"
 "\nReturns\n-------\n"
 "list : rank-1 array('i') with bounds (n)\n"
-"proj : rank-1 array('d') with bounds (m+(krank+3)*n)\n"
+"proj : rank-1 array('d') with bounds (m + 3 * n + krank * n)\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (n)";
+"    def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (n)";
 /* extern void F_FUNC_US(iddr_rid,IDDR_RID)(int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,int*,double*); */
 static PyObject *f2py_rout__interpolative_iddr_rid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matvect_capi = Py_None;
-  PyTupleObject *matvect_xa_capi = NULL;
-  PyTupleObject *matvect_args_capi = NULL;
-  int matvect_nofargs_capi = 0;
-  cb_matvect_in_idd__user__routines_typedef matvect_cptr;
-  double p1 = 0;
-  PyObject *p1_capi = Py_None;
-  double p2 = 0;
-  PyObject *p2_capi = Py_None;
-  double p3 = 0;
-  PyObject *p3_capi = Py_None;
-  double p4 = 0;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  double *proj = NULL;
-  npy_intp proj_Dims[1] = {-1};
-  const int proj_Rank = 1;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  static char *capi_kwlist[] = {"m","n","matvect","krank","p1","p2","p3","p4","matvect_extra_args",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matvect_in_idd__user__routines_t matvect_cb = { Py_None, NULL, 0 };
+    cb_matvect_in_idd__user__routines_t *matvect_cb_ptr = &matvect_cb;
+    PyTupleObject *matvect_xa_capi = NULL;
+    cb_matvect_in_idd__user__routines_typedef matvect_cptr;
+    double p1 = 0;
+    PyObject *p1_capi = Py_None;
+    double p2 = 0;
+    PyObject *p2_capi = Py_None;
+    double p3 = 0;
+    PyObject *p3_capi = Py_None;
+    double p4 = 0;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    double *proj = NULL;
+    npy_intp proj_Dims[1] = {-1};
+    const int proj_Rank = 1;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    static char *capi_kwlist[] = {"m","n","matvect","krank","p1","p2","p3","p4","matvect_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OOOOO!:_interpolative.iddr_rid",\
-    capi_kwlist,&m_capi,&n_capi,&matvect_capi,&krank_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matvect_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OOOOO!:_interpolative.iddr_rid",\
+        capi_kwlist,&m_capi,&n_capi,&matvect_cb.capi,&krank_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matvect_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_rid() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_rid() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_rid() 4th argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matvect */
-if(F2PyCapsule_Check(matvect_capi)) {
-  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_capi);
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_rid() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_rid() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_rid() 4th argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matvect */
+if(F2PyCapsule_Check(matvect_cb.capi)) {
+  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_cb.capi);
 } else {
   matvect_cptr = cb_matvect_in_idd__user__routines;
 }
 
-  matvect_nofargs_capi = cb_matvect_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvect_capi,matvect_xa_capi,7,6,&cb_matvect_in_idd__user__routines_nofargs,&matvect_args_capi,"failed in processing argument list for call-back matvect.")) {
-    jmp_buf matvect_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvect`.\n");
-    SWAP(matvect_capi,cb_matvect_in_idd__user__routines_capi,PyObject);
-    SWAP(matvect_args_capi,cb_matvect_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvect_jmpbuf,&cb_matvect_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.iddr_rid() 1st keyword (p1) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.iddr_rid() 2nd keyword (p2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.iddr_rid() 3rd keyword (p3) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.iddr_rid() 4th keyword (p4) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.iddr_rid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    if (create_cb_arglist(matvect_cb.capi,matvect_xa_capi,7,6,&matvect_cb.nofargs,&matvect_cb.args_capi,"failed in processing argument list for call-back matvect.")) {
 
-  /* Processing variable proj */
-  proj_Dims[0]=m+(krank+3)*n;
-  capi_proj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,Py_None);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `proj' of _interpolative.iddr_rid to C/Fortran array" );
-  } else {
-    proj = (double *)(PyArray_DATA(capi_proj_tmp));
+        CFUNCSMESS("Saving callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.iddr_rid() 1st keyword (p1) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.iddr_rid() 2nd keyword (p2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.iddr_rid() 3rd keyword (p3) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.iddr_rid() 4th keyword (p4) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.iddr_rid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
+
+    /* Processing variable proj */
+    proj_Dims[0]=m + 3 * n + krank * n;
+    capi_proj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_proj_tmp = array_from_pyobj(NPY_DOUBLE,proj_Dims,proj_Rank,capi_proj_intent,Py_None);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `proj' of _interpolative.iddr_rid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (double *)(PyArray_DATA(capi_proj_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matvect_in_idd__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&m,&n,matvect_cptr,&p1,&p2,&p3,&p4,&krank,list,proj);
-    }
+        if ((setjmp(matvect_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&m,&n,matvect_cptr,&p1,&p2,&p3,&p4,&krank,list,proj);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_proj_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_proj_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  } /*if (f2py_success) of p4*/
-  /* End of cleaning variable p4 */
-  } /*if (f2py_success) of p3*/
-  /* End of cleaning variable p3 */
-  } /*if (f2py_success) of p2*/
-  /* End of cleaning variable p2 */
-  } /*if (f2py_success) of p1*/
-  /* End of cleaning variable p1 */
-    CFUNCSMESS("Restoring jmpbuf for `matvect`.\n");
-    cb_matvect_in_idd__user__routines_capi = matvect_capi;
-    Py_DECREF(cb_matvect_in_idd__user__routines_args_capi);
-    cb_matvect_in_idd__user__routines_args_capi = matvect_args_capi;
-    cb_matvect_in_idd__user__routines_nofargs = matvect_nofargs_capi;
-    memcpy(&cb_matvect_in_idd__user__routines_jmpbuf,&matvect_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvect */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    } /*if (f2py_success) of p4*/
+    /* End of cleaning variable p4 */
+    } /*if (f2py_success) of p3*/
+    /* End of cleaning variable p3 */
+    } /*if (f2py_success) of p2*/
+    /* End of cleaning variable p2 */
+    } /*if (f2py_success) of p1*/
+    /* End of cleaning variable p1 */
+        CFUNCSMESS("Restoring callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+        Py_DECREF(matvect_cb.args_capi);
+    }
+    /* End of cleaning variable matvect */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddr_rid ******************************/
 
@@ -6462,307 +6932,301 @@ u,v,s,ier = iddr_rsvd(m,n,matvect,matvec,krank,[p1t,p2t,p3t,p4t,p1,p2,p3,p4,w,ma
 "p2 : input float\n"
 "p3 : input float\n"
 "p4 : input float\n"
-"w : input rank-1 array('d') with bounds ((krank+1)*(2*m+4*n)+25*pow(krank,2))\n"
+"w : input rank-1 array('d') with bounds (2 * m + 4 * n + 25 * pow(krank, 2) + 2 * krank * m + 4 * krank * n)\n"
 "\nReturns\n-------\n"
 "u : rank-2 array('d') with bounds (m,krank)\n"
 "v : rank-2 array('d') with bounds (n,krank)\n"
 "s : rank-1 array('d') with bounds (krank)\n"
 "ier : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (n)\n"
-"  def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('d') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input float\n"
-"    p2 : input float\n"
-"    p3 : input float\n"
-"    p4 : input float\n"
-"  Return objects:\n"
-"    y : rank-1 array('d') with bounds (m)";
+"    def matvect(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (n)\n"
+"    def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('d') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input float\n"
+"        p2 : input float\n"
+"        p3 : input float\n"
+"        p4 : input float\n"
+"    Return objects:\n"
+"        y : rank-1 array('d') with bounds (m)";
 /* extern void F_FUNC_US(iddr_rsvd,IDDR_RSVD)(int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,double*,double*,double*,int*,double*); */
 static PyObject *f2py_rout__interpolative_iddr_rsvd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,cb_matvect_in_idd__user__routines_typedef,double*,double*,double*,double*,cb_matvec_in_idd__user__routines_typedef,double*,double*,double*,double*,int*,double*,double*,double*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matvect_capi = Py_None;
-  PyTupleObject *matvect_xa_capi = NULL;
-  PyTupleObject *matvect_args_capi = NULL;
-  int matvect_nofargs_capi = 0;
-  cb_matvect_in_idd__user__routines_typedef matvect_cptr;
-  double p1t = 0;
-  PyObject *p1t_capi = Py_None;
-  double p2t = 0;
-  PyObject *p2t_capi = Py_None;
-  double p3t = 0;
-  PyObject *p3t_capi = Py_None;
-  double p4t = 0;
-  PyObject *p4t_capi = Py_None;
-  PyObject *matvec_capi = Py_None;
-  PyTupleObject *matvec_xa_capi = NULL;
-  PyTupleObject *matvec_args_capi = NULL;
-  int matvec_nofargs_capi = 0;
-  cb_matvec_in_idd__user__routines_typedef matvec_cptr;
-  double p1 = 0;
-  PyObject *p1_capi = Py_None;
-  double p2 = 0;
-  PyObject *p2_capi = Py_None;
-  double p3 = 0;
-  PyObject *p3_capi = Py_None;
-  double p4 = 0;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  double *v = NULL;
-  npy_intp v_Dims[2] = {-1, -1};
-  const int v_Rank = 2;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  int ier = 0;
-  double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  static char *capi_kwlist[] = {"m","n","matvect","matvec","krank","p1t","p2t","p3t","p4t","p1","p2","p3","p4","w","matvect_extra_args","matvec_extra_args",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matvect_in_idd__user__routines_t matvect_cb = { Py_None, NULL, 0 };
+    cb_matvect_in_idd__user__routines_t *matvect_cb_ptr = &matvect_cb;
+    PyTupleObject *matvect_xa_capi = NULL;
+    cb_matvect_in_idd__user__routines_typedef matvect_cptr;
+    double p1t = 0;
+    PyObject *p1t_capi = Py_None;
+    double p2t = 0;
+    PyObject *p2t_capi = Py_None;
+    double p3t = 0;
+    PyObject *p3t_capi = Py_None;
+    double p4t = 0;
+    PyObject *p4t_capi = Py_None;
+    cb_matvec_in_idd__user__routines_t matvec_cb = { Py_None, NULL, 0 };
+    cb_matvec_in_idd__user__routines_t *matvec_cb_ptr = &matvec_cb;
+    PyTupleObject *matvec_xa_capi = NULL;
+    cb_matvec_in_idd__user__routines_typedef matvec_cptr;
+    double p1 = 0;
+    PyObject *p1_capi = Py_None;
+    double p2 = 0;
+    PyObject *p2_capi = Py_None;
+    double p3 = 0;
+    PyObject *p3_capi = Py_None;
+    double p4 = 0;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    double *v = NULL;
+    npy_intp v_Dims[2] = {-1, -1};
+    const int v_Rank = 2;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    int ier = 0;
+    double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    static char *capi_kwlist[] = {"m","n","matvect","matvec","krank","p1t","p2t","p3t","p4t","p1","p2","p3","p4","w","matvect_extra_args","matvec_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOO|OOOOOOOOOO!O!:_interpolative.iddr_rsvd",\
-    capi_kwlist,&m_capi,&n_capi,&matvect_capi,&matvec_capi,&krank_capi,&p1t_capi,&p2t_capi,&p3t_capi,&p4t_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&w_capi,&PyTuple_Type,&matvect_xa_capi,&PyTuple_Type,&matvec_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOO|OOOOOOOOOO!O!:_interpolative.iddr_rsvd",\
+        capi_kwlist,&m_capi,&n_capi,&matvect_cb.capi,&matvec_cb.capi,&krank_capi,&p1t_capi,&p2t_capi,&p3t_capi,&p4t_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&w_capi,&PyTuple_Type,&matvect_xa_capi,&PyTuple_Type,&matvec_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_rsvd() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_rsvd() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_rsvd() 5th argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matvect */
-if(F2PyCapsule_Check(matvect_capi)) {
-  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_capi);
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.iddr_rsvd() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.iddr_rsvd() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.iddr_rsvd() 5th argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matvect */
+if(F2PyCapsule_Check(matvect_cb.capi)) {
+  matvect_cptr = F2PyCapsule_AsVoidPtr(matvect_cb.capi);
 } else {
   matvect_cptr = cb_matvect_in_idd__user__routines;
 }
 
-  matvect_nofargs_capi = cb_matvect_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvect_capi,matvect_xa_capi,7,6,&cb_matvect_in_idd__user__routines_nofargs,&matvect_args_capi,"failed in processing argument list for call-back matvect.")) {
-    jmp_buf matvect_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvect`.\n");
-    SWAP(matvect_capi,cb_matvect_in_idd__user__routines_capi,PyObject);
-    SWAP(matvect_args_capi,cb_matvect_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvect_jmpbuf,&cb_matvect_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec */
-if(F2PyCapsule_Check(matvec_capi)) {
-  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_capi);
+    if (create_cb_arglist(matvect_cb.capi,matvect_xa_capi,7,6,&matvect_cb.nofargs,&matvect_cb.args_capi,"failed in processing argument list for call-back matvect.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+    /* Processing variable matvec */
+if(F2PyCapsule_Check(matvec_cb.capi)) {
+  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_cb.capi);
 } else {
   matvec_cptr = cb_matvec_in_idd__user__routines;
 }
 
-  matvec_nofargs_capi = cb_matvec_in_idd__user__routines_nofargs;
-  if (create_cb_arglist(matvec_capi,matvec_xa_capi,7,6,&cb_matvec_in_idd__user__routines_nofargs,&matvec_args_capi,"failed in processing argument list for call-back matvec.")) {
-    jmp_buf matvec_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec`.\n");
-    SWAP(matvec_capi,cb_matvec_in_idd__user__routines_capi,PyObject);
-    SWAP(matvec_args_capi,cb_matvec_in_idd__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec_jmpbuf,&cb_matvec_in_idd__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1t */
-  if (p1t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1t,p1t_capi,"_interpolative.iddr_rsvd() 1st keyword (p1t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2t */
-  if (p2t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2t,p2t_capi,"_interpolative.iddr_rsvd() 2nd keyword (p2t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3t */
-  if (p3t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3t,p3t_capi,"_interpolative.iddr_rsvd() 3rd keyword (p3t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4t */
-  if (p4t_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4t,p4t_capi,"_interpolative.iddr_rsvd() 4th keyword (p4t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.iddr_rsvd() 5th keyword (p1) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.iddr_rsvd() 6th keyword (p2) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.iddr_rsvd() 7th keyword (p3) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.iddr_rsvd() 8th keyword (p4) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable ier */
-  /* Processing variable u */
-  u_Dims[0]=m,u_Dims[1]=krank;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `u' of _interpolative.iddr_rsvd to C/Fortran array" );
-  } else {
-    u = (double *)(PyArray_DATA(capi_u_tmp));
+    if (create_cb_arglist(matvec_cb.capi,matvec_xa_capi,7,6,&matvec_cb.nofargs,&matvec_cb.args_capi,"failed in processing argument list for call-back matvec.")) {
 
-  /* Processing variable v */
-  v_Dims[0]=n,v_Dims[1]=krank;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.iddr_rsvd to C/Fortran array" );
-  } else {
-    v = (double *)(PyArray_DATA(capi_v_tmp));
+        CFUNCSMESS("Saving callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idd__user__routines(matvec_cb_ptr);
+    /* Processing variable p1t */
+    if (p1t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1t,p1t_capi,"_interpolative.iddr_rsvd() 1st keyword (p1t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2t */
+    if (p2t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2t,p2t_capi,"_interpolative.iddr_rsvd() 2nd keyword (p2t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3t */
+    if (p3t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3t,p3t_capi,"_interpolative.iddr_rsvd() 3rd keyword (p3t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4t */
+    if (p4t_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4t,p4t_capi,"_interpolative.iddr_rsvd() 4th keyword (p4t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = double_from_pyobj(&p1,p1_capi,"_interpolative.iddr_rsvd() 5th keyword (p1) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = double_from_pyobj(&p2,p2_capi,"_interpolative.iddr_rsvd() 6th keyword (p2) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = double_from_pyobj(&p3,p3_capi,"_interpolative.iddr_rsvd() 7th keyword (p3) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = double_from_pyobj(&p4,p4_capi,"_interpolative.iddr_rsvd() 8th keyword (p4) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable ier */
+    /* Processing variable u */
+    u_Dims[0]=m,u_Dims[1]=krank;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_DOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `u' of _interpolative.iddr_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable s */
-  s_Dims[0]=krank;
-  capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `s' of _interpolative.iddr_rsvd to C/Fortran array" );
-  } else {
-    s = (double *)(PyArray_DATA(capi_s_tmp));
+    /* Processing variable v */
+    v_Dims[0]=n,v_Dims[1]=krank;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_DOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.iddr_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (double *)(PyArray_DATA(capi_v_tmp));
 
-  /* Processing variable w */
-  w_Dims[0]=(krank+1)*(2*m+4*n)+25*pow(krank,2);
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 9th keyword `w' of _interpolative.iddr_rsvd to C/Fortran array" );
-  } else {
-    w = (double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable s */
+    s_Dims[0]=krank;
+    capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `s' of _interpolative.iddr_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (double *)(PyArray_DATA(capi_s_tmp));
+
+    /* Processing variable w */
+    w_Dims[0]=2 * m + 4 * n + 25 * pow(krank, 2) + 2 * krank * m + 4 * krank * n;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_w_tmp = array_from_pyobj(NPY_DOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 9th keyword `w' of _interpolative.iddr_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matvect_in_idd__user__routines_jmpbuf)) || (setjmp(cb_matvec_in_idd__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&m,&n,matvect_cptr,&p1t,&p2t,&p3t,&p4t,matvec_cptr,&p1,&p2,&p3,&p4,&krank,u,v,s,&ier,w);
-    }
+        if ((setjmp(matvect_cb.jmpbuf)) || (setjmp(matvec_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&m,&n,matvect_cptr,&p1t,&p2t,&p3t,&p4t,matvec_cptr,&p1,&p2,&p3,&p4,&krank,u,v,s,&ier,w);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  /* End of cleaning variable ier */
-  } /*if (f2py_success) of p4*/
-  /* End of cleaning variable p4 */
-  } /*if (f2py_success) of p3*/
-  /* End of cleaning variable p3 */
-  } /*if (f2py_success) of p2*/
-  /* End of cleaning variable p2 */
-  } /*if (f2py_success) of p1*/
-  /* End of cleaning variable p1 */
-  } /*if (f2py_success) of p4t*/
-  /* End of cleaning variable p4t */
-  } /*if (f2py_success) of p3t*/
-  /* End of cleaning variable p3t */
-  } /*if (f2py_success) of p2t*/
-  /* End of cleaning variable p2t */
-  } /*if (f2py_success) of p1t*/
-  /* End of cleaning variable p1t */
-    CFUNCSMESS("Restoring jmpbuf for `matvec`.\n");
-    cb_matvec_in_idd__user__routines_capi = matvec_capi;
-    Py_DECREF(cb_matvec_in_idd__user__routines_args_capi);
-    cb_matvec_in_idd__user__routines_args_capi = matvec_args_capi;
-    cb_matvec_in_idd__user__routines_nofargs = matvec_nofargs_capi;
-    memcpy(&cb_matvec_in_idd__user__routines_jmpbuf,&matvec_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec */
-    CFUNCSMESS("Restoring jmpbuf for `matvect`.\n");
-    cb_matvect_in_idd__user__routines_capi = matvect_capi;
-    Py_DECREF(cb_matvect_in_idd__user__routines_args_capi);
-    cb_matvect_in_idd__user__routines_args_capi = matvect_args_capi;
-    cb_matvect_in_idd__user__routines_nofargs = matvect_nofargs_capi;
-    memcpy(&cb_matvect_in_idd__user__routines_jmpbuf,&matvect_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvect */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    /* End of cleaning variable ier */
+    } /*if (f2py_success) of p4*/
+    /* End of cleaning variable p4 */
+    } /*if (f2py_success) of p3*/
+    /* End of cleaning variable p3 */
+    } /*if (f2py_success) of p2*/
+    /* End of cleaning variable p2 */
+    } /*if (f2py_success) of p1*/
+    /* End of cleaning variable p1 */
+    } /*if (f2py_success) of p4t*/
+    /* End of cleaning variable p4t */
+    } /*if (f2py_success) of p3t*/
+    /* End of cleaning variable p3t */
+    } /*if (f2py_success) of p2t*/
+    /* End of cleaning variable p2t */
+    } /*if (f2py_success) of p1t*/
+    /* End of cleaning variable p1t */
+        CFUNCSMESS("Restoring callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idd__user__routines(matvec_cb_ptr);
+        Py_DECREF(matvec_cb.args_capi);
+    }
+    /* End of cleaning variable matvec */
+        CFUNCSMESS("Restoring callback variables for `matvect`.\n");
+        matvect_cb_ptr = swap_active_cb_matvect_in_idd__user__routines(matvect_cb_ptr);
+        Py_DECREF(matvect_cb.args_capi);
+    }
+    /* End of cleaning variable matvect */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of iddr_rsvd ******************************/
 
@@ -6771,7 +7235,7 @@ static char doc_f2py_rout__interpolative_idz_frm[] = "\
 y = idz_frm(n,w,x,[m])\n\nWrapper for ``idz_frm``.\
 \n\nParameters\n----------\n"
 "n : input int\n"
-"w : input rank-1 array('D') with bounds (17 * m + 70)\n"
+"w : input rank-1 array('D') with bounds (70 + 17 * m)\n"
 "x : input rank-1 array('D') with bounds (m)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: len(x)\n"
@@ -6782,126 +7246,132 @@ static PyObject *f2py_rout__interpolative_idz_frm(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*,complex_double*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_double *y = NULL;
-  npy_intp y_Dims[1] = {-1};
-  const int y_Rank = 1;
-  PyArrayObject *capi_y_tmp = NULL;
-  int capi_y_intent = 0;
-  static char *capi_kwlist[] = {"n","w","x","m",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_double *y = NULL;
+    npy_intp y_Dims[1] = {-1};
+    const int y_Rank = 1;
+    PyArrayObject *capi_y_tmp = NULL;
+    int capi_y_intent = 0;
+    static char *capi_kwlist[] = {"n","w","x","m",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|O:_interpolative.idz_frm",\
-    capi_kwlist,&n_capi,&w_capi,&x_capi,&m_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|O:_interpolative.idz_frm",\
+        capi_kwlist,&n_capi,&w_capi,&x_capi,&m_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_frm() 1st argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable x */
-  ;
-  capi_x_intent |= F2PY_INTENT_IN;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `x' of _interpolative.idz_frm to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_frm() 1st argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable x */
+    ;
+    capi_x_intent |= F2PY_INTENT_IN;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `x' of _interpolative.idz_frm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = len(x); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_frm() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=17 * m + 70;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `w' of _interpolative.idz_frm to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = len(x); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_frm() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=70 + 17 * m;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `w' of _interpolative.idz_frm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable y */
-  y_Dims[0]=n;
-  capi_y_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,Py_None);
-  if (capi_y_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `y' of _interpolative.idz_frm to C/Fortran array" );
-  } else {
-    y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+    /* Processing variable y */
+    y_Dims[0]=n;
+    capi_y_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,Py_None);
+    if (capi_y_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `y' of _interpolative.idz_frm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,w,x,y);
+                (*f2py_func)(&m,&n,w,x,y);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_y_tmp == NULL) ... else of y*/
-  /* End of cleaning variable y */
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  if((PyObject *)capi_x_tmp!=x_capi) {
-    Py_XDECREF(capi_x_tmp); }
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
+    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    /* End of cleaning variable y */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    if((PyObject *)capi_x_tmp!=x_capi) {
+        Py_XDECREF(capi_x_tmp); }
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of idz_frm *******************************/
 
@@ -6911,7 +7381,7 @@ y = idz_sfrm(l,n,w,x,[m])\n\nWrapper for ``idz_sfrm``.\
 \n\nParameters\n----------\n"
 "l : input int\n"
 "n : input int\n"
-"w : input rank-1 array('D') with bounds (27 * m + 90)\n"
+"w : input rank-1 array('D') with bounds (90 + 27 * m)\n"
 "x : input rank-1 array('D') with bounds (m)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: len(x)\n"
@@ -6922,135 +7392,141 @@ static PyObject *f2py_rout__interpolative_idz_sfrm(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,int*,complex_double*,complex_double*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int l = 0;
-  PyObject *l_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_double *y = NULL;
-  npy_intp y_Dims[1] = {-1};
-  const int y_Rank = 1;
-  PyArrayObject *capi_y_tmp = NULL;
-  int capi_y_intent = 0;
-  static char *capi_kwlist[] = {"l","n","w","x","m",NULL};
+    int l = 0;
+    PyObject *l_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_double *y = NULL;
+    npy_intp y_Dims[1] = {-1};
+    const int y_Rank = 1;
+    PyArrayObject *capi_y_tmp = NULL;
+    int capi_y_intent = 0;
+    static char *capi_kwlist[] = {"l","n","w","x","m",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|O:_interpolative.idz_sfrm",\
-    capi_kwlist,&l_capi,&n_capi,&w_capi,&x_capi,&m_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|O:_interpolative.idz_sfrm",\
+        capi_kwlist,&l_capi,&n_capi,&w_capi,&x_capi,&m_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_sfrm() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable x */
-  ;
-  capi_x_intent |= F2PY_INTENT_IN;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th argument `x' of _interpolative.idz_sfrm to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_sfrm() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable x */
+    ;
+    capi_x_intent |= F2PY_INTENT_IN;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th argument `x' of _interpolative.idz_sfrm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable l */
-    f2py_success = int_from_pyobj(&l,l_capi,"_interpolative.idz_sfrm() 1st argument (l) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(l<=n,"l<=n","1st argument l","idz_sfrm:l=%d",l) {
-  /* Processing variable m */
-  if (m_capi == Py_None) m = len(x); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_sfrm() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=27 * m + 90;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idz_sfrm to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable l */
+        f2py_success = int_from_pyobj(&l,l_capi,"_interpolative.idz_sfrm() 1st argument (l) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(l<=n,"l<=n","1st argument l","idz_sfrm:l=%d",l) {
+    /* Processing variable m */
+    if (m_capi == Py_None) m = len(x); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_sfrm() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=90 + 27 * m;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idz_sfrm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable y */
-  y_Dims[0]=l;
-  capi_y_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,Py_None);
-  if (capi_y_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `y' of _interpolative.idz_sfrm to C/Fortran array" );
-  } else {
-    y = (complex_double *)(PyArray_DATA(capi_y_tmp));
+    /* Processing variable y */
+    y_Dims[0]=l;
+    capi_y_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_y_tmp = array_from_pyobj(NPY_CDOUBLE,y_Dims,y_Rank,capi_y_intent,Py_None);
+    if (capi_y_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `y' of _interpolative.idz_sfrm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        y = (complex_double *)(PyArray_DATA(capi_y_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&l,&m,&n,w,x,y);
+                (*f2py_func)(&l,&m,&n,w,x,y);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_y_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_y_tmp == NULL) ... else of y*/
-  /* End of cleaning variable y */
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*CHECKSCALAR(l<=n)*/
-  } /*if (f2py_success) of l*/
-  /* End of cleaning variable l */
-  if((PyObject *)capi_x_tmp!=x_capi) {
-    Py_XDECREF(capi_x_tmp); }
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
+    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    /* End of cleaning variable y */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*CHECKSCALAR(l<=n)*/
+    } /*if (f2py_success) of l*/
+    /* End of cleaning variable l */
+    if((PyObject *)capi_x_tmp!=x_capi) {
+        Py_XDECREF(capi_x_tmp); }
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idz_sfrm ******************************/
 
@@ -7061,87 +7537,89 @@ n,w = idz_frmi(m)\n\nWrapper for ``idz_frmi``.\
 "m : input int\n"
 "\nReturns\n-------\n"
 "n : int\n"
-"w : rank-1 array('D') with bounds (17 * m + 70)";
+"w : rank-1 array('D') with bounds (70 + 17 * m)";
 /* extern void F_FUNC_US(idz_frmi,IDZ_FRMI)(int*,int*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idz_frmi(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  static char *capi_kwlist[] = {"m",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    static char *capi_kwlist[] = {"m",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "O:_interpolative.idz_frmi",\
-    capi_kwlist,&m_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "O|:_interpolative.idz_frmi",\
+        capi_kwlist,&m_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_frmi() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  /* Processing variable w */
-  w_Dims[0]=17 * m + 70;
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.idz_frmi to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_frmi() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    /* Processing variable w */
+    w_Dims[0]=70 + 17 * m;
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.idz_frmi to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,w);
+                (*f2py_func)(&m,&n,w);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iN",n,capi_w_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iN",n,capi_w_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idz_frmi ******************************/
 
@@ -7153,94 +7631,96 @@ n,w = idz_sfrmi(l,m)\n\nWrapper for ``idz_sfrmi``.\
 "m : input int\n"
 "\nReturns\n-------\n"
 "n : int\n"
-"w : rank-1 array('D') with bounds (27 * m + 90)";
+"w : rank-1 array('D') with bounds (90 + 27 * m)";
 /* extern void F_FUNC_US(idz_sfrmi,IDZ_SFRMI)(int*,int*,int*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idz_sfrmi(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int l = 0;
-  PyObject *l_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  static char *capi_kwlist[] = {"l","m",NULL};
+    int l = 0;
+    PyObject *l_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    static char *capi_kwlist[] = {"l","m",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO:_interpolative.idz_sfrmi",\
-    capi_kwlist,&l_capi,&m_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|:_interpolative.idz_sfrmi",\
+        capi_kwlist,&l_capi,&m_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable l */
-    f2py_success = int_from_pyobj(&l,l_capi,"_interpolative.idz_sfrmi() 1st argument (l) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_sfrmi() 2nd argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  /* Processing variable w */
-  w_Dims[0]=27 * m + 90;
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.idz_sfrmi to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable l */
+        f2py_success = int_from_pyobj(&l,l_capi,"_interpolative.idz_sfrmi() 1st argument (l) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_sfrmi() 2nd argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    /* Processing variable w */
+    w_Dims[0]=90 + 27 * m;
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.idz_sfrmi to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&l,&m,&n,w);
+                (*f2py_func)(&l,&m,&n,w);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iN",n,capi_w_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iN",n,capi_w_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of l*/
-  /* End of cleaning variable l */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of l*/
+    /* End of cleaning variable l */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idz_sfrmi ******************************/
 
@@ -7262,134 +7742,140 @@ static PyObject *f2py_rout__interpolative_idzp_id(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int*,int*,complex_double*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  double *rnorms = NULL;
-  npy_intp rnorms_Dims[1] = {-1};
-  const int rnorms_Rank = 1;
-  PyArrayObject *capi_rnorms_tmp = NULL;
-  int capi_rnorms_intent = 0;
-  static char *capi_kwlist[] = {"eps","a","m","n",NULL};
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    double *rnorms = NULL;
+    npy_intp rnorms_Dims[1] = {-1};
+    const int rnorms_Rank = 1;
+    PyArrayObject *capi_rnorms_tmp = NULL;
+    int capi_rnorms_intent = 0;
+    static char *capi_kwlist[] = {"eps","a","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:_interpolative.idzp_id",\
-    capi_kwlist,&eps_capi,&a_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:_interpolative.idzp_id",\
+        capi_kwlist,&eps_capi,&a_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_id() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idzp_id to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_id() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idzp_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_id() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_id() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.idzp_id to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable krank */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_id() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_id() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.idzp_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable rnorms */
-  rnorms_Dims[0]=n;
-  capi_rnorms_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_rnorms_tmp = array_from_pyobj(NPY_DOUBLE,rnorms_Dims,rnorms_Rank,capi_rnorms_intent,Py_None);
-  if (capi_rnorms_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `rnorms' of _interpolative.idzp_id to C/Fortran array" );
-  } else {
-    rnorms = (double *)(PyArray_DATA(capi_rnorms_tmp));
+    /* Processing variable rnorms */
+    rnorms_Dims[0]=n;
+    capi_rnorms_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_rnorms_tmp = array_from_pyobj(NPY_DOUBLE,rnorms_Dims,rnorms_Rank,capi_rnorms_intent,Py_None);
+    if (capi_rnorms_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `rnorms' of _interpolative.idzp_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        rnorms = (double *)(PyArray_DATA(capi_rnorms_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&eps,&m,&n,a,&krank,list,rnorms);
+                (*f2py_func)(&eps,&m,&n,a,&krank,list,rnorms);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iNN",krank,capi_list_tmp,capi_rnorms_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iNN",krank,capi_list_tmp,capi_rnorms_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_rnorms_tmp == NULL) ... else of rnorms*/
-  /* End of cleaning variable rnorms */
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    }  /*if (capi_rnorms_tmp == NULL) ... else of rnorms*/
+    /* End of cleaning variable rnorms */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of idzp_id *******************************/
 
@@ -7410,131 +7896,137 @@ static PyObject *f2py_rout__interpolative_idzr_id(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*,int*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  double *rnorms = NULL;
-  npy_intp rnorms_Dims[1] = {-1};
-  const int rnorms_Rank = 1;
-  PyArrayObject *capi_rnorms_tmp = NULL;
-  int capi_rnorms_intent = 0;
-  static char *capi_kwlist[] = {"a","krank","m","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    double *rnorms = NULL;
+    npy_intp rnorms_Dims[1] = {-1};
+    const int rnorms_Rank = 1;
+    PyArrayObject *capi_rnorms_tmp = NULL;
+    int capi_rnorms_intent = 0;
+    static char *capi_kwlist[] = {"a","krank","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:_interpolative.idzr_id",\
-    capi_kwlist,&a_capi,&krank_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:_interpolative.idzr_id",\
+        capi_kwlist,&a_capi,&krank_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.idzr_id to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.idzr_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_id() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_id() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_id() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.idzr_id to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_id() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_id() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_id() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.idzr_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable rnorms */
-  rnorms_Dims[0]=n;
-  capi_rnorms_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_rnorms_tmp = array_from_pyobj(NPY_DOUBLE,rnorms_Dims,rnorms_Rank,capi_rnorms_intent,Py_None);
-  if (capi_rnorms_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `rnorms' of _interpolative.idzr_id to C/Fortran array" );
-  } else {
-    rnorms = (double *)(PyArray_DATA(capi_rnorms_tmp));
+    /* Processing variable rnorms */
+    rnorms_Dims[0]=n;
+    capi_rnorms_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_rnorms_tmp = array_from_pyobj(NPY_DOUBLE,rnorms_Dims,rnorms_Rank,capi_rnorms_intent,Py_None);
+    if (capi_rnorms_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `rnorms' of _interpolative.idzr_id to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        rnorms = (double *)(PyArray_DATA(capi_rnorms_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,list,rnorms);
+                (*f2py_func)(&m,&n,a,&krank,list,rnorms);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_rnorms_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_rnorms_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_rnorms_tmp == NULL) ... else of rnorms*/
-  /* End of cleaning variable rnorms */
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    }  /*if (capi_rnorms_tmp == NULL) ... else of rnorms*/
+    /* End of cleaning variable rnorms */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************* end of idzr_id *******************************/
 
@@ -7544,7 +8036,7 @@ approx = idz_reconid(col,list,proj,[m,krank,n])\n\nWrapper for ``idz_reconid``.\
 \n\nParameters\n----------\n"
 "col : input rank-2 array('D') with bounds (m,krank)\n"
 "list : input rank-1 array('i') with bounds (n)\n"
-"proj : input rank-2 array('D') with bounds (krank,n-krank)\n"
+"proj : input rank-2 array('D') with bounds (krank,-krank + n)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(col,0)\n"
 "krank : input int, optional\n    Default: shape(col,1)\n"
@@ -7556,155 +8048,163 @@ static PyObject *f2py_rout__interpolative_idz_reconid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*,int*,int*,complex_double*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  complex_double *col = NULL;
-  npy_intp col_Dims[2] = {-1, -1};
-  const int col_Rank = 2;
-  PyArrayObject *capi_col_tmp = NULL;
-  int capi_col_intent = 0;
-  PyObject *col_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  PyObject *list_capi = Py_None;
-  complex_double *proj = NULL;
-  npy_intp proj_Dims[2] = {-1, -1};
-  const int proj_Rank = 2;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  complex_double *approx = NULL;
-  npy_intp approx_Dims[2] = {-1, -1};
-  const int approx_Rank = 2;
-  PyArrayObject *capi_approx_tmp = NULL;
-  int capi_approx_intent = 0;
-  static char *capi_kwlist[] = {"col","list","proj","m","krank","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    complex_double *col = NULL;
+    npy_intp col_Dims[2] = {-1, -1};
+    const int col_Rank = 2;
+    PyArrayObject *capi_col_tmp = NULL;
+    int capi_col_intent = 0;
+    PyObject *col_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    PyObject *list_capi = Py_None;
+    complex_double *proj = NULL;
+    npy_intp proj_Dims[2] = {-1, -1};
+    const int proj_Rank = 2;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    complex_double *approx = NULL;
+    npy_intp approx_Dims[2] = {-1, -1};
+    const int approx_Rank = 2;
+    PyArrayObject *capi_approx_tmp = NULL;
+    int capi_approx_intent = 0;
+    static char *capi_kwlist[] = {"col","list","proj","m","krank","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OOO:_interpolative.idz_reconid",\
-    capi_kwlist,&col_capi,&list_capi,&proj_capi,&m_capi,&krank_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OOO:_interpolative.idz_reconid",\
+        capi_kwlist,&col_capi,&list_capi,&proj_capi,&m_capi,&krank_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable col */
-  ;
-  capi_col_intent |= F2PY_INTENT_IN;
-  capi_col_tmp = array_from_pyobj(NPY_CDOUBLE,col_Dims,col_Rank,capi_col_intent,col_capi);
-  if (capi_col_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `col' of _interpolative.idz_reconid to C/Fortran array" );
-  } else {
-    col = (complex_double *)(PyArray_DATA(capi_col_tmp));
+    /* Processing variable col */
+    ;
+    capi_col_intent |= F2PY_INTENT_IN;
+    capi_col_tmp = array_from_pyobj(NPY_CDOUBLE,col_Dims,col_Rank,capi_col_intent,col_capi);
+    if (capi_col_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `col' of _interpolative.idz_reconid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        col = (complex_double *)(PyArray_DATA(capi_col_tmp));
 
-  /* Processing variable list */
-  ;
-  capi_list_intent |= F2PY_INTENT_IN;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `list' of _interpolative.idz_reconid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    ;
+    capi_list_intent |= F2PY_INTENT_IN;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `list' of _interpolative.idz_reconid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(col,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_reconid() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-  if (krank_capi == Py_None) krank = shape(col,1); else
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idz_reconid() 2nd keyword (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = len(list); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_reconid() 3rd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable proj */
-  proj_Dims[0]=krank,proj_Dims[1]=n-krank;
-  capi_proj_intent |= F2PY_INTENT_IN;
-  capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `proj' of _interpolative.idz_reconid to C/Fortran array" );
-  } else {
-    proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(col,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_reconid() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+    if (krank_capi == Py_None) krank = shape(col,1); else
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idz_reconid() 2nd keyword (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = len(list); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_reconid() 3rd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable proj */
+    proj_Dims[0]=krank,proj_Dims[1]=-krank + n;
+    capi_proj_intent |= F2PY_INTENT_IN;
+    capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `proj' of _interpolative.idz_reconid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
 
-  /* Processing variable approx */
-  approx_Dims[0]=m,approx_Dims[1]=n;
-  capi_approx_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_approx_tmp = array_from_pyobj(NPY_CDOUBLE,approx_Dims,approx_Rank,capi_approx_intent,Py_None);
-  if (capi_approx_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `approx' of _interpolative.idz_reconid to C/Fortran array" );
-  } else {
-    approx = (complex_double *)(PyArray_DATA(capi_approx_tmp));
+    /* Processing variable approx */
+    approx_Dims[0]=m,approx_Dims[1]=n;
+    capi_approx_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_approx_tmp = array_from_pyobj(NPY_CDOUBLE,approx_Dims,approx_Rank,capi_approx_intent,Py_None);
+    if (capi_approx_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `approx' of _interpolative.idz_reconid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        approx = (complex_double *)(PyArray_DATA(capi_approx_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&krank,col,&n,list,proj,approx);
+                (*f2py_func)(&m,&krank,col,&n,list,proj,approx);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_approx_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_approx_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_approx_tmp == NULL) ... else of approx*/
-  /* End of cleaning variable approx */
-  if((PyObject *)capi_proj_tmp!=proj_capi) {
-    Py_XDECREF(capi_proj_tmp); }
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  if((PyObject *)capi_list_tmp!=list_capi) {
-    Py_XDECREF(capi_list_tmp); }
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  if((PyObject *)capi_col_tmp!=col_capi) {
-    Py_XDECREF(capi_col_tmp); }
-  }  /*if (capi_col_tmp == NULL) ... else of col*/
-  /* End of cleaning variable col */
+    }  /*if (capi_approx_tmp == NULL) ... else of approx*/
+    /* End of cleaning variable approx */
+    if((PyObject *)capi_proj_tmp!=proj_capi) {
+        Py_XDECREF(capi_proj_tmp); }
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    if((PyObject *)capi_list_tmp!=list_capi) {
+        Py_XDECREF(capi_list_tmp); }
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    if((PyObject *)capi_col_tmp!=col_capi) {
+        Py_XDECREF(capi_col_tmp); }
+    }  /*if (capi_col_tmp == NULL) ... else of col*/
+    /* End of cleaning variable col */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of idz_reconid *****************************/
 
@@ -7713,7 +8213,7 @@ static char doc_f2py_rout__interpolative_idz_reconint[] = "\
 p = idz_reconint(list,proj,[n,krank])\n\nWrapper for ``idz_reconint``.\
 \n\nParameters\n----------\n"
 "list : input rank-1 array('i') with bounds (n)\n"
-"proj : input rank-2 array('D') with bounds (krank,n-krank)\n"
+"proj : input rank-2 array('D') with bounds (krank,-krank + n)\n"
 "\nOther Parameters\n----------------\n"
 "n : input int, optional\n    Default: len(list)\n"
 "krank : input int, optional\n    Default: shape(proj,0)\n"
@@ -7724,127 +8224,133 @@ static PyObject *f2py_rout__interpolative_idz_reconint(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,int*,complex_double*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  PyObject *list_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  complex_double *proj = NULL;
-  npy_intp proj_Dims[2] = {-1, -1};
-  const int proj_Rank = 2;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  complex_double *p = NULL;
-  npy_intp p_Dims[2] = {-1, -1};
-  const int p_Rank = 2;
-  PyArrayObject *capi_p_tmp = NULL;
-  int capi_p_intent = 0;
-  static char *capi_kwlist[] = {"list","proj","n","krank",NULL};
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    PyObject *list_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    complex_double *proj = NULL;
+    npy_intp proj_Dims[2] = {-1, -1};
+    const int proj_Rank = 2;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    complex_double *p = NULL;
+    npy_intp p_Dims[2] = {-1, -1};
+    const int p_Rank = 2;
+    PyArrayObject *capi_p_tmp = NULL;
+    int capi_p_intent = 0;
+    static char *capi_kwlist[] = {"list","proj","n","krank",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:_interpolative.idz_reconint",\
-    capi_kwlist,&list_capi,&proj_capi,&n_capi,&krank_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:_interpolative.idz_reconint",\
+        capi_kwlist,&list_capi,&proj_capi,&n_capi,&krank_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable list */
-  ;
-  capi_list_intent |= F2PY_INTENT_IN;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `list' of _interpolative.idz_reconint to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    ;
+    capi_list_intent |= F2PY_INTENT_IN;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `list' of _interpolative.idz_reconint to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable n */
-  if (n_capi == Py_None) n = len(list); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_reconint() 1st keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable proj */
-  ;
-  capi_proj_intent |= F2PY_INTENT_IN;
-  capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `proj' of _interpolative.idz_reconint to C/Fortran array" );
-  } else {
-    proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable n */
+    if (n_capi == Py_None) n = len(list); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_reconint() 1st keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable proj */
+    ;
+    capi_proj_intent |= F2PY_INTENT_IN;
+    capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `proj' of _interpolative.idz_reconint to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
 
-  /* Processing variable krank */
-  if (krank_capi == Py_None) krank = shape(proj,0); else
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idz_reconint() 2nd keyword (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable p */
-  p_Dims[0]=krank,p_Dims[1]=n;
-  capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_p_tmp = array_from_pyobj(NPY_CDOUBLE,p_Dims,p_Rank,capi_p_intent,Py_None);
-  if (capi_p_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `p' of _interpolative.idz_reconint to C/Fortran array" );
-  } else {
-    p = (complex_double *)(PyArray_DATA(capi_p_tmp));
+    /* Processing variable krank */
+    if (krank_capi == Py_None) krank = shape(proj,0); else
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idz_reconint() 2nd keyword (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable p */
+    p_Dims[0]=krank,p_Dims[1]=n;
+    capi_p_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_p_tmp = array_from_pyobj(NPY_CDOUBLE,p_Dims,p_Rank,capi_p_intent,Py_None);
+    if (capi_p_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `p' of _interpolative.idz_reconint to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        p = (complex_double *)(PyArray_DATA(capi_p_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,list,&krank,proj,p);
+                (*f2py_func)(&n,list,&krank,proj,p);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_p_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_p_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_p_tmp == NULL) ... else of p*/
-  /* End of cleaning variable p */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_proj_tmp!=proj_capi) {
-    Py_XDECREF(capi_proj_tmp); }
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  if((PyObject *)capi_list_tmp!=list_capi) {
-    Py_XDECREF(capi_list_tmp); }
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
+    }  /*if (capi_p_tmp == NULL) ... else of p*/
+    /* End of cleaning variable p */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_proj_tmp!=proj_capi) {
+        Py_XDECREF(capi_proj_tmp); }
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    if((PyObject *)capi_list_tmp!=list_capi) {
+        Py_XDECREF(capi_list_tmp); }
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of idz_reconint ****************************/
 
@@ -7865,134 +8371,140 @@ static PyObject *f2py_rout__interpolative_idz_copycols(const PyObject *capi_self
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*,int*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  PyObject *list_capi = Py_None;
-  complex_double *col = NULL;
-  npy_intp col_Dims[2] = {-1, -1};
-  const int col_Rank = 2;
-  PyArrayObject *capi_col_tmp = NULL;
-  int capi_col_intent = 0;
-  static char *capi_kwlist[] = {"a","krank","list","m","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    PyObject *list_capi = Py_None;
+    complex_double *col = NULL;
+    npy_intp col_Dims[2] = {-1, -1};
+    const int col_Rank = 2;
+    PyArrayObject *capi_col_tmp = NULL;
+    int capi_col_intent = 0;
+    static char *capi_kwlist[] = {"a","krank","list","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OO:_interpolative.idz_copycols",\
-    capi_kwlist,&a_capi,&krank_capi,&list_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OO:_interpolative.idz_copycols",\
+        capi_kwlist,&a_capi,&krank_capi,&list_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.idz_copycols to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.idz_copycols to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idz_copycols() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable list */
-  ;
-  capi_list_intent |= F2PY_INTENT_IN;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `list' of _interpolative.idz_copycols to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idz_copycols() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable list */
+    ;
+    capi_list_intent |= F2PY_INTENT_IN;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `list' of _interpolative.idz_copycols to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_copycols() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_copycols() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable col */
-  col_Dims[0]=m,col_Dims[1]=krank;
-  capi_col_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_col_tmp = array_from_pyobj(NPY_CDOUBLE,col_Dims,col_Rank,capi_col_intent,Py_None);
-  if (capi_col_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `col' of _interpolative.idz_copycols to C/Fortran array" );
-  } else {
-    col = (complex_double *)(PyArray_DATA(capi_col_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_copycols() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_copycols() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable col */
+    col_Dims[0]=m,col_Dims[1]=krank;
+    capi_col_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_col_tmp = array_from_pyobj(NPY_CDOUBLE,col_Dims,col_Rank,capi_col_intent,Py_None);
+    if (capi_col_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `col' of _interpolative.idz_copycols to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        col = (complex_double *)(PyArray_DATA(capi_col_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,list,col);
+                (*f2py_func)(&m,&n,a,&krank,list,col);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_col_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_col_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_col_tmp == NULL) ... else of col*/
-  /* End of cleaning variable col */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  if((PyObject *)capi_list_tmp!=list_capi) {
-    Py_XDECREF(capi_list_tmp); }
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    }  /*if (capi_col_tmp == NULL) ... else of col*/
+    /* End of cleaning variable col */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    if((PyObject *)capi_list_tmp!=list_capi) {
+        Py_XDECREF(capi_list_tmp); }
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of idz_copycols ****************************/
 
@@ -8002,12 +8514,12 @@ u,v,s,ier = idz_id2svd(b,list,proj,[m,krank,n,w])\n\nWrapper for ``idz_id2svd``.
 \n\nParameters\n----------\n"
 "b : input rank-2 array('D') with bounds (m,krank)\n"
 "list : input rank-1 array('i') with bounds (n)\n"
-"proj : input rank-2 array('D') with bounds (krank,n-krank)\n"
+"proj : input rank-2 array('D') with bounds (krank,-krank + n)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(b,0)\n"
 "krank : input int, optional\n    Default: shape(b,1)\n"
 "n : input int, optional\n    Default: len(list)\n"
-"w : input rank-1 array('D') with bounds ((krank+1)*(m+3*n+10)+9*pow(krank,2))\n"
+"w : input rank-1 array('D') with bounds (10 + 10 * krank + m + 3 * n + 9 * pow(krank, 2) + krank * m + 3 * krank * n)\n"
 "\nReturns\n-------\n"
 "u : rank-2 array('D') with bounds (m,krank)\n"
 "v : rank-2 array('D') with bounds (n,krank)\n"
@@ -8018,212 +8530,226 @@ static PyObject *f2py_rout__interpolative_idz_id2svd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*,int*,int*,complex_double*,complex_double*,complex_double*,double*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  complex_double *b = NULL;
-  npy_intp b_Dims[2] = {-1, -1};
-  const int b_Rank = 2;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  PyObject *list_capi = Py_None;
-  complex_double *proj = NULL;
-  npy_intp proj_Dims[2] = {-1, -1};
-  const int proj_Rank = 2;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  complex_double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  complex_double *v = NULL;
-  npy_intp v_Dims[2] = {-1, -1};
-  const int v_Rank = 2;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  int ier = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  static char *capi_kwlist[] = {"b","list","proj","m","krank","n","w",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    complex_double *b = NULL;
+    npy_intp b_Dims[2] = {-1, -1};
+    const int b_Rank = 2;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    PyObject *list_capi = Py_None;
+    complex_double *proj = NULL;
+    npy_intp proj_Dims[2] = {-1, -1};
+    const int proj_Rank = 2;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    complex_double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    complex_double *v = NULL;
+    npy_intp v_Dims[2] = {-1, -1};
+    const int v_Rank = 2;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    int ier = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    static char *capi_kwlist[] = {"b","list","proj","m","krank","n","w",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OOOO:_interpolative.idz_id2svd",\
-    capi_kwlist,&b_capi,&list_capi,&proj_capi,&m_capi,&krank_capi,&n_capi,&w_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OOOO:_interpolative.idz_id2svd",\
+        capi_kwlist,&b_capi,&list_capi,&proj_capi,&m_capi,&krank_capi,&n_capi,&w_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `b' of _interpolative.idz_id2svd to C/Fortran array" );
-  } else {
-    b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `b' of _interpolative.idz_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable list */
-  ;
-  capi_list_intent |= F2PY_INTENT_IN;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `list' of _interpolative.idz_id2svd to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    ;
+    capi_list_intent |= F2PY_INTENT_IN;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,list_capi);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `list' of _interpolative.idz_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable ier */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(b,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_id2svd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-  if (krank_capi == Py_None) krank = shape(b,1); else
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idz_id2svd() 2nd keyword (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = len(list); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_id2svd() 3rd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable proj */
-  proj_Dims[0]=krank,proj_Dims[1]=n-krank;
-  capi_proj_intent |= F2PY_INTENT_IN;
-  capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `proj' of _interpolative.idz_id2svd to C/Fortran array" );
-  } else {
-    proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable ier */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(b,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_id2svd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+    if (krank_capi == Py_None) krank = shape(b,1); else
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idz_id2svd() 2nd keyword (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = len(list); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_id2svd() 3rd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable proj */
+    proj_Dims[0]=krank,proj_Dims[1]=-krank + n;
+    capi_proj_intent |= F2PY_INTENT_IN;
+    capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `proj' of _interpolative.idz_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
 
-  /* Processing variable u */
-  u_Dims[0]=m,u_Dims[1]=krank;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `u' of _interpolative.idz_id2svd to C/Fortran array" );
-  } else {
-    u = (complex_double *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable u */
+    u_Dims[0]=m,u_Dims[1]=krank;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `u' of _interpolative.idz_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (complex_double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable v */
-  v_Dims[0]=n,v_Dims[1]=krank;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.idz_id2svd to C/Fortran array" );
-  } else {
-    v = (complex_double *)(PyArray_DATA(capi_v_tmp));
+    /* Processing variable v */
+    v_Dims[0]=n,v_Dims[1]=krank;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.idz_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (complex_double *)(PyArray_DATA(capi_v_tmp));
 
-  /* Processing variable s */
-  s_Dims[0]=krank;
-  capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `s' of _interpolative.idz_id2svd to C/Fortran array" );
-  } else {
-    s = (double *)(PyArray_DATA(capi_s_tmp));
+    /* Processing variable s */
+    s_Dims[0]=krank;
+    capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `s' of _interpolative.idz_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (double *)(PyArray_DATA(capi_s_tmp));
 
-  /* Processing variable w */
-  w_Dims[0]=(krank+1)*(m+3*n+10)+9*pow(krank,2);
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th keyword `w' of _interpolative.idz_id2svd to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable w */
+    w_Dims[0]=10 + 10 * krank + m + 3 * n + 9 * pow(krank, 2) + krank * m + 3 * krank * n;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th keyword `w' of _interpolative.idz_id2svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&krank,b,&n,list,proj,u,v,s,&ier,w);
+                (*f2py_func)(&m,&krank,b,&n,list,proj,u,v,s,&ier,w);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  if((PyObject *)capi_proj_tmp!=proj_capi) {
-    Py_XDECREF(capi_proj_tmp); }
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable ier */
-  if((PyObject *)capi_list_tmp!=list_capi) {
-    Py_XDECREF(capi_list_tmp); }
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    if((PyObject *)capi_proj_tmp!=proj_capi) {
+        Py_XDECREF(capi_proj_tmp); }
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable ier */
+    if((PyObject *)capi_list_tmp!=list_capi) {
+        Py_XDECREF(capi_list_tmp); }
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of idz_id2svd *****************************/
 
@@ -8252,266 +8778,256 @@ snorm,v = idz_snorm(m,n,matveca,matvec,its,[p1a,p2a,p3a,p4a,p1,p2,p3,p4,u,matvec
 "snorm : float\n"
 "v : rank-1 array('D') with bounds (n)\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (n)\n"
-"  def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (m)";
+"    def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (n)\n"
+"    def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (m)";
 /* extern void F_FUNC_US(idz_snorm,IDZ_SNORM)(int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,double*,complex_double*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idz_snorm(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,double*,complex_double*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matveca_capi = Py_None;
-  PyTupleObject *matveca_xa_capi = NULL;
-  PyTupleObject *matveca_args_capi = NULL;
-  int matveca_nofargs_capi = 0;
-  cb_matveca_in_idz__user__routines_typedef matveca_cptr;
-  complex_double p1a;
-  PyObject *p1a_capi = Py_None;
-  complex_double p2a;
-  PyObject *p2a_capi = Py_None;
-  complex_double p3a;
-  PyObject *p3a_capi = Py_None;
-  complex_double p4a;
-  PyObject *p4a_capi = Py_None;
-  PyObject *matvec_capi = Py_None;
-  PyTupleObject *matvec_xa_capi = NULL;
-  PyTupleObject *matvec_args_capi = NULL;
-  int matvec_nofargs_capi = 0;
-  cb_matvec_in_idz__user__routines_typedef matvec_cptr;
-  complex_double p1;
-  PyObject *p1_capi = Py_None;
-  complex_double p2;
-  PyObject *p2_capi = Py_None;
-  complex_double p3;
-  PyObject *p3_capi = Py_None;
-  complex_double p4;
-  PyObject *p4_capi = Py_None;
-  int its = 0;
-  PyObject *its_capi = Py_None;
-  double snorm = 0;
-  complex_double *v = NULL;
-  npy_intp v_Dims[1] = {-1};
-  const int v_Rank = 1;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  complex_double *u = NULL;
-  npy_intp u_Dims[1] = {-1};
-  const int u_Rank = 1;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  PyObject *u_capi = Py_None;
-  static char *capi_kwlist[] = {"m","n","matveca","matvec","its","p1a","p2a","p3a","p4a","p1","p2","p3","p4","u","matveca_extra_args","matvec_extra_args",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matveca_in_idz__user__routines_t matveca_cb = { Py_None, NULL, 0 };
+    cb_matveca_in_idz__user__routines_t *matveca_cb_ptr = &matveca_cb;
+    PyTupleObject *matveca_xa_capi = NULL;
+    cb_matveca_in_idz__user__routines_typedef matveca_cptr;
+    complex_double p1a;
+    PyObject *p1a_capi = Py_None;
+    complex_double p2a;
+    PyObject *p2a_capi = Py_None;
+    complex_double p3a;
+    PyObject *p3a_capi = Py_None;
+    complex_double p4a;
+    PyObject *p4a_capi = Py_None;
+    cb_matvec_in_idz__user__routines_t matvec_cb = { Py_None, NULL, 0 };
+    cb_matvec_in_idz__user__routines_t *matvec_cb_ptr = &matvec_cb;
+    PyTupleObject *matvec_xa_capi = NULL;
+    cb_matvec_in_idz__user__routines_typedef matvec_cptr;
+    complex_double p1;
+    PyObject *p1_capi = Py_None;
+    complex_double p2;
+    PyObject *p2_capi = Py_None;
+    complex_double p3;
+    PyObject *p3_capi = Py_None;
+    complex_double p4;
+    PyObject *p4_capi = Py_None;
+    int its = 0;
+    PyObject *its_capi = Py_None;
+    double snorm = 0;
+    complex_double *v = NULL;
+    npy_intp v_Dims[1] = {-1};
+    const int v_Rank = 1;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    complex_double *u = NULL;
+    npy_intp u_Dims[1] = {-1};
+    const int u_Rank = 1;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    PyObject *u_capi = Py_None;
+    static char *capi_kwlist[] = {"m","n","matveca","matvec","its","p1a","p2a","p3a","p4a","p1","p2","p3","p4","u","matveca_extra_args","matvec_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOO|OOOOOOOOOO!O!:_interpolative.idz_snorm",\
-    capi_kwlist,&m_capi,&n_capi,&matveca_capi,&matvec_capi,&its_capi,&p1a_capi,&p2a_capi,&p3a_capi,&p4a_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&u_capi,&PyTuple_Type,&matveca_xa_capi,&PyTuple_Type,&matvec_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOO|OOOOOOOOOO!O!:_interpolative.idz_snorm",\
+        capi_kwlist,&m_capi,&n_capi,&matveca_cb.capi,&matvec_cb.capi,&its_capi,&p1a_capi,&p2a_capi,&p3a_capi,&p4a_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&u_capi,&PyTuple_Type,&matveca_xa_capi,&PyTuple_Type,&matvec_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_snorm() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_snorm() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable its */
-    f2py_success = int_from_pyobj(&its,its_capi,"_interpolative.idz_snorm() 5th argument (its) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matveca */
-if(F2PyCapsule_Check(matveca_capi)) {
-  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_capi);
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_snorm() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_snorm() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable its */
+        f2py_success = int_from_pyobj(&its,its_capi,"_interpolative.idz_snorm() 5th argument (its) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matveca */
+if(F2PyCapsule_Check(matveca_cb.capi)) {
+  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_cb.capi);
 } else {
   matveca_cptr = cb_matveca_in_idz__user__routines;
 }
 
-  matveca_nofargs_capi = cb_matveca_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matveca_capi,matveca_xa_capi,7,6,&cb_matveca_in_idz__user__routines_nofargs,&matveca_args_capi,"failed in processing argument list for call-back matveca.")) {
-    jmp_buf matveca_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matveca`.\n");
-    SWAP(matveca_capi,cb_matveca_in_idz__user__routines_capi,PyObject);
-    SWAP(matveca_args_capi,cb_matveca_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matveca_jmpbuf,&cb_matveca_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec */
-if(F2PyCapsule_Check(matvec_capi)) {
-  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_capi);
+    if (create_cb_arglist(matveca_cb.capi,matveca_xa_capi,7,6,&matveca_cb.nofargs,&matveca_cb.args_capi,"failed in processing argument list for call-back matveca.")) {
+
+        CFUNCSMESS("Saving callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+    /* Processing variable matvec */
+if(F2PyCapsule_Check(matvec_cb.capi)) {
+  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_cb.capi);
 } else {
   matvec_cptr = cb_matvec_in_idz__user__routines;
 }
 
-  matvec_nofargs_capi = cb_matvec_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matvec_capi,matvec_xa_capi,7,6,&cb_matvec_in_idz__user__routines_nofargs,&matvec_args_capi,"failed in processing argument list for call-back matvec.")) {
-    jmp_buf matvec_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec`.\n");
-    SWAP(matvec_capi,cb_matvec_in_idz__user__routines_capi,PyObject);
-    SWAP(matvec_args_capi,cb_matvec_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec_jmpbuf,&cb_matvec_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1a */
-  if (p1a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1a,p1a_capi,"_interpolative.idz_snorm() 1st keyword (p1a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2a */
-  if (p2a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2a,p2a_capi,"_interpolative.idz_snorm() 2nd keyword (p2a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3a */
-  if (p3a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3a,p3a_capi,"_interpolative.idz_snorm() 3rd keyword (p3a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4a */
-  if (p4a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4a,p4a_capi,"_interpolative.idz_snorm() 4th keyword (p4a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idz_snorm() 5th keyword (p1) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idz_snorm() 6th keyword (p2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idz_snorm() 7th keyword (p3) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idz_snorm() 8th keyword (p4) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable snorm */
-  /* Processing variable v */
-  v_Dims[0]=n;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.idz_snorm to C/Fortran array" );
-  } else {
-    v = (complex_double *)(PyArray_DATA(capi_v_tmp));
+    if (create_cb_arglist(matvec_cb.capi,matvec_xa_capi,7,6,&matvec_cb.nofargs,&matvec_cb.args_capi,"failed in processing argument list for call-back matvec.")) {
 
-  /* Processing variable u */
-  u_Dims[0]=m;
-  capi_u_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,u_capi);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 9th keyword `u' of _interpolative.idz_snorm to C/Fortran array" );
-  } else {
-    u = (complex_double *)(PyArray_DATA(capi_u_tmp));
+        CFUNCSMESS("Saving callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idz__user__routines(matvec_cb_ptr);
+    /* Processing variable p1a */
+    if (p1a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1a,p1a_capi,"_interpolative.idz_snorm() 1st keyword (p1a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2a */
+    if (p2a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2a,p2a_capi,"_interpolative.idz_snorm() 2nd keyword (p2a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3a */
+    if (p3a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3a,p3a_capi,"_interpolative.idz_snorm() 3rd keyword (p3a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4a */
+    if (p4a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4a,p4a_capi,"_interpolative.idz_snorm() 4th keyword (p4a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idz_snorm() 5th keyword (p1) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idz_snorm() 6th keyword (p2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idz_snorm() 7th keyword (p3) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idz_snorm() 8th keyword (p4) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable snorm */
+    /* Processing variable v */
+    v_Dims[0]=n;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.idz_snorm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (complex_double *)(PyArray_DATA(capi_v_tmp));
+
+    /* Processing variable u */
+    u_Dims[0]=m;
+    capi_u_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,u_capi);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 9th keyword `u' of _interpolative.idz_snorm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (complex_double *)(PyArray_DATA(capi_u_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matveca_in_idz__user__routines_jmpbuf)) || (setjmp(cb_matvec_in_idz__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&m,&n,matveca_cptr,&p1a,&p2a,&p3a,&p4a,matvec_cptr,&p1,&p2,&p3,&p4,&its,&snorm,v,u);
-    }
+        if ((setjmp(matveca_cb.jmpbuf)) || (setjmp(matvec_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&m,&n,matveca_cptr,&p1a,&p2a,&p3a,&p4a,matvec_cptr,&p1,&p2,&p3,&p4,&its,&snorm,v,u);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("dN",snorm,capi_v_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("dN",snorm,capi_v_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_u_tmp!=u_capi) {
-    Py_XDECREF(capi_u_tmp); }
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  /* End of cleaning variable snorm */
-  }  /*if (f2py_success) of p4 frompyobj*/
-  /* End of cleaning variable p4 */
-  }  /*if (f2py_success) of p3 frompyobj*/
-  /* End of cleaning variable p3 */
-  }  /*if (f2py_success) of p2 frompyobj*/
-  /* End of cleaning variable p2 */
-  }  /*if (f2py_success) of p1 frompyobj*/
-  /* End of cleaning variable p1 */
-  }  /*if (f2py_success) of p4a frompyobj*/
-  /* End of cleaning variable p4a */
-  }  /*if (f2py_success) of p3a frompyobj*/
-  /* End of cleaning variable p3a */
-  }  /*if (f2py_success) of p2a frompyobj*/
-  /* End of cleaning variable p2a */
-  }  /*if (f2py_success) of p1a frompyobj*/
-  /* End of cleaning variable p1a */
-    CFUNCSMESS("Restoring jmpbuf for `matvec`.\n");
-    cb_matvec_in_idz__user__routines_capi = matvec_capi;
-    Py_DECREF(cb_matvec_in_idz__user__routines_args_capi);
-    cb_matvec_in_idz__user__routines_args_capi = matvec_args_capi;
-    cb_matvec_in_idz__user__routines_nofargs = matvec_nofargs_capi;
-    memcpy(&cb_matvec_in_idz__user__routines_jmpbuf,&matvec_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec */
-    CFUNCSMESS("Restoring jmpbuf for `matveca`.\n");
-    cb_matveca_in_idz__user__routines_capi = matveca_capi;
-    Py_DECREF(cb_matveca_in_idz__user__routines_args_capi);
-    cb_matveca_in_idz__user__routines_args_capi = matveca_args_capi;
-    cb_matveca_in_idz__user__routines_nofargs = matveca_nofargs_capi;
-    memcpy(&cb_matveca_in_idz__user__routines_jmpbuf,&matveca_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matveca */
-  } /*if (f2py_success) of its*/
-  /* End of cleaning variable its */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    if((PyObject *)capi_u_tmp!=u_capi) {
+        Py_XDECREF(capi_u_tmp); }
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    /* End of cleaning variable snorm */
+    }  /*if (f2py_success) of p4 frompyobj*/
+    /* End of cleaning variable p4 */
+    }  /*if (f2py_success) of p3 frompyobj*/
+    /* End of cleaning variable p3 */
+    }  /*if (f2py_success) of p2 frompyobj*/
+    /* End of cleaning variable p2 */
+    }  /*if (f2py_success) of p1 frompyobj*/
+    /* End of cleaning variable p1 */
+    }  /*if (f2py_success) of p4a frompyobj*/
+    /* End of cleaning variable p4a */
+    }  /*if (f2py_success) of p3a frompyobj*/
+    /* End of cleaning variable p3a */
+    }  /*if (f2py_success) of p2a frompyobj*/
+    /* End of cleaning variable p2a */
+    }  /*if (f2py_success) of p1a frompyobj*/
+    /* End of cleaning variable p1a */
+        CFUNCSMESS("Restoring callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idz__user__routines(matvec_cb_ptr);
+        Py_DECREF(matvec_cb.args_capi);
+    }
+    /* End of cleaning variable matvec */
+        CFUNCSMESS("Restoring callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+        Py_DECREF(matveca_cb.args_capi);
+    }
+    /* End of cleaning variable matveca */
+    } /*if (f2py_success) of its*/
+    /* End of cleaning variable its */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idz_snorm ******************************/
 
@@ -8547,395 +9063,369 @@ snorm = idz_diffsnorm(m,n,matveca,matveca2,matvec,matvec2,its,[p1a,p2a,p3a,p4a,p
 "p22 : input complex\n"
 "p32 : input complex\n"
 "p42 : input complex\n"
-"w : input rank-1 array('D') with bounds (3*(m+n))\n"
+"w : input rank-1 array('D') with bounds (3 * m + 3 * n)\n"
 "\nReturns\n-------\n"
 "snorm : float\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (n)\n"
-"  def matveca2(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (n)\n"
-"  def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (m)\n"
-"  def matvec2(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (m)";
+"    def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (n)\n"
+"    def matveca2(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (n)\n"
+"    def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (m)\n"
+"    def matvec2(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (m)";
 /* extern void F_FUNC_US(idz_diffsnorm,IDZ_DIFFSNORM)(int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matveca2_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec2_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,double*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idz_diffsnorm(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matveca2_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec2_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,double*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matveca_capi = Py_None;
-  PyTupleObject *matveca_xa_capi = NULL;
-  PyTupleObject *matveca_args_capi = NULL;
-  int matveca_nofargs_capi = 0;
-  cb_matveca_in_idz__user__routines_typedef matveca_cptr;
-  complex_double p1a;
-  PyObject *p1a_capi = Py_None;
-  complex_double p2a;
-  PyObject *p2a_capi = Py_None;
-  complex_double p3a;
-  PyObject *p3a_capi = Py_None;
-  complex_double p4a;
-  PyObject *p4a_capi = Py_None;
-  PyObject *matveca2_capi = Py_None;
-  PyTupleObject *matveca2_xa_capi = NULL;
-  PyTupleObject *matveca2_args_capi = NULL;
-  int matveca2_nofargs_capi = 0;
-  cb_matveca2_in_idz__user__routines_typedef matveca2_cptr;
-  complex_double p1a2;
-  PyObject *p1a2_capi = Py_None;
-  complex_double p2a2;
-  PyObject *p2a2_capi = Py_None;
-  complex_double p3a2;
-  PyObject *p3a2_capi = Py_None;
-  complex_double p4a2;
-  PyObject *p4a2_capi = Py_None;
-  PyObject *matvec_capi = Py_None;
-  PyTupleObject *matvec_xa_capi = NULL;
-  PyTupleObject *matvec_args_capi = NULL;
-  int matvec_nofargs_capi = 0;
-  cb_matvec_in_idz__user__routines_typedef matvec_cptr;
-  complex_double p1;
-  PyObject *p1_capi = Py_None;
-  complex_double p2;
-  PyObject *p2_capi = Py_None;
-  complex_double p3;
-  PyObject *p3_capi = Py_None;
-  complex_double p4;
-  PyObject *p4_capi = Py_None;
-  PyObject *matvec2_capi = Py_None;
-  PyTupleObject *matvec2_xa_capi = NULL;
-  PyTupleObject *matvec2_args_capi = NULL;
-  int matvec2_nofargs_capi = 0;
-  cb_matvec2_in_idz__user__routines_typedef matvec2_cptr;
-  complex_double p12;
-  PyObject *p12_capi = Py_None;
-  complex_double p22;
-  PyObject *p22_capi = Py_None;
-  complex_double p32;
-  PyObject *p32_capi = Py_None;
-  complex_double p42;
-  PyObject *p42_capi = Py_None;
-  int its = 0;
-  PyObject *its_capi = Py_None;
-  double snorm = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  static char *capi_kwlist[] = {"m","n","matveca","matveca2","matvec","matvec2","its","p1a","p2a","p3a","p4a","p1a2","p2a2","p3a2","p4a2","p1","p2","p3","p4","p12","p22","p32","p42","w","matveca_extra_args","matveca2_extra_args","matvec_extra_args","matvec2_extra_args",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matveca_in_idz__user__routines_t matveca_cb = { Py_None, NULL, 0 };
+    cb_matveca_in_idz__user__routines_t *matveca_cb_ptr = &matveca_cb;
+    PyTupleObject *matveca_xa_capi = NULL;
+    cb_matveca_in_idz__user__routines_typedef matveca_cptr;
+    complex_double p1a;
+    PyObject *p1a_capi = Py_None;
+    complex_double p2a;
+    PyObject *p2a_capi = Py_None;
+    complex_double p3a;
+    PyObject *p3a_capi = Py_None;
+    complex_double p4a;
+    PyObject *p4a_capi = Py_None;
+    cb_matveca2_in_idz__user__routines_t matveca2_cb = { Py_None, NULL, 0 };
+    cb_matveca2_in_idz__user__routines_t *matveca2_cb_ptr = &matveca2_cb;
+    PyTupleObject *matveca2_xa_capi = NULL;
+    cb_matveca2_in_idz__user__routines_typedef matveca2_cptr;
+    complex_double p1a2;
+    PyObject *p1a2_capi = Py_None;
+    complex_double p2a2;
+    PyObject *p2a2_capi = Py_None;
+    complex_double p3a2;
+    PyObject *p3a2_capi = Py_None;
+    complex_double p4a2;
+    PyObject *p4a2_capi = Py_None;
+    cb_matvec_in_idz__user__routines_t matvec_cb = { Py_None, NULL, 0 };
+    cb_matvec_in_idz__user__routines_t *matvec_cb_ptr = &matvec_cb;
+    PyTupleObject *matvec_xa_capi = NULL;
+    cb_matvec_in_idz__user__routines_typedef matvec_cptr;
+    complex_double p1;
+    PyObject *p1_capi = Py_None;
+    complex_double p2;
+    PyObject *p2_capi = Py_None;
+    complex_double p3;
+    PyObject *p3_capi = Py_None;
+    complex_double p4;
+    PyObject *p4_capi = Py_None;
+    cb_matvec2_in_idz__user__routines_t matvec2_cb = { Py_None, NULL, 0 };
+    cb_matvec2_in_idz__user__routines_t *matvec2_cb_ptr = &matvec2_cb;
+    PyTupleObject *matvec2_xa_capi = NULL;
+    cb_matvec2_in_idz__user__routines_typedef matvec2_cptr;
+    complex_double p12;
+    PyObject *p12_capi = Py_None;
+    complex_double p22;
+    PyObject *p22_capi = Py_None;
+    complex_double p32;
+    PyObject *p32_capi = Py_None;
+    complex_double p42;
+    PyObject *p42_capi = Py_None;
+    int its = 0;
+    PyObject *its_capi = Py_None;
+    double snorm = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    static char *capi_kwlist[] = {"m","n","matveca","matveca2","matvec","matvec2","its","p1a","p2a","p3a","p4a","p1a2","p2a2","p3a2","p4a2","p1","p2","p3","p4","p12","p22","p32","p42","w","matveca_extra_args","matveca2_extra_args","matvec_extra_args","matvec2_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOO|OOOOOOOOOOOOOOOOOO!O!O!O!:_interpolative.idz_diffsnorm",\
-    capi_kwlist,&m_capi,&n_capi,&matveca_capi,&matveca2_capi,&matvec_capi,&matvec2_capi,&its_capi,&p1a_capi,&p2a_capi,&p3a_capi,&p4a_capi,&p1a2_capi,&p2a2_capi,&p3a2_capi,&p4a2_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&p12_capi,&p22_capi,&p32_capi,&p42_capi,&w_capi,&PyTuple_Type,&matveca_xa_capi,&PyTuple_Type,&matveca2_xa_capi,&PyTuple_Type,&matvec_xa_capi,&PyTuple_Type,&matvec2_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOO|OOOOOOOOOOOOOOOOOO!O!O!O!:_interpolative.idz_diffsnorm",\
+        capi_kwlist,&m_capi,&n_capi,&matveca_cb.capi,&matveca2_cb.capi,&matvec_cb.capi,&matvec2_cb.capi,&its_capi,&p1a_capi,&p2a_capi,&p3a_capi,&p4a_capi,&p1a2_capi,&p2a2_capi,&p3a2_capi,&p4a2_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&p12_capi,&p22_capi,&p32_capi,&p42_capi,&w_capi,&PyTuple_Type,&matveca_xa_capi,&PyTuple_Type,&matveca2_xa_capi,&PyTuple_Type,&matvec_xa_capi,&PyTuple_Type,&matvec2_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_diffsnorm() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_diffsnorm() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable its */
-    f2py_success = int_from_pyobj(&its,its_capi,"_interpolative.idz_diffsnorm() 7th argument (its) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matveca */
-if(F2PyCapsule_Check(matveca_capi)) {
-  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_capi);
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_diffsnorm() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_diffsnorm() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable its */
+        f2py_success = int_from_pyobj(&its,its_capi,"_interpolative.idz_diffsnorm() 7th argument (its) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matveca */
+if(F2PyCapsule_Check(matveca_cb.capi)) {
+  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_cb.capi);
 } else {
   matveca_cptr = cb_matveca_in_idz__user__routines;
 }
 
-  matveca_nofargs_capi = cb_matveca_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matveca_capi,matveca_xa_capi,7,6,&cb_matveca_in_idz__user__routines_nofargs,&matveca_args_capi,"failed in processing argument list for call-back matveca.")) {
-    jmp_buf matveca_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matveca`.\n");
-    SWAP(matveca_capi,cb_matveca_in_idz__user__routines_capi,PyObject);
-    SWAP(matveca_args_capi,cb_matveca_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matveca_jmpbuf,&cb_matveca_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matveca2 */
-if(F2PyCapsule_Check(matveca2_capi)) {
-  matveca2_cptr = F2PyCapsule_AsVoidPtr(matveca2_capi);
+    if (create_cb_arglist(matveca_cb.capi,matveca_xa_capi,7,6,&matveca_cb.nofargs,&matveca_cb.args_capi,"failed in processing argument list for call-back matveca.")) {
+
+        CFUNCSMESS("Saving callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+    /* Processing variable matveca2 */
+if(F2PyCapsule_Check(matveca2_cb.capi)) {
+  matveca2_cptr = F2PyCapsule_AsVoidPtr(matveca2_cb.capi);
 } else {
   matveca2_cptr = cb_matveca2_in_idz__user__routines;
 }
 
-  matveca2_nofargs_capi = cb_matveca2_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matveca2_capi,matveca2_xa_capi,7,6,&cb_matveca2_in_idz__user__routines_nofargs,&matveca2_args_capi,"failed in processing argument list for call-back matveca2.")) {
-    jmp_buf matveca2_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matveca2`.\n");
-    SWAP(matveca2_capi,cb_matveca2_in_idz__user__routines_capi,PyObject);
-    SWAP(matveca2_args_capi,cb_matveca2_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matveca2_jmpbuf,&cb_matveca2_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec */
-if(F2PyCapsule_Check(matvec_capi)) {
-  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_capi);
+    if (create_cb_arglist(matveca2_cb.capi,matveca2_xa_capi,7,6,&matveca2_cb.nofargs,&matveca2_cb.args_capi,"failed in processing argument list for call-back matveca2.")) {
+
+        CFUNCSMESS("Saving callback variables for `matveca2`.\n");
+        matveca2_cb_ptr = swap_active_cb_matveca2_in_idz__user__routines(matveca2_cb_ptr);
+    /* Processing variable matvec */
+if(F2PyCapsule_Check(matvec_cb.capi)) {
+  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_cb.capi);
 } else {
   matvec_cptr = cb_matvec_in_idz__user__routines;
 }
 
-  matvec_nofargs_capi = cb_matvec_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matvec_capi,matvec_xa_capi,7,6,&cb_matvec_in_idz__user__routines_nofargs,&matvec_args_capi,"failed in processing argument list for call-back matvec.")) {
-    jmp_buf matvec_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec`.\n");
-    SWAP(matvec_capi,cb_matvec_in_idz__user__routines_capi,PyObject);
-    SWAP(matvec_args_capi,cb_matvec_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec_jmpbuf,&cb_matvec_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec2 */
-if(F2PyCapsule_Check(matvec2_capi)) {
-  matvec2_cptr = F2PyCapsule_AsVoidPtr(matvec2_capi);
+    if (create_cb_arglist(matvec_cb.capi,matvec_xa_capi,7,6,&matvec_cb.nofargs,&matvec_cb.args_capi,"failed in processing argument list for call-back matvec.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idz__user__routines(matvec_cb_ptr);
+    /* Processing variable matvec2 */
+if(F2PyCapsule_Check(matvec2_cb.capi)) {
+  matvec2_cptr = F2PyCapsule_AsVoidPtr(matvec2_cb.capi);
 } else {
   matvec2_cptr = cb_matvec2_in_idz__user__routines;
 }
 
-  matvec2_nofargs_capi = cb_matvec2_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matvec2_capi,matvec2_xa_capi,7,6,&cb_matvec2_in_idz__user__routines_nofargs,&matvec2_args_capi,"failed in processing argument list for call-back matvec2.")) {
-    jmp_buf matvec2_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec2`.\n");
-    SWAP(matvec2_capi,cb_matvec2_in_idz__user__routines_capi,PyObject);
-    SWAP(matvec2_args_capi,cb_matvec2_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec2_jmpbuf,&cb_matvec2_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1a */
-  if (p1a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1a,p1a_capi,"_interpolative.idz_diffsnorm() 1st keyword (p1a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2a */
-  if (p2a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2a,p2a_capi,"_interpolative.idz_diffsnorm() 2nd keyword (p2a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3a */
-  if (p3a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3a,p3a_capi,"_interpolative.idz_diffsnorm() 3rd keyword (p3a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4a */
-  if (p4a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4a,p4a_capi,"_interpolative.idz_diffsnorm() 4th keyword (p4a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p1a2 */
-  if (p1a2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1a2,p1a2_capi,"_interpolative.idz_diffsnorm() 5th keyword (p1a2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2a2 */
-  if (p2a2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2a2,p2a2_capi,"_interpolative.idz_diffsnorm() 6th keyword (p2a2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3a2 */
-  if (p3a2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3a2,p3a2_capi,"_interpolative.idz_diffsnorm() 7th keyword (p3a2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4a2 */
-  if (p4a2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4a2,p4a2_capi,"_interpolative.idz_diffsnorm() 8th keyword (p4a2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idz_diffsnorm() 9th keyword (p1) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idz_diffsnorm() 10th keyword (p2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idz_diffsnorm() 11st keyword (p3) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idz_diffsnorm() 12nd keyword (p4) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p12 */
-  if (p12_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p12,p12_capi,"_interpolative.idz_diffsnorm() 13rd keyword (p12) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p22 */
-  if (p22_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p22,p22_capi,"_interpolative.idz_diffsnorm() 14th keyword (p22) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p32 */
-  if (p32_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p32,p32_capi,"_interpolative.idz_diffsnorm() 15th keyword (p32) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p42 */
-  if (p42_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p42,p42_capi,"_interpolative.idz_diffsnorm() 16th keyword (p42) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable snorm */
-  /* Processing variable w */
-  w_Dims[0]=3*(m+n);
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 17th keyword `w' of _interpolative.idz_diffsnorm to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    if (create_cb_arglist(matvec2_cb.capi,matvec2_xa_capi,7,6,&matvec2_cb.nofargs,&matvec2_cb.args_capi,"failed in processing argument list for call-back matvec2.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvec2`.\n");
+        matvec2_cb_ptr = swap_active_cb_matvec2_in_idz__user__routines(matvec2_cb_ptr);
+    /* Processing variable p1a */
+    if (p1a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1a,p1a_capi,"_interpolative.idz_diffsnorm() 1st keyword (p1a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2a */
+    if (p2a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2a,p2a_capi,"_interpolative.idz_diffsnorm() 2nd keyword (p2a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3a */
+    if (p3a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3a,p3a_capi,"_interpolative.idz_diffsnorm() 3rd keyword (p3a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4a */
+    if (p4a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4a,p4a_capi,"_interpolative.idz_diffsnorm() 4th keyword (p4a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p1a2 */
+    if (p1a2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1a2,p1a2_capi,"_interpolative.idz_diffsnorm() 5th keyword (p1a2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2a2 */
+    if (p2a2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2a2,p2a2_capi,"_interpolative.idz_diffsnorm() 6th keyword (p2a2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3a2 */
+    if (p3a2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3a2,p3a2_capi,"_interpolative.idz_diffsnorm() 7th keyword (p3a2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4a2 */
+    if (p4a2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4a2,p4a2_capi,"_interpolative.idz_diffsnorm() 8th keyword (p4a2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idz_diffsnorm() 9th keyword (p1) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idz_diffsnorm() 10th keyword (p2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idz_diffsnorm() 11st keyword (p3) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idz_diffsnorm() 12nd keyword (p4) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p12 */
+    if (p12_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p12,p12_capi,"_interpolative.idz_diffsnorm() 13rd keyword (p12) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p22 */
+    if (p22_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p22,p22_capi,"_interpolative.idz_diffsnorm() 14th keyword (p22) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p32 */
+    if (p32_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p32,p32_capi,"_interpolative.idz_diffsnorm() 15th keyword (p32) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p42 */
+    if (p42_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p42,p42_capi,"_interpolative.idz_diffsnorm() 16th keyword (p42) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable snorm */
+    /* Processing variable w */
+    w_Dims[0]=3 * m + 3 * n;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 17th keyword `w' of _interpolative.idz_diffsnorm to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matveca_in_idz__user__routines_jmpbuf)) || (setjmp(cb_matveca2_in_idz__user__routines_jmpbuf)) || (setjmp(cb_matvec_in_idz__user__routines_jmpbuf)) || (setjmp(cb_matvec2_in_idz__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&m,&n,matveca_cptr,&p1a,&p2a,&p3a,&p4a,matveca2_cptr,&p1a2,&p2a2,&p3a2,&p4a2,matvec_cptr,&p1,&p2,&p3,&p4,matvec2_cptr,&p12,&p22,&p32,&p42,&its,&snorm,w);
-    }
+        if ((setjmp(matveca_cb.jmpbuf)) || (setjmp(matveca2_cb.jmpbuf)) || (setjmp(matvec_cb.jmpbuf)) || (setjmp(matvec2_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&m,&n,matveca_cptr,&p1a,&p2a,&p3a,&p4a,matveca2_cptr,&p1a2,&p2a2,&p3a2,&p4a2,matvec_cptr,&p1,&p2,&p3,&p4,matvec2_cptr,&p12,&p22,&p32,&p42,&its,&snorm,w);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("d",snorm);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("d",snorm);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable snorm */
-  }  /*if (f2py_success) of p42 frompyobj*/
-  /* End of cleaning variable p42 */
-  }  /*if (f2py_success) of p32 frompyobj*/
-  /* End of cleaning variable p32 */
-  }  /*if (f2py_success) of p22 frompyobj*/
-  /* End of cleaning variable p22 */
-  }  /*if (f2py_success) of p12 frompyobj*/
-  /* End of cleaning variable p12 */
-  }  /*if (f2py_success) of p4 frompyobj*/
-  /* End of cleaning variable p4 */
-  }  /*if (f2py_success) of p3 frompyobj*/
-  /* End of cleaning variable p3 */
-  }  /*if (f2py_success) of p2 frompyobj*/
-  /* End of cleaning variable p2 */
-  }  /*if (f2py_success) of p1 frompyobj*/
-  /* End of cleaning variable p1 */
-  }  /*if (f2py_success) of p4a2 frompyobj*/
-  /* End of cleaning variable p4a2 */
-  }  /*if (f2py_success) of p3a2 frompyobj*/
-  /* End of cleaning variable p3a2 */
-  }  /*if (f2py_success) of p2a2 frompyobj*/
-  /* End of cleaning variable p2a2 */
-  }  /*if (f2py_success) of p1a2 frompyobj*/
-  /* End of cleaning variable p1a2 */
-  }  /*if (f2py_success) of p4a frompyobj*/
-  /* End of cleaning variable p4a */
-  }  /*if (f2py_success) of p3a frompyobj*/
-  /* End of cleaning variable p3a */
-  }  /*if (f2py_success) of p2a frompyobj*/
-  /* End of cleaning variable p2a */
-  }  /*if (f2py_success) of p1a frompyobj*/
-  /* End of cleaning variable p1a */
-    CFUNCSMESS("Restoring jmpbuf for `matvec2`.\n");
-    cb_matvec2_in_idz__user__routines_capi = matvec2_capi;
-    Py_DECREF(cb_matvec2_in_idz__user__routines_args_capi);
-    cb_matvec2_in_idz__user__routines_args_capi = matvec2_args_capi;
-    cb_matvec2_in_idz__user__routines_nofargs = matvec2_nofargs_capi;
-    memcpy(&cb_matvec2_in_idz__user__routines_jmpbuf,&matvec2_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec2 */
-    CFUNCSMESS("Restoring jmpbuf for `matvec`.\n");
-    cb_matvec_in_idz__user__routines_capi = matvec_capi;
-    Py_DECREF(cb_matvec_in_idz__user__routines_args_capi);
-    cb_matvec_in_idz__user__routines_args_capi = matvec_args_capi;
-    cb_matvec_in_idz__user__routines_nofargs = matvec_nofargs_capi;
-    memcpy(&cb_matvec_in_idz__user__routines_jmpbuf,&matvec_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec */
-    CFUNCSMESS("Restoring jmpbuf for `matveca2`.\n");
-    cb_matveca2_in_idz__user__routines_capi = matveca2_capi;
-    Py_DECREF(cb_matveca2_in_idz__user__routines_args_capi);
-    cb_matveca2_in_idz__user__routines_args_capi = matveca2_args_capi;
-    cb_matveca2_in_idz__user__routines_nofargs = matveca2_nofargs_capi;
-    memcpy(&cb_matveca2_in_idz__user__routines_jmpbuf,&matveca2_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matveca2 */
-    CFUNCSMESS("Restoring jmpbuf for `matveca`.\n");
-    cb_matveca_in_idz__user__routines_capi = matveca_capi;
-    Py_DECREF(cb_matveca_in_idz__user__routines_args_capi);
-    cb_matveca_in_idz__user__routines_args_capi = matveca_args_capi;
-    cb_matveca_in_idz__user__routines_nofargs = matveca_nofargs_capi;
-    memcpy(&cb_matveca_in_idz__user__routines_jmpbuf,&matveca_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matveca */
-  } /*if (f2py_success) of its*/
-  /* End of cleaning variable its */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable snorm */
+    }  /*if (f2py_success) of p42 frompyobj*/
+    /* End of cleaning variable p42 */
+    }  /*if (f2py_success) of p32 frompyobj*/
+    /* End of cleaning variable p32 */
+    }  /*if (f2py_success) of p22 frompyobj*/
+    /* End of cleaning variable p22 */
+    }  /*if (f2py_success) of p12 frompyobj*/
+    /* End of cleaning variable p12 */
+    }  /*if (f2py_success) of p4 frompyobj*/
+    /* End of cleaning variable p4 */
+    }  /*if (f2py_success) of p3 frompyobj*/
+    /* End of cleaning variable p3 */
+    }  /*if (f2py_success) of p2 frompyobj*/
+    /* End of cleaning variable p2 */
+    }  /*if (f2py_success) of p1 frompyobj*/
+    /* End of cleaning variable p1 */
+    }  /*if (f2py_success) of p4a2 frompyobj*/
+    /* End of cleaning variable p4a2 */
+    }  /*if (f2py_success) of p3a2 frompyobj*/
+    /* End of cleaning variable p3a2 */
+    }  /*if (f2py_success) of p2a2 frompyobj*/
+    /* End of cleaning variable p2a2 */
+    }  /*if (f2py_success) of p1a2 frompyobj*/
+    /* End of cleaning variable p1a2 */
+    }  /*if (f2py_success) of p4a frompyobj*/
+    /* End of cleaning variable p4a */
+    }  /*if (f2py_success) of p3a frompyobj*/
+    /* End of cleaning variable p3a */
+    }  /*if (f2py_success) of p2a frompyobj*/
+    /* End of cleaning variable p2a */
+    }  /*if (f2py_success) of p1a frompyobj*/
+    /* End of cleaning variable p1a */
+        CFUNCSMESS("Restoring callback variables for `matvec2`.\n");
+        matvec2_cb_ptr = swap_active_cb_matvec2_in_idz__user__routines(matvec2_cb_ptr);
+        Py_DECREF(matvec2_cb.args_capi);
+    }
+    /* End of cleaning variable matvec2 */
+        CFUNCSMESS("Restoring callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idz__user__routines(matvec_cb_ptr);
+        Py_DECREF(matvec_cb.args_capi);
+    }
+    /* End of cleaning variable matvec */
+        CFUNCSMESS("Restoring callback variables for `matveca2`.\n");
+        matveca2_cb_ptr = swap_active_cb_matveca2_in_idz__user__routines(matveca2_cb_ptr);
+        Py_DECREF(matveca2_cb.args_capi);
+    }
+    /* End of cleaning variable matveca2 */
+        CFUNCSMESS("Restoring callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+        Py_DECREF(matveca_cb.args_capi);
+    }
+    /* End of cleaning variable matveca */
+    } /*if (f2py_success) of its*/
+    /* End of cleaning variable its */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of idz_diffsnorm ****************************/
 
@@ -8948,7 +9438,7 @@ u,v,s,ier = idzr_svd(a,krank,[m,n,r])\n\nWrapper for ``idzr_svd``.\
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
 "n : input int, optional\n    Default: shape(a,1)\n"
-"r : input rank-1 array('D') with bounds ((krank+2)*n+8*min(m,n)+6*pow(krank,2)+8*krank)\n"
+"r : input rank-1 array('D') with bounds (8 * krank + 2 * n + 8 * min(m, n) + 6 * pow(krank, 2) + krank * n)\n"
 "\nReturns\n-------\n"
 "u : rank-2 array('D') with bounds (m,krank)\n"
 "v : rank-2 array('D') with bounds (n,krank)\n"
@@ -8959,171 +9449,181 @@ static PyObject *f2py_rout__interpolative_idzr_svd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*,int*,complex_double*,complex_double*,double*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  complex_double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  complex_double *v = NULL;
-  npy_intp v_Dims[2] = {-1, -1};
-  const int v_Rank = 2;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  int ier = 0;
-  complex_double *r = NULL;
-  npy_intp r_Dims[1] = {-1};
-  const int r_Rank = 1;
-  PyArrayObject *capi_r_tmp = NULL;
-  int capi_r_intent = 0;
-  PyObject *r_capi = Py_None;
-  static char *capi_kwlist[] = {"a","krank","m","n","r",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    complex_double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    complex_double *v = NULL;
+    npy_intp v_Dims[2] = {-1, -1};
+    const int v_Rank = 2;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    int ier = 0;
+    complex_double *r = NULL;
+    npy_intp r_Dims[1] = {-1};
+    const int r_Rank = 1;
+    PyArrayObject *capi_r_tmp = NULL;
+    int capi_r_intent = 0;
+    PyObject *r_capi = Py_None;
+    static char *capi_kwlist[] = {"a","krank","m","n","r",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OOO:_interpolative.idzr_svd",\
-    capi_kwlist,&a_capi,&krank_capi,&m_capi,&n_capi,&r_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OOO:_interpolative.idzr_svd",\
+        capi_kwlist,&a_capi,&krank_capi,&m_capi,&n_capi,&r_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.idzr_svd to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.idzr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_svd() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ier */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_svd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_svd() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable u */
-  u_Dims[0]=m,u_Dims[1]=krank;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `u' of _interpolative.idzr_svd to C/Fortran array" );
-  } else {
-    u = (complex_double *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_svd() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ier */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_svd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_svd() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable u */
+    u_Dims[0]=m,u_Dims[1]=krank;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `u' of _interpolative.idzr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (complex_double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable v */
-  v_Dims[0]=n,v_Dims[1]=krank;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.idzr_svd to C/Fortran array" );
-  } else {
-    v = (complex_double *)(PyArray_DATA(capi_v_tmp));
+    /* Processing variable v */
+    v_Dims[0]=n,v_Dims[1]=krank;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.idzr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (complex_double *)(PyArray_DATA(capi_v_tmp));
 
-  /* Processing variable s */
-  s_Dims[0]=krank;
-  capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `s' of _interpolative.idzr_svd to C/Fortran array" );
-  } else {
-    s = (double *)(PyArray_DATA(capi_s_tmp));
+    /* Processing variable s */
+    s_Dims[0]=krank;
+    capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `s' of _interpolative.idzr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (double *)(PyArray_DATA(capi_s_tmp));
 
-  /* Processing variable r */
-  r_Dims[0]=(krank+2)*n+8*min(m,n)+6*pow(krank,2)+8*krank;
-  capi_r_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_r_tmp = array_from_pyobj(NPY_CDOUBLE,r_Dims,r_Rank,capi_r_intent,r_capi);
-  if (capi_r_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd keyword `r' of _interpolative.idzr_svd to C/Fortran array" );
-  } else {
-    r = (complex_double *)(PyArray_DATA(capi_r_tmp));
+    /* Processing variable r */
+    r_Dims[0]=8 * krank + 2 * n + 8 * min(m, n) + 6 * pow(krank, 2) + krank * n;
+    capi_r_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_r_tmp = array_from_pyobj(NPY_CDOUBLE,r_Dims,r_Rank,capi_r_intent,r_capi);
+    if (capi_r_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd keyword `r' of _interpolative.idzr_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        r = (complex_double *)(PyArray_DATA(capi_r_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,u,v,s,&ier,r);
+                (*f2py_func)(&m,&n,a,&krank,u,v,s,&ier,r);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_r_tmp!=r_capi) {
-    Py_XDECREF(capi_r_tmp); }
-  }  /*if (capi_r_tmp == NULL) ... else of r*/
-  /* End of cleaning variable r */
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable ier */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    if((PyObject *)capi_r_tmp!=r_capi) {
+        Py_XDECREF(capi_r_tmp); }
+    }  /*if (capi_r_tmp == NULL) ... else of r*/
+    /* End of cleaning variable r */
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable ier */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzr_svd ******************************/
 
@@ -9141,140 +9641,144 @@ krank,iu,iv,is,w,ier = idzp_svd(eps,a,[m,n])\n\nWrapper for ``idzp_svd``.\
 "iu : int\n"
 "iv : int\n"
 "is : int\n"
-"w : rank-1 array('D') with bounds ((min(m,n)+1)*(m+2*n+9)+8*min(m,n)+6*pow(min(m,n),2))\n"
+"w : rank-1 array('D') with bounds (9 + m + 2 * n + 17 * min(m, n) + 6 * pow(min(m, n), 2) + m * min(m, n) + 2 * n * min(m, n))\n"
 "ier : int";
 /* extern void F_FUNC_US(idzp_svd,IDZP_SVD)(int*,double*,int*,int*,complex_double*,int*,int*,int*,int*,complex_double*,int*); */
 static PyObject *f2py_rout__interpolative_idzp_svd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,complex_double*,int*,int*,int*,int*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lw = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  int iu = 0;
-  int iv = 0;
-  int is = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  int ier = 0;
-  static char *capi_kwlist[] = {"eps","a","m","n",NULL};
+    int lw = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    int iu = 0;
+    int iv = 0;
+    int is = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    int ier = 0;
+    static char *capi_kwlist[] = {"eps","a","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OO|OO:_interpolative.idzp_svd",\
-    capi_kwlist,&eps_capi,&a_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OO|OO:_interpolative.idzp_svd",\
+        capi_kwlist,&eps_capi,&a_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_svd() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idzp_svd to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_svd() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idzp_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable iu */
-  /* Processing variable iv */
-  /* Processing variable is */
-  /* Processing variable ier */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_svd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_svd() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=(min(m,n)+1)*(m+2*n+9)+8*min(m,n)+6*pow(min(m,n),2);
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.idzp_svd to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable krank */
+    /* Processing variable iu */
+    /* Processing variable iv */
+    /* Processing variable is */
+    /* Processing variable ier */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_svd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_svd() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=9 + m + 2 * n + 17 * min(m, n) + 6 * pow(min(m, n), 2) + m * min(m, n) + 2 * n * min(m, n);
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.idzp_svd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable lw */
-  lw = (min(m,n)+1)*(m+2*n+9)+8*min(m,n)+6*pow(min(m,n),2);
+    /* Processing variable lw */
+    lw = (min(m,n)+1)*(m+2*n+9)+8*min(m,n)+6*pow(min(m,n),2);
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&lw,&eps,&m,&n,a,&krank,&iu,&iv,&is,w,&ier);
+                (*f2py_func)(&lw,&eps,&m,&n,a,&krank,&iu,&iv,&is,w,&ier);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  /* End of cleaning variable lw */
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable is */
-  /* End of cleaning variable iv */
-  /* End of cleaning variable iu */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    /* End of cleaning variable lw */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable is */
+    /* End of cleaning variable iv */
+    /* End of cleaning variable iu */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzp_svd ******************************/
 
@@ -9284,7 +9788,7 @@ krank,list,proj = idzp_aid(eps,a,work,proj,[m,n])\n\nWrapper for ``idzp_aid``.\
 \n\nParameters\n----------\n"
 "eps : input float\n"
 "a : input rank-2 array('D') with bounds (m,n)\n"
-"work : input rank-1 array('D') with bounds (17 * m + 70)\n"
+"work : input rank-1 array('D') with bounds (70 + 17 * m)\n"
 "proj : input rank-1 array('D') with bounds (*)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
@@ -9298,155 +9802,163 @@ static PyObject *f2py_rout__interpolative_idzp_aid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int*,int*,complex_double*,complex_double*,int*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  complex_double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int krank = 0;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  complex_double *proj = NULL;
-  npy_intp proj_Dims[1] = {-1};
-  const int proj_Rank = 1;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  static char *capi_kwlist[] = {"eps","a","work","proj","m","n",NULL};
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    complex_double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int krank = 0;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    complex_double *proj = NULL;
+    npy_intp proj_Dims[1] = {-1};
+    const int proj_Rank = 1;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    static char *capi_kwlist[] = {"eps","a","work","proj","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OO:_interpolative.idzp_aid",\
-    capi_kwlist,&eps_capi,&a_capi,&work_capi,&proj_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OO:_interpolative.idzp_aid",\
+        capi_kwlist,&eps_capi,&a_capi,&work_capi,&proj_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_aid() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idzp_aid to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_aid() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idzp_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable proj */
-  ;
-  capi_proj_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th argument `proj' of _interpolative.idzp_aid to C/Fortran array" );
-  } else {
-    proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable krank */
+    /* Processing variable proj */
+    ;
+    capi_proj_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th argument `proj' of _interpolative.idzp_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_aid() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_aid() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable work */
-  work_Dims[0]=17 * m + 70;
-  capi_work_intent |= F2PY_INTENT_IN;
-  capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `work' of _interpolative.idzp_aid to C/Fortran array" );
-  } else {
-    work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_aid() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_aid() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable work */
+    work_Dims[0]=70 + 17 * m;
+    capi_work_intent |= F2PY_INTENT_IN;
+    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `work' of _interpolative.idzp_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
 
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.idzp_aid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.idzp_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&eps,&m,&n,a,work,&krank,list,proj);
+                (*f2py_func)(&eps,&m,&n,a,work,&krank,list,proj);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iNN",krank,capi_list_tmp,capi_proj_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iNN",krank,capi_list_tmp,capi_proj_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzp_aid ******************************/
 
@@ -9456,7 +9968,7 @@ krank,ra = idz_estrank(eps,a,w,ra,[m,n])\n\nWrapper for ``idz_estrank``.\
 \n\nParameters\n----------\n"
 "eps : input float\n"
 "a : input rank-2 array('D') with bounds (m,n)\n"
-"w : input rank-1 array('D') with bounds (17 * m + 70)\n"
+"w : input rank-1 array('D') with bounds (70 + 17 * m)\n"
 "ra : input rank-1 array('D') with bounds (*)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
@@ -9469,138 +9981,144 @@ static PyObject *f2py_rout__interpolative_idz_estrank(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(double*,int*,int*,complex_double*,complex_double*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  int krank = 0;
-  complex_double *ra = NULL;
-  npy_intp ra_Dims[1] = {-1};
-  const int ra_Rank = 1;
-  PyArrayObject *capi_ra_tmp = NULL;
-  int capi_ra_intent = 0;
-  PyObject *ra_capi = Py_None;
-  static char *capi_kwlist[] = {"eps","a","w","ra","m","n",NULL};
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    int krank = 0;
+    complex_double *ra = NULL;
+    npy_intp ra_Dims[1] = {-1};
+    const int ra_Rank = 1;
+    PyArrayObject *capi_ra_tmp = NULL;
+    int capi_ra_intent = 0;
+    PyObject *ra_capi = Py_None;
+    static char *capi_kwlist[] = {"eps","a","w","ra","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OO:_interpolative.idz_estrank",\
-    capi_kwlist,&eps_capi,&a_capi,&w_capi,&ra_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OO:_interpolative.idz_estrank",\
+        capi_kwlist,&eps_capi,&a_capi,&w_capi,&ra_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idz_estrank() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idz_estrank to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idz_estrank() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idz_estrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable ra */
-  ;
-  capi_ra_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_ra_tmp = array_from_pyobj(NPY_CDOUBLE,ra_Dims,ra_Rank,capi_ra_intent,ra_capi);
-  if (capi_ra_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th argument `ra' of _interpolative.idz_estrank to C/Fortran array" );
-  } else {
-    ra = (complex_double *)(PyArray_DATA(capi_ra_tmp));
+    /* Processing variable krank */
+    /* Processing variable ra */
+    ;
+    capi_ra_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_ra_tmp = array_from_pyobj(NPY_CDOUBLE,ra_Dims,ra_Rank,capi_ra_intent,ra_capi);
+    if (capi_ra_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th argument `ra' of _interpolative.idz_estrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        ra = (complex_double *)(PyArray_DATA(capi_ra_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_estrank() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_estrank() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=17 * m + 70;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idz_estrank to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_estrank() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_estrank() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=70 + 17 * m;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idz_estrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&eps,&m,&n,a,w,&krank,ra);
+                (*f2py_func)(&eps,&m,&n,a,w,&krank,ra);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iN",krank,capi_ra_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iN",krank,capi_ra_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  }  /*if (capi_ra_tmp == NULL) ... else of ra*/
-  /* End of cleaning variable ra */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    }  /*if (capi_ra_tmp == NULL) ... else of ra*/
+    /* End of cleaning variable ra */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of idz_estrank *****************************/
 
@@ -9610,7 +10128,7 @@ krank,iu,iv,is,w,ier = idzp_asvd(eps,a,winit,w,[m,n])\n\nWrapper for ``idzp_asvd
 \n\nParameters\n----------\n"
 "eps : input float\n"
 "a : input rank-2 array('D') with bounds (m,n)\n"
-"winit : input rank-1 array('D') with bounds (17 * m + 70)\n"
+"winit : input rank-1 array('D') with bounds (70 + 17 * m)\n"
 "w : input rank-1 array('D') with bounds (*)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
@@ -9627,154 +10145,160 @@ static PyObject *f2py_rout__interpolative_idzp_asvd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,complex_double*,complex_double*,int*,int*,int*,int*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lw = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  complex_double *winit = NULL;
-  npy_intp winit_Dims[1] = {-1};
-  const int winit_Rank = 1;
-  PyArrayObject *capi_winit_tmp = NULL;
-  int capi_winit_intent = 0;
-  PyObject *winit_capi = Py_None;
-  int krank = 0;
-  int iu = 0;
-  int iv = 0;
-  int is = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  int ier = 0;
-  static char *capi_kwlist[] = {"eps","a","winit","w","m","n",NULL};
+    int lw = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    complex_double *winit = NULL;
+    npy_intp winit_Dims[1] = {-1};
+    const int winit_Rank = 1;
+    PyArrayObject *capi_winit_tmp = NULL;
+    int capi_winit_intent = 0;
+    PyObject *winit_capi = Py_None;
+    int krank = 0;
+    int iu = 0;
+    int iv = 0;
+    int is = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    int ier = 0;
+    static char *capi_kwlist[] = {"eps","a","winit","w","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OO:_interpolative.idzp_asvd",\
-    capi_kwlist,&eps_capi,&a_capi,&winit_capi,&w_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OO:_interpolative.idzp_asvd",\
+        capi_kwlist,&eps_capi,&a_capi,&winit_capi,&w_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_asvd() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idzp_asvd to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_asvd() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 2nd argument `a' of _interpolative.idzp_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-  /* Processing variable iu */
-  /* Processing variable iv */
-  /* Processing variable is */
-  /* Processing variable ier */
-  /* Processing variable w */
-  ;
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 4th argument `w' of _interpolative.idzp_asvd to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable krank */
+    /* Processing variable iu */
+    /* Processing variable iv */
+    /* Processing variable is */
+    /* Processing variable ier */
+    /* Processing variable w */
+    ;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 4th argument `w' of _interpolative.idzp_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_asvd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_asvd() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable winit */
-  winit_Dims[0]=17 * m + 70;
-  capi_winit_intent |= F2PY_INTENT_IN;
-  capi_winit_tmp = array_from_pyobj(NPY_CDOUBLE,winit_Dims,winit_Rank,capi_winit_intent,winit_capi);
-  if (capi_winit_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `winit' of _interpolative.idzp_asvd to C/Fortran array" );
-  } else {
-    winit = (complex_double *)(PyArray_DATA(capi_winit_tmp));
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_asvd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_asvd() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable winit */
+    winit_Dims[0]=70 + 17 * m;
+    capi_winit_intent |= F2PY_INTENT_IN;
+    capi_winit_tmp = array_from_pyobj(NPY_CDOUBLE,winit_Dims,winit_Rank,capi_winit_intent,winit_capi);
+    if (capi_winit_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `winit' of _interpolative.idzp_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        winit = (complex_double *)(PyArray_DATA(capi_winit_tmp));
 
-  /* Processing variable lw */
-  lw = max((min(m,n)+1)*(3*m+5*n+11)+8*pow(min(m,n),2),(2*n+1)*(m+1));
+    /* Processing variable lw */
+    lw = max((min(m,n)+1)*(3*m+5*n+11)+8*pow(min(m,n),2),(2*n+1)*(m+1));
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&lw,&eps,&m,&n,a,winit,&krank,&iu,&iv,&is,w,&ier);
+                (*f2py_func)(&lw,&eps,&m,&n,a,winit,&krank,&iu,&iv,&is,w,&ier);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  /* End of cleaning variable lw */
-  if((PyObject *)capi_winit_tmp!=winit_capi) {
-    Py_XDECREF(capi_winit_tmp); }
-  }  /*if (capi_winit_tmp == NULL) ... else of winit*/
-  /* End of cleaning variable winit */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable is */
-  /* End of cleaning variable iv */
-  /* End of cleaning variable iu */
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    /* End of cleaning variable lw */
+    if((PyObject *)capi_winit_tmp!=winit_capi) {
+        Py_XDECREF(capi_winit_tmp); }
+    }  /*if (capi_winit_tmp == NULL) ... else of winit*/
+    /* End of cleaning variable winit */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable is */
+    /* End of cleaning variable iv */
+    /* End of cleaning variable iu */
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzp_asvd ******************************/
 
@@ -9799,200 +10323,197 @@ krank,list,proj,ier = idzp_rid(eps,m,n,matveca,proj,[p1,p2,p3,p4,matveca_extra_a
 "proj : rank-1 array('D') with bounds (*)\n"
 "ier : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (n)";
+"    def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (n)";
 /* extern void F_FUNC_US(idzp_rid,IDZP_RID)(int*,double*,int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,int*,complex_double*,int*); */
 static PyObject *f2py_rout__interpolative_idzp_rid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,int*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lproj = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matveca_capi = Py_None;
-  PyTupleObject *matveca_xa_capi = NULL;
-  PyTupleObject *matveca_args_capi = NULL;
-  int matveca_nofargs_capi = 0;
-  cb_matveca_in_idz__user__routines_typedef matveca_cptr;
-  complex_double p1;
-  PyObject *p1_capi = Py_None;
-  complex_double p2;
-  PyObject *p2_capi = Py_None;
-  complex_double p3;
-  PyObject *p3_capi = Py_None;
-  complex_double p4;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  complex_double *proj = NULL;
-  npy_intp proj_Dims[1] = {-1};
-  const int proj_Rank = 1;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  PyObject *proj_capi = Py_None;
-  int ier = 0;
-  static char *capi_kwlist[] = {"eps","m","n","matveca","proj","p1","p2","p3","p4","matveca_extra_args",NULL};
+    int lproj = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matveca_in_idz__user__routines_t matveca_cb = { Py_None, NULL, 0 };
+    cb_matveca_in_idz__user__routines_t *matveca_cb_ptr = &matveca_cb;
+    PyTupleObject *matveca_xa_capi = NULL;
+    cb_matveca_in_idz__user__routines_typedef matveca_cptr;
+    complex_double p1;
+    PyObject *p1_capi = Py_None;
+    complex_double p2;
+    PyObject *p2_capi = Py_None;
+    complex_double p3;
+    PyObject *p3_capi = Py_None;
+    complex_double p4;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    complex_double *proj = NULL;
+    npy_intp proj_Dims[1] = {-1};
+    const int proj_Rank = 1;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    PyObject *proj_capi = Py_None;
+    int ier = 0;
+    static char *capi_kwlist[] = {"eps","m","n","matveca","proj","p1","p2","p3","p4","matveca_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOO|OOOOO!:_interpolative.idzp_rid",\
-    capi_kwlist,&eps_capi,&m_capi,&n_capi,&matveca_capi,&proj_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matveca_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOO|OOOOO!:_interpolative.idzp_rid",\
+        capi_kwlist,&eps_capi,&m_capi,&n_capi,&matveca_cb.capi,&proj_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matveca_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_rid() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_rid() 2nd argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_rid() 3rd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matveca */
-if(F2PyCapsule_Check(matveca_capi)) {
-  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_capi);
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_rid() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_rid() 2nd argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_rid() 3rd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matveca */
+if(F2PyCapsule_Check(matveca_cb.capi)) {
+  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_cb.capi);
 } else {
   matveca_cptr = cb_matveca_in_idz__user__routines;
 }
 
-  matveca_nofargs_capi = cb_matveca_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matveca_capi,matveca_xa_capi,7,6,&cb_matveca_in_idz__user__routines_nofargs,&matveca_args_capi,"failed in processing argument list for call-back matveca.")) {
-    jmp_buf matveca_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matveca`.\n");
-    SWAP(matveca_capi,cb_matveca_in_idz__user__routines_capi,PyObject);
-    SWAP(matveca_args_capi,cb_matveca_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matveca_jmpbuf,&cb_matveca_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idzp_rid() 1st keyword (p1) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idzp_rid() 2nd keyword (p2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idzp_rid() 3rd keyword (p3) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idzp_rid() 4th keyword (p4) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable krank */
-  /* Processing variable ier */
-  /* Processing variable proj */
-  ;
-  capi_proj_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 5th argument `proj' of _interpolative.idzp_rid to C/Fortran array" );
-  } else {
-    proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
+    if (create_cb_arglist(matveca_cb.capi,matveca_xa_capi,7,6,&matveca_cb.nofargs,&matveca_cb.args_capi,"failed in processing argument list for call-back matveca.")) {
 
-  /* Processing variable lproj */
-  lproj = m+1+2*n*(min(m,n)+1);
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.idzp_rid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+        CFUNCSMESS("Saving callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idzp_rid() 1st keyword (p1) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idzp_rid() 2nd keyword (p2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idzp_rid() 3rd keyword (p3) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idzp_rid() 4th keyword (p4) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable krank */
+    /* Processing variable ier */
+    /* Processing variable proj */
+    ;
+    capi_proj_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,proj_capi);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 5th argument `proj' of _interpolative.idzp_rid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
+
+    /* Processing variable lproj */
+    lproj = m+1+2*n*(min(m,n)+1);
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.idzp_rid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matveca_in_idz__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&lproj,&eps,&m,&n,matveca_cptr,&p1,&p2,&p3,&p4,&krank,list,proj,&ier);
-    }
+        if ((setjmp(matveca_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&lproj,&eps,&m,&n,matveca_cptr,&p1,&p2,&p3,&p4,&krank,list,proj,&ier);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iNNi",krank,capi_list_tmp,capi_proj_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iNNi",krank,capi_list_tmp,capi_proj_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  /* End of cleaning variable lproj */
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable krank */
-  }  /*if (f2py_success) of p4 frompyobj*/
-  /* End of cleaning variable p4 */
-  }  /*if (f2py_success) of p3 frompyobj*/
-  /* End of cleaning variable p3 */
-  }  /*if (f2py_success) of p2 frompyobj*/
-  /* End of cleaning variable p2 */
-  }  /*if (f2py_success) of p1 frompyobj*/
-  /* End of cleaning variable p1 */
-    CFUNCSMESS("Restoring jmpbuf for `matveca`.\n");
-    cb_matveca_in_idz__user__routines_capi = matveca_capi;
-    Py_DECREF(cb_matveca_in_idz__user__routines_args_capi);
-    cb_matveca_in_idz__user__routines_args_capi = matveca_args_capi;
-    cb_matveca_in_idz__user__routines_nofargs = matveca_nofargs_capi;
-    memcpy(&cb_matveca_in_idz__user__routines_jmpbuf,&matveca_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matveca */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    /* End of cleaning variable lproj */
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable krank */
+    }  /*if (f2py_success) of p4 frompyobj*/
+    /* End of cleaning variable p4 */
+    }  /*if (f2py_success) of p3 frompyobj*/
+    /* End of cleaning variable p3 */
+    }  /*if (f2py_success) of p2 frompyobj*/
+    /* End of cleaning variable p2 */
+    }  /*if (f2py_success) of p1 frompyobj*/
+    /* End of cleaning variable p1 */
+        CFUNCSMESS("Restoring callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+        Py_DECREF(matveca_cb.args_capi);
+    }
+    /* End of cleaning variable matveca */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzp_rid ******************************/
 
@@ -10010,208 +10531,205 @@ krank,ra,ier = idz_findrank(eps,m,n,matveca,[p1,p2,p3,p4,w,matveca_extra_args])\
 "p2 : input complex\n"
 "p3 : input complex\n"
 "p4 : input complex\n"
-"w : input rank-1 array('D') with bounds (m+2*n+1)\n"
+"w : input rank-1 array('D') with bounds (1 + m + 2 * n)\n"
 "\nReturns\n-------\n"
 "krank : int\n"
-"ra : rank-1 array('D') with bounds (2*n*min(m,n))\n"
+"ra : rank-1 array('D') with bounds (2 * n * min(m, n))\n"
 "ier : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (n)";
+"    def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (n)";
 /* extern void F_FUNC_US(idz_findrank,IDZ_FINDRANK)(int*,double*,int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,complex_double*,int*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idz_findrank(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,complex_double*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lra = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matveca_capi = Py_None;
-  PyTupleObject *matveca_xa_capi = NULL;
-  PyTupleObject *matveca_args_capi = NULL;
-  int matveca_nofargs_capi = 0;
-  cb_matveca_in_idz__user__routines_typedef matveca_cptr;
-  complex_double p1;
-  PyObject *p1_capi = Py_None;
-  complex_double p2;
-  PyObject *p2_capi = Py_None;
-  complex_double p3;
-  PyObject *p3_capi = Py_None;
-  complex_double p4;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  complex_double *ra = NULL;
-  npy_intp ra_Dims[1] = {-1};
-  const int ra_Rank = 1;
-  PyArrayObject *capi_ra_tmp = NULL;
-  int capi_ra_intent = 0;
-  int ier = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  static char *capi_kwlist[] = {"eps","m","n","matveca","p1","p2","p3","p4","w","matveca_extra_args",NULL};
+    int lra = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matveca_in_idz__user__routines_t matveca_cb = { Py_None, NULL, 0 };
+    cb_matveca_in_idz__user__routines_t *matveca_cb_ptr = &matveca_cb;
+    PyTupleObject *matveca_xa_capi = NULL;
+    cb_matveca_in_idz__user__routines_typedef matveca_cptr;
+    complex_double p1;
+    PyObject *p1_capi = Py_None;
+    complex_double p2;
+    PyObject *p2_capi = Py_None;
+    complex_double p3;
+    PyObject *p3_capi = Py_None;
+    complex_double p4;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    complex_double *ra = NULL;
+    npy_intp ra_Dims[1] = {-1};
+    const int ra_Rank = 1;
+    PyArrayObject *capi_ra_tmp = NULL;
+    int capi_ra_intent = 0;
+    int ier = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    static char *capi_kwlist[] = {"eps","m","n","matveca","p1","p2","p3","p4","w","matveca_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OOOOOO!:_interpolative.idz_findrank",\
-    capi_kwlist,&eps_capi,&m_capi,&n_capi,&matveca_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&w_capi,&PyTuple_Type,&matveca_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OOOOOO!:_interpolative.idz_findrank",\
+        capi_kwlist,&eps_capi,&m_capi,&n_capi,&matveca_cb.capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&w_capi,&PyTuple_Type,&matveca_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idz_findrank() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_findrank() 2nd argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_findrank() 3rd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matveca */
-if(F2PyCapsule_Check(matveca_capi)) {
-  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_capi);
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idz_findrank() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idz_findrank() 2nd argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idz_findrank() 3rd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matveca */
+if(F2PyCapsule_Check(matveca_cb.capi)) {
+  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_cb.capi);
 } else {
   matveca_cptr = cb_matveca_in_idz__user__routines;
 }
 
-  matveca_nofargs_capi = cb_matveca_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matveca_capi,matveca_xa_capi,7,6,&cb_matveca_in_idz__user__routines_nofargs,&matveca_args_capi,"failed in processing argument list for call-back matveca.")) {
-    jmp_buf matveca_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matveca`.\n");
-    SWAP(matveca_capi,cb_matveca_in_idz__user__routines_capi,PyObject);
-    SWAP(matveca_args_capi,cb_matveca_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matveca_jmpbuf,&cb_matveca_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idz_findrank() 1st keyword (p1) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idz_findrank() 2nd keyword (p2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idz_findrank() 3rd keyword (p3) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idz_findrank() 4th keyword (p4) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable krank */
-  /* Processing variable ier */
-  /* Processing variable lra */
-  lra = 2*n*min(m,n);
-  /* Processing variable ra */
-  ra_Dims[0]=2*n*min(m,n);
-  capi_ra_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_ra_tmp = array_from_pyobj(NPY_CDOUBLE,ra_Dims,ra_Rank,capi_ra_intent,Py_None);
-  if (capi_ra_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `ra' of _interpolative.idz_findrank to C/Fortran array" );
-  } else {
-    ra = (complex_double *)(PyArray_DATA(capi_ra_tmp));
+    if (create_cb_arglist(matveca_cb.capi,matveca_xa_capi,7,6,&matveca_cb.nofargs,&matveca_cb.args_capi,"failed in processing argument list for call-back matveca.")) {
 
-  /* Processing variable w */
-  w_Dims[0]=m+2*n+1;
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 5th keyword `w' of _interpolative.idz_findrank to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+        CFUNCSMESS("Saving callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idz_findrank() 1st keyword (p1) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idz_findrank() 2nd keyword (p2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idz_findrank() 3rd keyword (p3) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idz_findrank() 4th keyword (p4) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable krank */
+    /* Processing variable ier */
+    /* Processing variable lra */
+    lra = 2*n*min(m,n);
+    /* Processing variable ra */
+    ra_Dims[0]=2 * n * min(m, n);
+    capi_ra_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_ra_tmp = array_from_pyobj(NPY_CDOUBLE,ra_Dims,ra_Rank,capi_ra_intent,Py_None);
+    if (capi_ra_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `ra' of _interpolative.idz_findrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        ra = (complex_double *)(PyArray_DATA(capi_ra_tmp));
+
+    /* Processing variable w */
+    w_Dims[0]=1 + m + 2 * n;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 5th keyword `w' of _interpolative.idz_findrank to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matveca_in_idz__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&lra,&eps,&m,&n,matveca_cptr,&p1,&p2,&p3,&p4,&krank,ra,&ier,w);
-    }
+        if ((setjmp(matveca_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&lra,&eps,&m,&n,matveca_cptr,&p1,&p2,&p3,&p4,&krank,ra,&ier,w);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iNi",krank,capi_ra_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iNi",krank,capi_ra_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  }  /*if (capi_ra_tmp == NULL) ... else of ra*/
-  /* End of cleaning variable ra */
-  /* End of cleaning variable lra */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable krank */
-  }  /*if (f2py_success) of p4 frompyobj*/
-  /* End of cleaning variable p4 */
-  }  /*if (f2py_success) of p3 frompyobj*/
-  /* End of cleaning variable p3 */
-  }  /*if (f2py_success) of p2 frompyobj*/
-  /* End of cleaning variable p2 */
-  }  /*if (f2py_success) of p1 frompyobj*/
-  /* End of cleaning variable p1 */
-    CFUNCSMESS("Restoring jmpbuf for `matveca`.\n");
-    cb_matveca_in_idz__user__routines_capi = matveca_capi;
-    Py_DECREF(cb_matveca_in_idz__user__routines_args_capi);
-    cb_matveca_in_idz__user__routines_args_capi = matveca_args_capi;
-    cb_matveca_in_idz__user__routines_nofargs = matveca_nofargs_capi;
-    memcpy(&cb_matveca_in_idz__user__routines_jmpbuf,&matveca_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matveca */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    }  /*if (capi_ra_tmp == NULL) ... else of ra*/
+    /* End of cleaning variable ra */
+    /* End of cleaning variable lra */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable krank */
+    }  /*if (f2py_success) of p4 frompyobj*/
+    /* End of cleaning variable p4 */
+    }  /*if (f2py_success) of p3 frompyobj*/
+    /* End of cleaning variable p3 */
+    }  /*if (f2py_success) of p2 frompyobj*/
+    /* End of cleaning variable p2 */
+    }  /*if (f2py_success) of p1 frompyobj*/
+    /* End of cleaning variable p1 */
+        CFUNCSMESS("Restoring callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+        Py_DECREF(matveca_cb.args_capi);
+    }
+    /* End of cleaning variable matveca */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of idz_findrank ****************************/
 
@@ -10240,265 +10758,253 @@ krank,iu,iv,is,w,ier = idzp_rsvd(eps,m,n,matveca,matvec,[p1a,p2a,p3a,p4a,p1,p2,p
 "iu : int\n"
 "iv : int\n"
 "is : int\n"
-"w : rank-1 array('D') with bounds ((min(m,n)+1)*(3*m+5*n+11)+8*pow(min(m,n),2))\n"
+"w : rank-1 array('D') with bounds (11 + 3 * m + 5 * n + 11 * min(m, n) + 8 * pow(min(m, n), 2) + 3 * m * min(m, n) + 5 * n * min(m, n))\n"
 "ier : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (n)\n"
-"  def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (m)";
+"    def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (n)\n"
+"    def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (m)";
 /* extern void F_FUNC_US(idzp_rsvd,IDZP_RSVD)(int*,double*,int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,int*,int*,int*,complex_double*,int*); */
 static PyObject *f2py_rout__interpolative_idzp_rsvd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,int*,int*,int*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int lw = 0;
-  double eps = 0;
-  PyObject *eps_capi = Py_None;
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matveca_capi = Py_None;
-  PyTupleObject *matveca_xa_capi = NULL;
-  PyTupleObject *matveca_args_capi = NULL;
-  int matveca_nofargs_capi = 0;
-  cb_matveca_in_idz__user__routines_typedef matveca_cptr;
-  complex_double p1a;
-  PyObject *p1a_capi = Py_None;
-  complex_double p2a;
-  PyObject *p2a_capi = Py_None;
-  complex_double p3a;
-  PyObject *p3a_capi = Py_None;
-  complex_double p4a;
-  PyObject *p4a_capi = Py_None;
-  PyObject *matvec_capi = Py_None;
-  PyTupleObject *matvec_xa_capi = NULL;
-  PyTupleObject *matvec_args_capi = NULL;
-  int matvec_nofargs_capi = 0;
-  cb_matvec_in_idz__user__routines_typedef matvec_cptr;
-  complex_double p1;
-  PyObject *p1_capi = Py_None;
-  complex_double p2;
-  PyObject *p2_capi = Py_None;
-  complex_double p3;
-  PyObject *p3_capi = Py_None;
-  complex_double p4;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  int iu = 0;
-  int iv = 0;
-  int is = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  int ier = 0;
-  static char *capi_kwlist[] = {"eps","m","n","matveca","matvec","p1a","p2a","p3a","p4a","p1","p2","p3","p4","matveca_extra_args","matvec_extra_args",NULL};
+    int lw = 0;
+    double eps = 0;
+    PyObject *eps_capi = Py_None;
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matveca_in_idz__user__routines_t matveca_cb = { Py_None, NULL, 0 };
+    cb_matveca_in_idz__user__routines_t *matveca_cb_ptr = &matveca_cb;
+    PyTupleObject *matveca_xa_capi = NULL;
+    cb_matveca_in_idz__user__routines_typedef matveca_cptr;
+    complex_double p1a;
+    PyObject *p1a_capi = Py_None;
+    complex_double p2a;
+    PyObject *p2a_capi = Py_None;
+    complex_double p3a;
+    PyObject *p3a_capi = Py_None;
+    complex_double p4a;
+    PyObject *p4a_capi = Py_None;
+    cb_matvec_in_idz__user__routines_t matvec_cb = { Py_None, NULL, 0 };
+    cb_matvec_in_idz__user__routines_t *matvec_cb_ptr = &matvec_cb;
+    PyTupleObject *matvec_xa_capi = NULL;
+    cb_matvec_in_idz__user__routines_typedef matvec_cptr;
+    complex_double p1;
+    PyObject *p1_capi = Py_None;
+    complex_double p2;
+    PyObject *p2_capi = Py_None;
+    complex_double p3;
+    PyObject *p3_capi = Py_None;
+    complex_double p4;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    int iu = 0;
+    int iv = 0;
+    int is = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    int ier = 0;
+    static char *capi_kwlist[] = {"eps","m","n","matveca","matvec","p1a","p2a","p3a","p4a","p1","p2","p3","p4","matveca_extra_args","matvec_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOO|OOOOOOOOO!O!:_interpolative.idzp_rsvd",\
-    capi_kwlist,&eps_capi,&m_capi,&n_capi,&matveca_capi,&matvec_capi,&p1a_capi,&p2a_capi,&p3a_capi,&p4a_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matveca_xa_capi,&PyTuple_Type,&matvec_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOO|OOOOOOOOO!O!:_interpolative.idzp_rsvd",\
+        capi_kwlist,&eps_capi,&m_capi,&n_capi,&matveca_cb.capi,&matvec_cb.capi,&p1a_capi,&p2a_capi,&p3a_capi,&p4a_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matveca_xa_capi,&PyTuple_Type,&matvec_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable eps */
-    f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_rsvd() 1st argument (eps) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_rsvd() 2nd argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_rsvd() 3rd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matveca */
-if(F2PyCapsule_Check(matveca_capi)) {
-  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_capi);
+    /* Processing variable eps */
+        f2py_success = double_from_pyobj(&eps,eps_capi,"_interpolative.idzp_rsvd() 1st argument (eps) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzp_rsvd() 2nd argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzp_rsvd() 3rd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matveca */
+if(F2PyCapsule_Check(matveca_cb.capi)) {
+  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_cb.capi);
 } else {
   matveca_cptr = cb_matveca_in_idz__user__routines;
 }
 
-  matveca_nofargs_capi = cb_matveca_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matveca_capi,matveca_xa_capi,7,6,&cb_matveca_in_idz__user__routines_nofargs,&matveca_args_capi,"failed in processing argument list for call-back matveca.")) {
-    jmp_buf matveca_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matveca`.\n");
-    SWAP(matveca_capi,cb_matveca_in_idz__user__routines_capi,PyObject);
-    SWAP(matveca_args_capi,cb_matveca_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matveca_jmpbuf,&cb_matveca_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec */
-if(F2PyCapsule_Check(matvec_capi)) {
-  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_capi);
+    if (create_cb_arglist(matveca_cb.capi,matveca_xa_capi,7,6,&matveca_cb.nofargs,&matveca_cb.args_capi,"failed in processing argument list for call-back matveca.")) {
+
+        CFUNCSMESS("Saving callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+    /* Processing variable matvec */
+if(F2PyCapsule_Check(matvec_cb.capi)) {
+  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_cb.capi);
 } else {
   matvec_cptr = cb_matvec_in_idz__user__routines;
 }
 
-  matvec_nofargs_capi = cb_matvec_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matvec_capi,matvec_xa_capi,7,6,&cb_matvec_in_idz__user__routines_nofargs,&matvec_args_capi,"failed in processing argument list for call-back matvec.")) {
-    jmp_buf matvec_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec`.\n");
-    SWAP(matvec_capi,cb_matvec_in_idz__user__routines_capi,PyObject);
-    SWAP(matvec_args_capi,cb_matvec_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec_jmpbuf,&cb_matvec_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1a */
-  if (p1a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1a,p1a_capi,"_interpolative.idzp_rsvd() 1st keyword (p1a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2a */
-  if (p2a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2a,p2a_capi,"_interpolative.idzp_rsvd() 2nd keyword (p2a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3a */
-  if (p3a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3a,p3a_capi,"_interpolative.idzp_rsvd() 3rd keyword (p3a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4a */
-  if (p4a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4a,p4a_capi,"_interpolative.idzp_rsvd() 4th keyword (p4a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idzp_rsvd() 5th keyword (p1) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idzp_rsvd() 6th keyword (p2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idzp_rsvd() 7th keyword (p3) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idzp_rsvd() 8th keyword (p4) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable krank */
-  /* Processing variable iu */
-  /* Processing variable iv */
-  /* Processing variable is */
-  /* Processing variable ier */
-  /* Processing variable lw */
-  lw = (min(m,n)+1)*(3*m+5*n+11)+8*pow(min(m,n),2);
-  /* Processing variable w */
-  w_Dims[0]=(min(m,n)+1)*(3*m+5*n+11)+8*pow(min(m,n),2);
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.idzp_rsvd to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    if (create_cb_arglist(matvec_cb.capi,matvec_xa_capi,7,6,&matvec_cb.nofargs,&matvec_cb.args_capi,"failed in processing argument list for call-back matvec.")) {
+
+        CFUNCSMESS("Saving callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idz__user__routines(matvec_cb_ptr);
+    /* Processing variable p1a */
+    if (p1a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1a,p1a_capi,"_interpolative.idzp_rsvd() 1st keyword (p1a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2a */
+    if (p2a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2a,p2a_capi,"_interpolative.idzp_rsvd() 2nd keyword (p2a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3a */
+    if (p3a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3a,p3a_capi,"_interpolative.idzp_rsvd() 3rd keyword (p3a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4a */
+    if (p4a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4a,p4a_capi,"_interpolative.idzp_rsvd() 4th keyword (p4a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idzp_rsvd() 5th keyword (p1) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idzp_rsvd() 6th keyword (p2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idzp_rsvd() 7th keyword (p3) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idzp_rsvd() 8th keyword (p4) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable krank */
+    /* Processing variable iu */
+    /* Processing variable iv */
+    /* Processing variable is */
+    /* Processing variable ier */
+    /* Processing variable lw */
+    lw = (min(m,n)+1)*(3*m+5*n+11)+8*pow(min(m,n),2);
+    /* Processing variable w */
+    w_Dims[0]=11 + 3 * m + 5 * n + 11 * min(m, n) + 8 * pow(min(m, n), 2) + 3 * m * min(m, n) + 5 * n * min(m, n);
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.idzp_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matveca_in_idz__user__routines_jmpbuf)) || (setjmp(cb_matvec_in_idz__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&lw,&eps,&m,&n,matveca_cptr,&p1a,&p2a,&p3a,&p4a,matvec_cptr,&p1,&p2,&p3,&p4,&krank,&iu,&iv,&is,w,&ier);
-    }
+        if ((setjmp(matveca_cb.jmpbuf)) || (setjmp(matvec_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&lw,&eps,&m,&n,matveca_cptr,&p1a,&p2a,&p3a,&p4a,matvec_cptr,&p1,&p2,&p3,&p4,&krank,&iu,&iv,&is,w,&ier);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("iiiiNi",krank,iu,iv,is,capi_w_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  /* End of cleaning variable lw */
-  /* End of cleaning variable ier */
-  /* End of cleaning variable is */
-  /* End of cleaning variable iv */
-  /* End of cleaning variable iu */
-  /* End of cleaning variable krank */
-  }  /*if (f2py_success) of p4 frompyobj*/
-  /* End of cleaning variable p4 */
-  }  /*if (f2py_success) of p3 frompyobj*/
-  /* End of cleaning variable p3 */
-  }  /*if (f2py_success) of p2 frompyobj*/
-  /* End of cleaning variable p2 */
-  }  /*if (f2py_success) of p1 frompyobj*/
-  /* End of cleaning variable p1 */
-  }  /*if (f2py_success) of p4a frompyobj*/
-  /* End of cleaning variable p4a */
-  }  /*if (f2py_success) of p3a frompyobj*/
-  /* End of cleaning variable p3a */
-  }  /*if (f2py_success) of p2a frompyobj*/
-  /* End of cleaning variable p2a */
-  }  /*if (f2py_success) of p1a frompyobj*/
-  /* End of cleaning variable p1a */
-    CFUNCSMESS("Restoring jmpbuf for `matvec`.\n");
-    cb_matvec_in_idz__user__routines_capi = matvec_capi;
-    Py_DECREF(cb_matvec_in_idz__user__routines_args_capi);
-    cb_matvec_in_idz__user__routines_args_capi = matvec_args_capi;
-    cb_matvec_in_idz__user__routines_nofargs = matvec_nofargs_capi;
-    memcpy(&cb_matvec_in_idz__user__routines_jmpbuf,&matvec_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec */
-    CFUNCSMESS("Restoring jmpbuf for `matveca`.\n");
-    cb_matveca_in_idz__user__routines_capi = matveca_capi;
-    Py_DECREF(cb_matveca_in_idz__user__routines_args_capi);
-    cb_matveca_in_idz__user__routines_args_capi = matveca_args_capi;
-    cb_matveca_in_idz__user__routines_nofargs = matveca_nofargs_capi;
-    memcpy(&cb_matveca_in_idz__user__routines_jmpbuf,&matveca_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matveca */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of eps*/
-  /* End of cleaning variable eps */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    /* End of cleaning variable lw */
+    /* End of cleaning variable ier */
+    /* End of cleaning variable is */
+    /* End of cleaning variable iv */
+    /* End of cleaning variable iu */
+    /* End of cleaning variable krank */
+    }  /*if (f2py_success) of p4 frompyobj*/
+    /* End of cleaning variable p4 */
+    }  /*if (f2py_success) of p3 frompyobj*/
+    /* End of cleaning variable p3 */
+    }  /*if (f2py_success) of p2 frompyobj*/
+    /* End of cleaning variable p2 */
+    }  /*if (f2py_success) of p1 frompyobj*/
+    /* End of cleaning variable p1 */
+    }  /*if (f2py_success) of p4a frompyobj*/
+    /* End of cleaning variable p4a */
+    }  /*if (f2py_success) of p3a frompyobj*/
+    /* End of cleaning variable p3a */
+    }  /*if (f2py_success) of p2a frompyobj*/
+    /* End of cleaning variable p2a */
+    }  /*if (f2py_success) of p1a frompyobj*/
+    /* End of cleaning variable p1a */
+        CFUNCSMESS("Restoring callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idz__user__routines(matvec_cb_ptr);
+        Py_DECREF(matvec_cb.args_capi);
+    }
+    /* End of cleaning variable matvec */
+        CFUNCSMESS("Restoring callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+        Py_DECREF(matveca_cb.args_capi);
+    }
+    /* End of cleaning variable matveca */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of eps*/
+    /* End of cleaning variable eps */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzp_rsvd ******************************/
 
@@ -10508,163 +11014,171 @@ list,proj = idzr_aid(a,krank,w,[m,n])\n\nWrapper for ``idzr_aid``.\
 \n\nParameters\n----------\n"
 "a : input rank-2 array('D') with bounds (m,n)\n"
 "krank : input int\n"
-"w : input rank-1 array('D') with bounds ((2*krank+17)*n+21*m+80)\n"
+"w : input rank-1 array('D') with bounds (80 + 21 * m + 17 * n + 2 * krank * n)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
 "n : input int, optional\n    Default: shape(a,1)\n"
 "\nReturns\n-------\n"
 "list : rank-1 array('i') with bounds (n)\n"
-"proj : rank-1 array('D') with bounds (max(krank*(n-krank),1))";
+"proj : rank-1 array('D') with bounds (max(krank * n - krank * krank, 1))";
 /* extern void F_FUNC_US(idzr_aid,IDZR_AID)(int*,int*,complex_double*,int*,complex_double*,int*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idzr_aid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*,int*,complex_double*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  complex_double *proj = NULL;
-  npy_intp proj_Dims[1] = {-1};
-  const int proj_Rank = 1;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  static char *capi_kwlist[] = {"a","krank","w","m","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    complex_double *proj = NULL;
+    npy_intp proj_Dims[1] = {-1};
+    const int proj_Rank = 1;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    static char *capi_kwlist[] = {"a","krank","w","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OO:_interpolative.idzr_aid",\
-    capi_kwlist,&a_capi,&krank_capi,&w_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OO:_interpolative.idzr_aid",\
+        capi_kwlist,&a_capi,&krank_capi,&w_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.idzr_aid to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.idzr_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_aid() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_aid() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_aid() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=(2*krank+17)*n+21*m+80;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idzr_aid to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_aid() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_aid() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_aid() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=80 + 21 * m + 17 * n + 2 * krank * n;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idzr_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.idzr_aid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.idzr_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
 
-  /* Processing variable proj */
-  proj_Dims[0]=max(krank*(n-krank),1);
-  capi_proj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,Py_None);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `proj' of _interpolative.idzr_aid to C/Fortran array" );
-  } else {
-    proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
+    /* Processing variable proj */
+    proj_Dims[0]=max(krank * n - krank * krank, 1);
+    capi_proj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,Py_None);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `proj' of _interpolative.idzr_aid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,w,list,proj);
+                (*f2py_func)(&m,&n,a,&krank,w,list,proj);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_proj_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_proj_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzr_aid ******************************/
 
@@ -10676,98 +11190,100 @@ w = idzr_aidi(m,n,krank)\n\nWrapper for ``idzr_aidi``.\
 "n : input int\n"
 "krank : input int\n"
 "\nReturns\n-------\n"
-"w : rank-1 array('D') with bounds ((2*krank+17)*n+21*m+80)";
+"w : rank-1 array('D') with bounds (80 + 21 * m + 17 * n + 2 * krank * n)";
 /* extern void F_FUNC_US(idzr_aidi,IDZR_AIDI)(int*,int*,int*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idzr_aidi(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  static char *capi_kwlist[] = {"m","n","krank",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    static char *capi_kwlist[] = {"m","n","krank",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO:_interpolative.idzr_aidi",\
-    capi_kwlist,&m_capi,&n_capi,&krank_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|:_interpolative.idzr_aidi",\
+        capi_kwlist,&m_capi,&n_capi,&krank_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_aidi() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_aidi() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_aidi() 3rd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=(2*krank+17)*n+21*m+80;
-  capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `w' of _interpolative.idzr_aidi to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_aidi() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_aidi() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_aidi() 3rd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=80 + 21 * m + 17 * n + 2 * krank * n;
+    capi_w_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,Py_None);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `w' of _interpolative.idzr_aidi to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,&krank,w);
+                (*f2py_func)(&m,&n,&krank,w);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("N",capi_w_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("N",capi_w_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzr_aidi ******************************/
 
@@ -10777,7 +11293,7 @@ u,v,s,ier = idzr_asvd(a,krank,w,[m,n])\n\nWrapper for ``idzr_asvd``.\
 \n\nParameters\n----------\n"
 "a : input rank-2 array('D') with bounds (m,n)\n"
 "krank : input int\n"
-"w : input rank-1 array('D') with bounds ((2*krank+22)*m+(6*krank+21)*n+8*pow(krank,2)+10*krank+90)\n"
+"w : input rank-1 array('D') with bounds (90 + 10 * krank + 22 * m + 21 * n + 8 * pow(krank, 2) + 2 * krank * m + 6 * krank * n)\n"
 "\nOther Parameters\n----------------\n"
 "m : input int, optional\n    Default: shape(a,0)\n"
 "n : input int, optional\n    Default: shape(a,1)\n"
@@ -10791,171 +11307,181 @@ static PyObject *f2py_rout__interpolative_idzr_asvd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,complex_double*,int*,complex_double*,complex_double*,complex_double*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  complex_double *a = NULL;
-  npy_intp a_Dims[2] = {-1, -1};
-  const int a_Rank = 2;
-  PyArrayObject *capi_a_tmp = NULL;
-  int capi_a_intent = 0;
-  PyObject *a_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  complex_double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  complex_double *v = NULL;
-  npy_intp v_Dims[2] = {-1, -1};
-  const int v_Rank = 2;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  int ier = 0;
-  static char *capi_kwlist[] = {"a","krank","w","m","n",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    complex_double *a = NULL;
+    npy_intp a_Dims[2] = {-1, -1};
+    const int a_Rank = 2;
+    PyArrayObject *capi_a_tmp = NULL;
+    int capi_a_intent = 0;
+    PyObject *a_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    complex_double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    complex_double *v = NULL;
+    npy_intp v_Dims[2] = {-1, -1};
+    const int v_Rank = 2;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    int ier = 0;
+    static char *capi_kwlist[] = {"a","krank","w","m","n",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOO|OO:_interpolative.idzr_asvd",\
-    capi_kwlist,&a_capi,&krank_capi,&w_capi,&m_capi,&n_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOO|OO:_interpolative.idzr_asvd",\
+        capi_kwlist,&a_capi,&krank_capi,&w_capi,&m_capi,&n_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable a */
-  ;
-  capi_a_intent |= F2PY_INTENT_IN;
-  capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
-  if (capi_a_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 1st argument `a' of _interpolative.idzr_asvd to C/Fortran array" );
-  } else {
-    a = (complex_double *)(PyArray_DATA(capi_a_tmp));
+    /* Processing variable a */
+    ;
+    capi_a_intent |= F2PY_INTENT_IN;
+    capi_a_tmp = array_from_pyobj(NPY_CDOUBLE,a_Dims,a_Rank,capi_a_intent,a_capi);
+    if (capi_a_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 1st argument `a' of _interpolative.idzr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        a = (complex_double *)(PyArray_DATA(capi_a_tmp));
 
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_asvd() 2nd argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ier */
-  /* Processing variable m */
-  if (m_capi == Py_None) m = shape(a,0); else
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_asvd() 1st keyword (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  if (n_capi == Py_None) n = shape(a,1); else
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_asvd() 2nd keyword (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable w */
-  w_Dims[0]=(2*krank+22)*m+(6*krank+21)*n+8*pow(krank,2)+10*krank+90;
-  capi_w_intent |= F2PY_INTENT_IN;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idzr_asvd to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_asvd() 2nd argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ier */
+    /* Processing variable m */
+    if (m_capi == Py_None) m = shape(a,0); else
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_asvd() 1st keyword (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    if (n_capi == Py_None) n = shape(a,1); else
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_asvd() 2nd keyword (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable w */
+    w_Dims[0]=90 + 10 * krank + 22 * m + 21 * n + 8 * pow(krank, 2) + 2 * krank * m + 6 * krank * n;
+    capi_w_intent |= F2PY_INTENT_IN;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 3rd argument `w' of _interpolative.idzr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
-  /* Processing variable u */
-  u_Dims[0]=m,u_Dims[1]=krank;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `u' of _interpolative.idzr_asvd to C/Fortran array" );
-  } else {
-    u = (complex_double *)(PyArray_DATA(capi_u_tmp));
+    /* Processing variable u */
+    u_Dims[0]=m,u_Dims[1]=krank;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `u' of _interpolative.idzr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (complex_double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable v */
-  v_Dims[0]=n,v_Dims[1]=krank;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.idzr_asvd to C/Fortran array" );
-  } else {
-    v = (complex_double *)(PyArray_DATA(capi_v_tmp));
+    /* Processing variable v */
+    v_Dims[0]=n,v_Dims[1]=krank;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.idzr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (complex_double *)(PyArray_DATA(capi_v_tmp));
 
-  /* Processing variable s */
-  s_Dims[0]=krank;
-  capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `s' of _interpolative.idzr_asvd to C/Fortran array" );
-  } else {
-    s = (double *)(PyArray_DATA(capi_s_tmp));
+    /* Processing variable s */
+    s_Dims[0]=krank;
+    capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `s' of _interpolative.idzr_asvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (double *)(PyArray_DATA(capi_s_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&m,&n,a,&krank,w,u,v,s,&ier);
+                (*f2py_func)(&m,&n,a,&krank,w,u,v,s,&ier);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
-  /* End of cleaning variable ier */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  if((PyObject *)capi_a_tmp!=a_capi) {
-    Py_XDECREF(capi_a_tmp); }
-  }  /*if (capi_a_tmp == NULL) ... else of a*/
-  /* End of cleaning variable a */
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
+    /* End of cleaning variable ier */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    if((PyObject *)capi_a_tmp!=a_capi) {
+        Py_XDECREF(capi_a_tmp); }
+    }  /*if (capi_a_tmp == NULL) ... else of a*/
+    /* End of cleaning variable a */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzr_asvd ******************************/
 
@@ -10975,191 +11501,188 @@ list,proj = idzr_rid(m,n,matveca,krank,[p1,p2,p3,p4,matveca_extra_args])\n\nWrap
 "p4 : input complex\n"
 "\nReturns\n-------\n"
 "list : rank-1 array('i') with bounds (n)\n"
-"proj : rank-1 array('D') with bounds (m+(krank+3)*n)\n"
+"proj : rank-1 array('D') with bounds (m + 3 * n + krank * n)\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (n)";
+"    def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (n)";
 /* extern void F_FUNC_US(idzr_rid,IDZR_RID)(int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,int*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idzr_rid(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matveca_capi = Py_None;
-  PyTupleObject *matveca_xa_capi = NULL;
-  PyTupleObject *matveca_args_capi = NULL;
-  int matveca_nofargs_capi = 0;
-  cb_matveca_in_idz__user__routines_typedef matveca_cptr;
-  complex_double p1;
-  PyObject *p1_capi = Py_None;
-  complex_double p2;
-  PyObject *p2_capi = Py_None;
-  complex_double p3;
-  PyObject *p3_capi = Py_None;
-  complex_double p4;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  int *list = NULL;
-  npy_intp list_Dims[1] = {-1};
-  const int list_Rank = 1;
-  PyArrayObject *capi_list_tmp = NULL;
-  int capi_list_intent = 0;
-  complex_double *proj = NULL;
-  npy_intp proj_Dims[1] = {-1};
-  const int proj_Rank = 1;
-  PyArrayObject *capi_proj_tmp = NULL;
-  int capi_proj_intent = 0;
-  static char *capi_kwlist[] = {"m","n","matveca","krank","p1","p2","p3","p4","matveca_extra_args",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matveca_in_idz__user__routines_t matveca_cb = { Py_None, NULL, 0 };
+    cb_matveca_in_idz__user__routines_t *matveca_cb_ptr = &matveca_cb;
+    PyTupleObject *matveca_xa_capi = NULL;
+    cb_matveca_in_idz__user__routines_typedef matveca_cptr;
+    complex_double p1;
+    PyObject *p1_capi = Py_None;
+    complex_double p2;
+    PyObject *p2_capi = Py_None;
+    complex_double p3;
+    PyObject *p3_capi = Py_None;
+    complex_double p4;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    int *list = NULL;
+    npy_intp list_Dims[1] = {-1};
+    const int list_Rank = 1;
+    PyArrayObject *capi_list_tmp = NULL;
+    int capi_list_intent = 0;
+    complex_double *proj = NULL;
+    npy_intp proj_Dims[1] = {-1};
+    const int proj_Rank = 1;
+    PyArrayObject *capi_proj_tmp = NULL;
+    int capi_proj_intent = 0;
+    static char *capi_kwlist[] = {"m","n","matveca","krank","p1","p2","p3","p4","matveca_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOO|OOOOO!:_interpolative.idzr_rid",\
-    capi_kwlist,&m_capi,&n_capi,&matveca_capi,&krank_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matveca_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOO|OOOOO!:_interpolative.idzr_rid",\
+        capi_kwlist,&m_capi,&n_capi,&matveca_cb.capi,&krank_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&PyTuple_Type,&matveca_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_rid() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_rid() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_rid() 4th argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matveca */
-if(F2PyCapsule_Check(matveca_capi)) {
-  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_capi);
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_rid() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_rid() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_rid() 4th argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matveca */
+if(F2PyCapsule_Check(matveca_cb.capi)) {
+  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_cb.capi);
 } else {
   matveca_cptr = cb_matveca_in_idz__user__routines;
 }
 
-  matveca_nofargs_capi = cb_matveca_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matveca_capi,matveca_xa_capi,7,6,&cb_matveca_in_idz__user__routines_nofargs,&matveca_args_capi,"failed in processing argument list for call-back matveca.")) {
-    jmp_buf matveca_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matveca`.\n");
-    SWAP(matveca_capi,cb_matveca_in_idz__user__routines_capi,PyObject);
-    SWAP(matveca_args_capi,cb_matveca_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matveca_jmpbuf,&cb_matveca_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idzr_rid() 1st keyword (p1) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idzr_rid() 2nd keyword (p2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idzr_rid() 3rd keyword (p3) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idzr_rid() 4th keyword (p4) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable list */
-  list_Dims[0]=n;
-  capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
-  if (capi_list_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `list' of _interpolative.idzr_rid to C/Fortran array" );
-  } else {
-    list = (int *)(PyArray_DATA(capi_list_tmp));
+    if (create_cb_arglist(matveca_cb.capi,matveca_xa_capi,7,6,&matveca_cb.nofargs,&matveca_cb.args_capi,"failed in processing argument list for call-back matveca.")) {
 
-  /* Processing variable proj */
-  proj_Dims[0]=m+(krank+3)*n;
-  capi_proj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,Py_None);
-  if (capi_proj_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `proj' of _interpolative.idzr_rid to C/Fortran array" );
-  } else {
-    proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
+        CFUNCSMESS("Saving callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idzr_rid() 1st keyword (p1) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idzr_rid() 2nd keyword (p2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idzr_rid() 3rd keyword (p3) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idzr_rid() 4th keyword (p4) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable list */
+    list_Dims[0]=n;
+    capi_list_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_list_tmp = array_from_pyobj(NPY_INT,list_Dims,list_Rank,capi_list_intent,Py_None);
+    if (capi_list_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `list' of _interpolative.idzr_rid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        list = (int *)(PyArray_DATA(capi_list_tmp));
+
+    /* Processing variable proj */
+    proj_Dims[0]=m + 3 * n + krank * n;
+    capi_proj_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_proj_tmp = array_from_pyobj(NPY_CDOUBLE,proj_Dims,proj_Rank,capi_proj_intent,Py_None);
+    if (capi_proj_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `proj' of _interpolative.idzr_rid to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        proj = (complex_double *)(PyArray_DATA(capi_proj_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matveca_in_idz__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&m,&n,matveca_cptr,&p1,&p2,&p3,&p4,&krank,list,proj);
-    }
+        if ((setjmp(matveca_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&m,&n,matveca_cptr,&p1,&p2,&p3,&p4,&krank,list,proj);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_proj_tmp);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NN",capi_list_tmp,capi_proj_tmp);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  }  /*if (capi_proj_tmp == NULL) ... else of proj*/
-  /* End of cleaning variable proj */
-  }  /*if (capi_list_tmp == NULL) ... else of list*/
-  /* End of cleaning variable list */
-  }  /*if (f2py_success) of p4 frompyobj*/
-  /* End of cleaning variable p4 */
-  }  /*if (f2py_success) of p3 frompyobj*/
-  /* End of cleaning variable p3 */
-  }  /*if (f2py_success) of p2 frompyobj*/
-  /* End of cleaning variable p2 */
-  }  /*if (f2py_success) of p1 frompyobj*/
-  /* End of cleaning variable p1 */
-    CFUNCSMESS("Restoring jmpbuf for `matveca`.\n");
-    cb_matveca_in_idz__user__routines_capi = matveca_capi;
-    Py_DECREF(cb_matveca_in_idz__user__routines_args_capi);
-    cb_matveca_in_idz__user__routines_args_capi = matveca_args_capi;
-    cb_matveca_in_idz__user__routines_nofargs = matveca_nofargs_capi;
-    memcpy(&cb_matveca_in_idz__user__routines_jmpbuf,&matveca_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matveca */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    }  /*if (capi_proj_tmp == NULL) ... else of proj*/
+    /* End of cleaning variable proj */
+    }  /*if (capi_list_tmp == NULL) ... else of list*/
+    /* End of cleaning variable list */
+    }  /*if (f2py_success) of p4 frompyobj*/
+    /* End of cleaning variable p4 */
+    }  /*if (f2py_success) of p3 frompyobj*/
+    /* End of cleaning variable p3 */
+    }  /*if (f2py_success) of p2 frompyobj*/
+    /* End of cleaning variable p2 */
+    }  /*if (f2py_success) of p1 frompyobj*/
+    /* End of cleaning variable p1 */
+        CFUNCSMESS("Restoring callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+        Py_DECREF(matveca_cb.args_capi);
+    }
+    /* End of cleaning variable matveca */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzr_rid ******************************/
 
@@ -11183,307 +11706,301 @@ u,v,s,ier = idzr_rsvd(m,n,matveca,matvec,krank,[p1a,p2a,p3a,p4a,p1,p2,p3,p4,w,ma
 "p2 : input complex\n"
 "p3 : input complex\n"
 "p4 : input complex\n"
-"w : input rank-1 array('D') with bounds ((krank+1)*(2*m+4*n+10)+8*pow(krank,2))\n"
+"w : input rank-1 array('D') with bounds (10 + 10 * krank + 2 * m + 4 * n + 8 * pow(krank, 2) + 2 * krank * m + 4 * krank * n)\n"
 "\nReturns\n-------\n"
 "u : rank-2 array('D') with bounds (m,krank)\n"
 "v : rank-2 array('D') with bounds (n,krank)\n"
 "s : rank-1 array('d') with bounds (krank)\n"
 "ier : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (m)\n"
-"  Optional arguments:\n"
-"    m : input int, optional\n    Default: len(x)\n"
-"    n : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (n)\n"
-"  def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
-  Required arguments:\n"
-"    x : input rank-1 array('D') with bounds (n)\n"
-"  Optional arguments:\n"
-"    n : input int, optional\n    Default: len(x)\n"
-"    m : input int\n"
-"    p1 : input complex\n"
-"    p2 : input complex\n"
-"    p3 : input complex\n"
-"    p4 : input complex\n"
-"  Return objects:\n"
-"    y : rank-1 array('D') with bounds (m)";
+"    def matveca(x,[m,n,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (m)\n"
+"    Optional arguments:\n"
+"        m : input int, optional\n    Default: len(x)\n"
+"        n : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (n)\n"
+"    def matvec(x,[n,m,p1,p2,p3,p4]): return y\n\
+    Required arguments:\n"
+"        x : input rank-1 array('D') with bounds (n)\n"
+"    Optional arguments:\n"
+"        n : input int, optional\n    Default: len(x)\n"
+"        m : input int\n"
+"        p1 : input complex\n"
+"        p2 : input complex\n"
+"        p3 : input complex\n"
+"        p4 : input complex\n"
+"    Return objects:\n"
+"        y : rank-1 array('D') with bounds (m)";
 /* extern void F_FUNC_US(idzr_rsvd,IDZR_RSVD)(int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,complex_double*,complex_double*,double*,int*,complex_double*); */
 static PyObject *f2py_rout__interpolative_idzr_rsvd(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,int*,cb_matveca_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,cb_matvec_in_idz__user__routines_typedef,complex_double*,complex_double*,complex_double*,complex_double*,int*,complex_double*,complex_double*,double*,int*,complex_double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int m = 0;
-  PyObject *m_capi = Py_None;
-  int n = 0;
-  PyObject *n_capi = Py_None;
-  PyObject *matveca_capi = Py_None;
-  PyTupleObject *matveca_xa_capi = NULL;
-  PyTupleObject *matveca_args_capi = NULL;
-  int matveca_nofargs_capi = 0;
-  cb_matveca_in_idz__user__routines_typedef matveca_cptr;
-  complex_double p1a;
-  PyObject *p1a_capi = Py_None;
-  complex_double p2a;
-  PyObject *p2a_capi = Py_None;
-  complex_double p3a;
-  PyObject *p3a_capi = Py_None;
-  complex_double p4a;
-  PyObject *p4a_capi = Py_None;
-  PyObject *matvec_capi = Py_None;
-  PyTupleObject *matvec_xa_capi = NULL;
-  PyTupleObject *matvec_args_capi = NULL;
-  int matvec_nofargs_capi = 0;
-  cb_matvec_in_idz__user__routines_typedef matvec_cptr;
-  complex_double p1;
-  PyObject *p1_capi = Py_None;
-  complex_double p2;
-  PyObject *p2_capi = Py_None;
-  complex_double p3;
-  PyObject *p3_capi = Py_None;
-  complex_double p4;
-  PyObject *p4_capi = Py_None;
-  int krank = 0;
-  PyObject *krank_capi = Py_None;
-  complex_double *u = NULL;
-  npy_intp u_Dims[2] = {-1, -1};
-  const int u_Rank = 2;
-  PyArrayObject *capi_u_tmp = NULL;
-  int capi_u_intent = 0;
-  complex_double *v = NULL;
-  npy_intp v_Dims[2] = {-1, -1};
-  const int v_Rank = 2;
-  PyArrayObject *capi_v_tmp = NULL;
-  int capi_v_intent = 0;
-  double *s = NULL;
-  npy_intp s_Dims[1] = {-1};
-  const int s_Rank = 1;
-  PyArrayObject *capi_s_tmp = NULL;
-  int capi_s_intent = 0;
-  int ier = 0;
-  complex_double *w = NULL;
-  npy_intp w_Dims[1] = {-1};
-  const int w_Rank = 1;
-  PyArrayObject *capi_w_tmp = NULL;
-  int capi_w_intent = 0;
-  PyObject *w_capi = Py_None;
-  static char *capi_kwlist[] = {"m","n","matveca","matvec","krank","p1a","p2a","p3a","p4a","p1","p2","p3","p4","w","matveca_extra_args","matvec_extra_args",NULL};
+    int m = 0;
+    PyObject *m_capi = Py_None;
+    int n = 0;
+    PyObject *n_capi = Py_None;
+    cb_matveca_in_idz__user__routines_t matveca_cb = { Py_None, NULL, 0 };
+    cb_matveca_in_idz__user__routines_t *matveca_cb_ptr = &matveca_cb;
+    PyTupleObject *matveca_xa_capi = NULL;
+    cb_matveca_in_idz__user__routines_typedef matveca_cptr;
+    complex_double p1a;
+    PyObject *p1a_capi = Py_None;
+    complex_double p2a;
+    PyObject *p2a_capi = Py_None;
+    complex_double p3a;
+    PyObject *p3a_capi = Py_None;
+    complex_double p4a;
+    PyObject *p4a_capi = Py_None;
+    cb_matvec_in_idz__user__routines_t matvec_cb = { Py_None, NULL, 0 };
+    cb_matvec_in_idz__user__routines_t *matvec_cb_ptr = &matvec_cb;
+    PyTupleObject *matvec_xa_capi = NULL;
+    cb_matvec_in_idz__user__routines_typedef matvec_cptr;
+    complex_double p1;
+    PyObject *p1_capi = Py_None;
+    complex_double p2;
+    PyObject *p2_capi = Py_None;
+    complex_double p3;
+    PyObject *p3_capi = Py_None;
+    complex_double p4;
+    PyObject *p4_capi = Py_None;
+    int krank = 0;
+    PyObject *krank_capi = Py_None;
+    complex_double *u = NULL;
+    npy_intp u_Dims[2] = {-1, -1};
+    const int u_Rank = 2;
+    PyArrayObject *capi_u_tmp = NULL;
+    int capi_u_intent = 0;
+    complex_double *v = NULL;
+    npy_intp v_Dims[2] = {-1, -1};
+    const int v_Rank = 2;
+    PyArrayObject *capi_v_tmp = NULL;
+    int capi_v_intent = 0;
+    double *s = NULL;
+    npy_intp s_Dims[1] = {-1};
+    const int s_Rank = 1;
+    PyArrayObject *capi_s_tmp = NULL;
+    int capi_s_intent = 0;
+    int ier = 0;
+    complex_double *w = NULL;
+    npy_intp w_Dims[1] = {-1};
+    const int w_Rank = 1;
+    PyArrayObject *capi_w_tmp = NULL;
+    int capi_w_intent = 0;
+    PyObject *w_capi = Py_None;
+    static char *capi_kwlist[] = {"m","n","matveca","matvec","krank","p1a","p2a","p3a","p4a","p1","p2","p3","p4","w","matveca_extra_args","matvec_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOO|OOOOOOOOOO!O!:_interpolative.idzr_rsvd",\
-    capi_kwlist,&m_capi,&n_capi,&matveca_capi,&matvec_capi,&krank_capi,&p1a_capi,&p2a_capi,&p3a_capi,&p4a_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&w_capi,&PyTuple_Type,&matveca_xa_capi,&PyTuple_Type,&matvec_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOO|OOOOOOOOOO!O!:_interpolative.idzr_rsvd",\
+        capi_kwlist,&m_capi,&n_capi,&matveca_cb.capi,&matvec_cb.capi,&krank_capi,&p1a_capi,&p2a_capi,&p3a_capi,&p4a_capi,&p1_capi,&p2_capi,&p3_capi,&p4_capi,&w_capi,&PyTuple_Type,&matveca_xa_capi,&PyTuple_Type,&matvec_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable m */
-    f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_rsvd() 1st argument (m) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-    f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_rsvd() 2nd argument (n) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable krank */
-    f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_rsvd() 5th argument (krank) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable matveca */
-if(F2PyCapsule_Check(matveca_capi)) {
-  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_capi);
+    /* Processing variable m */
+        f2py_success = int_from_pyobj(&m,m_capi,"_interpolative.idzr_rsvd() 1st argument (m) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+        f2py_success = int_from_pyobj(&n,n_capi,"_interpolative.idzr_rsvd() 2nd argument (n) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable krank */
+        f2py_success = int_from_pyobj(&krank,krank_capi,"_interpolative.idzr_rsvd() 5th argument (krank) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable matveca */
+if(F2PyCapsule_Check(matveca_cb.capi)) {
+  matveca_cptr = F2PyCapsule_AsVoidPtr(matveca_cb.capi);
 } else {
   matveca_cptr = cb_matveca_in_idz__user__routines;
 }
 
-  matveca_nofargs_capi = cb_matveca_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matveca_capi,matveca_xa_capi,7,6,&cb_matveca_in_idz__user__routines_nofargs,&matveca_args_capi,"failed in processing argument list for call-back matveca.")) {
-    jmp_buf matveca_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matveca`.\n");
-    SWAP(matveca_capi,cb_matveca_in_idz__user__routines_capi,PyObject);
-    SWAP(matveca_args_capi,cb_matveca_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matveca_jmpbuf,&cb_matveca_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable matvec */
-if(F2PyCapsule_Check(matvec_capi)) {
-  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_capi);
+    if (create_cb_arglist(matveca_cb.capi,matveca_xa_capi,7,6,&matveca_cb.nofargs,&matveca_cb.args_capi,"failed in processing argument list for call-back matveca.")) {
+
+        CFUNCSMESS("Saving callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+    /* Processing variable matvec */
+if(F2PyCapsule_Check(matvec_cb.capi)) {
+  matvec_cptr = F2PyCapsule_AsVoidPtr(matvec_cb.capi);
 } else {
   matvec_cptr = cb_matvec_in_idz__user__routines;
 }
 
-  matvec_nofargs_capi = cb_matvec_in_idz__user__routines_nofargs;
-  if (create_cb_arglist(matvec_capi,matvec_xa_capi,7,6,&cb_matvec_in_idz__user__routines_nofargs,&matvec_args_capi,"failed in processing argument list for call-back matvec.")) {
-    jmp_buf matvec_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `matvec`.\n");
-    SWAP(matvec_capi,cb_matvec_in_idz__user__routines_capi,PyObject);
-    SWAP(matvec_args_capi,cb_matvec_in_idz__user__routines_args_capi,PyTupleObject);
-    memcpy(&matvec_jmpbuf,&cb_matvec_in_idz__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable p1a */
-  if (p1a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1a,p1a_capi,"_interpolative.idzr_rsvd() 1st keyword (p1a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2a */
-  if (p2a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2a,p2a_capi,"_interpolative.idzr_rsvd() 2nd keyword (p2a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3a */
-  if (p3a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3a,p3a_capi,"_interpolative.idzr_rsvd() 3rd keyword (p3a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4a */
-  if (p4a_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4a,p4a_capi,"_interpolative.idzr_rsvd() 4th keyword (p4a) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p1 */
-  if (p1_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idzr_rsvd() 5th keyword (p1) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p2 */
-  if (p2_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idzr_rsvd() 6th keyword (p2) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p3 */
-  if (p3_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idzr_rsvd() 7th keyword (p3) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable p4 */
-  if (p4_capi != Py_None)
-    f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idzr_rsvd() 8th keyword (p4) can't be converted to complex_double");
-  if (f2py_success) {
-  /* Processing variable ier */
-  /* Processing variable u */
-  u_Dims[0]=m,u_Dims[1]=krank;
-  capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
-  if (capi_u_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `u' of _interpolative.idzr_rsvd to C/Fortran array" );
-  } else {
-    u = (complex_double *)(PyArray_DATA(capi_u_tmp));
+    if (create_cb_arglist(matvec_cb.capi,matvec_xa_capi,7,6,&matvec_cb.nofargs,&matvec_cb.args_capi,"failed in processing argument list for call-back matvec.")) {
 
-  /* Processing variable v */
-  v_Dims[0]=n,v_Dims[1]=krank;
-  capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
-  if (capi_v_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `v' of _interpolative.idzr_rsvd to C/Fortran array" );
-  } else {
-    v = (complex_double *)(PyArray_DATA(capi_v_tmp));
+        CFUNCSMESS("Saving callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idz__user__routines(matvec_cb_ptr);
+    /* Processing variable p1a */
+    if (p1a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1a,p1a_capi,"_interpolative.idzr_rsvd() 1st keyword (p1a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2a */
+    if (p2a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2a,p2a_capi,"_interpolative.idzr_rsvd() 2nd keyword (p2a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3a */
+    if (p3a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3a,p3a_capi,"_interpolative.idzr_rsvd() 3rd keyword (p3a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4a */
+    if (p4a_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4a,p4a_capi,"_interpolative.idzr_rsvd() 4th keyword (p4a) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p1 */
+    if (p1_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p1,p1_capi,"_interpolative.idzr_rsvd() 5th keyword (p1) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p2 */
+    if (p2_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p2,p2_capi,"_interpolative.idzr_rsvd() 6th keyword (p2) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p3 */
+    if (p3_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p3,p3_capi,"_interpolative.idzr_rsvd() 7th keyword (p3) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable p4 */
+    if (p4_capi != Py_None)
+        f2py_success = complex_double_from_pyobj(&p4,p4_capi,"_interpolative.idzr_rsvd() 8th keyword (p4) can't be converted to complex_double");
+    if (f2py_success) {
+    /* Processing variable ier */
+    /* Processing variable u */
+    u_Dims[0]=m,u_Dims[1]=krank;
+    capi_u_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_u_tmp = array_from_pyobj(NPY_CDOUBLE,u_Dims,u_Rank,capi_u_intent,Py_None);
+    if (capi_u_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `u' of _interpolative.idzr_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        u = (complex_double *)(PyArray_DATA(capi_u_tmp));
 
-  /* Processing variable s */
-  s_Dims[0]=krank;
-  capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
-  capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
-  if (capi_s_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting hidden `s' of _interpolative.idzr_rsvd to C/Fortran array" );
-  } else {
-    s = (double *)(PyArray_DATA(capi_s_tmp));
+    /* Processing variable v */
+    v_Dims[0]=n,v_Dims[1]=krank;
+    capi_v_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_v_tmp = array_from_pyobj(NPY_CDOUBLE,v_Dims,v_Rank,capi_v_intent,Py_None);
+    if (capi_v_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `v' of _interpolative.idzr_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        v = (complex_double *)(PyArray_DATA(capi_v_tmp));
 
-  /* Processing variable w */
-  w_Dims[0]=(krank+1)*(2*m+4*n+10)+8*pow(krank,2);
-  capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
-  capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
-  if (capi_w_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_interpolative_error,"failed in converting 9th keyword `w' of _interpolative.idzr_rsvd to C/Fortran array" );
-  } else {
-    w = (complex_double *)(PyArray_DATA(capi_w_tmp));
+    /* Processing variable s */
+    s_Dims[0]=krank;
+    capi_s_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
+    capi_s_tmp = array_from_pyobj(NPY_DOUBLE,s_Dims,s_Rank,capi_s_intent,Py_None);
+    if (capi_s_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting hidden `s' of _interpolative.idzr_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        s = (double *)(PyArray_DATA(capi_s_tmp));
+
+    /* Processing variable w */
+    w_Dims[0]=10 + 10 * krank + 2 * m + 4 * n + 8 * pow(krank, 2) + 2 * krank * m + 4 * krank * n;
+    capi_w_intent |= F2PY_INTENT_IN|F2PY_OPTIONAL;
+    capi_w_tmp = array_from_pyobj(NPY_CDOUBLE,w_Dims,w_Rank,capi_w_intent,w_capi);
+    if (capi_w_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _interpolative_error,"failed in converting 9th keyword `w' of _interpolative.idzr_rsvd to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        w = (complex_double *)(PyArray_DATA(capi_w_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_matveca_in_idz__user__routines_jmpbuf)) || (setjmp(cb_matvec_in_idz__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(&m,&n,matveca_cptr,&p1a,&p2a,&p3a,&p4a,matvec_cptr,&p1,&p2,&p3,&p4,&krank,u,v,s,&ier,w);
-    }
+        if ((setjmp(matveca_cb.jmpbuf)) || (setjmp(matvec_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(&m,&n,matveca_cptr,&p1a,&p2a,&p3a,&p4a,matvec_cptr,&p1,&p2,&p3,&p4,&krank,u,v,s,&ier,w);
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NNNi",capi_u_tmp,capi_v_tmp,capi_s_tmp,ier);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_w_tmp!=w_capi) {
-    Py_XDECREF(capi_w_tmp); }
-  }  /*if (capi_w_tmp == NULL) ... else of w*/
-  /* End of cleaning variable w */
-  }  /*if (capi_s_tmp == NULL) ... else of s*/
-  /* End of cleaning variable s */
-  }  /*if (capi_v_tmp == NULL) ... else of v*/
-  /* End of cleaning variable v */
-  }  /*if (capi_u_tmp == NULL) ... else of u*/
-  /* End of cleaning variable u */
-  /* End of cleaning variable ier */
-  }  /*if (f2py_success) of p4 frompyobj*/
-  /* End of cleaning variable p4 */
-  }  /*if (f2py_success) of p3 frompyobj*/
-  /* End of cleaning variable p3 */
-  }  /*if (f2py_success) of p2 frompyobj*/
-  /* End of cleaning variable p2 */
-  }  /*if (f2py_success) of p1 frompyobj*/
-  /* End of cleaning variable p1 */
-  }  /*if (f2py_success) of p4a frompyobj*/
-  /* End of cleaning variable p4a */
-  }  /*if (f2py_success) of p3a frompyobj*/
-  /* End of cleaning variable p3a */
-  }  /*if (f2py_success) of p2a frompyobj*/
-  /* End of cleaning variable p2a */
-  }  /*if (f2py_success) of p1a frompyobj*/
-  /* End of cleaning variable p1a */
-    CFUNCSMESS("Restoring jmpbuf for `matvec`.\n");
-    cb_matvec_in_idz__user__routines_capi = matvec_capi;
-    Py_DECREF(cb_matvec_in_idz__user__routines_args_capi);
-    cb_matvec_in_idz__user__routines_args_capi = matvec_args_capi;
-    cb_matvec_in_idz__user__routines_nofargs = matvec_nofargs_capi;
-    memcpy(&cb_matvec_in_idz__user__routines_jmpbuf,&matvec_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matvec */
-    CFUNCSMESS("Restoring jmpbuf for `matveca`.\n");
-    cb_matveca_in_idz__user__routines_capi = matveca_capi;
-    Py_DECREF(cb_matveca_in_idz__user__routines_args_capi);
-    cb_matveca_in_idz__user__routines_args_capi = matveca_args_capi;
-    cb_matveca_in_idz__user__routines_nofargs = matveca_nofargs_capi;
-    memcpy(&cb_matveca_in_idz__user__routines_jmpbuf,&matveca_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable matveca */
-  } /*if (f2py_success) of krank*/
-  /* End of cleaning variable krank */
-  } /*if (f2py_success) of n*/
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of m*/
-  /* End of cleaning variable m */
+    if((PyObject *)capi_w_tmp!=w_capi) {
+        Py_XDECREF(capi_w_tmp); }
+    }  /*if (capi_w_tmp == NULL) ... else of w*/
+    /* End of cleaning variable w */
+    }  /*if (capi_s_tmp == NULL) ... else of s*/
+    /* End of cleaning variable s */
+    }  /*if (capi_v_tmp == NULL) ... else of v*/
+    /* End of cleaning variable v */
+    }  /*if (capi_u_tmp == NULL) ... else of u*/
+    /* End of cleaning variable u */
+    /* End of cleaning variable ier */
+    }  /*if (f2py_success) of p4 frompyobj*/
+    /* End of cleaning variable p4 */
+    }  /*if (f2py_success) of p3 frompyobj*/
+    /* End of cleaning variable p3 */
+    }  /*if (f2py_success) of p2 frompyobj*/
+    /* End of cleaning variable p2 */
+    }  /*if (f2py_success) of p1 frompyobj*/
+    /* End of cleaning variable p1 */
+    }  /*if (f2py_success) of p4a frompyobj*/
+    /* End of cleaning variable p4a */
+    }  /*if (f2py_success) of p3a frompyobj*/
+    /* End of cleaning variable p3a */
+    }  /*if (f2py_success) of p2a frompyobj*/
+    /* End of cleaning variable p2a */
+    }  /*if (f2py_success) of p1a frompyobj*/
+    /* End of cleaning variable p1a */
+        CFUNCSMESS("Restoring callback variables for `matvec`.\n");
+        matvec_cb_ptr = swap_active_cb_matvec_in_idz__user__routines(matvec_cb_ptr);
+        Py_DECREF(matvec_cb.args_capi);
+    }
+    /* End of cleaning variable matvec */
+        CFUNCSMESS("Restoring callback variables for `matveca`.\n");
+        matveca_cb_ptr = swap_active_cb_matveca_in_idz__user__routines(matveca_cb_ptr);
+        Py_DECREF(matveca_cb.args_capi);
+    }
+    /* End of cleaning variable matveca */
+    } /*if (f2py_success) of krank*/
+    /* End of cleaning variable krank */
+    } /*if (f2py_success) of n*/
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of m*/
+    /* End of cleaning variable m */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of idzr_rsvd ******************************/
 /*eof body*/
@@ -11500,169 +12017,166 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-  {"id_srand",-1,{{-1}},0,(char *)F_FUNC_US(id_srand,ID_SRAND),(f2py_init_func)f2py_rout__interpolative_id_srand,doc_f2py_rout__interpolative_id_srand},
-  {"id_srandi",-1,{{-1}},0,(char *)F_FUNC_US(id_srandi,ID_SRANDI),(f2py_init_func)f2py_rout__interpolative_id_srandi,doc_f2py_rout__interpolative_id_srandi},
-  {"id_srando",-1,{{-1}},0,(char *)F_FUNC_US(id_srando,ID_SRANDO),(f2py_init_func)f2py_rout__interpolative_id_srando,doc_f2py_rout__interpolative_id_srando},
-  {"idd_frm",-1,{{-1}},0,(char *)F_FUNC_US(idd_frm,IDD_FRM),(f2py_init_func)f2py_rout__interpolative_idd_frm,doc_f2py_rout__interpolative_idd_frm},
-  {"idd_sfrm",-1,{{-1}},0,(char *)F_FUNC_US(idd_sfrm,IDD_SFRM),(f2py_init_func)f2py_rout__interpolative_idd_sfrm,doc_f2py_rout__interpolative_idd_sfrm},
-  {"idd_frmi",-1,{{-1}},0,(char *)F_FUNC_US(idd_frmi,IDD_FRMI),(f2py_init_func)f2py_rout__interpolative_idd_frmi,doc_f2py_rout__interpolative_idd_frmi},
-  {"idd_sfrmi",-1,{{-1}},0,(char *)F_FUNC_US(idd_sfrmi,IDD_SFRMI),(f2py_init_func)f2py_rout__interpolative_idd_sfrmi,doc_f2py_rout__interpolative_idd_sfrmi},
-  {"iddp_id",-1,{{-1}},0,(char *)F_FUNC_US(iddp_id,IDDP_ID),(f2py_init_func)f2py_rout__interpolative_iddp_id,doc_f2py_rout__interpolative_iddp_id},
-  {"iddr_id",-1,{{-1}},0,(char *)F_FUNC_US(iddr_id,IDDR_ID),(f2py_init_func)f2py_rout__interpolative_iddr_id,doc_f2py_rout__interpolative_iddr_id},
-  {"idd_reconid",-1,{{-1}},0,(char *)F_FUNC_US(idd_reconid,IDD_RECONID),(f2py_init_func)f2py_rout__interpolative_idd_reconid,doc_f2py_rout__interpolative_idd_reconid},
-  {"idd_reconint",-1,{{-1}},0,(char *)F_FUNC_US(idd_reconint,IDD_RECONINT),(f2py_init_func)f2py_rout__interpolative_idd_reconint,doc_f2py_rout__interpolative_idd_reconint},
-  {"idd_copycols",-1,{{-1}},0,(char *)F_FUNC_US(idd_copycols,IDD_COPYCOLS),(f2py_init_func)f2py_rout__interpolative_idd_copycols,doc_f2py_rout__interpolative_idd_copycols},
-  {"idd_id2svd",-1,{{-1}},0,(char *)F_FUNC_US(idd_id2svd,IDD_ID2SVD),(f2py_init_func)f2py_rout__interpolative_idd_id2svd,doc_f2py_rout__interpolative_idd_id2svd},
-  {"idd_snorm",-1,{{-1}},0,(char *)F_FUNC_US(idd_snorm,IDD_SNORM),(f2py_init_func)f2py_rout__interpolative_idd_snorm,doc_f2py_rout__interpolative_idd_snorm},
-  {"idd_diffsnorm",-1,{{-1}},0,(char *)F_FUNC_US(idd_diffsnorm,IDD_DIFFSNORM),(f2py_init_func)f2py_rout__interpolative_idd_diffsnorm,doc_f2py_rout__interpolative_idd_diffsnorm},
-  {"iddr_svd",-1,{{-1}},0,(char *)F_FUNC_US(iddr_svd,IDDR_SVD),(f2py_init_func)f2py_rout__interpolative_iddr_svd,doc_f2py_rout__interpolative_iddr_svd},
-  {"iddp_svd",-1,{{-1}},0,(char *)F_FUNC_US(iddp_svd,IDDP_SVD),(f2py_init_func)f2py_rout__interpolative_iddp_svd,doc_f2py_rout__interpolative_iddp_svd},
-  {"iddp_aid",-1,{{-1}},0,(char *)F_FUNC_US(iddp_aid,IDDP_AID),(f2py_init_func)f2py_rout__interpolative_iddp_aid,doc_f2py_rout__interpolative_iddp_aid},
-  {"idd_estrank",-1,{{-1}},0,(char *)F_FUNC_US(idd_estrank,IDD_ESTRANK),(f2py_init_func)f2py_rout__interpolative_idd_estrank,doc_f2py_rout__interpolative_idd_estrank},
-  {"iddp_asvd",-1,{{-1}},0,(char *)F_FUNC_US(iddp_asvd,IDDP_ASVD),(f2py_init_func)f2py_rout__interpolative_iddp_asvd,doc_f2py_rout__interpolative_iddp_asvd},
-  {"iddp_rid",-1,{{-1}},0,(char *)F_FUNC_US(iddp_rid,IDDP_RID),(f2py_init_func)f2py_rout__interpolative_iddp_rid,doc_f2py_rout__interpolative_iddp_rid},
-  {"idd_findrank",-1,{{-1}},0,(char *)F_FUNC_US(idd_findrank,IDD_FINDRANK),(f2py_init_func)f2py_rout__interpolative_idd_findrank,doc_f2py_rout__interpolative_idd_findrank},
-  {"iddp_rsvd",-1,{{-1}},0,(char *)F_FUNC_US(iddp_rsvd,IDDP_RSVD),(f2py_init_func)f2py_rout__interpolative_iddp_rsvd,doc_f2py_rout__interpolative_iddp_rsvd},
-  {"iddr_aid",-1,{{-1}},0,(char *)F_FUNC_US(iddr_aid,IDDR_AID),(f2py_init_func)f2py_rout__interpolative_iddr_aid,doc_f2py_rout__interpolative_iddr_aid},
-  {"iddr_aidi",-1,{{-1}},0,(char *)F_FUNC_US(iddr_aidi,IDDR_AIDI),(f2py_init_func)f2py_rout__interpolative_iddr_aidi,doc_f2py_rout__interpolative_iddr_aidi},
-  {"iddr_asvd",-1,{{-1}},0,(char *)F_FUNC_US(iddr_asvd,IDDR_ASVD),(f2py_init_func)f2py_rout__interpolative_iddr_asvd,doc_f2py_rout__interpolative_iddr_asvd},
-  {"iddr_rid",-1,{{-1}},0,(char *)F_FUNC_US(iddr_rid,IDDR_RID),(f2py_init_func)f2py_rout__interpolative_iddr_rid,doc_f2py_rout__interpolative_iddr_rid},
-  {"iddr_rsvd",-1,{{-1}},0,(char *)F_FUNC_US(iddr_rsvd,IDDR_RSVD),(f2py_init_func)f2py_rout__interpolative_iddr_rsvd,doc_f2py_rout__interpolative_iddr_rsvd},
-  {"idz_frm",-1,{{-1}},0,(char *)F_FUNC_US(idz_frm,IDZ_FRM),(f2py_init_func)f2py_rout__interpolative_idz_frm,doc_f2py_rout__interpolative_idz_frm},
-  {"idz_sfrm",-1,{{-1}},0,(char *)F_FUNC_US(idz_sfrm,IDZ_SFRM),(f2py_init_func)f2py_rout__interpolative_idz_sfrm,doc_f2py_rout__interpolative_idz_sfrm},
-  {"idz_frmi",-1,{{-1}},0,(char *)F_FUNC_US(idz_frmi,IDZ_FRMI),(f2py_init_func)f2py_rout__interpolative_idz_frmi,doc_f2py_rout__interpolative_idz_frmi},
-  {"idz_sfrmi",-1,{{-1}},0,(char *)F_FUNC_US(idz_sfrmi,IDZ_SFRMI),(f2py_init_func)f2py_rout__interpolative_idz_sfrmi,doc_f2py_rout__interpolative_idz_sfrmi},
-  {"idzp_id",-1,{{-1}},0,(char *)F_FUNC_US(idzp_id,IDZP_ID),(f2py_init_func)f2py_rout__interpolative_idzp_id,doc_f2py_rout__interpolative_idzp_id},
-  {"idzr_id",-1,{{-1}},0,(char *)F_FUNC_US(idzr_id,IDZR_ID),(f2py_init_func)f2py_rout__interpolative_idzr_id,doc_f2py_rout__interpolative_idzr_id},
-  {"idz_reconid",-1,{{-1}},0,(char *)F_FUNC_US(idz_reconid,IDZ_RECONID),(f2py_init_func)f2py_rout__interpolative_idz_reconid,doc_f2py_rout__interpolative_idz_reconid},
-  {"idz_reconint",-1,{{-1}},0,(char *)F_FUNC_US(idz_reconint,IDZ_RECONINT),(f2py_init_func)f2py_rout__interpolative_idz_reconint,doc_f2py_rout__interpolative_idz_reconint},
-  {"idz_copycols",-1,{{-1}},0,(char *)F_FUNC_US(idz_copycols,IDZ_COPYCOLS),(f2py_init_func)f2py_rout__interpolative_idz_copycols,doc_f2py_rout__interpolative_idz_copycols},
-  {"idz_id2svd",-1,{{-1}},0,(char *)F_FUNC_US(idz_id2svd,IDZ_ID2SVD),(f2py_init_func)f2py_rout__interpolative_idz_id2svd,doc_f2py_rout__interpolative_idz_id2svd},
-  {"idz_snorm",-1,{{-1}},0,(char *)F_FUNC_US(idz_snorm,IDZ_SNORM),(f2py_init_func)f2py_rout__interpolative_idz_snorm,doc_f2py_rout__interpolative_idz_snorm},
-  {"idz_diffsnorm",-1,{{-1}},0,(char *)F_FUNC_US(idz_diffsnorm,IDZ_DIFFSNORM),(f2py_init_func)f2py_rout__interpolative_idz_diffsnorm,doc_f2py_rout__interpolative_idz_diffsnorm},
-  {"idzr_svd",-1,{{-1}},0,(char *)F_FUNC_US(idzr_svd,IDZR_SVD),(f2py_init_func)f2py_rout__interpolative_idzr_svd,doc_f2py_rout__interpolative_idzr_svd},
-  {"idzp_svd",-1,{{-1}},0,(char *)F_FUNC_US(idzp_svd,IDZP_SVD),(f2py_init_func)f2py_rout__interpolative_idzp_svd,doc_f2py_rout__interpolative_idzp_svd},
-  {"idzp_aid",-1,{{-1}},0,(char *)F_FUNC_US(idzp_aid,IDZP_AID),(f2py_init_func)f2py_rout__interpolative_idzp_aid,doc_f2py_rout__interpolative_idzp_aid},
-  {"idz_estrank",-1,{{-1}},0,(char *)F_FUNC_US(idz_estrank,IDZ_ESTRANK),(f2py_init_func)f2py_rout__interpolative_idz_estrank,doc_f2py_rout__interpolative_idz_estrank},
-  {"idzp_asvd",-1,{{-1}},0,(char *)F_FUNC_US(idzp_asvd,IDZP_ASVD),(f2py_init_func)f2py_rout__interpolative_idzp_asvd,doc_f2py_rout__interpolative_idzp_asvd},
-  {"idzp_rid",-1,{{-1}},0,(char *)F_FUNC_US(idzp_rid,IDZP_RID),(f2py_init_func)f2py_rout__interpolative_idzp_rid,doc_f2py_rout__interpolative_idzp_rid},
-  {"idz_findrank",-1,{{-1}},0,(char *)F_FUNC_US(idz_findrank,IDZ_FINDRANK),(f2py_init_func)f2py_rout__interpolative_idz_findrank,doc_f2py_rout__interpolative_idz_findrank},
-  {"idzp_rsvd",-1,{{-1}},0,(char *)F_FUNC_US(idzp_rsvd,IDZP_RSVD),(f2py_init_func)f2py_rout__interpolative_idzp_rsvd,doc_f2py_rout__interpolative_idzp_rsvd},
-  {"idzr_aid",-1,{{-1}},0,(char *)F_FUNC_US(idzr_aid,IDZR_AID),(f2py_init_func)f2py_rout__interpolative_idzr_aid,doc_f2py_rout__interpolative_idzr_aid},
-  {"idzr_aidi",-1,{{-1}},0,(char *)F_FUNC_US(idzr_aidi,IDZR_AIDI),(f2py_init_func)f2py_rout__interpolative_idzr_aidi,doc_f2py_rout__interpolative_idzr_aidi},
-  {"idzr_asvd",-1,{{-1}},0,(char *)F_FUNC_US(idzr_asvd,IDZR_ASVD),(f2py_init_func)f2py_rout__interpolative_idzr_asvd,doc_f2py_rout__interpolative_idzr_asvd},
-  {"idzr_rid",-1,{{-1}},0,(char *)F_FUNC_US(idzr_rid,IDZR_RID),(f2py_init_func)f2py_rout__interpolative_idzr_rid,doc_f2py_rout__interpolative_idzr_rid},
-  {"idzr_rsvd",-1,{{-1}},0,(char *)F_FUNC_US(idzr_rsvd,IDZR_RSVD),(f2py_init_func)f2py_rout__interpolative_idzr_rsvd,doc_f2py_rout__interpolative_idzr_rsvd},
+    {"id_srand",-1,{{-1}},0,(char *)F_FUNC_US(id_srand,ID_SRAND),(f2py_init_func)f2py_rout__interpolative_id_srand,doc_f2py_rout__interpolative_id_srand},
+    {"id_srandi",-1,{{-1}},0,(char *)F_FUNC_US(id_srandi,ID_SRANDI),(f2py_init_func)f2py_rout__interpolative_id_srandi,doc_f2py_rout__interpolative_id_srandi},
+    {"id_srando",-1,{{-1}},0,(char *)F_FUNC_US(id_srando,ID_SRANDO),(f2py_init_func)f2py_rout__interpolative_id_srando,doc_f2py_rout__interpolative_id_srando},
+    {"idd_frm",-1,{{-1}},0,(char *)F_FUNC_US(idd_frm,IDD_FRM),(f2py_init_func)f2py_rout__interpolative_idd_frm,doc_f2py_rout__interpolative_idd_frm},
+    {"idd_sfrm",-1,{{-1}},0,(char *)F_FUNC_US(idd_sfrm,IDD_SFRM),(f2py_init_func)f2py_rout__interpolative_idd_sfrm,doc_f2py_rout__interpolative_idd_sfrm},
+    {"idd_frmi",-1,{{-1}},0,(char *)F_FUNC_US(idd_frmi,IDD_FRMI),(f2py_init_func)f2py_rout__interpolative_idd_frmi,doc_f2py_rout__interpolative_idd_frmi},
+    {"idd_sfrmi",-1,{{-1}},0,(char *)F_FUNC_US(idd_sfrmi,IDD_SFRMI),(f2py_init_func)f2py_rout__interpolative_idd_sfrmi,doc_f2py_rout__interpolative_idd_sfrmi},
+    {"iddp_id",-1,{{-1}},0,(char *)F_FUNC_US(iddp_id,IDDP_ID),(f2py_init_func)f2py_rout__interpolative_iddp_id,doc_f2py_rout__interpolative_iddp_id},
+    {"iddr_id",-1,{{-1}},0,(char *)F_FUNC_US(iddr_id,IDDR_ID),(f2py_init_func)f2py_rout__interpolative_iddr_id,doc_f2py_rout__interpolative_iddr_id},
+    {"idd_reconid",-1,{{-1}},0,(char *)F_FUNC_US(idd_reconid,IDD_RECONID),(f2py_init_func)f2py_rout__interpolative_idd_reconid,doc_f2py_rout__interpolative_idd_reconid},
+    {"idd_reconint",-1,{{-1}},0,(char *)F_FUNC_US(idd_reconint,IDD_RECONINT),(f2py_init_func)f2py_rout__interpolative_idd_reconint,doc_f2py_rout__interpolative_idd_reconint},
+    {"idd_copycols",-1,{{-1}},0,(char *)F_FUNC_US(idd_copycols,IDD_COPYCOLS),(f2py_init_func)f2py_rout__interpolative_idd_copycols,doc_f2py_rout__interpolative_idd_copycols},
+    {"idd_id2svd",-1,{{-1}},0,(char *)F_FUNC_US(idd_id2svd,IDD_ID2SVD),(f2py_init_func)f2py_rout__interpolative_idd_id2svd,doc_f2py_rout__interpolative_idd_id2svd},
+    {"idd_snorm",-1,{{-1}},0,(char *)F_FUNC_US(idd_snorm,IDD_SNORM),(f2py_init_func)f2py_rout__interpolative_idd_snorm,doc_f2py_rout__interpolative_idd_snorm},
+    {"idd_diffsnorm",-1,{{-1}},0,(char *)F_FUNC_US(idd_diffsnorm,IDD_DIFFSNORM),(f2py_init_func)f2py_rout__interpolative_idd_diffsnorm,doc_f2py_rout__interpolative_idd_diffsnorm},
+    {"iddr_svd",-1,{{-1}},0,(char *)F_FUNC_US(iddr_svd,IDDR_SVD),(f2py_init_func)f2py_rout__interpolative_iddr_svd,doc_f2py_rout__interpolative_iddr_svd},
+    {"iddp_svd",-1,{{-1}},0,(char *)F_FUNC_US(iddp_svd,IDDP_SVD),(f2py_init_func)f2py_rout__interpolative_iddp_svd,doc_f2py_rout__interpolative_iddp_svd},
+    {"iddp_aid",-1,{{-1}},0,(char *)F_FUNC_US(iddp_aid,IDDP_AID),(f2py_init_func)f2py_rout__interpolative_iddp_aid,doc_f2py_rout__interpolative_iddp_aid},
+    {"idd_estrank",-1,{{-1}},0,(char *)F_FUNC_US(idd_estrank,IDD_ESTRANK),(f2py_init_func)f2py_rout__interpolative_idd_estrank,doc_f2py_rout__interpolative_idd_estrank},
+    {"iddp_asvd",-1,{{-1}},0,(char *)F_FUNC_US(iddp_asvd,IDDP_ASVD),(f2py_init_func)f2py_rout__interpolative_iddp_asvd,doc_f2py_rout__interpolative_iddp_asvd},
+    {"iddp_rid",-1,{{-1}},0,(char *)F_FUNC_US(iddp_rid,IDDP_RID),(f2py_init_func)f2py_rout__interpolative_iddp_rid,doc_f2py_rout__interpolative_iddp_rid},
+    {"idd_findrank",-1,{{-1}},0,(char *)F_FUNC_US(idd_findrank,IDD_FINDRANK),(f2py_init_func)f2py_rout__interpolative_idd_findrank,doc_f2py_rout__interpolative_idd_findrank},
+    {"iddp_rsvd",-1,{{-1}},0,(char *)F_FUNC_US(iddp_rsvd,IDDP_RSVD),(f2py_init_func)f2py_rout__interpolative_iddp_rsvd,doc_f2py_rout__interpolative_iddp_rsvd},
+    {"iddr_aid",-1,{{-1}},0,(char *)F_FUNC_US(iddr_aid,IDDR_AID),(f2py_init_func)f2py_rout__interpolative_iddr_aid,doc_f2py_rout__interpolative_iddr_aid},
+    {"iddr_aidi",-1,{{-1}},0,(char *)F_FUNC_US(iddr_aidi,IDDR_AIDI),(f2py_init_func)f2py_rout__interpolative_iddr_aidi,doc_f2py_rout__interpolative_iddr_aidi},
+    {"iddr_asvd",-1,{{-1}},0,(char *)F_FUNC_US(iddr_asvd,IDDR_ASVD),(f2py_init_func)f2py_rout__interpolative_iddr_asvd,doc_f2py_rout__interpolative_iddr_asvd},
+    {"iddr_rid",-1,{{-1}},0,(char *)F_FUNC_US(iddr_rid,IDDR_RID),(f2py_init_func)f2py_rout__interpolative_iddr_rid,doc_f2py_rout__interpolative_iddr_rid},
+    {"iddr_rsvd",-1,{{-1}},0,(char *)F_FUNC_US(iddr_rsvd,IDDR_RSVD),(f2py_init_func)f2py_rout__interpolative_iddr_rsvd,doc_f2py_rout__interpolative_iddr_rsvd},
+    {"idz_frm",-1,{{-1}},0,(char *)F_FUNC_US(idz_frm,IDZ_FRM),(f2py_init_func)f2py_rout__interpolative_idz_frm,doc_f2py_rout__interpolative_idz_frm},
+    {"idz_sfrm",-1,{{-1}},0,(char *)F_FUNC_US(idz_sfrm,IDZ_SFRM),(f2py_init_func)f2py_rout__interpolative_idz_sfrm,doc_f2py_rout__interpolative_idz_sfrm},
+    {"idz_frmi",-1,{{-1}},0,(char *)F_FUNC_US(idz_frmi,IDZ_FRMI),(f2py_init_func)f2py_rout__interpolative_idz_frmi,doc_f2py_rout__interpolative_idz_frmi},
+    {"idz_sfrmi",-1,{{-1}},0,(char *)F_FUNC_US(idz_sfrmi,IDZ_SFRMI),(f2py_init_func)f2py_rout__interpolative_idz_sfrmi,doc_f2py_rout__interpolative_idz_sfrmi},
+    {"idzp_id",-1,{{-1}},0,(char *)F_FUNC_US(idzp_id,IDZP_ID),(f2py_init_func)f2py_rout__interpolative_idzp_id,doc_f2py_rout__interpolative_idzp_id},
+    {"idzr_id",-1,{{-1}},0,(char *)F_FUNC_US(idzr_id,IDZR_ID),(f2py_init_func)f2py_rout__interpolative_idzr_id,doc_f2py_rout__interpolative_idzr_id},
+    {"idz_reconid",-1,{{-1}},0,(char *)F_FUNC_US(idz_reconid,IDZ_RECONID),(f2py_init_func)f2py_rout__interpolative_idz_reconid,doc_f2py_rout__interpolative_idz_reconid},
+    {"idz_reconint",-1,{{-1}},0,(char *)F_FUNC_US(idz_reconint,IDZ_RECONINT),(f2py_init_func)f2py_rout__interpolative_idz_reconint,doc_f2py_rout__interpolative_idz_reconint},
+    {"idz_copycols",-1,{{-1}},0,(char *)F_FUNC_US(idz_copycols,IDZ_COPYCOLS),(f2py_init_func)f2py_rout__interpolative_idz_copycols,doc_f2py_rout__interpolative_idz_copycols},
+    {"idz_id2svd",-1,{{-1}},0,(char *)F_FUNC_US(idz_id2svd,IDZ_ID2SVD),(f2py_init_func)f2py_rout__interpolative_idz_id2svd,doc_f2py_rout__interpolative_idz_id2svd},
+    {"idz_snorm",-1,{{-1}},0,(char *)F_FUNC_US(idz_snorm,IDZ_SNORM),(f2py_init_func)f2py_rout__interpolative_idz_snorm,doc_f2py_rout__interpolative_idz_snorm},
+    {"idz_diffsnorm",-1,{{-1}},0,(char *)F_FUNC_US(idz_diffsnorm,IDZ_DIFFSNORM),(f2py_init_func)f2py_rout__interpolative_idz_diffsnorm,doc_f2py_rout__interpolative_idz_diffsnorm},
+    {"idzr_svd",-1,{{-1}},0,(char *)F_FUNC_US(idzr_svd,IDZR_SVD),(f2py_init_func)f2py_rout__interpolative_idzr_svd,doc_f2py_rout__interpolative_idzr_svd},
+    {"idzp_svd",-1,{{-1}},0,(char *)F_FUNC_US(idzp_svd,IDZP_SVD),(f2py_init_func)f2py_rout__interpolative_idzp_svd,doc_f2py_rout__interpolative_idzp_svd},
+    {"idzp_aid",-1,{{-1}},0,(char *)F_FUNC_US(idzp_aid,IDZP_AID),(f2py_init_func)f2py_rout__interpolative_idzp_aid,doc_f2py_rout__interpolative_idzp_aid},
+    {"idz_estrank",-1,{{-1}},0,(char *)F_FUNC_US(idz_estrank,IDZ_ESTRANK),(f2py_init_func)f2py_rout__interpolative_idz_estrank,doc_f2py_rout__interpolative_idz_estrank},
+    {"idzp_asvd",-1,{{-1}},0,(char *)F_FUNC_US(idzp_asvd,IDZP_ASVD),(f2py_init_func)f2py_rout__interpolative_idzp_asvd,doc_f2py_rout__interpolative_idzp_asvd},
+    {"idzp_rid",-1,{{-1}},0,(char *)F_FUNC_US(idzp_rid,IDZP_RID),(f2py_init_func)f2py_rout__interpolative_idzp_rid,doc_f2py_rout__interpolative_idzp_rid},
+    {"idz_findrank",-1,{{-1}},0,(char *)F_FUNC_US(idz_findrank,IDZ_FINDRANK),(f2py_init_func)f2py_rout__interpolative_idz_findrank,doc_f2py_rout__interpolative_idz_findrank},
+    {"idzp_rsvd",-1,{{-1}},0,(char *)F_FUNC_US(idzp_rsvd,IDZP_RSVD),(f2py_init_func)f2py_rout__interpolative_idzp_rsvd,doc_f2py_rout__interpolative_idzp_rsvd},
+    {"idzr_aid",-1,{{-1}},0,(char *)F_FUNC_US(idzr_aid,IDZR_AID),(f2py_init_func)f2py_rout__interpolative_idzr_aid,doc_f2py_rout__interpolative_idzr_aid},
+    {"idzr_aidi",-1,{{-1}},0,(char *)F_FUNC_US(idzr_aidi,IDZR_AIDI),(f2py_init_func)f2py_rout__interpolative_idzr_aidi,doc_f2py_rout__interpolative_idzr_aidi},
+    {"idzr_asvd",-1,{{-1}},0,(char *)F_FUNC_US(idzr_asvd,IDZR_ASVD),(f2py_init_func)f2py_rout__interpolative_idzr_asvd,doc_f2py_rout__interpolative_idzr_asvd},
+    {"idzr_rid",-1,{{-1}},0,(char *)F_FUNC_US(idzr_rid,IDZR_RID),(f2py_init_func)f2py_rout__interpolative_idzr_rid,doc_f2py_rout__interpolative_idzr_rid},
+    {"idzr_rsvd",-1,{{-1}},0,(char *)F_FUNC_US(idzr_rsvd,IDZR_RSVD),(f2py_init_func)f2py_rout__interpolative_idzr_rsvd,doc_f2py_rout__interpolative_idzr_rsvd},
 
 /*eof routine_defs*/
-  {NULL}
+    {NULL}
 };
 
 static PyMethodDef f2py_module_methods[] = {
 
-  {NULL,NULL}
+    {NULL,NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT,
-  "_interpolative",
-  NULL,
-  -1,
-  f2py_module_methods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+    PyModuleDef_HEAD_INIT,
+    "_interpolative",
+    NULL,
+    -1,
+    f2py_module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
-#endif
 
-#if PY_VERSION_HEX >= 0x03000000
-#define RETVAL m
 PyMODINIT_FUNC PyInit__interpolative(void) {
-#else
-#define RETVAL
-PyMODINIT_FUNC init_interpolative(void) {
-#endif
-  int i;
-  PyObject *m,*d, *s;
-#if PY_VERSION_HEX >= 0x03000000
-  m = _interpolative_module = PyModule_Create(&moduledef);
-#else
-  m = _interpolative_module = Py_InitModule("_interpolative", f2py_module_methods);
-#endif
-  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
-  import_array();
-  if (PyErr_Occurred())
-    {PyErr_SetString(PyExc_ImportError, "can't initialize module _interpolative (failed to import numpy)"); return RETVAL;}
-  d = PyModule_GetDict(m);
-  s = PyString_FromString("$Revision: $");
-  PyDict_SetItemString(d, "__version__", s);
-#if PY_VERSION_HEX >= 0x03000000
-  s = PyUnicode_FromString(
-#else
-  s = PyString_FromString(
-#endif
-    "This module '_interpolative' is auto-generated with f2py (version:2).\nFunctions:\n"
-"  r = id_srand(n)\n"
-"  id_srandi(t)\n"
-"  id_srando()\n"
-"  y = idd_frm(n,w,x,m=len(x))\n"
-"  y = idd_sfrm(l,n,w,x,m=len(x))\n"
-"  n,w = idd_frmi(m)\n"
-"  n,w = idd_sfrmi(l,m)\n"
-"  krank,list,rnorms = iddp_id(eps,a,m=shape(a,0),n=shape(a,1))\n"
-"  list,rnorms = iddr_id(a,krank,m=shape(a,0),n=shape(a,1))\n"
-"  approx = idd_reconid(col,list,proj,m=shape(col,0),krank=shape(col,1),n=len(list))\n"
-"  p = idd_reconint(list,proj,n=len(list),krank=shape(proj,0))\n"
-"  col = idd_copycols(a,krank,list,m=shape(a,0),n=shape(a,1))\n"
-"  u,v,s,ier = idd_id2svd(b,list,proj,m=shape(b,0),krank=shape(b,1),n=len(list),w=)\n"
-"  snorm,v = idd_snorm(m,n,matvect,matvec,its,p1t=,p2t=,p3t=,p4t=,p1=,p2=,p3=,p4=,u=,matvect_extra_args=(),matvec_extra_args=())\n"
-"  snorm = idd_diffsnorm(m,n,matvect,matvect2,matvec,matvec2,its,p1t=,p2t=,p3t=,p4t=,p1t2=,p2t2=,p3t2=,p4t2=,p1=,p2=,p3=,p4=,p12=,p22=,p32=,p42=,w=,matvect_extra_args=(),matvect2_extra_args=(),matvec_extra_args=(),matvec2_extra_args=())\n"
-"  u,v,s,ier = iddr_svd(a,krank,m=shape(a,0),n=shape(a,1),r=)\n"
-"  krank,iu,iv,is,w,ier = iddp_svd(eps,a,m=shape(a,0),n=shape(a,1))\n"
-"  krank,list,proj = iddp_aid(eps,a,work,proj,m=shape(a,0),n=shape(a,1))\n"
-"  krank,ra = idd_estrank(eps,a,w,ra,m=shape(a,0),n=shape(a,1))\n"
-"  krank,iu,iv,is,w,ier = iddp_asvd(eps,a,winit,w,m=shape(a,0),n=shape(a,1))\n"
-"  krank,list,proj,ier = iddp_rid(eps,m,n,matvect,proj,p1=,p2=,p3=,p4=,matvect_extra_args=())\n"
-"  krank,ra,ier = idd_findrank(eps,m,n,matvect,p1=,p2=,p3=,p4=,w=,matvect_extra_args=())\n"
-"  krank,iu,iv,is,w,ier = iddp_rsvd(eps,m,n,matvect,matvec,p1t=,p2t=,p3t=,p4t=,p1=,p2=,p3=,p4=,matvect_extra_args=(),matvec_extra_args=())\n"
-"  list,proj = iddr_aid(a,krank,w,m=shape(a,0),n=shape(a,1))\n"
-"  w = iddr_aidi(m,n,krank)\n"
-"  u,v,s,ier = iddr_asvd(a,krank,w,m=shape(a,0),n=shape(a,1))\n"
-"  list,proj = iddr_rid(m,n,matvect,krank,p1=,p2=,p3=,p4=,matvect_extra_args=())\n"
-"  u,v,s,ier = iddr_rsvd(m,n,matvect,matvec,krank,p1t=,p2t=,p3t=,p4t=,p1=,p2=,p3=,p4=,w=,matvect_extra_args=(),matvec_extra_args=())\n"
-"  y = idz_frm(n,w,x,m=len(x))\n"
-"  y = idz_sfrm(l,n,w,x,m=len(x))\n"
-"  n,w = idz_frmi(m)\n"
-"  n,w = idz_sfrmi(l,m)\n"
-"  krank,list,rnorms = idzp_id(eps,a,m=shape(a,0),n=shape(a,1))\n"
-"  list,rnorms = idzr_id(a,krank,m=shape(a,0),n=shape(a,1))\n"
-"  approx = idz_reconid(col,list,proj,m=shape(col,0),krank=shape(col,1),n=len(list))\n"
-"  p = idz_reconint(list,proj,n=len(list),krank=shape(proj,0))\n"
-"  col = idz_copycols(a,krank,list,m=shape(a,0),n=shape(a,1))\n"
-"  u,v,s,ier = idz_id2svd(b,list,proj,m=shape(b,0),krank=shape(b,1),n=len(list),w=)\n"
-"  snorm,v = idz_snorm(m,n,matveca,matvec,its,p1a=,p2a=,p3a=,p4a=,p1=,p2=,p3=,p4=,u=,matveca_extra_args=(),matvec_extra_args=())\n"
-"  snorm = idz_diffsnorm(m,n,matveca,matveca2,matvec,matvec2,its,p1a=,p2a=,p3a=,p4a=,p1a2=,p2a2=,p3a2=,p4a2=,p1=,p2=,p3=,p4=,p12=,p22=,p32=,p42=,w=,matveca_extra_args=(),matveca2_extra_args=(),matvec_extra_args=(),matvec2_extra_args=())\n"
-"  u,v,s,ier = idzr_svd(a,krank,m=shape(a,0),n=shape(a,1),r=)\n"
-"  krank,iu,iv,is,w,ier = idzp_svd(eps,a,m=shape(a,0),n=shape(a,1))\n"
-"  krank,list,proj = idzp_aid(eps,a,work,proj,m=shape(a,0),n=shape(a,1))\n"
-"  krank,ra = idz_estrank(eps,a,w,ra,m=shape(a,0),n=shape(a,1))\n"
-"  krank,iu,iv,is,w,ier = idzp_asvd(eps,a,winit,w,m=shape(a,0),n=shape(a,1))\n"
-"  krank,list,proj,ier = idzp_rid(eps,m,n,matveca,proj,p1=,p2=,p3=,p4=,matveca_extra_args=())\n"
-"  krank,ra,ier = idz_findrank(eps,m,n,matveca,p1=,p2=,p3=,p4=,w=,matveca_extra_args=())\n"
-"  krank,iu,iv,is,w,ier = idzp_rsvd(eps,m,n,matveca,matvec,p1a=,p2a=,p3a=,p4a=,p1=,p2=,p3=,p4=,matveca_extra_args=(),matvec_extra_args=())\n"
-"  list,proj = idzr_aid(a,krank,w,m=shape(a,0),n=shape(a,1))\n"
-"  w = idzr_aidi(m,n,krank)\n"
-"  u,v,s,ier = idzr_asvd(a,krank,w,m=shape(a,0),n=shape(a,1))\n"
-"  list,proj = idzr_rid(m,n,matveca,krank,p1=,p2=,p3=,p4=,matveca_extra_args=())\n"
-"  u,v,s,ier = idzr_rsvd(m,n,matveca,matvec,krank,p1a=,p2a=,p3a=,p4a=,p1=,p2=,p3=,p4=,w=,matveca_extra_args=(),matvec_extra_args=())\n"
+    int i;
+    PyObject *m,*d, *s, *tmp;
+    m = _interpolative_module = PyModule_Create(&moduledef);
+    Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
+    import_array();
+    if (PyErr_Occurred())
+        {PyErr_SetString(PyExc_ImportError, "can't initialize module _interpolative (failed to import numpy)"); return m;}
+    d = PyModule_GetDict(m);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__version__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString(
+        "This module '_interpolative' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+"    r = id_srand(n)\n"
+"    id_srandi(t)\n"
+"    id_srando()\n"
+"    y = idd_frm(n,w,x,m=len(x))\n"
+"    y = idd_sfrm(l,n,w,x,m=len(x))\n"
+"    n,w = idd_frmi(m)\n"
+"    n,w = idd_sfrmi(l,m)\n"
+"    krank,list,rnorms = iddp_id(eps,a,m=shape(a,0),n=shape(a,1))\n"
+"    list,rnorms = iddr_id(a,krank,m=shape(a,0),n=shape(a,1))\n"
+"    approx = idd_reconid(col,list,proj,m=shape(col,0),krank=shape(col,1),n=len(list))\n"
+"    p = idd_reconint(list,proj,n=len(list),krank=shape(proj,0))\n"
+"    col = idd_copycols(a,krank,list,m=shape(a,0),n=shape(a,1))\n"
+"    u,v,s,ier = idd_id2svd(b,list,proj,m=shape(b,0),krank=shape(b,1),n=len(list),w=)\n"
+"    snorm,v = idd_snorm(m,n,matvect,matvec,its,p1t=,p2t=,p3t=,p4t=,p1=,p2=,p3=,p4=,u=,matvect_extra_args=(),matvec_extra_args=())\n"
+"    snorm = idd_diffsnorm(m,n,matvect,matvect2,matvec,matvec2,its,p1t=,p2t=,p3t=,p4t=,p1t2=,p2t2=,p3t2=,p4t2=,p1=,p2=,p3=,p4=,p12=,p22=,p32=,p42=,w=,matvect_extra_args=(),matvect2_extra_args=(),matvec_extra_args=(),matvec2_extra_args=())\n"
+"    u,v,s,ier = iddr_svd(a,krank,m=shape(a,0),n=shape(a,1),r=)\n"
+"    krank,iu,iv,is,w,ier = iddp_svd(eps,a,m=shape(a,0),n=shape(a,1))\n"
+"    krank,list,proj = iddp_aid(eps,a,work,proj,m=shape(a,0),n=shape(a,1))\n"
+"    krank,ra = idd_estrank(eps,a,w,ra,m=shape(a,0),n=shape(a,1))\n"
+"    krank,iu,iv,is,w,ier = iddp_asvd(eps,a,winit,w,m=shape(a,0),n=shape(a,1))\n"
+"    krank,list,proj,ier = iddp_rid(eps,m,n,matvect,proj,p1=,p2=,p3=,p4=,matvect_extra_args=())\n"
+"    krank,ra,ier = idd_findrank(eps,m,n,matvect,p1=,p2=,p3=,p4=,w=,matvect_extra_args=())\n"
+"    krank,iu,iv,is,w,ier = iddp_rsvd(eps,m,n,matvect,matvec,p1t=,p2t=,p3t=,p4t=,p1=,p2=,p3=,p4=,matvect_extra_args=(),matvec_extra_args=())\n"
+"    list,proj = iddr_aid(a,krank,w,m=shape(a,0),n=shape(a,1))\n"
+"    w = iddr_aidi(m,n,krank)\n"
+"    u,v,s,ier = iddr_asvd(a,krank,w,m=shape(a,0),n=shape(a,1))\n"
+"    list,proj = iddr_rid(m,n,matvect,krank,p1=,p2=,p3=,p4=,matvect_extra_args=())\n"
+"    u,v,s,ier = iddr_rsvd(m,n,matvect,matvec,krank,p1t=,p2t=,p3t=,p4t=,p1=,p2=,p3=,p4=,w=,matvect_extra_args=(),matvec_extra_args=())\n"
+"    y = idz_frm(n,w,x,m=len(x))\n"
+"    y = idz_sfrm(l,n,w,x,m=len(x))\n"
+"    n,w = idz_frmi(m)\n"
+"    n,w = idz_sfrmi(l,m)\n"
+"    krank,list,rnorms = idzp_id(eps,a,m=shape(a,0),n=shape(a,1))\n"
+"    list,rnorms = idzr_id(a,krank,m=shape(a,0),n=shape(a,1))\n"
+"    approx = idz_reconid(col,list,proj,m=shape(col,0),krank=shape(col,1),n=len(list))\n"
+"    p = idz_reconint(list,proj,n=len(list),krank=shape(proj,0))\n"
+"    col = idz_copycols(a,krank,list,m=shape(a,0),n=shape(a,1))\n"
+"    u,v,s,ier = idz_id2svd(b,list,proj,m=shape(b,0),krank=shape(b,1),n=len(list),w=)\n"
+"    snorm,v = idz_snorm(m,n,matveca,matvec,its,p1a=,p2a=,p3a=,p4a=,p1=,p2=,p3=,p4=,u=,matveca_extra_args=(),matvec_extra_args=())\n"
+"    snorm = idz_diffsnorm(m,n,matveca,matveca2,matvec,matvec2,its,p1a=,p2a=,p3a=,p4a=,p1a2=,p2a2=,p3a2=,p4a2=,p1=,p2=,p3=,p4=,p12=,p22=,p32=,p42=,w=,matveca_extra_args=(),matveca2_extra_args=(),matvec_extra_args=(),matvec2_extra_args=())\n"
+"    u,v,s,ier = idzr_svd(a,krank,m=shape(a,0),n=shape(a,1),r=)\n"
+"    krank,iu,iv,is,w,ier = idzp_svd(eps,a,m=shape(a,0),n=shape(a,1))\n"
+"    krank,list,proj = idzp_aid(eps,a,work,proj,m=shape(a,0),n=shape(a,1))\n"
+"    krank,ra = idz_estrank(eps,a,w,ra,m=shape(a,0),n=shape(a,1))\n"
+"    krank,iu,iv,is,w,ier = idzp_asvd(eps,a,winit,w,m=shape(a,0),n=shape(a,1))\n"
+"    krank,list,proj,ier = idzp_rid(eps,m,n,matveca,proj,p1=,p2=,p3=,p4=,matveca_extra_args=())\n"
+"    krank,ra,ier = idz_findrank(eps,m,n,matveca,p1=,p2=,p3=,p4=,w=,matveca_extra_args=())\n"
+"    krank,iu,iv,is,w,ier = idzp_rsvd(eps,m,n,matveca,matvec,p1a=,p2a=,p3a=,p4a=,p1=,p2=,p3=,p4=,matveca_extra_args=(),matvec_extra_args=())\n"
+"    list,proj = idzr_aid(a,krank,w,m=shape(a,0),n=shape(a,1))\n"
+"    w = idzr_aidi(m,n,krank)\n"
+"    u,v,s,ier = idzr_asvd(a,krank,w,m=shape(a,0),n=shape(a,1))\n"
+"    list,proj = idzr_rid(m,n,matveca,krank,p1=,p2=,p3=,p4=,matveca_extra_args=())\n"
+"    u,v,s,ier = idzr_rsvd(m,n,matveca,matvec,krank,p1a=,p2a=,p3a=,p4a=,p1=,p2=,p3=,p4=,w=,matveca_extra_args=(),matvec_extra_args=())\n"
 ".");
-  PyDict_SetItemString(d, "__doc__", s);
-  _interpolative_error = PyErr_NewException ("_interpolative.error", NULL, NULL);
-  Py_DECREF(s);
-  for(i=0;f2py_routine_defs[i].name!=NULL;i++)
-    PyDict_SetItemString(d, f2py_routine_defs[i].name,PyFortranObject_NewAsAttr(&f2py_routine_defs[i]));
+    PyDict_SetItemString(d, "__doc__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__f2py_numpy_version__", s);
+    Py_DECREF(s);
+    _interpolative_error = PyErr_NewException ("_interpolative.error", NULL, NULL);
+    /*
+     * Store the error object inside the dict, so that it could get deallocated.
+     * (in practice, this is a module, so it likely will not and cannot.)
+     */
+    PyDict_SetItemString(d, "__interpolative_error", _interpolative_error);
+    Py_DECREF(_interpolative_error);
+    for(i=0;f2py_routine_defs[i].name!=NULL;i++) {
+        tmp = PyFortranObject_NewAsAttr(&f2py_routine_defs[i]);
+        PyDict_SetItemString(d, f2py_routine_defs[i].name, tmp);
+        Py_DECREF(tmp);
+    }
 
 
 
@@ -11723,11 +12237,10 @@ PyMODINIT_FUNC init_interpolative(void) {
 
 
 #ifdef F2PY_REPORT_ATEXIT
-  if (! PyErr_Occurred())
-    on_exit(f2py_report_on_exit,(void*)"_interpolative");
+    if (! PyErr_Occurred())
+        on_exit(f2py_report_on_exit,(void*)"_interpolative");
 #endif
-
-  return RETVAL;
+    return m;
 }
 #ifdef __cplusplus
 }

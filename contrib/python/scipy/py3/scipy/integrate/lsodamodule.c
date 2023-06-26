@@ -1,5 +1,5 @@
 /* File: lsodamodule.c
- * This file is auto-generated with f2py (version:2).
+ * This file is auto-generated with f2py (version:1.23.5).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Mon Jan 20 20:54:49 2020
@@ -10,8 +10,15 @@
 extern "C" {
 #endif
 
+#ifndef PY_SSIZE_T_CLEAN
+#define PY_SSIZE_T_CLEAN
+#endif /* PY_SSIZE_T_CLEAN */
+
+/* Unconditionally included */
+#include <Python.h>
+#include <numpy/npy_os.h>
+
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include "Python.h"
 #include <stdarg.h>
 #include "fortranobject.h"
 #include <string.h>
@@ -68,6 +75,29 @@ typedef void(*cb_f_in_lsoda__user__routines_typedef)(int *,double *,double *,dou
 #else
 #define CFUNCSMESS(mess)
 #define CFUNCSMESSPY(mess,obj)
+#endif
+
+#ifndef F2PY_THREAD_LOCAL_DECL
+#if defined(_MSC_VER)
+#define F2PY_THREAD_LOCAL_DECL __declspec(thread)
+#elif defined(NPY_OS_MINGW)
+#define F2PY_THREAD_LOCAL_DECL __thread
+#elif defined(__STDC_VERSION__) \
+      && (__STDC_VERSION__ >= 201112L) \
+      && !defined(__STDC_NO_THREADS__) \
+      && (!defined(__GLIBC__) || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 12)) \
+      && !defined(NPY_OS_OPENBSD)
+/* __STDC_NO_THREADS__ was first defined in a maintenance release of glibc 2.12,
+   see https://lists.gnu.org/archive/html/commit-hurd/2012-07/msg00180.html,
+   so `!defined(__STDC_NO_THREADS__)` may give false positive for the existence
+   of `threads.h` when using an older release of glibc 2.12
+   See gh-19437 for details on OpenBSD */
+#include <threads.h>
+#define F2PY_THREAD_LOCAL_DECL thread_local
+#elif defined(__GNUC__) \
+      && (__GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ >= 4)))
+#define F2PY_THREAD_LOCAL_DECL __thread
+#endif
 #endif
 
 #if defined(PREPEND_FORTRAN)
@@ -161,15 +191,21 @@ static int f2py_size(PyArrayObject* var, ...)
   return sz;
 }
 
-static int create_cb_arglist(PyObject* fun,PyTupleObject* xa,const int maxnofargs,const int nofoptargs,int *nofargs,PyTupleObject **args,const char *errmess) {
+static int
+create_cb_arglist(PyObject* fun, PyTupleObject* xa , const int maxnofargs,
+                  const int nofoptargs, int *nofargs, PyTupleObject **args,
+                  const char *errmess)
+{
     PyObject *tmp = NULL;
     PyObject *tmp_fun = NULL;
-    int tot,opt,ext,siz,i,di=0;
+    Py_ssize_t tot, opt, ext, siz, i, di = 0;
     CFUNCSMESS("create_cb_arglist\n");
     tot=opt=ext=siz=0;
     /* Get the total number of arguments */
-    if (PyFunction_Check(fun))
+    if (PyFunction_Check(fun)) {
         tmp_fun = fun;
+        Py_INCREF(tmp_fun);
+    }
     else {
         di = 1;
         if (PyObject_HasAttrString(fun,"im_func")) {
@@ -181,7 +217,12 @@ static int create_cb_arglist(PyObject* fun,PyTupleObject* xa,const int maxnofarg
                 tmp_fun = PyObject_GetAttrString(tmp,"im_func");
             else {
                 tmp_fun = fun; /* built-in function */
+                Py_INCREF(tmp_fun);
                 tot = maxnofargs;
+                if (PyCFunction_Check(fun)) {
+                    /* In case the function has a co_argcount (like on PyPy) */
+                    di = 0;
+                }
                 if (xa != NULL)
                     tot += PyTuple_Size((PyObject *)xa);
             }
@@ -192,6 +233,7 @@ static int create_cb_arglist(PyObject* fun,PyTupleObject* xa,const int maxnofarg
             if (xa != NULL)
                 tot += PyTuple_Size((PyObject *)xa);
             tmp_fun = fun;
+            Py_INCREF(tmp_fun);
         }
         else if (F2PyCapsule_Check(fun)) {
             tot = maxnofargs;
@@ -202,30 +244,32 @@ static int create_cb_arglist(PyObject* fun,PyTupleObject* xa,const int maxnofarg
                 goto capi_fail;
             }
             tmp_fun = fun;
+            Py_INCREF(tmp_fun);
         }
     }
-if (tmp_fun==NULL) {
-fprintf(stderr,"Call-back argument must be function|instance|instance.__call__|f2py-function but got %s.\n",(fun==NULL?"NULL":Py_TYPE(fun)->tp_name));
-goto capi_fail;
-}
-#if PY_VERSION_HEX >= 0x03000000
+
+    if (tmp_fun == NULL) {
+        fprintf(stderr,
+                "Call-back argument must be function|instance|instance.__call__|f2py-function "
+                "but got %s.\n",
+                ((fun == NULL) ? "NULL" : Py_TYPE(fun)->tp_name));
+        goto capi_fail;
+    }
+
     if (PyObject_HasAttrString(tmp_fun,"__code__")) {
-        if (PyObject_HasAttrString(tmp = PyObject_GetAttrString(tmp_fun,"__code__"),"co_argcount"))
-#else
-    if (PyObject_HasAttrString(tmp_fun,"func_code")) {
-        if (PyObject_HasAttrString(tmp = PyObject_GetAttrString(tmp_fun,"func_code"),"co_argcount"))
-#endif
-            tot = PyInt_AsLong(PyObject_GetAttrString(tmp,"co_argcount")) - di;
-        Py_XDECREF(tmp);
+        if (PyObject_HasAttrString(tmp = PyObject_GetAttrString(tmp_fun,"__code__"),"co_argcount")) {
+            PyObject *tmp_argcount = PyObject_GetAttrString(tmp,"co_argcount");
+            Py_DECREF(tmp);
+            if (tmp_argcount == NULL) {
+                goto capi_fail;
+            }
+            tot = PyLong_AsSsize_t(tmp_argcount) - di;
+            Py_DECREF(tmp_argcount);
+        }
     }
     /* Get the number of optional arguments */
-#if PY_VERSION_HEX >= 0x03000000
     if (PyObject_HasAttrString(tmp_fun,"__defaults__")) {
         if (PyTuple_Check(tmp = PyObject_GetAttrString(tmp_fun,"__defaults__")))
-#else
-    if (PyObject_HasAttrString(tmp_fun,"func_defaults")) {
-        if (PyTuple_Check(tmp = PyObject_GetAttrString(tmp_fun,"func_defaults")))
-#endif
             opt = PyTuple_Size(tmp);
         Py_XDECREF(tmp);
     }
@@ -235,13 +279,23 @@ goto capi_fail;
     /* Calculate the size of call-backs argument list */
     siz = MIN(maxnofargs+ext,tot);
     *nofargs = MAX(0,siz-ext);
+
 #ifdef DEBUGCFUNCS
-    fprintf(stderr,"debug-capi:create_cb_arglist:maxnofargs(-nofoptargs),tot,opt,ext,siz,nofargs=%d(-%d),%d,%d,%d,%d,%d\n",maxnofargs,nofoptargs,tot,opt,ext,siz,*nofargs);
+    fprintf(stderr,
+            "debug-capi:create_cb_arglist:maxnofargs(-nofoptargs),"
+            "tot,opt,ext,siz,nofargs = %d(-%d), %zd, %zd, %zd, %zd, %d\n",
+            maxnofargs, nofoptargs, tot, opt, ext, siz, *nofargs);
 #endif
-    if (siz<tot-opt) {
-        fprintf(stderr,"create_cb_arglist: Failed to build argument list (siz) with enough arguments (tot-opt) required by user-supplied function (siz,tot,opt=%d,%d,%d).\n",siz,tot,opt);
+
+    if (siz < tot-opt) {
+        fprintf(stderr,
+                "create_cb_arglist: Failed to build argument list "
+                "(siz) with enough arguments (tot-opt) required by "
+                "user-supplied function (siz,tot,opt=%zd, %zd, %zd).\n",
+                siz, tot, opt);
         goto capi_fail;
     }
+
     /* Initialize argument list */
     *args = (PyTupleObject *)PyTuple_New(siz);
     for (i=0;i<*nofargs;i++) {
@@ -255,41 +309,45 @@ goto capi_fail;
             PyTuple_SET_ITEM(*args,i,tmp);
         }
     CFUNCSMESS("create_cb_arglist-end\n");
+    Py_DECREF(tmp_fun);
     return 1;
+
 capi_fail:
-    if ((PyErr_Occurred())==NULL)
-        PyErr_SetString(lsoda_error,errmess);
+    if (PyErr_Occurred() == NULL)
+        PyErr_SetString(lsoda_error, errmess);
+    Py_XDECREF(tmp_fun);
     return 0;
 }
 
-static int double_from_pyobj(double* v,PyObject *obj,const char *errmess) {
+static int
+double_from_pyobj(double* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
     if (PyFloat_Check(obj)) {
-#ifdef __sgi
         *v = PyFloat_AsDouble(obj);
-#else
-        *v = PyFloat_AS_DOUBLE(obj);
-#endif
-        return 1;
+        return !(*v == -1.0 && PyErr_Occurred());
     }
+
     tmp = PyNumber_Float(obj);
     if (tmp) {
-#ifdef __sgi
         *v = PyFloat_AsDouble(tmp);
-#else
-        *v = PyFloat_AS_DOUBLE(tmp);
-#endif
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1.0 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
         if (double_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
         Py_DECREF(tmp);
     }
@@ -301,33 +359,49 @@ static int double_from_pyobj(double* v,PyObject *obj,const char *errmess) {
     return 0;
 }
 
-static int int_from_pyobj(int* v,PyObject *obj,const char *errmess) {
+static int
+int_from_pyobj(int* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
-    if (PyInt_Check(obj)) {
-        *v = (int)PyInt_AS_LONG(obj);
-        return 1;
+
+    if (PyLong_Check(obj)) {
+        *v = Npy__PyLong_AsInt(obj);
+        return !(*v == -1 && PyErr_Occurred());
     }
-    tmp = PyNumber_Int(obj);
+
+    tmp = PyNumber_Long(obj);
     if (tmp) {
-        *v = PyInt_AS_LONG(tmp);
+        *v = Npy__PyLong_AsInt(tmp);
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
-        if (int_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
+        if (int_from_pyobj(v, tmp, errmess)) {
+            Py_DECREF(tmp);
+            return 1;
+        }
         Py_DECREF(tmp);
     }
+
     {
         PyObject* err = PyErr_Occurred();
-        if (err==NULL) err = lsoda_error;
-        PyErr_SetString(err,errmess);
+        if (err == NULL) {
+            err = lsoda_error;
+        }
+        PyErr_SetString(err, errmess);
     }
     return 0;
 }
@@ -349,300 +423,384 @@ extern void F_FUNC(lsoda,LSODA)();
 /******************* See f2py2e/cb_rules.py: buildcallback *******************/
 
 /*********************** cb_f_in_lsoda__user__routines ***********************/
-PyObject *cb_f_in_lsoda__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_f_in_lsoda__user__routines_args_capi = NULL;
-int cb_f_in_lsoda__user__routines_nofargs = 0;
-jmp_buf cb_f_in_lsoda__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_f_in_lsoda__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_f_in_lsoda__user__routines_t *_active_cb_f_in_lsoda__user__routines = NULL;
+
+static cb_f_in_lsoda__user__routines_t *swap_active_cb_f_in_lsoda__user__routines(cb_f_in_lsoda__user__routines_t *ptr) {
+    cb_f_in_lsoda__user__routines_t *prev = _active_cb_f_in_lsoda__user__routines;
+    _active_cb_f_in_lsoda__user__routines = ptr;
+    return prev;
+}
+
+static cb_f_in_lsoda__user__routines_t *get_active_cb_f_in_lsoda__user__routines(void) {
+    return _active_cb_f_in_lsoda__user__routines;
+}
+
+#else
+
+static cb_f_in_lsoda__user__routines_t *swap_active_cb_f_in_lsoda__user__routines(cb_f_in_lsoda__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_f_in_lsoda__user__routines";
+    return (cb_f_in_lsoda__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_f_in_lsoda__user__routines_t *get_active_cb_f_in_lsoda__user__routines(void) {
+    char *key = "__f2py_cb_cb_f_in_lsoda__user__routines";
+    return (cb_f_in_lsoda__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_f_in_lsoda__user__routines_typedef)(int *,double *,double *,double *);*/
 static void cb_f_in_lsoda__user__routines (int *n_cb_capi,double *t_cb_capi,double *y,double *ydot) {
-  PyTupleObject *capi_arglist = cb_f_in_lsoda__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_f_in_lsoda__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_f_in_lsoda__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int n=(*n_cb_capi);
-  double t=(*t_cb_capi);
-  npy_intp y_Dims[1] = {-1};
-  npy_intp ydot_Dims[1] = {-1};
+    int n=(*n_cb_capi);
+    double t=(*t_cb_capi);
+    npy_intp y_Dims[1] = {-1};
+    npy_intp ydot_Dims[1] = {-1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_f_in_lsoda__user__routines (maxnofargs=2(-0))\n");
-  CFUNCSMESSPY("cb:cb_f_in_lsoda__user__routines_capi=",cb_f_in_lsoda__user__routines_capi);
-  if (cb_f_in_lsoda__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_f_in_lsoda__user__routines_capi = PyObject_GetAttrString(lsoda_module,"f");
-  }
-  if (cb_f_in_lsoda__user__routines_capi==NULL) {
-    PyErr_SetString(lsoda_error,"cb: Callback f not defined (as an argument or module lsoda attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_f_in_lsoda__user__routines_capi)) {
-  cb_f_in_lsoda__user__routines_typedef cb_f_in_lsoda__user__routines_cptr;
-  cb_f_in_lsoda__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_f_in_lsoda__user__routines_capi);
-  (*cb_f_in_lsoda__user__routines_cptr)(n_cb_capi,t_cb_capi,y,ydot);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(lsoda_module,"f_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(lsoda_error,"Failed to convert lsoda.f_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_f_in_lsoda__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(lsoda_error,"Callback f argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_f_in_lsoda__user__routines (maxnofargs=2(-0))\n");
+    CFUNCSMESSPY("cb:cb_f_in_lsoda__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(lsoda_module,"f");
+        CFUNCSMESSPY("cb:cb_f_in_lsoda__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(lsoda_error,"cb: Callback f not defined (as an argument or module lsoda attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_f_in_lsoda__user__routines_typedef cb_f_in_lsoda__user__routines_cptr;
+    cb_f_in_lsoda__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_f_in_lsoda__user__routines_cptr)(n_cb_capi,t_cb_capi,y,ydot);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(lsoda_module,"f_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(lsoda_error,"Failed to convert lsoda.f_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(lsoda_error,"Callback f argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  y_Dims[0]=n;
-  ydot_Dims[0]=n;
+    y_Dims[0]=n;
+    ydot_Dims[0]=n;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_f_in_lsoda__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(t)))
-      goto capi_fail;
-  if (cb_f_in_lsoda__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,y_Dims,NPY_DOUBLE,NULL,(char*)y,itemsize_,NPY_ARRAY_CARRAY,NULL);
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(t)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,y_Dims,NPY_DOUBLE,NULL,(char*)y,itemsize_,NPY_ARRAY_CARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function f.\n");
+    CFUNCSMESS("cb:Call-back calling Python function f.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_f_in_lsoda__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_f_in_lsoda__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,ydot_Dims,1,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,ydot_Dims,1,F2PY_INTENT_IN
 |F2PY_INTENT_C
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(ydot,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(ydot,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_f_in_lsoda__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_f_in_lsoda__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_f_in_lsoda__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_f_in_lsoda__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_f_in_lsoda__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /******************** end of cb_f_in_lsoda__user__routines ********************/
 
 
 /********************** cb_jac_in_lsoda__user__routines **********************/
-PyObject *cb_jac_in_lsoda__user__routines_capi = NULL;/*was Py_None*/
-PyTupleObject *cb_jac_in_lsoda__user__routines_args_capi = NULL;
-int cb_jac_in_lsoda__user__routines_nofargs = 0;
-jmp_buf cb_jac_in_lsoda__user__routines_jmpbuf;
+typedef struct {
+    PyObject *capi;
+    PyTupleObject *args_capi;
+    int nofargs;
+    jmp_buf jmpbuf;
+} cb_jac_in_lsoda__user__routines_t;
+
+#if defined(F2PY_THREAD_LOCAL_DECL) && !defined(F2PY_USE_PYTHON_TLS)
+
+static F2PY_THREAD_LOCAL_DECL cb_jac_in_lsoda__user__routines_t *_active_cb_jac_in_lsoda__user__routines = NULL;
+
+static cb_jac_in_lsoda__user__routines_t *swap_active_cb_jac_in_lsoda__user__routines(cb_jac_in_lsoda__user__routines_t *ptr) {
+    cb_jac_in_lsoda__user__routines_t *prev = _active_cb_jac_in_lsoda__user__routines;
+    _active_cb_jac_in_lsoda__user__routines = ptr;
+    return prev;
+}
+
+static cb_jac_in_lsoda__user__routines_t *get_active_cb_jac_in_lsoda__user__routines(void) {
+    return _active_cb_jac_in_lsoda__user__routines;
+}
+
+#else
+
+static cb_jac_in_lsoda__user__routines_t *swap_active_cb_jac_in_lsoda__user__routines(cb_jac_in_lsoda__user__routines_t *ptr) {
+    char *key = "__f2py_cb_cb_jac_in_lsoda__user__routines";
+    return (cb_jac_in_lsoda__user__routines_t *)F2PySwapThreadLocalCallbackPtr(key, ptr);
+}
+
+static cb_jac_in_lsoda__user__routines_t *get_active_cb_jac_in_lsoda__user__routines(void) {
+    char *key = "__f2py_cb_cb_jac_in_lsoda__user__routines";
+    return (cb_jac_in_lsoda__user__routines_t *)F2PyGetThreadLocalCallbackPtr(key);
+}
+
+#endif
+
 /*typedef void(*cb_jac_in_lsoda__user__routines_typedef)(int *,double *,double *,int *,int *,double *,int *);*/
 static void cb_jac_in_lsoda__user__routines (int *n_cb_capi,double *t_cb_capi,double *y,int *ml_cb_capi,int *mu_cb_capi,double *jac,int *nrowpd_cb_capi) {
-  PyTupleObject *capi_arglist = cb_jac_in_lsoda__user__routines_args_capi;
-  PyObject *capi_return = NULL;
-  PyObject *capi_tmp = NULL;
-  PyObject *capi_arglist_list = NULL;
-  int capi_j,capi_i = 0;
-  int capi_longjmp_ok = 1;
+    cb_jac_in_lsoda__user__routines_t cb_local = { NULL, NULL, 0 };
+    cb_jac_in_lsoda__user__routines_t *cb = NULL;
+    PyTupleObject *capi_arglist = NULL;
+    PyObject *capi_return = NULL;
+    PyObject *capi_tmp = NULL;
+    PyObject *capi_arglist_list = NULL;
+    int capi_j,capi_i = 0;
+    int capi_longjmp_ok = 1;
 /*decl*/
-  int n=(*n_cb_capi);
-  double t=(*t_cb_capi);
-  int ml=(*ml_cb_capi);
-  int mu=(*mu_cb_capi);
-  int nrowpd=(*nrowpd_cb_capi);
-  npy_intp y_Dims[1] = {-1};
-  npy_intp jac_Dims[2] = {-1, -1};
+    int n=(*n_cb_capi);
+    double t=(*t_cb_capi);
+    int ml=(*ml_cb_capi);
+    int mu=(*mu_cb_capi);
+    int nrowpd=(*nrowpd_cb_capi);
+    npy_intp y_Dims[1] = {-1};
+    npy_intp jac_Dims[2] = {-1, -1};
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_clock();
 #endif
-  CFUNCSMESS("cb:Call-back function cb_jac_in_lsoda__user__routines (maxnofargs=2(-0))\n");
-  CFUNCSMESSPY("cb:cb_jac_in_lsoda__user__routines_capi=",cb_jac_in_lsoda__user__routines_capi);
-  if (cb_jac_in_lsoda__user__routines_capi==NULL) {
-    capi_longjmp_ok = 0;
-    cb_jac_in_lsoda__user__routines_capi = PyObject_GetAttrString(lsoda_module,"jac");
-  }
-  if (cb_jac_in_lsoda__user__routines_capi==NULL) {
-    PyErr_SetString(lsoda_error,"cb: Callback jac not defined (as an argument or module lsoda attribute).\n");
-    goto capi_fail;
-  }
-  if (F2PyCapsule_Check(cb_jac_in_lsoda__user__routines_capi)) {
-  cb_jac_in_lsoda__user__routines_typedef cb_jac_in_lsoda__user__routines_cptr;
-  cb_jac_in_lsoda__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb_jac_in_lsoda__user__routines_capi);
-  (*cb_jac_in_lsoda__user__routines_cptr)(n_cb_capi,t_cb_capi,y,ml_cb_capi,mu_cb_capi,jac,nrowpd_cb_capi);
-  return;
-  }
-  if (capi_arglist==NULL) {
-    capi_longjmp_ok = 0;
-    capi_tmp = PyObject_GetAttrString(lsoda_module,"jac_extra_args");
-    if (capi_tmp) {
-      capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
-      if (capi_arglist==NULL) {
-        PyErr_SetString(lsoda_error,"Failed to convert lsoda.jac_extra_args to tuple.\n");
-        goto capi_fail;
-      }
-    } else {
-      PyErr_Clear();
-      capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+    cb = get_active_cb_jac_in_lsoda__user__routines();
+    if (cb == NULL) {
+        capi_longjmp_ok = 0;
+        cb = &cb_local;
     }
-  }
-  if (capi_arglist == NULL) {
-    PyErr_SetString(lsoda_error,"Callback jac argument list is not set.\n");
-    goto capi_fail;
-  }
+    capi_arglist = cb->args_capi;
+    CFUNCSMESS("cb:Call-back function cb_jac_in_lsoda__user__routines (maxnofargs=2(-0))\n");
+    CFUNCSMESSPY("cb:cb_jac_in_lsoda__user__routines_capi=",cb->capi);
+    if (cb->capi==NULL) {
+        capi_longjmp_ok = 0;
+        cb->capi = PyObject_GetAttrString(lsoda_module,"jac");
+        CFUNCSMESSPY("cb:cb_jac_in_lsoda__user__routines_capi=",cb->capi);
+    }
+    if (cb->capi==NULL) {
+        PyErr_SetString(lsoda_error,"cb: Callback jac not defined (as an argument or module lsoda attribute).\n");
+        goto capi_fail;
+    }
+    if (F2PyCapsule_Check(cb->capi)) {
+    cb_jac_in_lsoda__user__routines_typedef cb_jac_in_lsoda__user__routines_cptr;
+    cb_jac_in_lsoda__user__routines_cptr = F2PyCapsule_AsVoidPtr(cb->capi);
+    (*cb_jac_in_lsoda__user__routines_cptr)(n_cb_capi,t_cb_capi,y,ml_cb_capi,mu_cb_capi,jac,nrowpd_cb_capi);
+    return;
+    }
+    if (capi_arglist==NULL) {
+        capi_longjmp_ok = 0;
+        capi_tmp = PyObject_GetAttrString(lsoda_module,"jac_extra_args");
+        if (capi_tmp) {
+            capi_arglist = (PyTupleObject *)PySequence_Tuple(capi_tmp);
+            Py_DECREF(capi_tmp);
+            if (capi_arglist==NULL) {
+                PyErr_SetString(lsoda_error,"Failed to convert lsoda.jac_extra_args to tuple.\n");
+                goto capi_fail;
+            }
+        } else {
+            PyErr_Clear();
+            capi_arglist = (PyTupleObject *)Py_BuildValue("()");
+        }
+    }
+    if (capi_arglist == NULL) {
+        PyErr_SetString(lsoda_error,"Callback jac argument list is not set.\n");
+        goto capi_fail;
+    }
 /*setdims*/
-  y_Dims[0]=n;
-  jac_Dims[0]=nrowpd,jac_Dims[1]=n;
+    y_Dims[0]=n;
+    jac_Dims[0]=nrowpd,jac_Dims[1]=n;
 #ifdef PYPY_VERSION
 #define CAPI_ARGLIST_SETITEM(idx, value) PyList_SetItem((PyObject *)capi_arglist_list, idx, value)
-  capi_arglist_list = PySequence_List(capi_arglist);
-  if (capi_arglist_list == NULL) goto capi_fail;
+    capi_arglist_list = PySequence_List(capi_arglist);
+    if (capi_arglist_list == NULL) goto capi_fail;
 #else
 #define CAPI_ARGLIST_SETITEM(idx, value) PyTuple_SetItem((PyObject *)capi_arglist, idx, value)
 #endif
 /*pyobjfrom*/
-  if (cb_jac_in_lsoda__user__routines_nofargs>capi_i)
-    if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(t)))
-      goto capi_fail;
-  if (cb_jac_in_lsoda__user__routines_nofargs>capi_i) {
-    int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
-    /*XXX: Hmm, what will destroy this array??? */
-    PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,y_Dims,NPY_DOUBLE,NULL,(char*)y,itemsize_,NPY_ARRAY_CARRAY,NULL);
+    if (cb->nofargs>capi_i)
+        if (CAPI_ARGLIST_SETITEM(capi_i++,pyobj_from_double1(t)))
+            goto capi_fail;
+    if (cb->nofargs>capi_i) {
+        int itemsize_ = NPY_DOUBLE == NPY_STRING ? 1 : 0;
+        /*XXX: Hmm, what will destroy this array??? */
+        PyArrayObject *tmp_arr = (PyArrayObject *)PyArray_New(&PyArray_Type,1,y_Dims,NPY_DOUBLE,NULL,(char*)y,itemsize_,NPY_ARRAY_CARRAY,NULL);
 
 
-    if (tmp_arr==NULL)
-      goto capi_fail;
-    if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
-      goto capi_fail;
+        if (tmp_arr==NULL)
+            goto capi_fail;
+        if (CAPI_ARGLIST_SETITEM(capi_i++,(PyObject *)tmp_arr))
+            goto capi_fail;
 }
 #undef CAPI_ARGLIST_SETITEM
 #ifdef PYPY_VERSION
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist_list);
 #else
-  CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
+    CFUNCSMESSPY("cb:capi_arglist=",capi_arglist);
 #endif
-  CFUNCSMESS("cb:Call-back calling Python function jac.\n");
+    CFUNCSMESS("cb:Call-back calling Python function jac.\n");
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_start_call_clock();
 #endif
 #ifdef PYPY_VERSION
-  capi_return = PyObject_CallObject(cb_jac_in_lsoda__user__routines_capi,(PyObject *)capi_arglist_list);
-  Py_DECREF(capi_arglist_list);
-  capi_arglist_list = NULL;
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist_list);
+    Py_DECREF(capi_arglist_list);
+    capi_arglist_list = NULL;
 #else
-  capi_return = PyObject_CallObject(cb_jac_in_lsoda__user__routines_capi,(PyObject *)capi_arglist);
+    capi_return = PyObject_CallObject(cb->capi,(PyObject *)capi_arglist);
 #endif
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_call_clock();
 #endif
-  CFUNCSMESSPY("cb:capi_return=",capi_return);
-  if (capi_return == NULL) {
-    fprintf(stderr,"capi_return is NULL\n");
-    goto capi_fail;
-  }
-  if (capi_return == Py_None) {
-    Py_DECREF(capi_return);
-    capi_return = Py_BuildValue("()");
-  }
-  else if (!PyTuple_Check(capi_return)) {
-    capi_return = Py_BuildValue("(N)",capi_return);
-  }
-  capi_j = PyTuple_Size(capi_return);
-  capi_i = 0;
+    CFUNCSMESSPY("cb:capi_return=",capi_return);
+    if (capi_return == NULL) {
+        fprintf(stderr,"capi_return is NULL\n");
+        goto capi_fail;
+    }
+    if (capi_return == Py_None) {
+        Py_DECREF(capi_return);
+        capi_return = Py_BuildValue("()");
+    }
+    else if (!PyTuple_Check(capi_return)) {
+        capi_return = Py_BuildValue("(N)",capi_return);
+    }
+    capi_j = PyTuple_Size(capi_return);
+    capi_i = 0;
 /*frompyobj*/
-  if (capi_j>capi_i) {
-    PyArrayObject *rv_cb_arr = NULL;
-    if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
-    rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,jac_Dims,2,F2PY_INTENT_IN
+    if (capi_j>capi_i) {
+        PyArrayObject *rv_cb_arr = NULL;
+        if ((capi_tmp = PyTuple_GetItem(capi_return,capi_i++))==NULL) goto capi_fail;
+        rv_cb_arr =  array_from_pyobj(NPY_DOUBLE,jac_Dims,2,F2PY_INTENT_IN
 ,capi_tmp);
-    if (rv_cb_arr == NULL) {
-      fprintf(stderr,"rv_cb_arr is NULL\n");
-      goto capi_fail;
+        if (rv_cb_arr == NULL) {
+            fprintf(stderr,"rv_cb_arr is NULL\n");
+            goto capi_fail;
+        }
+        MEMCOPY(jac,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
+        if (capi_tmp != (PyObject *)rv_cb_arr) {
+            Py_DECREF(rv_cb_arr);
+        }
     }
-    MEMCOPY(jac,PyArray_DATA(rv_cb_arr),PyArray_NBYTES(rv_cb_arr));
-    if (capi_tmp != (PyObject *)rv_cb_arr) {
-      Py_DECREF(rv_cb_arr);
-    }
-  }
-  CFUNCSMESS("cb:cb_jac_in_lsoda__user__routines:successful\n");
-  Py_DECREF(capi_return);
+    CFUNCSMESS("cb:cb_jac_in_lsoda__user__routines:successful\n");
+    Py_DECREF(capi_return);
 #ifdef F2PY_REPORT_ATEXIT
 f2py_cb_stop_clock();
 #endif
-  goto capi_return_pt;
+    goto capi_return_pt;
 capi_fail:
-  fprintf(stderr,"Call-back cb_jac_in_lsoda__user__routines failed.\n");
-  Py_XDECREF(capi_return);
-  Py_XDECREF(capi_arglist_list);
-  if (capi_longjmp_ok)
-    longjmp(cb_jac_in_lsoda__user__routines_jmpbuf,-1);
+    fprintf(stderr,"Call-back cb_jac_in_lsoda__user__routines failed.\n");
+    Py_XDECREF(capi_return);
+    Py_XDECREF(capi_arglist_list);
+    if (capi_longjmp_ok) {
+        longjmp(cb->jmpbuf,-1);
+    }
 capi_return_pt:
-  ;
+    ;
 return;
 }
 /******************* end of cb_jac_in_lsoda__user__routines *******************/
@@ -675,297 +833,293 @@ y,t,istate = lsoda(f,y,t,tout,rtol,atol,itask,istate,rwork,iwork,jac,jt,[f_extra
 "t : float\n"
 "istate : int\n"
 "\nNotes\n-----\nCall-back functions::\n\n"
-"  def f(t,y): return ydot\n\
-  Required arguments:\n"
-"    t : input float\n"
-"    y : input rank-1 array('d') with bounds (n)\n"
-"  Return objects:\n"
-"    ydot : rank-1 array('d') with bounds (n)\n"
-"  def jac(t,y): return jac\n\
-  Required arguments:\n"
-"    t : input float\n"
-"    y : input rank-1 array('d') with bounds (n)\n"
-"  Return objects:\n"
-"    jac : rank-2 array('d') with bounds (nrowpd,n)";
+"    def f(t,y): return ydot\n\
+    Required arguments:\n"
+"        t : input float\n"
+"        y : input rank-1 array('d') with bounds (n)\n"
+"    Return objects:\n"
+"        ydot : rank-1 array('d') with bounds (n)\n"
+"    def jac(t,y): return jac\n\
+    Required arguments:\n"
+"        t : input float\n"
+"        y : input rank-1 array('d') with bounds (n)\n"
+"    Return objects:\n"
+"        jac : rank-2 array('d') with bounds (nrowpd,n)";
 /* extern void F_FUNC(lsoda,LSODA)(); */
 static PyObject *f2py_rout_lsoda_lsoda(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)()) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  PyObject *f_capi = Py_None;
-  PyTupleObject *f_xa_capi = NULL;
-  PyTupleObject *f_args_capi = NULL;
-  int f_nofargs_capi = 0;
-  cb_f_in_lsoda__user__routines_typedef f_cptr;
-  int neq = 0;
-  double *y = NULL;
-  npy_intp y_Dims[1] = {-1};
-  const int y_Rank = 1;
-  PyArrayObject *capi_y_tmp = NULL;
-  int capi_y_intent = 0;
-  int capi_overwrite_y = 0;
-  PyObject *y_capi = Py_None;
-  double t = 0;
-  PyObject *t_capi = Py_None;
-  double tout = 0;
-  PyObject *tout_capi = Py_None;
-  int itol = 0;
-  double *rtol = NULL;
-  npy_intp rtol_Dims[1] = {-1};
-  const int rtol_Rank = 1;
-  PyArrayObject *capi_rtol_tmp = NULL;
-  int capi_rtol_intent = 0;
-  PyObject *rtol_capi = Py_None;
-  double *atol = NULL;
-  npy_intp atol_Dims[1] = {-1};
-  const int atol_Rank = 1;
-  PyArrayObject *capi_atol_tmp = NULL;
-  int capi_atol_intent = 0;
-  PyObject *atol_capi = Py_None;
-  int itask = 0;
-  PyObject *itask_capi = Py_None;
-  int istate = 0;
-  PyObject *istate_capi = Py_None;
-  int iopt = 0;
-  double *rwork = NULL;
-  npy_intp rwork_Dims[1] = {-1};
-  const int rwork_Rank = 1;
-  PyArrayObject *capi_rwork_tmp = NULL;
-  int capi_rwork_intent = 0;
-  PyObject *rwork_capi = Py_None;
-  int lrw = 0;
-  int *iwork = NULL;
-  npy_intp iwork_Dims[1] = {-1};
-  const int iwork_Rank = 1;
-  PyArrayObject *capi_iwork_tmp = NULL;
-  int capi_iwork_intent = 0;
-  PyObject *iwork_capi = Py_None;
-  int liw = 0;
-  PyObject *jac_capi = Py_None;
-  PyTupleObject *jac_xa_capi = NULL;
-  PyTupleObject *jac_args_capi = NULL;
-  int jac_nofargs_capi = 0;
-  cb_jac_in_lsoda__user__routines_typedef jac_cptr;
-  int jt = 0;
-  PyObject *jt_capi = Py_None;
-  static char *capi_kwlist[] = {"f","y","t","tout","rtol","atol","itask","istate","rwork","iwork","jac","jt","f_extra_args","overwrite_y","jac_extra_args",NULL};
+    cb_f_in_lsoda__user__routines_t f_cb = { Py_None, NULL, 0 };
+    cb_f_in_lsoda__user__routines_t *f_cb_ptr = &f_cb;
+    PyTupleObject *f_xa_capi = NULL;
+    cb_f_in_lsoda__user__routines_typedef f_cptr;
+    int neq = 0;
+    double *y = NULL;
+    npy_intp y_Dims[1] = {-1};
+    const int y_Rank = 1;
+    PyArrayObject *capi_y_tmp = NULL;
+    int capi_y_intent = 0;
+    int capi_overwrite_y = 0;
+    PyObject *y_capi = Py_None;
+    double t = 0;
+    PyObject *t_capi = Py_None;
+    double tout = 0;
+    PyObject *tout_capi = Py_None;
+    int itol = 0;
+    double *rtol = NULL;
+    npy_intp rtol_Dims[1] = {-1};
+    const int rtol_Rank = 1;
+    PyArrayObject *capi_rtol_tmp = NULL;
+    int capi_rtol_intent = 0;
+    PyObject *rtol_capi = Py_None;
+    double *atol = NULL;
+    npy_intp atol_Dims[1] = {-1};
+    const int atol_Rank = 1;
+    PyArrayObject *capi_atol_tmp = NULL;
+    int capi_atol_intent = 0;
+    PyObject *atol_capi = Py_None;
+    int itask = 0;
+    PyObject *itask_capi = Py_None;
+    int istate = 0;
+    PyObject *istate_capi = Py_None;
+    int iopt = 0;
+    double *rwork = NULL;
+    npy_intp rwork_Dims[1] = {-1};
+    const int rwork_Rank = 1;
+    PyArrayObject *capi_rwork_tmp = NULL;
+    int capi_rwork_intent = 0;
+    PyObject *rwork_capi = Py_None;
+    int lrw = 0;
+    int *iwork = NULL;
+    npy_intp iwork_Dims[1] = {-1};
+    const int iwork_Rank = 1;
+    PyArrayObject *capi_iwork_tmp = NULL;
+    int capi_iwork_intent = 0;
+    PyObject *iwork_capi = Py_None;
+    int liw = 0;
+    cb_jac_in_lsoda__user__routines_t jac_cb = { Py_None, NULL, 0 };
+    cb_jac_in_lsoda__user__routines_t *jac_cb_ptr = &jac_cb;
+    PyTupleObject *jac_xa_capi = NULL;
+    cb_jac_in_lsoda__user__routines_typedef jac_cptr;
+    int jt = 0;
+    PyObject *jt_capi = Py_None;
+    static char *capi_kwlist[] = {"f","y","t","tout","rtol","atol","itask","istate","rwork","iwork","jac","jt","f_extra_args","overwrite_y","jac_extra_args",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOOOOO|O!iO!:lsoda.lsoda",\
-    capi_kwlist,&f_capi,&y_capi,&t_capi,&tout_capi,&rtol_capi,&atol_capi,&itask_capi,&istate_capi,&rwork_capi,&iwork_capi,&jac_capi,&jt_capi,&PyTuple_Type,&f_xa_capi,&capi_overwrite_y,&PyTuple_Type,&jac_xa_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOOOOO|O!iO!:lsoda.lsoda",\
+        capi_kwlist,&f_cb.capi,&y_capi,&t_capi,&tout_capi,&rtol_capi,&atol_capi,&itask_capi,&istate_capi,&rwork_capi,&iwork_capi,&jac_cb.capi,&jt_capi,&PyTuple_Type,&f_xa_capi,&capi_overwrite_y,&PyTuple_Type,&jac_xa_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable f */
-if(F2PyCapsule_Check(f_capi)) {
-  f_cptr = F2PyCapsule_AsVoidPtr(f_capi);
+    /* Processing variable f */
+if(F2PyCapsule_Check(f_cb.capi)) {
+  f_cptr = F2PyCapsule_AsVoidPtr(f_cb.capi);
 } else {
   f_cptr = cb_f_in_lsoda__user__routines;
 }
 
-  f_nofargs_capi = cb_f_in_lsoda__user__routines_nofargs;
-  if (create_cb_arglist(f_capi,f_xa_capi,2,0,&cb_f_in_lsoda__user__routines_nofargs,&f_args_capi,"failed in processing argument list for call-back f.")) {
-    jmp_buf f_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `f`.\n");
-    SWAP(f_capi,cb_f_in_lsoda__user__routines_capi,PyObject);
-    SWAP(f_args_capi,cb_f_in_lsoda__user__routines_args_capi,PyTupleObject);
-    memcpy(&f_jmpbuf,&cb_f_in_lsoda__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable jac */
-if(F2PyCapsule_Check(jac_capi)) {
-  jac_cptr = F2PyCapsule_AsVoidPtr(jac_capi);
+    if (create_cb_arglist(f_cb.capi,f_xa_capi,2,0,&f_cb.nofargs,&f_cb.args_capi,"failed in processing argument list for call-back f.")) {
+
+        CFUNCSMESS("Saving callback variables for `f`.\n");
+        f_cb_ptr = swap_active_cb_f_in_lsoda__user__routines(f_cb_ptr);
+    /* Processing variable jac */
+if(F2PyCapsule_Check(jac_cb.capi)) {
+  jac_cptr = F2PyCapsule_AsVoidPtr(jac_cb.capi);
 } else {
   jac_cptr = cb_jac_in_lsoda__user__routines;
 }
 
-  jac_nofargs_capi = cb_jac_in_lsoda__user__routines_nofargs;
-  if (create_cb_arglist(jac_capi,jac_xa_capi,2,0,&cb_jac_in_lsoda__user__routines_nofargs,&jac_args_capi,"failed in processing argument list for call-back jac.")) {
-    jmp_buf jac_jmpbuf;
-    CFUNCSMESS("Saving jmpbuf for `jac`.\n");
-    SWAP(jac_capi,cb_jac_in_lsoda__user__routines_capi,PyObject);
-    SWAP(jac_args_capi,cb_jac_in_lsoda__user__routines_args_capi,PyTupleObject);
-    memcpy(&jac_jmpbuf,&cb_jac_in_lsoda__user__routines_jmpbuf,sizeof(jmp_buf));
-  /* Processing variable y */
-  capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
-  ;
-  capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
-  if (capi_y_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(lsoda_error,"failed in converting 2nd argument `y' of lsoda.lsoda to C/Fortran array" );
-  } else {
-    y = (double *)(PyArray_DATA(capi_y_tmp));
+    if (create_cb_arglist(jac_cb.capi,jac_xa_capi,2,0,&jac_cb.nofargs,&jac_cb.args_capi,"failed in processing argument list for call-back jac.")) {
 
-  /* Processing variable t */
-    f2py_success = double_from_pyobj(&t,t_capi,"lsoda.lsoda() 3rd argument (t) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable tout */
-    f2py_success = double_from_pyobj(&tout,tout_capi,"lsoda.lsoda() 4th argument (tout) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable itask */
-    f2py_success = int_from_pyobj(&itask,itask_capi,"lsoda.lsoda() 7th argument (itask) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(itask>0 && itask<6,"itask>0 && itask<6","7th argument itask","lsoda:itask=%d",itask) {
-  /* Processing variable istate */
-    f2py_success = int_from_pyobj(&istate,istate_capi,"lsoda.lsoda() 8th argument (istate) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR(istate>0 && istate<4,"istate>0 && istate<4","8th argument istate","lsoda:istate=%d",istate) {
-  /* Processing variable iopt */
-  iopt = 1;
-  /* Processing variable rwork */
-  ;
-  capi_rwork_intent |= F2PY_INTENT_IN|F2PY_INTENT_CACHE;
-  capi_rwork_tmp = array_from_pyobj(NPY_DOUBLE,rwork_Dims,rwork_Rank,capi_rwork_intent,rwork_capi);
-  if (capi_rwork_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(lsoda_error,"failed in converting 9th argument `rwork' of lsoda.lsoda to C/Fortran array" );
-  } else {
-    rwork = (double *)(PyArray_DATA(capi_rwork_tmp));
+        CFUNCSMESS("Saving callback variables for `jac`.\n");
+        jac_cb_ptr = swap_active_cb_jac_in_lsoda__user__routines(jac_cb_ptr);
+    /* Processing variable y */
+    capi_y_intent |= (capi_overwrite_y?0:F2PY_INTENT_COPY);
+    ;
+    capi_y_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_y_tmp = array_from_pyobj(NPY_DOUBLE,y_Dims,y_Rank,capi_y_intent,y_capi);
+    if (capi_y_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : lsoda_error,"failed in converting 2nd argument `y' of lsoda.lsoda to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        y = (double *)(PyArray_DATA(capi_y_tmp));
 
-  /* Processing variable iwork */
-  ;
-  capi_iwork_intent |= F2PY_INTENT_IN|F2PY_INTENT_CACHE;
-  capi_iwork_tmp = array_from_pyobj(NPY_INT,iwork_Dims,iwork_Rank,capi_iwork_intent,iwork_capi);
-  if (capi_iwork_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(lsoda_error,"failed in converting 10th argument `iwork' of lsoda.lsoda to C/Fortran array" );
-  } else {
-    iwork = (int *)(PyArray_DATA(capi_iwork_tmp));
+    /* Processing variable t */
+        f2py_success = double_from_pyobj(&t,t_capi,"lsoda.lsoda() 3rd argument (t) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable tout */
+        f2py_success = double_from_pyobj(&tout,tout_capi,"lsoda.lsoda() 4th argument (tout) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable itask */
+        f2py_success = int_from_pyobj(&itask,itask_capi,"lsoda.lsoda() 7th argument (itask) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(itask>0 && itask<6,"itask>0 && itask<6","7th argument itask","lsoda:itask=%d",itask) {
+    /* Processing variable istate */
+        f2py_success = int_from_pyobj(&istate,istate_capi,"lsoda.lsoda() 8th argument (istate) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR(istate>0 && istate<4,"istate>0 && istate<4","8th argument istate","lsoda:istate=%d",istate) {
+    /* Processing variable iopt */
+    iopt = 1;
+    /* Processing variable rwork */
+    ;
+    capi_rwork_intent |= F2PY_INTENT_IN|F2PY_INTENT_CACHE;
+    capi_rwork_tmp = array_from_pyobj(NPY_DOUBLE,rwork_Dims,rwork_Rank,capi_rwork_intent,rwork_capi);
+    if (capi_rwork_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : lsoda_error,"failed in converting 9th argument `rwork' of lsoda.lsoda to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        rwork = (double *)(PyArray_DATA(capi_rwork_tmp));
 
-  /* Processing variable jt */
-    f2py_success = int_from_pyobj(&jt,jt_capi,"lsoda.lsoda() 12nd argument (jt) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable neq */
-  neq = len(y);
-  /* Processing variable atol */
-  ;
-  capi_atol_intent |= F2PY_INTENT_IN;
-  capi_atol_tmp = array_from_pyobj(NPY_DOUBLE,atol_Dims,atol_Rank,capi_atol_intent,atol_capi);
-  if (capi_atol_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(lsoda_error,"failed in converting 6th argument `atol' of lsoda.lsoda to C/Fortran array" );
-  } else {
-    atol = (double *)(PyArray_DATA(capi_atol_tmp));
+    /* Processing variable iwork */
+    ;
+    capi_iwork_intent |= F2PY_INTENT_IN|F2PY_INTENT_CACHE;
+    capi_iwork_tmp = array_from_pyobj(NPY_INT,iwork_Dims,iwork_Rank,capi_iwork_intent,iwork_capi);
+    if (capi_iwork_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : lsoda_error,"failed in converting 10th argument `iwork' of lsoda.lsoda to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        iwork = (int *)(PyArray_DATA(capi_iwork_tmp));
 
-  CHECKARRAY(len(atol)<=1||len(atol)>=neq,"len(atol)<=1||len(atol)>=neq","6th argument atol") {
-  /* Processing variable rtol */
-  ;
-  capi_rtol_intent |= F2PY_INTENT_IN;
-  capi_rtol_tmp = array_from_pyobj(NPY_DOUBLE,rtol_Dims,rtol_Rank,capi_rtol_intent,rtol_capi);
-  if (capi_rtol_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(lsoda_error,"failed in converting 5th argument `rtol' of lsoda.lsoda to C/Fortran array" );
-  } else {
-    rtol = (double *)(PyArray_DATA(capi_rtol_tmp));
+    /* Processing variable jt */
+        f2py_success = int_from_pyobj(&jt,jt_capi,"lsoda.lsoda() 12nd argument (jt) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable neq */
+    neq = len(y);
+    /* Processing variable atol */
+    ;
+    capi_atol_intent |= F2PY_INTENT_IN;
+    capi_atol_tmp = array_from_pyobj(NPY_DOUBLE,atol_Dims,atol_Rank,capi_atol_intent,atol_capi);
+    if (capi_atol_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : lsoda_error,"failed in converting 6th argument `atol' of lsoda.lsoda to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        atol = (double *)(PyArray_DATA(capi_atol_tmp));
 
-  CHECKARRAY(len(rtol)<=1||len(rtol)>=neq,"len(rtol)<=1||len(rtol)>=neq","5th argument rtol") {
-  /* Processing variable lrw */
-  lrw = len(rwork);
-  CHECKSCALAR(len(rwork)>=lrw,"len(rwork)>=lrw","hidden lrw","lsoda:lrw=%d",lrw) {
-  /* Processing variable liw */
-  liw = len(iwork);
-  CHECKSCALAR(len(iwork)>=liw,"len(iwork)>=liw","hidden liw","lsoda:liw=%d",liw) {
-  /* Processing variable itol */
-  itol = (len(atol)<=1 && len(rtol)<=1?1:(len(rtol)<=1?2:(len(atol)<=1?3:4)));
+    CHECKARRAY(len(atol)<=1||len(atol)>=neq,"len(atol)<=1||len(atol)>=neq","6th argument atol") {
+    /* Processing variable rtol */
+    ;
+    capi_rtol_intent |= F2PY_INTENT_IN;
+    capi_rtol_tmp = array_from_pyobj(NPY_DOUBLE,rtol_Dims,rtol_Rank,capi_rtol_intent,rtol_capi);
+    if (capi_rtol_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : lsoda_error,"failed in converting 5th argument `rtol' of lsoda.lsoda to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        rtol = (double *)(PyArray_DATA(capi_rtol_tmp));
+
+    CHECKARRAY(len(rtol)<=1||len(rtol)>=neq,"len(rtol)<=1||len(rtol)>=neq","5th argument rtol") {
+    /* Processing variable lrw */
+    lrw = len(rwork);
+    CHECKSCALAR(len(rwork)>=lrw,"len(rwork)>=lrw","hidden lrw","lsoda:lrw=%d",lrw) {
+    /* Processing variable liw */
+    liw = len(iwork);
+    CHECKSCALAR(len(iwork)>=liw,"len(iwork)>=liw","hidden liw","lsoda:liw=%d",liw) {
+    /* Processing variable itol */
+    itol = (len(atol)<=1 && len(rtol)<=1?1:(len(rtol)<=1?2:(len(atol)<=1?3:4)));
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-    if ((setjmp(cb_f_in_lsoda__user__routines_jmpbuf)) || (setjmp(cb_jac_in_lsoda__user__routines_jmpbuf))) {
-      f2py_success = 0;
-    } else {
-        (*f2py_func)(cb_f_in_lsoda__user__routines,&neq,y,&t,&tout,&itol,rtol,atol,&itask,&istate,&iopt,rwork,&lrw,iwork,&liw,cb_jac_in_lsoda__user__routines,&jt) ;
-        /*(*f2py_func)(f_cptr,&neq,y,&t,&tout,&itol,rtol,atol,&itask,&istate,&iopt,rwork,&lrw,iwork,&liw,jac_cptr,&jt);*/
-    }
+        if ((setjmp(f_cb.jmpbuf)) || (setjmp(jac_cb.jmpbuf))) {
+            f2py_success = 0;
+        } else {
+                (*f2py_func)(cb_f_in_lsoda__user__routines,&neq,y,&t,&tout,&itol,rtol,atol,&itask,&istate,&iopt,rwork,&lrw,iwork,&liw,cb_jac_in_lsoda__user__routines,&jt) ;
+                /*(*f2py_func)(f_cptr,&neq,y,&t,&tout,&itol,rtol,atol,&itask,&istate,&iopt,rwork,&lrw,iwork,&liw,jac_cptr,&jt);*/
+        }
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Ndi",capi_y_tmp,t,istate);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Ndi",capi_y_tmp,t,istate);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  /* End of cleaning variable itol */
-  } /*CHECKSCALAR(len(iwork)>=liw)*/
-  /* End of cleaning variable liw */
-  } /*CHECKSCALAR(len(rwork)>=lrw)*/
-  /* End of cleaning variable lrw */
-  } /*CHECKARRAY(len(rtol)<=1||len(rtol)>=neq)*/
-  if((PyObject *)capi_rtol_tmp!=rtol_capi) {
-    Py_XDECREF(capi_rtol_tmp); }
-  }  /*if (capi_rtol_tmp == NULL) ... else of rtol*/
-  /* End of cleaning variable rtol */
-  } /*CHECKARRAY(len(atol)<=1||len(atol)>=neq)*/
-  if((PyObject *)capi_atol_tmp!=atol_capi) {
-    Py_XDECREF(capi_atol_tmp); }
-  }  /*if (capi_atol_tmp == NULL) ... else of atol*/
-  /* End of cleaning variable atol */
-  /* End of cleaning variable neq */
-  } /*if (f2py_success) of jt*/
-  /* End of cleaning variable jt */
-  if((PyObject *)capi_iwork_tmp!=iwork_capi) {
-    Py_XDECREF(capi_iwork_tmp); }
-  }  /*if (capi_iwork_tmp == NULL) ... else of iwork*/
-  /* End of cleaning variable iwork */
-  if((PyObject *)capi_rwork_tmp!=rwork_capi) {
-    Py_XDECREF(capi_rwork_tmp); }
-  }  /*if (capi_rwork_tmp == NULL) ... else of rwork*/
-  /* End of cleaning variable rwork */
-  /* End of cleaning variable iopt */
-  } /*CHECKSCALAR(istate>0 && istate<4)*/
-  } /*if (f2py_success) of istate*/
-  /* End of cleaning variable istate */
-  } /*CHECKSCALAR(itask>0 && itask<6)*/
-  } /*if (f2py_success) of itask*/
-  /* End of cleaning variable itask */
-  } /*if (f2py_success) of tout*/
-  /* End of cleaning variable tout */
-  } /*if (f2py_success) of t*/
-  /* End of cleaning variable t */
-  }  /*if (capi_y_tmp == NULL) ... else of y*/
-  /* End of cleaning variable y */
-    CFUNCSMESS("Restoring jmpbuf for `jac`.\n");
-    cb_jac_in_lsoda__user__routines_capi = jac_capi;
-    Py_DECREF(cb_jac_in_lsoda__user__routines_args_capi);
-    cb_jac_in_lsoda__user__routines_args_capi = jac_args_capi;
-    cb_jac_in_lsoda__user__routines_nofargs = jac_nofargs_capi;
-    memcpy(&cb_jac_in_lsoda__user__routines_jmpbuf,&jac_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable jac */
-    CFUNCSMESS("Restoring jmpbuf for `f`.\n");
-    cb_f_in_lsoda__user__routines_capi = f_capi;
-    Py_DECREF(cb_f_in_lsoda__user__routines_args_capi);
-    cb_f_in_lsoda__user__routines_args_capi = f_args_capi;
-    cb_f_in_lsoda__user__routines_nofargs = f_nofargs_capi;
-    memcpy(&cb_f_in_lsoda__user__routines_jmpbuf,&f_jmpbuf,sizeof(jmp_buf));
-  }
-  /* End of cleaning variable f */
+    /* End of cleaning variable itol */
+    } /*CHECKSCALAR(len(iwork)>=liw)*/
+    /* End of cleaning variable liw */
+    } /*CHECKSCALAR(len(rwork)>=lrw)*/
+    /* End of cleaning variable lrw */
+    } /*CHECKARRAY(len(rtol)<=1||len(rtol)>=neq)*/
+    if((PyObject *)capi_rtol_tmp!=rtol_capi) {
+        Py_XDECREF(capi_rtol_tmp); }
+    }  /*if (capi_rtol_tmp == NULL) ... else of rtol*/
+    /* End of cleaning variable rtol */
+    } /*CHECKARRAY(len(atol)<=1||len(atol)>=neq)*/
+    if((PyObject *)capi_atol_tmp!=atol_capi) {
+        Py_XDECREF(capi_atol_tmp); }
+    }  /*if (capi_atol_tmp == NULL) ... else of atol*/
+    /* End of cleaning variable atol */
+    /* End of cleaning variable neq */
+    } /*if (f2py_success) of jt*/
+    /* End of cleaning variable jt */
+    if((PyObject *)capi_iwork_tmp!=iwork_capi) {
+        Py_XDECREF(capi_iwork_tmp); }
+    }  /*if (capi_iwork_tmp == NULL) ... else of iwork*/
+    /* End of cleaning variable iwork */
+    if((PyObject *)capi_rwork_tmp!=rwork_capi) {
+        Py_XDECREF(capi_rwork_tmp); }
+    }  /*if (capi_rwork_tmp == NULL) ... else of rwork*/
+    /* End of cleaning variable rwork */
+    /* End of cleaning variable iopt */
+    } /*CHECKSCALAR(istate>0 && istate<4)*/
+    } /*if (f2py_success) of istate*/
+    /* End of cleaning variable istate */
+    } /*CHECKSCALAR(itask>0 && itask<6)*/
+    } /*if (f2py_success) of itask*/
+    /* End of cleaning variable itask */
+    } /*if (f2py_success) of tout*/
+    /* End of cleaning variable tout */
+    } /*if (f2py_success) of t*/
+    /* End of cleaning variable t */
+    }  /*if (capi_y_tmp == NULL) ... else of y*/
+    /* End of cleaning variable y */
+        CFUNCSMESS("Restoring callback variables for `jac`.\n");
+        jac_cb_ptr = swap_active_cb_jac_in_lsoda__user__routines(jac_cb_ptr);
+        Py_DECREF(jac_cb.args_capi);
+    }
+    /* End of cleaning variable jac */
+        CFUNCSMESS("Restoring callback variables for `f`.\n");
+        f_cb_ptr = swap_active_cb_f_in_lsoda__user__routines(f_cb_ptr);
+        Py_DECREF(f_cb.args_capi);
+    }
+    /* End of cleaning variable f */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /******************************** end of lsoda ********************************/
 /*eof body*/
@@ -982,65 +1136,62 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-  {"lsoda",-1,{{-1}},0,(char *)F_FUNC(lsoda,LSODA),(f2py_init_func)f2py_rout_lsoda_lsoda,doc_f2py_rout_lsoda_lsoda},
+    {"lsoda",-1,{{-1}},0,(char *)F_FUNC(lsoda,LSODA),(f2py_init_func)f2py_rout_lsoda_lsoda,doc_f2py_rout_lsoda_lsoda},
 
 /*eof routine_defs*/
-  {NULL}
+    {NULL}
 };
 
 static PyMethodDef f2py_module_methods[] = {
 
-  {NULL,NULL}
+    {NULL,NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT,
-  "lsoda",
-  NULL,
-  -1,
-  f2py_module_methods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+    PyModuleDef_HEAD_INIT,
+    "lsoda",
+    NULL,
+    -1,
+    f2py_module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
-#endif
 
-#if PY_VERSION_HEX >= 0x03000000
-#define RETVAL m
 PyMODINIT_FUNC PyInit_lsoda(void) {
-#else
-#define RETVAL
-PyMODINIT_FUNC initlsoda(void) {
-#endif
-  int i;
-  PyObject *m,*d, *s;
-#if PY_VERSION_HEX >= 0x03000000
-  m = lsoda_module = PyModule_Create(&moduledef);
-#else
-  m = lsoda_module = Py_InitModule("lsoda", f2py_module_methods);
-#endif
-  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
-  import_array();
-  if (PyErr_Occurred())
-    {PyErr_SetString(PyExc_ImportError, "can't initialize module lsoda (failed to import numpy)"); return RETVAL;}
-  d = PyModule_GetDict(m);
-  s = PyString_FromString("$Revision: $");
-  PyDict_SetItemString(d, "__version__", s);
-#if PY_VERSION_HEX >= 0x03000000
-  s = PyUnicode_FromString(
-#else
-  s = PyString_FromString(
-#endif
-    "This module 'lsoda' is auto-generated with f2py (version:2).\nFunctions:\n"
-"  y,t,istate = lsoda(f,y,t,tout,rtol,atol,itask,istate,rwork,iwork,jac,jt,f_extra_args=(),overwrite_y=0,jac_extra_args=())\n"
+    int i;
+    PyObject *m,*d, *s, *tmp;
+    m = lsoda_module = PyModule_Create(&moduledef);
+    Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
+    import_array();
+    if (PyErr_Occurred())
+        {PyErr_SetString(PyExc_ImportError, "can't initialize module lsoda (failed to import numpy)"); return m;}
+    d = PyModule_GetDict(m);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__version__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString(
+        "This module 'lsoda' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+"    y,t,istate = lsoda(f,y,t,tout,rtol,atol,itask,istate,rwork,iwork,jac,jt,f_extra_args=(),overwrite_y=0,jac_extra_args=())\n"
 ".");
-  PyDict_SetItemString(d, "__doc__", s);
-  lsoda_error = PyErr_NewException ("lsoda.error", NULL, NULL);
-  Py_DECREF(s);
-  for(i=0;f2py_routine_defs[i].name!=NULL;i++)
-    PyDict_SetItemString(d, f2py_routine_defs[i].name,PyFortranObject_NewAsAttr(&f2py_routine_defs[i]));
+    PyDict_SetItemString(d, "__doc__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__f2py_numpy_version__", s);
+    Py_DECREF(s);
+    lsoda_error = PyErr_NewException ("lsoda.error", NULL, NULL);
+    /*
+     * Store the error object inside the dict, so that it could get deallocated.
+     * (in practice, this is a module, so it likely will not and cannot.)
+     */
+    PyDict_SetItemString(d, "_lsoda_error", lsoda_error);
+    Py_DECREF(lsoda_error);
+    for(i=0;f2py_routine_defs[i].name!=NULL;i++) {
+        tmp = PyFortranObject_NewAsAttr(&f2py_routine_defs[i]);
+        PyDict_SetItemString(d, f2py_routine_defs[i].name, tmp);
+        Py_DECREF(tmp);
+    }
 
 /*eof initf2pywraphooks*/
 /*eof initf90modhooks*/
@@ -1049,11 +1200,10 @@ PyMODINIT_FUNC initlsoda(void) {
 
 
 #ifdef F2PY_REPORT_ATEXIT
-  if (! PyErr_Occurred())
-    on_exit(f2py_report_on_exit,(void*)"lsoda");
+    if (! PyErr_Occurred())
+        on_exit(f2py_report_on_exit,(void*)"lsoda");
 #endif
-
-  return RETVAL;
+    return m;
 }
 #ifdef __cplusplus
 }

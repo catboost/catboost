@@ -3,10 +3,10 @@ Name: scipy
 Version: 1.2.3
 Summary: SciPy: Scientific Library for Python
 Home-page: https://www.scipy.org
+Download-URL: https://github.com/scipy/scipy/releases
 Maintainer: SciPy Developers
 Maintainer-email: scipy-dev@python.org
 License: BSD
-Download-URL: https://github.com/scipy/scipy/releases
 Platform: Windows
 Platform: Linux
 Platform: Solaris

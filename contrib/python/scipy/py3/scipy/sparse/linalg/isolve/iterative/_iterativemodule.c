@@ -1,5 +1,5 @@
 /* File: _iterativemodule.c
- * This file is auto-generated with f2py (version:2).
+ * This file is auto-generated with f2py (version:1.23.5).
  * f2py is a Fortran to Python Interface Generator (FPIG), Second Edition,
  * written by Pearu Peterson <pearu@cens.ioc.ee>.
  * Generation date: Mon Jan 20 20:54:49 2020
@@ -10,8 +10,15 @@
 extern "C" {
 #endif
 
+#ifndef PY_SSIZE_T_CLEAN
+#define PY_SSIZE_T_CLEAN
+#endif /* PY_SSIZE_T_CLEAN */
+
+/* Unconditionally included */
+#include <Python.h>
+#include <numpy/npy_os.h>
+
 /*********************** See f2py2e/cfuncs.py: includes ***********************/
-#include "Python.h"
 #include <stdarg.h>
 #include "fortranobject.h"
 #include <math.h>
@@ -109,34 +116,35 @@ typedef struct {float r,i;} complex_float;
     } else 
 
 /************************ See f2py2e/cfuncs.py: cfuncs ************************/
-static int double_from_pyobj(double* v,PyObject *obj,const char *errmess) {
+static int
+double_from_pyobj(double* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
     if (PyFloat_Check(obj)) {
-#ifdef __sgi
         *v = PyFloat_AsDouble(obj);
-#else
-        *v = PyFloat_AS_DOUBLE(obj);
-#endif
-        return 1;
+        return !(*v == -1.0 && PyErr_Occurred());
     }
+
     tmp = PyNumber_Float(obj);
     if (tmp) {
-#ifdef __sgi
         *v = PyFloat_AsDouble(tmp);
-#else
-        *v = PyFloat_AS_DOUBLE(tmp);
-#endif
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1.0 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
         if (double_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
         Py_DECREF(tmp);
     }
@@ -172,38 +180,56 @@ static int f2py_size(PyArrayObject* var, ...)
   return sz;
 }
 
-static int int_from_pyobj(int* v,PyObject *obj,const char *errmess) {
+static int
+int_from_pyobj(int* v, PyObject *obj, const char *errmess)
+{
     PyObject* tmp = NULL;
-    if (PyInt_Check(obj)) {
-        *v = (int)PyInt_AS_LONG(obj);
-        return 1;
+
+    if (PyLong_Check(obj)) {
+        *v = Npy__PyLong_AsInt(obj);
+        return !(*v == -1 && PyErr_Occurred());
     }
-    tmp = PyNumber_Int(obj);
+
+    tmp = PyNumber_Long(obj);
     if (tmp) {
-        *v = PyInt_AS_LONG(tmp);
+        *v = Npy__PyLong_AsInt(tmp);
         Py_DECREF(tmp);
-        return 1;
+        return !(*v == -1 && PyErr_Occurred());
     }
-    if (PyComplex_Check(obj))
-        tmp = PyObject_GetAttrString(obj,"real");
-    else if (PyString_Check(obj) || PyUnicode_Check(obj))
-        /*pass*/;
-    else if (PySequence_Check(obj))
-        tmp = PySequence_GetItem(obj,0);
-    if (tmp) {
+
+    if (PyComplex_Check(obj)) {
         PyErr_Clear();
-        if (int_from_pyobj(v,tmp,errmess)) {Py_DECREF(tmp); return 1;}
+        tmp = PyObject_GetAttrString(obj,"real");
+    }
+    else if (PyBytes_Check(obj) || PyUnicode_Check(obj)) {
+        /*pass*/;
+    }
+    else if (PySequence_Check(obj)) {
+        PyErr_Clear();
+        tmp = PySequence_GetItem(obj, 0);
+    }
+
+    if (tmp) {
+        if (int_from_pyobj(v, tmp, errmess)) {
+            Py_DECREF(tmp);
+            return 1;
+        }
         Py_DECREF(tmp);
     }
+
     {
         PyObject* err = PyErr_Occurred();
-        if (err==NULL) err = _iterative_error;
-        PyErr_SetString(err,errmess);
+        if (err == NULL) {
+            err = _iterative_error;
+        }
+        PyErr_SetString(err, errmess);
     }
     return 0;
 }
 
-static int float_from_pyobj(float* v,PyObject *obj,const char *errmess) {
+static int
+float_from_pyobj(float* v, PyObject *obj, const char *errmess)
+{
     double d=0.0;
     if (double_from_pyobj(&d,obj,errmess)) {
         *v = (float)d;
@@ -282,168 +308,174 @@ static PyObject *f2py_rout__iterative_sbicgrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,float*,float*,float*,int*,int*,float*,int*,int*,int*,float*,float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  float sclr1 = 0;
-  float sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    float sclr1 = 0;
+    float sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.sbicgrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.sbicgrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.sbicgrevcom to C/Fortran array" );
-  } else {
-    b = (float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.sbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sbicgrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.sbicgrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.sbicgrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.sbicgrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.sbicgrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.sbicgrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.sbicgrevcom to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sbicgrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.sbicgrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.sbicgrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.sbicgrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.sbicgrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.sbicgrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.sbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=6 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.sbicgrevcom to C/Fortran array" );
-  } else {
-    work = (float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=6 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.sbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of sbicgrevcom *****************************/
 
@@ -475,168 +507,174 @@ static PyObject *f2py_rout__iterative_dbicgrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,double*,double*,int*,int*,double*,int*,int*,int*,double*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  double sclr1 = 0;
-  double sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    double sclr1 = 0;
+    double sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.dbicgrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.dbicgrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.dbicgrevcom to C/Fortran array" );
-  } else {
-    b = (double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dbicgrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dbicgrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dbicgrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dbicgrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dbicgrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dbicgrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.dbicgrevcom to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dbicgrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dbicgrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dbicgrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dbicgrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dbicgrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dbicgrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=6 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.dbicgrevcom to C/Fortran array" );
-  } else {
-    work = (double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=6 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of dbicgrevcom *****************************/
 
@@ -668,172 +706,178 @@ static PyObject *f2py_rout__iterative_cbicgrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_float*,complex_float*,complex_float*,int*,int*,float*,int*,int*,int*,complex_float*,complex_float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_float sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_float sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_float sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_float sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.cbicgrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.cbicgrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.cbicgrevcom to C/Fortran array" );
-  } else {
-    b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.cbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cbicgrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.cbicgrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.cbicgrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.cbicgrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.cbicgrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.cbicgrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.cbicgrevcom to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cbicgrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.cbicgrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.cbicgrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.cbicgrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.cbicgrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.cbicgrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.cbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=6 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.cbicgrevcom to C/Fortran array" );
-  } else {
-    work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=6 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.cbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_float1(sclr1);
-  sclr2_capi = pyobj_from_complex_float1(sclr2);
+    sclr1_capi = pyobj_from_complex_float1(sclr1);
+    sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of cbicgrevcom *****************************/
 
@@ -865,172 +909,178 @@ static PyObject *f2py_rout__iterative_zbicgrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_double*,complex_double*,complex_double*,int*,int*,double*,int*,int*,int*,complex_double*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_double sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_double sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_double sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_double sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.zbicgrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.zbicgrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.zbicgrevcom to C/Fortran array" );
-  } else {
-    b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zbicgrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zbicgrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zbicgrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zbicgrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zbicgrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zbicgrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.zbicgrevcom to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zbicgrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zbicgrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zbicgrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zbicgrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zbicgrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zbicgrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=6 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.zbicgrevcom to C/Fortran array" );
-  } else {
-    work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=6 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zbicgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_double1(sclr1);
-  sclr2_capi = pyobj_from_complex_double1(sclr2);
+    sclr1_capi = pyobj_from_complex_double1(sclr1);
+    sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of zbicgrevcom *****************************/
 
@@ -1062,168 +1112,174 @@ static PyObject *f2py_rout__iterative_sbicgstabrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,float*,float*,float*,int*,int*,float*,int*,int*,int*,float*,float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  float sclr1 = 0;
-  float sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    float sclr1 = 0;
+    float sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.sbicgstabrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.sbicgstabrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.sbicgstabrevcom to C/Fortran array" );
-  } else {
-    b = (float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.sbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sbicgstabrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.sbicgstabrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.sbicgstabrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.sbicgstabrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.sbicgstabrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.sbicgstabrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.sbicgstabrevcom to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sbicgstabrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.sbicgstabrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.sbicgstabrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.sbicgstabrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.sbicgstabrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.sbicgstabrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.sbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=7 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.sbicgstabrevcom to C/Fortran array" );
-  } else {
-    work = (float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=7 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.sbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /*************************** end of sbicgstabrevcom ***************************/
 
@@ -1255,168 +1311,174 @@ static PyObject *f2py_rout__iterative_dbicgstabrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,double*,double*,int*,int*,double*,int*,int*,int*,double*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  double sclr1 = 0;
-  double sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    double sclr1 = 0;
+    double sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.dbicgstabrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.dbicgstabrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.dbicgstabrevcom to C/Fortran array" );
-  } else {
-    b = (double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dbicgstabrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dbicgstabrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dbicgstabrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dbicgstabrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dbicgstabrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dbicgstabrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.dbicgstabrevcom to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dbicgstabrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dbicgstabrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dbicgstabrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dbicgstabrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dbicgstabrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dbicgstabrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=7 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.dbicgstabrevcom to C/Fortran array" );
-  } else {
-    work = (double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=7 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /*************************** end of dbicgstabrevcom ***************************/
 
@@ -1448,172 +1510,178 @@ static PyObject *f2py_rout__iterative_cbicgstabrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_float*,complex_float*,complex_float*,int*,int*,float*,int*,int*,int*,complex_float*,complex_float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_float sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_float sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_float sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_float sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.cbicgstabrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.cbicgstabrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.cbicgstabrevcom to C/Fortran array" );
-  } else {
-    b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.cbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cbicgstabrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.cbicgstabrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.cbicgstabrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.cbicgstabrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.cbicgstabrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.cbicgstabrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.cbicgstabrevcom to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cbicgstabrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.cbicgstabrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.cbicgstabrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.cbicgstabrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.cbicgstabrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.cbicgstabrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.cbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=7 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.cbicgstabrevcom to C/Fortran array" );
-  } else {
-    work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=7 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.cbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_float1(sclr1);
-  sclr2_capi = pyobj_from_complex_float1(sclr2);
+    sclr1_capi = pyobj_from_complex_float1(sclr1);
+    sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /*************************** end of cbicgstabrevcom ***************************/
 
@@ -1645,172 +1713,178 @@ static PyObject *f2py_rout__iterative_zbicgstabrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_double*,complex_double*,complex_double*,int*,int*,double*,int*,int*,int*,complex_double*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_double sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_double sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_double sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_double sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.zbicgstabrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.zbicgstabrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.zbicgstabrevcom to C/Fortran array" );
-  } else {
-    b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zbicgstabrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zbicgstabrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zbicgstabrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zbicgstabrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zbicgstabrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zbicgstabrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.zbicgstabrevcom to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zbicgstabrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zbicgstabrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zbicgstabrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zbicgstabrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zbicgstabrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zbicgstabrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=7 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.zbicgstabrevcom to C/Fortran array" );
-  } else {
-    work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=7 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zbicgstabrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_double1(sclr1);
-  sclr2_capi = pyobj_from_complex_double1(sclr2);
+    sclr1_capi = pyobj_from_complex_double1(sclr1);
+    sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /*************************** end of zbicgstabrevcom ***************************/
 
@@ -1842,168 +1916,174 @@ static PyObject *f2py_rout__iterative_scgrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,float*,float*,float*,int*,int*,float*,int*,int*,int*,float*,float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  float sclr1 = 0;
-  float sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    float sclr1 = 0;
+    float sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.scgrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.scgrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.scgrevcom to C/Fortran array" );
-  } else {
-    b = (float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.scgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.scgrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.scgrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.scgrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.scgrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.scgrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.scgrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.scgrevcom to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.scgrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.scgrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.scgrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.scgrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.scgrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.scgrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.scgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=4 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.scgrevcom to C/Fortran array" );
-  } else {
-    work = (float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=4 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.scgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of scgrevcom ******************************/
 
@@ -2035,168 +2115,174 @@ static PyObject *f2py_rout__iterative_dcgrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,double*,double*,int*,int*,double*,int*,int*,int*,double*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  double sclr1 = 0;
-  double sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    double sclr1 = 0;
+    double sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.dcgrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.dcgrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.dcgrevcom to C/Fortran array" );
-  } else {
-    b = (double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dcgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dcgrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dcgrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dcgrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dcgrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dcgrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dcgrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.dcgrevcom to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dcgrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dcgrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dcgrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dcgrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dcgrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dcgrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dcgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=4 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.dcgrevcom to C/Fortran array" );
-  } else {
-    work = (double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=4 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dcgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of dcgrevcom ******************************/
 
@@ -2228,172 +2314,178 @@ static PyObject *f2py_rout__iterative_ccgrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_float*,complex_float*,complex_float*,int*,int*,float*,int*,int*,int*,complex_float*,complex_float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_float sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_float sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_float sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_float sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.ccgrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.ccgrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.ccgrevcom to C/Fortran array" );
-  } else {
-    b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.ccgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.ccgrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.ccgrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.ccgrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.ccgrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.ccgrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.ccgrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.ccgrevcom to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.ccgrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.ccgrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.ccgrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.ccgrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.ccgrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.ccgrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.ccgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=4 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.ccgrevcom to C/Fortran array" );
-  } else {
-    work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=4 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.ccgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_float1(sclr1);
-  sclr2_capi = pyobj_from_complex_float1(sclr2);
+    sclr1_capi = pyobj_from_complex_float1(sclr1);
+    sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of ccgrevcom ******************************/
 
@@ -2425,172 +2517,178 @@ static PyObject *f2py_rout__iterative_zcgrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_double*,complex_double*,complex_double*,int*,int*,double*,int*,int*,int*,complex_double*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_double sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_double sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_double sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_double sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.zcgrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.zcgrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.zcgrevcom to C/Fortran array" );
-  } else {
-    b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zcgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zcgrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zcgrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zcgrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zcgrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zcgrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zcgrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.zcgrevcom to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zcgrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zcgrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zcgrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zcgrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zcgrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zcgrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zcgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=4 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.zcgrevcom to C/Fortran array" );
-  } else {
-    work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=4 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zcgrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_double1(sclr1);
-  sclr2_capi = pyobj_from_complex_double1(sclr2);
+    sclr1_capi = pyobj_from_complex_double1(sclr1);
+    sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /****************************** end of zcgrevcom ******************************/
 
@@ -2622,168 +2720,174 @@ static PyObject *f2py_rout__iterative_scgsrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,float*,float*,float*,int*,int*,float*,int*,int*,int*,float*,float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  float sclr1 = 0;
-  float sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    float sclr1 = 0;
+    float sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.scgsrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.scgsrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.scgsrevcom to C/Fortran array" );
-  } else {
-    b = (float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.scgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.scgsrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.scgsrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.scgsrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.scgsrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.scgsrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.scgsrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.scgsrevcom to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.scgsrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.scgsrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.scgsrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.scgsrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.scgsrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.scgsrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.scgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=7 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.scgsrevcom to C/Fortran array" );
-  } else {
-    work = (float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=7 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.scgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of scgsrevcom *****************************/
 
@@ -2815,168 +2919,174 @@ static PyObject *f2py_rout__iterative_dcgsrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,double*,double*,int*,int*,double*,int*,int*,int*,double*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  double sclr1 = 0;
-  double sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    double sclr1 = 0;
+    double sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.dcgsrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.dcgsrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.dcgsrevcom to C/Fortran array" );
-  } else {
-    b = (double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dcgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dcgsrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dcgsrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dcgsrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dcgsrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dcgsrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dcgsrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.dcgsrevcom to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dcgsrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dcgsrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dcgsrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dcgsrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dcgsrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dcgsrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dcgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=7 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.dcgsrevcom to C/Fortran array" );
-  } else {
-    work = (double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=7 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dcgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of dcgsrevcom *****************************/
 
@@ -3008,172 +3118,178 @@ static PyObject *f2py_rout__iterative_ccgsrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_float*,complex_float*,complex_float*,int*,int*,float*,int*,int*,int*,complex_float*,complex_float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_float sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_float sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_float sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_float sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.ccgsrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.ccgsrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.ccgsrevcom to C/Fortran array" );
-  } else {
-    b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.ccgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.ccgsrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.ccgsrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.ccgsrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.ccgsrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.ccgsrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.ccgsrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.ccgsrevcom to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.ccgsrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.ccgsrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.ccgsrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.ccgsrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.ccgsrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.ccgsrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.ccgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=7 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.ccgsrevcom to C/Fortran array" );
-  } else {
-    work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=7 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.ccgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_float1(sclr1);
-  sclr2_capi = pyobj_from_complex_float1(sclr2);
+    sclr1_capi = pyobj_from_complex_float1(sclr1);
+    sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of ccgsrevcom *****************************/
 
@@ -3205,172 +3321,178 @@ static PyObject *f2py_rout__iterative_zcgsrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_double*,complex_double*,complex_double*,int*,int*,double*,int*,int*,int*,complex_double*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_double sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_double sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_double sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_double sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.zcgsrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.zcgsrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.zcgsrevcom to C/Fortran array" );
-  } else {
-    b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zcgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zcgsrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zcgsrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zcgsrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zcgsrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zcgsrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zcgsrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.zcgsrevcom to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zcgsrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zcgsrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zcgsrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zcgsrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zcgsrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zcgsrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zcgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=7 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.zcgsrevcom to C/Fortran array" );
-  } else {
-    work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=7 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zcgsrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_double1(sclr1);
-  sclr2_capi = pyobj_from_complex_double1(sclr2);
+    sclr1_capi = pyobj_from_complex_double1(sclr1);
+    sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of zcgsrevcom *****************************/
 
@@ -3402,168 +3524,174 @@ static PyObject *f2py_rout__iterative_sqmrrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,float*,float*,float*,int*,int*,float*,int*,int*,int*,float*,float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  float sclr1 = 0;
-  float sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    float sclr1 = 0;
+    float sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.sqmrrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.sqmrrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.sqmrrevcom to C/Fortran array" );
-  } else {
-    b = (float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.sqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sqmrrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.sqmrrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.sqmrrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.sqmrrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.sqmrrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.sqmrrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.sqmrrevcom to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sqmrrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.sqmrrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.sqmrrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.sqmrrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.sqmrrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.sqmrrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.sqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=11 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.sqmrrevcom to C/Fortran array" );
-  } else {
-    work = (float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=11 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.sqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of sqmrrevcom *****************************/
 
@@ -3595,168 +3723,174 @@ static PyObject *f2py_rout__iterative_dqmrrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,double*,double*,int*,int*,double*,int*,int*,int*,double*,double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  double sclr1 = 0;
-  double sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    double sclr1 = 0;
+    double sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.dqmrrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.dqmrrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.dqmrrevcom to C/Fortran array" );
-  } else {
-    b = (double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dqmrrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dqmrrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dqmrrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dqmrrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dqmrrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dqmrrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.dqmrrevcom to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dqmrrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dqmrrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dqmrrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dqmrrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dqmrrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dqmrrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=11 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.dqmrrevcom to C/Fortran array" );
-  } else {
-    work = (double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=11 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.dqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of dqmrrevcom *****************************/
 
@@ -3788,172 +3922,178 @@ static PyObject *f2py_rout__iterative_cqmrrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_float*,complex_float*,complex_float*,int*,int*,float*,int*,int*,int*,complex_float*,complex_float*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_float sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_float sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_float sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_float sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.cqmrrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.cqmrrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.cqmrrevcom to C/Fortran array" );
-  } else {
-    b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.cqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cqmrrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.cqmrrevcom() 5th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.cqmrrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.cqmrrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.cqmrrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.cqmrrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.cqmrrevcom to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cqmrrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.cqmrrevcom() 5th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.cqmrrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.cqmrrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.cqmrrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.cqmrrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.cqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=11 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.cqmrrevcom to C/Fortran array" );
-  } else {
-    work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=11 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.cqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_float1(sclr1);
-  sclr2_capi = pyobj_from_complex_float1(sclr2);
+    sclr1_capi = pyobj_from_complex_float1(sclr1);
+    sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of cqmrrevcom *****************************/
 
@@ -3985,172 +4125,178 @@ static PyObject *f2py_rout__iterative_zqmrrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_double*,complex_double*,complex_double*,int*,int*,double*,int*,int*,int*,complex_double*,complex_double*,int*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  complex_double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_double sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_double sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
+    int n = 0;
+    complex_double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    complex_double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_double sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_double sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","work","iter","resid","info","ndx1","ndx2","ijob",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOO:_iterative.zqmrrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOO|:_iterative.zqmrrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&work_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.zqmrrevcom to C/Fortran array" );
-  } else {
-    b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zqmrrevcom() 4th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zqmrrevcom() 5th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zqmrrevcom() 6th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zqmrrevcom() 7th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zqmrrevcom() 8th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zqmrrevcom() 9th argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.zqmrrevcom to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zqmrrevcom() 4th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zqmrrevcom() 5th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zqmrrevcom() 6th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zqmrrevcom() 7th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zqmrrevcom() 8th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zqmrrevcom() 9th argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable work */
-  work_Dims[0]=11 * ldw;
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 3rd argument `work' of _iterative.zqmrrevcom to C/Fortran array" );
-  } else {
-    work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable work */
+    work_Dims[0]=11 * ldw;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 3rd argument `work' of _iterative.zqmrrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
+                (*f2py_func)(&n,b,x,work,&ldw,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_double1(sclr1);
-  sclr2_capi = pyobj_from_complex_double1(sclr2);
+    sclr1_capi = pyobj_from_complex_double1(sclr1);
+    sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /***************************** end of zqmrrevcom *****************************/
 
@@ -4161,8 +4307,8 @@ x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sgmresrevcom(b,x,restrt,work,work
 "b : input rank-1 array('f') with bounds (n)\n"
 "x : input rank-1 array('f') with bounds (n)\n"
 "restrt : input int\n"
-"work : in/output rank-1 array('f') with bounds (ldw*(6+restrt))\n"
-"work2 : in/output rank-1 array('f') with bounds (ldw2*(2*restrt+2))\n"
+"work : in/output rank-1 array('f') with bounds (6 * ldw + ldw * restrt)\n"
+"work2 : in/output rank-1 array('f') with bounds (2 * ldw2 + 2 * ldw2 * restrt)\n"
 "iter : input int\n"
 "resid : input float\n"
 "info : input int\n"
@@ -4185,208 +4331,216 @@ static PyObject *f2py_rout__iterative_sgmresrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,float*,float*,int*,float*,int*,float*,int*,int*,float*,int*,int*,int*,float*,float*,int*,float*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  int restrt = 0;
-  PyObject *restrt_capi = Py_None;
-  float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  float *work2 = NULL;
-  npy_intp work2_Dims[1] = {-1};
-  const int work2_Rank = 1;
-  PyArrayObject *capi_work2_tmp = NULL;
-  int capi_work2_intent = 0;
-  PyObject *work2_capi = Py_None;
-  int ldw2 = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  float sclr1 = 0;
-  float sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  float tol = 0;
-  PyObject *tol_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","restrt","work","work2","iter","resid","info","ndx1","ndx2","ijob","tol",NULL};
+    int n = 0;
+    float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    int restrt = 0;
+    PyObject *restrt_capi = Py_None;
+    float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    float *work2 = NULL;
+    npy_intp work2_Dims[1] = {-1};
+    const int work2_Rank = 1;
+    PyArrayObject *capi_work2_tmp = NULL;
+    int capi_work2_intent = 0;
+    PyObject *work2_capi = Py_None;
+    int ldw2 = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    float sclr1 = 0;
+    float sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    float tol = 0;
+    PyObject *tol_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","restrt","work","work2","iter","resid","info","ndx1","ndx2","ijob","tol",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOOOOO:_iterative.sgmresrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&restrt_capi,&work_capi,&work2_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi,&tol_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOOOOO|:_iterative.sgmresrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&restrt_capi,&work_capi,&work2_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi,&tol_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.sgmresrevcom to C/Fortran array" );
-  } else {
-    b = (float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_FLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.sgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sgmresrevcom() 6th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.sgmresrevcom() 7th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.sgmresrevcom() 8th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.sgmresrevcom() 9th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.sgmresrevcom() 10th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.sgmresrevcom() 11st argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable tol */
-    f2py_success = float_from_pyobj(&tol,tol_capi,"_iterative.sgmresrevcom() 12nd argument (tol) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.sgmresrevcom to C/Fortran array" );
-  } else {
-    x = (float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.sgmresrevcom() 6th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.sgmresrevcom() 7th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.sgmresrevcom() 8th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.sgmresrevcom() 9th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.sgmresrevcom() 10th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.sgmresrevcom() 11st argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable tol */
+        f2py_success = float_from_pyobj(&tol,tol_capi,"_iterative.sgmresrevcom() 12nd argument (tol) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_FLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.sgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable restrt */
-    f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.sgmresrevcom() 3rd argument (restrt) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR((0<restrt) && (restrt<=n),"(0<restrt) && (restrt<=n)","3rd argument restrt","sgmresrevcom:restrt=%d",restrt) {
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable ldw2 */
-  ldw2 = MAX(2,restrt+1);
-  /* Processing variable work */
-  work_Dims[0]=ldw*(6+restrt);
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 4th argument `work' of _iterative.sgmresrevcom to C/Fortran array" );
-  } else {
-    work = (float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable restrt */
+        f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.sgmresrevcom() 3rd argument (restrt) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR((0<restrt) && (restrt<=n),"(0<restrt) && (restrt<=n)","3rd argument restrt","sgmresrevcom:restrt=%d",restrt) {
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable ldw2 */
+    ldw2 = MAX(2,restrt+1);
+    /* Processing variable work */
+    work_Dims[0]=6 * ldw + ldw * restrt;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_FLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 4th argument `work' of _iterative.sgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (float *)(PyArray_DATA(capi_work_tmp));
 
-  /* Processing variable work2 */
-  work2_Dims[0]=ldw2*(2*restrt+2);
-  capi_work2_intent |= F2PY_INTENT_INOUT;
-  capi_work2_tmp = array_from_pyobj(NPY_FLOAT,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
-  if (capi_work2_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 5th argument `work2' of _iterative.sgmresrevcom to C/Fortran array" );
-  } else {
-    work2 = (float *)(PyArray_DATA(capi_work2_tmp));
+    /* Processing variable work2 */
+    work2_Dims[0]=2 * ldw2 + 2 * ldw2 * restrt;
+    capi_work2_intent |= F2PY_INTENT_INOUT;
+    capi_work2_tmp = array_from_pyobj(NPY_FLOAT,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
+    if (capi_work2_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 5th argument `work2' of _iterative.sgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work2 = (float *)(PyArray_DATA(capi_work2_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,&restrt,work,&ldw,work2,&ldw2,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob,&tol);
+                (*f2py_func)(&n,b,x,&restrt,work,&ldw,work2,&ldw2,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob,&tol);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nifiiiffi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work2_tmp!=work2_capi) {
-    Py_XDECREF(capi_work2_tmp); }
-  }  /*if (capi_work2_tmp == NULL) ... else of work2*/
-  /* End of cleaning variable work2 */
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw2 */
-  /* End of cleaning variable ldw */
-  } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
-  } /*if (f2py_success) of restrt*/
-  /* End of cleaning variable restrt */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of tol*/
-  /* End of cleaning variable tol */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work2_tmp!=work2_capi) {
+        Py_XDECREF(capi_work2_tmp); }
+    }  /*if (capi_work2_tmp == NULL) ... else of work2*/
+    /* End of cleaning variable work2 */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw2 */
+    /* End of cleaning variable ldw */
+    } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
+    } /*if (f2py_success) of restrt*/
+    /* End of cleaning variable restrt */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of tol*/
+    /* End of cleaning variable tol */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of sgmresrevcom ****************************/
 
@@ -4397,8 +4551,8 @@ x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dgmresrevcom(b,x,restrt,work,work
 "b : input rank-1 array('d') with bounds (n)\n"
 "x : input rank-1 array('d') with bounds (n)\n"
 "restrt : input int\n"
-"work : in/output rank-1 array('d') with bounds (ldw*(6+restrt))\n"
-"work2 : in/output rank-1 array('d') with bounds (ldw2*(2*restrt+2))\n"
+"work : in/output rank-1 array('d') with bounds (6 * ldw + ldw * restrt)\n"
+"work2 : in/output rank-1 array('d') with bounds (2 * ldw2 + 2 * ldw2 * restrt)\n"
 "iter : input int\n"
 "resid : input float\n"
 "info : input int\n"
@@ -4421,208 +4575,216 @@ static PyObject *f2py_rout__iterative_dgmresrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,double*,double*,int*,double*,int*,double*,int*,int*,double*,int*,int*,int*,double*,double*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  int restrt = 0;
-  PyObject *restrt_capi = Py_None;
-  double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  double *work2 = NULL;
-  npy_intp work2_Dims[1] = {-1};
-  const int work2_Rank = 1;
-  PyArrayObject *capi_work2_tmp = NULL;
-  int capi_work2_intent = 0;
-  PyObject *work2_capi = Py_None;
-  int ldw2 = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  double sclr1 = 0;
-  double sclr2 = 0;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  double tol = 0;
-  PyObject *tol_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","restrt","work","work2","iter","resid","info","ndx1","ndx2","ijob","tol",NULL};
+    int n = 0;
+    double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    int restrt = 0;
+    PyObject *restrt_capi = Py_None;
+    double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    double *work2 = NULL;
+    npy_intp work2_Dims[1] = {-1};
+    const int work2_Rank = 1;
+    PyArrayObject *capi_work2_tmp = NULL;
+    int capi_work2_intent = 0;
+    PyObject *work2_capi = Py_None;
+    int ldw2 = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    double sclr1 = 0;
+    double sclr2 = 0;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    double tol = 0;
+    PyObject *tol_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","restrt","work","work2","iter","resid","info","ndx1","ndx2","ijob","tol",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOOOOO:_iterative.dgmresrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&restrt_capi,&work_capi,&work2_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi,&tol_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOOOOO|:_iterative.dgmresrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&restrt_capi,&work_capi,&work2_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi,&tol_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.dgmresrevcom to C/Fortran array" );
-  } else {
-    b = (double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_DOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.dgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dgmresrevcom() 6th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dgmresrevcom() 7th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dgmresrevcom() 8th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dgmresrevcom() 9th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dgmresrevcom() 10th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dgmresrevcom() 11st argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable tol */
-    f2py_success = double_from_pyobj(&tol,tol_capi,"_iterative.dgmresrevcom() 12nd argument (tol) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.dgmresrevcom to C/Fortran array" );
-  } else {
-    x = (double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.dgmresrevcom() 6th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.dgmresrevcom() 7th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.dgmresrevcom() 8th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.dgmresrevcom() 9th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.dgmresrevcom() 10th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.dgmresrevcom() 11st argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable tol */
+        f2py_success = double_from_pyobj(&tol,tol_capi,"_iterative.dgmresrevcom() 12nd argument (tol) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_DOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.dgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable restrt */
-    f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.dgmresrevcom() 3rd argument (restrt) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR((0<restrt) && (restrt<=n),"(0<restrt) && (restrt<=n)","3rd argument restrt","dgmresrevcom:restrt=%d",restrt) {
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable ldw2 */
-  ldw2 = MAX(2,restrt+1);
-  /* Processing variable work */
-  work_Dims[0]=ldw*(6+restrt);
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 4th argument `work' of _iterative.dgmresrevcom to C/Fortran array" );
-  } else {
-    work = (double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable restrt */
+        f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.dgmresrevcom() 3rd argument (restrt) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR((0<restrt) && (restrt<=n),"(0<restrt) && (restrt<=n)","3rd argument restrt","dgmresrevcom:restrt=%d",restrt) {
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable ldw2 */
+    ldw2 = MAX(2,restrt+1);
+    /* Processing variable work */
+    work_Dims[0]=6 * ldw + ldw * restrt;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_DOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 4th argument `work' of _iterative.dgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (double *)(PyArray_DATA(capi_work_tmp));
 
-  /* Processing variable work2 */
-  work2_Dims[0]=ldw2*(2*restrt+2);
-  capi_work2_intent |= F2PY_INTENT_INOUT;
-  capi_work2_tmp = array_from_pyobj(NPY_DOUBLE,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
-  if (capi_work2_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 5th argument `work2' of _iterative.dgmresrevcom to C/Fortran array" );
-  } else {
-    work2 = (double *)(PyArray_DATA(capi_work2_tmp));
+    /* Processing variable work2 */
+    work2_Dims[0]=2 * ldw2 + 2 * ldw2 * restrt;
+    capi_work2_intent |= F2PY_INTENT_INOUT;
+    capi_work2_tmp = array_from_pyobj(NPY_DOUBLE,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
+    if (capi_work2_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 5th argument `work2' of _iterative.dgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work2 = (double *)(PyArray_DATA(capi_work2_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,&restrt,work,&ldw,work2,&ldw2,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob,&tol);
+                (*f2py_func)(&n,b,x,&restrt,work,&ldw,work2,&ldw2,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob,&tol);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("Nidiiiddi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work2_tmp!=work2_capi) {
-    Py_XDECREF(capi_work2_tmp); }
-  }  /*if (capi_work2_tmp == NULL) ... else of work2*/
-  /* End of cleaning variable work2 */
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw2 */
-  /* End of cleaning variable ldw */
-  } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
-  } /*if (f2py_success) of restrt*/
-  /* End of cleaning variable restrt */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of tol*/
-  /* End of cleaning variable tol */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work2_tmp!=work2_capi) {
+        Py_XDECREF(capi_work2_tmp); }
+    }  /*if (capi_work2_tmp == NULL) ... else of work2*/
+    /* End of cleaning variable work2 */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw2 */
+    /* End of cleaning variable ldw */
+    } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
+    } /*if (f2py_success) of restrt*/
+    /* End of cleaning variable restrt */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of tol*/
+    /* End of cleaning variable tol */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of dgmresrevcom ****************************/
 
@@ -4633,8 +4795,8 @@ x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cgmresrevcom(b,x,restrt,work,work
 "b : input rank-1 array('F') with bounds (n)\n"
 "x : input rank-1 array('F') with bounds (n)\n"
 "restrt : input int\n"
-"work : in/output rank-1 array('F') with bounds (ldw*(6+restrt))\n"
-"work2 : in/output rank-1 array('F') with bounds (ldw2*(2*restrt+2))\n"
+"work : in/output rank-1 array('F') with bounds (6 * ldw + ldw * restrt)\n"
+"work2 : in/output rank-1 array('F') with bounds (2 * ldw2 + 2 * ldw2 * restrt)\n"
 "iter : input int\n"
 "resid : input float\n"
 "info : input int\n"
@@ -4657,212 +4819,220 @@ static PyObject *f2py_rout__iterative_cgmresrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_float*,complex_float*,int*,complex_float*,int*,complex_float*,int*,int*,float*,int*,int*,int*,complex_float*,complex_float*,int*,float*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_float *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_float *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  int restrt = 0;
-  PyObject *restrt_capi = Py_None;
-  complex_float *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  complex_float *work2 = NULL;
-  npy_intp work2_Dims[1] = {-1};
-  const int work2_Rank = 1;
-  PyArrayObject *capi_work2_tmp = NULL;
-  int capi_work2_intent = 0;
-  PyObject *work2_capi = Py_None;
-  int ldw2 = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  float resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_float sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_float sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  float tol = 0;
-  PyObject *tol_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","restrt","work","work2","iter","resid","info","ndx1","ndx2","ijob","tol",NULL};
+    int n = 0;
+    complex_float *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_float *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    int restrt = 0;
+    PyObject *restrt_capi = Py_None;
+    complex_float *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    complex_float *work2 = NULL;
+    npy_intp work2_Dims[1] = {-1};
+    const int work2_Rank = 1;
+    PyArrayObject *capi_work2_tmp = NULL;
+    int capi_work2_intent = 0;
+    PyObject *work2_capi = Py_None;
+    int ldw2 = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    float resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_float sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_float sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    float tol = 0;
+    PyObject *tol_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","restrt","work","work2","iter","resid","info","ndx1","ndx2","ijob","tol",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOOOOO:_iterative.cgmresrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&restrt_capi,&work_capi,&work2_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi,&tol_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOOOOO|:_iterative.cgmresrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&restrt_capi,&work_capi,&work2_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi,&tol_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.cgmresrevcom to C/Fortran array" );
-  } else {
-    b = (complex_float *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CFLOAT,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.cgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_float *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cgmresrevcom() 6th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.cgmresrevcom() 7th argument (resid) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.cgmresrevcom() 8th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.cgmresrevcom() 9th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.cgmresrevcom() 10th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.cgmresrevcom() 11st argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable tol */
-    f2py_success = float_from_pyobj(&tol,tol_capi,"_iterative.cgmresrevcom() 12nd argument (tol) can't be converted to float");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.cgmresrevcom to C/Fortran array" );
-  } else {
-    x = (complex_float *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.cgmresrevcom() 6th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = float_from_pyobj(&resid,resid_capi,"_iterative.cgmresrevcom() 7th argument (resid) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.cgmresrevcom() 8th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.cgmresrevcom() 9th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.cgmresrevcom() 10th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.cgmresrevcom() 11st argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable tol */
+        f2py_success = float_from_pyobj(&tol,tol_capi,"_iterative.cgmresrevcom() 12nd argument (tol) can't be converted to float");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CFLOAT,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.cgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_float *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable restrt */
-    f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.cgmresrevcom() 3rd argument (restrt) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR((0<restrt) && (restrt<=n),"(0<restrt) && (restrt<=n)","3rd argument restrt","cgmresrevcom:restrt=%d",restrt) {
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable ldw2 */
-  ldw2 = MAX(2,restrt+1);
-  /* Processing variable work */
-  work_Dims[0]=ldw*(6+restrt);
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 4th argument `work' of _iterative.cgmresrevcom to C/Fortran array" );
-  } else {
-    work = (complex_float *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable restrt */
+        f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.cgmresrevcom() 3rd argument (restrt) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR((0<restrt) && (restrt<=n),"(0<restrt) && (restrt<=n)","3rd argument restrt","cgmresrevcom:restrt=%d",restrt) {
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable ldw2 */
+    ldw2 = MAX(2,restrt+1);
+    /* Processing variable work */
+    work_Dims[0]=6 * ldw + ldw * restrt;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CFLOAT,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 4th argument `work' of _iterative.cgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_float *)(PyArray_DATA(capi_work_tmp));
 
-  /* Processing variable work2 */
-  work2_Dims[0]=ldw2*(2*restrt+2);
-  capi_work2_intent |= F2PY_INTENT_INOUT;
-  capi_work2_tmp = array_from_pyobj(NPY_CFLOAT,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
-  if (capi_work2_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 5th argument `work2' of _iterative.cgmresrevcom to C/Fortran array" );
-  } else {
-    work2 = (complex_float *)(PyArray_DATA(capi_work2_tmp));
+    /* Processing variable work2 */
+    work2_Dims[0]=2 * ldw2 + 2 * ldw2 * restrt;
+    capi_work2_intent |= F2PY_INTENT_INOUT;
+    capi_work2_tmp = array_from_pyobj(NPY_CFLOAT,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
+    if (capi_work2_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 5th argument `work2' of _iterative.cgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work2 = (complex_float *)(PyArray_DATA(capi_work2_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,&restrt,work,&ldw,work2,&ldw2,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob,&tol);
+                (*f2py_func)(&n,b,x,&restrt,work,&ldw,work2,&ldw2,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob,&tol);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_float1(sclr1);
-  sclr2_capi = pyobj_from_complex_float1(sclr2);
+    sclr1_capi = pyobj_from_complex_float1(sclr1);
+    sclr2_capi = pyobj_from_complex_float1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NifiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work2_tmp!=work2_capi) {
-    Py_XDECREF(capi_work2_tmp); }
-  }  /*if (capi_work2_tmp == NULL) ... else of work2*/
-  /* End of cleaning variable work2 */
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw2 */
-  /* End of cleaning variable ldw */
-  } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
-  } /*if (f2py_success) of restrt*/
-  /* End of cleaning variable restrt */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of tol*/
-  /* End of cleaning variable tol */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work2_tmp!=work2_capi) {
+        Py_XDECREF(capi_work2_tmp); }
+    }  /*if (capi_work2_tmp == NULL) ... else of work2*/
+    /* End of cleaning variable work2 */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw2 */
+    /* End of cleaning variable ldw */
+    } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
+    } /*if (f2py_success) of restrt*/
+    /* End of cleaning variable restrt */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of tol*/
+    /* End of cleaning variable tol */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of cgmresrevcom ****************************/
 
@@ -4873,8 +5043,8 @@ x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zgmresrevcom(b,x,restrt,work,work
 "b : input rank-1 array('D') with bounds (n)\n"
 "x : input rank-1 array('D') with bounds (n)\n"
 "restrt : input int\n"
-"work : in/output rank-1 array('D') with bounds (ldw*(6+restrt))\n"
-"work2 : in/output rank-1 array('D') with bounds (ldw2*(2*restrt+2))\n"
+"work : in/output rank-1 array('D') with bounds (6 * ldw + ldw * restrt)\n"
+"work2 : in/output rank-1 array('D') with bounds (2 * ldw2 + 2 * ldw2 * restrt)\n"
 "iter : input int\n"
 "resid : input float\n"
 "info : input int\n"
@@ -4897,212 +5067,220 @@ static PyObject *f2py_rout__iterative_zgmresrevcom(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
                            void (*f2py_func)(int*,complex_double*,complex_double*,int*,complex_double*,int*,complex_double*,int*,int*,double*,int*,int*,int*,complex_double*,complex_double*,int*,double*)) {
-  PyObject * volatile capi_buildvalue = NULL;
-  volatile int f2py_success = 1;
+    PyObject * volatile capi_buildvalue = NULL;
+    volatile int f2py_success = 1;
 /*decl*/
 
-  int n = 0;
-  complex_double *b = NULL;
-  npy_intp b_Dims[1] = {-1};
-  const int b_Rank = 1;
-  PyArrayObject *capi_b_tmp = NULL;
-  int capi_b_intent = 0;
-  PyObject *b_capi = Py_None;
-  complex_double *x = NULL;
-  npy_intp x_Dims[1] = {-1};
-  const int x_Rank = 1;
-  PyArrayObject *capi_x_tmp = NULL;
-  int capi_x_intent = 0;
-  PyObject *x_capi = Py_None;
-  int restrt = 0;
-  PyObject *restrt_capi = Py_None;
-  complex_double *work = NULL;
-  npy_intp work_Dims[1] = {-1};
-  const int work_Rank = 1;
-  PyArrayObject *capi_work_tmp = NULL;
-  int capi_work_intent = 0;
-  PyObject *work_capi = Py_None;
-  int ldw = 0;
-  complex_double *work2 = NULL;
-  npy_intp work2_Dims[1] = {-1};
-  const int work2_Rank = 1;
-  PyArrayObject *capi_work2_tmp = NULL;
-  int capi_work2_intent = 0;
-  PyObject *work2_capi = Py_None;
-  int ldw2 = 0;
-  int iter = 0;
-  PyObject *iter_capi = Py_None;
-  double resid = 0;
-  PyObject *resid_capi = Py_None;
-  int info = 0;
-  PyObject *info_capi = Py_None;
-  int ndx1 = 0;
-  PyObject *ndx1_capi = Py_None;
-  int ndx2 = 0;
-  PyObject *ndx2_capi = Py_None;
-  complex_double sclr1;
-  PyObject *sclr1_capi = Py_None;
-  complex_double sclr2;
-  PyObject *sclr2_capi = Py_None;
-  int ijob = 0;
-  PyObject *ijob_capi = Py_None;
-  double tol = 0;
-  PyObject *tol_capi = Py_None;
-  static char *capi_kwlist[] = {"b","x","restrt","work","work2","iter","resid","info","ndx1","ndx2","ijob","tol",NULL};
+    int n = 0;
+    complex_double *b = NULL;
+    npy_intp b_Dims[1] = {-1};
+    const int b_Rank = 1;
+    PyArrayObject *capi_b_tmp = NULL;
+    int capi_b_intent = 0;
+    PyObject *b_capi = Py_None;
+    complex_double *x = NULL;
+    npy_intp x_Dims[1] = {-1};
+    const int x_Rank = 1;
+    PyArrayObject *capi_x_tmp = NULL;
+    int capi_x_intent = 0;
+    PyObject *x_capi = Py_None;
+    int restrt = 0;
+    PyObject *restrt_capi = Py_None;
+    complex_double *work = NULL;
+    npy_intp work_Dims[1] = {-1};
+    const int work_Rank = 1;
+    PyArrayObject *capi_work_tmp = NULL;
+    int capi_work_intent = 0;
+    PyObject *work_capi = Py_None;
+    int ldw = 0;
+    complex_double *work2 = NULL;
+    npy_intp work2_Dims[1] = {-1};
+    const int work2_Rank = 1;
+    PyArrayObject *capi_work2_tmp = NULL;
+    int capi_work2_intent = 0;
+    PyObject *work2_capi = Py_None;
+    int ldw2 = 0;
+    int iter = 0;
+    PyObject *iter_capi = Py_None;
+    double resid = 0;
+    PyObject *resid_capi = Py_None;
+    int info = 0;
+    PyObject *info_capi = Py_None;
+    int ndx1 = 0;
+    PyObject *ndx1_capi = Py_None;
+    int ndx2 = 0;
+    PyObject *ndx2_capi = Py_None;
+    complex_double sclr1;
+    PyObject *sclr1_capi = Py_None;
+    complex_double sclr2;
+    PyObject *sclr2_capi = Py_None;
+    int ijob = 0;
+    PyObject *ijob_capi = Py_None;
+    double tol = 0;
+    PyObject *tol_capi = Py_None;
+    static char *capi_kwlist[] = {"b","x","restrt","work","work2","iter","resid","info","ndx1","ndx2","ijob","tol",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_clock();
 #endif
-  if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
-    "OOOOOOOOOOOO:_iterative.zgmresrevcom",\
-    capi_kwlist,&b_capi,&x_capi,&restrt_capi,&work_capi,&work2_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi,&tol_capi))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
+        "OOOOOOOOOOOO|:_iterative.zgmresrevcom",\
+        capi_kwlist,&b_capi,&x_capi,&restrt_capi,&work_capi,&work2_capi,&iter_capi,&resid_capi,&info_capi,&ndx1_capi,&ndx2_capi,&ijob_capi,&tol_capi))
+        return NULL;
 /*frompyobj*/
-  /* Processing variable b */
-  ;
-  capi_b_intent |= F2PY_INTENT_IN;
-  capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
-  if (capi_b_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 1st argument `b' of _iterative.zgmresrevcom to C/Fortran array" );
-  } else {
-    b = (complex_double *)(PyArray_DATA(capi_b_tmp));
+    /* Processing variable b */
+    ;
+    capi_b_intent |= F2PY_INTENT_IN;
+    capi_b_tmp = array_from_pyobj(NPY_CDOUBLE,b_Dims,b_Rank,capi_b_intent,b_capi);
+    if (capi_b_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 1st argument `b' of _iterative.zgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        b = (complex_double *)(PyArray_DATA(capi_b_tmp));
 
-  /* Processing variable iter */
-    f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zgmresrevcom() 6th argument (iter) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable resid */
-    f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zgmresrevcom() 7th argument (resid) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable info */
-    f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zgmresrevcom() 8th argument (info) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx1 */
-    f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zgmresrevcom() 9th argument (ndx1) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable ndx2 */
-    f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zgmresrevcom() 10th argument (ndx2) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable sclr1 */
-  /* Processing variable sclr2 */
-  /* Processing variable ijob */
-    f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zgmresrevcom() 11st argument (ijob) can't be converted to int");
-  if (f2py_success) {
-  /* Processing variable tol */
-    f2py_success = double_from_pyobj(&tol,tol_capi,"_iterative.zgmresrevcom() 12nd argument (tol) can't be converted to double");
-  if (f2py_success) {
-  /* Processing variable n */
-  n = len(b);
-  /* Processing variable x */
-  x_Dims[0]=n;
-  capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
-  capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
-  if (capi_x_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 2nd argument `x' of _iterative.zgmresrevcom to C/Fortran array" );
-  } else {
-    x = (complex_double *)(PyArray_DATA(capi_x_tmp));
+    /* Processing variable iter */
+        f2py_success = int_from_pyobj(&iter,iter_capi,"_iterative.zgmresrevcom() 6th argument (iter) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable resid */
+        f2py_success = double_from_pyobj(&resid,resid_capi,"_iterative.zgmresrevcom() 7th argument (resid) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable info */
+        f2py_success = int_from_pyobj(&info,info_capi,"_iterative.zgmresrevcom() 8th argument (info) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx1 */
+        f2py_success = int_from_pyobj(&ndx1,ndx1_capi,"_iterative.zgmresrevcom() 9th argument (ndx1) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable ndx2 */
+        f2py_success = int_from_pyobj(&ndx2,ndx2_capi,"_iterative.zgmresrevcom() 10th argument (ndx2) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable sclr1 */
+    /* Processing variable sclr2 */
+    /* Processing variable ijob */
+        f2py_success = int_from_pyobj(&ijob,ijob_capi,"_iterative.zgmresrevcom() 11st argument (ijob) can't be converted to int");
+    if (f2py_success) {
+    /* Processing variable tol */
+        f2py_success = double_from_pyobj(&tol,tol_capi,"_iterative.zgmresrevcom() 12nd argument (tol) can't be converted to double");
+    if (f2py_success) {
+    /* Processing variable n */
+    n = len(b);
+    /* Processing variable x */
+    x_Dims[0]=n;
+    capi_x_intent |= F2PY_INTENT_IN|F2PY_INTENT_OUT;
+    capi_x_tmp = array_from_pyobj(NPY_CDOUBLE,x_Dims,x_Rank,capi_x_intent,x_capi);
+    if (capi_x_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 2nd argument `x' of _iterative.zgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        x = (complex_double *)(PyArray_DATA(capi_x_tmp));
 
-  /* Processing variable restrt */
-    f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.zgmresrevcom() 3rd argument (restrt) can't be converted to int");
-  if (f2py_success) {
-  CHECKSCALAR((0<restrt) && (restrt<=n),"(0<restrt) && (restrt<=n)","3rd argument restrt","zgmresrevcom:restrt=%d",restrt) {
-  /* Processing variable ldw */
-  ldw = MAX(1,n);
-  /* Processing variable ldw2 */
-  ldw2 = MAX(2,restrt+1);
-  /* Processing variable work */
-  work_Dims[0]=ldw*(6+restrt);
-  capi_work_intent |= F2PY_INTENT_INOUT;
-  capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
-  if (capi_work_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 4th argument `work' of _iterative.zgmresrevcom to C/Fortran array" );
-  } else {
-    work = (complex_double *)(PyArray_DATA(capi_work_tmp));
+    /* Processing variable restrt */
+        f2py_success = int_from_pyobj(&restrt,restrt_capi,"_iterative.zgmresrevcom() 3rd argument (restrt) can't be converted to int");
+    if (f2py_success) {
+    CHECKSCALAR((0<restrt) && (restrt<=n),"(0<restrt) && (restrt<=n)","3rd argument restrt","zgmresrevcom:restrt=%d",restrt) {
+    /* Processing variable ldw */
+    ldw = MAX(1,n);
+    /* Processing variable ldw2 */
+    ldw2 = MAX(2,restrt+1);
+    /* Processing variable work */
+    work_Dims[0]=6 * ldw + ldw * restrt;
+    capi_work_intent |= F2PY_INTENT_INOUT;
+    capi_work_tmp = array_from_pyobj(NPY_CDOUBLE,work_Dims,work_Rank,capi_work_intent,work_capi);
+    if (capi_work_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 4th argument `work' of _iterative.zgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work = (complex_double *)(PyArray_DATA(capi_work_tmp));
 
-  /* Processing variable work2 */
-  work2_Dims[0]=ldw2*(2*restrt+2);
-  capi_work2_intent |= F2PY_INTENT_INOUT;
-  capi_work2_tmp = array_from_pyobj(NPY_CDOUBLE,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
-  if (capi_work2_tmp == NULL) {
-    if (!PyErr_Occurred())
-      PyErr_SetString(_iterative_error,"failed in converting 5th argument `work2' of _iterative.zgmresrevcom to C/Fortran array" );
-  } else {
-    work2 = (complex_double *)(PyArray_DATA(capi_work2_tmp));
+    /* Processing variable work2 */
+    work2_Dims[0]=2 * ldw2 + 2 * ldw2 * restrt;
+    capi_work2_intent |= F2PY_INTENT_INOUT;
+    capi_work2_tmp = array_from_pyobj(NPY_CDOUBLE,work2_Dims,work2_Rank,capi_work2_intent,work2_capi);
+    if (capi_work2_tmp == NULL) {
+        PyObject *exc, *val, *tb;
+        PyErr_Fetch(&exc, &val, &tb);
+        PyErr_SetString(exc ? exc : _iterative_error,"failed in converting 5th argument `work2' of _iterative.zgmresrevcom to C/Fortran array" );
+        npy_PyErr_ChainExceptionsCause(exc, val, tb);
+    } else {
+        work2 = (complex_double *)(PyArray_DATA(capi_work2_tmp));
 
 /*end of frompyobj*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
-        (*f2py_func)(&n,b,x,&restrt,work,&ldw,work2,&ldw2,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob,&tol);
+                (*f2py_func)(&n,b,x,&restrt,work,&ldw,work2,&ldw2,&iter,&resid,&info,&ndx1,&ndx2,&sclr1,&sclr2,&ijob,&tol);
 if (PyErr_Occurred())
   f2py_success = 0;
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_call_clock();
 #endif
 /*end of callfortranroutine*/
-    if (f2py_success) {
+        if (f2py_success) {
 /*pyobjfrom*/
-  sclr1_capi = pyobj_from_complex_double1(sclr1);
-  sclr2_capi = pyobj_from_complex_double1(sclr2);
+    sclr1_capi = pyobj_from_complex_double1(sclr1);
+    sclr2_capi = pyobj_from_complex_double1(sclr2);
 /*end of pyobjfrom*/
-    CFUNCSMESS("Building return value.\n");
-    capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
+        CFUNCSMESS("Building return value.\n");
+        capi_buildvalue = Py_BuildValue("NidiiiNNi",capi_x_tmp,iter,resid,info,ndx1,ndx2,sclr1_capi,sclr2_capi,ijob);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
-    } /*if (f2py_success) after callfortranroutine*/
+        } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-  if((PyObject *)capi_work2_tmp!=work2_capi) {
-    Py_XDECREF(capi_work2_tmp); }
-  }  /*if (capi_work2_tmp == NULL) ... else of work2*/
-  /* End of cleaning variable work2 */
-  if((PyObject *)capi_work_tmp!=work_capi) {
-    Py_XDECREF(capi_work_tmp); }
-  }  /*if (capi_work_tmp == NULL) ... else of work*/
-  /* End of cleaning variable work */
-  /* End of cleaning variable ldw2 */
-  /* End of cleaning variable ldw */
-  } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
-  } /*if (f2py_success) of restrt*/
-  /* End of cleaning variable restrt */
-  }  /*if (capi_x_tmp == NULL) ... else of x*/
-  /* End of cleaning variable x */
-  /* End of cleaning variable n */
-  } /*if (f2py_success) of tol*/
-  /* End of cleaning variable tol */
-  } /*if (f2py_success) of ijob*/
-  /* End of cleaning variable ijob */
-  /* End of cleaning variable sclr2 */
-  /* End of cleaning variable sclr1 */
-  } /*if (f2py_success) of ndx2*/
-  /* End of cleaning variable ndx2 */
-  } /*if (f2py_success) of ndx1*/
-  /* End of cleaning variable ndx1 */
-  } /*if (f2py_success) of info*/
-  /* End of cleaning variable info */
-  } /*if (f2py_success) of resid*/
-  /* End of cleaning variable resid */
-  } /*if (f2py_success) of iter*/
-  /* End of cleaning variable iter */
-  if((PyObject *)capi_b_tmp!=b_capi) {
-    Py_XDECREF(capi_b_tmp); }
-  }  /*if (capi_b_tmp == NULL) ... else of b*/
-  /* End of cleaning variable b */
+    if((PyObject *)capi_work2_tmp!=work2_capi) {
+        Py_XDECREF(capi_work2_tmp); }
+    }  /*if (capi_work2_tmp == NULL) ... else of work2*/
+    /* End of cleaning variable work2 */
+    if((PyObject *)capi_work_tmp!=work_capi) {
+        Py_XDECREF(capi_work_tmp); }
+    }  /*if (capi_work_tmp == NULL) ... else of work*/
+    /* End of cleaning variable work */
+    /* End of cleaning variable ldw2 */
+    /* End of cleaning variable ldw */
+    } /*CHECKSCALAR((0<restrt) && (restrt<=n))*/
+    } /*if (f2py_success) of restrt*/
+    /* End of cleaning variable restrt */
+    }  /*if (capi_x_tmp == NULL) ... else of x*/
+    /* End of cleaning variable x */
+    /* End of cleaning variable n */
+    } /*if (f2py_success) of tol*/
+    /* End of cleaning variable tol */
+    } /*if (f2py_success) of ijob*/
+    /* End of cleaning variable ijob */
+    /* End of cleaning variable sclr2 */
+    /* End of cleaning variable sclr1 */
+    } /*if (f2py_success) of ndx2*/
+    /* End of cleaning variable ndx2 */
+    } /*if (f2py_success) of ndx1*/
+    /* End of cleaning variable ndx1 */
+    } /*if (f2py_success) of info*/
+    /* End of cleaning variable info */
+    } /*if (f2py_success) of resid*/
+    /* End of cleaning variable resid */
+    } /*if (f2py_success) of iter*/
+    /* End of cleaning variable iter */
+    if((PyObject *)capi_b_tmp!=b_capi) {
+        Py_XDECREF(capi_b_tmp); }
+    }  /*if (capi_b_tmp == NULL) ... else of b*/
+    /* End of cleaning variable b */
 /*end of cleanupfrompyobj*/
-  if (capi_buildvalue == NULL) {
+    if (capi_buildvalue == NULL) {
 /*routdebugfailure*/
-  } else {
+    } else {
 /*routdebugleave*/
-  }
-  CFUNCSMESS("Freeing memory.\n");
+    }
+    CFUNCSMESS("Freeing memory.\n");
 /*freemem*/
 #ifdef F2PY_REPORT_ATEXIT
 f2py_stop_clock();
 #endif
-  return capi_buildvalue;
+    return capi_buildvalue;
 }
 /**************************** end of zgmresrevcom ****************************/
 /*eof body*/
@@ -5119,111 +5297,108 @@ f2py_stop_clock();
 /**************************** See f2py2e/rules.py ****************************/
 
 static FortranDataDef f2py_routine_defs[] = {
-  {"sbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(sbicgrevcom,SBICGREVCOM),(f2py_init_func)f2py_rout__iterative_sbicgrevcom,doc_f2py_rout__iterative_sbicgrevcom},
-  {"dbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(dbicgrevcom,DBICGREVCOM),(f2py_init_func)f2py_rout__iterative_dbicgrevcom,doc_f2py_rout__iterative_dbicgrevcom},
-  {"cbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(cbicgrevcom,CBICGREVCOM),(f2py_init_func)f2py_rout__iterative_cbicgrevcom,doc_f2py_rout__iterative_cbicgrevcom},
-  {"zbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(zbicgrevcom,ZBICGREVCOM),(f2py_init_func)f2py_rout__iterative_zbicgrevcom,doc_f2py_rout__iterative_zbicgrevcom},
-  {"sbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(sbicgstabrevcom,SBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_sbicgstabrevcom,doc_f2py_rout__iterative_sbicgstabrevcom},
-  {"dbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(dbicgstabrevcom,DBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_dbicgstabrevcom,doc_f2py_rout__iterative_dbicgstabrevcom},
-  {"cbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(cbicgstabrevcom,CBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_cbicgstabrevcom,doc_f2py_rout__iterative_cbicgstabrevcom},
-  {"zbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(zbicgstabrevcom,ZBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_zbicgstabrevcom,doc_f2py_rout__iterative_zbicgstabrevcom},
-  {"scgrevcom",-1,{{-1}},0,(char *)F_FUNC(scgrevcom,SCGREVCOM),(f2py_init_func)f2py_rout__iterative_scgrevcom,doc_f2py_rout__iterative_scgrevcom},
-  {"dcgrevcom",-1,{{-1}},0,(char *)F_FUNC(dcgrevcom,DCGREVCOM),(f2py_init_func)f2py_rout__iterative_dcgrevcom,doc_f2py_rout__iterative_dcgrevcom},
-  {"ccgrevcom",-1,{{-1}},0,(char *)F_FUNC(ccgrevcom,CCGREVCOM),(f2py_init_func)f2py_rout__iterative_ccgrevcom,doc_f2py_rout__iterative_ccgrevcom},
-  {"zcgrevcom",-1,{{-1}},0,(char *)F_FUNC(zcgrevcom,ZCGREVCOM),(f2py_init_func)f2py_rout__iterative_zcgrevcom,doc_f2py_rout__iterative_zcgrevcom},
-  {"scgsrevcom",-1,{{-1}},0,(char *)F_FUNC(scgsrevcom,SCGSREVCOM),(f2py_init_func)f2py_rout__iterative_scgsrevcom,doc_f2py_rout__iterative_scgsrevcom},
-  {"dcgsrevcom",-1,{{-1}},0,(char *)F_FUNC(dcgsrevcom,DCGSREVCOM),(f2py_init_func)f2py_rout__iterative_dcgsrevcom,doc_f2py_rout__iterative_dcgsrevcom},
-  {"ccgsrevcom",-1,{{-1}},0,(char *)F_FUNC(ccgsrevcom,CCGSREVCOM),(f2py_init_func)f2py_rout__iterative_ccgsrevcom,doc_f2py_rout__iterative_ccgsrevcom},
-  {"zcgsrevcom",-1,{{-1}},0,(char *)F_FUNC(zcgsrevcom,ZCGSREVCOM),(f2py_init_func)f2py_rout__iterative_zcgsrevcom,doc_f2py_rout__iterative_zcgsrevcom},
-  {"sqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(sqmrrevcom,SQMRREVCOM),(f2py_init_func)f2py_rout__iterative_sqmrrevcom,doc_f2py_rout__iterative_sqmrrevcom},
-  {"dqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(dqmrrevcom,DQMRREVCOM),(f2py_init_func)f2py_rout__iterative_dqmrrevcom,doc_f2py_rout__iterative_dqmrrevcom},
-  {"cqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(cqmrrevcom,CQMRREVCOM),(f2py_init_func)f2py_rout__iterative_cqmrrevcom,doc_f2py_rout__iterative_cqmrrevcom},
-  {"zqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(zqmrrevcom,ZQMRREVCOM),(f2py_init_func)f2py_rout__iterative_zqmrrevcom,doc_f2py_rout__iterative_zqmrrevcom},
-  {"sgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(sgmresrevcom,SGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_sgmresrevcom,doc_f2py_rout__iterative_sgmresrevcom},
-  {"dgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(dgmresrevcom,DGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_dgmresrevcom,doc_f2py_rout__iterative_dgmresrevcom},
-  {"cgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(cgmresrevcom,CGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_cgmresrevcom,doc_f2py_rout__iterative_cgmresrevcom},
-  {"zgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(zgmresrevcom,ZGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_zgmresrevcom,doc_f2py_rout__iterative_zgmresrevcom},
+    {"sbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(sbicgrevcom,SBICGREVCOM),(f2py_init_func)f2py_rout__iterative_sbicgrevcom,doc_f2py_rout__iterative_sbicgrevcom},
+    {"dbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(dbicgrevcom,DBICGREVCOM),(f2py_init_func)f2py_rout__iterative_dbicgrevcom,doc_f2py_rout__iterative_dbicgrevcom},
+    {"cbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(cbicgrevcom,CBICGREVCOM),(f2py_init_func)f2py_rout__iterative_cbicgrevcom,doc_f2py_rout__iterative_cbicgrevcom},
+    {"zbicgrevcom",-1,{{-1}},0,(char *)F_FUNC(zbicgrevcom,ZBICGREVCOM),(f2py_init_func)f2py_rout__iterative_zbicgrevcom,doc_f2py_rout__iterative_zbicgrevcom},
+    {"sbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(sbicgstabrevcom,SBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_sbicgstabrevcom,doc_f2py_rout__iterative_sbicgstabrevcom},
+    {"dbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(dbicgstabrevcom,DBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_dbicgstabrevcom,doc_f2py_rout__iterative_dbicgstabrevcom},
+    {"cbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(cbicgstabrevcom,CBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_cbicgstabrevcom,doc_f2py_rout__iterative_cbicgstabrevcom},
+    {"zbicgstabrevcom",-1,{{-1}},0,(char *)F_FUNC(zbicgstabrevcom,ZBICGSTABREVCOM),(f2py_init_func)f2py_rout__iterative_zbicgstabrevcom,doc_f2py_rout__iterative_zbicgstabrevcom},
+    {"scgrevcom",-1,{{-1}},0,(char *)F_FUNC(scgrevcom,SCGREVCOM),(f2py_init_func)f2py_rout__iterative_scgrevcom,doc_f2py_rout__iterative_scgrevcom},
+    {"dcgrevcom",-1,{{-1}},0,(char *)F_FUNC(dcgrevcom,DCGREVCOM),(f2py_init_func)f2py_rout__iterative_dcgrevcom,doc_f2py_rout__iterative_dcgrevcom},
+    {"ccgrevcom",-1,{{-1}},0,(char *)F_FUNC(ccgrevcom,CCGREVCOM),(f2py_init_func)f2py_rout__iterative_ccgrevcom,doc_f2py_rout__iterative_ccgrevcom},
+    {"zcgrevcom",-1,{{-1}},0,(char *)F_FUNC(zcgrevcom,ZCGREVCOM),(f2py_init_func)f2py_rout__iterative_zcgrevcom,doc_f2py_rout__iterative_zcgrevcom},
+    {"scgsrevcom",-1,{{-1}},0,(char *)F_FUNC(scgsrevcom,SCGSREVCOM),(f2py_init_func)f2py_rout__iterative_scgsrevcom,doc_f2py_rout__iterative_scgsrevcom},
+    {"dcgsrevcom",-1,{{-1}},0,(char *)F_FUNC(dcgsrevcom,DCGSREVCOM),(f2py_init_func)f2py_rout__iterative_dcgsrevcom,doc_f2py_rout__iterative_dcgsrevcom},
+    {"ccgsrevcom",-1,{{-1}},0,(char *)F_FUNC(ccgsrevcom,CCGSREVCOM),(f2py_init_func)f2py_rout__iterative_ccgsrevcom,doc_f2py_rout__iterative_ccgsrevcom},
+    {"zcgsrevcom",-1,{{-1}},0,(char *)F_FUNC(zcgsrevcom,ZCGSREVCOM),(f2py_init_func)f2py_rout__iterative_zcgsrevcom,doc_f2py_rout__iterative_zcgsrevcom},
+    {"sqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(sqmrrevcom,SQMRREVCOM),(f2py_init_func)f2py_rout__iterative_sqmrrevcom,doc_f2py_rout__iterative_sqmrrevcom},
+    {"dqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(dqmrrevcom,DQMRREVCOM),(f2py_init_func)f2py_rout__iterative_dqmrrevcom,doc_f2py_rout__iterative_dqmrrevcom},
+    {"cqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(cqmrrevcom,CQMRREVCOM),(f2py_init_func)f2py_rout__iterative_cqmrrevcom,doc_f2py_rout__iterative_cqmrrevcom},
+    {"zqmrrevcom",-1,{{-1}},0,(char *)F_FUNC(zqmrrevcom,ZQMRREVCOM),(f2py_init_func)f2py_rout__iterative_zqmrrevcom,doc_f2py_rout__iterative_zqmrrevcom},
+    {"sgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(sgmresrevcom,SGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_sgmresrevcom,doc_f2py_rout__iterative_sgmresrevcom},
+    {"dgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(dgmresrevcom,DGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_dgmresrevcom,doc_f2py_rout__iterative_dgmresrevcom},
+    {"cgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(cgmresrevcom,CGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_cgmresrevcom,doc_f2py_rout__iterative_cgmresrevcom},
+    {"zgmresrevcom",-1,{{-1}},0,(char *)F_FUNC(zgmresrevcom,ZGMRESREVCOM),(f2py_init_func)f2py_rout__iterative_zgmresrevcom,doc_f2py_rout__iterative_zgmresrevcom},
 
 /*eof routine_defs*/
-  {NULL}
+    {NULL}
 };
 
 static PyMethodDef f2py_module_methods[] = {
 
-  {NULL,NULL}
+    {NULL,NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT,
-  "_iterative",
-  NULL,
-  -1,
-  f2py_module_methods,
-  NULL,
-  NULL,
-  NULL,
-  NULL
+    PyModuleDef_HEAD_INIT,
+    "_iterative",
+    NULL,
+    -1,
+    f2py_module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
-#endif
 
-#if PY_VERSION_HEX >= 0x03000000
-#define RETVAL m
 PyMODINIT_FUNC PyInit__iterative(void) {
-#else
-#define RETVAL
-PyMODINIT_FUNC init_iterative(void) {
-#endif
-  int i;
-  PyObject *m,*d, *s;
-#if PY_VERSION_HEX >= 0x03000000
-  m = _iterative_module = PyModule_Create(&moduledef);
-#else
-  m = _iterative_module = Py_InitModule("_iterative", f2py_module_methods);
-#endif
-  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
-  import_array();
-  if (PyErr_Occurred())
-    {PyErr_SetString(PyExc_ImportError, "can't initialize module _iterative (failed to import numpy)"); return RETVAL;}
-  d = PyModule_GetDict(m);
-  s = PyString_FromString("$Revision: $");
-  PyDict_SetItemString(d, "__version__", s);
-#if PY_VERSION_HEX >= 0x03000000
-  s = PyUnicode_FromString(
-#else
-  s = PyString_FromString(
-#endif
-    "This module '_iterative' is auto-generated with f2py (version:2).\nFunctions:\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sbicgstabrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dbicgstabrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cbicgstabrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zbicgstabrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = scgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dcgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = ccgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zcgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = scgsrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dcgsrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = ccgsrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zcgsrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sqmrrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dqmrrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cqmrrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zqmrrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sgmresrevcom(b,x,restrt,work,work2,iter,resid,info,ndx1,ndx2,ijob,tol)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dgmresrevcom(b,x,restrt,work,work2,iter,resid,info,ndx1,ndx2,ijob,tol)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cgmresrevcom(b,x,restrt,work,work2,iter,resid,info,ndx1,ndx2,ijob,tol)\n"
-"  x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zgmresrevcom(b,x,restrt,work,work2,iter,resid,info,ndx1,ndx2,ijob,tol)\n"
+    int i;
+    PyObject *m,*d, *s, *tmp;
+    m = _iterative_module = PyModule_Create(&moduledef);
+    Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
+    import_array();
+    if (PyErr_Occurred())
+        {PyErr_SetString(PyExc_ImportError, "can't initialize module _iterative (failed to import numpy)"); return m;}
+    d = PyModule_GetDict(m);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__version__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString(
+        "This module '_iterative' is auto-generated with f2py (version:1.23.5).\nFunctions:\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zbicgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sbicgstabrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dbicgstabrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cbicgstabrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zbicgstabrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = scgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dcgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = ccgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zcgrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = scgsrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dcgsrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = ccgsrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zcgsrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sqmrrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dqmrrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cqmrrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zqmrrevcom(b,x,work,iter,resid,info,ndx1,ndx2,ijob)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = sgmresrevcom(b,x,restrt,work,work2,iter,resid,info,ndx1,ndx2,ijob,tol)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = dgmresrevcom(b,x,restrt,work,work2,iter,resid,info,ndx1,ndx2,ijob,tol)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = cgmresrevcom(b,x,restrt,work,work2,iter,resid,info,ndx1,ndx2,ijob,tol)\n"
+"    x,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob = zgmresrevcom(b,x,restrt,work,work2,iter,resid,info,ndx1,ndx2,ijob,tol)\n"
 ".");
-  PyDict_SetItemString(d, "__doc__", s);
-  _iterative_error = PyErr_NewException ("_iterative.error", NULL, NULL);
-  Py_DECREF(s);
-  for(i=0;f2py_routine_defs[i].name!=NULL;i++)
-    PyDict_SetItemString(d, f2py_routine_defs[i].name,PyFortranObject_NewAsAttr(&f2py_routine_defs[i]));
+    PyDict_SetItemString(d, "__doc__", s);
+    Py_DECREF(s);
+    s = PyUnicode_FromString("1.23.5");
+    PyDict_SetItemString(d, "__f2py_numpy_version__", s);
+    Py_DECREF(s);
+    _iterative_error = PyErr_NewException ("_iterative.error", NULL, NULL);
+    /*
+     * Store the error object inside the dict, so that it could get deallocated.
+     * (in practice, this is a module, so it likely will not and cannot.)
+     */
+    PyDict_SetItemString(d, "__iterative_error", _iterative_error);
+    Py_DECREF(_iterative_error);
+    for(i=0;f2py_routine_defs[i].name!=NULL;i++) {
+        tmp = PyFortranObject_NewAsAttr(&f2py_routine_defs[i]);
+        PyDict_SetItemString(d, f2py_routine_defs[i].name, tmp);
+        Py_DECREF(tmp);
+    }
 
 
 
@@ -5255,11 +5430,10 @@ PyMODINIT_FUNC init_iterative(void) {
 
 
 #ifdef F2PY_REPORT_ATEXIT
-  if (! PyErr_Occurred())
-    on_exit(f2py_report_on_exit,(void*)"_iterative");
+    if (! PyErr_Occurred())
+        on_exit(f2py_report_on_exit,(void*)"_iterative");
 #endif
-
-  return RETVAL;
+    return m;
 }
 #ifdef __cplusplus
 }
