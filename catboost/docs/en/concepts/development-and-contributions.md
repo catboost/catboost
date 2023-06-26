@@ -8,9 +8,58 @@
 
 {% include [ya-make-to-cmake-switch](../_includes/work_src/reusage-installation/ya-make-to-cmake-switch.md) %}
 
-The following documentation describes running tests using Ya Make which is applicable only for versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb).
+{% endnote %}
 
-Documentation for tests for CMake-based build is in progress.
+### CMake-based build tests
+
+- C/C++ libraries.
+
+  C/C++ libraries contain tests for them in `ut` subdirectories in the source tree. For library in `x/y/z` the corresponding test code will be in `x/y/z/ut` and the target name will be `x-y-z-ut`.
+  So, in order to run the test [run CMake](build-from-source.md#build-cmake) and then build the corresponding `x-y-z-ut` target. Building this target will produce an executable `${CMAKE_BUILD_DIR}/x/y/z/x-y-z-ut`. Run this executable to execute all the tests.
+
+- {{ r-package }}
+
+    1. Install additional R packages that are required to run tests:
+        - `caret`
+        - `dplyr`
+        - `jsonlite`
+        - `testthat`
+
+    1. Open the `R-package` directory from the local copy of the {{ product }} repository.
+
+    1. Run the following command:
+
+        ```
+        R CMD check .
+        ```
+
+
+    To run tests using the devtools package:
+
+    1. Install [devtools](https://github.com/hadley/devtools).
+    1. Run the following command from the R session:
+
+        ```
+        devtools::test()
+        ```
+
+- CLI
+
+  TODO
+
+- Python package
+
+  TODO
+
+- CatBoost for Apache Spark
+
+    See [building CatBoost for Apache Spark from source](../installation/spark-installation-build-from-source-maven.md). Use standard `mvn test` command.
+
+### YaMake-based build tests
+
+{% note warning %}
+
+The following documentation describes running tests using Ya Make which is applicable only for versions prior to [this commit](https://github.com/catboost/catboost/commit/c5c642ca0b8e093336d0229ac4b14c78db3915bb).
 
 {% endnote %}
 
