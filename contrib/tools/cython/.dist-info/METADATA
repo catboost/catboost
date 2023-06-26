@@ -11,7 +11,6 @@ Project-URL: Donate, https://cython.readthedocs.io/en/latest/src/donating.html
 Project-URL: Source Code, https://github.com/cython/cython
 Project-URL: Bug Tracker, https://github.com/cython/cython/issues
 Project-URL: User Group, https://groups.google.com/g/cython-users
-Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: Apache Software License
@@ -62,5 +61,3 @@ to install an uncompiled (slower) version of Cython with::
     pip install Cython --install-option="--no-cython-compile"
 
 .. _Pyrex: http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/
-
-

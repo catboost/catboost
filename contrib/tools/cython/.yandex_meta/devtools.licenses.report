@@ -156,7 +156,7 @@ BELONGS ya.make
         Match type      : TAG
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        .dist-info/METADATA [17:17]
+        .dist-info/METADATA [16:16]
 
 KEEP     LicenseRef-scancode-unknown-license-reference 8ec7c99b03de2d2c6bd840f80b68cb59
 BELONGS ya.make
