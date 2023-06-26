@@ -234,92 +234,12 @@ def lil_fancy_set(cnp.npy_intp M, cnp.npy_intp N,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int32_int32(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int32[:,:] i_idx,
-                                         cnp.npy_int32[:,:] j_idx,
-                                         cnp.npy_int32[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int32_int16(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int32[:,:] i_idx,
-                                         cnp.npy_int32[:,:] j_idx,
-                                         cnp.npy_int16[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
 def _lil_fancy_set_int32_bool_(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
                                          cnp.npy_int32[:,:] i_idx,
                                          cnp.npy_int32[:,:] j_idx,
                                          cnp.npy_bool[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int32_longdouble(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int32[:,:] i_idx,
-                                         cnp.npy_int32[:,:] j_idx,
-                                         long double[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int32_uint8(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int32[:,:] i_idx,
-                                         cnp.npy_int32[:,:] j_idx,
-                                         cnp.npy_uint8[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int32_complex64(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int32[:,:] i_idx,
-                                         cnp.npy_int32[:,:] j_idx,
-                                         float complex[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -346,12 +266,12 @@ def _lil_fancy_set_int32_int8(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int32_uint64(cnp.npy_intp M, cnp.npy_intp N,
+def _lil_fancy_set_int32_uint8(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
                                          cnp.npy_int32[:,:] i_idx,
                                          cnp.npy_int32[:,:] j_idx,
-                                         cnp.npy_uint64[:,:] values):
+                                         cnp.npy_uint8[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -362,28 +282,12 @@ def _lil_fancy_set_int32_uint64(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int32_float64(cnp.npy_intp M, cnp.npy_intp N,
+def _lil_fancy_set_int32_int16(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
                                          cnp.npy_int32[:,:] i_idx,
                                          cnp.npy_int32[:,:] j_idx,
-                                         cnp.npy_float64[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int32_complex128(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int32[:,:] i_idx,
-                                         cnp.npy_int32[:,:] j_idx,
-                                         double complex[:,:] values):
+                                         cnp.npy_int16[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -410,28 +314,12 @@ def _lil_fancy_set_int32_uint16(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int32_int64(cnp.npy_intp M, cnp.npy_intp N,
+def _lil_fancy_set_int32_int32(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
                                          cnp.npy_int32[:,:] i_idx,
                                          cnp.npy_int32[:,:] j_idx,
-                                         cnp.npy_int64[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int32_clongdouble(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int32[:,:] i_idx,
-                                         cnp.npy_int32[:,:] j_idx,
-                                         long double complex[:,:] values):
+                                         cnp.npy_int32[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -458,6 +346,38 @@ def _lil_fancy_set_int32_uint32(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
+def _lil_fancy_set_int32_int64(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int32[:,:] i_idx,
+                                         cnp.npy_int32[:,:] j_idx,
+                                         cnp.npy_int64[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int32_uint64(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int32[:,:] i_idx,
+                                         cnp.npy_int32[:,:] j_idx,
+                                         cnp.npy_uint64[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _lil_fancy_set_int32_float32(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
@@ -474,12 +394,12 @@ def _lil_fancy_set_int32_float32(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int64_int32(cnp.npy_intp M, cnp.npy_intp N,
+def _lil_fancy_set_int32_float64(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
-                                         cnp.npy_int64[:,:] i_idx,
-                                         cnp.npy_int64[:,:] j_idx,
-                                         cnp.npy_int32[:,:] values):
+                                         cnp.npy_int32[:,:] i_idx,
+                                         cnp.npy_int32[:,:] j_idx,
+                                         cnp.npy_float64[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -490,12 +410,60 @@ def _lil_fancy_set_int64_int32(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int64_int16(cnp.npy_intp M, cnp.npy_intp N,
+def _lil_fancy_set_int32_longdouble(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
-                                         cnp.npy_int64[:,:] i_idx,
-                                         cnp.npy_int64[:,:] j_idx,
-                                         cnp.npy_int16[:,:] values):
+                                         cnp.npy_int32[:,:] i_idx,
+                                         cnp.npy_int32[:,:] j_idx,
+                                         long double[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int32_complex64(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int32[:,:] i_idx,
+                                         cnp.npy_int32[:,:] j_idx,
+                                         float complex[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int32_complex128(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int32[:,:] i_idx,
+                                         cnp.npy_int32[:,:] j_idx,
+                                         double complex[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int32_clongdouble(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int32[:,:] i_idx,
+                                         cnp.npy_int32[:,:] j_idx,
+                                         long double complex[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -522,12 +490,12 @@ def _lil_fancy_set_int64_bool_(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int64_longdouble(cnp.npy_intp M, cnp.npy_intp N,
+def _lil_fancy_set_int64_int8(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
                                          cnp.npy_int64[:,:] i_idx,
                                          cnp.npy_int64[:,:] j_idx,
-                                         long double[:,:] values):
+                                         cnp.npy_int8[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -554,76 +522,12 @@ def _lil_fancy_set_int64_uint8(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int64_complex64(cnp.npy_intp M, cnp.npy_intp N,
+def _lil_fancy_set_int64_int16(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
                                          cnp.npy_int64[:,:] i_idx,
                                          cnp.npy_int64[:,:] j_idx,
-                                         float complex[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int64_int8(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int64[:,:] i_idx,
-                                         cnp.npy_int64[:,:] j_idx,
-                                         cnp.npy_int8[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int64_uint64(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int64[:,:] i_idx,
-                                         cnp.npy_int64[:,:] j_idx,
-                                         cnp.npy_uint64[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int64_float64(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int64[:,:] i_idx,
-                                         cnp.npy_int64[:,:] j_idx,
-                                         cnp.npy_float64[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int64_complex128(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int64[:,:] i_idx,
-                                         cnp.npy_int64[:,:] j_idx,
-                                         double complex[:,:] values):
+                                         cnp.npy_int16[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -650,28 +554,12 @@ def _lil_fancy_set_int64_uint16(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _lil_fancy_set_int64_int64(cnp.npy_intp M, cnp.npy_intp N,
+def _lil_fancy_set_int64_int32(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
                                          cnp.npy_int64[:,:] i_idx,
                                          cnp.npy_int64[:,:] j_idx,
-                                         cnp.npy_int64[:,:] values):
-    cdef cnp.npy_intp x, y
-    cdef cnp.npy_intp i, j
-
-    for x in range(i_idx.shape[0]):
-        for y in range(i_idx.shape[1]):
-            i = i_idx[x,y]
-            j = j_idx[x,y]
-            lil_insert(M, N, rows, data, i, j, values[x, y])
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def _lil_fancy_set_int64_clongdouble(cnp.npy_intp M, cnp.npy_intp N,
-                                         object[:] rows,
-                                         object[:] data,
-                                         cnp.npy_int64[:,:] i_idx,
-                                         cnp.npy_int64[:,:] j_idx,
-                                         long double complex[:,:] values):
+                                         cnp.npy_int32[:,:] values):
     cdef cnp.npy_intp x, y
     cdef cnp.npy_intp i, j
 
@@ -698,6 +586,38 @@ def _lil_fancy_set_int64_uint32(cnp.npy_intp M, cnp.npy_intp N,
             lil_insert(M, N, rows, data, i, j, values[x, y])
 @cython.boundscheck(False)
 @cython.wraparound(False)
+def _lil_fancy_set_int64_int64(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int64[:,:] i_idx,
+                                         cnp.npy_int64[:,:] j_idx,
+                                         cnp.npy_int64[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int64_uint64(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int64[:,:] i_idx,
+                                         cnp.npy_int64[:,:] j_idx,
+                                         cnp.npy_uint64[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _lil_fancy_set_int64_float32(cnp.npy_intp M, cnp.npy_intp N,
                                          object[:] rows,
                                          object[:] data,
@@ -712,40 +632,120 @@ def _lil_fancy_set_int64_float32(cnp.npy_intp M, cnp.npy_intp N,
             i = i_idx[x,y]
             j = j_idx[x,y]
             lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int64_float64(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int64[:,:] i_idx,
+                                         cnp.npy_int64[:,:] j_idx,
+                                         cnp.npy_float64[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int64_longdouble(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int64[:,:] i_idx,
+                                         cnp.npy_int64[:,:] j_idx,
+                                         long double[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int64_complex64(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int64[:,:] i_idx,
+                                         cnp.npy_int64[:,:] j_idx,
+                                         float complex[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int64_complex128(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int64[:,:] i_idx,
+                                         cnp.npy_int64[:,:] j_idx,
+                                         double complex[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _lil_fancy_set_int64_clongdouble(cnp.npy_intp M, cnp.npy_intp N,
+                                         object[:] rows,
+                                         object[:] data,
+                                         cnp.npy_int64[:,:] i_idx,
+                                         cnp.npy_int64[:,:] j_idx,
+                                         long double complex[:,:] values):
+    cdef cnp.npy_intp x, y
+    cdef cnp.npy_intp i, j
+
+    for x in range(i_idx.shape[0]):
+        for y in range(i_idx.shape[1]):
+            i = i_idx[x,y]
+            j = j_idx[x,y]
+            lil_insert(M, N, rows, data, i, j, values[x, y])
 
 
 cdef dict _LIL_FANCY_SET_DISPATCH = {
 
-(np.dtype(np.int32), np.dtype(np.int32)): _lil_fancy_set_int32_int32,
-(np.dtype(np.int32), np.dtype(np.int16)): _lil_fancy_set_int32_int16,
 (np.dtype(np.int32), np.dtype(np.bool_)): _lil_fancy_set_int32_bool_,
-(np.dtype(np.int32), np.dtype(np.longdouble)): _lil_fancy_set_int32_longdouble,
-(np.dtype(np.int32), np.dtype(np.uint8)): _lil_fancy_set_int32_uint8,
-(np.dtype(np.int32), np.dtype(np.complex64)): _lil_fancy_set_int32_complex64,
 (np.dtype(np.int32), np.dtype(np.int8)): _lil_fancy_set_int32_int8,
-(np.dtype(np.int32), np.dtype(np.uint64)): _lil_fancy_set_int32_uint64,
-(np.dtype(np.int32), np.dtype(np.float64)): _lil_fancy_set_int32_float64,
-(np.dtype(np.int32), np.dtype(np.complex128)): _lil_fancy_set_int32_complex128,
+(np.dtype(np.int32), np.dtype(np.uint8)): _lil_fancy_set_int32_uint8,
+(np.dtype(np.int32), np.dtype(np.int16)): _lil_fancy_set_int32_int16,
 (np.dtype(np.int32), np.dtype(np.uint16)): _lil_fancy_set_int32_uint16,
-(np.dtype(np.int32), np.dtype(np.int64)): _lil_fancy_set_int32_int64,
-(np.dtype(np.int32), np.dtype(np.clongdouble)): _lil_fancy_set_int32_clongdouble,
+(np.dtype(np.int32), np.dtype(np.int32)): _lil_fancy_set_int32_int32,
 (np.dtype(np.int32), np.dtype(np.uint32)): _lil_fancy_set_int32_uint32,
+(np.dtype(np.int32), np.dtype(np.int64)): _lil_fancy_set_int32_int64,
+(np.dtype(np.int32), np.dtype(np.uint64)): _lil_fancy_set_int32_uint64,
 (np.dtype(np.int32), np.dtype(np.float32)): _lil_fancy_set_int32_float32,
-(np.dtype(np.int64), np.dtype(np.int32)): _lil_fancy_set_int64_int32,
-(np.dtype(np.int64), np.dtype(np.int16)): _lil_fancy_set_int64_int16,
+(np.dtype(np.int32), np.dtype(np.float64)): _lil_fancy_set_int32_float64,
+(np.dtype(np.int32), np.dtype(np.longdouble)): _lil_fancy_set_int32_longdouble,
+(np.dtype(np.int32), np.dtype(np.complex64)): _lil_fancy_set_int32_complex64,
+(np.dtype(np.int32), np.dtype(np.complex128)): _lil_fancy_set_int32_complex128,
+(np.dtype(np.int32), np.dtype(np.clongdouble)): _lil_fancy_set_int32_clongdouble,
 (np.dtype(np.int64), np.dtype(np.bool_)): _lil_fancy_set_int64_bool_,
-(np.dtype(np.int64), np.dtype(np.longdouble)): _lil_fancy_set_int64_longdouble,
-(np.dtype(np.int64), np.dtype(np.uint8)): _lil_fancy_set_int64_uint8,
-(np.dtype(np.int64), np.dtype(np.complex64)): _lil_fancy_set_int64_complex64,
 (np.dtype(np.int64), np.dtype(np.int8)): _lil_fancy_set_int64_int8,
-(np.dtype(np.int64), np.dtype(np.uint64)): _lil_fancy_set_int64_uint64,
-(np.dtype(np.int64), np.dtype(np.float64)): _lil_fancy_set_int64_float64,
-(np.dtype(np.int64), np.dtype(np.complex128)): _lil_fancy_set_int64_complex128,
+(np.dtype(np.int64), np.dtype(np.uint8)): _lil_fancy_set_int64_uint8,
+(np.dtype(np.int64), np.dtype(np.int16)): _lil_fancy_set_int64_int16,
 (np.dtype(np.int64), np.dtype(np.uint16)): _lil_fancy_set_int64_uint16,
-(np.dtype(np.int64), np.dtype(np.int64)): _lil_fancy_set_int64_int64,
-(np.dtype(np.int64), np.dtype(np.clongdouble)): _lil_fancy_set_int64_clongdouble,
+(np.dtype(np.int64), np.dtype(np.int32)): _lil_fancy_set_int64_int32,
 (np.dtype(np.int64), np.dtype(np.uint32)): _lil_fancy_set_int64_uint32,
+(np.dtype(np.int64), np.dtype(np.int64)): _lil_fancy_set_int64_int64,
+(np.dtype(np.int64), np.dtype(np.uint64)): _lil_fancy_set_int64_uint64,
 (np.dtype(np.int64), np.dtype(np.float32)): _lil_fancy_set_int64_float32,
+(np.dtype(np.int64), np.dtype(np.float64)): _lil_fancy_set_int64_float64,
+(np.dtype(np.int64), np.dtype(np.longdouble)): _lil_fancy_set_int64_longdouble,
+(np.dtype(np.int64), np.dtype(np.complex64)): _lil_fancy_set_int64_complex64,
+(np.dtype(np.int64), np.dtype(np.complex128)): _lil_fancy_set_int64_complex128,
+(np.dtype(np.int64), np.dtype(np.clongdouble)): _lil_fancy_set_int64_clongdouble,
 }
 
 
