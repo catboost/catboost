@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, Iterator, List, Tuple, cast
 
 from fontTools.designspaceLib import (
     AxisDescriptor,
+    AxisMappingDescriptor,
     DesignSpaceDocument,
     DiscreteAxisDescriptor,
     InstanceDescriptor,
@@ -224,6 +225,44 @@ def _extractSubSpace(
                     axisLabels=None,
                 )
             )
+
+    subDoc.axisMappings = mappings = []
+    subDocAxes = {axis.name for axis in subDoc.axes}
+    for mapping in doc.axisMappings:
+        if not all(axis in subDocAxes for axis in mapping.inputLocation.keys()):
+            continue
+        if not all(axis in subDocAxes for axis in mapping.outputLocation.keys()):
+            LOGGER.error(
+                "In axis mapping from input %s, some output axes are not in the variable-font: %s",
+                mapping.inputLocation,
+                mapping.outputLocation,
+            )
+            continue
+
+        mappingAxes = set()
+        mappingAxes.update(mapping.inputLocation.keys())
+        mappingAxes.update(mapping.outputLocation.keys())
+        for axis in doc.axes:
+            if axis.name not in mappingAxes:
+                continue
+            range = userRegion[axis.name]
+            if (
+                range.minimum != axis.minimum
+                or (range.default is not None and range.default != axis.default)
+                or range.maximum != axis.maximum
+            ):
+                LOGGER.error(
+                    "Limiting axis ranges used in <mapping> elements not supported: %s",
+                    axis.name,
+                )
+                continue
+
+        mappings.append(
+            AxisMappingDescriptor(
+                inputLocation=mapping.inputLocation,
+                outputLocation=mapping.outputLocation,
+            )
+        )
 
     # Don't include STAT info
     # subDoc.locationLabels = doc.locationLabels

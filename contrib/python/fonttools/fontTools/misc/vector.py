@@ -134,6 +134,11 @@ class Vector(tuple):
             "can't set attribute, the 'values' attribute has been deprecated",
         )
 
+    def isclose(self, other: "Vector", **kwargs) -> bool:
+        """Return True if the vector is close to another Vector."""
+        assert len(self) == len(other)
+        return all(math.isclose(a, b, **kwargs) for a, b in zip(self, other))
+
 
 def _operator_rsub(a, b):
     return operator.sub(b, a)

@@ -273,7 +273,7 @@ Font table options
 
   Examples:
 
-  --drop-tables-='BASE'
+  --drop-tables-=BASE
       * Drop the default set of tables but keep 'BASE'.
 
   --drop-tables+=GSUB
@@ -313,9 +313,9 @@ Font table options
 
   Examples:
 
-  --hinting-tables-='VDMX'
+  --hinting-tables-=VDMX
       * Drop font-wide hinting tables except 'VDMX'.
-  --hinting-tables=''
+  --hinting-tables=
       * Keep all font-wide hinting tables (but strip hints from glyphs).
 
 --legacy-kern
@@ -339,9 +339,9 @@ codes, see: http://www.microsoft.com/typography/otspec/name.htm
 
   --name-IDs+=7,8,9
       * Also keep Trademark, Manufacturer and Designer name entries.
-  --name-IDs=''
+  --name-IDs=
       * Drop all 'name' table entries.
-  --name-IDs='*'
+  --name-IDs=*
       * keep all 'name' table entries
 
 --name-legacy
@@ -437,9 +437,9 @@ Produce a subset containing the characters ' !"#$%' without performing
 size-reducing optimizations::
 
   $ pyftsubset font.ttf --unicodes="U+0020-0025" \\
-    --layout-features='*' --glyph-names --symbol-cmap --legacy-cmap \\
+    --layout-features=* --glyph-names --symbol-cmap --legacy-cmap \\
     --notdef-glyph --notdef-outline --recommended-glyphs \\
-    --name-IDs='*' --name-legacy --name-languages='*'
+    --name-IDs=* --name-legacy --name-languages=*
 """
 )
 
@@ -1513,6 +1513,12 @@ def closure_glyphs(self, s, cur_glyphs=None):
 def subset_glyphs(self, s):
     self.SubTable = [st for st in self.SubTable if st and st.subset_glyphs(s)]
     self.SubTableCount = len(self.SubTable)
+    if hasattr(self, "MarkFilteringSet") and self.MarkFilteringSet is not None:
+        if self.MarkFilteringSet not in s.used_mark_sets:
+            self.MarkFilteringSet = None
+            self.LookupFlag &= ~0x10
+        else:
+            self.MarkFilteringSet = s.used_mark_sets.index(self.MarkFilteringSet)
     return bool(self.SubTableCount)
 
 
@@ -2091,17 +2097,14 @@ def subset_glyphs(self, s):
         ]
         table.AttachList.GlyphCount = len(table.AttachList.AttachPoint)
     if hasattr(table, "MarkGlyphSetsDef") and table.MarkGlyphSetsDef:
-        for coverage in table.MarkGlyphSetsDef.Coverage:
+        markGlyphSets = table.MarkGlyphSetsDef
+        for coverage in markGlyphSets.Coverage:
             if coverage:
                 coverage.subset(glyphs)
 
-        # TODO: The following is disabled. If enabling, we need to go fixup all
-        # lookups that use MarkFilteringSet and map their set.
-        # indices = table.MarkGlyphSetsDef.Coverage = \
-        #   [c for c in table.MarkGlyphSetsDef.Coverage if c.glyphs]
-        # TODO: The following is disabled, as ots doesn't like it. Phew...
-        # https://github.com/khaledhosny/ots/issues/172
-        # table.MarkGlyphSetsDef.Coverage = [c if c.glyphs else None for c in table.MarkGlyphSetsDef.Coverage]
+        s.used_mark_sets = [i for i, c in enumerate(markGlyphSets.Coverage) if c.glyphs]
+        markGlyphSets.Coverage = [c for c in markGlyphSets.Coverage if c.glyphs]
+
     return True
 
 
@@ -3433,6 +3436,7 @@ class Subsetter(object):
         del self.glyphs
 
     def _subset_glyphs(self, font):
+        self.used_mark_sets = []
         for tag in self._sort_tables(font):
             clazz = ttLib.getTableClass(tag)
 
@@ -3492,7 +3496,7 @@ class Subsetter(object):
                     log.info("%s pruned", tag)
 
     def _sort_tables(self, font):
-        tagOrder = ["fvar", "avar", "gvar", "name", "glyf"]
+        tagOrder = ["GDEF", "GPOS", "GSUB", "fvar", "avar", "gvar", "name", "glyf"]
         tagOrder = {t: i + 1 for i, t in enumerate(tagOrder)}
         tags = sorted(font.keys(), key=lambda tag: tagOrder.get(tag, 0))
         return [t for t in tags if t != "GlyphOrder"]

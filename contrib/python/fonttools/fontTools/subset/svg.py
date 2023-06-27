@@ -77,7 +77,7 @@ def iter_referenced_ids(tree: etree.Element) -> Iterator[str]:
 
         attrs = el.attrib
         if "style" in attrs:
-            attrs = {**attrs, **parse_css_declarations(el.attrib["style"])}
+            attrs = {**dict(attrs), **parse_css_declarations(el.attrib["style"])}
         for attr in ("fill", "clip-path"):
             if attr in attrs:
                 value = attrs[attr]

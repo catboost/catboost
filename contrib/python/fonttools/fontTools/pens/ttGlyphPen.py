@@ -1,5 +1,5 @@
 from array import array
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 from fontTools.misc.fixedTools import MAX_F2DOT14, floatToFixedToFloat
 from fontTools.misc.loggingTools import LogMixin
 from fontTools.pens.pointPen import AbstractPointPen
@@ -11,54 +11,11 @@ from fontTools.ttLib.tables._g_l_y_f import flagOnCurve, flagCubic
 from fontTools.ttLib.tables._g_l_y_f import Glyph
 from fontTools.ttLib.tables._g_l_y_f import GlyphComponent
 from fontTools.ttLib.tables._g_l_y_f import GlyphCoordinates
+from fontTools.ttLib.tables._g_l_y_f import dropImpliedOnCurvePoints
 import math
 
 
 __all__ = ["TTGlyphPen", "TTGlyphPointPen"]
-
-
-def drop_implied_oncurves(glyph):
-    drop = set()
-    start = 0
-    flags = glyph.flags
-    coords = glyph.coordinates
-    for last in glyph.endPtsOfContours:
-        for i in range(start, last + 1):
-            if not (flags[i] & flagOnCurve):
-                continue
-            prv = i - 1 if i > start else last
-            nxt = i + 1 if i < last else start
-            if (flags[prv] & flagOnCurve) or flags[prv] != flags[nxt]:
-                continue
-            p0 = coords[prv]
-            p1 = coords[i]
-            p2 = coords[nxt]
-            if not math.isclose(p1[0] - p0[0], p2[0] - p1[0]) or not math.isclose(
-                p1[1] - p0[1], p2[1] - p1[1]
-            ):
-                continue
-
-            drop.add(i)
-    if drop:
-        # Do the actual dropping
-        glyph.coordinates = GlyphCoordinates(
-            coords[i] for i in range(len(coords)) if i not in drop
-        )
-        glyph.flags = array("B", (flags[i] for i in range(len(flags)) if i not in drop))
-
-        endPts = glyph.endPtsOfContours
-        newEndPts = []
-        i = 0
-        delta = 0
-        for d in sorted(drop):
-            while d > endPts[i]:
-                newEndPts.append(endPts[i] - delta)
-                i += 1
-            delta += 1
-        while i < len(endPts):
-            newEndPts.append(endPts[i] - delta)
-            i += 1
-        glyph.endPtsOfContours = newEndPts
 
 
 class _TTGlyphBasePen:
@@ -170,7 +127,13 @@ class _TTGlyphBasePen:
             components.append(component)
         return components
 
-    def glyph(self, componentFlags: int = 0x04, dropImpliedOnCurves=False) -> Glyph:
+    def glyph(
+        self,
+        componentFlags: int = 0x04,
+        dropImpliedOnCurves: bool = False,
+        *,
+        round: Callable[[float], int] = otRound,
+    ) -> Glyph:
         """
         Returns a :py:class:`~._g_l_y_f.Glyph` object representing the glyph.
 
@@ -187,11 +150,6 @@ class _TTGlyphBasePen:
         glyph.coordinates = GlyphCoordinates(self.points)
         glyph.endPtsOfContours = self.endPts
         glyph.flags = array("B", self.types)
-
-        glyph.coordinates.toInt()
-        if dropImpliedOnCurves:
-            drop_implied_oncurves(glyph)
-
         self.init()
 
         if components:
@@ -203,6 +161,9 @@ class _TTGlyphBasePen:
             glyph.numberOfContours = len(glyph.endPtsOfContours)
             glyph.program = ttProgram.Program()
             glyph.program.fromBytecode(b"")
+            if dropImpliedOnCurves:
+                dropImpliedOnCurvePoints(glyph)
+            glyph.coordinates.toInt(round=round)
 
         return glyph
 
@@ -326,7 +287,9 @@ class TTGlyphPointPen(_TTGlyphBasePen, LogMixin, AbstractPointPen):
         if self._isClosed():
             raise PenError("Contour is already closed.")
         if self._currentContourStartIndex == len(self.points):
-            raise PenError("Tried to end an empty contour.")
+            # ignore empty contours
+            self._currentContourStartIndex = None
+            return
 
         contourStart = self.endPts[-1] + 1 if self.endPts else 0
         self.endPts.append(len(self.points) - 1)

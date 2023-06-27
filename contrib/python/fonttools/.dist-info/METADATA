@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.39.4
+Version: 4.40.0
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -365,6 +365,40 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.40.0 (released 2023-06-12)
+----------------------------
+
+- Published native binary wheels to PyPI for all the python minor versions and platform
+  and architectures currently supported that would benefit from this. They will include
+  precompiled Cython-accelerated modules (e.g. cu2qu) without requiring to compile them
+  from source. The pure-python wheel and source distribution will continue to be
+  published as always (pip will automatically chose them when no binary wheel is
+  available for the given platform, e.g. pypy). Use ``pip install --no-binary=fonttools fonttools``
+  to expliclity request pip to install from the pure-python source.
+- [designspaceLib|varLib] Add initial support for specifying axis mappings and build
+  ``avar2`` table from those (#3123).
+- [feaLib] Support variable ligature caret position (#3130).
+- [varLib|glyf] Added option to --drop-implied-oncurves; test for impliable oncurve
+  points either before or after rounding (#3146, #3147, #3155, #3156).
+- [TTGlyphPointPen] Don't error with empty contours, simply ignore them (#3145).
+- [sfnt] Fixed str vs bytes remnant of py3 transition in code dealing with de/compiling
+  WOFF metadata (#3129).
+- [instancer-solver] Fixed bug when moving default instance with sparse masters (#3139, #3140).
+- [feaLib] Simplify variable scalars that don’t vary (#3132).
+- [pens] Added filter pen that explicitly emits closing line when lastPt != movePt (#3100).
+- [varStore] Improve optimize algorithm and better document the algorithm (#3124, #3127).
+  Added ``quantization`` option (#3126).
+- Added CI workflow config file for building native binary wheels (#3121).
+- [fontBuilder] Added glyphDataFormat=0 option; raise error when glyphs contain cubic
+  outlines but glyphDataFormat was not explicitly set to 1 (#3113, #3119).
+- [subset] Prune emptied GDEF.MarkGlyphSetsDef and remap indices; ensure GDEF is
+  subsetted before GSUB and GPOS (#3114, #3118).
+- [xmlReader] Fixed issue whereby DSIG table data was incorrectly parsed (#3115, #2614).
+- [varLib/merger] Fixed merging of SinglePos with pos=0 (#3111, #3112).
+- [feaLib] Demote "Feature has not been defined" error to a warning when building aalt
+  and referenced feature is empty (#3110).
+- [feaLib] Dedupe multiple substitutions with classes (#3105).
 
 4.39.4 (released 2023-05-10)
 ----------------------------

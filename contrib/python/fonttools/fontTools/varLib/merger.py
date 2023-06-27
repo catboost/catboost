@@ -81,7 +81,6 @@ class Merger(object):
         typ = type(thing)
 
         for celf in celf.mro():
-
             mergers = getattr(celf, "mergers", None)
             if mergers is None:
                 break
@@ -318,7 +317,13 @@ def merge(merger, self, lst):
     ):
         self.Value = otBase.ValueRecord(valueFormat, self.Value)
         if valueFormat != 0:
-            merger.mergeThings(self.Value, [v.Value for v in lst])
+            # If v.Value is None, it means a kerning of 0; we want
+            # it to participate in the model still.
+            # https://github.com/fonttools/fonttools/issues/3111
+            merger.mergeThings(
+                self.Value,
+                [v.Value if v.Value is not None else otBase.ValueRecord() for v in lst],
+            )
         self.ValueFormat = self.Value.getFormat()
         return
 
@@ -449,7 +454,6 @@ def _PairPosFormat1_merge(self, lst, merger):
 
 
 def _ClassDef_invert(self, allGlyphs=None):
-
     if isinstance(self, dict):
         classDefs = self
     else:
@@ -505,7 +509,6 @@ def _ClassDef_merge_classify(lst, allGlyphses=None):
 
 
 def _PairPosFormat2_align_matrices(self, lst, font, transparent=False):
-
     matrices = [l.Class1Record for l in lst]
 
     # Align first classes
@@ -1057,7 +1060,6 @@ def merge(merger, self, lst):
         ("XPlacement", "XPlaDevice"),
         ("YPlacement", "YPlaDevice"),
     ]:
-
         assert not hasattr(self, tableName)
 
         if hasattr(self, name):
@@ -1085,7 +1087,6 @@ class MutatorMerger(AligningMerger):
 
 @MutatorMerger.merger(ot.CaretValue)
 def merge(merger, self, lst):
-
     # Hack till we become selfless.
     self.__dict__ = lst[0].__dict__.copy()
 
@@ -1108,7 +1109,6 @@ def merge(merger, self, lst):
 
 @MutatorMerger.merger(ot.Anchor)
 def merge(merger, self, lst):
-
     # Hack till we become selfless.
     self.__dict__ = lst[0].__dict__.copy()
 
@@ -1139,7 +1139,6 @@ def merge(merger, self, lst):
 
 @MutatorMerger.merger(otBase.ValueRecord)
 def merge(merger, self, lst):
-
     # Hack till we become selfless.
     self.__dict__ = lst[0].__dict__.copy()
 
@@ -1150,7 +1149,6 @@ def merge(merger, self, lst):
         ("XPlacement", "XPlaDevice"),
         ("YPlacement", "YPlaDevice"),
     ]:
-
         if not hasattr(self, tableName):
             continue
         dev = getattr(self, tableName)
@@ -1266,7 +1264,6 @@ def merge(merger, self, lst):
         ("XPlacement", "XPlaDevice"),
         ("YPlacement", "YPlaDevice"),
     ]:
-
         if hasattr(self, name):
             value, deviceTable = buildVarDevTable(
                 merger.store_builder, [getattr(a, name, 0) for a in lst]

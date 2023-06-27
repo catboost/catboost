@@ -1,4 +1,5 @@
 from fontTools.misc.roundTools import noRound, otRound
+from fontTools.misc.intTools import bit_count
 from fontTools.ttLib.tables import otTables as ot
 from fontTools.varLib.models import supportScalar
 from fontTools.varLib.builder import (
@@ -9,6 +10,7 @@ from fontTools.varLib.builder import (
 )
 from functools import partial
 from collections import defaultdict
+from heapq import heappush, heappop
 
 
 NO_VARIATION_INDEX = ot.NO_VARIATION_INDEX
@@ -87,7 +89,7 @@ class OnlineVarStoreBuilder(object):
                 self._varDataCaches[key] = {}
             self._cache = self._varDataCaches[key]
 
-    def storeMasters(self, master_values):
+    def storeMasters(self, master_values, *, round=round):
         deltas = self._model.getDeltas(master_values, round=round)
         base = deltas.pop(0)
         return base, self.storeDeltas(deltas, round=noRound)
@@ -210,7 +212,6 @@ class VarStoreInstancer(object):
 def VarStore_subset_varidxes(
     self, varIdxes, optimize=True, retainFirstMap=False, advIdxes=set()
 ):
-
     # Sort out used varIdxes by major/minor.
     used = {}
     for varIdx in varIdxes:
@@ -360,8 +361,9 @@ ot.GPOS.remap_device_varidxes = Object_remap_device_varidxes
 class _Encoding(object):
     def __init__(self, chars):
         self.chars = chars
-        self.width = self._popcount(chars)
-        self.overhead = self._characteristic_overhead(chars)
+        self.width = bit_count(chars)
+        self.columns = self._columns(chars)
+        self.overhead = self._characteristic_overhead(self.columns)
         self.items = set()
 
     def append(self, row):
@@ -378,51 +380,52 @@ class _Encoding(object):
 
     room = property(get_room)
 
-    @property
-    def gain(self):
+    def get_gain(self):
         """Maximum possible byte gain from merging this into another
         characteristic."""
         count = len(self.items)
-        return max(0, self.overhead - count * (self.width + 1))
+        return max(0, self.overhead - count)
 
-    def sort_key(self):
+    gain = property(get_gain)
+
+    def gain_sort_key(self):
+        return self.gain, self.chars
+
+    def width_sort_key(self):
         return self.width, self.chars
 
-    def __len__(self):
-        return len(self.items)
-
-    def can_encode(self, chars):
-        return not (chars & ~self.chars)
-
-    def __sub__(self, other):
-        return self._popcount(self.chars & ~other.chars)
-
     @staticmethod
-    def _popcount(n):
-        # Apparently this is the fastest native way to do it...
-        # https://stackoverflow.com/a/9831671
-        return bin(n).count("1")
-
-    @staticmethod
-    def _characteristic_overhead(chars):
+    def _characteristic_overhead(columns):
         """Returns overhead in bytes of encoding this characteristic
         as a VarData."""
-        c = 6
-        while chars:
-            if chars & 0b1111:
-                c += 2
-            chars >>= 4
+        c = 4 + 6  # 4 bytes for LOffset, 6 bytes for VarData header
+        c += bit_count(columns) * 2
         return c
 
-    def _find_yourself_best_new_encoding(self, done_by_width):
-        self.best_new_encoding = None
-        for new_width in range(self.width + 1, self.width + self.room + 1):
-            for new_encoding in done_by_width[new_width]:
-                if new_encoding.can_encode(self.chars):
-                    break
-            else:
-                new_encoding = None
-            self.best_new_encoding = new_encoding
+    @staticmethod
+    def _columns(chars):
+        cols = 0
+        i = 1
+        while chars:
+            if chars & 0b1111:
+                cols |= i
+            chars >>= 4
+            i <<= 1
+        return cols
+
+    def gain_from_merging(self, other_encoding):
+        combined_chars = other_encoding.chars | self.chars
+        combined_width = bit_count(combined_chars)
+        combined_columns = self.columns | other_encoding.columns
+        combined_overhead = _Encoding._characteristic_overhead(combined_columns)
+        combined_gain = (
+            +self.overhead
+            + other_encoding.overhead
+            - combined_overhead
+            - (combined_width - self.width) * len(self.items)
+            - (combined_width - other_encoding.width) * len(other_encoding.items)
+        )
+        return combined_gain
 
 
 class _EncodingDict(dict):
@@ -465,8 +468,70 @@ class _EncodingDict(dict):
         return chars
 
 
-def VarStore_optimize(self, use_NO_VARIATION_INDEX=True):
+def VarStore_optimize(self, use_NO_VARIATION_INDEX=True, quantization=1):
     """Optimize storage. Returns mapping from old VarIdxes to new ones."""
+
+    # Overview:
+    #
+    # For each VarData row, we first extend it with zeroes to have
+    # one column per region in VarRegionList. We then group the
+    # rows into _Encoding objects, by their "characteristic" bitmap.
+    # The characteristic bitmap is a binary number representing how
+    # many bytes each column of the data takes up to encode. Each
+    # column is encoded in four bits. For example, if a column has
+    # only values in the range -128..127, it would only have a single
+    # bit set in the characteristic bitmap for that column. If it has
+    # values in the range -32768..32767, it would have two bits set.
+    # The number of ones in the characteristic bitmap is the "width"
+    # of the encoding.
+    #
+    # Each encoding as such has a number of "active" (ie. non-zero)
+    # columns. The overhead of encoding the characteristic bitmap
+    # is 10 bytes, plus 2 bytes per active column.
+    #
+    # When an encoding is merged into another one, if the characteristic
+    # of the old encoding is a subset of the new one, then the overhead
+    # of the old encoding is completely eliminated. However, each row
+    # now would require more bytes to encode, to the tune of one byte
+    # per characteristic bit that is active in the new encoding but not
+    # in the old one. The number of bits that can be added to an encoding
+    # while still beneficial to merge it into another encoding is called
+    # the "room" for that encoding.
+    #
+    # The "gain" of an encodings is the maximum number of bytes we can
+    # save by merging it into another encoding. The "gain" of merging
+    # two encodings is how many bytes we save by doing so.
+    #
+    # High-level algorithm:
+    #
+    # - Each encoding has a minimal way to encode it. However, because
+    #   of the overhead of encoding the characteristic bitmap, it may
+    #   be beneficial to merge two encodings together, if there is
+    #   gain in doing so. As such, we need to search for the best
+    #   such successive merges.
+    #
+    # Algorithm:
+    #
+    # - Put all encodings into a "todo" list.
+    #
+    # - Sort todo list by decreasing gain (for stability).
+    #
+    # - Make a priority-queue of the gain from combining each two
+    #   encodings in the todo list. The priority queue is sorted by
+    #   decreasing gain. Only positive gains are included.
+    #
+    # - While priority queue is not empty:
+    #   - Pop the first item from the priority queue,
+    #   - Merge the two encodings it represents,
+    #   - Remove the two encodings from the todo list,
+    #   - Insert positive gains from combining the new encoding with
+    #     all existing todo list items into the priority queue,
+    #   - If a todo list item with the same characteristic bitmap as
+    #     the new encoding exists, remove it from the todo list and
+    #     merge it into the new encoding.
+    #   - Insert the new encoding into the todo list,
+    #
+    # - Encode all remaining items in the todo list.
 
     # TODO
     # Check that no two VarRegions are the same; if they are, fold them.
@@ -483,10 +548,17 @@ def VarStore_optimize(self, use_NO_VARIATION_INDEX=True):
         regionIndices = data.VarRegionIndex
 
         for minor, item in enumerate(data.Item):
-
             row = list(zeroes)
-            for regionIdx, v in zip(regionIndices, item):
-                row[regionIdx] += v
+
+            if quantization == 1:
+                for regionIdx, v in zip(regionIndices, item):
+                    row[regionIdx] += v
+            else:
+                for regionIdx, v in zip(regionIndices, item):
+                    row[regionIdx] += (
+                        round(v / quantization) * quantization
+                    )  # TODO https://github.com/fonttools/fonttools/pull/3126#discussion_r1205439785
+
             row = tuple(row)
 
             if use_NO_VARIATION_INDEX and not any(row):
@@ -496,84 +568,56 @@ def VarStore_optimize(self, use_NO_VARIATION_INDEX=True):
             encodings.add_row(row)
             front_mapping[(major << 16) + minor] = row
 
-    # Separate encodings that have no gain (are decided) and those having
-    # possible gain (possibly to be merged into others.)
-    encodings = sorted(encodings.values(), key=_Encoding.__len__, reverse=True)
-    done_by_width = defaultdict(list)
-    todo = []
-    for encoding in encodings:
-        if not encoding.gain:
-            done_by_width[encoding.width].append(encoding)
-        else:
-            todo.append(encoding)
+    # Prepare for the main algorithm.
+    todo = sorted(encodings.values(), key=_Encoding.gain_sort_key)
+    del encodings
 
-    # For each encoding that is possibly to be merged, find the best match
-    # in the decided encodings, and record that.
-    todo.sort(key=_Encoding.get_room)
-    for encoding in todo:
-        encoding._find_yourself_best_new_encoding(done_by_width)
+    # Repeatedly pick two best encodings to combine, and combine them.
 
-    # Walk through todo encodings, for each, see if merging it with
-    # another todo encoding gains more than each of them merging with
-    # their best decided encoding. If yes, merge them and add resulting
-    # encoding back to todo queue.  If not, move the enconding to decided
-    # list.  Repeat till done.
-    while todo:
-        encoding = todo.pop()
-        best_idx = None
-        best_gain = 0
-        for i, other_encoding in enumerate(todo):
-            combined_chars = other_encoding.chars | encoding.chars
-            combined_width = _Encoding._popcount(combined_chars)
-            combined_overhead = _Encoding._characteristic_overhead(combined_chars)
-            combined_gain = (
-                +encoding.overhead
-                + other_encoding.overhead
-                - combined_overhead
-                - (combined_width - encoding.width) * len(encoding)
-                - (combined_width - other_encoding.width) * len(other_encoding)
-            )
-            this_gain = (
-                0
-                if encoding.best_new_encoding is None
-                else (
-                    +encoding.overhead
-                    - (encoding.best_new_encoding.width - encoding.width)
-                    * len(encoding)
-                )
-            )
-            other_gain = (
-                0
-                if other_encoding.best_new_encoding is None
-                else (
-                    +other_encoding.overhead
-                    - (other_encoding.best_new_encoding.width - other_encoding.width)
-                    * len(other_encoding)
-                )
-            )
-            separate_gain = this_gain + other_gain
+    heap = []
+    for i, encoding in enumerate(todo):
+        for j in range(i + 1, len(todo)):
+            other_encoding = todo[j]
+            combining_gain = encoding.gain_from_merging(other_encoding)
+            if combining_gain > 0:
+                heappush(heap, (-combining_gain, i, j))
 
-            if combined_gain > separate_gain:
-                best_idx = i
-                best_gain = combined_gain - separate_gain
+    while heap:
+        _, i, j = heappop(heap)
+        if todo[i] is None or todo[j] is None:
+            continue
 
-        if best_idx is None:
-            # Encoding is decided as is
-            done_by_width[encoding.width].append(encoding)
-        else:
-            other_encoding = todo[best_idx]
-            combined_chars = other_encoding.chars | encoding.chars
-            combined_encoding = _Encoding(combined_chars)
-            combined_encoding.extend(encoding.items)
-            combined_encoding.extend(other_encoding.items)
-            combined_encoding._find_yourself_best_new_encoding(done_by_width)
-            del todo[best_idx]
-            todo.append(combined_encoding)
+        encoding, other_encoding = todo[i], todo[j]
+        todo[i], todo[j] = None, None
+
+        # Combine the two encodings
+        combined_chars = other_encoding.chars | encoding.chars
+        combined_encoding = _Encoding(combined_chars)
+        combined_encoding.extend(encoding.items)
+        combined_encoding.extend(other_encoding.items)
+
+        for k, enc in enumerate(todo):
+            if enc is None:
+                continue
+
+            # In the unlikely event that the same encoding exists already,
+            # combine it.
+            if enc.chars == combined_chars:
+                combined_encoding.extend(enc.items)
+                todo[k] = None
+                continue
+
+            combining_gain = combined_encoding.gain_from_merging(enc)
+            if combining_gain > 0:
+                heappush(heap, (-combining_gain, k, len(todo)))
+
+        todo.append(combined_encoding)
+
+    encodings = [encoding for encoding in todo if encoding is not None]
 
     # Assemble final store.
     back_mapping = {}  # Mapping from full rows to new VarIdxes
-    encodings = sum(done_by_width.values(), [])
-    encodings.sort(key=_Encoding.sort_key)
+    encodings.sort(key=_Encoding.width_sort_key)
     self.VarData = []
     for major, encoding in enumerate(encodings):
         data = ot.VarData()
@@ -613,6 +657,7 @@ def main(args=None):
     from fontTools.ttLib.tables.otBase import OTTableWriter
 
     parser = ArgumentParser(prog="varLib.varStore", description=main.__doc__)
+    parser.add_argument("--quantization", type=int, default=1)
     parser.add_argument("fontfile")
     parser.add_argument("outfile", nargs="?")
     options = parser.parse_args(args)
@@ -620,6 +665,7 @@ def main(args=None):
     # TODO: allow user to configure logging via command-line options
     configLogger(level="INFO")
 
+    quantization = options.quantization
     fontfile = options.fontfile
     outfile = options.outfile
 
@@ -632,11 +678,7 @@ def main(args=None):
     size = len(writer.getAllData())
     print("Before: %7d bytes" % size)
 
-    varidx_map = store.optimize()
-
-    gdef.table.remap_device_varidxes(varidx_map)
-    if "GPOS" in font:
-        font["GPOS"].table.remap_device_varidxes(varidx_map)
+    varidx_map = store.optimize(quantization=quantization)
 
     writer = OTTableWriter()
     store.compile(writer, font)
@@ -644,6 +686,10 @@ def main(args=None):
     print("After:  %7d bytes" % size)
 
     if outfile is not None:
+        gdef.table.remap_device_varidxes(varidx_map)
+        if "GPOS" in font:
+            font["GPOS"].table.remap_device_varidxes(varidx_map)
+
         font.save(outfile)
 
 

@@ -4,7 +4,7 @@ https://docs.microsoft.com/en-us/typography/opentype/spec/chapter2#featurevariat
 NOTE: The API is experimental and subject to change.
 """
 from fontTools.misc.dictTools import hashdict
-from fontTools.misc.intTools import popCount
+from fontTools.misc.intTools import bit_count
 from fontTools.ttLib import newTable
 from fontTools.ttLib.tables import otTables as ot
 from fontTools.ttLib.ttVisitor import TTVisitor
@@ -190,7 +190,7 @@ def overlayFeatureVariations(conditionalSubstitutions):
     # Generate output
     items = []
     for box, rank in sorted(
-        boxMap.items(), key=(lambda BoxAndRank: -popCount(BoxAndRank[1]))
+        boxMap.items(), key=(lambda BoxAndRank: -bit_count(BoxAndRank[1]))
     ):
         # Skip any box that doesn't have any substitution.
         if rank == 0:

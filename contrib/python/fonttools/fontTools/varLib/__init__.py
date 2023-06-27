@@ -21,10 +21,11 @@ API *will* change in near future.
 from typing import List
 from fontTools.misc.vector import Vector
 from fontTools.misc.roundTools import noRound, otRound
+from fontTools.misc.fixedTools import floatToFixed as fl2fi
 from fontTools.misc.textTools import Tag, tostr
 from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables._f_v_a_r import Axis, NamedInstance
-from fontTools.ttLib.tables._g_l_y_f import GlyphCoordinates
+from fontTools.ttLib.tables._g_l_y_f import GlyphCoordinates, dropImpliedOnCurvePoints
 from fontTools.ttLib.tables.ttProgram import Program
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
 from fontTools.ttLib.tables import otTables as ot
@@ -40,7 +41,7 @@ from fontTools.varLib.stat import buildVFStatTable
 from fontTools.colorLib.builder import buildColrV1
 from fontTools.colorLib.unbuilder import unbuildColrV1
 from functools import partial
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict, defaultdict, namedtuple
 import os.path
 import logging
 from copy import deepcopy
@@ -130,7 +131,7 @@ def _add_fvar(font, axes, instances: List[InstanceDescriptor]):
     return fvar
 
 
-def _add_avar(font, axes):
+def _add_avar(font, axes, mappings, axisTags):
     """
     Add 'avar' table to font.
 
@@ -145,6 +146,7 @@ def _add_avar(font, axes):
     avar = newTable("avar")
 
     interesting = False
+    vals_triples = {}
     for axis in axes.values():
         # Currently, some rasterizers require that the default value maps
         # (-1 to -1, 0 to 0, and 1 to 1) be present for all the segment
@@ -154,6 +156,11 @@ def _add_avar(font, axes):
         # https://github.com/fonttools/fonttools/issues/1011
         # TODO(anthrotype) revert this (and 19c4b37) when issue is fixed
         curve = avar.segments[axis.tag] = {-1.0: -1.0, 0.0: 0.0, 1.0: 1.0}
+
+        keys_triple = (axis.minimum, axis.default, axis.maximum)
+        vals_triple = tuple(axis.map_forward(v) for v in keys_triple)
+        vals_triples[axis.tag] = vals_triple
+
         if not axis.map:
             continue
 
@@ -191,9 +198,6 @@ def _add_avar(font, axes):
                 f"Axis '{axis.name}': mapping output values must be in ascending order."
             )
 
-        keys_triple = (axis.minimum, axis.default, axis.maximum)
-        vals_triple = tuple(axis.map_forward(v) for v in keys_triple)
-
         keys = [models.normalizeValue(v, keys_triple) for v in keys]
         vals = [models.normalizeValue(v, vals_triple) for v in vals]
 
@@ -207,6 +211,57 @@ def _add_avar(font, axes):
         assert -1.0 not in curve or curve[-1.0] == -1.0
         assert +1.0 not in curve or curve[+1.0] == +1.0
         # curve.update({-1.0: -1.0, 0.0: 0.0, 1.0: 1.0})
+
+    if mappings:
+        interesting = True
+
+        hiddenAxes = [axis for axis in axes.values() if axis.hidden]
+
+        inputLocations = [
+            {
+                axes[name].tag: models.normalizeValue(v, vals_triples[axes[name].tag])
+                for name, v in mapping.inputLocation.items()
+            }
+            for mapping in mappings
+        ]
+        outputLocations = [
+            {
+                axes[name].tag: models.normalizeValue(v, vals_triples[axes[name].tag])
+                for name, v in mapping.outputLocation.items()
+            }
+            for mapping in mappings
+        ]
+        assert len(inputLocations) == len(outputLocations)
+
+        # If base-master is missing, insert it at zero location.
+        if not any(all(v == 0 for k, v in loc.items()) for loc in inputLocations):
+            inputLocations.insert(0, {})
+            outputLocations.insert(0, {})
+
+        model = models.VariationModel(inputLocations, axisTags)
+        storeBuilder = varStore.OnlineVarStoreBuilder(axisTags)
+        storeBuilder.setModel(model)
+        varIdxes = {}
+        for tag in axisTags:
+            masterValues = []
+            for vo, vi in zip(outputLocations, inputLocations):
+                if tag not in vo:
+                    masterValues.append(0)
+                    continue
+                v = vo[tag] - vi.get(tag, 0)
+                masterValues.append(fl2fi(v, 14))
+            varIdxes[tag] = storeBuilder.storeMasters(masterValues)[1]
+
+        store = storeBuilder.finish()
+        optimized = store.optimize()
+        varIdxes = {axis: optimized[value] for axis, value in varIdxes.items()}
+
+        varIdxMap = builder.buildDeltaSetIndexMap(varIdxes[t] for t in axisTags)
+
+        avar.majorVersion = 2
+        avar.table = ot.avar()
+        avar.table.VarIdxMap = varIdxMap
+        avar.table.VarStore = store
 
     assert "avar" not in font
     if not interesting:
@@ -349,7 +404,6 @@ def _remove_TTHinting(font):
 
 
 def _merge_TTHinting(font, masterModel, master_ttfs):
-
     log.info("Merging TT hinting")
     assert "cvar" not in font
 
@@ -452,7 +506,6 @@ def _add_VVAR(font, masterModel, master_ttfs, axisTags):
 
 
 def _add_VHVAR(font, masterModel, master_ttfs, axisTags, tableFields):
-
     tableTag = tableFields.tableTag
     assert tableTag not in font
     log.info("Generating " + tableTag)
@@ -508,7 +561,6 @@ def _get_advance_metrics(
     advMetricses,
     vOrigMetricses=None,
 ):
-
     vhAdvanceDeltasAndSupports = {}
     vOrigDeltasAndSupports = {}
     for glyph in glyphOrder:
@@ -598,7 +650,6 @@ def _get_advance_metrics(
 
 
 def _add_MVAR(font, masterModel, master_ttfs, axisTags):
-
     log.info("Generating MVAR")
 
     store_builder = varStore.OnlineVarStoreBuilder(axisTags)
@@ -677,7 +728,6 @@ def _add_MVAR(font, masterModel, master_ttfs, axisTags):
 
 
 def _add_BASE(font, masterModel, master_ttfs, axisTags):
-
     log.info("Generating BASE")
 
     merger = VariationMerger(masterModel, axisTags, font)
@@ -693,7 +743,6 @@ def _add_BASE(font, masterModel, master_ttfs, axisTags):
 
 
 def _merge_OTL(font, model, master_fonts, axisTags):
-
     log.info("Merging OpenType Layout tables")
     merger = VariationMerger(model, axisTags, font)
 
@@ -734,7 +783,6 @@ def _add_GSUB_feature_variations(font, axes, internal_axis_supports, rules, feat
 
     conditional_subs = []
     for rule in rules:
-
         region = []
         for conditions in rule.conditionSets:
             space = {}
@@ -763,6 +811,7 @@ _DesignSpaceData = namedtuple(
     "_DesignSpaceData",
     [
         "axes",
+        "axisMappings",
         "internal_axis_supports",
         "base_idx",
         "normalized_master_locs",
@@ -799,11 +848,8 @@ def _add_COLR(font, model, master_fonts, axisTags, colr_layer_reuse=True):
     if store:
         mapping = store.optimize()
         colr.VarStore = store
-        # don't add DeltaSetIndexMap for identity mapping
-        colr.VarIndexMap = None
         varIdxes = [mapping[v] for v in merger.varIdxes]
-        if any(i != varIdxes[i] for i in range(len(varIdxes))):
-            colr.VarIndexMap = builder.buildDeltaSetIndexMap(varIdxes)
+        colr.VarIndexMap = builder.buildDeltaSetIndexMap(varIdxes)
 
 
 def load_designspace(designspace):
@@ -855,6 +901,10 @@ def load_designspace(designspace):
 
         axes[axis_name] = axis
     log.info("Axes:\n%s", pformat([axis.asdict() for axis in axes.values()]))
+
+    axisMappings = ds.axisMappings
+    if axisMappings:
+        log.info("Mappings:\n%s", pformat(axisMappings))
 
     # Check all master and instance locations are valid and fill in defaults
     for obj in masters + instances:
@@ -915,6 +965,7 @@ def load_designspace(designspace):
 
     return _DesignSpaceData(
         axes,
+        axisMappings,
         internal_axis_supports,
         base_idx,
         normalized_master_locs,
@@ -965,6 +1016,46 @@ def set_default_weight_width_slant(font, location):
             font["post"].italicAngle = italicAngle
 
 
+def drop_implied_oncurve_points(*masters: TTFont) -> int:
+    """Drop impliable on-curve points from all the simple glyphs in masters.
+
+    In TrueType glyf outlines, on-curve points can be implied when they are located
+    exactly at the midpoint of the line connecting two consecutive off-curve points.
+
+    The input masters' glyf tables are assumed to contain same-named glyphs that are
+    interpolatable. Oncurve points are only dropped if they can be implied for all
+    the masters. The fonts are modified in-place.
+
+    Args:
+        masters: The TTFont(s) to modify
+
+    Returns:
+        The total number of points that were dropped if any.
+
+    Reference:
+    https://developer.apple.com/fonts/TrueType-Reference-Manual/RM01/Chap1.html
+    """
+
+    count = 0
+    glyph_masters = defaultdict(list)
+    # multiple DS source may point to the same TTFont object and we want to
+    # avoid processing the same glyph twice as they are modified in-place
+    for font in {id(m): m for m in masters}.values():
+        glyf = font["glyf"]
+        for glyphName in glyf.keys():
+            glyph_masters[glyphName].append(glyf[glyphName])
+    count = 0
+    for glyphName, glyphs in glyph_masters.items():
+        try:
+            dropped = dropImpliedOnCurvePoints(*glyphs)
+        except ValueError as e:
+            # we don't fail for incompatible glyphs in _add_gvar so we shouldn't here
+            log.warning("Failed to drop implied oncurves for %r: %s", glyphName, e)
+        else:
+            count += len(dropped)
+    return count
+
+
 def build_many(
     designspace: DesignSpaceDocument,
     master_finder=lambda s: s,
@@ -972,6 +1063,7 @@ def build_many(
     optimize=True,
     skip_vf=lambda vf_name: False,
     colr_layer_reuse=True,
+    drop_implied_oncurves=False,
 ):
     """
     Build variable fonts from a designspace file, version 5 which can define
@@ -1015,6 +1107,7 @@ def build_many(
                 exclude=exclude,
                 optimize=optimize,
                 colr_layer_reuse=colr_layer_reuse,
+                drop_implied_oncurves=drop_implied_oncurves,
             )[0]
             if doBuildStatFromDSv5:
                 buildVFStatTable(vf, designspace, name)
@@ -1028,6 +1121,7 @@ def build(
     exclude=[],
     optimize=True,
     colr_layer_reuse=True,
+    drop_implied_oncurves=False,
 ):
     """
     Build variation font from a designspace file.
@@ -1055,6 +1149,13 @@ def build(
         except AttributeError:
             master_ttfs.append(None)  # in-memory fonts have no path
 
+    if drop_implied_oncurves and "glyf" in master_fonts[ds.base_idx]:
+        drop_count = drop_implied_oncurve_points(*master_fonts)
+        log.info(
+            "Dropped %s on-curve points from simple glyphs in the 'glyf' table",
+            drop_count,
+        )
+
     # Copy the base master to work from it
     vf = deepcopy(master_fonts[ds.base_idx])
 
@@ -1065,8 +1166,6 @@ def build(
     fvar = _add_fvar(vf, ds.axes, ds.instances)
     if "STAT" not in exclude:
         _add_stat(vf)
-    if "avar" not in exclude:
-        _add_avar(vf, ds.axes)
 
     # Map from axis names to axis tags...
     normalized_master_locs = [
@@ -1080,6 +1179,8 @@ def build(
     assert 0 == model.mapping[ds.base_idx]
 
     log.info("Building variations tables")
+    if "avar" not in exclude:
+        _add_avar(vf, ds.axes, ds.axisMappings, axisTags)
     if "BASE" not in exclude and "BASE" in vf:
         _add_BASE(vf, model, master_fonts, axisTags)
     if "MVAR" not in exclude:
@@ -1229,6 +1330,14 @@ def main(args=None):
         help="do not rebuild variable COLR table to optimize COLR layer reuse",
     )
     parser.add_argument(
+        "--drop-implied-oncurves",
+        action="store_true",
+        help=(
+            "drop on-curve points that can be implied when exactly in the middle of "
+            "two off-curve points (only applies to TrueType fonts)"
+        ),
+    )
+    parser.add_argument(
         "--master-finder",
         default="master_ttf_interpolatable/{stem}.ttf",
         help=(
@@ -1312,6 +1421,7 @@ def main(args=None):
         exclude=options.exclude,
         optimize=options.optimize,
         colr_layer_reuse=options.colr_layer_reuse,
+        drop_implied_oncurves=options.drop_implied_oncurves,
     )
 
     for vf_name, vf in vfs.items():

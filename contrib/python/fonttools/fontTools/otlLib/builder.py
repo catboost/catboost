@@ -990,7 +990,7 @@ class MarkBasePosBuilder(LookupBuilder):
             for mc, anchor in anchors.items():
                 if mc not in markClasses:
                     raise ValueError(
-                        "Mark class %s not found for base glyph %s" % (mc, mark)
+                        "Mark class %s not found for base glyph %s" % (mc, glyph)
                     )
                 bases[glyph][markClasses[mc]] = anchor
         subtables = buildMarkBasePos(marks, bases, self.glyphMap)
@@ -2509,9 +2509,14 @@ def buildAttachPoint(points):
 
 def buildCaretValueForCoord(coord):
     # 500 --> otTables.CaretValue, format 1
+    # (500, DeviceTable) --> otTables.CaretValue, format 3
     self = ot.CaretValue()
-    self.Format = 1
-    self.Coordinate = coord
+    if isinstance(coord, tuple):
+        self.Format = 3
+        self.Coordinate, self.DeviceTable = coord
+    else:
+        self.Format = 1
+        self.Coordinate = coord
     return self
 
 
@@ -2573,7 +2578,8 @@ def buildLigGlyph(coords, points):
     # ([500], [4]) --> otTables.LigGlyph; None for empty coords/points
     carets = []
     if coords:
-        carets.extend([buildCaretValueForCoord(c) for c in sorted(coords)])
+        coords = sorted(coords, key=lambda c: c[0] if isinstance(c, tuple) else c)
+        carets.extend([buildCaretValueForCoord(c) for c in coords])
     if points:
         carets.extend([buildCaretValueForPoint(p) for p in sorted(points)])
     if not carets:

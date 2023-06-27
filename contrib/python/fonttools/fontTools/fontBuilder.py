@@ -131,6 +131,7 @@ fb.save("test.otf")
 
 from .ttLib import TTFont, newTable
 from .ttLib.tables._c_m_a_p import cmap_classes
+from .ttLib.tables._g_l_y_f import flagCubic
 from .misc.timeTools import timestampNow
 import struct
 from collections import OrderedDict
@@ -319,7 +320,7 @@ _OS2Defaults = dict(
 
 
 class FontBuilder(object):
-    def __init__(self, unitsPerEm=None, font=None, isTTF=True):
+    def __init__(self, unitsPerEm=None, font=None, isTTF=True, glyphDataFormat=0):
         """Initialize a FontBuilder instance.
 
         If the `font` argument is not given, a new `TTFont` will be
@@ -327,15 +328,31 @@ class FontBuilder(object):
         the font will be a glyf-based TTF; if `isTTF` is False it will be
         a CFF-based OTF.
 
+        The `glyphDataFormat` argument corresponds to the `head` table field
+        that defines the format of the TrueType `glyf` table (default=0).
+        TrueType glyphs historically can only contain quadratic splines and static
+        components, but there's a proposal to add support for cubic Bezier curves as well
+        as variable composites/components at
+        https://github.com/harfbuzz/boring-expansion-spec/blob/main/glyf1.md
+        You can experiment with the new features by setting `glyphDataFormat` to 1.
+        A ValueError is raised if `glyphDataFormat` is left at 0 but glyphs are added
+        that contain cubic splines or varcomposites. This is to prevent accidentally
+        creating fonts that are incompatible with existing TrueType implementations.
+
         If `font` is given, it must be a `TTFont` instance and `unitsPerEm`
-        must _not_ be given. The `isTTF` argument will be ignored.
+        must _not_ be given. The `isTTF` and `glyphDataFormat` arguments will be ignored.
         """
         if font is None:
             self.font = TTFont(recalcTimestamp=False)
             self.isTTF = isTTF
             now = timestampNow()
             assert unitsPerEm is not None
-            self.setupHead(unitsPerEm=unitsPerEm, created=now, modified=now)
+            self.setupHead(
+                unitsPerEm=unitsPerEm,
+                create=now,
+                modified=now,
+                glyphDataFormat=glyphDataFormat,
+            )
             self.setupMaxp()
         else:
             assert unitsPerEm is None
@@ -631,7 +648,7 @@ class FontBuilder(object):
         for fontDict in topDict.FDArray:
             fontDict.Private.vstore = vstore
 
-    def setupGlyf(self, glyphs, calcGlyphBounds=True):
+    def setupGlyf(self, glyphs, calcGlyphBounds=True, validateGlyphFormat=True):
         """Create the `glyf` table from a dict, that maps glyph names
         to `fontTools.ttLib.tables._g_l_y_f.Glyph` objects, for example
         as made by `fontTools.pens.ttGlyphPen.TTGlyphPen`.
@@ -639,8 +656,26 @@ class FontBuilder(object):
         If `calcGlyphBounds` is True, the bounds of all glyphs will be
         calculated. Only pass False if your glyph objects already have
         their bounding box values set.
+
+        If `validateGlyphFormat` is True, raise ValueError if any of the glyphs contains
+        cubic curves or is a variable composite but head.glyphDataFormat=0.
+        Set it to False to skip the check if you know in advance all the glyphs are
+        compatible with the specified glyphDataFormat.
         """
         assert self.isTTF
+
+        if validateGlyphFormat and self.font["head"].glyphDataFormat == 0:
+            for name, g in glyphs.items():
+                if g.isVarComposite():
+                    raise ValueError(
+                        f"Glyph {name!r} is a variable composite, but glyphDataFormat=0"
+                    )
+                elif g.numberOfContours > 0 and any(f & flagCubic for f in g.flags):
+                    raise ValueError(
+                        f"Glyph {name!r} has cubic Bezier outlines, but glyphDataFormat=0; "
+                        "either convert to quadratics with cu2qu or set glyphDataFormat=1."
+                    )
+
         self.font["loca"] = newTable("loca")
         self.font["glyf"] = newTable("glyf")
         self.font["glyf"].glyphs = glyphs

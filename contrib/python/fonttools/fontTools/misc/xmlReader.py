@@ -148,7 +148,19 @@ class XMLReader(object):
 
     def _characterDataHandler(self, data):
         if self.stackSize > 1:
-            self.contentStack[-1].append(data)
+            # parser parses in chunks, so we may get multiple calls
+            # for the same text node; thus we need to append the data
+            # to the last item in the content stack:
+            # https://github.com/fonttools/fonttools/issues/2614
+            if (
+                data != "\n"
+                and self.contentStack[-1]
+                and isinstance(self.contentStack[-1][-1], str)
+                and self.contentStack[-1][-1] != "\n"
+            ):
+                self.contentStack[-1][-1] += data
+            else:
+                self.contentStack[-1].append(data)
 
     def _endElementHandler(self, name):
         self.stackSize = self.stackSize - 1

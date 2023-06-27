@@ -1,4 +1,4 @@
-__all__ = ["popCount"]
+__all__ = ["popCount", "bit_count", "bit_indices"]
 
 
 try:
@@ -13,7 +13,7 @@ except AttributeError:
 
 See https://docs.python.org/3.10/library/stdtypes.html#int.bit_count
 """
-popCount = bit_count
+popCount = bit_count  # alias
 
 
 def bit_indices(v):

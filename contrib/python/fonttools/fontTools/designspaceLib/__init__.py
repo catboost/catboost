@@ -24,6 +24,7 @@ from fontTools.misc.textTools import tobytes, tostr
 __all__ = [
     "AxisDescriptor",
     "AxisLabelDescriptor",
+    "AxisMappingDescriptor",
     "BaseDocReader",
     "BaseDocWriter",
     "DesignSpaceDocument",
@@ -205,7 +206,7 @@ class SourceDescriptor(SimpleDescriptor):
         self.name = name
         """string. Optional. Unique identifier name for this source.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
 
         self.designLocation = (
@@ -213,7 +214,7 @@ class SourceDescriptor(SimpleDescriptor):
         )
         """dict. Axis values for this source, in design space coordinates.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
 
         This may be only part of the full design location.
         See :meth:`getFullDesignLocation()`
@@ -230,14 +231,14 @@ class SourceDescriptor(SimpleDescriptor):
         can be extracted from the font, it can be efficient to have it right
         here.
 
-        Varlib.
+        varLib.
         """
         self.styleName = styleName
         """string. Style name of this source. Though this data
         can be extracted from the font, it can be efficient to have it right
         here.
 
-        Varlib.
+        varLib.
         """
         self.localisedFamilyName = localisedFamilyName or {}
         """dict. A dictionary of localised family name strings, keyed by
@@ -303,7 +304,7 @@ class SourceDescriptor(SimpleDescriptor):
     def location(self):
         """dict. Axis values for this source, in design space coordinates.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
 
         .. deprecated:: 5.0
            Use the more explicit alias for this property :attr:`designLocation`.
@@ -450,6 +451,50 @@ AnisotropicLocationDict = Dict[str, Union[float, Tuple[float, float]]]
 SimpleLocationDict = Dict[str, float]
 
 
+class AxisMappingDescriptor(SimpleDescriptor):
+    """Represents the axis mapping element: mapping an input location
+    to an output location in the designspace.
+
+    .. code:: python
+
+        m1 = AxisMappingDescriptor()
+        m1.inputLocation = {"weight": 900, "width": 150}
+        m1.outputLocation = {"weight": 870}
+
+    .. code:: xml
+
+        <mappings>
+            <mapping>
+                <input>
+                    <dimension name="weight" xvalue="900"/>
+                    <dimension name="width" xvalue="150"/>
+                </input>
+                <output>
+                    <dimension name="weight" xvalue="870"/>
+                </output>
+            </mapping>
+        </mappings>
+    """
+
+    _attrs = ["inputLocation", "outputLocation"]
+
+    def __init__(self, *, inputLocation=None, outputLocation=None):
+        self.inputLocation: SimpleLocationDict = inputLocation or {}
+        """dict. Axis values for the input of the mapping, in design space coordinates.
+
+        varLib.
+
+        .. versionadded:: 5.1
+        """
+        self.outputLocation: SimpleLocationDict = outputLocation or {}
+        """dict. Axis values for the output of the mapping, in design space coordinates.
+
+        varLib.
+
+        .. versionadded:: 5.1
+        """
+
+
 class InstanceDescriptor(SimpleDescriptor):
     """Simple container for data related to the instance
 
@@ -561,7 +606,7 @@ class InstanceDescriptor(SimpleDescriptor):
         )
         """dict. Axis values for this instance, in design space coordinates.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
 
         .. seealso:: This may be only part of the full location. See:
            :meth:`getFullDesignLocation`
@@ -572,7 +617,7 @@ class InstanceDescriptor(SimpleDescriptor):
         self.userLocation: SimpleLocationDict = userLocation or {}
         """dict. Axis values for this instance, in user space coordinates.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
 
         .. seealso:: This may be only part of the full location. See:
            :meth:`getFullDesignLocation`
@@ -583,27 +628,27 @@ class InstanceDescriptor(SimpleDescriptor):
         self.familyName = familyName
         """string. Family name of this instance.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
         self.styleName = styleName
         """string. Style name of this instance.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
         self.postScriptFontName = postScriptFontName
         """string. Postscript fontname for this instance.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
         self.styleMapFamilyName = styleMapFamilyName
         """string. StyleMap familyname for this instance.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
         self.styleMapStyleName = styleMapStyleName
         """string. StyleMap stylename for this instance.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
         self.localisedFamilyName = localisedFamilyName or {}
         """dict. A dictionary of localised family name
@@ -653,7 +698,7 @@ class InstanceDescriptor(SimpleDescriptor):
     def location(self):
         """dict. Axis values for this instance.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
 
         .. deprecated:: 5.0
            Use the more explicit alias for this property :attr:`designLocation`.
@@ -838,7 +883,7 @@ class AbstractAxisDescriptor(SimpleDescriptor):
         self.name = name
         """string. Name of the axis as it is used in the location dicts.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
         # names for UI purposes, if this is not a standard axis,
         self.labelNames = labelNames or {}
@@ -856,7 +901,7 @@ class AbstractAxisDescriptor(SimpleDescriptor):
         user space is the same as design space, as in [(minimum, minimum),
         (maximum, maximum)].
 
-        Varlib.
+        varLib.
         """
         self.axisOrdering = axisOrdering
         """STAT table field ``axisOrdering``.
@@ -934,18 +979,18 @@ class AxisDescriptor(AbstractAxisDescriptor):
         self.minimum = minimum
         """number. The minimum value for this axis in user space.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
         self.maximum = maximum
         """number. The maximum value for this axis in user space.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
         self.default = default
         """number. The default value for this axis, i.e. when a new location is
         created, this is the value this axis will get in user space.
 
-        MutatorMath + Varlib.
+        MutatorMath + varLib.
         """
 
     def serialize(self):
@@ -1325,6 +1370,7 @@ class BaseDocWriter(object):
     axisDescriptorClass = AxisDescriptor
     discreteAxisDescriptorClass = DiscreteAxisDescriptor
     axisLabelDescriptorClass = AxisLabelDescriptor
+    axisMappingDescriptorClass = AxisMappingDescriptor
     locationLabelDescriptorClass = LocationLabelDescriptor
     ruleDescriptorClass = RuleDescriptor
     sourceDescriptorClass = SourceDescriptor
@@ -1336,6 +1382,10 @@ class BaseDocWriter(object):
     @classmethod
     def getAxisDecriptor(cls):
         return cls.axisDescriptorClass()
+
+    @classmethod
+    def getAxisMappingDescriptor(cls):
+        return cls.axisMappingDescriptorClass()
 
     @classmethod
     def getSourceDescriptor(cls):
@@ -1360,6 +1410,7 @@ class BaseDocWriter(object):
 
         if (
             self.documentObject.axes
+            or self.documentObject.axisMappings
             or self.documentObject.elidedFallbackName is not None
         ):
             axesElement = ET.Element("axes")
@@ -1370,6 +1421,12 @@ class BaseDocWriter(object):
             self.root.append(axesElement)
         for axisObject in self.documentObject.axes:
             self._addAxis(axisObject)
+
+        if self.documentObject.axisMappings:
+            mappingsElement = ET.Element("mappings")
+            self.root.findall(".axes")[0].append(mappingsElement)
+            for mappingObject in self.documentObject.axisMappings:
+                self._addAxisMapping(mappingsElement, mappingObject)
 
         if self.documentObject.locationLabels:
             labelsElement = ET.Element("labels")
@@ -1436,6 +1493,9 @@ class BaseDocWriter(object):
         ):
             if minVersion < (5, 0):
                 minVersion = (5, 0)
+        if self.documentObject.axisMappings:
+            if minVersion < (5, 1):
+                minVersion = (5, 1)
         return minVersion
 
     def _makeLocationElement(self, locationObject, name=None):
@@ -1525,6 +1585,23 @@ class BaseDocWriter(object):
         if axisObject.hidden:
             axisElement.attrib["hidden"] = "1"
         self.root.findall(".axes")[0].append(axisElement)
+
+    def _addAxisMapping(self, mappingsElement, mappingObject):
+        mappingElement = ET.Element("mapping")
+        for what in ("inputLocation", "outputLocation"):
+            whatObject = getattr(mappingObject, what, None)
+            if whatObject is None:
+                continue
+            whatElement = ET.Element(what[:-8])
+            mappingElement.append(whatElement)
+
+            for name, value in whatObject.items():
+                dimensionElement = ET.Element("dimension")
+                dimensionElement.attrib["name"] = name
+                dimensionElement.attrib["xvalue"] = self.intOrFloat(value)
+                whatElement.append(dimensionElement)
+
+        mappingsElement.append(mappingElement)
 
     def _addAxisLabel(
         self, axisElement: ET.Element, label: AxisLabelDescriptor
@@ -1854,6 +1931,7 @@ class BaseDocReader(LogMixin):
     axisDescriptorClass = AxisDescriptor
     discreteAxisDescriptorClass = DiscreteAxisDescriptor
     axisLabelDescriptorClass = AxisLabelDescriptor
+    axisMappingDescriptorClass = AxisMappingDescriptor
     locationLabelDescriptorClass = LocationLabelDescriptor
     ruleDescriptorClass = RuleDescriptor
     sourceDescriptorClass = SourceDescriptor
@@ -2004,6 +2082,27 @@ class BaseDocReader(LogMixin):
                     axisObject.axisLabels.append(self.readAxisLabel(label))
             self.documentObject.axes.append(axisObject)
             self.axisDefaults[axisObject.name] = axisObject.default
+
+        mappingsElement = self.root.find(".axes/mappings")
+        self.documentObject.axisMappings = []
+        if mappingsElement is not None:
+            for mappingElement in mappingsElement.findall("mapping"):
+                inputElement = mappingElement.find("input")
+                outputElement = mappingElement.find("output")
+                inputLoc = {}
+                outputLoc = {}
+                for dimElement in inputElement.findall(".dimension"):
+                    name = dimElement.attrib["name"]
+                    value = float(dimElement.attrib["xvalue"])
+                    inputLoc[name] = value
+                for dimElement in outputElement.findall(".dimension"):
+                    name = dimElement.attrib["name"]
+                    value = float(dimElement.attrib["xvalue"])
+                    outputLoc[name] = value
+                axisMappingObject = self.axisMappingDescriptorClass(
+                    inputLocation=inputLoc, outputLocation=outputLoc
+                )
+                self.documentObject.axisMappings.append(axisMappingObject)
 
     def readAxisLabel(self, element: ET.Element):
         xml_attrs = {
@@ -2510,6 +2609,7 @@ class DesignSpaceDocument(LogMixin, AsDictMixin):
         doc.formatVersion
         doc.elidedFallbackName
         doc.axes
+        doc.axisMappings
         doc.locationLabels
         doc.rules
         doc.rulesProcessingLast
@@ -2547,6 +2647,10 @@ class DesignSpaceDocument(LogMixin, AsDictMixin):
 
         self.axes: List[Union[AxisDescriptor, DiscreteAxisDescriptor]] = []
         """List of this document's axes."""
+
+        self.axisMappings: List[AxisMappingDescriptor] = []
+        """List of this document's axis mappings."""
+
         self.locationLabels: List[LocationLabelDescriptor] = []
         """List of this document's STAT format 4 labels.
 
@@ -2756,6 +2860,18 @@ class DesignSpaceDocument(LogMixin, AsDictMixin):
             axis = self.writerClass.axisDescriptorClass(**kwargs)
         self.addAxis(axis)
         return axis
+
+    def addAxisMapping(self, axisMappingDescriptor: AxisMappingDescriptor):
+        """Add the given ``axisMappingDescriptor`` to :attr:`axisMappings`."""
+        self.axisMappings.append(axisMappingDescriptor)
+
+    def addAxisMappingDescriptor(self, **kwargs):
+        """Instantiate a new :class:`AxisMappingDescriptor` using the given
+        ``kwargs`` and add it to :attr:`rules`.
+        """
+        axisMapping = self.writerClass.axisMappingDescriptorClass(**kwargs)
+        self.addAxisMapping(axisMapping)
+        return axisMapping
 
     def addRule(self, ruleDescriptor: RuleDescriptor):
         """Add the given ``ruleDescriptor`` to :attr:`rules`."""

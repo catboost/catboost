@@ -1272,15 +1272,18 @@ class MultipleSubstStatement(Statement):
             replaces.append(replace)
         replaces = list(zip(*replaces))
 
+        seen_originals = set()
         for i, original in enumerate(originals):
-            builder.add_multiple_subst(
-                self.location,
-                prefix,
-                original,
-                suffix,
-                replaces and replaces[i] or (),
-                self.forceChain,
-            )
+            if original not in seen_originals:
+                seen_originals.add(original)
+                builder.add_multiple_subst(
+                    self.location,
+                    prefix,
+                    original,
+                    suffix,
+                    replaces and replaces[i] or (),
+                    self.forceChain,
+                )
 
     def asFea(self, indent=""):
         res = "sub "
