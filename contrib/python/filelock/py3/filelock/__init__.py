@@ -32,9 +32,11 @@ else:  # pragma: win32 no cover
         if warnings is not None:
             warnings.warn("only soft file lock is available", stacklevel=2)
 
-
-#: Alias for the lock, which should be used for the current platform.
-FileLock: type[BaseFileLock] = SoftFileLock if TYPE_CHECKING else _FileLock  # type: ignore[assignment]
+if TYPE_CHECKING:  # noqa: SIM108
+    FileLock = SoftFileLock
+else:
+    #: Alias for the lock, which should be used for the current platform.
+    FileLock = _FileLock
 
 
 __all__ = [
