@@ -202,7 +202,7 @@ def _prepare_args(args):
     if args is None:
         args = []
     if isinstance(args, six.string_types):
-        args = map(lambda a: a.strip(), args.split())
+        args = list(map(lambda a: a.strip(), args.split()))
     return args
 
 
