@@ -148,6 +148,13 @@ TEST(TFormatTest, Quotes)
     EXPECT_EQ("'\\\'\"'", Format("%qv", "\'\""));
     EXPECT_EQ("\"\\x01\"", Format("%Qv", "\x1"));
     EXPECT_EQ("'\\x1b'", Format("%qv", '\x1b'));
+    EXPECT_EQ("'\\\\'", Format("%qv", '\\'));
+    EXPECT_EQ("'\\n'", Format("%qv", '\n'));
+    EXPECT_EQ("'\\t'", Format("%qv", '\t'));
+    EXPECT_EQ("'\\\''", Format("%qv", '\''));
+    EXPECT_EQ("\"'\"", Format("%Qv", '\''));
+    EXPECT_EQ("'\"'", Format("%qv", '\"'));
+    EXPECT_EQ("\"\\\"\"", Format("%Qv", '\"'));
 }
 
 TEST(TFormatTest, Nullable)

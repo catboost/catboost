@@ -91,6 +91,8 @@ inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBu
                 builder->AppendString("\\n");
             } else if (ch == '\t') {
                 builder->AppendString("\\t");
+            } else if (ch == '\\') {
+                builder->AppendString("\\\\");
             } else if (ch < PrintableASCIILow || ch > PrintableASCIIHigh) {
                 builder->AppendString("\\x");
                 builder->AppendChar(IntToHexLowercase[static_cast<ui8>(ch) >> 4]);
