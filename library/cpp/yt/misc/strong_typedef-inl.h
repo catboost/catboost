@@ -5,7 +5,6 @@
 #endif
 
 #include <util/generic/strbuf.h>
-#include <util/stream/fwd.h>
 
 #include <functional>
 
