@@ -17,6 +17,9 @@
 #  - https://github.com/scikit-learn/scikit-learn/pull/11103
 #  - https://github.com/scikit-learn/scikit-learn/pull/19473
 
+cdef extern from "algorithm":
+    pass
+
 cdef extern from *:
     """
     #include <algorithm>
