@@ -35,9 +35,9 @@
 #include "re2/walker-inl.h"
 
 #if defined(RE2_USE_ICU)
-#include "unicode/uniset.h"
-#include "unicode/unistr.h"
-#include "unicode/utypes.h"
+#error #include "unicode/uniset.h"
+#error #include "unicode/unistr.h"
+#error #include "unicode/utypes.h"
 #endif
 
 namespace re2 {

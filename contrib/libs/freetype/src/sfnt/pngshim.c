@@ -28,7 +28,7 @@
 
   /* We always include <setjmp.h>, so make libpng shut up! */
 #define PNG_SKIP_SETJMP_CHECK 1
-#include <png.h>
+#error #include <png.h>
 #include "pngshim.h"
 
 #include "sferrors.h"

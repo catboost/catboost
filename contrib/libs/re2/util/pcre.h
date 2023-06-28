@@ -164,7 +164,7 @@
 #include "absl/strings/string_view.h"
 
 #ifdef USEPCRE
-#include <pcre.h>
+#error #include <pcre.h>
 namespace re2 {
 const bool UsingPCRE = true;
 }  // namespace re2
