@@ -720,7 +720,6 @@ class TestFFTConvolve(object):
         out = fftconvolve(a, b, 'full', axes=axes)
         assert_(np.allclose(out, expected, rtol=1e-10))
 
-    @pytest.mark.skipif(sys.version_info >= (3, 10), reason="crash on Python 3.10")
     @pytest.mark.slow
     @pytest.mark.parametrize(
         'n',
@@ -888,17 +887,14 @@ class TestResample(object):
         signal.resample(sig2, num, axis=-1, window=win)
         assert_(win.shape == (160,))
 
-    @pytest.mark.skipif(sys.version_info >= (3, 10), reason="crash on Python 3.10")
     def test_fft(self):
         # Test FFT-based resampling
         self._test_data(method='fft')
 
-    @pytest.mark.skipif(sys.version_info >= (3, 10), reason="crash on Python 3.10")
     def test_polyphase(self):
         # Test polyphase resampling
         self._test_data(method='polyphase')
 
-    @pytest.mark.skipif(sys.version_info >= (3, 10), reason="crash on Python 3.10")
     def test_polyphase_extfilter(self):
         # Test external specification of downsampling filter
         self._test_data(method='polyphase', ext=True)
