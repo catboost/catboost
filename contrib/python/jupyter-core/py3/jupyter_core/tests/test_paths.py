@@ -474,7 +474,7 @@ def test_is_hidden_win32_cpython():
         subdir1 = os.path.join(root, "subdir")
         os.makedirs(subdir1)
         assert not is_hidden(subdir1, root)
-        subprocess.check_call(["attrib", "+h", subdir1])
+        subprocess.check_call(["attrib", "+h", subdir1])  # noqa
         assert is_hidden(subdir1, root)
         assert is_file_hidden(subdir1)
 
@@ -494,7 +494,7 @@ def test_is_hidden_win32_pypy():
         subdir1 = os.path.join(root, "subdir")
         os.makedirs(subdir1)
         assert not is_hidden(subdir1, root)
-        subprocess.check_call(["attrib", "+h", subdir1])
+        subprocess.check_call(["attrib", "+h", subdir1])  # noqa
 
         with warnings.catch_warnings(record=True) as w:
             # Cause all warnings to always be triggered.
@@ -527,7 +527,7 @@ def test_secure_write_win32():
     def fetch_win32_permissions(filename):
         """Extracts file permissions on windows using icacls"""
         role_permissions = {}
-        proc = os.popen("icacls %s" % filename)
+        proc = os.popen("icacls %s" % filename)  # noqa
         lines = proc.read().splitlines()
         proc.close()
         for index, line in enumerate(lines):

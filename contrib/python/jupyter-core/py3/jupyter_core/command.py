@@ -119,7 +119,7 @@ def _execvp(cmd, argv):
         cmd_path = which(cmd)
         if cmd_path is None:
             raise OSError("%r not found" % cmd, errno.ENOENT)
-        p = Popen([cmd_path] + argv[1:])
+        p = Popen([cmd_path] + argv[1:])  # noqa
         # Don't raise KeyboardInterrupt in the parent process.
         # Set this after spawning, to avoid subprocess inheriting handler.
         import signal
@@ -128,7 +128,7 @@ def _execvp(cmd, argv):
         p.wait()
         sys.exit(p.returncode)
     else:
-        os.execvp(cmd, argv)
+        os.execvp(cmd, argv)  # noqa
 
 
 def _jupyter_abspath(subcommand):

@@ -62,11 +62,16 @@ def write_executable(path, source):
 
     if sys.platform == "win32":
         try:
-            import pkg_resources
+            import importlib.resources
 
-            w = pkg_resources.resource_string("setuptools", "cli-32.exe")
+            if not hasattr(importlib.resources, 'files'):
+                raise ImportError
+            wp = importlib.resources.files('setuptools').joinpath('cli-32.exe')
+            w = wp.read_bytes()
         except (ImportError, FileNotFoundError, SystemError):
-            pytest.skip("Need pkg_resources/setuptools to make scripts executable on Windows")
+            pytest.skip(
+                "Need importlib.resources and setuptools to make scripts executable on Windows"
+            )
         exe.write(w, "wb")
         exe.chmod(0o700)
 

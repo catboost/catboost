@@ -1,7 +1,6 @@
 # Jupyter Core
 
 [![Build Status](https://github.com/jupyter/jupyter_core/actions/workflows/test.yml/badge.svg?query=branch%3Amain++)](https://github.com/jupyter/jupyter_core/actions/workflows/test.yml/badge.svg?query=branch%3Amain++)
-[![codecov](https://codecov.io/gh/jupyter/jupyter_core/branch/main/graph/badge.svg?token=IRZuxPXamU)](https://codecov.io/gh/jupyter/jupyter_core)
 [![Documentation Status](https://readthedocs.org/projects/jupyter-core/badge/?version=latest)](http://jupyter-core.readthedocs.io/en/latest/?badge=latest)
 
 Core common functionality of Jupyter projects.

@@ -398,7 +398,8 @@ def is_file_hidden_win(abs_path: str, stat_res: Optional[Any] = None) -> bool:
         # 'stat_result' object has no attribute 'st_file_attributes'
         # https://foss.heptapod.net/pypy/pypy/-/issues/3469
         warnings.warn(
-            "hidden files are not detectable on this system, so no file will be marked as hidden."
+            "hidden files are not detectable on this system, so no file will be marked as hidden.",
+            stacklevel=2,
         )
         pass
 
@@ -1010,5 +1011,6 @@ def issue_insecure_write_warning() -> None:
     warnings.warn(
         "WARNING: Insecure writes have been enabled via environment variable "
         "'JUPYTER_ALLOW_INSECURE_WRITES'! If this is not intended, remove the "
-        "variable or set its value to 'False'."
+        "variable or set its value to 'False'.",
+        stacklevel=2,
     )

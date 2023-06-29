@@ -16,7 +16,7 @@ def subs(cmd: Union[List[str], str]) -> Optional[str]:
     get data from commands that we need to run outside of python
     """
     try:
-        stdout = subprocess.check_output(cmd)
+        stdout = subprocess.check_output(cmd)  # noqa
         return stdout.decode("utf-8", "replace").strip()
     except (OSError, subprocess.CalledProcessError):
         return None
