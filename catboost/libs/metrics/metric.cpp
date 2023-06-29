@@ -1693,16 +1693,12 @@ TMetricHolder TFocalMetric::EvalSingleThread(
             if (hasDelta) {
                 curApprox += approxDelta[k];
             }
-            const float w = hasWeight ? weight[k] : 1;
-            double FocalAlpha = 0.75;
-            double FocalGamma = 2;
-            double at, p, pt, margin;
-
             curApprox = 1 / (1 + exp(-curApprox));
-            at = target[k] == 1 ? FocalAlpha : 1 - FocalAlpha;
-            p = std::clamp(curApprox, 0.0000000000001, 0.9999999999999);
-            pt = target[k] == 1 ? p : 1 - p;
-            margin =  -at * pow((1 - pt), FocalGamma) * log(pt);
+            const float w = hasWeight ? weight[k] : 1;
+            double at = target[k] == 1 ? FocalAlpha : 1 - FocalAlpha;
+            double p = std::clamp(curApprox, 0.0000000000001, 0.9999999999999);
+            double pt = target[k] == 1 ? p : 1 - p;
+            double margin =  -at * pow((1 - pt), FocalGamma) * log(pt);
             error.Stats[0] += w * margin;
             error.Stats[1] += w;
             }
