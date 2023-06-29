@@ -202,7 +202,7 @@ static int _update_cache_to_call_python(struct _cffi_externpy_s *externpy)
 # elif defined(_AIX)
 #   define read_barrier()  __lwsync()
 # elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
-#   error include <mbarrier.h>
+#   error #include <mbarrier.h>
 #   define read_barrier()  __compiler_barrier()
 # elif defined(__hpux)
 #   define read_barrier()  _Asm_mf()
