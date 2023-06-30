@@ -6,6 +6,7 @@ import sys
 import time
 import signal
 import traceback
+import warnings
 
 import __res
 from __res import importer
@@ -81,12 +82,14 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
             sys.stdout.flush()
 
             s = time.time()
-            if module == '__main__':
-                importer.load_module('__main__', '__main__py')
-            elif module.endswith('.__init__'):
-                __import__(module[:-len('.__init__')])
-            else:
-                __import__(module)
+            with warnings.catch_warnings():
+                warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+                if module == '__main__':
+                    importer.load_module('__main__', '__main__py')
+                elif module.endswith('.__init__'):
+                    __import__(module[:-len('.__init__')])
+                else:
+                    __import__(module)
 
             delay = time.time() - s
             import_times[str(module)] = delay
