@@ -180,7 +180,7 @@ namespace NUtilMathPrivate {
     template <>
     struct TCeilDivImpl<true> {
         template <class T>
-        static inline T Do(T x, T y) noexcept {
+        static inline constexpr T Do(T x, T y) noexcept {
             return x / y + (((x < 0) ^ (y > 0)) && (x % y));
         }
     };
@@ -188,7 +188,7 @@ namespace NUtilMathPrivate {
     template <>
     struct TCeilDivImpl<false> {
         template <class T>
-        static inline T Do(T x, T y) noexcept {
+        static inline constexpr T Do(T x, T y) noexcept {
             auto quot = x / y;
             return (x % y) ? (quot + 1) : quot;
         }
@@ -199,7 +199,11 @@ namespace NUtilMathPrivate {
  * @returns Equivalent to ceil((double) x / (double) y) but using only integer arithmetic operations
  */
 template <class T>
-inline T CeilDiv(T x, T y) noexcept {
+inline T
+#if !defined(__NVCC__)
+    constexpr
+#endif
+    CeilDiv(T x, T y) noexcept {
     static_assert(std::is_integral<T>::value, "Integral type required.");
     Y_ASSERT(y != 0);
     return ::NUtilMathPrivate::TCeilDivImpl<std::is_signed<T>::value>::Do(x, y);
