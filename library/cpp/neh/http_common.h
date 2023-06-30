@@ -147,7 +147,7 @@ namespace NNeh {
             }
 
             TVector<char> Mem;
-
+            TString Data;
         private:
             TParts Parts_;
         };
@@ -215,6 +215,7 @@ namespace NNeh {
 
                 req->AddPart(req->Mem.data(), out.Buf() - req->Mem.data());
                 req->AddPart(msg.Data.data(), msg.Data.size());
+                req->Data = msg.Data;
                 return req;
             }
 
@@ -231,6 +232,7 @@ namespace NNeh {
             static TRequestData::TPtr Build(const TMessage& msg, const TParsedLocation&) {
                 TRequestData::TPtr req(new TRequestData(0));
                 req->AddPart(msg.Data.data(), msg.Data.size());
+                req->Data = msg.Data;
                 return req;
             }
 
