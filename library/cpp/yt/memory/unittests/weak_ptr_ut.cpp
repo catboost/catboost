@@ -300,6 +300,13 @@ TEST_F(TWeakPtrTest, IsExpired)
     EXPECT_TRUE(ptr.IsExpired());
 }
 
+TEST_F(TWeakPtrTest, IsEmpty)
+{
+    TIntricateObjectWkPtr ptr;
+
+    EXPECT_TRUE(ptr == nullptr);
+}
+
 TEST_F(TWeakPtrTest, UpCast)
 {
     TDerivedIntricateObjectPtr object = New<TDerivedIntricateObject>();
