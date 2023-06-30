@@ -52,7 +52,7 @@ cdef class _QuadTree:
         # Parameters of the tree
         self.n_dimensions = n_dimensions
         self.verbose = verbose
-        self.n_cells_per_cell = 2 ** self.n_dimensions
+        self.n_cells_per_cell = <int> (2 ** self.n_dimensions)
 
         # Inner structures
         self.max_depth = 0
@@ -424,7 +424,7 @@ cdef class _QuadTree:
 
         # Check whether we can use this node as a summary
         # It's a summary node if the angular size as measured from the point
-        # is relatively small (w.r.t. to theta) or if it is a leaf node.
+        # is relatively small (w.r.t. theta) or if it is a leaf node.
         # If it can be summarized, we use the cell center of mass
         # Otherwise, we go a higher level of resolution and into the leaves.
         if cell.is_leaf or (

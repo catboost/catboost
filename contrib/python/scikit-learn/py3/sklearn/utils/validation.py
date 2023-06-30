@@ -131,8 +131,8 @@ def _assert_all_finite(
         has_nan_error = False if allow_nan else out == FiniteStatus.has_nan
         has_inf = out == FiniteStatus.has_infinite
     else:
-        has_inf = np.isinf(X).any()
-        has_nan_error = False if allow_nan else xp.isnan(X).any()
+        has_inf = xp.any(xp.isinf(X))
+        has_nan_error = False if allow_nan else xp.any(xp.isnan(X))
     if has_inf or has_nan_error:
         if has_nan_error:
             type_err = "NaN"
@@ -780,8 +780,10 @@ def check_array(
     elif hasattr(array, "iloc") and hasattr(array, "dtype"):
         # array is a pandas series
         pandas_requires_conversion = _pandas_dtype_needs_early_conversion(array.dtype)
-        if pandas_requires_conversion:
-            # Set to None, to convert to a np.dtype that works with array.dtype
+        if isinstance(array.dtype, np.dtype):
+            dtype_orig = array.dtype
+        else:
+            # Set to None to let array.astype work out the best dtype
             dtype_orig = None
 
     if dtype_numeric:
@@ -1174,7 +1176,15 @@ def column_or_1d(y, *, dtype=None, warn=False):
         If `y` is not a 1D array or a 2D array with a single row or column.
     """
     xp, _ = get_namespace(y)
-    y = xp.asarray(y, dtype=dtype)
+    y = check_array(
+        y,
+        ensure_2d=False,
+        dtype=dtype,
+        input_name="y",
+        force_all_finite=False,
+        ensure_min_samples=0,
+    )
+
     shape = y.shape
     if len(shape) == 1:
         return _asarray_with_order(xp.reshape(y, -1), order="C", xp=xp)

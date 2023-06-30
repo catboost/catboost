@@ -214,6 +214,25 @@ class BaseEstimator:
                 valid_params[key] = value
 
         for key, sub_params in nested_params.items():
+            # TODO(1.4): remove specific handling of "base_estimator".
+            # The "base_estimator" key is special. It was deprecated and
+            # renamed to "estimator" for several estimators. This means we
+            # need to translate it here and set sub-parameters on "estimator",
+            # but only if the user did not explicitly set a value for
+            # "base_estimator".
+            if (
+                key == "base_estimator"
+                and valid_params[key] == "deprecated"
+                and self.__module__.startswith("sklearn.")
+            ):
+                warnings.warn(
+                    f"Parameter 'base_estimator' of {self.__class__.__name__} is"
+                    " deprecated in favor of 'estimator'. See"
+                    f" {self.__class__.__name__}'s docstring for more details.",
+                    FutureWarning,
+                    stacklevel=2,
+                )
+                key = "estimator"
             valid_params[key].set_params(**sub_params)
 
         return self
@@ -271,9 +290,20 @@ class BaseEstimator:
         return repr_
 
     def __getstate__(self):
+        if getattr(self, "__slots__", None):
+            raise TypeError(
+                "You cannot use `__slots__` in objects inheriting from "
+                "`sklearn.base.BaseEstimator`."
+            )
+
         try:
             state = super().__getstate__()
+            if state is None:
+                # For Python 3.11+, empty instance (no `__slots__`,
+                # and `__dict__`) will return a state equal to `None`.
+                state = self.__dict__.copy()
         except AttributeError:
+            # Python < 3.11
             state = self.__dict__.copy()
 
         if type(self).__module__.startswith("sklearn."):
@@ -631,7 +661,7 @@ class ClassifierMixin:
         Returns
         -------
         score : float
-            Mean accuracy of ``self.predict(X)`` wrt. `y`.
+            Mean accuracy of ``self.predict(X)`` w.r.t. `y`.
         """
         from .metrics import accuracy_score
 
@@ -675,7 +705,7 @@ class RegressorMixin:
         Returns
         -------
         score : float
-            :math:`R^2` of ``self.predict(X)`` wrt. `y`.
+            :math:`R^2` of ``self.predict(X)`` w.r.t. `y`.
 
         Notes
         -----

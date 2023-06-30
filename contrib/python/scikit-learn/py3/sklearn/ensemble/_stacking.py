@@ -8,7 +8,6 @@ from copy import deepcopy
 from numbers import Integral
 
 import numpy as np
-from joblib import Parallel
 import scipy.sparse as sparse
 
 from ..base import clone
@@ -33,7 +32,7 @@ from ..utils.multiclass import check_classification_targets, type_of_target
 from ..utils.metaestimators import available_if
 from ..utils.validation import check_is_fitted
 from ..utils.validation import column_or_1d
-from ..utils.fixes import delayed
+from ..utils.parallel import delayed, Parallel
 from ..utils._param_validation import HasMethods, StrOptions
 from ..utils.validation import _check_feature_names_in
 
@@ -501,6 +500,7 @@ class StackingClassifier(ClassifierMixin, _BaseStacking):
     feature_names_in_ : ndarray of shape (`n_features_in_`,)
         Names of features seen during :term:`fit`. Only defined if the
         underlying estimators expose such an attribute when fit.
+
         .. versionadded:: 1.0
 
     final_estimator_ : estimator
@@ -860,6 +860,7 @@ class StackingRegressor(RegressorMixin, _BaseStacking):
     feature_names_in_ : ndarray of shape (`n_features_in_`,)
         Names of features seen during :term:`fit`. Only defined if the
         underlying estimators expose such an attribute when fit.
+
         .. versionadded:: 1.0
 
     final_estimator_ : estimator
@@ -971,6 +972,30 @@ class StackingRegressor(RegressorMixin, _BaseStacking):
             Prediction outputs for each estimator.
         """
         return self._transform(X)
+
+    def fit_transform(self, X, y, sample_weight=None):
+        """Fit the estimators and return the predictions for X for each estimator.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If None, then samples are equally weighted.
+            Note that this is supported only if all underlying estimators
+            support sample weights.
+
+        Returns
+        -------
+        y_preds : ndarray of shape (n_samples, n_estimators)
+            Prediction outputs for each estimator.
+        """
+        return super().fit_transform(X, y, sample_weight=sample_weight)
 
     def _sk_visual_block_(self):
         # If final_estimator's default changes then this should be
