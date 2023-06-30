@@ -516,7 +516,7 @@ namespace {
 #endif
         }
 
-        void StartRequest(THttpRequestRef req, const TEndpoint& ep, size_t addrId, TDuration slowConn, bool useAsyncSendRequest = false) {
+        void StartRequest(THttpRequestRef req, const TEndpoint& ep, size_t addrId, TDuration slowConn) {
             {
                 //thread safe linking connection->request
                 TGuard<TSpinLock> g(SL_);
@@ -532,7 +532,7 @@ namespace {
                     ConnectDeadline_ = THttp2Options::ConnectTimeout - slowConn;
                 }
                 DBGOUT("AsyncConnect to " << ep.IpToString());
-                AS_.AsyncConnect(ep, std::bind(&THttpConn::OnConnect, THttpConnRef(this), _1, _2, useAsyncSendRequest), connectDeadline);
+                AS_.AsyncConnect(ep, std::bind(&THttpConn::OnConnect, THttpConnRef(this), _1, _2), connectDeadline);
             } catch (...) {
                 ReleaseRequest();
                 throw;
@@ -540,7 +540,7 @@ namespace {
         }
 
         //start next request on keep-alive connection
-        bool StartNextRequest(THttpRequestRef& req, bool useAsyncSendRequest = false) {
+        bool StartNextRequest(THttpRequestRef& req) {
             if (Finalized_) {
                 return false;
             }
@@ -555,16 +555,12 @@ namespace {
             BeginReadResponse_ = false;
 
             try {
-                if (!useAsyncSendRequest) {
-                    TErrorCode ec;
-                    SendRequest(req->BuildRequest(), ec); //throw std::bad_alloc
-                    if (ec.Value() == ECANCELED) {
-                        OnCancel();
-                    } else if (ec) {
-                        OnError(ec);
-                    }
-                } else {
-                    SendRequestAsync(req->BuildRequest()); //throw std::bad_alloc
+                TErrorCode ec;
+                SendRequest(req->BuildRequest(), ec); //throw std::bad_alloc
+                if (ec.Value() == ECANCELED) {
+                    OnCancel();
+                } else if (ec) {
+                    OnError(ec);
                 }
             } catch (...) {
                 OnError(CurrentExceptionMessage());
@@ -650,7 +646,7 @@ namespace {
         }
 
         //can be called only from asio
-        void OnConnect(const TErrorCode& ec, IHandlingContext& ctx, bool useAsyncSendRequest = false) {
+        void OnConnect(const TErrorCode& ec, IHandlingContext& ctx) {
             DBGOUT("THttpConn::OnConnect: " << ec.Value());
             if (Y_UNLIKELY(ec)) {
                 if (ec.Value() == ETIMEDOUT && ConnectDeadline_.GetValue()) {
@@ -712,14 +708,10 @@ namespace {
                 THttpRequestBuffersPtr ptr(req->BuildRequest());
                 PrepareParser();
 
-                if (!useAsyncSendRequest) {
-                    TErrorCode ec3;
-                    SendRequest(ptr, ec3);
-                    if (ec3) {
-                        OnError(ec3);
-                    }
-                } else {
-                    SendRequestAsync(ptr);
+                TErrorCode ec3;
+                SendRequest(ptr, ec3);
+                if (ec3) {
+                    OnError(ec3);
                 }
             }
         }
@@ -1159,7 +1151,7 @@ namespace {
                 if (HttpConnManager()->Get(conn, Addr_->Id)) {
                     DBGOUT("Use connection from cache");
                     Conn_ = conn; //thread magic
-                    if (!conn->StartNextRequest(req, RequestSettings_.UseAsyncSendRequest)) {
+                    if (!conn->StartNextRequest(req)) {
                         continue; //if use connection from cache, ignore write error and try another conn
                     }
                 } else {
@@ -1990,19 +1982,6 @@ namespace {
             THttpRequest::THandleRef ret(new THttpRequest::THandle(fallback, msg, !ss ? nullptr : new TStatCollector(ss)));
             try {
                 THttpRequest::Run(ret, msg, &T::Build, T::RequestSettings());
-            } catch (...) {
-                ret->ResetOnRecv();
-                throw;
-            }
-            return ret.Get();
-        }
-
-        THandleRef ScheduleAsyncRequest(const TMessage& msg, IOnRecv* fallback, TServiceStatRef& ss, bool useAsyncSendRequest) override {
-            THttpRequest::THandleRef ret(new THttpRequest::THandle(fallback, msg, !ss ? nullptr : new TStatCollector(ss)));
-            try {
-                auto requestSettings = T::RequestSettings();
-                requestSettings.SetUseAsyncSendRequest(useAsyncSendRequest);
-                THttpRequest::Run(ret, msg, &T::Build, requestSettings);
             } catch (...) {
                 ret->ResetOnRecv();
                 throw;

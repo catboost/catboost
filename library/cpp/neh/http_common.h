@@ -155,7 +155,6 @@ namespace NNeh {
         struct TRequestSettings {
             bool NoDelay = true;
             EResolverType ResolverType = EResolverType::ETCP;
-            bool UseAsyncSendRequest = false;
 
             TRequestSettings& SetNoDelay(bool noDelay) {
                 NoDelay = noDelay;
@@ -164,11 +163,6 @@ namespace NNeh {
 
             TRequestSettings& SetResolverType(EResolverType resolverType) {
                 ResolverType = resolverType;
-                return *this;
-            }
-
-            TRequestSettings& SetUseAsyncSendRequest(bool useAsyncSendRequest) {
-                UseAsyncSendRequest = useAsyncSendRequest;
                 return *this;
             }
         };

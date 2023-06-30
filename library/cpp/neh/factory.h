@@ -12,10 +12,6 @@ namespace NNeh {
         }
         virtual IRequesterRef CreateRequester(IOnRequest* cb, const TParsedLocation& loc) = 0;
         virtual THandleRef ScheduleRequest(const TMessage& msg, IOnRecv* fallback, TServiceStatRef&) = 0;
-        virtual THandleRef ScheduleAsyncRequest(const TMessage& msg, IOnRecv* fallback, TServiceStatRef& statRef, bool useAsyncSendRequest = false) {
-            Y_UNUSED(useAsyncSendRequest);
-            return ScheduleRequest(msg, fallback, statRef);
-        }
         virtual TStringBuf Scheme() const noexcept = 0;
         virtual bool SetOption(TStringBuf name, TStringBuf value) {
             Y_UNUSED(name);
