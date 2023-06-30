@@ -1,11 +1,15 @@
 Metadata-Version: 2.1
 Name: pytest-mock
-Version: 3.10.0
+Version: 3.11.1
 Summary: Thin-wrapper around the mock package for easier use with pytest
 Home-page: https://github.com/pytest-dev/pytest-mock/
 Author: Bruno Oliveira
 Author-email: nicoddemus@gmail.com
 License: MIT
+Project-URL: Documentation, https://pytest-mock.readthedocs.io/en/latest/
+Project-URL: Changelog, https://pytest-mock.readthedocs.io/en/latest/changelog.html
+Project-URL: Source, https://github.com/pytest-dev/pytest-mock/
+Project-URL: Tracker, https://github.com/pytest-dev/pytest-mock/issues
 Keywords: pytest mock
 Platform: any
 Classifier: Development Status :: 5 - Production/Stable
@@ -22,6 +26,7 @@ Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Topic :: Software Development :: Testing
 Requires-Python: >=3.7
+Description-Content-Type: text/x-rst
 License-File: LICENSE
 Requires-Dist: pytest (>=5.0)
 Provides-Extra: dev
