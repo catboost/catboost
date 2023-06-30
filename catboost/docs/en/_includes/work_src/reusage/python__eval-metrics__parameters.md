@@ -36,7 +36,7 @@ For example, if the {{ error-function--AUC }} and {{ error-function--Logit }} 
 
 #### Description
 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe range of the tree indices to`[ntree_start; ntree_end)`.
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the range of the tree indices to`[ntree_start; ntree_end)`.
 
 {% include [eval-start-end-ntree_start__short-param-desc](../reusage-common-phrases/ntree_start__short-param-desc.md) %}
 
@@ -53,7 +53,7 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 #### Description
 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe range of the tree indices to`[ntree_start; ntree_end)` and the step of the trees to use to`eval_period`.
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the range of the tree indices to`[ntree_start; ntree_end)` and the step of the trees to use to`eval_period`.
 
 {% include [eval-start-end-ntree_end__short-param-desc](../reusage-common-phrases/ntree_end__short-param-desc.md) %}
 
