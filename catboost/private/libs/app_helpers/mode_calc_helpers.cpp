@@ -58,12 +58,11 @@ void NCB::PrepareCalcModeParamsParser(
         .StoreResult(&virtualEnsemblesCount);
     parser.AddLongOption("eval-period", "predictions are evaluated every <eval-period> trees")
         .StoreResult(&evalPeriod);
-    parser.AddLongOption("binary-classification-threshold", "probability boundary for binary classification")
+    parser.AddLongOption("binary-classification-threshold", "probability threshold for binary classification")
         .Handler1T<TString>([&](const TString& threshold) {
-            params.BinClassLogitThreshold = FromString<double>(threshold);
-            CB_ENSURE(
-                *params.BinClassLogitThreshold > 0.0 && *params.BinClassLogitThreshold < 1.0,
-                "Threshold should be greater than 0, and less than 1");
+            double probabilityThreshold = FromString<double>(threshold);
+            CB_ENSURE(probabilityThreshold > 0. && probabilityThreshold < 1., "Probability threshold should be between 0 and 1");
+            params.BinClassLogitThreshold = NCB::Logit(probabilityThreshold);
         });
     parser.SetFreeArgsNum(0);
 }
