@@ -1,7 +1,7 @@
 PyParsing -- A Python Parsing Module
 ====================================
 
-|Build Status| |Coverage|
+|Version| |Build Status| |Coverage| |License| |Python Versions|
 
 Introduction
 ============
@@ -63,7 +63,7 @@ entire directory of examples can be found `here <https://github.com/pyparsing/py
 License
 =======
 
-MIT License. See header of the `pyparsing.py <https://github.com/pyparsing/pyparsing/blob/master/pyparsing/__init__.py#L1-L23>`__ file.
+MIT License. See header of the `pyparsing __init__.py <https://github.com/pyparsing/pyparsing/blob/master/pyparsing/__init__.py#L1-L23>`__ file.
 
 History
 =======
@@ -72,5 +72,18 @@ See `CHANGES <https://github.com/pyparsing/pyparsing/blob/master/CHANGES>`__ fil
 
 .. |Build Status| image:: https://github.com/pyparsing/pyparsing/actions/workflows/ci.yml/badge.svg
    :target: https://github.com/pyparsing/pyparsing/actions/workflows/ci.yml
+
 .. |Coverage| image:: https://codecov.io/gh/pyparsing/pyparsing/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/pyparsing/pyparsing
+
+.. |Version| image:: https://img.shields.io/pypi/v/pyparsing?style=flat-square
+    :target: https://pypi.org/project/pyparsing/
+    :alt: Version
+
+.. |License| image:: https://img.shields.io/pypi/l/pyparsing.svg?style=flat-square
+    :target: https://pypi.org/project/pyparsing/
+    :alt: License
+
+.. |Python Versions| image:: https://img.shields.io/pypi/pyversions/pyparsing.svg?style=flat-square
+    :target: https://pypi.org/project/python-liquid/
+    :alt: Python versions
