@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <string_view>
+#include <optional>
 
 #if defined(_win_)
     #include <io.h>
@@ -250,6 +251,23 @@ template <>
 void Out<TNullPtr>(IOutputStream& o, TTypeTraits<TNullPtr>::TFuncParam) {
     o << TStringBuf("nullptr");
 }
+
+#define DEF_OPTIONAL(TYPE)                                                               \
+    template <>                                                                          \
+    void Out<std::optional<TYPE>>(IOutputStream & o, const std::optional<TYPE>& value) { \
+        if (value) {                                                                     \
+            o << *value;                                                                 \
+        } else {                                                                         \
+            o << "(NULL)";                                                               \
+        }                                                                                \
+    }
+
+DEF_OPTIONAL(ui32);
+DEF_OPTIONAL(i64);
+DEF_OPTIONAL(ui64);
+DEF_OPTIONAL(std::string);
+DEF_OPTIONAL(TString);
+DEF_OPTIONAL(TStringBuf);
 
 #if defined(_android_)
 namespace {
