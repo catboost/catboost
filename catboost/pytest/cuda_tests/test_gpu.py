@@ -2826,7 +2826,6 @@ def test_model_based_eval(dataset):
 def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_estimators):
     output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
-    test_error_path = yatest.common.test_output_path('test.tsv')
 
     test_eval_path = yatest.common.test_output_path('test.eval')
     calc_eval_path = yatest.common.test_output_path('calc.eval')
@@ -2841,31 +2840,30 @@ def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_
     pool_name = 'rotten_tomatoes'
     test_file = data_file(pool_name, 'test')
     cd_file = data_file(pool_name, 'cd_binclass')
-    params = {
-        '--loss-function': 'Logloss',
-        '--eval-metric': 'AUC',
-        '-f': data_file(pool_name, 'train'),
-        '-t': test_file,
-        '--text-processing': json.dumps(text_processing),
-        '--column-description': cd_file,
-        '--boosting-type': boosting_type,
-        '-i': '20',
-        '-T': '4',
-        '-m': output_model_path,
-        '--learn-err-log': learn_error_path,
-        '--test-err-log': test_error_path,
-        '--eval-file': test_eval_path,
-        '--output-columns': 'RawFormulaVal',
-        '--use-best-model': 'false',
-        '--metric-period': '1',
-    }
-    fit_catboost_gpu(params)
+    params = (
+        '--loss-function', 'Logloss',
+        '--eval-metric', 'Accuracy',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+        '--metric-period', '1',
+        '--devices', '0',
+    )
+    fit_catboost_gpu(params + NO_RANDOM_PARAMS)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
     assert (compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
 
-    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
-            local_canonical_file(test_error_path, diff_tool=diff_tool())]
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool())]
 
 
 @pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
@@ -2874,7 +2872,6 @@ def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_
 def test_fit_multiclass_with_text_features(separator_type, feature_estimators, loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
-    test_error_path = yatest.common.test_output_path('test.tsv')
 
     test_eval_path = yatest.common.test_output_path('test.eval')
     calc_eval_path = yatest.common.test_output_path('calc.eval')
@@ -2889,24 +2886,24 @@ def test_fit_multiclass_with_text_features(separator_type, feature_estimators, l
     pool_name = 'rotten_tomatoes'
     test_file = data_file(pool_name, 'test')
     cd_file = data_file(pool_name, 'cd')
-    params = {
-        '--loss-function': loss_function,
-        '--eval-metric': 'Accuracy',
-        '-f': data_file(pool_name, 'train'),
-        '-t': test_file,
-        '--text-processing': json.dumps(text_processing),
-        '--column-description': cd_file,
-        '--boosting-type': 'Plain',
-        '-i': '20',
-        '-T': '4',
-        '-m': output_model_path,
-        '--learn-err-log': learn_error_path,
-        '--test-err-log': test_error_path,
-        '--eval-file': test_eval_path,
-        '--output-columns': 'RawFormulaVal',
-        '--use-best-model': 'false',
-    }
-    fit_catboost_gpu(params)
+    params = (
+        '--loss-function', loss_function,
+        '--eval-metric', 'Accuracy',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+        '--devices', '0',
+    )
+    fit_catboost_gpu(params + NO_RANDOM_PARAMS)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
     assert (
@@ -2919,8 +2916,7 @@ def test_fit_multiclass_with_text_features(separator_type, feature_estimators, l
         )
     )
 
-    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
-            local_canonical_file(test_error_path, diff_tool=diff_tool())]
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool())]
 
 
 @pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)

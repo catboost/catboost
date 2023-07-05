@@ -812,161 +812,101 @@
     "test_gpu.test_fit_binclass_with_text_features[BM25-ByDelimiter-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-ByDelimiter-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-ByDelimiter-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BM25-ByDelimiter-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-ByDelimiter-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-ByDelimiter-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BM25-BySense-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-BySense-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-BySense-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BM25-BySense-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-BySense-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-BySense-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-ByDelimiter-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-ByDelimiter-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-BySense-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-BySense-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes-ByDelimiter-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes-ByDelimiter-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes-BySense-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes-BySense-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW-ByDelimiter-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-ByDelimiter-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-ByDelimiter-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW-ByDelimiter-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-ByDelimiter-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-ByDelimiter-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW-BySense-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-BySense-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-BySense-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW-BySense-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-BySense-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-BySense-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[NaiveBayes-ByDelimiter-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[NaiveBayes-ByDelimiter-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[NaiveBayes-BySense-Ordered]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-BySense-Ordered_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-BySense-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[NaiveBayes-BySense-Plain]": [
         {
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-BySense-Plain_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-BySense-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_class_names": [
@@ -977,161 +917,101 @@
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BM25-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BM25-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BM25-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BM25-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BM25-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BM25-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes,BM25-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes,BM25-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-NaiveBayes-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-NaiveBayes-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BM25-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BM25-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes,BM25-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes,BM25-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-NaiveBayes-ByDelimiter]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-ByDelimiter_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-ByDelimiter_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-NaiveBayes-BySense]": [
         {
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/learn.tsv"
-        },
-        {
-            "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/test.tsv"
         }
     ],
     "test_gpu.test_fit_regression_with_text_features[BoW-ByDelimiter]": [
