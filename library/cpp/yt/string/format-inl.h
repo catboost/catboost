@@ -633,6 +633,35 @@ void FormatImpl(
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class... TArgs>
+TLazyMultiValueFormatter<TArgs...>::TLazyMultiValueFormatter(
+    TStringBuf format,
+    TArgs&&... args)
+    : Format_(format)
+    , Args_(std::forward<TArgs>(args)...)
+{ }
+
+template <class... TArgs>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TLazyMultiValueFormatter<TArgs...>& value,
+    TStringBuf /*format*/)
+{
+    std::apply(
+        [&] <class... TInnerArgs> (TInnerArgs&&... args) {
+            builder->AppendFormat(value.Format_, std::forward<TInnerArgs>(args)...);
+        },
+        value.Args_);
+}
+
+template <class... TArgs>
+auto MakeLazyMultiValueFormatter(TStringBuf format, TArgs&&... args)
+{
+    return TLazyMultiValueFormatter<TArgs...>(format, std::forward<TArgs>(args)...);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 template <class T>
 struct TFormatTraits
 {

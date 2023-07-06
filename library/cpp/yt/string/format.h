@@ -107,6 +107,45 @@ TFormatterWrapper<TFormatter> MakeFormatterWrapper(
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class... TArgs>
+class TLazyMultiValueFormatter;
+
+template <class... TArgs>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TLazyMultiValueFormatter<TArgs...>& value,
+    TStringBuf /*format*/);
+
+//! A wrapper for a bunch of values that formats them lazily on demand.
+/*!
+ *  The intended use of this class is when you need to use the same formatted string
+ *  in several places in the function (e.g. log message tags) and want both to avoid
+ *  code duplication and premature formatting of the values until necessary.
+ *
+ *  NB: lvalues are captured by reference without lifetime extension.
+ */
+template <class... TArgs>
+class TLazyMultiValueFormatter
+    : private TNonCopyable
+{
+public:
+    TLazyMultiValueFormatter(TStringBuf format, TArgs&&... args);
+
+    friend void FormatValue<>(
+        TStringBuilderBase* builder,
+        const TLazyMultiValueFormatter& value,
+        TStringBuf /*format*/);
+
+private:
+    const TStringBuf Format_;
+    const std::tuple<TArgs...> Args_;
+};
+
+template <class ... Args>
+auto MakeLazyMultiValueFormatter(TStringBuf format, Args&&... args);
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
 
 #define FORMAT_INL_H_

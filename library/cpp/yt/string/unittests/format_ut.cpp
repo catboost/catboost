@@ -183,6 +183,19 @@ TEST(TFormatTest, Pointers)
     }
 }
 
+TEST(TFormatTest, LazyMultiValueFormatter)
+{
+    int i = 1;
+    TString s = "hello";
+    std::vector<int> range{1, 2, 3};
+    auto lazyFormatter = MakeLazyMultiValueFormatter(
+        "int: %v, string: %v, range: %v",
+        i,
+        s,
+        MakeFormattableView(range, TDefaultFormatter{}));
+    EXPECT_EQ("int: 1, string: hello, range: [1, 2, 3]", Format("%v", lazyFormatter));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
