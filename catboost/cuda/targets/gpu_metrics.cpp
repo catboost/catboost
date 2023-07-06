@@ -258,6 +258,7 @@ namespace NCatboostCuda {
                     RMSEWithUncertaintyValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
                                           &tmp, (TVec*)nullptr);
                     const double sum = ReadReduce(tmp)[0];
+                    CB_ENSURE(IsFinite(sum), "Numrical overflow in RMSEWithUncertainty");
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
                 case ELossFunction::MultiClass: {
@@ -278,6 +279,18 @@ namespace NCatboostCuda {
                 case ELossFunction::MultiLogloss: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     MultiCrossEntropyValueAndDer(
+                        target,
+                        weights,
+                        cursor,
+                        (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                        &tmp,
+                        (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    return MakeSimpleAdditiveStatistic(-sum, totalWeight);
+                }
+                case ELossFunction::MultiRMSE: {
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    MultiRMSEValueAndDer(
                         target,
                         weights,
                         cursor,
@@ -517,7 +530,8 @@ namespace NCatboostCuda {
         TVector<THolder<IGpuMetric>> result;
         const bool isMulticlass = IsMultiClassOnlyMetric(targetObjective);
         const bool isRMSEWithUncertainty = targetObjective == ELossFunction::RMSEWithUncertainty;
-        if (isMulticlass || IsMultiLabelObjective(targetObjective) || isRMSEWithUncertainty) {
+        const bool isMultiRMSE = targetObjective == ELossFunction::MultiRMSE;
+        if (isMulticlass || IsMultiLabelObjective(targetObjective) || isRMSEWithUncertainty || isMultiRMSE) {
             CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
         } else {
             CB_ENSURE(approxDim == 1, "Error: non-multiclass output dim should be equal to  1");
@@ -539,6 +553,7 @@ namespace NCatboostCuda {
             case ELossFunction::MultiClassOneVsAll:
             case ELossFunction::MultiCrossEntropy:
             case ELossFunction::MultiLogloss:
+            case ELossFunction::MultiRMSE:
             case ELossFunction::MAPE:
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:

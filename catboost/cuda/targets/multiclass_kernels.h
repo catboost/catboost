@@ -252,6 +252,93 @@ namespace NKernelHost {
         }
     };
 
+    class TMultiRMSEValueAndDerKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Target;
+        TCudaBufferPtr<const float> Weights;
+        TCudaBufferPtr<const float> Predictions;
+        TCudaBufferPtr<const ui32> LoadPredictionIndices;
+        TCudaBufferPtr<float> FunctionValue;
+        TCudaBufferPtr<float> Der;
+
+    public:
+        TMultiRMSEValueAndDerKernel() = default;
+
+        TMultiRMSEValueAndDerKernel(
+            TCudaBufferPtr<const float> target,
+            TCudaBufferPtr<const float> weights,
+            TCudaBufferPtr<const float> predictions,
+            TCudaBufferPtr<const ui32> loadPredictionIndices,
+            TCudaBufferPtr<float> functionValue,
+            TCudaBufferPtr<float> der
+        )
+            : Target(target)
+            , Weights(weights)
+            , Predictions(predictions)
+            , LoadPredictionIndices(loadPredictionIndices)
+            , FunctionValue(functionValue)
+            , Der(der)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Target, Weights, Predictions, LoadPredictionIndices, FunctionValue, Der);
+
+        void Run(const TCudaStream& stream) const {
+            const auto approxDim = Predictions.GetColumnCount();
+            const auto targetDim = Target.GetColumnCount();
+            CB_ENSURE(approxDim == targetDim, LabeledOutput(approxDim, targetDim));
+            if (Der.Get()) {
+                CB_ENSURE(Der.GetColumnCount() == approxDim, LabeledOutput(Der.GetColumnCount(), approxDim));
+            }
+            NKernel::MultiRMSEValueAndDer(
+                targetDim,
+                Target.Size(),
+                Target.Get(), Target.AlignedColumnSize(),
+                Weights.Get(),
+                Predictions.Get(), Predictions.AlignedColumnSize(),
+                LoadPredictionIndices.Get(),
+                FunctionValue.Get(),
+                Der.Get(), Der.AlignedColumnSize(),
+                stream.GetStream());
+        }
+    };
+
+    class TMultiRMSESecondDerKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Weights;
+        ui32 RowIdx;
+        ui32 SampleCount;
+        TCudaBufferPtr<float> Der2;
+
+    public:
+        TMultiRMSESecondDerKernel() = default;
+
+        TMultiRMSESecondDerKernel(
+            ui32 sampleCount,
+            TCudaBufferPtr<const float> weights,
+            ui32 rowIdx,
+            TCudaBufferPtr<float> der2
+        )
+            : Weights(weights)
+            , RowIdx(rowIdx)
+            , SampleCount(sampleCount)
+            , Der2(der2)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Weights, RowIdx, SampleCount, Der2);
+
+        void Run(const TCudaStream& stream) const {
+            CB_ENSURE(RowIdx <= Der2.GetColumnCount(), LabeledOutput(RowIdx, Der2.GetColumnCount()));
+            NKernel::MultiRMSESecondDer(
+                SampleCount,
+                Weights.Get(),
+                Der2.Get(),
+                RowIdx, Der2.AlignedColumnSize(),
+                stream.GetStream());
+        }
+    };
+
     class TMultiClassOneVsAllValueAndDerKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> TargetClasses;
@@ -476,6 +563,46 @@ inline void MultiCrossEntropySecondDerRow(
         target,
         weights,
         approx,
+        rowIdx,
+        weightedDer2Row);
+}
+
+template <class TMapping, class TFloat>
+inline void MultiRMSEValueAndDer(
+    const TCudaBuffer<TFloat, TMapping>& target,
+    const TCudaBuffer<TFloat, TMapping>& weights,
+    const TCudaBuffer<TFloat, TMapping>& approx,
+    const TCudaBuffer<ui32, TMapping>* loadPredictionsIndices,
+    TCudaBuffer<float, TMapping>* score,
+    TCudaBuffer<float, TMapping>* weightedDer,
+    ui32 stream = 0
+) {
+    using TKernel = NKernelHost::TMultiRMSEValueAndDerKernel;
+    LaunchKernels<TKernel>(
+        target.NonEmptyDevices(),
+        stream,
+        target,
+        weights,
+        approx,
+        loadPredictionsIndices,
+        score,
+        weightedDer);
+}
+
+template <class TMapping, class TFloat>
+inline void MultiRMSESecondDerRow(
+    const TCudaBuffer<TFloat, TMapping>& target,
+    const TCudaBuffer<TFloat, TMapping>& weights,
+    ui32 rowIdx,
+    TCudaBuffer<float, TMapping>* weightedDer2Row,
+    ui32 stream = 0
+) {
+    using TKernel = NKernelHost::TMultiRMSESecondDerKernel;
+    LaunchKernels<TKernel>(
+        target.NonEmptyDevices(),
+        stream,
+        SafeIntegerCast<ui32>(target.GetObjectsSlice().Size()),
+        weights,
         rowIdx,
         weightedDer2Row);
 }

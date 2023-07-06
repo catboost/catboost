@@ -349,11 +349,6 @@ namespace NCatboostCuda {
                                                       quantizedFeaturesInfo,
                                                       objectsCount,
                                                       /*enableShuffling*/internalOptions.HaveLearnFeatureInMemory);
-            CB_ENSURE(
-                !IsMultiTargetObjective(lossFunction)
-                || (EqualToOneOf(lossFunction, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)
-                && featuresManager.GetCtrsCount() == 0),
-                "Catboost does not support " << ToString(lossFunction) << " on GPU yet for categorical features");
 
             SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,

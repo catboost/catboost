@@ -58,6 +58,14 @@ namespace NCatboostCuda {
                 &sampledIndices,
                 (TVec*)nullptr,
                 &ders);
+        } else if (Type == ELossFunction::MultiRMSE) {
+            MultiRMSEValueAndDer(
+                gatheredTarget.ConstCopyView(),
+                weights.ConstCopyView(),
+                point,
+                &sampledIndices,
+                (TVec*)nullptr,
+                &ders);
         } else {
             CB_ENSURE(false, "Bug");
         }
@@ -82,6 +90,15 @@ namespace NCatboostCuda {
                                   stream);
         } else if (EqualToOneOf(Type, ELossFunction::MultiLogloss, ELossFunction::MultiCrossEntropy)) {
             MultiCrossEntropyValueAndDer(
+                target,
+                weights,
+                point,
+                (const TStripeBuffer<ui32>*)nullptr,
+                value,
+                der,
+                stream);
+        } else if (Type == ELossFunction::MultiRMSE) {
+            MultiRMSEValueAndDer(
                 target,
                 weights,
                 point,
@@ -121,6 +138,18 @@ namespace NCatboostCuda {
                     target,
                     weights,
                     point,
+                    row,
+                    der,
+                    stream);
+                break;
+            }
+            case ELossFunction::MultiRMSE: {
+                CB_ENSURE(
+                    target.GetColumnCount() == point.GetColumnCount(),
+                    LabeledOutput(target.GetColumnCount(), point.GetColumnCount()));
+                MultiRMSESecondDerRow(
+                    target,
+                    weights,
                     row,
                     der,
                     stream);

@@ -15,4 +15,7 @@ namespace NCudaLib {
 
     REGISTER_KERNEL(0xA11BB07, TMultiCrossEntropyValueAndDerKernel);
     REGISTER_KERNEL(0xA11BB08, TMultiCrossEntropySecondDerKernel);
+
+    REGISTER_KERNEL(0xA11BB09, TMultiRMSEValueAndDerKernel);
+    REGISTER_KERNEL(0xA11BB0A, TMultiRMSESecondDerKernel);
 }
