@@ -303,7 +303,8 @@ namespace NCB {
     }
 
     static TClassificationTargetPtr CreateClassificationTarget(const TTargetDataProvider& targetDataProvider, ui32 targetIdx) {
-        const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
+        const bool isMultiLabel = targetDataProvider.GetTargetDimension() > 1;
+        const ui32 numClasses = isMultiLabel ? 2 : *targetDataProvider.GetTargetClassCount();
         const auto extractClasses = [&](auto isBinClass) {
             TConstArrayRef<float> target = (*targetDataProvider.GetTarget())[targetIdx];
             TVector<ui32> classes;
