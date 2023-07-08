@@ -1453,7 +1453,6 @@ cntr_trace(Csite *site, double levels[], int nlevels)
     long n;
     long nparts = 0;
     long ntotal = 0;
-    long nparts2 = 0;
     long ntotal2 = 0;
 
     site->zlevel[0] = levels[0];
@@ -1509,7 +1508,6 @@ cntr_trace(Csite *site, double levels[], int nlevels)
             site->ycp += n;
             site->kcp += n;
             ntotal2 += n;
-            nparts2++;
         }
         else
         {

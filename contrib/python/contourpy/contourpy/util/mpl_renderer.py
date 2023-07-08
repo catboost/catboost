@@ -40,7 +40,7 @@ class MplRenderer(Renderer):
         self,
         nrows: int = 1,
         ncols: int = 1,
-        figsize: tuple[int, int] = (9, 9),
+        figsize: tuple[float, float] = (9, 9),
         show_frame: bool = True,
         backend: str | None = None,
         gridspec_kw: dict[str, Any] | None = None,
@@ -155,7 +155,7 @@ class MplRenderer(Renderer):
                 np.stack((y[1:, :-1], ymid, y[:-1, 1:])).reshape((3, -1)),
                 **kwargs)
         if point_color is not None:
-            ax.plot(x, y, color=point_color, alpha=alpha, marker='o', lw=0)
+            ax.plot(x, y, color=point_color, alpha=alpha, marker="o", lw=0)
         ax._need_autoscale = True
 
     def lines(
@@ -210,7 +210,7 @@ class MplRenderer(Renderer):
             return
         ax = self._get_ax(ax)
         x, y = self._grid_as_2d(x, y)
-        ax.plot(x[mask], y[mask], 'o', c=color)
+        ax.plot(x[mask], y[mask], "o", c=color)
 
     def save(self, filename: str, transparent: bool = False) -> None:
         """Save plots to SVG or PNG file.
@@ -308,7 +308,12 @@ class MplTestRenderer(MplRenderer):
     No whitespace around plots and no spines/ticks displayed.
     Uses Agg backend, so can only save to file/buffer, cannot call ``show()``.
     """
-    def __init__(self, nrows: int = 1, ncols: int = 1, figsize: tuple[int, int] = (9, 9)) -> None:
+    def __init__(
+        self,
+        nrows: int = 1,
+        ncols: int = 1,
+        figsize: tuple[float, float] = (9, 9),
+    ) -> None:
         gridspec = {
             "left": 0.01,
             "right": 0.99,
@@ -340,7 +345,7 @@ class MplDebugRenderer(MplRenderer):
         self,
         nrows: int = 1,
         ncols: int = 1,
-        figsize: tuple[int, int] = (9, 9),
+        figsize: tuple[float, float] = (9, 9),
         show_frame: bool = True,
     ) -> None:
         super().__init__(nrows, ncols, figsize, show_frame)
@@ -423,8 +428,7 @@ class MplDebugRenderer(MplRenderer):
         return all_points, all_offsets
 
     def _lines_to_list_of_points(
-        self, lines: cpy.LineReturn,
-        line_type: LineType
+        self, lines: cpy.LineReturn, line_type: LineType,
     ) -> list[cpy.PointArray]:
         if line_type == LineType.Separate:
             if TYPE_CHECKING:

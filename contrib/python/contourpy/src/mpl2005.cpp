@@ -33,7 +33,7 @@ Mpl2005ContourGenerator::Mpl2005ContourGenerator(
     }
 
     if (x_chunk_size < 0 || y_chunk_size < 0)
-        throw std::invalid_argument("chunk_sizes cannot be negative");
+        throw std::invalid_argument("x_chunk_size and y_chunk_size cannot be negative");
 
     const bool* mask_data = (mask.ndim() > 0 ? mask.data() : nullptr);
 

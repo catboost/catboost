@@ -13,7 +13,7 @@ from contourpy.chunk import calc_chunk_sizes
 from contourpy.enum_util import as_fill_type, as_line_type, as_z_interp
 
 if TYPE_CHECKING:
-    from typing import Any, Type
+    from typing import Any
 
     from numpy.typing import ArrayLike
 
@@ -35,7 +35,7 @@ __all__ = [
 
 
 # Simple mapping of algorithm name to class name.
-_class_lookup: dict[str, Type[ContourGenerator]] = dict(
+_class_lookup: dict[str, type[ContourGenerator]] = dict(
     mpl2005=Mpl2005ContourGenerator,
     mpl2014=Mpl2014ContourGenerator,
     serial=SerialContourGenerator,

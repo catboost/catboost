@@ -85,11 +85,11 @@ protected:
         bool is_upper, on_boundary;
     };
 
-    // Calculate and return z at middle of quad.
-    double calc_middle_z(index_t quad) const;
-
     // Calculate, set and return z-level at middle of quad.
     ZLevel calc_and_set_middle_z_level(index_t quad);
+
+    // Calculate and return z at middle of quad.
+    double calc_middle_z(index_t quad) const;
 
     void closed_line(const Location& start_location, OuterOrHole outer_or_hole, ChunkLocal& local);
 

@@ -49,14 +49,14 @@ class BokehRenderer(Renderer):
         self,
         nrows: int = 1,
         ncols: int = 1,
-        figsize: tuple[int, int] = (9, 9),
+        figsize: tuple[float, float] = (9, 9),
         show_frame: bool = True,
         want_svg: bool = False,
     ) -> None:
         self._want_svg = want_svg
         self._palette = Category10[10]
 
-        total_size = 100*np.asarray(figsize)  # Assuming 100 dpi.
+        total_size = 100*np.asarray(figsize, dtype=int)  # Assuming 100 dpi.
 
         nfigures = nrows*ncols
         self._figures = []

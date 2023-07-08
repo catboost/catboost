@@ -149,7 +149,7 @@ BaseContourGenerator<Derived>::BaseContourGenerator(
         throw std::invalid_argument("Unsupported FillType");
 
     if (x_chunk_size < 0 || y_chunk_size < 0)
-        throw std::invalid_argument("chunk_sizes cannot be negative");
+        throw std::invalid_argument("x_chunk_size and y_chunk_size cannot be negative");
 
     if (_z_interp == ZInterp::Log) {
         const bool* mask_ptr = (mask.ndim() == 0 ? nullptr : mask.data());
@@ -169,6 +169,15 @@ BaseContourGenerator<Derived>::~BaseContourGenerator()
 }
 
 template <typename Derived>
+typename BaseContourGenerator<Derived>::ZLevel
+    BaseContourGenerator<Derived>::calc_and_set_middle_z_level(index_t quad)
+{
+    ZLevel zlevel = z_to_zlevel(calc_middle_z(quad));
+    _cache[quad] |= (zlevel << 2);
+    return zlevel;
+}
+
+template <typename Derived>
 double BaseContourGenerator<Derived>::calc_middle_z(index_t quad) const
 {
     assert(quad >= 0 && quad < _n);
@@ -185,55 +194,6 @@ double BaseContourGenerator<Derived>::calc_middle_z(index_t quad) const
                          get_point_z(POINT_NW) +
                          get_point_z(POINT_NE));
     }
-}
-
-template <typename Derived>
-typename BaseContourGenerator<Derived>::ZLevel
-    BaseContourGenerator<Derived>::calc_and_set_middle_z_level(index_t quad)
-{
-    ZLevel zlevel = z_to_zlevel(calc_middle_z(quad));
-    _cache[quad] |= (zlevel << 2);
-    return zlevel;
-}
-
-template <typename Derived>
-void BaseContourGenerator<Derived>::closed_line(
-    const Location& start_location, OuterOrHole outer_or_hole, ChunkLocal& local)
-{
-    assert(is_quad_in_chunk(start_location.quad, local));
-
-    Location location = start_location;
-    bool finished = false;
-    count_t point_count = 0;
-
-    if (outer_or_hole == Hole && local.pass == 0 && _identify_holes)
-        set_look_flags(start_location.quad);
-
-    while (!finished) {
-        if (location.on_boundary)
-            finished = follow_boundary(location, start_location, local, point_count);
-        else
-            finished = follow_interior(location, start_location, local, point_count);
-        location.on_boundary = !location.on_boundary;
-    }
-
-    if (local.pass > 0) {
-        assert(local.line_offsets.current = local.line_offsets.start + local.line_count);
-        *local.line_offsets.current++ = local.total_point_count;
-        if (outer_or_hole == Outer && _identify_holes) {
-            assert(local.outer_offsets.current ==
-                local.outer_offsets.start + local.line_count - local.hole_count);
-            if (_outer_offsets_into_points)
-                *local.outer_offsets.current++ = local.total_point_count;
-            else
-                *local.outer_offsets.current++ = local.line_count;
-        }
-    }
-
-    local.total_point_count += point_count;
-    local.line_count++;
-    if (outer_or_hole == Hole)
-        local.hole_count++;
 }
 
 template <typename Derived>
@@ -292,6 +252,46 @@ void BaseContourGenerator<Derived>::check_consistent_counts(const ChunkLocal& lo
                 ". This may indicate a bug in ContourPy.");
         }
     }
+}
+
+template <typename Derived>
+void BaseContourGenerator<Derived>::closed_line(
+    const Location& start_location, OuterOrHole outer_or_hole, ChunkLocal& local)
+{
+    assert(is_quad_in_chunk(start_location.quad, local));
+
+    Location location = start_location;
+    bool finished = false;
+    count_t point_count = 0;
+
+    if (outer_or_hole == Hole && local.pass == 0 && _identify_holes)
+        set_look_flags(start_location.quad);
+
+    while (!finished) {
+        if (location.on_boundary)
+            finished = follow_boundary(location, start_location, local, point_count);
+        else
+            finished = follow_interior(location, start_location, local, point_count);
+        location.on_boundary = !location.on_boundary;
+    }
+
+    if (local.pass > 0) {
+        assert(local.line_offsets.current = local.line_offsets.start + local.line_count);
+        *local.line_offsets.current++ = local.total_point_count;
+        if (outer_or_hole == Outer && _identify_holes) {
+            assert(local.outer_offsets.current ==
+                local.outer_offsets.start + local.line_count - local.hole_count);
+            if (_outer_offsets_into_points)
+                *local.outer_offsets.current++ = local.total_point_count;
+            else
+                *local.outer_offsets.current++ = local.line_count;
+        }
+    }
+
+    local.total_point_count += point_count;
+    local.line_count++;
+    if (outer_or_hole == Hole)
+        local.hole_count++;
 }
 
 template <typename Derived>
