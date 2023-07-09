@@ -3,7 +3,7 @@
 {% include [export-to-core-ml-core-mle__intro](../_includes/work_src/reusage-python/core-mle__intro.md) %}
 
 
-The following example showcases how to train a model using [CatBoostClassifier](python-reference_catboostclassifier.md), save it CoreML using the [save_model](python-reference_catboostclassifier_save_model.md) function and import the model to XCode:
+The following example showcases how to train a model using [CatBoostClassifier](python-reference_catboostclassifier.md), save it CoreML using the [save_model](python-reference_catboostclassifier_save_model.md) function and import the model to Xcode:
 
 1. Train the model and save it in CoreML format.
     
@@ -21,7 +21,7 @@ The following example showcases how to train a model using [CatBoostClassifier]
     cls.save_model("iris.mlmodel", format="coreml", export_parameters={'prediction_type': 'probability'})
     ```
     
-1. Import the resulting model to XCode.
+1. Import the resulting model to Xcode.
     
     The following is an example of importing with Swift:
     ```python
