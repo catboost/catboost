@@ -1,6 +1,6 @@
 numpy==1.22.0
 pandas==0.19.2
-scipy==0.19.0
+scipy==1.10.0
 scikit-learn==0.18.1
 pymongo==3.4.0
 networkx==1.11
