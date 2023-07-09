@@ -310,7 +310,6 @@ default:
   python-type__list_of_int: list of int
   python-type__list_of_lists: list of lists
   python-type__list_of_float: list of float
-  python-type--nparray: np.array
   python-type__ndarray: ndarray
   python-type__np_ndarray: numpy.ndarray
   python-type__Series: Series
