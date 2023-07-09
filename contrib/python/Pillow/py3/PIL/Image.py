@@ -153,6 +153,7 @@ def isImageType(t):
 #
 # Constants
 
+
 # transpose
 class Transpose(IntEnum):
     FLIP_LEFT_RIGHT = 0
@@ -391,7 +392,6 @@ def init():
 
 
 def _getdecoder(mode, decoder_name, args, extra=()):
-
     # tweak arguments
     if args is None:
         args = ()
@@ -415,7 +415,6 @@ def _getdecoder(mode, decoder_name, args, extra=()):
 
 
 def _getencoder(mode, encoder_name, args, extra=()):
-
     # tweak arguments
     if args is None:
         args = ()
@@ -687,11 +686,7 @@ class Image:
     @property
     def __array_interface__(self):
         # numpy array interface support
-        new = {}
-        shape, typestr = _conv_type_shape(self)
-        new["shape"] = shape
-        new["typestr"] = typestr
-        new["version"] = 3
+        new = {"version": 3}
         try:
             if self.mode == "1":
                 # Binary images need to be extended from bits to bytes
@@ -710,6 +705,7 @@ class Image:
                     if parse_version(numpy.__version__) < parse_version("1.23"):
                         warnings.warn(e)
             raise
+        new["shape"], new["typestr"] = _conv_type_shape(self)
         return new
 
     def __getstate__(self):
@@ -766,17 +762,17 @@ class Image:
 
         bufsize = max(65536, self.size[0] * 4)  # see RawEncode.c
 
-        data = []
+        output = []
         while True:
-            l, s, d = e.encode(bufsize)
-            data.append(d)
-            if s:
+            bytes_consumed, errcode, data = e.encode(bufsize)
+            output.append(data)
+            if errcode:
                 break
-        if s < 0:
-            msg = f"encoder error {s} in tobytes"
+        if errcode < 0:
+            msg = f"encoder error {errcode} in tobytes"
             raise RuntimeError(msg)
 
-        return b"".join(data)
+        return b"".join(output)
 
     def tobitmap(self, name="image"):
         """
@@ -1433,6 +1429,11 @@ class Image:
             return {get_name(root.tag): get_value(root)}
 
     def getexif(self):
+        """
+        Gets EXIF data from the image.
+
+        :returns: an :py:class:`~PIL.Image.Exif` object.
+        """
         if self._exif is None:
             self._exif = Exif()
             self._exif._loaded = False
@@ -3030,21 +3031,29 @@ def frombuffer(mode, size, data, decoder_name="raw", *args):
 def fromarray(obj, mode=None):
     """
     Creates an image memory from an object exporting the array interface
-    (using the buffer protocol).
+    (using the buffer protocol)::
+
+      from PIL import Image
+      import numpy as np
+      a = np.zeros((5, 5))
+      im = Image.fromarray(a)
 
     If ``obj`` is not contiguous, then the ``tobytes`` method is called
     and :py:func:`~PIL.Image.frombuffer` is used.
 
-    If you have an image in NumPy::
+    In the case of NumPy, be aware that Pillow modes do not always correspond
+    to NumPy dtypes. Pillow modes only offer 1-bit pixels, 8-bit pixels,
+    32-bit signed integer pixels, and 32-bit floating point pixels.
+
+    Pillow images can also be converted to arrays::
 
       from PIL import Image
       import numpy as np
       im = Image.open("hopper.jpg")
       a = np.asarray(im)
 
-    Then this can be used to convert it to a Pillow image::
-
-      im = Image.fromarray(a)
+    When converting Pillow images to arrays however, only pixel values are
+    transferred. This means that P and PA mode images will lose their palette.
 
     :param obj: Object with array interface
     :param mode: Optional mode to use when reading ``obj``. Will be determined from
@@ -3267,9 +3276,15 @@ def open(fp, mode="r", formats=None):
 
     im = _open_core(fp, filename, prefix, formats)
 
-    if im is None:
+    if im is None and formats is ID:
+        checked_formats = formats.copy()
         if init():
-            im = _open_core(fp, filename, prefix, formats)
+            im = _open_core(
+                fp,
+                filename,
+                prefix,
+                tuple(format for format in formats if format not in checked_formats),
+            )
 
     if im:
         im._exclusive_fp = exclusive_fp
@@ -3400,7 +3415,8 @@ def register_open(id, factory, accept=None):
        reject images having another format.
     """
     id = id.upper()
-    ID.append(id)
+    if id not in ID:
+        ID.append(id)
     OPEN[id] = factory, accept
 
 
@@ -3595,6 +3611,39 @@ atexit.register(core.clear_cache)
 
 
 class Exif(MutableMapping):
+    """
+    This class provides read and write access to EXIF image data::
+
+      from PIL import Image
+      im = Image.open("exif.png")
+      exif = im.getexif()  # Returns an instance of this class
+
+    Information can be read and written, iterated over or deleted::
+
+      print(exif[274])  # 1
+      exif[274] = 2
+      for k, v in exif.items():
+        print("Tag", k, "Value", v)  # Tag 274 Value 2
+      del exif[274]
+
+    To access information beyond IFD0, :py:meth:`~PIL.Image.Exif.get_ifd`
+    returns a dictionary::
+
+      from PIL import ExifTags
+      im = Image.open("exif_gps.jpg")
+      exif = im.getexif()
+      gps_ifd = exif.get_ifd(ExifTags.IFD.GPSInfo)
+      print(gps_ifd)
+
+    Other IFDs include ``ExifTags.IFD.Exif``, ``ExifTags.IFD.Makernote``,
+    ``ExifTags.IFD.Interop`` and ``ExifTags.IFD.IFD1``.
+
+    :py:mod:`~PIL.ExifTags` also has enum classes to provide names for data::
+
+      print(exif[ExifTags.Base.Software])  # PIL
+      print(gps_ifd[ExifTags.GPS.GPSDateStamp])  # 1999:99:99 99:99:99
+    """
+
     endian = None
     bigtiff = False
 
@@ -3841,7 +3890,7 @@ class Exif(MutableMapping):
     def __str__(self):
         if self._info is not None:
             # Load all keys into self._data
-            for tag in self._info.keys():
+            for tag in self._info:
                 self[tag]
 
         return str(self._data)
