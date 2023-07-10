@@ -455,6 +455,7 @@ default:
   input_data__scheme__libsvm: 'libsvm://'
   input_data__scheme__yt-dsv: yt-dsv
   input_data__scheme__yt-search-proto: yt-search-proto
+  input_data__scheme__yt-col: yt-col
   input_data__title__contains: Contains
   input_data__title__specification: Specification
   input_data__title__row-format: Row format

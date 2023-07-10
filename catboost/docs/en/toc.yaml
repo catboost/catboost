@@ -999,6 +999,9 @@ items:
             name: Dataset description in delimiter-separated values format
           - href: concepts/input-data_libsvm.md
             name: Dataset description in extended libsvm format
+          - href: yandex_specific/concepts/input-data_yt-col.md
+            when: audience == "internal"
+            name: Dataset description in native YT columns format
           - href: concepts/input-data_pairs-description.md
             name: Pairs description
           - href: concepts/input-data_custom-borders.md
