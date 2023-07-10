@@ -807,7 +807,7 @@ items:
   - name: R package
     items:
       - href: concepts/r-quickstart.md
-        name: 'Quick start '
+        name: Quick start
       - href: concepts/r-reference_catboost-load_pool.md
         name: catboost.load_pool
       - href: concepts/r-reference_catboost-save_pool.md
@@ -962,17 +962,17 @@ items:
       - href: concepts/loss-functions-variables-used.md
         name: Variables used in formulas
       - href: concepts/loss-functions-regression.md
-        name: 'Regression'
+        name: Regression
       - href: concepts/loss-functions-multiregression.md
-        name: 'Multiregression'
+        name: Multiregression
       - href: concepts/loss-functions-classification.md
-        name: 'Classification'
+        name: Classification
       - href: concepts/loss-functions-multiclassification.md
-        name: 'Multiclassification'
+        name: Multiclassification
       - href: concepts/loss-functions-multilabel-classification.md
-        name: 'Multilabel Classification'
+        name: Multilabel Classification
       - href: concepts/loss-functions-ranking.md
-        name: 'Ranking'
+        name: Ranking
     name: Objectives and metrics
   - items:
       - href: concepts/model-analysis.md
@@ -1006,7 +1006,7 @@ items:
           - href: concepts/input-data_group-weights.md
             name: Group weights
           - href: concepts/input-data_baseline.md
-            name: 'Baseline '
+            name: Baseline
         name: Input data
       - items:
           - href: concepts/output-data.md
