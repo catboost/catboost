@@ -21,7 +21,7 @@ extern int winerror_to_errno(int);
 #endif
 
 #ifdef HAVE_NON_UNICODE_WCHAR_T_REPRESENTATION
-#include <iconv.h>
+#error #include <iconv.h>
 #endif
 
 #ifdef HAVE_FCNTL_H
