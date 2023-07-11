@@ -1,6 +1,7 @@
 #pragma once
 
 #include "async_row_processor.h"
+#include "baseline.h"
 #include "meta_info.h"
 #include "objects.h"
 #include "visitor.h"
@@ -300,7 +301,7 @@ namespace NCB {
     protected:
         TDatasetLoaderCommonArgs Args;
         NCB::TAsyncRowProcessor<TData> AsyncRowProcessor;
-        NCB::TAsyncRowProcessor<TString> AsyncBaselineRowProcessor;
+        NCB::TAsyncRowProcessor<TObjectBaselineData> AsyncBaselineRowProcessor;
 
         TVector<TString> FeatureIds;
         TDataMetaInfo DataMetaInfo;

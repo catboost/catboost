@@ -57,7 +57,6 @@ target_link_libraries(catboost-libs-data PUBLIC
 )
 target_sources(catboost-libs-data PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/async_row_processor.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/baseline.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/borders_io.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/cat_feature_perfect_hash.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/cat_feature_perfect_hash_helper.cpp
@@ -141,6 +140,7 @@ target_link_libraries(catboost-libs-data.global PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(catboost-libs-data.global PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/libs/data/baseline.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/cb_dsv_loader.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/libsvm_loader.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/data/pairs_data_loaders.cpp

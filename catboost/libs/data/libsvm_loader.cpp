@@ -75,14 +75,27 @@ namespace NCB {
     TLibSvmDataLoader::TLibSvmDataLoader(TLineDataLoaderPushArgs&& args)
         : TAsyncProcDataLoaderBase<TString>(std::move(args.CommonArgs))
         , LineDataReader(std::move(args.Reader))
-        , BaselineReader(Args.BaselineFilePath, ClassLabelsToStrings(args.CommonArgs.ClassLabels))
     {
+        if (Args.BaselineFilePath.Inited()) {
+            CB_ENSURE(
+                CheckExists(Args.BaselineFilePath),
+                "TCBDsvDataLoader:BaselineFilePath does not exist"
+            );
+
+            BaselineReader = GetProcessor<IBaselineReader, TBaselineReaderArgs>(
+                Args.BaselineFilePath,
+                TBaselineReaderArgs{
+                    Args.BaselineFilePath,
+                    ClassLabelsToStrings(Args.ClassLabels),
+                    Args.DatasetSubset.Range
+                }
+            );
+        }
+
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TLibSvmDataLoader:PairsFilePath does not exist");
         CB_ENSURE(!Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
                   "TLibSvmDataLoader:GroupWeightsFilePath does not exist");
-        CB_ENSURE(!Args.BaselineFilePath.Inited() || CheckExists(Args.BaselineFilePath),
-                  "TLibSvmDataLoader:BaselineFilePath does not exist");
         CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
                   "TLibSvmDataLoader:TimestampsFilePath does not exist");
         CB_ENSURE(!Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
@@ -95,7 +108,7 @@ namespace NCB {
 
         DataMetaInfo.TargetType = ERawTargetType::Float;
         DataMetaInfo.TargetCount = 1;
-        DataMetaInfo.BaselineCount = BaselineReader.GetBaselineCount().GetOrElse(0);
+        DataMetaInfo.BaselineCount = BaselineReader ? BaselineReader->GetBaselineCount() : 0;
         DataMetaInfo.HasGroupId = DataHasGroupId(firstLine);
         DataMetaInfo.HasGroupWeight = Args.GroupWeightsFilePath.Inited();
         DataMetaInfo.HasPairs = Args.PairsFilePath.Inited();
@@ -131,7 +144,7 @@ namespace NCB {
         DataMetaInfo.FeaturesLayout = std::move(featuresLayout);
 
         AsyncRowProcessor.ReadBlockAsync(GetReadFunc());
-        if (BaselineReader.Inited()) {
+        if (BaselineReader) {
             AsyncBaselineRowProcessor.ReadBlockAsync(GetReadBaselineFunc());
         }
     }
@@ -311,18 +324,14 @@ namespace NCB {
 
         AsyncRowProcessor.ProcessBlock(parseBlock);
 
-        if (BaselineReader.Inited()) {
-            auto parseBaselineBlock = [&](TString &line, int inBlockIdx) {
-
-                auto addBaselineFunc = [&visitor, inBlockIdx](ui32 baselineIdx, float baseline) {
-                    visitor->AddBaseline(inBlockIdx, baselineIdx, baseline);
-                };
-                const auto lineIdx = AsyncBaselineRowProcessor.GetLinesProcessed() + inBlockIdx + 1;
-
-                BaselineReader.Parse(addBaselineFunc, line, lineIdx);
+        if (BaselineReader) {
+            auto setBaselineBlock = [&](TObjectBaselineData &data, int inBlockIdx) {
+                for (auto baselineIdx : xrange(data.Baseline.size())) {
+                    visitor->AddBaseline(inBlockIdx, baselineIdx, data.Baseline[baselineIdx]);
+                }
             };
 
-            AsyncBaselineRowProcessor.ProcessBlock(parseBaselineBlock);
+            AsyncBaselineRowProcessor.ProcessBlock(setBaselineBlock);
         }
     }
 

@@ -60,31 +60,28 @@ namespace NCB {
 
 
     static TVector<TVector<float>> ReadBaseline(const TPathWithScheme& filePath, ui64 docCount, TDatasetSubset loadSubset, const TVector<TString>& classNames) {
-        TBaselineReader reader(filePath, classNames);
+        THolder<IBaselineReader> reader = GetProcessor<IBaselineReader, TBaselineReaderArgs>(
+            filePath,
+            TBaselineReaderArgs{filePath, classNames, loadSubset.Range}
+        );
 
-        TString line;
-
-        TVector<ui32> tokenIndexes = reader.GetBaselineIndexes();
+        auto baselineCount = reader->GetBaselineCount();
 
         TVector<TVector<float>> baseline;
-        ResizeRank2(tokenIndexes.size(), docCount, baseline);
-        ui32 lineNumber = 0;
-        auto addBaselineFunc = [&baseline, &lineNumber, &loadSubset](ui32 approxIdx, float value) {
-            baseline[approxIdx][lineNumber - loadSubset.Range.Begin] = value;
-        };
+        ResizeRank2(baselineCount, docCount, baseline);
 
-        for (; reader.ReadLine(&line); lineNumber++) {
-            if (lineNumber < loadSubset.Range.Begin) {
-                continue;
+        TObjectBaselineData baselineData;
+        ui64 objectIdx = 0;
+        ui32 objectCount = 0;
+
+        for (; reader->Read(&baselineData, &objectIdx); objectCount++) {
+            for (auto approxIdx : xrange(baselineCount)) {
+                baseline[approxIdx][objectIdx] = baselineData.Baseline[approxIdx];
             }
-            if (lineNumber >= loadSubset.Range.End) {
-                break;
-            }
-            reader.Parse(addBaselineFunc, line, lineNumber - loadSubset.Range.Begin);
         }
-        CB_ENSURE(lineNumber - loadSubset.Range.Begin == docCount,
+        CB_ENSURE(objectCount == docCount,
             "Expected " << docCount << " lines in baseline file starting at offset " << loadSubset.Range.Begin
-            << " got " << lineNumber - loadSubset.Range.Begin);
+            << " got " << objectCount);
         return baseline;
     }
 

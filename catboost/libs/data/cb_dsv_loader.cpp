@@ -38,14 +38,27 @@ namespace NCB {
         , NumVectorDelimiter(Args.PoolFormat.NumVectorDelimiter)
         , CsvSplitterQuote(Args.PoolFormat.IgnoreCsvQuoting ? '\0' : '"')
         , LineDataReader(std::move(args.Reader))
-        , BaselineReader(Args.BaselineFilePath, ClassLabelsToStrings(args.CommonArgs.ClassLabels))
     {
+        if (Args.BaselineFilePath.Inited()) {
+            CB_ENSURE(
+                CheckExists(Args.BaselineFilePath),
+                "TCBDsvDataLoader:BaselineFilePath does not exist"
+            );
+
+            BaselineReader = GetProcessor<IBaselineReader, TBaselineReaderArgs>(
+                Args.BaselineFilePath,
+                TBaselineReaderArgs{
+                    Args.BaselineFilePath,
+                    ClassLabelsToStrings(Args.ClassLabels),
+                    Args.DatasetSubset.Range
+                }
+            );
+        }
+
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TCBDsvDataLoader:PairsFilePath does not exist");
         CB_ENSURE(!Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
                   "TCBDsvDataLoader:GroupWeightsFilePath does not exist");
-        CB_ENSURE(!Args.BaselineFilePath.Inited() || CheckExists(Args.BaselineFilePath),
-                  "TCBDsvDataLoader:BaselineFilePath does not exist");
         CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
                   "TCBDsvDataLoader:TimestampsFilePath does not exist");
         CB_ENSURE(!Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
@@ -81,7 +94,7 @@ namespace NCB {
             Args.TimestampsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
             Args.ForceUnitAutoPairWeights,
-            BaselineReader.GetBaselineCount(),
+            BaselineReader ? TMaybe<ui32>(BaselineReader->GetBaselineCount()) : Nothing(),
             &featureNames,
             &poolMetaInfoOptions.Tags.Get(),
             args.CommonArgs.ClassLabels
@@ -97,7 +110,7 @@ namespace NCB {
         );
 
         AsyncRowProcessor.ReadBlockAsync(GetReadFunc());
-        if (BaselineReader.Inited()) {
+        if (BaselineReader) {
             AsyncBaselineRowProcessor.ReadBlockAsync(GetReadBaselineFunc());
         }
     }
@@ -338,18 +351,14 @@ namespace NCB {
 
         AsyncRowProcessor.ProcessBlock(parseLine);
 
-        if (BaselineReader.Inited()) {
-            auto parseBaselineBlock = [&](TString &line, int inBlockIdx) {
-
-                auto addBaselineFunc = [&visitor, inBlockIdx](ui32 baselineIdx, float baseline) {
-                    visitor->AddBaseline(inBlockIdx, baselineIdx, baseline);
-                };
-                const auto lineIdx = AsyncBaselineRowProcessor.GetLinesProcessed() + inBlockIdx + 1;
-
-                BaselineReader.Parse(addBaselineFunc, line, lineIdx);
+        if (BaselineReader) {
+            auto setBaselineBlock = [&](TObjectBaselineData &data, int inBlockIdx) {
+                for (auto baselineIdx : xrange(data.Baseline.size())) {
+                    visitor->AddBaseline(inBlockIdx, baselineIdx, data.Baseline[baselineIdx]);
+                }
             };
 
-            AsyncBaselineRowProcessor.ProcessBlock(parseBaselineBlock);
+            AsyncBaselineRowProcessor.ProcessBlock(setBaselineBlock);
         }
     }
 

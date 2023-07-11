@@ -70,9 +70,6 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         !GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
         "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");
     CB_ENSURE(
-        !BaselinePath.Inited() || CheckExists(BaselinePath),
-        "TCBQuantizedDataLoader:BaselineFilePath does not exist");
-    CB_ENSURE(
         !TimestampsPath.Inited() || CheckExists(TimestampsPath),
         "TCBQuantizedDataLoader:TimestampsPath does not exist");
     CB_ENSURE(
@@ -81,16 +78,30 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     CB_ENSURE(
         !PoolMetaInfoPath.Inited() || CheckExists(PoolMetaInfoPath),
         "TCBQuantizedDataLoader:PoolMetaInfoPath does not exist");
-    const NCB::TBaselineReader baselineReader(
-        BaselinePath,
-        NCB::ClassLabelsToStrings(args.CommonArgs.ClassLabels));
+
+    THolder<NCB::IBaselineReader> baselineReader;
+    if (BaselinePath.Inited()) {
+        CB_ENSURE(
+            CheckExists(BaselinePath),
+            "TCBQuantizedDataLoader:BaselineFilePath does not exist");
+
+        baselineReader = GetProcessor<NCB::IBaselineReader, NCB::TBaselineReaderArgs>(
+            BaselinePath,
+            NCB::TBaselineReaderArgs{
+                BaselinePath,
+                ClassLabelsToStrings(args.CommonArgs.ClassLabels),
+                DatasetSubset.Range
+            }
+        );
+    }
+
     DataMetaInfo = GetDataMetaInfo(
         QuantizedPool,
         GroupWeightsPath.Inited(),
         TimestampsPath.Inited(),
         PairsPath.Inited(),
         args.CommonArgs.ForceUnitAutoPairWeights,
-        baselineReader.GetBaselineCount(),
+        baselineReader ? TMaybe<ui32>(baselineReader->GetBaselineCount()) : Nothing(),
         args.CommonArgs.FeatureNamesPath,
         PoolMetaInfoPath);
 
