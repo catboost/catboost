@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pluggy
-Version: 1.0.0
+Version: 1.2.0
 Summary: plugin and hook calling mechanisms for python
 Home-page: https://github.com/pytest-dev/pluggy
 Author: Holger Krekel
@@ -23,11 +23,12 @@ Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
-Requires-Python: >=3.6
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Requires-Python: >=3.7
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 Requires-Dist: importlib-metadata (>=0.12) ; python_version < "3.8"
@@ -139,5 +140,3 @@ Running this directly gets us::
     http://doc.devpi.net
 .. _read the docs:
    https://pluggy.readthedocs.io/en/latest/
-
-
