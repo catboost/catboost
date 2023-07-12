@@ -65,3 +65,5 @@ def calc_ctrs(model_ctrs, binarized_features, hashed_cat_features, result):
                     else:
                         result[result_index] = ctr.calc(ctr_history[bucket * 2 + 1], ctr_history[bucket * 2] + ctr_history[bucket * 2 + 1])
             result_index += 1
+
+

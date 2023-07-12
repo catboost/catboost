@@ -63,10 +63,6 @@ public:
                            "Asked one-dimensional bias, has " << Bias.size() << "." << errorMessage);
         return Bias[0];
     }
-
-    const TVector<double> &GetAllBiases() const {
-        return Bias;
-    }
 };
 
 /**

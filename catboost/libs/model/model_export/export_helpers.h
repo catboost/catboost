@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/model/enums.h>
 #include <catboost/libs/model/model.h>
 
 #include <util/string/builder.h>

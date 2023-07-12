@@ -167,22 +167,18 @@ namespace NCB {
         Out << indent++ << "static const struct CatboostModel {" << '\n';
         Out << indent << "CatboostModel() = default;" << '\n';
         Out << indent << "unsigned int FloatFeatureCount = " << model.GetNumFloatFeatures() << ";" << '\n';
-        if (forCatFeatures) {
-            Out << indent << "unsigned int CatFeatureCount = " << model.GetNumCatFeatures() << ";" << '\n';
-        }
+        Out << indent << "unsigned int CatFeatureCount = " << model.GetNumCatFeatures() << ";" << '\n';
         Out << indent << "unsigned int BinaryFeatureCount = " << binaryFeatureCount << ";" << '\n';
         Out << indent << "unsigned int TreeCount = " << model.GetTreeCount() << ";" << '\n';
 
-        if (forCatFeatures) {
-            Out << indent++ << "std::vector<std::vector<float>> FloatFeatureBorders = {" << '\n';
-            comma.ResetCount(model.ModelTrees->GetFloatFeatures().size());
-            for (const auto& floatFeature : model.ModelTrees->GetFloatFeatures()) {
-                Out << indent << "{"
-                    << OutputArrayInitializer([&floatFeature](size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 9); }, floatFeature.Borders.size())
-                    << "}" << comma << '\n';
-            }
-            Out << --indent << "};" << '\n';
+        Out << indent++ << "std::vector<std::vector<float>> FloatFeatureBorders = {" << '\n';
+        comma.ResetCount(model.ModelTrees->GetFloatFeatures().size());
+        for (const auto& floatFeature : model.ModelTrees->GetFloatFeatures()) {
+            Out << indent << "{"
+                << OutputArrayInitializer([&floatFeature](size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 9); }, floatFeature.Borders.size())
+                << "}" << comma << '\n';
         }
+        Out << --indent << "};" << '\n';
 
         Out << indent << "unsigned int TreeDepth[" << model.ModelTrees->GetModelTreeData()->GetTreeSizes().size() << "] = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSizes()) << "};" << '\n';
         Out << indent << "unsigned int TreeSplits[" << model.ModelTrees->GetModelTreeData()->GetTreeSplits().size() << "] = {" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSplits()) << "};" << '\n';
@@ -217,17 +213,17 @@ namespace NCB {
                     << "}" << comma << '\n';
             }
             Out << --indent << "};" << '\n';
-        } else {
-            Out << indent << "unsigned int BorderCounts[" << model.ModelTrees->GetNumFloatFeatures() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
-            Out << indent << "float Borders[" << binaryFeatureCount << "] = {" << OutputBorders(model, true) << "};" << '\n';
         }
+
+        Out << indent << "unsigned int BorderCounts[" << model.ModelTrees->GetNumFloatFeatures() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
+        Out << indent << "float Borders[" << binaryFeatureCount << "] = {" << OutputBorders(model, true) << "};" << '\n';
 
         Out << '\n';
         Out << indent << "/* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
         Out << indent << "double LeafValues[" << model.ModelTrees->GetModelTreeData()->GetLeafValues().size() << "][" << model.ModelTrees->GetDimensionsCount() << "] = {" << OutputLeafValues(model, indent, EModelType::Cpp);
         Out << indent << "};" << '\n';
         Out << indent << "double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
-        Out << indent << "double Biases[" << model.GetScaleAndBias().GetAllBiases().size() << "] = {" << OutputArrayInitializer(model.GetScaleAndBias().GetAllBiases()) << "};" << '\n';
+        Out << indent << "double Biases[" << model.GetScaleAndBias().GetBiasRef().size() << "] = {" << OutputArrayInitializer(model.GetScaleAndBias().GetBiasRef()) << "};" << '\n';
         Out << indent << "unsigned int Dimension = " << model.ModelTrees->GetDimensionsCount() << ";" << '\n';
 
         if (forCatFeatures) {

@@ -221,7 +221,7 @@ namespace NCB {
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
         Out << indent << "leaf_values = [" << OutputLeafValues(model, indent, EModelType::Python) << indent << "]" << '\n';
         Out << indent << "scale = " << model.GetScaleAndBias().Scale << '\n';
-        Out << indent << "biases = [" << OutputArrayInitializer(model.GetScaleAndBias().GetAllBiases()) << "]" << '\n';
+        Out << indent << "biases = [" << OutputArrayInitializer(model.GetScaleAndBias().GetBiasRef()) << "]" << '\n';
         Out << indent << "dimension = " << model.ModelTrees->GetDimensionsCount() << '\n';
 
         if (!applyData->UsedModelCtrs.empty()) {

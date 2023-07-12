@@ -41,22 +41,22 @@ std::vector<double> ApplyCatboostModelMulti(
 }
 
 double ApplyCatboostModel(
-        const std::vector<float>& floatFeatures
+    const std::vector<float>& floatFeatures
 ) {
     return ApplyCatboostModelMulti(floatFeatures)[0];
 }
 
 // Also emit the API with catFeatures, for uniformity
 std::vector<double> ApplyCatboostModelMulti(
-        const std::vector<float>& floatFeatures,
-        const std::vector<std::string>&
+    const std::vector<float>& floatFeatures,
+    const std::vector<std::string>&
 ) {
     return ApplyCatboostModelMulti(floatFeatures);
 }
 
 double ApplyCatboostModel(
-        const std::vector<float>& floatFeatures,
-        const std::vector<std::string>&
+    const std::vector<float>& floatFeatures,
+    const std::vector<std::string>&
 ) {
     return ApplyCatboostModelMulti(floatFeatures)[0];
 }

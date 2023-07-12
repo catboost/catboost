@@ -1,7 +1,5 @@
 #include "export_helpers.h"
 
-#include <catboost/libs/model/enums.h>
-
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 
@@ -64,8 +62,8 @@ namespace NCatboostModelExportHelpers {
         ++indent;
         auto currentTreeFirstLeafPtr = model.ModelTrees->GetModelTreeData()->GetLeafValues().data();
         for (const auto& treeSize : model.ModelTrees->GetModelTreeData()->GetTreeSizes()) {
+            const auto treeLeafCount = 1uLL << treeSize;
             const auto dim = model.ModelTrees->GetDimensionsCount();
-            const auto treeLeafCount = (1uLL << treeSize) * dim;
             outString << '\n' << indent;
             outString << OutputArrayInitializer([&currentTreeFirstLeafPtr, &dim, &bracketStart, &bracketEnd] (size_t i) {
                 return bracketStart + OutputArrayInitializer([&currentTreeFirstLeafPtr, &dim, &i] (size_t j) {

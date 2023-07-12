@@ -88,7 +88,7 @@ std::vector<double> ApplyCatboostModelMulti(
         }
 
         treeSplitsPtr += currentTreeDepth;
-        leafValuesPtr += (1 << currentTreeDepth) * model.Dimension;
+        leafValuesPtr += 1 << currentTreeDepth;
         treePtr += currentTreeDepth;
     }
 
@@ -101,7 +101,7 @@ std::vector<double> ApplyCatboostModelMulti(
 
 
 double ApplyCatboostModel(
-        const std::vector<float>& floatFeatures,
-        const std::vector<std::string>& catFeatures) {
+    const std::vector<float>& floatFeatures,
+    const std::vector<std::string>& catFeatures) {
     return ApplyCatboostModelMulti(floatFeatures, catFeatures)[0];
 }
