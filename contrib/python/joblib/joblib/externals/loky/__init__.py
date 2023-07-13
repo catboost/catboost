@@ -22,11 +22,23 @@ from .cloudpickle_wrapper import wrap_non_picklable_objects
 from .process_executor import BrokenProcessPool, ProcessPoolExecutor
 
 
-__all__ = ["get_reusable_executor", "cpu_count", "wait", "as_completed",
-           "Future", "Executor", "ProcessPoolExecutor",
-           "BrokenProcessPool", "CancelledError", "TimeoutError",
-           "FIRST_COMPLETED", "FIRST_EXCEPTION", "ALL_COMPLETED",
-           "wrap_non_picklable_objects", "set_loky_pickler"]
+__all__ = [
+    "get_reusable_executor",
+    "cpu_count",
+    "wait",
+    "as_completed",
+    "Future",
+    "Executor",
+    "ProcessPoolExecutor",
+    "BrokenProcessPool",
+    "CancelledError",
+    "TimeoutError",
+    "FIRST_COMPLETED",
+    "FIRST_EXCEPTION",
+    "ALL_COMPLETED",
+    "wrap_non_picklable_objects",
+    "set_loky_pickler",
+]
 
 
-__version__ = '3.3.0'
+__version__ = "3.4.0"

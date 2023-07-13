@@ -4,6 +4,7 @@ import warnings
 def _viztracer_init(init_kwargs):
     """Initialize viztracer's profiler in worker processes"""
     from viztracer import VizTracer
+
     tracer = VizTracer(**init_kwargs)
     tracer.register_exit()
     tracer.start()
@@ -12,8 +13,9 @@ def _viztracer_init(init_kwargs):
 def _make_viztracer_initializer_and_initargs():
     try:
         import viztracer
+
         tracer = viztracer.get_tracer()
-        if tracer is not None and getattr(tracer, 'enable', False):
+        if tracer is not None and getattr(tracer, "enable", False):
             # Profiler is active: introspect its configuration to
             # initialize the workers with the same configuration.
             return _viztracer_init, (tracer.init_kwargs,)
@@ -70,7 +72,9 @@ def _prepare_initializer(initializer, initargs):
 
     # Introspect runtime to determine if we need to propagate the viztracer
     # profiler information to the workers:
-    return _chain_initializers([
-        (initializer, initargs),
-        _make_viztracer_initializer_and_initargs(),
-    ])
+    return _chain_initializers(
+        [
+            (initializer, initargs),
+            _make_viztracer_initializer_and_initargs(),
+        ]
+    )

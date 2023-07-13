@@ -11,6 +11,7 @@ from .numpy_pickle_utils import _ZFILE_PREFIX
 from .numpy_pickle_utils import Unpickler
 from .numpy_pickle_utils import _ensure_native_byte_order
 
+
 def hex_str(an_int):
     """Convert an int to an hexadecimal string."""
     return '{:#x}'.format(an_int)
@@ -202,7 +203,7 @@ def load_compatibility(filename):
     (<= 0.9.3).
 
     Parameters
-    -----------
+    ----------
     filename: string
         The name of the file from which to load the object
 

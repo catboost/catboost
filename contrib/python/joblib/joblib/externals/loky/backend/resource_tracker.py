@@ -60,25 +60,21 @@ if sys.platform == "win32":
     from multiprocessing.reduction import duplicate
 
 
-__all__ = ['ensure_running', 'register', 'unregister']
+__all__ = ["ensure_running", "register", "unregister"]
 
-_HAVE_SIGMASK = hasattr(signal, 'pthread_sigmask')
+_HAVE_SIGMASK = hasattr(signal, "pthread_sigmask")
 _IGNORED_SIGNALS = (signal.SIGINT, signal.SIGTERM)
 
-_CLEANUP_FUNCS = {
-    'folder': shutil.rmtree,
-    'file': os.unlink
-}
+_CLEANUP_FUNCS = {"folder": shutil.rmtree, "file": os.unlink}
 
 if os.name == "posix":
-    _CLEANUP_FUNCS['semlock'] = sem_unlink
+    _CLEANUP_FUNCS["semlock"] = sem_unlink
 
 
 VERBOSE = False
 
 
 class ResourceTracker:
-
     def __init__(self):
         self._lock = threading.Lock()
         self._fd = None
@@ -89,10 +85,10 @@ class ResourceTracker:
         return self._fd
 
     def ensure_running(self):
-        '''Make sure that resource tracker process is running.
+        """Make sure that resource tracker process is running.
 
         This can be run from any process.  Usually a child process will use
-        the resource created by its parent.'''
+        the resource created by its parent."""
         with self._lock:
             if self._fd is not None:
                 # resource tracker was launched before, is it still running?
@@ -114,9 +110,11 @@ class ResourceTracker:
                 self._fd = None
                 self._pid = None
 
-                warnings.warn('resource_tracker: process died unexpectedly, '
-                              'relaunching.  Some folders/sempahores might '
-                              'leak.')
+                warnings.warn(
+                    "resource_tracker: process died unexpectedly, "
+                    "relaunching.  Some folders/sempahores might "
+                    "leak."
+                )
 
             fds_to_pass = []
             try:
@@ -130,12 +128,12 @@ class ResourceTracker:
                 os.close(r)
                 r = _r
 
-            cmd = f'from {main.__module__} import main; main({r}, {VERBOSE})'
+            cmd = f"from {main.__module__} import main; main({r}, {VERBOSE})"
             try:
                 fds_to_pass.append(r)
                 # process will out live us, so no need to wait on pid
                 exe = spawn.get_executable()
-                args = [exe, *util._args_from_interpreter_flags(), '-c', cmd]
+                args = [exe, *util._args_from_interpreter_flags(), "-c", cmd]
                 util.debug(f"launching resource tracker: {args}")
                 # bpo-33613: Register a signal mask that will block the
                 # signals.  This signal mask will be inherited by the child
@@ -145,13 +143,15 @@ class ResourceTracker:
                 # unregistered after spawning the child.
                 try:
                     if _HAVE_SIGMASK:
-                        signal.pthread_sigmask(signal.SIG_BLOCK,
-                                               _IGNORED_SIGNALS)
+                        signal.pthread_sigmask(
+                            signal.SIG_BLOCK, _IGNORED_SIGNALS
+                        )
                     pid = spawnv_passfds(exe, args, fds_to_pass)
                 finally:
                     if _HAVE_SIGMASK:
-                        signal.pthread_sigmask(signal.SIG_UNBLOCK,
-                                               _IGNORED_SIGNALS)
+                        signal.pthread_sigmask(
+                            signal.SIG_UNBLOCK, _IGNORED_SIGNALS
+                        )
             except BaseException:
                 os.close(w)
                 raise
@@ -165,26 +165,26 @@ class ResourceTracker:
                     os.close(r)
 
     def _check_alive(self):
-        '''Check for the existence of the resource tracker process.'''
+        """Check for the existence of the resource tracker process."""
         try:
-            self._send('PROBE', '', '')
+            self._send("PROBE", "", "")
         except BrokenPipeError:
             return False
         else:
             return True
 
     def register(self, name, rtype):
-        '''Register a named resource, and increment its refcount.'''
+        """Register a named resource, and increment its refcount."""
         self.ensure_running()
-        self._send('REGISTER', name, rtype)
+        self._send("REGISTER", name, rtype)
 
     def unregister(self, name, rtype):
-        '''Unregister a named resource with resource tracker.'''
+        """Unregister a named resource with resource tracker."""
         self.ensure_running()
-        self._send('UNREGISTER', name, rtype)
+        self._send("UNREGISTER", name, rtype)
 
     def maybe_unlink(self, name, rtype):
-        '''Decrement the refcount of a resource, and delete it if it hits 0'''
+        """Decrement the refcount of a resource, and delete it if it hits 0"""
         self.ensure_running()
         self._send("MAYBE_UNLINK", name, rtype)
 
@@ -192,8 +192,8 @@ class ResourceTracker:
         if len(name) > 512:
             # posix guarantees that writes to a pipe of less than PIPE_BUF
             # bytes are atomic, and that PIPE_BUF >= 512
-            raise ValueError('name too long')
-        msg = f'{cmd}:{name}:{rtype}\n'.encode('ascii')
+            raise ValueError("name too long")
+        msg = f"{cmd}:{name}:{rtype}\n".encode("ascii")
         nbytes = os.write(self._fd, msg)
         assert nbytes == len(msg)
 
@@ -207,7 +207,7 @@ getfd = _resource_tracker.getfd
 
 
 def main(fd, verbose=0):
-    '''Run resource tracker.'''
+    """Run resource tracker."""
     # protect the process from ^C and "killall python" etc
     if verbose:
         util.log_to_stderr(level=util.DEBUG)
@@ -232,30 +232,33 @@ def main(fd, verbose=0):
         # keep track of registered/unregistered resources
         if sys.platform == "win32":
             fd = msvcrt.open_osfhandle(fd, os.O_RDONLY)
-        with open(fd, 'rb') as f:
+        with open(fd, "rb") as f:
             while True:
                 line = f.readline()
-                if line == b'':  # EOF
+                if line == b"":  # EOF
                     break
                 try:
-                    splitted = line.strip().decode('ascii').split(':')
+                    splitted = line.strip().decode("ascii").split(":")
                     # name can potentially contain separator symbols (for
                     # instance folders on Windows)
                     cmd, name, rtype = (
-                        splitted[0], ':'.join(splitted[1:-1]), splitted[-1])
+                        splitted[0],
+                        ":".join(splitted[1:-1]),
+                        splitted[-1],
+                    )
 
-                    if cmd == 'PROBE':
+                    if cmd == "PROBE":
                         continue
 
                     if rtype not in _CLEANUP_FUNCS:
                         raise ValueError(
-                            f'Cannot register {name} for automatic cleanup: '
-                            f'unknown resource type ({rtype}). Resource type '
-                            'should be one of the following: '
-                            f'{list(_CLEANUP_FUNCS.keys())}'
+                            f"Cannot register {name} for automatic cleanup: "
+                            f"unknown resource type ({rtype}). Resource type "
+                            "should be one of the following: "
+                            f"{list(_CLEANUP_FUNCS.keys())}"
                         )
 
-                    if cmd == 'REGISTER':
+                    if cmd == "REGISTER":
                         if name not in registry[rtype]:
                             registry[rtype][name] = 1
                         else:
@@ -267,14 +270,14 @@ def main(fd, verbose=0):
                                 f"{rtype} {name} "
                                 f"(current {registry[rtype][name]})"
                             )
-                    elif cmd == 'UNREGISTER':
+                    elif cmd == "UNREGISTER":
                         del registry[rtype][name]
                         if verbose:
                             util.debug(
                                 f"[ResourceTracker] unregister {name} {rtype}: "
                                 f"registry({len(registry)})"
                             )
-                    elif cmd == 'MAYBE_UNLINK':
+                    elif cmd == "MAYBE_UNLINK":
                         registry[rtype][name] -= 1
                         if verbose:
                             util.debug(
@@ -293,10 +296,11 @@ def main(fd, verbose=0):
                                 _CLEANUP_FUNCS[rtype](name)
                             except Exception as e:
                                 warnings.warn(
-                                    f'resource_tracker: {name}: {e!r}')
+                                    f"resource_tracker: {name}: {e!r}"
+                                )
 
                     else:
-                        raise RuntimeError(f'unrecognized command {cmd!r}')
+                        raise RuntimeError(f"unrecognized command {cmd!r}")
                 except BaseException:
                     try:
                         sys.excepthook(*sys.exc_info())
@@ -308,9 +312,9 @@ def main(fd, verbose=0):
             if rtype_registry:
                 try:
                     warnings.warn(
-                        'resource_tracker: There appear to be '
-                        f'{len(rtype_registry)} leaked {rtype} objects to '
-                        'clean up at shutdown'
+                        "resource_tracker: There appear to be "
+                        f"{len(rtype_registry)} leaked {rtype} objects to "
+                        "clean up at shutdown"
                     )
                 except Exception:
                     pass
@@ -323,7 +327,7 @@ def main(fd, verbose=0):
                     if verbose:
                         util.debug(f"[ResourceTracker] unlink {name}")
                 except Exception as e:
-                    warnings.warn(f'resource_tracker: {name}: {e!r}')
+                    warnings.warn(f"resource_tracker: {name}: {e!r}")
 
         for rtype, rtype_registry in registry.items():
             if rtype == "folder":
@@ -348,6 +352,7 @@ def main(fd, verbose=0):
 # Start a program with only specified fds kept open
 #
 
+
 def spawnv_passfds(path, args, passfds):
     passfds = sorted(passfds)
     if sys.platform != "win32":
@@ -355,16 +360,18 @@ def spawnv_passfds(path, args, passfds):
         try:
             from .reduction import _mk_inheritable
             from .fork_exec import fork_exec
+
             _pass = [_mk_inheritable(fd) for fd in passfds]
             return fork_exec(args, _pass)
         finally:
             os.close(errpipe_read)
             os.close(errpipe_write)
     else:
-        cmd = ' '.join(f'"{x}"' for x in args)
+        cmd = " ".join(f'"{x}"' for x in args)
         try:
             _, ht, pid, _ = _winapi.CreateProcess(
-                path, cmd, None, None, True, 0, None, None, None)
+                path, cmd, None, None, True, 0, None, None, None
+            )
             _winapi.CloseHandle(ht)
         except BaseException:
             pass

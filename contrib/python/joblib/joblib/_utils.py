@@ -1,6 +1,7 @@
 # Adapted from https://stackoverflow.com/a/9558001/2536294
 
 import ast
+from dataclasses import dataclass
 import operator as op
 
 # supported operators
@@ -42,3 +43,12 @@ def eval_(node):
         return operators[type(node.op)](eval_(node.operand))
     else:
         raise TypeError(node)
+
+
+@dataclass(frozen=True)
+class _Sentinel:
+    """A sentinel to mark a parameter as not explicitly set"""
+    default_value: object
+
+    def __repr__(self):
+        return f"default({self.default_value!r})"

@@ -6,6 +6,7 @@ import signal
 import warnings
 import subprocess
 import traceback
+
 try:
     import psutil
 except ImportError:
@@ -93,7 +94,7 @@ def _kill(pid):
     # mandates a SIGTERM signal. While Windows is handled specifically above,
     # let's try to be safe for other hypothetic platforms that only have
     # SIGTERM without SIGKILL.
-    kill_signal = getattr(signal, 'SIGKILL', signal.SIGTERM)
+    kill_signal = getattr(signal, "SIGKILL", signal.SIGTERM)
     try:
         os.kill(pid, kill_signal)
     except OSError as e:
@@ -113,7 +114,7 @@ def _posix_recursive_kill(pid):
     except subprocess.CalledProcessError as e:
         # `ps` returns 1 when no child process has been found
         if e.returncode == 1:
-            children_pids = ''
+            children_pids = ""
         else:
             raise  # pragma: no cover
 
@@ -126,7 +127,7 @@ def _posix_recursive_kill(pid):
 
 
 def get_exitcodes_terminated_worker(processes):
-    """Return a formated string with the exitcodes of terminated workers.
+    """Return a formatted string with the exitcodes of terminated workers.
 
     If necessary, wait (up to .25s) for the system to correctly set the
     exitcode of one terminated worker.
@@ -136,21 +137,26 @@ def get_exitcodes_terminated_worker(processes):
     # Catch the exitcode of the terminated workers. There should at least be
     # one. If not, wait a bit for the system to correctly set the exitcode of
     # the terminated worker.
-    exitcodes = [p.exitcode for p in list(processes.values())
-                 if p.exitcode is not None]
+    exitcodes = [
+        p.exitcode for p in list(processes.values()) if p.exitcode is not None
+    ]
     while not exitcodes and patience > 0:
         patience -= 1
-        exitcodes = [p.exitcode for p in list(processes.values())
-                     if p.exitcode is not None]
-        time.sleep(.05)
+        exitcodes = [
+            p.exitcode
+            for p in list(processes.values())
+            if p.exitcode is not None
+        ]
+        time.sleep(0.05)
 
     return _format_exitcodes(exitcodes)
 
 
 def _format_exitcodes(exitcodes):
     """Format a list of exit code with names of the signals if possible"""
-    str_exitcodes = [f"{_get_exitcode_name(e)}({e})"
-                     for e in exitcodes if e is not None]
+    str_exitcodes = [
+        f"{_get_exitcode_name(e)}({e})" for e in exitcodes if e is not None
+    ]
     return "{" + ", ".join(str_exitcodes) + "}"
 
 
@@ -163,6 +169,7 @@ def _get_exitcode_name(exitcode):
     if exitcode < 0:
         try:
             import signal
+
             return signal.Signals(-exitcode).name
         except ValueError:
             return "UNKNOWN"

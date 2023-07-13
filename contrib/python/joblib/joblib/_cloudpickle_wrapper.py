@@ -7,11 +7,13 @@ multiprocessing is not available.
 from ._multiprocessing_helpers import mp
 
 
-def my_wrap_non_picklable_objects(obj, keep_wrapper=True):
+def _my_wrap_non_picklable_objects(obj, keep_wrapper=True):
     return obj
 
 
-if mp is None:
-    wrap_non_picklable_objects = my_wrap_non_picklable_objects
+if mp is not None:
+    from .externals.loky import wrap_non_picklable_objects
 else:
-    from .externals.loky import wrap_non_picklable_objects # noqa
+    wrap_non_picklable_objects = _my_wrap_non_picklable_objects
+
+__all__ = ["wrap_non_picklable_objects"]

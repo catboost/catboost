@@ -8,19 +8,6 @@ import time
 from os.path import basename
 from multiprocessing import util
 
-# Prior to joblib 1.2, joblib used to import LooseVersion from
-# distutils.version. This import had a side-effect with setuptools that was
-# implicitly required in sklearn.show_versions() to work without raising an
-# exception for scikit-learn 1.0 and earlier. This has been fixed in
-# scikit-learn 1.1 (not yet released at the time of writing), see:
-# https://github.com/scikit-learn/scikit-learn/issues/22614
-#
-# To avoid unnecessary disruption for users who might update to joblib 1.2
-# prior to a release of scikit-learn that includes the fix, let's keep on
-# importing distutils here. TODO: Remove this for a future release of joblib,
-# e.g. 6 months after the release of scikit-learn 1.1.
-import distutils  # noqa
-
 
 class Version:
     """Backport from deprecated distutils

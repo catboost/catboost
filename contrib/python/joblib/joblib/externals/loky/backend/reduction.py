@@ -27,6 +27,7 @@ _dispatch_table = {}
 def register(type_, reduce_function):
     _dispatch_table[type_] = reduce_function
 
+
 ###############################################################################
 # Registers extra pickling routines to improve picklization  for loky
 
@@ -80,6 +81,7 @@ else:
 # global variable to change the pickler behavior
 try:
     from joblib.externals import cloudpickle  # noqa: F401
+
     DEFAULT_ENV = "cloudpickle"
 except ImportError:
     # If cloudpickle is not present, fallback to pickle
@@ -110,12 +112,15 @@ def set_loky_pickler(loky_pickler=None):
     else:
         try:
             from importlib import import_module
+
             module_pickle = import_module(loky_pickler)
             loky_pickler_cls = module_pickle.Pickler
         except (ImportError, AttributeError) as e:
-            extra_info = ("\nThis error occurred while setting loky_pickler to"
-                          f" '{loky_pickler}', as required by the env variable "
-                          "LOKY_PICKLER or the function set_loky_pickler.")
+            extra_info = (
+                "\nThis error occurred while setting loky_pickler to"
+                f" '{loky_pickler}', as required by the env variable "
+                "LOKY_PICKLER or the function set_loky_pickler."
+            )
             e.args = (e.args[0] + extra_info,) + e.args[1:]
             e.msg = e.args[0]
             raise e
@@ -176,8 +181,7 @@ def set_loky_pickler(loky_pickler=None):
                 self.register(type, reduce_func)
 
         def register(self, type, reduce_func):
-            """Attach a reducer function to a given type in the dispatch table.
-            """
+            """Attach a reducer function to a given type in the dispatch table."""
             self.dispatch_table[type] = reduce_func
 
     _LokyPickler = CustomizablePickler
@@ -199,7 +203,7 @@ set_loky_pickler()
 
 
 def dump(obj, file, reducers=None, protocol=None):
-    '''Replacement for pickle.dump() using _LokyPickler.'''
+    """Replacement for pickle.dump() using _LokyPickler."""
     global _LokyPickler
     _LokyPickler(file, reducers=reducers, protocol=protocol).dump(obj)
 
@@ -216,4 +220,5 @@ __all__ = ["dump", "dumps", "loads", "register", "set_loky_pickler"]
 
 if sys.platform == "win32":
     from multiprocessing.reduction import duplicate
+
     __all__ += ["duplicate"]

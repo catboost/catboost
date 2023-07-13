@@ -47,7 +47,7 @@ def register_compressor(compressor_name, compressor,
     """Register a new compressor.
 
     Parameters
-    -----------
+    ----------
     compressor_name: str.
         The name of the compressor.
     compressor: CompressorWrapper

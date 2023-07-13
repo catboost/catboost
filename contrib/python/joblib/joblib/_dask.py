@@ -8,8 +8,8 @@ import time
 from uuid import uuid4
 import weakref
 
-from .parallel import AutoBatchingMixin, ParallelBackendBase, BatchedCalls
-from .parallel import parallel_backend
+from .parallel import parallel_config
+from .parallel import AutoBatchingMixin, ParallelBackendBase
 
 try:
     import dask
@@ -19,7 +19,7 @@ except ImportError:
     distributed = None
 
 if dask is not None and distributed is not None:
-    from dask.utils import funcname, itemgetter
+    from dask.utils import funcname
     from dask.sizeof import sizeof
     from dask.distributed import (
         Client,
@@ -27,10 +27,8 @@ if dask is not None and distributed is not None:
         get_client,
         secede,
         rejoin,
-        get_worker
     )
     from distributed.utils import thread_state
-
 
     try:
         # asyncio.TimeoutError, Python3-only error thrown by recent versions of
@@ -123,10 +121,10 @@ class Batch:
 
     def __call__(self, tasks=None):
         results = []
-        with parallel_backend('dask'):
+        with parallel_config(backend='dask'):
             for func, args, kwargs in tasks:
                 results.append(func(*args, **kwargs))
-        return results
+            return results
 
     def __repr__(self):
         descr = f"batch_of_{self._funcname}_{self._num_tasks}_calls"
@@ -144,6 +142,7 @@ class DaskDistributedBackend(AutoBatchingMixin, ParallelBackendBase):
     MIN_IDEAL_BATCH_DURATION = 0.2
     MAX_IDEAL_BATCH_DURATION = 1.0
     supports_timeout = True
+    default_n_jobs = -1
 
     def __init__(self, scheduler_host=None, scatter=None,
                  client=None, loop=None, wait_for_workers_timeout=10,
@@ -245,14 +244,15 @@ class DaskDistributedBackend(AutoBatchingMixin, ParallelBackendBase):
         # task might cause the cluster to provision some workers.
         try:
             self.client.submit(_joblib_probe_task).result(
-                timeout=self.wait_for_workers_timeout)
+                timeout=self.wait_for_workers_timeout
+            )
         except _TimeoutError as e:
             error_msg = (
                 "DaskDistributedBackend has no worker after {} seconds. "
                 "Make sure that workers are started and can properly connect "
                 "to the scheduler and increase the joblib/dask connection "
                 "timeout with:\n\n"
-                "parallel_backend('dask', wait_for_workers_timeout={})"
+                "parallel_config(backend='dask', wait_for_workers_timeout={})"
             ).format(self.wait_for_workers_timeout,
                      max(10, 2 * self.wait_for_workers_timeout))
             raise TimeoutError(error_msg) from e

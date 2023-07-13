@@ -1,5 +1,6 @@
 """Storage providers backends for Memory caching."""
 
+from pickle import PicklingError
 import re
 import os
 import os.path
@@ -18,6 +19,11 @@ from . import numpy_pickle
 
 CacheItemInfo = collections.namedtuple('CacheItemInfo',
                                        'path size last_access')
+
+
+class CacheWarning(Warning):
+    """Warning to capture dump failures except for PicklingError."""
+    pass
 
 
 def concurrency_safe_write(object_to_write, filename, write_func):
@@ -185,12 +191,24 @@ class StoreBackendMixin(object):
 
             def write_func(to_write, dest_filename):
                 with self._open_item(dest_filename, "wb") as f:
-                    numpy_pickle.dump(to_write, f,
-                                      compress=self.compress)
+                    try:
+                        numpy_pickle.dump(to_write, f, compress=self.compress)
+                    except PicklingError as e:
+                        # TODO(1.5) turn into error
+                        warnings.warn(
+                            "Unable to cache to disk: failed to pickle "
+                            "output. In version 1.5 this will raise an "
+                            f"exception. Exception: {e}.",
+                            FutureWarning
+                        )
 
             self._concurrency_safe_write(item, filename, write_func)
-        except:  # noqa: E722
-            " Race condition in the creation of the directory "
+        except Exception as e:  # noqa: E722
+            warnings.warn(
+                "Unable to cache to disk. Possibly a race condition in the "
+                f"creation of the directory. Exception: {e}.",
+                CacheWarning
+            )
 
     def clear_item(self, path):
         """Clear the item at the path, given as a list of strings."""
@@ -276,9 +294,15 @@ class StoreBackendMixin(object):
         """Clear the whole store content."""
         self.clear_location(self.location)
 
-    def reduce_store_size(self, bytes_limit):
-        """Reduce store size to keep it under the given bytes limit."""
-        items_to_delete = self._get_items_to_delete(bytes_limit)
+    def enforce_store_limits(
+            self, bytes_limit, items_limit=None, age_limit=None
+    ):
+        """
+        Remove the store's oldest files to enforce item, byte, and age limits.
+        """
+        items_to_delete = self._get_items_to_delete(
+            bytes_limit, items_limit, age_limit
+        )
 
         for item in items_to_delete:
             if self.verbose > 10:
@@ -292,16 +316,38 @@ class StoreBackendMixin(object):
                 # the folder already.
                 pass
 
-    def _get_items_to_delete(self, bytes_limit):
-        """Get items to delete to keep the store under a size limit."""
+    def _get_items_to_delete(
+            self, bytes_limit, items_limit=None, age_limit=None
+    ):
+        """
+        Get items to delete to keep the store under size, file, & age limits.
+        """
         if isinstance(bytes_limit, str):
             bytes_limit = memstr_to_bytes(bytes_limit)
 
         items = self.get_items()
         size = sum(item.size for item in items)
 
-        to_delete_size = size - bytes_limit
-        if to_delete_size < 0:
+        if bytes_limit is not None:
+            to_delete_size = size - bytes_limit
+        else:
+            to_delete_size = 0
+
+        if items_limit is not None:
+            to_delete_items = len(items) - items_limit
+        else:
+            to_delete_items = 0
+
+        if age_limit is not None:
+            older_item = min(item.last_access for item in items)
+            deadline = datetime.datetime.now() - age_limit
+        else:
+            deadline = None
+
+        if (
+            to_delete_size <= 0 and to_delete_items <= 0
+            and (deadline is None or older_item > deadline)
+        ):
             return []
 
         # We want to delete first the cache items that were accessed a
@@ -310,13 +356,19 @@ class StoreBackendMixin(object):
 
         items_to_delete = []
         size_so_far = 0
+        items_so_far = 0
 
         for item in items:
-            if size_so_far > to_delete_size:
+            if (
+                (size_so_far >= to_delete_size)
+                and items_so_far >= to_delete_items
+                and (deadline is None or deadline < item.last_access)
+            ):
                 break
 
             items_to_delete.append(item)
             size_so_far += item.size
+            items_so_far += 1
 
         return items_to_delete
 

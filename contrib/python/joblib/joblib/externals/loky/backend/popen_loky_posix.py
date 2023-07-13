@@ -15,12 +15,13 @@ from multiprocessing.context import set_spawning_popen
 from . import reduction, resource_tracker, spawn
 
 
-__all__ = ['Popen']
+__all__ = ["Popen"]
 
 
 #
 # Wrapper for an fd used while launching a process
 #
+
 
 class _DupFd:
     def __init__(self, fd):
@@ -34,8 +35,9 @@ class _DupFd:
 # Start child process using subprocess.Popen
 #
 
+
 class Popen:
-    method = 'loky'
+    method = "loky"
     DupFd = _DupFd
 
     def __init__(self, process_obj):
@@ -96,7 +98,8 @@ class Popen:
         try:
             prep_data = spawn.get_preparation_data(
                 process_obj._name,
-                getattr(process_obj, "init_main_module", True))
+                getattr(process_obj, "init_main_module", True),
+            )
             reduction.dump(prep_data, fp)
             reduction.dump(process_obj, fp)
 
@@ -110,27 +113,28 @@ class Popen:
             #     _mk_inheritable(fd)
 
             cmd_python = [sys.executable]
-            cmd_python += ['-m', self.__module__]
-            cmd_python += ['--process-name', str(process_obj.name)]
-            cmd_python += ['--pipe', str(reduction._mk_inheritable(child_r))]
+            cmd_python += ["-m", self.__module__]
+            cmd_python += ["--process-name", str(process_obj.name)]
+            cmd_python += ["--pipe", str(reduction._mk_inheritable(child_r))]
             reduction._mk_inheritable(child_w)
             reduction._mk_inheritable(tracker_fd)
             self._fds += [child_r, child_w, tracker_fd]
-            if sys.version_info >= (3, 8) and os.name == 'posix':
-                mp_tracker_fd = prep_data['mp_tracker_args']['fd']
+            if sys.version_info >= (3, 8) and os.name == "posix":
+                mp_tracker_fd = prep_data["mp_tracker_args"]["fd"]
                 self.duplicate_for_child(mp_tracker_fd)
 
             from .fork_exec import fork_exec
+
             pid = fork_exec(cmd_python, self._fds, env=process_obj.env)
             util.debug(
                 f"launched python with pid {pid} and cmd:\n{cmd_python}"
             )
             self.sentinel = parent_r
 
-            method = 'getbuffer'
+            method = "getbuffer"
             if not hasattr(fp, method):
-                method = 'getvalue'
-            with os.fdopen(parent_w, 'wb') as f:
+                method = "getvalue"
+            with os.fdopen(parent_w, "wb") as f:
                 f.write(getattr(fp, method)())
             self.pid = pid
         finally:
@@ -145,20 +149,26 @@ class Popen:
         return True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser('Command line parser')
-    parser.add_argument('--pipe', type=int, required=True,
-                        help='File handle for the pipe')
-    parser.add_argument('--process-name', type=str, default=None,
-                        help='Identifier for debugging purpose')
+
+    parser = argparse.ArgumentParser("Command line parser")
+    parser.add_argument(
+        "--pipe", type=int, required=True, help="File handle for the pipe"
+    )
+    parser.add_argument(
+        "--process-name",
+        type=str,
+        default=None,
+        help="Identifier for debugging purpose",
+    )
 
     args = parser.parse_args()
 
     info = {}
     exitcode = 1
     try:
-        with os.fdopen(args.pipe, 'rb') as from_parent:
+        with os.fdopen(args.pipe, "rb") as from_parent:
             process.current_process()._inheriting = True
             try:
                 prep_data = pickle.load(from_parent)
@@ -169,12 +179,13 @@ if __name__ == '__main__':
 
         exitcode = process_obj._bootstrap()
     except Exception:
-        print('\n\n' + '-' * 80)
-        print(f'{args.process_name} failed with traceback: ')
-        print('-' * 80)
+        print("\n\n" + "-" * 80)
+        print(f"{args.process_name} failed with traceback: ")
+        print("-" * 80)
         import traceback
+
         print(traceback.format_exc())
-        print('\n' + '-' * 80)
+        print("\n" + "-" * 80)
     finally:
         if from_parent is not None:
             from_parent.close()

@@ -14,9 +14,11 @@ from multiprocessing.context import get_spawning_popen
 
 from .reduction import register
 
-HAVE_SEND_HANDLE = (hasattr(socket, 'CMSG_LEN') and
-                    hasattr(socket, 'SCM_RIGHTS') and
-                    hasattr(socket.socket, 'sendmsg'))
+HAVE_SEND_HANDLE = (
+    hasattr(socket, "CMSG_LEN")
+    and hasattr(socket, "SCM_RIGHTS")
+    and hasattr(socket.socket, "sendmsg")
+)
 
 
 def _mk_inheritable(fd):
@@ -25,17 +27,18 @@ def _mk_inheritable(fd):
 
 
 def DupFd(fd):
-    '''Return a wrapper for an fd.'''
+    """Return a wrapper for an fd."""
     popen_obj = get_spawning_popen()
     if popen_obj is not None:
         return popen_obj.DupFd(popen_obj.duplicate_for_child(fd))
     elif HAVE_SEND_HANDLE:
         from multiprocessing import resource_sharer
+
         return resource_sharer.DupFd(fd)
     else:
         raise TypeError(
-            'Cannot pickle connection object. This object can only be '
-            'passed when spawning a new process'
+            "Cannot pickle connection object. This object can only be "
+            "passed when spawning a new process"
         )
 
 

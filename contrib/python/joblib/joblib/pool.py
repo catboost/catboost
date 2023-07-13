@@ -336,7 +336,9 @@ class MemmappingPool(PicklingPool):
                     if i + 1 == n_retries:
                         warnings.warn("Failed to terminate worker processes in"
                                       " multiprocessing pool: %r" % e)
-        self._temp_folder_manager._unlink_temporary_resources()
+
+        # Clean up the temporary resources as the workers should now be off.
+        self._temp_folder_manager._clean_temporary_resources()
 
     @property
     def _temp_folder(self):

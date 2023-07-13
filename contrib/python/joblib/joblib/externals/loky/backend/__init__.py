@@ -5,7 +5,7 @@ from .context import get_context
 
 
 def _make_name():
-    return f'/loky-{os.getpid()}-{next(synchronize.SemLock._rand)}'
+    return f"/loky-{os.getpid()}-{next(synchronize.SemLock._rand)}"
 
 
 # monkey patch the name creation for multiprocessing

@@ -21,14 +21,13 @@ class CloudpickledObjectWrapper:
     def __getattr__(self, attr):
         # Ensure that the wrapped object can be used seemlessly as the
         # previous object.
-        if attr not in ['_obj', '_keep_wrapper']:
+        if attr not in ["_obj", "_keep_wrapper"]:
             return getattr(self._obj, attr)
         return getattr(self, attr)
 
 
 # Make sure the wrapped object conserves the callable property
 class CallableObjectWrapper(CloudpickledObjectWrapper):
-
     def __call__(self, *args, **kwargs):
         return self._obj(*args, **kwargs)
 
@@ -52,8 +51,10 @@ def _wrap_objects_when_needed(obj):
         return partial(
             _wrap_objects_when_needed(obj.func),
             *[_wrap_objects_when_needed(a) for a in obj.args],
-            **{k: _wrap_objects_when_needed(v)
-                for k, v in obj.keywords.items()}
+            **{
+                k: _wrap_objects_when_needed(v)
+                for k, v in obj.keywords.items()
+            }
         )
     if callable(obj):
         # Need wrap if the object is a function defined in a local scope of
@@ -87,6 +88,7 @@ def wrap_non_picklable_objects(obj, keep_wrapper=True):
     # If obj is a  class, create a CloudpickledClassWrapper which instantiates
     # the object internally and wrap it directly in a CloudpickledObjectWrapper
     if inspect.isclass(obj):
+
         class CloudpickledClassWrapper(CloudpickledObjectWrapper):
             def __init__(self, *args, **kwargs):
                 self._obj = obj(*args, **kwargs)

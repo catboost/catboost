@@ -245,9 +245,8 @@ def hash(obj, hash_name='md5', coerce_mmap=False):
     """ Quick calculation of a hash to identify uniquely Python objects
         containing numpy arrays.
 
-
         Parameters
-        -----------
+        ----------
         hash_name: 'md5' or 'sha1'
             Hashing algorithm used. sha1 is supposedly safer, but md5 is
             faster.

@@ -1,11 +1,10 @@
 Metadata-Version: 2.1
 Name: joblib
-Version: 1.2.0
+Version: 1.3.0
 Summary: Lightweight pipelining with Python functions
-Home-page: https://joblib.readthedocs.io
-Author: Gael Varoquaux
-Author-email: gael.varoquaux@normalesup.org
-License: BSD
+Author-email: Gael Varoquaux <gael.varoquaux@normalesup.org>
+License: BSD 3-Clause
+Project-URL: Homepage, https://joblib.readthedocs.io
 Project-URL: Source, https://github.com/joblib/joblib
 Platform: any
 Classifier: Development Status :: 5 - Production/Stable
@@ -20,6 +19,7 @@ Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Scientific/Engineering
 Classifier: Topic :: Utilities
 Classifier: Topic :: Software Development :: Libraries
@@ -162,6 +162,4 @@ Changes are listed in the CHANGES.rst file. They must be manually updated
 but, the following git command may be used to generate the lines::
 
     git log --abbrev-commit --date=short --no-merges --sparse
-
-
 

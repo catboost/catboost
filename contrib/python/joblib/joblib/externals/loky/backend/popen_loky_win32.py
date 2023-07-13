@@ -4,14 +4,13 @@ import msvcrt
 import _winapi
 from pickle import load
 from multiprocessing import process, util
-from multiprocessing.context import get_spawning_popen, set_spawning_popen
+from multiprocessing.context import set_spawning_popen
 from multiprocessing.popen_spawn_win32 import Popen as _Popen
-from multiprocessing.reduction import duplicate
 
 from . import reduction, spawn
 
 
-__all__ = ['Popen']
+__all__ = ["Popen"]
 
 #
 #
@@ -22,8 +21,15 @@ def _path_eq(p1, p2):
     return p1 == p2 or os.path.normcase(p1) == os.path.normcase(p2)
 
 
-WINENV = (hasattr(sys, "_base_executable")
-          and not _path_eq(sys.executable, sys._base_executable))
+WINENV = hasattr(sys, "_base_executable") and not _path_eq(
+    sys.executable, sys._base_executable
+)
+
+
+def _close_handles(*handles):
+    for handle in handles:
+        _winapi.CloseHandle(handle)
+
 
 #
 # We define a Popen class similar to the one from subprocess, but
@@ -32,23 +38,34 @@ WINENV = (hasattr(sys, "_base_executable")
 
 
 class Popen(_Popen):
-    '''
-    Start a subprocess to run the code of a process object
-    '''
-    method = 'loky'
+    """
+    Start a subprocess to run the code of a process object.
+
+    We differ from cpython implementation with the way we handle environment
+    variables, in order to be able to modify then in the child processes before
+    importing any library, in order to control the number of threads in C-level
+    threadpools.
+
+    We also use the loky preparation data, in particular to handle main_module
+    inits and the loky resource tracker.
+    """
+
+    method = "loky"
 
     def __init__(self, process_obj):
         prep_data = spawn.get_preparation_data(
-            process_obj._name, getattr(process_obj, "init_main_module", True))
+            process_obj._name, getattr(process_obj, "init_main_module", True)
+        )
 
-        # read end of pipe will be "stolen" by the child process
+        # read end of pipe will be duplicated by the child process
         # -- see spawn_main() in spawn.py.
-        rfd, wfd = os.pipe()
-        rhandle = duplicate(msvcrt.get_osfhandle(rfd), inheritable=True)
-        os.close(rfd)
-
+        #
+        # bpo-33929: Previously, the read end of pipe was "stolen" by the child
+        # process, but it leaked a handle if the child process had been
+        # terminated before it could steal the handle from the parent process.
+        rhandle, whandle = _winapi.CreatePipe(None, 0)
+        wfd = msvcrt.open_osfhandle(whandle, 0)
         cmd = get_command_line(parent_pid=os.getpid(), pipe_handle=rhandle)
-        cmd = ' '.join(f'"{x}"' for x in cmd)
 
         python_exe = spawn.get_executable()
 
@@ -58,99 +75,99 @@ class Popen(_Popen):
         # bpo-35797: When running in a venv, we bypass the redirect
         # executor and launch our base Python.
         if WINENV and _path_eq(python_exe, sys.executable):
-            python_exe = sys._base_executable
+            cmd[0] = python_exe = sys._base_executable
             child_env["__PYVENV_LAUNCHER__"] = sys.executable
 
-        try:
-            with open(wfd, 'wb') as to_child:
-                # start process
-                try:
-                    # This flag allows to pass inheritable handles from the
-                    # parent to the child process in a python2-3 compatible way
-                    # (see
-                    # https://github.com/tomMoral/loky/pull/204#discussion_r290719629
-                    # for more detail). When support for Python 2 is dropped,
-                    # the cleaner multiprocessing.reduction.steal_handle should
-                    # be used instead.
-                    inherit = True
-                    hp, ht, pid, _ = _winapi.CreateProcess(
-                        python_exe, cmd,
-                        None, None, inherit, 0,
-                        child_env, None, None)
-                    _winapi.CloseHandle(ht)
-                except BaseException:
-                    _winapi.CloseHandle(rhandle)
-                    raise
+        cmd = " ".join(f'"{x}"' for x in cmd)
 
-                # set attributes of self
-                self.pid = pid
-                self.returncode = None
-                self._handle = hp
-                self.sentinel = int(hp)
-                util.Finalize(self, _winapi.CloseHandle, (self.sentinel,))
-
-                # send information to child
-                set_spawning_popen(self)
-                try:
-                    reduction.dump(prep_data, to_child)
-                    reduction.dump(process_obj, to_child)
-                finally:
-                    set_spawning_popen(None)
-        except IOError as exc:
-            # IOError 22 happens when the launched subprocess terminated before
-            # wfd.close is called. Thus we can safely ignore it.
-            if exc.errno != 22:
+        with open(wfd, "wb") as to_child:
+            # start process
+            try:
+                hp, ht, pid, _ = _winapi.CreateProcess(
+                    python_exe,
+                    cmd,
+                    None,
+                    None,
+                    False,
+                    0,
+                    child_env,
+                    None,
+                    None,
+                )
+                _winapi.CloseHandle(ht)
+            except BaseException:
+                _winapi.CloseHandle(rhandle)
                 raise
-            util.debug(
-                f"While starting {process_obj._name}, ignored a IOError 22"
+
+            # set attributes of self
+            self.pid = pid
+            self.returncode = None
+            self._handle = hp
+            self.sentinel = int(hp)
+            self.finalizer = util.Finalize(
+                self, _close_handles, (self.sentinel, int(rhandle))
             )
 
-    def duplicate_for_child(self, handle):
-        assert self is get_spawning_popen()
-        return duplicate(handle, self.sentinel)
+            # send information to child
+            set_spawning_popen(self)
+            try:
+                reduction.dump(prep_data, to_child)
+                reduction.dump(process_obj, to_child)
+            finally:
+                set_spawning_popen(None)
 
 
-def get_command_line(pipe_handle, **kwds):
-    '''
-    Returns prefix of command line used for spawning a child process
-    '''
-    if getattr(sys, 'frozen', False):
-        return [sys.executable, '--multiprocessing-fork', pipe_handle]
+def get_command_line(pipe_handle, parent_pid, **kwds):
+    """Returns prefix of command line used for spawning a child process."""
+    if getattr(sys, "frozen", False):
+        return [sys.executable, "--multiprocessing-fork", pipe_handle]
     else:
-        prog = 'from joblib.externals.loky.backend.popen_loky_win32 import main; main()'
+        prog = (
+            "from joblib.externals.loky.backend.popen_loky_win32 import main; "
+            f"main(pipe_handle={pipe_handle}, parent_pid={parent_pid})"
+        )
         opts = util._args_from_interpreter_flags()
-        return [spawn.get_executable(), *opts,
-                '-c', prog, '--multiprocessing-fork', pipe_handle]
+        return [
+            spawn.get_executable(),
+            *opts,
+            "-c",
+            prog,
+            "--multiprocessing-fork",
+        ]
 
 
 def is_forking(argv):
-    '''
-    Return whether commandline indicates we are forking
-    '''
-    if len(argv) >= 2 and argv[1] == '--multiprocessing-fork':
-        assert len(argv) == 3
+    """Return whether commandline indicates we are forking."""
+    if len(argv) >= 2 and argv[1] == "--multiprocessing-fork":
         return True
     else:
         return False
 
 
-def main():
-    '''
-    Run code specified by data received over pipe
-    '''
-    assert is_forking(sys.argv)
+def main(pipe_handle, parent_pid=None):
+    """Run code specified by data received over pipe."""
+    assert is_forking(sys.argv), "Not forking"
 
-    handle = int(sys.argv[-1])
-    fd = msvcrt.open_osfhandle(handle, os.O_RDONLY)
-    from_parent = os.fdopen(fd, 'rb')
+    if parent_pid is not None:
+        source_process = _winapi.OpenProcess(
+            _winapi.SYNCHRONIZE | _winapi.PROCESS_DUP_HANDLE, False, parent_pid
+        )
+    else:
+        source_process = None
+    new_handle = reduction.duplicate(
+        pipe_handle, source_process=source_process
+    )
+    fd = msvcrt.open_osfhandle(new_handle, os.O_RDONLY)
+    parent_sentinel = source_process
 
-    process.current_process()._inheriting = True
-    preparation_data = load(from_parent)
-    spawn.prepare(preparation_data)
-    self = load(from_parent)
-    process.current_process()._inheriting = False
+    with os.fdopen(fd, "rb", closefd=True) as from_parent:
+        process.current_process()._inheriting = True
+        try:
+            preparation_data = load(from_parent)
+            spawn.prepare(preparation_data, parent_sentinel)
+            self = load(from_parent)
+        finally:
+            del process.current_process()._inheriting
 
-    from_parent.close()
-
-    exitcode = self._bootstrap()
+    exitcode = self._bootstrap(parent_sentinel)
     sys.exit(exitcode)
