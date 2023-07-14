@@ -162,8 +162,8 @@ endfunction()
 function(vcs_info Tgt)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json
-    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/devtools/yexport/scripts/generate_vcs_info.py ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json ${CMAKE_SOURCE_DIR}
-    DEPENDS ${CMAKE_SOURCE_DIR}/devtools/yexport/scripts/generate_vcs_info.py
+    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/generate_vcs_info.py ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json ${CMAKE_SOURCE_DIR}
+    DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/generate_vcs_info.py
   )
 
   add_custom_command(
