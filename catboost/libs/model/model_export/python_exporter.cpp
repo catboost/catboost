@@ -3,6 +3,7 @@
 #include "export_helpers.h"
 
 #include <catboost/libs/model/ctr_helpers.h>
+#include <catboost/libs/model/enums.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 
 #include <library/cpp/resource/resource.h>
@@ -143,7 +144,6 @@ namespace NCB {
 
 
     void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
-        CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1, "Export of MultiClassification model to Python is not supported.");
         auto applyData = model.ModelTrees->GetApplyData();
 
         if (!applyData->UsedModelCtrs.empty()) {
@@ -218,11 +218,11 @@ namespace NCB {
         }
         Out << --indent << "]" << '\n';
 
-        Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
-        Out << indent << "leaf_values = [" << OutputLeafValues(model, indent) << indent << "]" << '\n';
+        Out << indent << "leaf_values = [" << OutputLeafValues(model, indent, EModelType::Python) << indent << "]" << '\n';
         Out << indent << "scale = " << model.GetScaleAndBias().Scale << '\n';
-        Out << indent << "bias = " << model.GetScaleAndBias().GetOneDimensionalBiasOrZero() << '\n';
+        Out << indent << "biases = [" << OutputArrayInitializer(model.GetScaleAndBias().GetBiasRef()) << "]" << '\n';
+        Out << indent << "dimension = " << model.ModelTrees->GetDimensionsCount() << '\n';
 
         if (!applyData->UsedModelCtrs.empty()) {
             WriteModelCTRs(Out, model, indent);
@@ -230,6 +230,8 @@ namespace NCB {
             Out << NResource::Find("catboost_model_export_python_ctr_calcer") << '\n';
         }
         indent--;
+        Out << "\n\n";
+
         Out << indent++ << "cat_features_hashes = {" << '\n';
         if (catFeaturesHashToString != nullptr) {
             TSet<int> ordered_keys;
@@ -241,11 +243,11 @@ namespace NCB {
             }
         }
         Out << --indent << "}" << '\n';
-        Out << '\n';
+        Out << "\n\n";
     };
 
     void TCatboostModelToPythonConverter::WriteApplicatorCatFeatures() {
-        Out << NResource::Find("catboost_model_export_python_model_applicator") << '\n';
+        Out << NResource::Find("catboost_model_export_python_model_applicator");
     };
 
 }

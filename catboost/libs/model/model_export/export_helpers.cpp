@@ -42,15 +42,34 @@ namespace NCatboostModelExportHelpers {
         return outString;
     }
 
-    TString OutputLeafValues(const TFullModel& model, TIndent indent) {
+    TString OutputLeafValues(const TFullModel& model, TIndent indent, EModelType modelType) {
+        char bracketStart, bracketEnd;
+        switch (modelType) {
+            case EModelType::Cpp:
+                bracketStart = '{';
+                bracketEnd = '}';
+                break;
+            case EModelType::Python:
+                bracketStart = '[';
+                bracketEnd = ']';
+                break;
+            default:
+                CB_ENSURE(false, "Can not export to this format");
+        }
+
         TStringBuilder outString;
         TSequenceCommaSeparator commaOuter(model.ModelTrees->GetModelTreeData()->GetTreeSizes().size());
         ++indent;
         auto currentTreeFirstLeafPtr = model.ModelTrees->GetModelTreeData()->GetLeafValues().data();
         for (const auto& treeSize : model.ModelTrees->GetModelTreeData()->GetTreeSizes()) {
-            const auto treeLeafCount = (1uLL << treeSize) * model.ModelTrees->GetDimensionsCount();
+            const auto treeLeafCount = 1uLL << treeSize;
+            const auto dim = model.ModelTrees->GetDimensionsCount();
             outString << '\n' << indent;
-            outString << OutputArrayInitializer([&currentTreeFirstLeafPtr] (size_t i) { return FloatToString(currentTreeFirstLeafPtr[i], PREC_NDIGITS, 16); }, treeLeafCount);
+            outString << OutputArrayInitializer([&currentTreeFirstLeafPtr, &dim, &bracketStart, &bracketEnd] (size_t i) {
+                return bracketStart + OutputArrayInitializer([&currentTreeFirstLeafPtr, &dim, &i] (size_t j) {
+                    return FloatToString(currentTreeFirstLeafPtr[i * dim + j], PREC_NDIGITS, 16);
+                }, dim) + bracketEnd;
+            }, treeLeafCount);
             outString << commaOuter;
             currentTreeFirstLeafPtr += treeLeafCount;
         }

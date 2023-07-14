@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/model/enums.h>
 #include <catboost/libs/model/model.h>
 
 #include <util/string/builder.h>
@@ -124,5 +125,5 @@ namespace NCatboostModelExportHelpers {
 
     TString OutputBorders(const TFullModel& model, bool addFloatingSuffix = false);
 
-    TString OutputLeafValues(const TFullModel& model, TIndent indent);
+    TString OutputLeafValues(const TFullModel& model, TIndent indent, EModelType modelType);
 }

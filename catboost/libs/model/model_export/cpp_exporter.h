@@ -25,21 +25,20 @@ namespace NCB {
                           "Need to use training dataset Pool to save mapping {categorical feature value -> hash value} "
                           "due to the absence of a hash function in the model");
                 WriteHeader(/*forCatFeatures*/true);
-                WriteModelCatFeatures(model, catFeaturesHashToString);
-                WriteApplicatorCatFeatures();
+                WriteCTRStructs();
+                WriteModel(/*forCatFeatures*/true, model, catFeaturesHashToString);
+                WriteApplicator(/*forCatFeatures*/true);
             } else {
                 WriteHeader(/*forCatFeatures*/false);
-                WriteModel(model);
-                WriteApplicator();
+                WriteModel(/*forCatFeatures*/false, model, nullptr);
+                WriteApplicator(/*forCatFeatures*/false);
             }
         }
 
     private:
-        void WriteApplicator();
-        void WriteModel(const TFullModel& model);
+        void WriteApplicator(bool forCatFeatures);
+        void WriteModel(bool forCatFeatures, const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString);
         void WriteHeader(bool forCatFeatures);
         void WriteCTRStructs();
-        void WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString);
-        void WriteApplicatorCatFeatures();
     };
 }

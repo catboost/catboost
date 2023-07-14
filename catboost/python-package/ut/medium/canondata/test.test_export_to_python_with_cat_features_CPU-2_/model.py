@@ -94,14 +94,14 @@ class catboost_model(object):
     ctr_feature_borders = [
         [12.999999, 13.999999]
     ]
-
     ## Aggregated array of leaf values for trees. Each tree is represented by a separate line:
     leaf_values = [
-        0.08969131988637588, 0.06223479339054653, 0, 0, 0.0762376219034195, 0.02722772210836411, 0, -0.09777227789163589, 0.07260725895563762, -0.05693069472908974, 0, -0.09777227789163589, 0.05445544421672821, -0.1564356446266174, 0, -0.1564356446266174, 0.08712871074676513, 0.04356435537338257, 0, 0, 0.07260725895563762, -0.05643564462661743, 0, 0, 0.06806930527091026, -0.03160700889734121, 0, -0.09777227789163589, 0.06223479339054653, -0.2234794923237392, 0, -0.09777227789163589, 0, 0, 0, 0, 0, -0.09777227789163589, 0, 0, 0.02722772210836411, -0.09777227789163589, 0, 0, 0, -0.1564356446266174, 0, 0, 0, 0.02722772210836411, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02722772210836411, 0.02722772210836411, 0, 0,
-        0.04814598989571692, -0.05403553864120372, 0, 0, 0.0420084855386189, -0.07821782231330872, 0, 0, 0.05696066158914977, -0.05809299374158262, 0.05481848051150641, 0.04315340051379724, 0.05426685393372655, -0.1840594074875116, 0.05764281644766767, -0.1492377822361295, 0, 0, 0, 0, 0, -0.08555074315518141, 0, 0, 0.02382425684481859, -0.08555074315518141, 0, 0, 0, -0.07821782231330872, 0, 0.02382425684481859
+        [0.08969131988637588], [0.06223479339054653], [0], [0], [0.0762376219034195], [0.02722772210836411], [0], [-0.09777227789163589], [0.07260725895563762], [-0.05693069472908974], [0], [-0.09777227789163589], [0.05445544421672821], [-0.1564356446266174], [0], [-0.1564356446266174], [0.08712871074676513], [0.04356435537338257], [0], [0], [0.07260725895563762], [-0.05643564462661743], [0], [0], [0.06806930527091026], [-0.03160700889734121], [0], [-0.09777227789163589], [0.06223479339054653], [-0.2234794923237392], [0], [-0.09777227789163589], [0], [0], [0], [0], [0], [-0.09777227789163589], [0], [0], [0.02722772210836411], [-0.09777227789163589], [0], [0], [0], [-0.1564356446266174], [0], [0], [0], [0.02722772210836411], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0.02722772210836411], [0.02722772210836411], [0], [0],
+        [0.04814598989571692], [-0.05403553864120372], [0], [0], [0.0420084855386189], [-0.07821782231330872], [0], [0], [0.05696066158914977], [-0.05809299374158262], [0.05481848051150641], [0.04315340051379724], [0.05426685393372655], [-0.1840594074875116], [0.05764281644766767], [-0.1492377822361295], [0], [0], [0], [0], [0], [-0.08555074315518141], [0], [0], [0.02382425684481859], [-0.08555074315518141], [0], [0], [0], [-0.07821782231330872], [0], [0.02382425684481859]
     ]
     scale = 1
-    bias = 0.7821782231
+    biases = [0.7821782231]
+    dimension = 1
     model_ctrs = catboost_model_ctrs_container(
         used_model_ctrs_count = 1,
         compressed_model_ctrs = [
@@ -199,7 +199,6 @@ def calc_ctrs(model_ctrs, binarized_features, hashed_cat_features, result):
             result_index += 1
 
 
-
 cat_features_hashes = {
     "Female": -2114564283,
     "Protective-serv": -2075156126,
@@ -261,13 +260,13 @@ cat_features_hashes = {
     "Private": 2084267031,
 }
 
+
 def hash_uint64(string):
     return cat_features_hashes.get(str(string), 0x7fFFffFF)
 
 
 ### Applicator for the CatBoost model
-
-def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_end=catboost_model.tree_count):
+def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, ntree_end=catboost_model.tree_count):
     """
     Applies the model built by CatBoost.
 
@@ -283,7 +282,7 @@ def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_e
 
     Returns
     -------
-    prediction : formula value for the model and the features
+    predictions : list of formula values for the model and the features
 
     """
     if ntree_end == 0:
@@ -328,7 +327,7 @@ def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_e
             binary_feature_index += 1
 
     # Extract and sum values from trees
-    result = 0.
+    results = [0.0] * model.dimension
     tree_splits_index = 0
     current_tree_leaf_values_index = 0
     for tree_id in range(ntree_start, ntree_end):
@@ -339,10 +338,29 @@ def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_e
             feature_index = model.tree_split_feature_index[tree_splits_index + depth]
             xor_mask = model.tree_split_xor_mask[tree_splits_index + depth]
             index |= ((binary_features[feature_index] ^ xor_mask) >= border_val) << depth
-        result += model.leaf_values[current_tree_leaf_values_index + index]
+        results = [result + delta for result, delta in zip(results, model.leaf_values[current_tree_leaf_values_index + index])]
         tree_splits_index += current_tree_depth
-        current_tree_leaf_values_index += (1 << current_tree_depth)
-    return model.scale * result + model.bias
+        current_tree_leaf_values_index += (1 << current_tree_depth) * model.dimension
+    return [model.scale * res + bias for res, bias in zip(results, model.biases)]
 
 
+def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_end=catboost_model.tree_count):
+    """
+    Applies the model built by CatBoost.
 
+    Parameters
+    ----------
+
+    float_features : list of float features
+
+    cat_features : list of categorical features
+        You need to pass float and categorical features separately in the same order they appeared in train dataset.
+        For example if you had features f1,f2,f3,f4, where f2 and f4 were considered categorical, you need to pass here float_features=f1,f3, cat_features=f2,f4
+
+
+    Returns
+    -------
+    predictions : single (first) formula value for the model and the features
+
+    """
+    return apply_catboost_model_multi(float_features, cat_features, ntree_start, ntree_end)[0]
