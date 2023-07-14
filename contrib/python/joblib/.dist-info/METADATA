@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: joblib
-Version: 1.3.0
+Version: 1.3.1
 Summary: Lightweight pipelining with Python functions
 Author-email: Gael Varoquaux <gael.varoquaux@normalesup.org>
 License: BSD 3-Clause

@@ -18,14 +18,20 @@ import warnings
 import multiprocessing as mp
 from multiprocessing import get_context as mp_get_context
 from multiprocessing.context import BaseContext
-from concurrent.futures.process import _MAX_WINDOWS_WORKERS
+
 
 from .process import LokyProcess, LokyInitMainProcess
 
 # Apparently, on older Python versions, loky cannot work 61 workers on Windows
 # but instead 60: ¯\_(ツ)_/¯
-if sys.version_info < (3, 10):
-    _MAX_WINDOWS_WORKERS = _MAX_WINDOWS_WORKERS - 1
+if sys.version_info >= (3, 8):
+    from concurrent.futures.process import _MAX_WINDOWS_WORKERS
+
+    if sys.version_info < (3, 10):
+        _MAX_WINDOWS_WORKERS = _MAX_WINDOWS_WORKERS - 1
+else:
+    # compat for versions before 3.8 which do not define this.
+    _MAX_WINDOWS_WORKERS = 60
 
 START_METHODS = ["loky", "loky_init_main", "spawn"]
 if sys.platform != "win32":
