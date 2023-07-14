@@ -161,9 +161,15 @@ endfunction()
 
 function(vcs_info Tgt)
   add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json
+    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/devtools/yexport/scripts/generate_vcs_info.py ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json ${CMAKE_SOURCE_DIR}
+    DEPENDS ${CMAKE_SOURCE_DIR}/devtools/yexport/scripts/generate_vcs_info.py
+  )
+
+  add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/__vcs_version__.c
-    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/vcs_info.py no-vcs dummy.json ${CMAKE_CURRENT_BINARY_DIR}/__vcs_version__.c ${CMAKE_SOURCE_DIR}/build/scripts/c_templates/svn_interface.c
-    DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/vcs_info.py ${CMAKE_SOURCE_DIR}/build/scripts/c_templates/svn_interface.c
+    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/vcs_info.py ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json ${CMAKE_CURRENT_BINARY_DIR}/__vcs_version__.c ${CMAKE_SOURCE_DIR}/build/scripts/c_templates/svn_interface.c
+    DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/vcs_info.py ${CMAKE_SOURCE_DIR}/build/scripts/c_templates/svn_interface.c ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json
   )
   target_sources(${Tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/__vcs_version__.c)
 endfunction()
