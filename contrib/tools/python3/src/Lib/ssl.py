@@ -607,7 +607,6 @@ class SSLContext(_SSLContext):
             raise TypeError(purpose)
 
         self.load_verify_locations(cadata=builtin_cadata())
-        return
 
         if sys.platform == "win32":
             for storename in self._windows_cert_stores:
