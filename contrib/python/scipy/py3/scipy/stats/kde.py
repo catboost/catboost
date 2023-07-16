@@ -33,6 +33,9 @@ from numpy import (atleast_2d, reshape, zeros, newaxis, dot, exp, pi, sqrt,
 import numpy as np
 from numpy.random import choice, multivariate_normal
 
+# Local imports.
+from . import mvn
+
 
 __all__ = ['gaussian_kde']
 
@@ -368,8 +371,6 @@ class gaussian_kde(object):
             The result of the integral.
 
         """
-        from . import mvn
-
         if maxpts is not None:
             extra_kwds = {'maxpts': maxpts}
         else:
