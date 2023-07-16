@@ -767,7 +767,7 @@ class netcdf_file(object):
         values = self.fp.read(int(count))
         self.fp.read(-count % 4)  # read padding
 
-        if typecode is not 'c':
+        if typecode != 'c':
             values = frombuffer(values, dtype='>%s' % typecode).copy()
             if values.shape == (1,):
                 values = values[0]
@@ -810,7 +810,7 @@ class netcdf_file(object):
 
 class netcdf_variable(object):
     """
-    A data object for the `netcdf` module.
+    A data object for netcdf files.
 
     `netcdf_variable` objects are constructed by calling the method
     `netcdf_file.createVariable` on the `netcdf_file` object. `netcdf_variable`
@@ -1095,4 +1095,3 @@ class netcdf_variable(object):
 
 NetCDFFile = netcdf_file
 NetCDFVariable = netcdf_variable
-

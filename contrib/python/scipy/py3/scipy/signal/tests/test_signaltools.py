@@ -24,7 +24,7 @@ from scipy.signal import (
     correlate, convolve, convolve2d, fftconvolve, choose_conv_method,
     hilbert, hilbert2, lfilter, lfilter_zi, filtfilt, butter, zpk2tf, zpk2sos,
     invres, invresz, vectorstrength, lfiltic, tf2sos, sosfilt, sosfiltfilt,
-    sosfilt_zi, tf2zpk, BadCoefficients, unique_roots)
+    sosfilt_zi, tf2zpk, BadCoefficients, detrend, unique_roots)
 from scipy.signal.windows import hann
 from scipy.signal.signaltools import _filtfilt_gust
 
@@ -1488,6 +1488,8 @@ def test_lfilter_bad_object():
     assert_raises(TypeError, lfilter, [1.0], [1.0], [1.0, None, 2.0])
     assert_raises(TypeError, lfilter, [1.0], [None], [1.0, 2.0, 3.0])
     assert_raises(TypeError, lfilter, [None], [1.0], [1.0, 2.0, 3.0])
+    with assert_raises(ValueError, match='common type'):
+        lfilter([1.], [1., 1.], ['a', 'b', 'c'])
 
 
 def test_lfilter_notimplemented_input():
@@ -2654,6 +2656,20 @@ class TestDeconvolve(object):
         recovered, remainder = signal.deconvolve(recorded, impulse_response)
         assert_allclose(recovered, original)
 
+        
+class TestDetrend(object):
+
+    def test_basic(self):
+        detrended = detrend(array([1, 2, 3]))
+        detrended_exact = array([0, 0, 0])
+        assert_array_almost_equal(detrended, detrended_exact)
+
+    def test_copy(self):
+        x = array([1, 1.2, 1.5, 1.6, 2.4]) 
+        copy_array = detrend(x, overwrite_data=False)
+        inplace = detrend(x, overwrite_data=True)
+        assert_array_almost_equal(copy_array, inplace)
+
 
 class TestUniqueRoots(object):
     def test_real_no_repeat(self):
@@ -2706,10 +2722,7 @@ class TestUniqueRoots(object):
 
     def test_gh_4915(self):
         p = np.roots(np.convolve(np.ones(5), np.ones(5)))
-        true_roots = [-(-1 + 0j)**(1/5),
-                       (-1 + 0j)**(4/5),
-                       -(-1 + 0j)**(3/5),
-                       (-1 + 0j)**(2/5)]
+        true_roots = [-(-1)**(1/5), (-1)**(4/5), -(-1)**(3/5), (-1)**(2/5)]
 
         unique, multiplicity = unique_roots(p)
         unique = np.sort(unique)

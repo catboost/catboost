@@ -599,7 +599,7 @@ add_newdoc("scipy.special", "btdtria",
 
     See Also
     --------
-    btdtr : Cumulative density function of the beta distribution.
+    btdtr : Cumulative distribution function of the beta distribution.
     btdtri : Inverse with respect to `x`.
     btdtrib : Inverse with respect to `b`.
 
@@ -652,7 +652,7 @@ add_newdoc("scipy.special", "btdtrib",
 
     See Also
     --------
-    btdtr : Cumulative density function of the beta distribution.
+    btdtr : Cumulative distribution function of the beta distribution.
     btdtri : Inverse with respect to `x`.
     btdtria : Inverse with respect to `a`.
 
@@ -925,7 +925,7 @@ add_newdoc("scipy.special", "btdtr",
     r"""
     btdtr(a, b, x)
 
-    Cumulative density function of the beta distribution.
+    Cumulative distribution function of the beta distribution.
 
     Returns the integral from zero to `x` of the beta probability density
     function,
@@ -947,8 +947,8 @@ add_newdoc("scipy.special", "btdtr",
     Returns
     -------
     I : ndarray
-        Cumulative density function of the beta distribution with parameters
-        `a` and `b` at `x`.
+        Cumulative distribution function of the beta distribution with
+        parameters `a` and `b` at `x`.
 
     See Also
     --------
@@ -1219,6 +1219,32 @@ add_newdoc("scipy.special", "ellipe",
     .. [2] Milton Abramowitz and Irene A. Stegun, eds.
            Handbook of Mathematical Functions with Formulas,
            Graphs, and Mathematical Tables. New York: Dover, 1972.
+
+    Examples
+    --------
+    This function is used in finding the circumference of an
+    ellipse with semi-major axis `a` and semi-minor axis `b`.
+
+    >>> from scipy import special
+
+    >>> a = 3.5
+    >>> b = 2.1
+    >>> e_sq = 1.0 - b**2/a**2  # eccentricity squared
+
+    Then the circumference is found using the following:
+
+    >>> C = 4*a*special.ellipe(e_sq)  # circumference formula
+    >>> C
+    17.868899204378693
+
+    When `a` and `b` are the same (meaning eccentricity is 0),
+    this reduces to the circumference of a circle.
+
+    >>> 4*a*special.ellipe(0.0)  # formula for ellipse with a = b
+    21.991148575128552
+    >>> 2*np.pi*a  # formula for circle of radius a
+    21.991148575128552
+
     """)
 
 add_newdoc("scipy.special", "ellipeinc",
@@ -1295,7 +1321,7 @@ add_newdoc("scipy.special", "ellipj",
 
             sn(u|m), cn(u|m), dn(u|m)
 
-        The value `ph` is such that if `u = ellipk(ph, m)`,
+        The value `ph` is such that if `u = ellipkinc(ph, m)`,
         then `sn(u|m) = sin(ph)` and `cn(u|m) = cos(ph)`.
 
     Notes
@@ -1305,7 +1331,7 @@ add_newdoc("scipy.special", "ellipj",
     These functions are periodic, with quarter-period on the real axis
     equal to the complete elliptic integral `ellipk(m)`.
 
-    Relation to incomplete elliptic integral: If `u = ellipk(phi,m)`, then
+    Relation to incomplete elliptic integral: If `u = ellipkinc(phi,m)`, then
     `sn(u|m) = sin(phi)`, and `cn(u|m) = cos(phi)`.  The `phi` is called
     the amplitude of `u`.
 
@@ -1315,7 +1341,8 @@ add_newdoc("scipy.special", "ellipj",
 
     See also
     --------
-    ellipk : Complete elliptic integral of the first kind.
+    ellipk : Complete elliptic integral of the first kind
+    ellipkinc : Incomplete elliptic integral of the first kind
 
     References
     ----------
@@ -2431,7 +2458,7 @@ add_newdoc("scipy.special", "fdtr",
 
     F cumulative distribution function.
 
-    Returns the value of the cumulative density function of the
+    Returns the value of the cumulative distribution function of the
     F-distribution, also known as Snedecor's F-distribution or the
     Fisher-Snedecor distribution.
 
@@ -2794,7 +2821,7 @@ add_newdoc("scipy.special", "gdtr",
     r"""
     gdtr(a, b, x)
 
-    Gamma distribution cumulative density function.
+    Gamma distribution cumulative distribution function.
 
     Returns the integral from zero to `x` of the gamma probability density
     function,
@@ -4429,7 +4456,7 @@ add_newdoc("scipy.special", "kolmogi",
     Kolmogorov-Smirnov Goodness of Fit test. For historial reasons this
     function is exposed in `scpy.special`, but the recommended way to achieve
     the most accurate CDF/SF/PDF/PPF/ISF computations is to use the
-    `stats.kstwobign` distrubution.
+    `stats.kstwobign` distribution.
 
     See Also
     --------
@@ -4489,7 +4516,7 @@ add_newdoc("scipy.special", "kolmogorov",
     Show the probability of a gap at least as big as 0, 0.5 and 1.0.
 
     >>> from scipy.special import kolmogorov
-    >>> from scipy.stats import kstwobign 
+    >>> from scipy.stats import kstwobign
     >>> kolmogorov([0, 0.5, 1.0])
     array([ 1.        ,  0.96394524,  0.26999967])
 
@@ -5775,7 +5802,7 @@ add_newdoc("scipy.special", "nrdtrisd",
 
     See Also
     --------
-    nrdtristd, ndtr
+    ndtr
 
     """)
 
@@ -6654,7 +6681,7 @@ add_newdoc("scipy.special", "stdtr",
     """
     stdtr(df, t)
 
-    Student t distribution cumulative density function
+    Student t distribution cumulative distribution function
 
     Returns the integral from minus infinity to t of the Student t
     distribution with df > 0 degrees of freedom::

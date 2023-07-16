@@ -159,6 +159,17 @@ def test_support(dist):
     assert_equal(dist.logpdf(dist.b, *args), -np.inf)
 
 
+@pytest.mark.parametrize('dist,args,alpha', cases_test_all_distributions())
+def test_retrieving_support(dist, args, alpha):
+    """"""
+    dist = getattr(stats, dist)
+
+    loc, scale = 1, 2
+    supp = dist.support(*args)
+    supp_loc_scale = dist.support(*args, loc=loc, scale=scale)
+    assert_almost_equal(np.array(supp)*scale + loc, np.array(supp_loc_scale))
+
+
 class TestRandInt(object):
     def setup_method(self):
         np.random.seed(1234)
@@ -474,6 +485,13 @@ class TestTruncnorm(object):
         x = stats.truncnorm.rvs(low, high, 0, 1, size=10)
         assert_(low < x.min() < x.max() < high)
 
+    def test_moments(self):
+        m, v, s, k = stats.truncnorm.stats(-30, 30, moments='mvsk')
+        assert_almost_equal(m, 0)
+        assert_almost_equal(v, 1)
+        assert_almost_equal(s, 0.0)
+        assert_almost_equal(k, 0.0)
+
     @pytest.mark.xfail(reason="truncnorm rvs is know to fail at extreme tails")
     def test_gh_2477_large_values(self):
         # Check a case that fails because of extreme tailness.
@@ -535,10 +553,8 @@ class TestHypergeom(object):
         pears = 1.1e5
         fruits_eaten = np.array([3, 3.8, 3.9, 4, 4.1, 4.2, 5]) * 1e4
         quantile = 2e4
-        res = []
-        for eaten in fruits_eaten:
-            res.append(stats.hypergeom.sf(quantile, oranges + pears, oranges,
-                                          eaten))
+        res = [stats.hypergeom.sf(quantile, oranges + pears, oranges, eaten)
+               for eaten in fruits_eaten]
         expected = np.array([0, 1.904153e-114, 2.752693e-66, 4.931217e-32,
                              8.265601e-11, 0.1237904, 1])
         assert_allclose(res, expected, atol=0, rtol=5e-7)
@@ -573,8 +589,63 @@ class TestHypergeom(object):
         N = 5e4
 
         result = stats.hypergeom.logsf(k, M, n, N)
-        exspected = -2239.771   # From R
-        assert_almost_equal(result, exspected, decimal=3)
+        expected = -2239.771   # From R
+        assert_almost_equal(result, expected, decimal=3)
+
+        k = 1
+        M = 1600
+        n = 600
+        N = 300
+
+        result = stats.hypergeom.logsf(k, M, n, N)
+        expected = -2.566567e-68   # From R
+        assert_almost_equal(result, expected, decimal=15)
+
+    def test_logcdf(self):
+        # Test logcdf for very large numbers. See issue #8692
+        # Results compare with those from R (v3.3.2):
+        # phyper(k, n, M-n, N, lower.tail=TRUE, log.p=TRUE)
+        # -5273.335
+
+        k = 1
+        M = 1e7
+        n = 1e6
+        N = 5e4
+
+        result = stats.hypergeom.logcdf(k, M, n, N)
+        expected = -5273.335   # From R
+        assert_almost_equal(result, expected, decimal=3)
+
+        # Same example as in issue #8692
+        k = 40
+        M = 1600
+        n = 50
+        N = 300
+
+        result = stats.hypergeom.logcdf(k, M, n, N)
+        expected = -7.565148879229e-23    # From R
+        assert_almost_equal(result, expected, decimal=15)
+
+        k = 125
+        M = 1600
+        n = 250
+        N = 500
+
+        result = stats.hypergeom.logcdf(k, M, n, N)
+        expected = -4.242688e-12    # From R
+        assert_almost_equal(result, expected, decimal=15)
+
+        # test broadcasting robustness based on reviewer
+        # concerns in PR 9603; using an array version of
+        # the example from issue #8692
+        k = np.array([40, 40, 40])
+        M = 1600
+        n = 50
+        N = 300
+
+        result = stats.hypergeom.logcdf(k, M, n, N)
+        expected = np.full(3, -7.565148879229e-23)  # filled from R result
+        assert_almost_equal(result, expected, decimal=15)
 
 
 class TestLoggamma(object):
@@ -733,13 +804,14 @@ class TestGenpareto(object):
         for c in [1., 0.]:
             c = np.asarray(c)
             stats.genpareto._argcheck(c)  # ugh
-            assert_equal(stats.genpareto.a, 0.)
-            assert_(np.isposinf(stats.genpareto.b))
+            a, b = stats.genpareto._get_support(c)
+            assert_equal(a, 0.)
+            assert_(np.isposinf(b))
 
         # c < 0: a=0, b=1/|c|
         c = np.asarray(-2.)
         stats.genpareto._argcheck(c)
-        assert_allclose([stats.genpareto.a, stats.genpareto.b], [0., 0.5])
+        assert_allclose(stats.genpareto._get_support(c), [0., 0.5])
 
     def test_c0(self):
         # with c=0, genpareto reduces to the exponential distribution
@@ -1195,6 +1267,15 @@ class TestRvDiscrete(object):
 
         assert_allclose(rv.expect(), np.sum(rv.xk * rv.pk), atol=1e-14)
 
+    def test_multidimension(self):
+        xk = np.arange(12).reshape((3, 4))
+        pk = np.array([[0.1, 0.1, 0.15, 0.05],
+                       [0.1, 0.1, 0.05, 0.05],
+                       [0.1, 0.1, 0.05, 0.05]])
+        rv = stats.rv_discrete(values=(xk, pk))
+
+        assert_allclose(rv.expect(), np.sum(rv.xk * rv.pk), atol=1e-14)
+
     def test_bad_input(self):
         xk = [1, 2, 3]
         pk = [0.5, 0.5]
@@ -1202,6 +1283,29 @@ class TestRvDiscrete(object):
 
         pk = [1, 2, 3]
         assert_raises(ValueError, stats.rv_discrete, **dict(values=(xk, pk)))
+
+        xk = [1, 2, 3]
+        pk = [0.5, 1.2, -0.7]
+        assert_raises(ValueError, stats.rv_discrete, **dict(values=(xk, pk)))
+
+        xk = [1, 2, 3, 4, 5]
+        pk = [0.3, 0.3, 0.3, 0.3, -0.2]
+        assert_raises(ValueError, stats.rv_discrete, **dict(values=(xk, pk)))
+
+    def test_shape_rv_sample(self):
+        # tests added for gh-9565
+
+        # mismatch of 2d inputs
+        xk, pk = np.arange(4).reshape((2, 2)), np.ones((2, 3)) / 6
+        assert_raises(ValueError, stats.rv_discrete, **dict(values=(xk, pk)))
+
+        # same number of elements, but shapes not compatible
+        xk, pk = np.arange(6).reshape((3, 2)), np.ones((2, 3)) / 6
+        assert_raises(ValueError, stats.rv_discrete, **dict(values=(xk, pk)))
+
+        # same shapes => no error
+        xk, pk = np.arange(6).reshape((3, 2)), np.ones((3, 2)) / 6
+        assert_equal(stats.rv_discrete(values=(xk, pk)).pmf(0), 1/6)
 
 
 class TestSkewNorm(object):
@@ -1301,6 +1405,9 @@ class TestExponNorm(object):
         # Test for extreme values against overflows
         assert_almost_equal(stats.exponnorm.pdf(-900, 1), 0.0)
         assert_almost_equal(stats.exponnorm.pdf(+900, 1), 0.0)
+        assert_almost_equal(stats.exponnorm.pdf(1, 0.01), 0.0)
+        assert_almost_equal(stats.exponnorm.pdf(-900, 0.01), 0.0)
+        assert_almost_equal(stats.exponnorm.pdf(+900, 0.01), 0.0)
 
 
 class TestGenExpon(object):
@@ -1449,6 +1556,20 @@ class TestChi2(object):
                             decimal=14)
         assert_almost_equal(stats.chi2.pdf(100, 100), 0.028162503162596778,
                             decimal=14)
+
+    def test_ppf(self):
+        # Expected values computed with mpmath.
+        df = 4.8
+        x = stats.chi2.ppf(2e-47, df)
+        assert_allclose(x, 1.098472479575179840604902808e-19, rtol=1e-10)
+        x = stats.chi2.ppf(0.5, df)
+        assert_allclose(x, 4.15231407598589358660093156, rtol=1e-10)
+
+        df = 13
+        x = stats.chi2.ppf(2e-77, df)
+        assert_allclose(x, 1.0106330688195199050507943e-11, rtol=1e-10)
+        x = stats.chi2.ppf(0.1, df)
+        assert_allclose(x, 7.041504580095461859307179763, rtol=1e-10)
 
 
 class TestGumbelL(object):
@@ -2126,14 +2247,14 @@ class TestFrozen(object):
         # depends on the value of the shape parameter:
         # for c > 0: a, b = 0, inf
         # for c < 0: a, b = 0, -1/c
-        rv = stats.genpareto(c=-0.1)
-        a, b = rv.dist.a, rv.dist.b
+        c = -0.1
+        rv = stats.genpareto(c=c)
+        a, b = rv.dist._get_support(c)
         assert_equal([a, b], [0., 10.])
-        assert_equal([rv.a, rv.b], [0., 10.])
 
-        stats.genpareto.pdf(0, c=0.1)  # this changes genpareto.b
-        assert_equal([rv.dist.a, rv.dist.b], [a, b])
-        assert_equal([rv.a, rv.b], [a, b])
+        c = 0.1
+        stats.genpareto.pdf(0, c=c)
+        assert_equal(rv.dist._get_support(c), [0, np.inf])
 
         rv1 = stats.genpareto(c=0.1)
         assert_(rv1.dist is not rv.dist)
@@ -3541,6 +3662,17 @@ def test_argus_function():
         assert_equal(stats.argus.cdf(1.0, chi=i), 1.0)
         assert_equal(stats.argus.cdf(1.0, chi=i),
                      1.0 - stats.argus.sf(1.0, chi=i))
+
+
+def test_ncf_variance():
+    # Regression test for gh-10658 (incorrect variance formula for ncf).
+    # The correct value of ncf.var(2, 6, 4), 42.75, can be verified with, for
+    # example, Wolfram Alpha with the expression
+    #     Variance[NoncentralFRatioDistribution[2, 6, 4]]
+    # or with the implementation of the noncentral F distribution in the C++
+    # library Boost.
+    v = stats.ncf.var(2, 6, 4)
+    assert_allclose(v, 42.75, rtol=1e-14)
 
 
 class TestHistogram(object):

@@ -15,8 +15,7 @@
 #include <Python.h>
 #define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
 #define NO_IMPORT_ARRAY
-#include <numpy/noprefix.h>
-
+#include "numpy/ndarrayobject.h"
 #include "sigtools.h"
 
 enum {
@@ -116,27 +115,27 @@ clean_ax:
  * Implementation of the type-specific correlation 'kernels'
  */
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_ubyte(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
         PyArrayIterObject *itz)
 {
     npy_intp i, j;
-    ubyte acc;
+    npy_ubyte acc;
 
     for(i = 0; i < curx->size; ++i) {
         acc = 0;
         PyArrayNeighborhoodIter_Reset(curneighx);
         for(j = 0; j < curneighx->size; ++j) {
-            acc += *((ubyte*)(curneighx->dataptr)) * *((ubyte*)(ity->dataptr));
+            acc += *((npy_ubyte*)(curneighx->dataptr)) * *((npy_ubyte*)(ity->dataptr));
 
             PyArrayNeighborhoodIter_Next(curneighx);
             PyArray_ITER_NEXT(ity);
         }
         PyArrayNeighborhoodIter_Next(curx);
 
-        *((ubyte*)(itz->dataptr)) = acc;
+        *((npy_ubyte*)(itz->dataptr)) = acc;
         PyArray_ITER_NEXT(itz);
 
         PyArray_ITER_RESET(ity);
@@ -146,27 +145,27 @@ static int _imp_correlate_nd_ubyte(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_byte(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
         PyArrayIterObject *itz)
 {
     npy_intp i, j;
-    byte acc;
+    npy_byte acc;
 
     for(i = 0; i < curx->size; ++i) {
         acc = 0;
         PyArrayNeighborhoodIter_Reset(curneighx);
         for(j = 0; j < curneighx->size; ++j) {
-            acc += *((byte*)(curneighx->dataptr)) * *((byte*)(ity->dataptr));
+            acc += *((npy_byte*)(curneighx->dataptr)) * *((npy_byte*)(ity->dataptr));
 
             PyArrayNeighborhoodIter_Next(curneighx);
             PyArray_ITER_NEXT(ity);
         }
         PyArrayNeighborhoodIter_Next(curx);
 
-        *((byte*)(itz->dataptr)) = acc;
+        *((npy_byte*)(itz->dataptr)) = acc;
         PyArray_ITER_NEXT(itz);
 
         PyArray_ITER_RESET(ity);
@@ -176,27 +175,27 @@ static int _imp_correlate_nd_byte(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_ushort(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
         PyArrayIterObject *itz)
 {
     npy_intp i, j;
-    ushort acc;
+    npy_ushort acc;
 
     for(i = 0; i < curx->size; ++i) {
         acc = 0;
         PyArrayNeighborhoodIter_Reset(curneighx);
         for(j = 0; j < curneighx->size; ++j) {
-            acc += *((ushort*)(curneighx->dataptr)) * *((ushort*)(ity->dataptr));
+            acc += *((npy_ushort*)(curneighx->dataptr)) * *((npy_ushort*)(ity->dataptr));
 
             PyArrayNeighborhoodIter_Next(curneighx);
             PyArray_ITER_NEXT(ity);
         }
         PyArrayNeighborhoodIter_Next(curx);
 
-        *((ushort*)(itz->dataptr)) = acc;
+        *((npy_ushort*)(itz->dataptr)) = acc;
         PyArray_ITER_NEXT(itz);
 
         PyArray_ITER_RESET(ity);
@@ -206,7 +205,7 @@ static int _imp_correlate_nd_ushort(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_short(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -236,27 +235,27 @@ static int _imp_correlate_nd_short(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_uint(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
         PyArrayIterObject *itz)
 {
     npy_intp i, j;
-    uint acc;
+    npy_uint acc;
 
     for(i = 0; i < curx->size; ++i) {
         acc = 0;
         PyArrayNeighborhoodIter_Reset(curneighx);
         for(j = 0; j < curneighx->size; ++j) {
-            acc += *((uint*)(curneighx->dataptr)) * *((uint*)(ity->dataptr));
+            acc += *((npy_uint*)(curneighx->dataptr)) * *((npy_uint*)(ity->dataptr));
 
             PyArrayNeighborhoodIter_Next(curneighx);
             PyArray_ITER_NEXT(ity);
         }
         PyArrayNeighborhoodIter_Next(curx);
 
-        *((uint*)(itz->dataptr)) = acc;
+        *((npy_uint*)(itz->dataptr)) = acc;
         PyArray_ITER_NEXT(itz);
 
         PyArray_ITER_RESET(ity);
@@ -266,7 +265,7 @@ static int _imp_correlate_nd_uint(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_int(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -296,27 +295,27 @@ static int _imp_correlate_nd_int(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_ulong(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
         PyArrayIterObject *itz)
 {
     npy_intp i, j;
-    ulong acc;
+    npy_ulong acc;
 
     for(i = 0; i < curx->size; ++i) {
         acc = 0;
         PyArrayNeighborhoodIter_Reset(curneighx);
         for(j = 0; j < curneighx->size; ++j) {
-            acc += *((ulong*)(curneighx->dataptr)) * *((ulong*)(ity->dataptr));
+            acc += *((npy_ulong*)(curneighx->dataptr)) * *((npy_ulong*)(ity->dataptr));
 
             PyArrayNeighborhoodIter_Next(curneighx);
             PyArray_ITER_NEXT(ity);
         }
         PyArrayNeighborhoodIter_Next(curx);
 
-        *((ulong*)(itz->dataptr)) = acc;
+        *((npy_ulong*)(itz->dataptr)) = acc;
         PyArray_ITER_NEXT(itz);
 
         PyArray_ITER_RESET(ity);
@@ -326,7 +325,7 @@ static int _imp_correlate_nd_ulong(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_long(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -356,27 +355,27 @@ static int _imp_correlate_nd_long(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_ulonglong(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
         PyArrayIterObject *itz)
 {
     npy_intp i, j;
-    ulonglong acc;
+    npy_ulonglong acc;
 
     for(i = 0; i < curx->size; ++i) {
         acc = 0;
         PyArrayNeighborhoodIter_Reset(curneighx);
         for(j = 0; j < curneighx->size; ++j) {
-            acc += *((ulonglong*)(curneighx->dataptr)) * *((ulonglong*)(ity->dataptr));
+            acc += *((npy_ulonglong*)(curneighx->dataptr)) * *((npy_ulonglong*)(ity->dataptr));
 
             PyArrayNeighborhoodIter_Next(curneighx);
             PyArray_ITER_NEXT(ity);
         }
         PyArrayNeighborhoodIter_Next(curx);
 
-        *((ulonglong*)(itz->dataptr)) = acc;
+        *((npy_ulonglong*)(itz->dataptr)) = acc;
         PyArray_ITER_NEXT(itz);
 
         PyArray_ITER_RESET(ity);
@@ -386,27 +385,27 @@ static int _imp_correlate_nd_ulonglong(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_longlong(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
         PyArrayIterObject *itz)
 {
     npy_intp i, j;
-    longlong acc;
+    npy_longlong acc;
 
     for(i = 0; i < curx->size; ++i) {
         acc = 0;
         PyArrayNeighborhoodIter_Reset(curneighx);
         for(j = 0; j < curneighx->size; ++j) {
-            acc += *((longlong*)(curneighx->dataptr)) * *((longlong*)(ity->dataptr));
+            acc += *((npy_longlong*)(curneighx->dataptr)) * *((npy_longlong*)(ity->dataptr));
 
             PyArrayNeighborhoodIter_Next(curneighx);
             PyArray_ITER_NEXT(ity);
         }
         PyArrayNeighborhoodIter_Next(curx);
 
-        *((longlong*)(itz->dataptr)) = acc;
+        *((npy_longlong*)(itz->dataptr)) = acc;
         PyArray_ITER_NEXT(itz);
 
         PyArray_ITER_RESET(ity);
@@ -416,7 +415,7 @@ static int _imp_correlate_nd_longlong(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_float(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -446,7 +445,7 @@ static int _imp_correlate_nd_float(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_double(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -476,7 +475,7 @@ static int _imp_correlate_nd_double(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 115
+#line 114
 
 static int _imp_correlate_nd_longdouble(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -507,7 +506,7 @@ static int _imp_correlate_nd_longdouble(PyArrayNeighborhoodIterObject *curx,
 
 
 
-#line 149
+#line 148
 
 static int _imp_correlate_nd_cfloat(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -543,7 +542,7 @@ static int _imp_correlate_nd_cfloat(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 149
+#line 148
 
 static int _imp_correlate_nd_cdouble(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -579,7 +578,7 @@ static int _imp_correlate_nd_cdouble(PyArrayNeighborhoodIterObject *curx,
 }
 
 
-#line 149
+#line 148
 
 static int _imp_correlate_nd_clongdouble(PyArrayNeighborhoodIterObject *curx,
         PyArrayNeighborhoodIterObject *curneighx, PyArrayIterObject *ity,
@@ -728,82 +727,82 @@ static int _correlate_nd_imp(PyArrayIterObject* itx, PyArrayIterObject *ity,
     }
 
     switch(typenum) {
-#line 303
+#line 302
         case NPY_UBYTE:
             _imp_correlate_nd_ubyte(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_BYTE:
             _imp_correlate_nd_byte(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_USHORT:
             _imp_correlate_nd_ushort(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_SHORT:
             _imp_correlate_nd_short(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_UINT:
             _imp_correlate_nd_uint(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_INT:
             _imp_correlate_nd_int(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_ULONG:
             _imp_correlate_nd_ulong(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_LONG:
             _imp_correlate_nd_long(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_ULONGLONG:
             _imp_correlate_nd_ulonglong(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_LONGLONG:
             _imp_correlate_nd_longlong(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_FLOAT:
             _imp_correlate_nd_float(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_DOUBLE:
             _imp_correlate_nd_double(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_LONGDOUBLE:
             _imp_correlate_nd_longdouble(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_CFLOAT:
             _imp_correlate_nd_cfloat(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_CDOUBLE:
             _imp_correlate_nd_cdouble(curx, curneighx, ity, itz);
             break;
 
-#line 303
+#line 302
         case NPY_CLONGDOUBLE:
             _imp_correlate_nd_clongdouble(curx, curneighx, ity, itz);
             break;

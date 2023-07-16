@@ -89,6 +89,7 @@ cdef extern from "libqhull_r/libqhull_r.h":
         flagT flipped
         flagT upperdelaunay
         flagT toporient
+        flagT good
         unsigned visitid
 
     ctypedef struct vertexT:
@@ -125,6 +126,8 @@ cdef extern from "libqhull_r/libqhull_r.h":
         int num_vertices
         int center_size
         unsigned int facet_id
+        int hull_dim
+        int num_points
         pointT *first_point
         pointT *input_points
         coordT* feasible_point
@@ -156,7 +159,7 @@ cdef extern from "libqhull_r/libqhull_r.h":
     void qh_produce_output(qhT *) nogil
     void qh_triangulate(qhT *) nogil
     void qh_checkpolygon(qhT *) nogil
-    void qh_findgood_all(qhT *) nogil
+    void qh_findgood_all(qhT *, facetT *facetlist) nogil
     void qh_appendprint(qhT *, int format) nogil
     setT *qh_pointvertex(qhT *) nogil
     realT *qh_readpoints(qhT *, int* num, int *dim, boolT* ismalloc) nogil
@@ -295,10 +298,8 @@ cdef class _Qhull:
 
         if incremental:
             incremental_bad_ops = set([b'Qbb', b'Qbk', b'QBk', b'QbB', b'Qz'])
-            bad_opts = []
-            for bad_opt in incremental_bad_ops:
-                if bad_opt in options:
-                    bad_opts.append(bad_opt)
+            bad_opts = [bad_opt for bad_opt in incremental_bad_ops
+                        if bad_opt in options]
             if bad_opts:
                 raise ValueError("Qhull options %r are incompatible "
                                  "with incremental mode" % (bad_opts,))
@@ -473,6 +474,10 @@ cdef class _Qhull:
             else:
                 self._point_arrays.append(arr)
             self.numpoints += arr.shape[0]
+
+            # update facet visibility
+            with nogil:
+                qh_findgood_all(self._qh, self._qh[0].facet_list)
         finally:
             self._qh[0].NOerrexit = 1
 
@@ -543,6 +548,7 @@ cdef class _Qhull:
         cdef int i, j, ipoint, ipoint2, ncoplanar
         cdef object tmp
         cdef np.ndarray[np.npy_int, ndim=2] facets
+        cdef np.ndarray[np.npy_int, ndim=1] good
         cdef np.ndarray[np.npy_int, ndim=2] neighbors
         cdef np.ndarray[np.npy_int, ndim=2] coplanar
         cdef np.ndarray[np.double_t, ndim=2] equations
@@ -588,6 +594,7 @@ cdef class _Qhull:
 
         # Allocate output
         facets = np.zeros((j, facet_ndim), dtype=np.intc)
+        good = np.zeros(j, dtype=np.intc)
         neighbors = np.zeros((j, facet_ndim), dtype=np.intc)
         equations = np.zeros((j, facet_ndim+1), dtype=np.double)
 
@@ -657,10 +664,13 @@ cdef class _Qhull:
                         coplanar[ncoplanar, 2] = qh_pointid(self._qh, vertex.point)
                         ncoplanar += 1
 
+                # Save good info
+                good[j] = facet.good
+
                 j += 1
                 facet = facet.next
 
-        return facets, neighbors, equations, coplanar[:ncoplanar]
+        return facets, neighbors, equations, coplanar[:ncoplanar], good
 
     @cython.final
     @cython.boundscheck(False)
@@ -677,7 +687,7 @@ cdef class _Qhull:
             The array of points contained in Qhull.
 
         """
-        cdef vertexT *vertex
+        cdef pointT *point
         cdef int i, j, numpoints, point_ndim
         cdef np.ndarray[np.npy_double, ndim=2] points
 
@@ -691,20 +701,15 @@ cdef class _Qhull:
         if self._is_delaunay:
             point_ndim += 1
 
-        numvertices = self._qh.num_vertices
+        numpoints = self._qh.num_points
+        points = np.zeros((numpoints, point_ndim))
 
-        vertex = self._qh.vertex_list
-        points = np.zeros((numvertices, point_ndim))
-
-        i = 0
         with nogil:
-            while vertex and vertex.next:
-                j = 0
-                for j in xrange(point_ndim):
-                    points[i, j] = vertex.point[j]
-
-                i += 1
-                vertex = vertex.next
+            point = self._qh.first_point
+            for i in range(numpoints):
+                for j in range(point_ndim):
+                    points[i,j] = point[j]
+                point += self._qh.hull_dim
 
         return points
 
@@ -1835,7 +1840,7 @@ class Delaunay(_QhullUser):
         self.paraboloid_scale, self.paraboloid_shift = \
                                qhull.get_paraboloid_shift_scale()
 
-        self.simplices, self.neighbors, self.equations, self.coplanar = \
+        self.simplices, self.neighbors, self.equations, self.coplanar, self.good = \
                        qhull.get_simplex_facet_array()
 
         self.nsimplex = self.simplices.shape[0]
@@ -1860,7 +1865,7 @@ class Delaunay(_QhullUser):
         """
         Affine transform from ``x`` to the barycentric coordinates ``c``.
 
-        :type: ndarray of double, shape (nsimplex, ndim+1, ndim)
+        :type: *ndarray of double, shape (nsimplex, ndim+1, ndim)*
 
         This is defined by::
 
@@ -1885,7 +1890,7 @@ class Delaunay(_QhullUser):
         """
         Lookup array, from a vertex, to some simplex which it is a part of.
 
-        :type: ndarray of int, shape (npoints,)
+        :type: *ndarray of int, shape (npoints,)*
         """
         cdef int isimplex, k, ivertex, nsimplex, ndim
         cdef np.ndarray[np.npy_int, ndim=2] simplices
@@ -1963,7 +1968,7 @@ class Delaunay(_QhullUser):
         """
         Vertices of facets forming the convex hull of the point set.
 
-        :type: ndarray of int, shape (nfaces, ndim)
+        :type: *ndarray of int, shape (nfaces, ndim)*
 
         The array contains the indices of the points
         belonging to the (N-1)-dimensional facets that form the convex
@@ -2292,6 +2297,20 @@ class ConvexHull(_QhullUser):
         triangulation due to numerical precision issues.
 
         If option "Qc" is not specified, this list is not computed.
+    good : ndarray of bool or None
+        A one-dimensional Boolean array indicating which facets are
+        good. Used with options that compute good facets, e.g. QGn
+        and QG-n. Good facets are defined as those that are
+        visible (n) or invisible (-n) from point n, where
+        n is the nth point in 'points'. The 'good' attribute may be
+        used as an index into 'simplices' to return the good (visible)
+        facets: simplices[good]. A facet is visible from the outside
+        of the hull only, and neither coplanarity nor degeneracy count
+        as cases of visibility.
+
+        If a "QGn" or "QG-n" option is not specified, None is returned.
+
+        .. versionadded:: 1.3.0
     area : float
         Area of the convex hull.
 
@@ -2319,7 +2338,7 @@ class ConvexHull(_QhullUser):
 
     Convex hull of a random set of points:
 
-    >>> from scipy.spatial import ConvexHull
+    >>> from scipy.spatial import ConvexHull, convex_hull_plot_2d
     >>> points = np.random.rand(30, 2)   # 30 random points in 2-D
     >>> hull = ConvexHull(points)
 
@@ -2335,6 +2354,48 @@ class ConvexHull(_QhullUser):
 
     >>> plt.plot(points[hull.vertices,0], points[hull.vertices,1], 'r--', lw=2)
     >>> plt.plot(points[hull.vertices[0],0], points[hull.vertices[0],1], 'ro')
+    >>> plt.show()
+
+    Facets visible from a point:
+
+    Create a square and add a point above the square.
+
+    >>> generators = np.array([[0.2, 0.2],
+    ...                        [0.2, 0.4],
+    ...                        [0.4, 0.4],
+    ...                        [0.4, 0.2],
+    ...                        [0.3, 0.6]])
+
+    Call ConvexHull with the QG option. QG4 means 
+    compute the portions of the hull not including
+    point 4, indicating the facets that are visible 
+    from point 4.
+
+    >>> hull = ConvexHull(points=generators,
+    ...                   qhull_options='QG4')
+
+    The "good" array indicates which facets are 
+    visible from point 4.
+
+    >>> print(hull.simplices)
+        [[1 0]
+         [1 2]
+         [3 0]
+         [3 2]]
+    >>> print(hull.good)
+        [False  True False False]
+
+    Now plot it, highlighting the visible facets.
+
+    >>> fig = plt.figure()
+    >>> ax = fig.add_subplot(1,1,1)
+    >>> for visible_facet in hull.simplices[hull.good]:
+    ...     ax.plot(hull.points[visible_facet, 0],
+    ...             hull.points[visible_facet, 1],
+    ...             color='violet',
+    ...             lw=6)
+    >>> convex_hull_plot_2d(hull, ax=ax)
+        <Figure size 640x480 with 1 Axes> # may vary
     >>> plt.show()
 
     References
@@ -2363,8 +2424,24 @@ class ConvexHull(_QhullUser):
     def _update(self, qhull):
         qhull.triangulate()
 
-        self.simplices, self.neighbors, self.equations, self.coplanar = \
+        self.simplices, self.neighbors, self.equations, self.coplanar, self.good = \
                        qhull.get_simplex_facet_array()
+
+        # only populate self.good with a QG option set
+        option_set = set()
+        if qhull.options is not None:
+            option_set.update(qhull.options.split())
+
+        QG_option_present = 0
+        for option in option_set:
+            if b"QG" in option:
+                QG_option_present += 1
+                break
+
+        if not QG_option_present:
+            self.good = None
+        else:
+            self.good = self.good.astype(bool)
 
         self.volume, self.area = qhull.volume_area()
 

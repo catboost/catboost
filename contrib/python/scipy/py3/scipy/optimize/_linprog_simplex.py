@@ -1,11 +1,38 @@
-"""
-Simplex method for solving linear programming problems
+"""Simplex method for  linear programming
+
+The *simplex* method uses a traditional, full-tableau implementation of
+Dantzig's simplex algorithm [1]_, [2]_ (*not* the Nelder-Mead simplex).
+This algorithm is included for backwards compatibility and educational
+purposes.
+
+    .. versionadded:: 0.15.0
+
+Warnings
+--------
+
+The simplex method may encounter numerical difficulties when pivot
+values are close to the specified tolerance. If encountered try
+remove any redundant constraints, change the pivot strategy to Bland's
+rule or increase the tolerance value.
+
+Alternatively, more robust methods maybe be used. See
+:ref:`'interior-point' <optimize.linprog-interior-point>` and
+:ref:`'revised simplex' <optimize.linprog-revised_simplex>`.
+
+References
+----------
+.. [1] Dantzig, George B., Linear programming and extensions. Rand
+       Corporation Research Study Princeton Univ. Press, Princeton, NJ,
+       1963
+.. [2] Hillier, S.H. and Lieberman, G.J. (1995), "Introduction to
+       Mathematical Programming", McGraw-Hill, Chapter 4.
 """
 
 import numpy as np
 from warnings import warn
 from .optimize import OptimizeResult, OptimizeWarning, _check_unknown_options
 from ._linprog_util import _postsolve
+
 
 def _pivot_col(T, tol=1.0E-12, bland=False):
     """
@@ -258,18 +285,18 @@ def _solve_simplex(T, n, basis, maxiter=1000, phase=2, status=0, message='',
         The phase of the optimization being executed. In phase 1 a basic
         feasible solution is sought and the T has an additional row
         representing an alternate objective function.
-    callback : callable, optional (simplex only)
+    callback : callable, optional
         If a callback function is provided, it will be called within each
-        iteration of the simplex algorithm. The callback must require a
+        iteration of the algorithm. The callback must accept a
         `scipy.optimize.OptimizeResult` consisting of the following fields:
 
             x : 1D array
-                The independent variable vector which optimizes the linear
-                programming problem.
+                Current solution vector
             fun : float
-                Value of the objective function.
+                Current value of the objective function
             success : bool
-                True if the algorithm succeeded in finding an optimal solution.
+                True only when a phase has completed successfully. This
+                will be False for most iterations.
             slack : 1D array
                 The values of the slack variables. Each slack variable
                 corresponds to an inequality constraint. If the slack is zero,
@@ -325,9 +352,9 @@ def _solve_simplex(T, n, basis, maxiter=1000, phase=2, status=0, message='',
     complete = False
 
     if phase == 1:
-        m = T.shape[0]-2
+        m = T.shape[1]-2
     elif phase == 2:
-        m = T.shape[0]-1
+        m = T.shape[1]-1
     else:
         raise ValueError("Argument 'phase' to _solve_simplex must be 1 or 2")
 
@@ -371,6 +398,7 @@ def _solve_simplex(T, n, basis, maxiter=1000, phase=2, status=0, message='',
                 complete = True
 
         if callback is not None:
+            solution[:] = 0
             solution[basis[:n]] = T[:n, -1]
             x = solution[:m]
             c, A_ub, b_ub, A_eq, b_eq, bounds, undo = _T_o
@@ -431,42 +459,39 @@ def _linprog_simplex(c, c0, A, b, maxiter=1000, disp=False, callback=None,
     b : 1D array
         1D array of values representing the right hand side of each equality
         constraint (row) in ``A``.
-    callback : callable, optional (simplex only)
+    callback : callable, optional
         If a callback function is provided, it will be called within each
-        iteration of the simplex algorithm. The callback must require a
+        iteration of the algorithm. The callback function must accept a single
         `scipy.optimize.OptimizeResult` consisting of the following fields:
 
             x : 1D array
-                The independent variable vector which optimizes the linear
-                programming problem.
+                Current solution vector
             fun : float
-                Value of the objective function.
+                Current value of the objective function
             success : bool
-                True if the algorithm succeeded in finding an optimal solution.
+                True when an algorithm has completed successfully.
             slack : 1D array
                 The values of the slack variables. Each slack variable
                 corresponds to an inequality constraint. If the slack is zero,
                 the corresponding constraint is active.
             con : 1D array
-                The (nominally zero) residuals of the equality constraints, that
-                is, ``b - A_eq @ x``
+                The (nominally zero) residuals of the equality constraints,
+                that is, ``b - A_eq @ x``
             phase : int
-                The phase of the optimization being executed. In phase 1 a basic
-                feasible solution is sought and the T has an additional row
-                representing an alternate objective function.
+                The phase of the algorithm being executed.
             status : int
-                An integer representing the exit status of the optimization::
+                An integer representing the status of the optimization::
 
-                     0 : Optimization terminated successfully
+                     0 : Algorithm proceeding nominally
                      1 : Iteration limit reached
                      2 : Problem appears to be infeasible
                      3 : Problem appears to be unbounded
                      4 : Serious numerical difficulties encountered
-
             nit : int
                 The number of iterations performed.
             message : str
                 A string descriptor of the exit status of the optimization.
+
     Options
     -------
     maxiter : int
@@ -584,6 +609,7 @@ def _linprog_simplex(c, c0, A, b, maxiter=1000, disp=False, callback=None,
                                   maxiter=maxiter, tol=tol, bland=bland, _T_o=_T_o)
     # if pseudo objective is zero, remove the last row from the tableau and
     # proceed to phase 2
+    nit2 = nit1
     if abs(T[-1, -1]) < tol:
         # Remove the pseudo-objective row from the tableau
         T = T[:-1, :]
@@ -592,7 +618,6 @@ def _linprog_simplex(c, c0, A, b, maxiter=1000, disp=False, callback=None,
     else:
         # Failure to find a feasible starting point
         status = 2
-        nit2 = nit1
         messages[status] = (
             "Phase 1 of the simplex method failed to find a feasible "
             "solution. The pseudo-objective function evaluates to {0:.1e} "
@@ -614,4 +639,3 @@ def _linprog_simplex(c, c0, A, b, maxiter=1000, disp=False, callback=None,
     x = solution[:m]
 
     return x, status, messages[status], int(nit2)
-

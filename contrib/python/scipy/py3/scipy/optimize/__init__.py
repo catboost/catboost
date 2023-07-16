@@ -198,6 +198,9 @@ functions defined on (a subset of) the complex plane.
 | `R` or `C`  | No       | Yes      | Yes       | halley      | No          | 3.00 (1.44)    |
 +-------------+----------+----------+-----------+-------------+-------------+----------------+
 
+.. seealso::
+
+   `scipy.optimize.cython_optimize` -- Typed Cython versions of zeros functions
 
 Fixed point finding:
 
@@ -243,6 +246,7 @@ The `linprog` function supports the following methods:
 
    optimize.linprog-simplex
    optimize.linprog-interior-point
+   optimize.linprog-revised_simplex
 
 The simplex method supports callback functions, such as:
 

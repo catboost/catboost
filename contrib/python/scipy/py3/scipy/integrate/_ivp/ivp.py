@@ -105,9 +105,8 @@ def handle_events(sol, events, active_events, is_terminal, t_old, t):
     terminate : bool
         Whether a terminal event occurred.
     """
-    roots = []
-    for event_index in active_events:
-        roots.append(solve_event_equation(events[event_index], sol, t_old, t))
+    roots = [solve_event_equation(events[event_index], sol, t_old, t)
+             for event_index in active_events]
 
     roots = np.asarray(roots)
 
@@ -180,11 +179,11 @@ def solve_ivp(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     ----------
     fun : callable
         Right-hand side of the system. The calling signature is ``fun(t, y)``.
-        Here ``t`` is a scalar, and there are two options for the ndarray ``y``:
-        It can either have shape (n,); then ``fun`` must return array_like with
-        shape (n,). Alternatively it can have shape (n, k); then ``fun``
+        Here `t` is a scalar, and there are two options for the ndarray `y`:
+        It can either have shape (n,); then `fun` must return array_like with
+        shape (n,). Alternatively it can have shape (n, k); then `fun`
         must return an array_like with shape (n, k), i.e. each column
-        corresponds to a single column in ``y``. The choice between the two
+        corresponds to a single column in `y`. The choice between the two
         options is determined by `vectorized` argument (see below). The
         vectorized implementation allows a faster approximation of the Jacobian
         by finite differences (required for stiff solvers).
@@ -235,35 +234,40 @@ def solve_ivp(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     t_eval : array_like or None, optional
         Times at which to store the computed solution, must be sorted and lie
         within `t_span`. If None (default), use points selected by the solver.
-    events : callable, list of callables or None, optional
-        Types of events to track. Each is defined by a continuous function of
-        time and state that becomes zero value in case of an event. Each function
-        must have the signature ``event(t, y)`` and return a float. The solver will
-        find an accurate value of ``t`` at which ``event(t, y(t)) = 0`` using a
-        root-finding algorithm. Additionally each ``event`` function might have
-        the following attributes:
+    events : callable, or list of callables, optional
+        Events to track. If None (default), no events will be tracked.
+        Each event occurs at the zeros of a continuous function of time and
+        state. Each function must have the signature ``event(t, y)`` and return
+        a float. The solver will find an accurate value of `t` at which
+        ``event(t, y(t)) = 0`` using a root-finding algorithm. By default, all
+        zeros will be found. The solver looks for a sign change over each step,
+        so if multiple zero crossings occur within one step, events may be
+        missed. Additionally each `event` function might have the following
+        attributes:
 
-            * terminal: bool, whether to terminate integration if this
-              event occurs. Implicitly False if not assigned.
-            * direction: float, direction of a zero crossing. If `direction`
-              is positive, `event` must go from negative to positive, and
-              vice versa if `direction` is negative. If 0, then either direction
-              will count. Implicitly 0 if not assigned.
+            terminal: bool, optional
+                Whether to terminate integration if this event occurs.
+                Implicitly False if not assigned.
+            direction: float, optional
+                Direction of a zero crossing. If `direction` is positive,
+                `event` will only trigger when going from negative to positive,
+                and vice versa if `direction` is negative. If 0, then either
+                direction will trigger event. Implicitly 0 if not assigned.
 
         You can assign attributes like ``event.terminal = True`` to any
-        function in Python. If None (default), events won't be tracked.
+        function in Python. 
     vectorized : bool, optional
         Whether `fun` is implemented in a vectorized fashion. Default is False.
     options
         Options passed to a chosen solver. All options available for already
         implemented solvers are listed below.
     first_step : float or None, optional
-        Initial step size. Default is ``None`` which means that the algorithm
+        Initial step size. Default is `None` which means that the algorithm
         should choose.
     max_step : float, optional
         Maximum allowed step size. Default is np.inf, i.e. the step size is not
         bounded and determined solely by the solver.
-    rtol, atol : float and array_like, optional
+    rtol, atol : float or array_like, optional
         Relative and absolute tolerances. The solver keeps the local error
         estimates less than ``atol + rtol * abs(y)``. Here `rtol` controls a
         relative accuracy (number of correct digits). But if a component of `y`
@@ -273,7 +277,7 @@ def solve_ivp(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
         beneficial to set different `atol` values for different components by
         passing array_like with shape (n,) for `atol`. Default values are
         1e-3 for `rtol` and 1e-6 for `atol`.
-    jac : {None, array_like, sparse_matrix, callable}, optional
+    jac : array_like, sparse_matrix, callable or None, optional
         Jacobian matrix of the right-hand side of the system with respect to
         y, required by the 'Radau', 'BDF' and 'LSODA' method. The Jacobian matrix
         has shape (n, n) and its element (i, j) is equal to ``d f_i / d y_j``.
@@ -290,7 +294,7 @@ def solve_ivp(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
 
         It is generally recommended to provide the Jacobian rather than
         relying on a finite-difference approximation.
-    jac_sparsity : {None, array_like, sparse matrix}, optional
+    jac_sparsity : array_like, sparse matrix or None, optional
         Defines a sparsity structure of the Jacobian matrix for a
         finite-difference approximation. Its shape must be (n, n). This argument
         is ignored if `jac` is not `None`. If the Jacobian has only few non-zero
@@ -299,14 +303,14 @@ def solve_ivp(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
         element in the Jacobian is always zero. If None (default), the Jacobian
         is assumed to be dense.
         Not supported by 'LSODA', see `lband` and `uband` instead.
-    lband, uband : int or None
+    lband, uband : int or None, optional
         Parameters defining the bandwidth of the Jacobian for the 'LSODA' method,
-        i.e., ``jac[i, j] != 0 only for i - lband <= j <= i + uband``. Setting
-        these requires your jac routine to return the Jacobian in the packed format:
-        the returned array must have ``n`` columns and ``uband + lband + 1``
-        rows in which Jacobian diagonals are written. Specifically
-        ``jac_packed[uband + i - j , j] = jac[i, j]``. The same format is used
-        in `scipy.linalg.solve_banded` (check for an illustration).
+        i.e., ``jac[i, j] != 0 only for i - lband <= j <= i + uband``. Default is
+        None. Setting these requires your jac routine to return the Jacobian in the
+        packed format: the returned array must have ``n`` columns and
+        ``uband + lband + 1`` rows in which Jacobian diagonals are written.
+        Specifically ``jac_packed[uband + i - j , j] = jac[i, j]``. The same format
+        is used in `scipy.linalg.solve_banded` (check for an illustration).
         These parameters can be also used with ``jac=None`` to reduce the
         number of Jacobian elements estimated by finite differences.
     min_step : float, optional
@@ -413,15 +417,32 @@ def solve_ivp(fun, t_span, y0, method='RK45', t_eval=None, dense_output=False,
     because the event is terminal.
 
     >>> def upward_cannon(t, y): return [y[1], -0.5]
-    >>> def hit_ground(t, y): return y[1]
+    >>> def hit_ground(t, y): return y[0]
     >>> hit_ground.terminal = True
     >>> hit_ground.direction = -1
     >>> sol = solve_ivp(upward_cannon, [0, 100], [0, 10], events=hit_ground)
     >>> print(sol.t_events)
-    [array([ 20.])]
+    [array([40.])]
     >>> print(sol.t)
     [0.00000000e+00 9.99900010e-05 1.09989001e-03 1.10988901e-02
-     1.11088891e-01 1.11098890e+00 1.11099890e+01 2.00000000e+01]
+     1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
+
+    Use `dense_output` and `events` to find position, which is 100, at the apex of
+    the cannonball's trajectory. Apex is not defined as terminal, so both apex
+    and hit_ground are found. There is no information at t=20, so the sol
+    attribute is used to evaluate the solution. The sol attribute is
+    returned by setting ``dense_output=True``.
+
+    >>> def apex(t,y): return y[1]
+    >>> sol = solve_ivp(upward_cannon, [0, 100], [0, 10], 
+    ...                 events=(hit_ground, apex), dense_output=True)
+    >>> print(sol.t_events)
+    [array([40.]), array([20.])]
+    >>> print(sol.t)
+    [0.00000000e+00 9.99900010e-05 1.09989001e-03 1.10988901e-02
+     1.11088891e-01 1.11098890e+00 1.11099890e+01 4.00000000e+01]
+    >>> print(sol.sol(sol.t_events[1][0]))
+    [100.   0.]
     """
     if method not in METHODS and not (
             inspect.isclass(method) and issubclass(method, OdeSolver)):

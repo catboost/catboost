@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 
-from scipy.misc.doccer import (extend_notes_in_docstring,
+from scipy._lib.doccer import (extend_notes_in_docstring,
                                replace_notes_in_docstring)
 from scipy import optimize
 from scipy import integrate
@@ -41,14 +41,14 @@ class ksone_gen(rv_continuous):
     r"""General Kolmogorov-Smirnov one-sided test.
 
     This is the distribution of the one-sided Kolmogorov-Smirnov (KS)
-    statistics :math:`\sqrt{n} D_n^+` and :math:`\sqrt{n} D_n^-`
+    statistics :math:`D_n^+` and :math:`D_n^-`
     for a finite sample size ``n`` (the shape parameter).
 
     %(before_notes)s
 
     Notes
     -----
-    :math:`\sqrt{n} D_n^+` and :math:`\sqrt{n} D_n^-` are given by
+    :math:`D_n^+` and :math:`D_n^-` are given by
 
     .. math::
 
@@ -91,7 +91,7 @@ class ksone_gen(rv_continuous):
         return sc.smirnovi(n, q)
 
 
-ksone = ksone_gen(a=0.0, name='ksone')
+ksone = ksone_gen(a=0.0, b=1.0, name='ksone')
 
 
 class kstwobign_gen(rv_continuous):
@@ -468,7 +468,7 @@ class beta_gen(rv_continuous):
         f(x, a, b) = \frac{\Gamma(a+b) x^{a-1} (1-x)^{b-1}}
                           {\Gamma(a) \Gamma(b)}
 
-    for :math:`0 < x < 1`, :math:`a > 0`, :math:`b > 0`, where
+    for :math:`0 <= x <= 1`, :math:`a > 0`, :math:`b > 0`, where
     :math:`\Gamma` is the gamma function (`scipy.special.gamma`).
 
     `beta` takes :math:`a` and :math:`b` as shape parameters.
@@ -633,7 +633,7 @@ class betaprime_gen(rv_continuous):
 
         f(x, a, b) = \frac{x^{a-1} (1+x)^{-a-b}}{\beta(a, b)}
 
-    for :math:`x > 0`, :math:`a > 0`, :math:`b > 0`, where
+    for :math:`x >= 0`, :math:`a > 0`, :math:`b > 0`, where
     :math:`\beta(a, b)` is the beta function (see `scipy.special.beta`).
 
     `betaprime` takes ``a`` and ``b`` as shape parameters.
@@ -699,7 +699,7 @@ class bradford_gen(rv_continuous):
 
         f(x, c) = \frac{c}{\log(1+c) (1+cx)}
 
-    for :math:`0 < x < 1` and :math:`c > 0`.
+    for :math:`0 <= x <= 1` and :math:`c > 0`.
 
     `bradford` takes ``c`` as a shape parameter for :math:`c`.
 
@@ -759,7 +759,7 @@ class burr_gen(rv_continuous):
 
         f(x, c, d) = c d x^{-c-1} (1+x^{-c})^{-d-1}
 
-    for :math:`x > 0` and :math:`c, d > 0`.
+    for :math:`x >= 0` and :math:`c, d > 0`.
 
     `burr` takes :math:`c` and :math:`d` as shape parameters.
 
@@ -814,7 +814,7 @@ class burr12_gen(rv_continuous):
 
         f(x, c, d) = c d x^{c-1} (1+x^c)^{-d-1}
 
-    for :math:`x > 0` and :math:`c, d > 0`.
+    for :math:`x >= 0` and :math:`c, d > 0`.
 
     `burr12` takes ``c`` and ``d`` as shape parameters for :math:`c`
     and :math:`d`.
@@ -887,7 +887,7 @@ class fisk_gen(burr_gen):
 
         f(x, c) = c x^{-c-1} (1 + x^{-c})^{-2}
 
-    for :math:`x > 0` and :math:`c > 0`.
+    for :math:`x >= 0` and :math:`c > 0`.
 
     `fisk` takes ``c`` as a shape parameter for :math:`c`.
 
@@ -988,7 +988,7 @@ class chi_gen(rv_continuous):
         f(x, k) = \frac{1}{2^{k/2-1} \Gamma \left( k/2 \right)}
                    x^{k-1} \exp \left( -x^2/2 \right)
 
-    for :math:`x > 0` and :math:`k > 0` (degrees of freedom, denoted ``df``
+    for :math:`x >= 0` and :math:`k > 0` (degrees of freedom, denoted ``df``
     in the implementation). :math:`\Gamma` is the gamma function
     (`scipy.special.gamma`).
 
@@ -1083,7 +1083,7 @@ class chi2_gen(rv_continuous):
         return sc.chdtri(df, p)
 
     def _ppf(self, p, df):
-        return self._isf(1.0-p, df)
+        return 2*sc.gammaincinv(df/2, p)
 
     def _stats(self, df):
         mu = df
@@ -1407,7 +1407,7 @@ class exponnorm_gen(rv_continuous):
         # Avoid overflows; setting np.exp(exparg) to the max float works
         #  all right here
         expval = _lazywhere(exparg < _LOGXMAX, (exparg,), np.exp, _XMAX)
-        return 0.5 * invK * expval * sc.erfc(-(x - invK) / np.sqrt(2))
+        return 0.5 * invK * (expval * sc.erfc(-(x - invK) / np.sqrt(2)))
 
     def _logpdf(self, x, K):
         invK = 1.0 / K
@@ -1448,7 +1448,7 @@ class exponweib_gen(rv_continuous):
 
         f(x, a, c) = a c (1-\exp(-x^c))^{a-1} \exp(-x^c) x^{c-1}
 
-    for :math:`x > 0`, :math:`a > 0`, :math:`c > 0`.
+    for :math:`x >= 0`, :math:`a > 0`, :math:`c > 0`.
 
     `exponweib` takes :math:`a` and :math:`c` as shape parameters.
 
@@ -1546,7 +1546,7 @@ class fatiguelife_gen(rv_continuous):
 
         f(x, c) = \frac{x+1}{2c\sqrt{2\pi x^3}} \exp(-\frac{(x-1)^2}{2x c^2})
 
-    for :math:`x > 0` and :math:`c > 0`.
+    for :math:`x >= 0` and :math:`c > 0`.
 
     `fatiguelife` takes ``c`` as a shape parameter for :math:`c`.
 
@@ -1807,7 +1807,7 @@ class weibull_min_gen(rv_continuous):
 
         f(x, c) = c x^{c-1} \exp(-x^c)
 
-    for :math:`x > 0`, :math:`c > 0`.
+    for :math:`x >= 0`, :math:`c > 0`.
 
     `weibull_min` takes ``c`` as a shape parameter for :math:`c`.
 
@@ -1917,7 +1917,22 @@ Frechet distribution.  To preserve the existing behavior of the program, use
 `scipy.stats.weibull_min`.  For the Frechet distribution (i.e. the Type II
 extreme value distribution), use `scipy.stats.invweibull`."""
 
+
 class frechet_r_gen(weibull_min_gen):
+    """A Frechet right (or Weibull minimum) continuous random variable.
+
+    %(before_notes)s
+
+    See Also
+    --------
+    weibull_min : The same distribution as `frechet_r`.
+
+    Notes
+    -----
+    %(after_notes)s
+
+    %(example)s
+    """
 
     @np.deprecate(old_name='frechet_r', message=_frechet_r_deprec_msg)
     def __call__(self, *args, **kwargs):
@@ -2022,7 +2037,22 @@ Frechet distribution.  To preserve the existing behavior of the program, use
 `scipy.stats.weibull_max`.  For the Frechet distribution (i.e. the Type II
 extreme value distribution), use `scipy.stats.invweibull`."""
 
+
 class frechet_l_gen(weibull_max_gen):
+    """A Frechet left (or Weibull maximum) continuous random variable.
+
+    %(before_notes)s
+
+    See Also
+    --------
+    weibull_max : The same distribution as `frechet_l`.
+
+    Notes
+    -----
+    %(after_notes)s
+
+    %(example)s
+    """
 
     @np.deprecate(old_name='frechet_l', message=_frechet_l_deprec_msg)
     def __call__(self, *args, **kwargs):
@@ -2134,7 +2164,7 @@ class genlogistic_gen(rv_continuous):
         f(x, c) = c \frac{\exp(-x)}
                          {(1 + \exp(-x))^{c+1}}
 
-    for :math:`x > 0`, :math:`c > 0`.
+    for :math:`x >= 0`, :math:`c > 0`.
 
     `genlogistic` takes ``c`` as a shape parameter for :math:`c`.
 
@@ -2208,11 +2238,15 @@ class genpareto_gen(rv_continuous):
 
     """
     def _argcheck(self, c):
+        return np.isfinite(c)
+
+    def _get_support(self, c):
         c = np.asarray(c)
-        self.b = _lazywhere(c < 0, (c,),
-                            lambda c: -1. / c,
-                            np.inf)
-        return True
+        b = _lazywhere(c < 0, (c,),
+                       lambda c: -1. / c,
+                       np.inf)
+        a = np.where(c >= 0, self.a, self.a)
+        return a, b
 
     def _pdf(self, x, c):
         # genpareto.pdf(x, c) = (1 + c * x)**(-1 - 1/c)
@@ -2339,9 +2373,12 @@ class genextreme_gen(rv_continuous):
 
     """
     def _argcheck(self, c):
-        self.b = np.where(c > 0, 1.0 / np.maximum(c, _XMIN), np.inf)
-        self.a = np.where(c < 0, 1.0 / np.minimum(c, -_XMIN), -np.inf)
         return np.where(abs(c) == np.inf, 0, 1)
+
+    def _get_support(self, c):
+        _b = np.where(c > 0, 1.0 / np.maximum(c, _XMIN), np.inf)
+        _a = np.where(c < 0, 1.0 / np.minimum(c, -_XMIN), -np.inf)
+        return _a, _b
 
     def _loglogcdf(self, x, c):
         return _lazywhere((x == x) & (c != 0), (x, c),
@@ -2770,8 +2807,10 @@ class genhalflogistic_gen(rv_continuous):
 
     """
     def _argcheck(self, c):
-        self.b = 1.0 / c
         return c > 0
+
+    def _get_support(self, c):
+        return self.a, 1.0/c
 
     def _pdf(self, x, c):
         # genhalflogistic.pdf(x, c) =
@@ -3061,7 +3100,7 @@ class halfnorm_gen(rv_continuous):
 
         f(x) = \sqrt{2/\pi} \exp(-x^2 / 2)
 
-    for :math:`x > 0`.
+    for :math:`x >= 0`.
 
     `halfnorm` is a special case of `chi` with ``df=1``.
 
@@ -3197,7 +3236,7 @@ class invgamma_gen(rv_continuous):
 
         f(x, a) = \frac{x^{-a-1}}{\Gamma(a)} \exp(-\frac{1}{x})
 
-    for :math:`x > 0`, :math:`a > 0`. :math:`\Gamma` is the gamma function
+    for :math:`x >= 0`, :math:`a > 0`. :math:`\Gamma` is the gamma function
     (`scipy.special.gamma`).
 
     `invgamma` takes ``a`` as a shape parameter for :math:`a`.
@@ -3268,7 +3307,7 @@ class invgauss_gen(rv_continuous):
         f(x, \mu) = \frac{1}{\sqrt{2 \pi x^3}}
                     \exp(-\frac{(x-\mu)^2}{2 x \mu^2})
 
-    for :math:`x > 0` and :math:`\mu > 0`.
+    for :math:`x >= 0` and :math:`\mu > 0`.
 
     `invgauss` takes ``mu`` as a shape parameter for :math:`\mu`.
 
@@ -3322,8 +3361,9 @@ class norminvgauss_gen(rv_continuous):
         f(x, a, b) = (a \exp(\sqrt{a^2 - b^2} + b x)) /
                      (\pi \sqrt{1 + x^2} \, K_1(a \sqrt{1 + x^2}))
 
-    where `x` is a real number, the parameter `a` is the tail heaviness
-    and `b` is the asymmetry parameter satisfying `a > 0` and `abs(b) <= a`.
+    where :math:`x` is a real number, the parameter :math:`a` is the tail
+    heaviness and :math:`b` is the asymmetry parameter satisfying
+    :math:`a > 0` and :math:`|b| <= a`.
     :math:`K_1` is the modified Bessel function of second kind
     (`scipy.special.k1`).
 
@@ -3452,7 +3492,7 @@ class johnsonsb_gen(rv_continuous):
 
         f(x, a, b) = \frac{b}{x(1-x)}  \phi(a + b \log \frac{x}{1-x} )
 
-    for :math:`0 < x < 1` and :math:`a, b > 0`, and :math:`\phi` is the normal
+    for :math:`0 <= x < =1` and :math:`a, b > 0`, and :math:`\phi` is the normal
     pdf.
 
     `johnsonsb` takes :math:`a` and :math:`b` as shape parameters.
@@ -3589,7 +3629,7 @@ class levy_gen(rv_continuous):
 
         f(x) = \frac{1}{\sqrt{2\pi x^3}} \exp\left(-\frac{1}{2x}\right)
 
-    for :math:`x > 0`.
+    for :math:`x >= 0`.
 
     This is the same as the Levy-stable distribution with :math:`a=1/2` and
     :math:`b=1`.
@@ -3637,7 +3677,7 @@ class levy_l_gen(rv_continuous):
     .. math::
         f(x) = \frac{1}{|x| \sqrt{2\pi |x|}} \exp{ \left(-\frac{1}{2|x|} \right)}
 
-    for :math:`x < 0`.
+    for :math:`x <= 0`.
 
     This is the same as the Levy-stable distribution with :math:`a=1/2` and
     :math:`b=-1`.
@@ -4514,7 +4554,7 @@ class maxwell_gen(rv_continuous):
 
         f(x) = \sqrt{2/\pi}x^2 \exp(-x^2/2)
 
-    for :math:`x > 0`.
+    for :math:`x >= 0`.
 
     %(after_notes)s
 
@@ -4552,7 +4592,7 @@ maxwell = maxwell_gen(a=0.0, name='maxwell')
 
 
 class mielke_gen(rv_continuous):
-    r"""A Mielke's Beta-Kappa continuous random variable.
+    r"""A Mielke Beta-Kappa continuous random variable.
 
     %(before_notes)s
 
@@ -4564,11 +4604,16 @@ class mielke_gen(rv_continuous):
 
         f(x, k, s) = \frac{k x^{k-1}}{(1+x^s)^{1+k/s}}
 
-    for :math:`x > 0` and :math:`k, s > 0`.
+    for :math:`x >= 0` and :math:`k, s > 0`.
 
     `mielke` takes ``k`` and ``s`` as shape parameters.
 
     %(after_notes)s
+
+    References
+    ----------
+    .. [1] Mielke, P.W., 1973 "Another Family of Distributions for Describing
+           and Analyzing Precipitation Data." J. Appl. Meteor., 12, 275-280
 
     %(example)s
 
@@ -4678,6 +4723,9 @@ class kappa4_gen(rv_continuous):
 
     """
     def _argcheck(self, h, k):
+        return h == h
+
+    def _get_support(self, h, k):
         condlist = [np.logical_and(h > 0, k > 0),
                     np.logical_and(h > 0, k == 0),
                     np.logical_and(h > 0, k < 0),
@@ -4699,7 +4747,7 @@ class kappa4_gen(rv_continuous):
         def f5(h, k):
             return 1.0/k
 
-        self.a = _lazyselect(condlist,
+        _a = _lazyselect(condlist,
                              [f0, f1, f0, f3, f3, f5],
                              [h, k],
                              default=np.nan)
@@ -4712,11 +4760,11 @@ class kappa4_gen(rv_continuous):
             a[:] = np.inf
             return a
 
-        self.b = _lazyselect(condlist,
+        _b = _lazyselect(condlist,
                              [f0, f1, f1, f0, f1, f1],
                              [h, k],
                              default=np.nan)
-        return h == h
+        return _a, _b
 
     def _pdf(self, x, h, k):
         # kappa4.pdf(x, h, k) = (1.0 - k*x)**(1.0/k - 1.0)*
@@ -4999,7 +5047,7 @@ class nakagami_gen(rv_continuous):
 
         f(x, \nu) = \frac{2 \nu^\nu}{\Gamma(\nu)} x^{2\nu-1} \exp(-\nu x^2)
 
-    for :math:`x > 0`, :math:`\nu > 0`.
+    for :math:`x >= 0`, :math:`\nu > 0`.
 
     `nakagami` takes ``nu`` as a shape parameter for :math:`\nu`.
 
@@ -5045,7 +5093,7 @@ class ncx2_gen(rv_continuous):
         f(x, k, \lambda) = \frac{1}{2} \exp(-(\lambda+x)/2)
             (x/\lambda)^{(k-2)/4}  I_{(k-2)/2}(\sqrt{\lambda x})
 
-    for :math:`x > 0` and :math:`k, \lambda > 0`. :math:`k` specifies the
+    for :math:`x >= 0` and :math:`k, \lambda > 0`. :math:`k` specifies the
     degrees of freedom (denoted ``df`` in the implementation) and
     :math:`\lambda` is the non-centrality parameter (denoted ``nc`` in the
     implementation). :math:`I_\nu` denotes the modified Bessel function of
@@ -5154,10 +5202,19 @@ class ncf_gen(rv_continuous):
         return val
 
     def _stats(self, dfn, dfd, nc):
-        mu = np.where(dfd <= 2, np.inf, dfd / (dfd-2.0)*(1+nc*1.0/dfn))
-        mu2 = np.where(dfd <= 4, np.inf, 2*(dfd*1.0/dfn)**2.0 *
-                       ((dfn+nc/2.0)**2.0 + (dfn+nc)*(dfd-2.0)) /
-                       ((dfd-2.0)**2.0 * (dfd-4.0)))
+        # Note: the rv_continuous class ensures that dfn > 0 when this function
+        # is called, so we don't have  to check for division by zero with dfn
+        # in the following.
+        mu_num = dfd * (dfn + nc)
+        mu_den = dfn * (dfd - 2)
+        mu = np.full_like(mu_num, dtype=np.float64, fill_value=np.inf)
+        np.true_divide(mu_num, mu_den, where=dfd > 2, out=mu)
+
+        mu2_num = 2*((dfn + nc)**2 + (dfn + 2*nc)*(dfd - 2))*(dfd/dfn)**2
+        mu2_den = (dfd - 2)**2 * (dfd - 4)
+        mu2 = np.full_like(mu2_num, dtype=np.float64, fill_value=np.inf)
+        np.true_divide(mu2_num, mu2_den, where=dfd > 4, out=mu2)
+
         return mu, mu2, None, None
 
 
@@ -5712,7 +5769,7 @@ class powernorm_gen(rv_continuous):
         f(x, c) = c \phi(x) (\Phi(-x))^{c-1}
 
     where :math:`\phi` is the normal pdf, and :math:`\Phi` is the normal cdf,
-    and :math:`x > 0`, :math:`c > 0`.
+    and :math:`x >= 0`, :math:`c > 0`.
 
     `powernorm` takes ``c`` as a shape parameter for :math:`c`.
 
@@ -5876,29 +5933,29 @@ class reciprocal_gen(rv_continuous):
 
     """
     def _argcheck(self, a, b):
-        self.a = a
-        self.b = b
-        self.d = np.log(b*1.0 / a)
         return (a > 0) & (b > a)
+
+    def _get_support(self, a, b):
+        return a, b
 
     def _pdf(self, x, a, b):
         # reciprocal.pdf(x, a, b) = 1 / (x*log(b/a))
-        return 1.0 / (x * self.d)
+        return 1.0 / (x * np.log(b * 1.0 / a))
 
     def _logpdf(self, x, a, b):
-        return -np.log(x) - np.log(self.d)
+        return -np.log(x) - np.log(np.log(b * 1.0 / a))
 
     def _cdf(self, x, a, b):
-        return (np.log(x)-np.log(a)) / self.d
+        return (np.log(x)-np.log(a)) / np.log(b * 1.0 / a)
 
     def _ppf(self, q, a, b):
         return a*pow(b*1.0/a, q)
 
     def _munp(self, n, a, b):
-        return 1.0/self.d / n * (pow(b*1.0, n) - pow(a*1.0, n))
+        return 1.0/np.log(b*1.0/a) / n * (pow(b*1.0, n) - pow(a*1.0, n))
 
     def _entropy(self, a, b):
-        return 0.5*np.log(a*b)+np.log(np.log(b/a))
+        return 0.5*np.log(a*b)+np.log(np.log(b*1.0/a))
 
 
 reciprocal = reciprocal_gen(name="reciprocal")
@@ -5917,7 +5974,7 @@ class rice_gen(rv_continuous):
 
         f(x, b) = x \exp(- \frac{x^2 + b^2}{2}) I_0(x b)
 
-    for :math:`x > 0`, :math:`b > 0`. :math:`I_0` is the modified Bessel
+    for :math:`x >= 0`, :math:`b > 0`. :math:`I_0` is the modified Bessel
     function of order zero (`scipy.special.i0`).
 
     `rice` takes ``b`` as a shape parameter for :math:`b`.
@@ -6084,10 +6141,11 @@ class skew_norm_gen(rv_continuous):
         return 2.*_norm_pdf(x)*_norm_cdf(a*x)
 
     def _cdf_single(self, x, *args):
+        _a, _b = self._get_support(*args)
         if x <= 0:
-            cdf = integrate.quad(self._pdf, self.a, x, args=args)[0]
+            cdf = integrate.quad(self._pdf, _a, x, args=args)[0]
         else:
-            t1 = integrate.quad(self._pdf, self.a, 0, args=args)[0]
+            t1 = integrate.quad(self._pdf, _a, 0, args=args)[0]
             t2 = integrate.quad(self._pdf, 0, x, args=args)[0]
             cdf = t1 + t2
         if cdf > 1:
@@ -6268,7 +6326,7 @@ class truncexpon_gen(rv_continuous):
 
         f(x, b) = \frac{\exp(-x)}{1 - \exp(-b)}
 
-    for :math:`0 < x < b`.
+    for :math:`0 <= x <= b`.
 
     `truncexpon` takes ``b`` as a shape parameter for :math:`b`.
 
@@ -6278,8 +6336,10 @@ class truncexpon_gen(rv_continuous):
 
     """
     def _argcheck(self, b):
-        self.b = b
         return b > 0
+
+    def _get_support(self, b):
+        return self.a, b
 
     def _pdf(self, x, b):
         # truncexpon.pdf(x, b) = exp(-x) / (1-exp(-b))
@@ -6336,36 +6396,47 @@ class truncnorm_gen(rv_continuous):
 
     """
     def _argcheck(self, a, b):
-        self.a = a
-        self.b = b
-        self._nb = _norm_cdf(b)
-        self._na = _norm_cdf(a)
-        self._sb = _norm_sf(b)
-        self._sa = _norm_sf(a)
-        self._delta = np.where(self.a > 0,
-                               -(self._sb - self._sa),
-                               self._nb - self._na)
-        self._logdelta = np.log(self._delta)
         return a < b
 
+    def _get_support(self, a, b):
+        return a, b
+
+    def _get_norms(self, a, b):
+        _nb = _norm_cdf(b)
+        _na = _norm_cdf(a)
+        _sb = _norm_sf(b)
+        _sa = _norm_sf(a)
+        _delta = np.where(a > 0, _sa - _sb, _nb - _na)
+        with np.errstate(divide='ignore'):
+            return _na, _nb, _sa, _sb, _delta, np.log(_delta)
+
     def _pdf(self, x, a, b):
-        return _norm_pdf(x) / self._delta
+        ans = self._get_norms(a, b)
+        _delta = ans[4]
+        return _norm_pdf(x) / _delta
 
     def _logpdf(self, x, a, b):
-        return _norm_logpdf(x) - self._logdelta
+        ans = self._get_norms(a, b)
+        _logdelta = ans[5]
+        return _norm_logpdf(x) - _logdelta
 
     def _cdf(self, x, a, b):
-        return (_norm_cdf(x) - self._na) / self._delta
+        ans = self._get_norms(a, b)
+        _na, _delta = ans[0], ans[4]
+        return (_norm_cdf(x) - _na) / _delta
 
     def _ppf(self, q, a, b):
         # XXX Use _lazywhere...
-        ppf = np.where(self.a > 0,
-                       _norm_isf(q*self._sb + self._sa*(1.0-q)),
-                       _norm_ppf(q*self._nb + self._na*(1.0-q)))
+        ans = self._get_norms(a, b)
+        _na, _nb, _sa, _sb = ans[:4]
+        ppf = np.where(a > 0,
+                       _norm_isf(q*_sb + _sa*(1.0-q)),
+                       _norm_ppf(q*_nb + _na*(1.0-q)))
         return ppf
 
     def _stats(self, a, b):
-        nA, nB = self._na, self._nb
+        ans = self._get_norms(a, b)
+        nA, nB = ans[:2]
         d = nB - nA
         pA, pB = _norm_pdf(a), _norm_pdf(b)
         mu = (pA - pB) / d   # correction sign
@@ -6686,7 +6757,7 @@ class wald_gen(invgauss_gen):
 
         f(x) = \frac{1}{\sqrt{2\pi x^3}} \exp(- \frac{ (x-1)^2 }{ 2x })
 
-    for :math:`x > 0`.
+    for :math:`x >= 0`.
 
     `wald` is a special case of `invgauss` with ``mu=1``.
 
@@ -7227,8 +7298,8 @@ class rv_histogram(rv_continuous):
         self._hpdf = np.hstack([0.0, self._hpdf, 0.0])
         self._hcdf = np.hstack([0.0, self._hcdf])
         # Set support
-        kwargs['a'] = self._hbins[0]
-        kwargs['b'] = self._hbins[-1]
+        kwargs['a'] = self.a = self._hbins[0]
+        kwargs['b'] = self.b = self._hbins[-1]
         super(rv_histogram, self).__init__(*args, **kwargs)
 
     def _pdf(self, x):

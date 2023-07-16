@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 import pytest
 
 from math import sqrt, exp, sin, cos
+from functools import lru_cache
 
 from numpy.testing import (assert_warns, assert_,
                            assert_allclose,
@@ -54,6 +55,12 @@ def f2_2(x):
     return exp(x) + cos(x)
 
 
+# lru cached function
+@lru_cache()
+def f_lrucached(x):
+    return x
+
+
 class TestBasic(object):
 
     def run_check_by_name(self, name, smoothness=0, **kwargs):
@@ -82,6 +89,15 @@ class TestBasic(object):
             assert_(r.converged)
             assert_allclose(zero, 1.0, atol=xtol, rtol=rtol,
                             err_msg='method %s, function %s' % (name, fname))
+
+    def run_check_lru_cached(self, method, name):
+        # check that https://github.com/scipy/scipy/issues/10846 is fixed
+        a = -1
+        b = 1
+        zero, r = method(f_lrucached, a, b, full_output=True)
+        assert_(r.converged)
+        assert_allclose(zero, 0,
+                        err_msg='method %s, function %s' % (name, 'f_lrucached'))
 
     def _run_one_test(self, tc, method, sig_args_keys=None,
                       sig_kwargs_keys=None, **kwargs):
@@ -172,16 +188,19 @@ class TestBasic(object):
 
     def test_bisect(self):
         self.run_check(zeros.bisect, 'bisect')
+        self.run_check_lru_cached(zeros.bisect, 'bisect')
         self.run_check_by_name('bisect')
         self.run_collection('aps', zeros.bisect, 'bisect', smoothness=1)
 
     def test_ridder(self):
         self.run_check(zeros.ridder, 'ridder')
+        self.run_check_lru_cached(zeros.ridder, 'ridder')
         self.run_check_by_name('ridder')
         self.run_collection('aps', zeros.ridder, 'ridder', smoothness=1)
 
     def test_brentq(self):
         self.run_check(zeros.brentq, 'brentq')
+        self.run_check_lru_cached(zeros.brentq, 'brentq')
         self.run_check_by_name('brentq')
         # Brentq/h needs a lower tolerance to be specified
         self.run_collection('aps', zeros.brentq, 'brentq', smoothness=1,
@@ -189,12 +208,14 @@ class TestBasic(object):
 
     def test_brenth(self):
         self.run_check(zeros.brenth, 'brenth')
+        self.run_check_lru_cached(zeros.brenth, 'brenth')
         self.run_check_by_name('brenth')
         self.run_collection('aps', zeros.brenth, 'brenth', smoothness=1,
                             xtol=1e-14, rtol=1e-14)
 
     def test_toms748(self):
         self.run_check(zeros.toms748, 'toms748')
+        self.run_check_lru_cached(zeros.toms748, 'toms748')
         self.run_check_by_name('toms748')
         self.run_collection('aps', zeros.toms748, 'toms748', smoothness=1)
 
@@ -398,14 +419,16 @@ class TestBasic(object):
                 # Check that the correct Exception is raised and
                 # validate the start of the message.
                 with pytest.raises(
-                        RuntimeError,
-                        match='Failed to converge after %d iterations, value is .*' % (iters)):
+                    RuntimeError,
+                    match='Failed to converge after %d iterations, value is .*' % (iters)):
                     x, r = zeros.newton(self.f1, x0, maxiter=iters, disp=True, **kwargs)
 
     def test_deriv_zero_warning(self):
         func = lambda x: x**2 - 2.0
         dfunc = lambda x: 2*x
-        assert_warns(RuntimeWarning, zeros.newton, func, 0.0, dfunc)
+        assert_warns(RuntimeWarning, zeros.newton, func, 0.0, dfunc, disp=False)
+        with pytest.raises(RuntimeError, match='Derivative was zero'):
+            result = zeros.newton(func, 0.0, dfunc)
 
     def test_newton_does_not_modify_x0(self):
         # https://github.com/scipy/scipy/issues/9964
@@ -512,13 +535,17 @@ def test_zero_der_nz_dp():
     p0 = (2.0 - 1e-4) / (2.0 + 1e-4)
     with suppress_warnings() as sup:
         sup.filter(RuntimeWarning, "Tolerance of")
-        x = zeros.newton(lambda y: (y - 1.0) ** 2, x0=p0)
+        x = zeros.newton(lambda y: (y - 1.0) ** 2, x0=p0, disp=False)
     assert_allclose(x, 1)
+    with pytest.raises(RuntimeError, match='Tolerance of'):
+        x = zeros.newton(lambda y: (y - 1.0) ** 2, x0=p0, disp=True)
     p0 = (-2.0 + 1e-4) / (2.0 + 1e-4)
     with suppress_warnings() as sup:
         sup.filter(RuntimeWarning, "Tolerance of")
-        x = zeros.newton(lambda y: (y + 1.0) ** 2, x0=p0)
+        x = zeros.newton(lambda y: (y + 1.0) ** 2, x0=p0, disp=False)
     assert_allclose(x, -1)
+    with pytest.raises(RuntimeError, match='Tolerance of'):
+        x = zeros.newton(lambda y: (y + 1.0) ** 2, x0=p0, disp=True)
 
 
 def test_array_newton_failures():
@@ -661,3 +688,42 @@ def test_gh_9608_preserve_array_shape():
         f, x0_array, fprime=fp, fprime2=fpp_array, full_output=True
     )
     assert result.converged.all()
+
+
+@pytest.mark.parametrize(
+    "maximum_iterations,flag_expected",
+    [(10, zeros.CONVERR), (100, zeros.CONVERGED)])
+def test_gh9254_flag_if_maxiter_exceeded(maximum_iterations, flag_expected):
+    """
+    Test that if the maximum iterations is exceeded that the flag is not
+    converged.
+    """
+    result = zeros.brentq(
+        lambda x: ((1.2*x - 2.3)*x + 3.4)*x - 4.5,
+        -30, 30, (), 1e-6, 1e-6, maximum_iterations,
+        full_output=True, disp=False)
+    assert result[1].flag == flag_expected
+    if flag_expected == zeros.CONVERR:
+        # didn't converge because exceeded maximum iterations
+        assert result[1].iterations == maximum_iterations
+    elif flag_expected == zeros.CONVERGED:
+        # converged before maximum iterations
+        assert result[1].iterations < maximum_iterations
+
+
+def test_gh9551_raise_error_if_disp_true():
+    """Test that if disp is true then zero derivative raises RuntimeError"""
+
+    def f(x):
+        return x*x + 1
+
+    def f_p(x):
+        return 2*x
+
+    assert_warns(RuntimeWarning, zeros.newton, f, 1.0, f_p, disp=False)
+    with pytest.raises(
+        RuntimeError,
+        match=r'^Derivative was zero\. Failed to converge after \d+ iterations, value is [+-]?\d*\.\d+\.$'):
+        result = zeros.newton(f, 1.0, f_p)
+    root = zeros.newton(f, complex(10.0, 10.0), f_p)
+    assert_allclose(root, complex(0.0, 1.0))

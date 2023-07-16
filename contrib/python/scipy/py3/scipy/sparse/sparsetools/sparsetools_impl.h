@@ -46,6 +46,10 @@ NPY_VISIBILITY_HIDDEN PyObject *csr_sort_indices_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_eliminate_zeros_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_sum_duplicates_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *get_csr_submatrix_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csr_row_index_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csr_row_slice_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csr_column_index1_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csr_column_index2_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_sample_values_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_count_blocks_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_sample_offsets_method(PyObject *, PyObject *);
@@ -122,6 +126,10 @@ static struct PyMethodDef sparsetools_methods[] = {
         {"csr_eliminate_zeros", (PyCFunction)csr_eliminate_zeros_method, METH_VARARGS, NULL},
         {"csr_sum_duplicates", (PyCFunction)csr_sum_duplicates_method, METH_VARARGS, NULL},
         {"get_csr_submatrix", (PyCFunction)get_csr_submatrix_method, METH_VARARGS, NULL},
+        {"csr_row_index", (PyCFunction)csr_row_index_method, METH_VARARGS, NULL},
+        {"csr_row_slice", (PyCFunction)csr_row_slice_method, METH_VARARGS, NULL},
+        {"csr_column_index1", (PyCFunction)csr_column_index1_method, METH_VARARGS, NULL},
+        {"csr_column_index2", (PyCFunction)csr_column_index2_method, METH_VARARGS, NULL},
         {"csr_sample_values", (PyCFunction)csr_sample_values_method, METH_VARARGS, NULL},
         {"csr_count_blocks", (PyCFunction)csr_count_blocks_method, METH_VARARGS, NULL},
         {"csr_sample_offsets", (PyCFunction)csr_sample_offsets_method, METH_VARARGS, NULL},

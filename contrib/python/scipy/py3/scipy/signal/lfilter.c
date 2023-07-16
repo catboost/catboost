@@ -15,7 +15,7 @@
 #include <Python.h>
 #define PY_ARRAY_UNIQUE_SYMBOL _scipy_signal_ARRAY_API
 #define NO_IMPORT_ARRAY
-#include <numpy/noprefix.h>
+#include <numpy/ndarrayobject.h>
 #include <numpy/npy_3kcompat.h>
 
 #if PY_VERSION_HEX >= 0x03000000
@@ -25,28 +25,29 @@
 #include "sigtools.h"
 
 static void FLOAT_filt(char *b, char *a, char *x, char *y, char *Z,
-                       intp len_b, uintp len_x, intp stride_X,
-                       intp stride_Y);
+                       npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                       npy_intp stride_Y);
 static void DOUBLE_filt(char *b, char *a, char *x, char *y, char *Z,
-                        intp len_b, uintp len_x, intp stride_X,
-                        intp stride_Y);
+                        npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                        npy_intp stride_Y);
 static void EXTENDED_filt(char *b, char *a, char *x, char *y, char *Z,
-                        intp len_b, uintp len_x, intp stride_X,
-                        intp stride_Y);
+                        npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                        npy_intp stride_Y);
 static void CFLOAT_filt(char *b, char *a, char *x, char *y, char *Z,
-                        intp len_b, uintp len_x, intp stride_X,
-                        intp stride_Y);
+                        npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                        npy_intp stride_Y);
 static void CDOUBLE_filt(char *b, char *a, char *x, char *y, char *Z,
-                         intp len_b, uintp len_x, intp stride_X,
-                         intp stride_Y);
+                         npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                         npy_intp stride_Y);
 static void CEXTENDED_filt(char *b, char *a, char *x, char *y, char *Z,
-                         intp len_b, uintp len_x, intp stride_X,
-                         intp stride_Y);
+                         npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                         npy_intp stride_Y);
 static void OBJECT_filt(char *b, char *a, char *x, char *y, char *Z,
-                        intp len_b, uintp len_x, intp stride_X,
-                        intp stride_Y);
+                        npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                        npy_intp stride_Y);
 
-typedef void (BasicFilterFunction) (char *, char *,  char *, char *, char *, intp, uintp, intp, intp);
+typedef void (BasicFilterFunction) (char *, char *,  char *, char *, char *,
+                                    npy_intp, npy_uintp, npy_intp, npy_intp);
 
 static BasicFilterFunction *BasicFilterFunctions[256];
 
@@ -75,9 +76,10 @@ RawFilter(const PyArrayObject * b, const PyArrayObject * a,
           BasicFilterFunction * filter_func);
 
 PyObject*
-convert_shape_to_errmsg(intp ndim, intp *Xshape, intp *Vishape, intp theaxis, intp val)
+convert_shape_to_errmsg(npy_intp ndim, npy_intp *Xshape, npy_intp *Vishape,
+                        npy_intp theaxis, npy_intp val)
 {
-    intp j, expect_size;
+    npy_intp j, expect_size;
     PyObject *msg, *tmp, *msg1, *tmp1;
 
     if (ndim == 1) {
@@ -143,8 +145,8 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
     PyArrayObject *arY, *arb, *ara, *arX, *arVi, *arVf;
     int axis, typenum, theaxis, st, Vi_needs_broadcasted = 0;
     char *ara_ptr, input_flag = 0, *azero;
-    intp na, nb, nal, zi_size;
-    intp zf_shape[NPY_MAXDIMS];
+    npy_intp na, nb, nal, zi_size;
+    npy_intp zf_shape[NPY_MAXDIMS];
     BasicFilterFunction *basic_filter;
 
     axis = -1;
@@ -166,6 +168,8 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
     arX = (PyArrayObject *) PyArray_FromObject(X, typenum, 0, 0);
     /* XXX: fix failure handling here */
     if (ara == NULL || arb == NULL || arX == NULL) {
+        PyErr_SetString(PyExc_ValueError,
+                        "could not convert b, a, and x to a common type");
         goto fail;
     }
 
@@ -197,7 +201,6 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
     }
     if (basic_filter == NULL) {
         PyObject *msg, *str;
-        char *s;
 
         str = PyObject_Str((PyObject*)PyArray_DESCR(arX));
         if (str == NULL) {
@@ -207,9 +210,11 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
         msg = PyUnicode_FromFormat(
                         "input type '%U' not supported\n", str);
 #else
-        s = PyString_AsString(str);
-        msg = PyString_FromFormat(
+        {
+            char *s = PyString_AsString(str);
+            msg = PyString_FromFormat(
                         "input type '%s' not supported\n", s);
+        }
 #endif
         Py_DECREF(str);
         if (msg == NULL) {
@@ -239,7 +244,7 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
     nb = PyArray_SIZE(arb);
     zi_size = (na > nb ? na : nb) - 1;
     if (input_flag) {
-        intp k, Vik, Xk;
+        npy_intp k, Vik, Xk;
         for (k = 0; k < PyArray_NDIM(arX); ++k) {
             Vik = PyArray_DIM(arVi, k);
             Xk = PyArray_DIM(arX, k);
@@ -247,7 +252,7 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
                 zf_shape[k] = zi_size;
             } else if (k != theaxis && Vik == Xk) {
                 zf_shape[k] = Xk;
-            } else if (k != theaxis && Vik == 1) { 
+            } else if (k != theaxis && Vik == 1) {
                 zf_shape[k] = Xk;
                 Vi_needs_broadcasted = 1;
             } else {
@@ -262,7 +267,7 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
                 goto fail;
             }
         }
-        
+
         if (Vi_needs_broadcasted) {
             /* Expand the singleton dimensions of arVi without copying by
              * creating a new view of arVi with the expanded dimensions
@@ -283,13 +288,13 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
                     strides[k] = arVi_strides[k];
                 }
             }
-            
+
             /* PyArray_DESCR borrows a reference, but it will be stolen
              * by PyArray_NewFromDescr below, so increment it.
              */
             view_dtype = PyArray_DESCR(arVi);
             Py_INCREF(view_dtype);
-            
+
             arVi_view = (PyArrayObject *)PyArray_NewFromDescr(&PyArray_Type,
                             view_dtype, ndim, zf_shape, strides,
                             PyArray_BYTES(arVi), 0, NULL);
@@ -298,7 +303,7 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
             }
             /* Give our reference to arVi to arVi_view */
 #if NPY_API_VERSION >= 0x00000007
-            if (PyArray_SetBaseObject(arVi_view, arVi) == -1) {
+            if (PyArray_SetBaseObject(arVi_view, (PyObject *)arVi) == -1) {
                 Py_DECREF(arVi_view);
                 goto fail;
             }
@@ -315,7 +320,7 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
             goto fail;
         }
     }
-    
+
     arY = (PyArrayObject *) PyArray_SimpleNew(PyArray_NDIM(arX),
                                               PyArray_DIMS(arX), typenum);
     if (arY == NULL) {
@@ -351,14 +356,13 @@ scipy_signal_sigtools_linear_filter(PyObject * NPY_UNUSED(dummy), PyObject * arg
 }
 
 /*
- * Copy the first nxzfilled items of x into xzfilled , and fill the rest with
- * 0s
+ * Copy the first nx items of x into xzfilled , and fill the rest with 0s
  */
 static int
-zfill(const PyArrayObject * x, intp nx, char *xzfilled, intp nxzfilled)
+zfill(const PyArrayObject * x, npy_intp nx, char *xzfilled, npy_intp nxzfilled)
 {
     char *xzero;
-    intp i, nxl;
+    npy_intp i, nxl;
     PyArray_CopySwapFunc *copyswap = PyArray_DESCR((PyArrayObject *)x)->f->copyswap;
 
     nxl = PyArray_ITEMSIZE(x);
@@ -399,9 +403,9 @@ RawFilter(const PyArrayObject * b, const PyArrayObject * a,
           BasicFilterFunction * filter_func)
 {
     PyArrayIterObject *itx, *ity, *itzi = NULL, *itzf = NULL;
-    intp nitx, i, nxl, nzfl, j;
-    intp na, nb, nal, nbl;
-    intp nfilt;
+    npy_intp nitx, i, nxl, nzfl, j;
+    npy_intp na, nb, nal, nbl;
+    npy_intp nfilt;
     char *azfilled, *bzfilled, *zfzfilled, *yoyo;
     PyArray_CopySwapFunc *copyswap = PyArray_DESCR((PyArrayObject *)x)->f->copyswap;
 
@@ -498,9 +502,9 @@ RawFilter(const PyArrayObject * b, const PyArrayObject * a,
                     itx->dataptr, ity->dataptr, zfzfilled,
                     nfilt, PyArray_DIM(x, axis), itx->strides[axis],
                     ity->strides[axis]);
-    
+
         if (PyErr_Occurred()) {
-            goto clean_zfzfilled; 
+            goto clean_zfzfilled;
         }
         PyArray_ITER_NEXT(itx);
         PyArray_ITER_NEXT(ity);
@@ -557,19 +561,20 @@ fail:
  *   dimension of an N-D array.                                  *
  *****************************************************************/
 
-#line 554
+#line 558
 static void FLOAT_filt(char *b, char *a, char *x, char *y, char *Z,
-                       intp len_b, uintp len_x, intp stride_X,
-                       intp stride_Y)
+                       npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                       npy_intp stride_Y)
 {
+    Py_BEGIN_ALLOW_THREADS
     char *ptr_x = x, *ptr_y = y;
     float *ptr_Z;
     float *ptr_b = (float*)b;
     float *ptr_a = (float*)a;
     float *xn, *yn;
     const float a0 = *((float *) a);
-    intp n;
-    uintp k;
+    npy_intp n;
+    npy_uintp k;
 
     /* normalize the filter coefs only once. */
     for (n = 0; n < len_b; ++n) {
@@ -604,12 +609,14 @@ static void FLOAT_filt(char *b, char *a, char *x, char *y, char *Z,
         ptr_y += stride_Y;      /* Move to next input/output point */
         ptr_x += stride_X;
     }
+    Py_END_ALLOW_THREADS
 }
 
 static void CFLOAT_filt(char *b, char *a, char *x, char *y, char *Z,
-                        intp len_b, uintp len_x, intp stride_X,
-                        intp stride_Y)
+                        npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                        npy_intp stride_Y)
 {
+    Py_BEGIN_ALLOW_THREADS
     char *ptr_x = x, *ptr_y = y;
     float *ptr_Z, *ptr_b;
     float *ptr_a;
@@ -617,8 +624,8 @@ static void CFLOAT_filt(char *b, char *a, char *x, char *y, char *Z,
     float a0r = ((float *) a)[0];
     float a0i = ((float *) a)[1];
     float a0_mag, tmpr, tmpi;
-    intp n;
-    uintp k;
+    npy_intp n;
+    npy_uintp k;
 
     a0_mag = a0r * a0r + a0i * a0i;
     for (k = 0; k < len_x; k++) {
@@ -672,21 +679,23 @@ static void CFLOAT_filt(char *b, char *a, char *x, char *y, char *Z,
         ptr_x += stride_X;
 
     }
+    Py_END_ALLOW_THREADS
 }
 
-#line 554
+#line 558
 static void DOUBLE_filt(char *b, char *a, char *x, char *y, char *Z,
-                       intp len_b, uintp len_x, intp stride_X,
-                       intp stride_Y)
+                       npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                       npy_intp stride_Y)
 {
+    Py_BEGIN_ALLOW_THREADS
     char *ptr_x = x, *ptr_y = y;
     double *ptr_Z;
     double *ptr_b = (double*)b;
     double *ptr_a = (double*)a;
     double *xn, *yn;
     const double a0 = *((double *) a);
-    intp n;
-    uintp k;
+    npy_intp n;
+    npy_uintp k;
 
     /* normalize the filter coefs only once. */
     for (n = 0; n < len_b; ++n) {
@@ -721,12 +730,14 @@ static void DOUBLE_filt(char *b, char *a, char *x, char *y, char *Z,
         ptr_y += stride_Y;      /* Move to next input/output point */
         ptr_x += stride_X;
     }
+    Py_END_ALLOW_THREADS
 }
 
 static void CDOUBLE_filt(char *b, char *a, char *x, char *y, char *Z,
-                        intp len_b, uintp len_x, intp stride_X,
-                        intp stride_Y)
+                        npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                        npy_intp stride_Y)
 {
+    Py_BEGIN_ALLOW_THREADS
     char *ptr_x = x, *ptr_y = y;
     double *ptr_Z, *ptr_b;
     double *ptr_a;
@@ -734,8 +745,8 @@ static void CDOUBLE_filt(char *b, char *a, char *x, char *y, char *Z,
     double a0r = ((double *) a)[0];
     double a0i = ((double *) a)[1];
     double a0_mag, tmpr, tmpi;
-    intp n;
-    uintp k;
+    npy_intp n;
+    npy_uintp k;
 
     a0_mag = a0r * a0r + a0i * a0i;
     for (k = 0; k < len_x; k++) {
@@ -789,21 +800,23 @@ static void CDOUBLE_filt(char *b, char *a, char *x, char *y, char *Z,
         ptr_x += stride_X;
 
     }
+    Py_END_ALLOW_THREADS
 }
 
-#line 554
+#line 558
 static void EXTENDED_filt(char *b, char *a, char *x, char *y, char *Z,
-                       intp len_b, uintp len_x, intp stride_X,
-                       intp stride_Y)
+                       npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                       npy_intp stride_Y)
 {
+    Py_BEGIN_ALLOW_THREADS
     char *ptr_x = x, *ptr_y = y;
     npy_longdouble *ptr_Z;
     npy_longdouble *ptr_b = (npy_longdouble*)b;
     npy_longdouble *ptr_a = (npy_longdouble*)a;
     npy_longdouble *xn, *yn;
     const npy_longdouble a0 = *((npy_longdouble *) a);
-    intp n;
-    uintp k;
+    npy_intp n;
+    npy_uintp k;
 
     /* normalize the filter coefs only once. */
     for (n = 0; n < len_b; ++n) {
@@ -838,12 +851,14 @@ static void EXTENDED_filt(char *b, char *a, char *x, char *y, char *Z,
         ptr_y += stride_Y;      /* Move to next input/output point */
         ptr_x += stride_X;
     }
+    Py_END_ALLOW_THREADS
 }
 
 static void CEXTENDED_filt(char *b, char *a, char *x, char *y, char *Z,
-                        intp len_b, uintp len_x, intp stride_X,
-                        intp stride_Y)
+                        npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                        npy_intp stride_Y)
 {
+    Py_BEGIN_ALLOW_THREADS
     char *ptr_x = x, *ptr_y = y;
     npy_longdouble *ptr_Z, *ptr_b;
     npy_longdouble *ptr_a;
@@ -851,8 +866,8 @@ static void CEXTENDED_filt(char *b, char *a, char *x, char *y, char *Z,
     npy_longdouble a0r = ((npy_longdouble *) a)[0];
     npy_longdouble a0i = ((npy_longdouble *) a)[1];
     npy_longdouble a0_mag, tmpr, tmpi;
-    intp n;
-    uintp k;
+    npy_intp n;
+    npy_uintp k;
 
     a0_mag = a0r * a0r + a0i * a0i;
     for (k = 0; k < len_x; k++) {
@@ -906,12 +921,13 @@ static void CEXTENDED_filt(char *b, char *a, char *x, char *y, char *Z,
         ptr_x += stride_X;
 
     }
+    Py_END_ALLOW_THREADS
 }
 
 
 static void OBJECT_filt(char *b, char *a, char *x, char *y, char *Z,
-                        intp len_b, uintp len_x, intp stride_X,
-                        intp stride_Y)
+                        npy_intp len_b, npy_uintp len_x, npy_intp stride_X,
+                        npy_intp stride_Y)
 {
     char *ptr_x = x, *ptr_y = y;
     PyObject **ptr_Z, **ptr_b;
@@ -919,8 +935,8 @@ static void OBJECT_filt(char *b, char *a, char *x, char *y, char *Z,
     PyObject **xn, **yn;
     PyObject **a0 = (PyObject **) a;
     PyObject *tmp1, *tmp2, *tmp3;
-    intp n;
-    uintp k;
+    npy_intp n;
+    npy_uintp k;
 
     /* My reference counting might not be right */
     for (k = 0; k < len_x; k++) {
@@ -946,7 +962,7 @@ static void OBJECT_filt(char *b, char *a, char *x, char *y, char *Z,
             if (tmp3 == NULL) return;
             ptr_b++;
             ptr_a++;
-            
+
             /* Fill in middle delays */
             for (n = 0; n < len_b - 2; n++) {
                 tmp1 = PyNumber_Multiply(*xn, *ptr_b);

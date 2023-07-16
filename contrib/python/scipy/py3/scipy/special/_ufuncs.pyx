@@ -1191,12 +1191,12 @@ cdef void loop_i_i__As_l_l(char **args, np.npy_intp *dims, np.npy_intp *steps, v
         op0 += steps[1]
     sf_error.check_fpe(func_name)
 
-from ._trig cimport dcospi as _func_dcospi
-ctypedef double _proto_dcospi_t(double) nogil
-cdef _proto_dcospi_t *_proto_dcospi_t_var = &_func_dcospi
 from ._trig cimport ccospi as _func_ccospi
 ctypedef double complex _proto_ccospi_t(double complex) nogil
 cdef _proto_ccospi_t *_proto_ccospi_t_var = &_func_ccospi
+from ._trig cimport dcospi as _func_dcospi
+ctypedef double _proto_dcospi_t(double) nogil
+cdef _proto_dcospi_t *_proto_dcospi_t_var = &_func_dcospi
 from ._ellip_harm cimport ellip_harmonic as _func_ellip_harmonic
 ctypedef double _proto_ellip_harmonic_t(double, double, int, int, double, double, double) nogil
 cdef _proto_ellip_harmonic_t *_proto_ellip_harmonic_t_var = &_func_ellip_harmonic
@@ -1229,39 +1229,39 @@ cdef _proto_csinpi_t *_proto_csinpi_t_var = &_func_csinpi
 from ._trig cimport dsinpi as _func_dsinpi
 ctypedef double _proto_dsinpi_t(double) nogil
 cdef _proto_dsinpi_t *_proto_dsinpi_t_var = &_func_dsinpi
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_smirnovc "smirnovc"(int, double) nogil
 from ._legacy cimport smirnovc_unsafe as _func_smirnovc_unsafe
 ctypedef double _proto_smirnovc_unsafe_t(double, double) nogil
 cdef _proto_smirnovc_unsafe_t *_proto_smirnovc_unsafe_t_var = &_func_smirnovc_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_smirnovci "smirnovci"(int, double) nogil
+    cdef double _func_smirnovc "smirnovc"(int, double) nogil
 from ._legacy cimport smirnovci_unsafe as _func_smirnovci_unsafe
 ctypedef double _proto_smirnovci_unsafe_t(double, double) nogil
 cdef _proto_smirnovci_unsafe_t *_proto_smirnovci_unsafe_t_var = &_func_smirnovci_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_smirnovp "smirnovp"(int, double) nogil
+    cdef double _func_smirnovci "smirnovci"(int, double) nogil
 from ._legacy cimport smirnovp_unsafe as _func_smirnovp_unsafe
 ctypedef double _proto_smirnovp_unsafe_t(double, double) nogil
 cdef _proto_smirnovp_unsafe_t *_proto_smirnovp_unsafe_t_var = &_func_smirnovp_unsafe
-from ._spherical_bessel cimport spherical_in_real as _func_spherical_in_real
-ctypedef double _proto_spherical_in_real_t(long, double) nogil
-cdef _proto_spherical_in_real_t *_proto_spherical_in_real_t_var = &_func_spherical_in_real
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_smirnovp "smirnovp"(int, double) nogil
 from ._spherical_bessel cimport spherical_in_complex as _func_spherical_in_complex
 ctypedef double complex _proto_spherical_in_complex_t(long, double complex) nogil
 cdef _proto_spherical_in_complex_t *_proto_spherical_in_complex_t_var = &_func_spherical_in_complex
+from ._spherical_bessel cimport spherical_in_real as _func_spherical_in_real
+ctypedef double _proto_spherical_in_real_t(long, double) nogil
+cdef _proto_spherical_in_real_t *_proto_spherical_in_real_t_var = &_func_spherical_in_real
 from ._spherical_bessel cimport spherical_in_d_complex as _func_spherical_in_d_complex
 ctypedef double complex _proto_spherical_in_d_complex_t(long, double complex) nogil
 cdef _proto_spherical_in_d_complex_t *_proto_spherical_in_d_complex_t_var = &_func_spherical_in_d_complex
 from ._spherical_bessel cimport spherical_in_d_real as _func_spherical_in_d_real
 ctypedef double _proto_spherical_in_d_real_t(long, double) nogil
 cdef _proto_spherical_in_d_real_t *_proto_spherical_in_d_real_t_var = &_func_spherical_in_d_real
-from ._spherical_bessel cimport spherical_jn_real as _func_spherical_jn_real
-ctypedef double _proto_spherical_jn_real_t(long, double) nogil
-cdef _proto_spherical_jn_real_t *_proto_spherical_jn_real_t_var = &_func_spherical_jn_real
 from ._spherical_bessel cimport spherical_jn_complex as _func_spherical_jn_complex
 ctypedef double complex _proto_spherical_jn_complex_t(long, double complex) nogil
 cdef _proto_spherical_jn_complex_t *_proto_spherical_jn_complex_t_var = &_func_spherical_jn_complex
+from ._spherical_bessel cimport spherical_jn_real as _func_spherical_jn_real
+ctypedef double _proto_spherical_jn_real_t(long, double) nogil
+cdef _proto_spherical_jn_real_t *_proto_spherical_jn_real_t_var = &_func_spherical_jn_real
 from ._spherical_bessel cimport spherical_jn_d_complex as _func_spherical_jn_d_complex
 ctypedef double complex _proto_spherical_jn_d_complex_t(long, double complex) nogil
 cdef _proto_spherical_jn_d_complex_t *_proto_spherical_jn_d_complex_t_var = &_func_spherical_jn_d_complex
@@ -1280,12 +1280,12 @@ cdef _proto_spherical_kn_d_complex_t *_proto_spherical_kn_d_complex_t_var = &_fu
 from ._spherical_bessel cimport spherical_kn_d_real as _func_spherical_kn_d_real
 ctypedef double _proto_spherical_kn_d_real_t(long, double) nogil
 cdef _proto_spherical_kn_d_real_t *_proto_spherical_kn_d_real_t_var = &_func_spherical_kn_d_real
-from ._spherical_bessel cimport spherical_yn_real as _func_spherical_yn_real
-ctypedef double _proto_spherical_yn_real_t(long, double) nogil
-cdef _proto_spherical_yn_real_t *_proto_spherical_yn_real_t_var = &_func_spherical_yn_real
 from ._spherical_bessel cimport spherical_yn_complex as _func_spherical_yn_complex
 ctypedef double complex _proto_spherical_yn_complex_t(long, double complex) nogil
 cdef _proto_spherical_yn_complex_t *_proto_spherical_yn_complex_t_var = &_func_spherical_yn_complex
+from ._spherical_bessel cimport spherical_yn_real as _func_spherical_yn_real
+ctypedef double _proto_spherical_yn_real_t(long, double) nogil
+cdef _proto_spherical_yn_real_t *_proto_spherical_yn_real_t_var = &_func_spherical_yn_real
 from ._spherical_bessel cimport spherical_yn_d_complex as _func_spherical_yn_d_complex
 ctypedef double complex _proto_spherical_yn_d_complex_t(long, double complex) nogil
 cdef _proto_spherical_yn_d_complex_t *_proto_spherical_yn_d_complex_t_var = &_func_spherical_yn_d_complex
@@ -1304,28 +1304,28 @@ from ._agm cimport agm as _func_agm
 ctypedef double _proto_agm_t(double, double) nogil
 cdef _proto_agm_t *_proto_agm_t_var = &_func_agm
 cdef extern from "_ufuncs_defs.h":
-    cdef int _func_cairy_wrap "cairy_wrap"(double complex, double complex *, double complex *, double complex *, double complex *) nogil
-cdef extern from "_ufuncs_defs.h":
     cdef int _func_airy_wrap "airy_wrap"(double, double *, double *, double *, double *) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef int _func_cairy_wrap_e_real "cairy_wrap_e_real"(double, double *, double *, double *, double *) nogil
+    cdef int _func_cairy_wrap "cairy_wrap"(double complex, double complex *, double complex *, double complex *, double complex *) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef int _func_cairy_wrap_e "cairy_wrap_e"(double complex, double complex *, double complex *, double complex *, double complex *) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_bdtr "bdtr"(int, int, double) nogil
+    cdef int _func_cairy_wrap_e_real "cairy_wrap_e_real"(double, double *, double *, double *, double *) nogil
 from ._legacy cimport bdtr_unsafe as _func_bdtr_unsafe
 ctypedef double _proto_bdtr_unsafe_t(double, double, double) nogil
 cdef _proto_bdtr_unsafe_t *_proto_bdtr_unsafe_t_var = &_func_bdtr_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_bdtrc "bdtrc"(int, int, double) nogil
+    cdef double _func_bdtr "bdtr"(int, int, double) nogil
 from ._legacy cimport bdtrc_unsafe as _func_bdtrc_unsafe
 ctypedef double _proto_bdtrc_unsafe_t(double, double, double) nogil
 cdef _proto_bdtrc_unsafe_t *_proto_bdtrc_unsafe_t_var = &_func_bdtrc_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_bdtri "bdtri"(int, int, double) nogil
+    cdef double _func_bdtrc "bdtrc"(int, int, double) nogil
 from ._legacy cimport bdtri_unsafe as _func_bdtri_unsafe
 ctypedef double _proto_bdtri_unsafe_t(double, double, double) nogil
 cdef _proto_bdtri_unsafe_t *_proto_bdtri_unsafe_t_var = &_func_bdtri_unsafe
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_bdtri "bdtri"(int, int, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_cdfbin2_wrap "cdfbin2_wrap"(double, double, double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1407,59 +1407,59 @@ cdef extern from "_ufuncs_defs.h":
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_erfc "erfc"(double) nogil
 from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
-ctypedef double _proto_eval_chebyc_double__t(double, double) nogil
-cdef _proto_eval_chebyc_double__t *_proto_eval_chebyc_double__t_var = &_func_eval_chebyc[double]
-from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
 ctypedef double complex _proto_eval_chebyc_double_complex__t(double, double complex) nogil
 cdef _proto_eval_chebyc_double_complex__t *_proto_eval_chebyc_double_complex__t_var = &_func_eval_chebyc[double_complex]
+from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
+ctypedef double _proto_eval_chebyc_double__t(double, double) nogil
+cdef _proto_eval_chebyc_double__t *_proto_eval_chebyc_double__t_var = &_func_eval_chebyc[double]
 from .orthogonal_eval cimport eval_chebyc_l as _func_eval_chebyc_l
 ctypedef double _proto_eval_chebyc_l_t(long, double) nogil
 cdef _proto_eval_chebyc_l_t *_proto_eval_chebyc_l_t_var = &_func_eval_chebyc_l
 from .orthogonal_eval cimport eval_chebys as _func_eval_chebys
-ctypedef double _proto_eval_chebys_double__t(double, double) nogil
-cdef _proto_eval_chebys_double__t *_proto_eval_chebys_double__t_var = &_func_eval_chebys[double]
-from .orthogonal_eval cimport eval_chebys as _func_eval_chebys
 ctypedef double complex _proto_eval_chebys_double_complex__t(double, double complex) nogil
 cdef _proto_eval_chebys_double_complex__t *_proto_eval_chebys_double_complex__t_var = &_func_eval_chebys[double_complex]
+from .orthogonal_eval cimport eval_chebys as _func_eval_chebys
+ctypedef double _proto_eval_chebys_double__t(double, double) nogil
+cdef _proto_eval_chebys_double__t *_proto_eval_chebys_double__t_var = &_func_eval_chebys[double]
 from .orthogonal_eval cimport eval_chebys_l as _func_eval_chebys_l
 ctypedef double _proto_eval_chebys_l_t(long, double) nogil
 cdef _proto_eval_chebys_l_t *_proto_eval_chebys_l_t_var = &_func_eval_chebys_l
 from .orthogonal_eval cimport eval_chebyt as _func_eval_chebyt
-ctypedef double _proto_eval_chebyt_double__t(double, double) nogil
-cdef _proto_eval_chebyt_double__t *_proto_eval_chebyt_double__t_var = &_func_eval_chebyt[double]
-from .orthogonal_eval cimport eval_chebyt as _func_eval_chebyt
 ctypedef double complex _proto_eval_chebyt_double_complex__t(double, double complex) nogil
 cdef _proto_eval_chebyt_double_complex__t *_proto_eval_chebyt_double_complex__t_var = &_func_eval_chebyt[double_complex]
+from .orthogonal_eval cimport eval_chebyt as _func_eval_chebyt
+ctypedef double _proto_eval_chebyt_double__t(double, double) nogil
+cdef _proto_eval_chebyt_double__t *_proto_eval_chebyt_double__t_var = &_func_eval_chebyt[double]
 from .orthogonal_eval cimport eval_chebyt_l as _func_eval_chebyt_l
 ctypedef double _proto_eval_chebyt_l_t(long, double) nogil
 cdef _proto_eval_chebyt_l_t *_proto_eval_chebyt_l_t_var = &_func_eval_chebyt_l
 from .orthogonal_eval cimport eval_chebyu as _func_eval_chebyu
 ctypedef double complex _proto_eval_chebyu_double_complex__t(double, double complex) nogil
 cdef _proto_eval_chebyu_double_complex__t *_proto_eval_chebyu_double_complex__t_var = &_func_eval_chebyu[double_complex]
-from .orthogonal_eval cimport eval_chebyu_l as _func_eval_chebyu_l
-ctypedef double _proto_eval_chebyu_l_t(long, double) nogil
-cdef _proto_eval_chebyu_l_t *_proto_eval_chebyu_l_t_var = &_func_eval_chebyu_l
 from .orthogonal_eval cimport eval_chebyu as _func_eval_chebyu
 ctypedef double _proto_eval_chebyu_double__t(double, double) nogil
 cdef _proto_eval_chebyu_double__t *_proto_eval_chebyu_double__t_var = &_func_eval_chebyu[double]
-from .orthogonal_eval cimport eval_gegenbauer as _func_eval_gegenbauer
-ctypedef double _proto_eval_gegenbauer_double__t(double, double, double) nogil
-cdef _proto_eval_gegenbauer_double__t *_proto_eval_gegenbauer_double__t_var = &_func_eval_gegenbauer[double]
+from .orthogonal_eval cimport eval_chebyu_l as _func_eval_chebyu_l
+ctypedef double _proto_eval_chebyu_l_t(long, double) nogil
+cdef _proto_eval_chebyu_l_t *_proto_eval_chebyu_l_t_var = &_func_eval_chebyu_l
 from .orthogonal_eval cimport eval_gegenbauer as _func_eval_gegenbauer
 ctypedef double complex _proto_eval_gegenbauer_double_complex__t(double, double, double complex) nogil
 cdef _proto_eval_gegenbauer_double_complex__t *_proto_eval_gegenbauer_double_complex__t_var = &_func_eval_gegenbauer[double_complex]
+from .orthogonal_eval cimport eval_gegenbauer as _func_eval_gegenbauer
+ctypedef double _proto_eval_gegenbauer_double__t(double, double, double) nogil
+cdef _proto_eval_gegenbauer_double__t *_proto_eval_gegenbauer_double__t_var = &_func_eval_gegenbauer[double]
 from .orthogonal_eval cimport eval_gegenbauer_l as _func_eval_gegenbauer_l
 ctypedef double _proto_eval_gegenbauer_l_t(long, double, double) nogil
 cdef _proto_eval_gegenbauer_l_t *_proto_eval_gegenbauer_l_t_var = &_func_eval_gegenbauer_l
 from .orthogonal_eval cimport eval_genlaguerre as _func_eval_genlaguerre
 ctypedef double complex _proto_eval_genlaguerre_double_complex__t(double, double, double complex) nogil
 cdef _proto_eval_genlaguerre_double_complex__t *_proto_eval_genlaguerre_double_complex__t_var = &_func_eval_genlaguerre[double_complex]
-from .orthogonal_eval cimport eval_genlaguerre_l as _func_eval_genlaguerre_l
-ctypedef double _proto_eval_genlaguerre_l_t(long, double, double) nogil
-cdef _proto_eval_genlaguerre_l_t *_proto_eval_genlaguerre_l_t_var = &_func_eval_genlaguerre_l
 from .orthogonal_eval cimport eval_genlaguerre as _func_eval_genlaguerre
 ctypedef double _proto_eval_genlaguerre_double__t(double, double, double) nogil
 cdef _proto_eval_genlaguerre_double__t *_proto_eval_genlaguerre_double__t_var = &_func_eval_genlaguerre[double]
+from .orthogonal_eval cimport eval_genlaguerre_l as _func_eval_genlaguerre_l
+ctypedef double _proto_eval_genlaguerre_l_t(long, double, double) nogil
+cdef _proto_eval_genlaguerre_l_t *_proto_eval_genlaguerre_l_t_var = &_func_eval_genlaguerre_l
 from .orthogonal_eval cimport eval_hermite as _func_eval_hermite
 ctypedef double _proto_eval_hermite_t(long, double) nogil
 cdef _proto_eval_hermite_t *_proto_eval_hermite_t_var = &_func_eval_hermite
@@ -1469,94 +1469,94 @@ cdef _proto_eval_hermitenorm_t *_proto_eval_hermitenorm_t_var = &_func_eval_herm
 from .orthogonal_eval cimport eval_jacobi as _func_eval_jacobi
 ctypedef double complex _proto_eval_jacobi_double_complex__t(double, double, double, double complex) nogil
 cdef _proto_eval_jacobi_double_complex__t *_proto_eval_jacobi_double_complex__t_var = &_func_eval_jacobi[double_complex]
-from .orthogonal_eval cimport eval_jacobi_l as _func_eval_jacobi_l
-ctypedef double _proto_eval_jacobi_l_t(long, double, double, double) nogil
-cdef _proto_eval_jacobi_l_t *_proto_eval_jacobi_l_t_var = &_func_eval_jacobi_l
 from .orthogonal_eval cimport eval_jacobi as _func_eval_jacobi
 ctypedef double _proto_eval_jacobi_double__t(double, double, double, double) nogil
 cdef _proto_eval_jacobi_double__t *_proto_eval_jacobi_double__t_var = &_func_eval_jacobi[double]
+from .orthogonal_eval cimport eval_jacobi_l as _func_eval_jacobi_l
+ctypedef double _proto_eval_jacobi_l_t(long, double, double, double) nogil
+cdef _proto_eval_jacobi_l_t *_proto_eval_jacobi_l_t_var = &_func_eval_jacobi_l
 from .orthogonal_eval cimport eval_laguerre as _func_eval_laguerre
 ctypedef double complex _proto_eval_laguerre_double_complex__t(double, double complex) nogil
 cdef _proto_eval_laguerre_double_complex__t *_proto_eval_laguerre_double_complex__t_var = &_func_eval_laguerre[double_complex]
-from .orthogonal_eval cimport eval_laguerre_l as _func_eval_laguerre_l
-ctypedef double _proto_eval_laguerre_l_t(long, double) nogil
-cdef _proto_eval_laguerre_l_t *_proto_eval_laguerre_l_t_var = &_func_eval_laguerre_l
 from .orthogonal_eval cimport eval_laguerre as _func_eval_laguerre
 ctypedef double _proto_eval_laguerre_double__t(double, double) nogil
 cdef _proto_eval_laguerre_double__t *_proto_eval_laguerre_double__t_var = &_func_eval_laguerre[double]
+from .orthogonal_eval cimport eval_laguerre_l as _func_eval_laguerre_l
+ctypedef double _proto_eval_laguerre_l_t(long, double) nogil
+cdef _proto_eval_laguerre_l_t *_proto_eval_laguerre_l_t_var = &_func_eval_laguerre_l
 from .orthogonal_eval cimport eval_legendre as _func_eval_legendre
 ctypedef double complex _proto_eval_legendre_double_complex__t(double, double complex) nogil
 cdef _proto_eval_legendre_double_complex__t *_proto_eval_legendre_double_complex__t_var = &_func_eval_legendre[double_complex]
-from .orthogonal_eval cimport eval_legendre_l as _func_eval_legendre_l
-ctypedef double _proto_eval_legendre_l_t(long, double) nogil
-cdef _proto_eval_legendre_l_t *_proto_eval_legendre_l_t_var = &_func_eval_legendre_l
 from .orthogonal_eval cimport eval_legendre as _func_eval_legendre
 ctypedef double _proto_eval_legendre_double__t(double, double) nogil
 cdef _proto_eval_legendre_double__t *_proto_eval_legendre_double__t_var = &_func_eval_legendre[double]
+from .orthogonal_eval cimport eval_legendre_l as _func_eval_legendre_l
+ctypedef double _proto_eval_legendre_l_t(long, double) nogil
+cdef _proto_eval_legendre_l_t *_proto_eval_legendre_l_t_var = &_func_eval_legendre_l
+from .orthogonal_eval cimport eval_sh_chebyt as _func_eval_sh_chebyt
+ctypedef double complex _proto_eval_sh_chebyt_double_complex__t(double, double complex) nogil
+cdef _proto_eval_sh_chebyt_double_complex__t *_proto_eval_sh_chebyt_double_complex__t_var = &_func_eval_sh_chebyt[double_complex]
 from .orthogonal_eval cimport eval_sh_chebyt as _func_eval_sh_chebyt
 ctypedef double _proto_eval_sh_chebyt_double__t(double, double) nogil
 cdef _proto_eval_sh_chebyt_double__t *_proto_eval_sh_chebyt_double__t_var = &_func_eval_sh_chebyt[double]
 from .orthogonal_eval cimport eval_sh_chebyt_l as _func_eval_sh_chebyt_l
 ctypedef double _proto_eval_sh_chebyt_l_t(long, double) nogil
 cdef _proto_eval_sh_chebyt_l_t *_proto_eval_sh_chebyt_l_t_var = &_func_eval_sh_chebyt_l
-from .orthogonal_eval cimport eval_sh_chebyt as _func_eval_sh_chebyt
-ctypedef double complex _proto_eval_sh_chebyt_double_complex__t(double, double complex) nogil
-cdef _proto_eval_sh_chebyt_double_complex__t *_proto_eval_sh_chebyt_double_complex__t_var = &_func_eval_sh_chebyt[double_complex]
 from .orthogonal_eval cimport eval_sh_chebyu as _func_eval_sh_chebyu
 ctypedef double complex _proto_eval_sh_chebyu_double_complex__t(double, double complex) nogil
 cdef _proto_eval_sh_chebyu_double_complex__t *_proto_eval_sh_chebyu_double_complex__t_var = &_func_eval_sh_chebyu[double_complex]
-from .orthogonal_eval cimport eval_sh_chebyu_l as _func_eval_sh_chebyu_l
-ctypedef double _proto_eval_sh_chebyu_l_t(long, double) nogil
-cdef _proto_eval_sh_chebyu_l_t *_proto_eval_sh_chebyu_l_t_var = &_func_eval_sh_chebyu_l
 from .orthogonal_eval cimport eval_sh_chebyu as _func_eval_sh_chebyu
 ctypedef double _proto_eval_sh_chebyu_double__t(double, double) nogil
 cdef _proto_eval_sh_chebyu_double__t *_proto_eval_sh_chebyu_double__t_var = &_func_eval_sh_chebyu[double]
+from .orthogonal_eval cimport eval_sh_chebyu_l as _func_eval_sh_chebyu_l
+ctypedef double _proto_eval_sh_chebyu_l_t(long, double) nogil
+cdef _proto_eval_sh_chebyu_l_t *_proto_eval_sh_chebyu_l_t_var = &_func_eval_sh_chebyu_l
 from .orthogonal_eval cimport eval_sh_jacobi as _func_eval_sh_jacobi
 ctypedef double complex _proto_eval_sh_jacobi_double_complex__t(double, double, double, double complex) nogil
 cdef _proto_eval_sh_jacobi_double_complex__t *_proto_eval_sh_jacobi_double_complex__t_var = &_func_eval_sh_jacobi[double_complex]
-from .orthogonal_eval cimport eval_sh_jacobi_l as _func_eval_sh_jacobi_l
-ctypedef double _proto_eval_sh_jacobi_l_t(long, double, double, double) nogil
-cdef _proto_eval_sh_jacobi_l_t *_proto_eval_sh_jacobi_l_t_var = &_func_eval_sh_jacobi_l
 from .orthogonal_eval cimport eval_sh_jacobi as _func_eval_sh_jacobi
 ctypedef double _proto_eval_sh_jacobi_double__t(double, double, double, double) nogil
 cdef _proto_eval_sh_jacobi_double__t *_proto_eval_sh_jacobi_double__t_var = &_func_eval_sh_jacobi[double]
-from .orthogonal_eval cimport eval_sh_legendre_l as _func_eval_sh_legendre_l
-ctypedef double _proto_eval_sh_legendre_l_t(long, double) nogil
-cdef _proto_eval_sh_legendre_l_t *_proto_eval_sh_legendre_l_t_var = &_func_eval_sh_legendre_l
+from .orthogonal_eval cimport eval_sh_jacobi_l as _func_eval_sh_jacobi_l
+ctypedef double _proto_eval_sh_jacobi_l_t(long, double, double, double) nogil
+cdef _proto_eval_sh_jacobi_l_t *_proto_eval_sh_jacobi_l_t_var = &_func_eval_sh_jacobi_l
 from .orthogonal_eval cimport eval_sh_legendre as _func_eval_sh_legendre
 ctypedef double complex _proto_eval_sh_legendre_double_complex__t(double, double complex) nogil
 cdef _proto_eval_sh_legendre_double_complex__t *_proto_eval_sh_legendre_double_complex__t_var = &_func_eval_sh_legendre[double_complex]
 from .orthogonal_eval cimport eval_sh_legendre as _func_eval_sh_legendre
 ctypedef double _proto_eval_sh_legendre_double__t(double, double) nogil
 cdef _proto_eval_sh_legendre_double__t *_proto_eval_sh_legendre_double__t_var = &_func_eval_sh_legendre[double]
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_exp1_wrap "exp1_wrap"(double) nogil
+from .orthogonal_eval cimport eval_sh_legendre_l as _func_eval_sh_legendre_l
+ctypedef double _proto_eval_sh_legendre_l_t(long, double) nogil
+cdef _proto_eval_sh_legendre_l_t *_proto_eval_sh_legendre_l_t_var = &_func_eval_sh_legendre_l
 cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_cexp1_wrap "cexp1_wrap"(double complex) nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_exp1_wrap "exp1_wrap"(double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_exp10 "exp10"(double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_exp2 "exp2"(double) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_expi_wrap "expi_wrap"(double) nogil
-cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_cexpi_wrap "cexpi_wrap"(double complex) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef long double _func_expitl "expitl"(long double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef float _func_expitf "expitf"(float) nogil
+    cdef double _func_expi_wrap "expi_wrap"(double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_expit "expit"(double) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_expm1 "expm1"(double) nogil
+    cdef float _func_expitf "expitf"(float) nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef long double _func_expitl "expitl"(long double) nogil
 from ._cunity cimport cexpm1 as _func_cexpm1
 ctypedef double complex _proto_cexpm1_t(double complex) nogil
 cdef _proto_cexpm1_t *_proto_cexpm1_t_var = &_func_cexpm1
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_expn "expn"(int, double) nogil
+    cdef double _func_expm1 "expm1"(double) nogil
 from ._legacy cimport expn_unsafe as _func_expn_unsafe
 ctypedef double _proto_expn_unsafe_t(double, double) nogil
 cdef _proto_expn_unsafe_t *_proto_expn_unsafe_t_var = &_func_expn_unsafe
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_expn "expn"(int, double) nogil
 from ._exprel cimport exprel as _func_exprel
 ctypedef double _proto_exprel_t(double) nogil
 cdef _proto_exprel_t *_proto_exprel_t_var = &_func_exprel
@@ -1610,23 +1610,23 @@ cdef extern from "_ufuncs_defs.h":
 from ._convex_analysis cimport huber as _func_huber
 ctypedef double _proto_huber_t(double, double) nogil
 cdef _proto_huber_t *_proto_huber_t_var = &_func_huber
-from ._hyp0f1 cimport _hyp0f1_real as _func__hyp0f1_real
-ctypedef double _proto__hyp0f1_real_t(double, double) nogil
-cdef _proto__hyp0f1_real_t *_proto__hyp0f1_real_t_var = &_func__hyp0f1_real
 from ._hyp0f1 cimport _hyp0f1_cmplx as _func__hyp0f1_cmplx
 ctypedef double complex _proto__hyp0f1_cmplx_t(double, double complex) nogil
 cdef _proto__hyp0f1_cmplx_t *_proto__hyp0f1_cmplx_t_var = &_func__hyp0f1_cmplx
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_hyp1f1_wrap "hyp1f1_wrap"(double, double, double) nogil
+from ._hyp0f1 cimport _hyp0f1_real as _func__hyp0f1_real
+ctypedef double _proto__hyp0f1_real_t(double, double) nogil
+cdef _proto__hyp0f1_real_t *_proto__hyp0f1_real_t_var = &_func__hyp0f1_real
 cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_chyp1f1_wrap "chyp1f1_wrap"(double, double, double complex) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_onef2 "onef2"(double, double, double, double, double *) nogil
+    cdef double _func_hyp1f1_wrap "hyp1f1_wrap"(double, double, double) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_hyp2f0 "hyp2f0"(double, double, double, int, double *) nogil
+    cdef double _func_onef2 "onef2"(double, double, double, double, double *) nogil
 from ._legacy cimport hyp2f0_unsafe as _func_hyp2f0_unsafe
 ctypedef double _proto_hyp2f0_unsafe_t(double, double, double, double, double *) nogil
 cdef _proto_hyp2f0_unsafe_t *_proto_hyp2f0_unsafe_t_var = &_func_hyp2f0_unsafe
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_hyp2f0 "hyp2f0"(double, double, double, int, double *) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_hyp2f1 "hyp2f1"(double, double, double, double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1670,9 +1670,9 @@ cdef extern from "_ufuncs_defs.h":
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_iv "iv"(double, double) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_cbesi_wrap_e_real "cbesi_wrap_e_real"(double, double) nogil
-cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_cbesi_wrap_e "cbesi_wrap_e"(double, double complex) nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_cbesi_wrap_e_real "cbesi_wrap_e_real"(double, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_j0 "j0"(double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1682,9 +1682,9 @@ cdef extern from "_ufuncs_defs.h":
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_cbesj_wrap_real "cbesj_wrap_real"(double, double) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_cbesj_wrap_e_real "cbesj_wrap_e_real"(double, double) nogil
-cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_cbesj_wrap_e "cbesj_wrap_e"(double, double complex) nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_cbesj_wrap_e_real "cbesj_wrap_e_real"(double, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_k0 "k0"(double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1706,42 +1706,42 @@ cdef extern from "_ufuncs_defs.h":
 from ._convex_analysis cimport kl_div as _func_kl_div
 ctypedef double _proto_kl_div_t(double, double) nogil
 cdef _proto_kl_div_t *_proto_kl_div_t_var = &_func_kl_div
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_cbesk_wrap_real_int "cbesk_wrap_real_int"(int, double) nogil
 from ._legacy cimport kn_unsafe as _func_kn_unsafe
 ctypedef double _proto_kn_unsafe_t(double, double) nogil
 cdef _proto_kn_unsafe_t *_proto_kn_unsafe_t_var = &_func_kn_unsafe
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_cbesk_wrap_real_int "cbesk_wrap_real_int"(int, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_kolmogi "kolmogi"(double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_kolmogorov "kolmogorov"(double) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_cbesk_wrap_real "cbesk_wrap_real"(double, double) nogil
-cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_cbesk_wrap "cbesk_wrap"(double, double complex) nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_cbesk_wrap_real "cbesk_wrap_real"(double, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_cbesk_wrap_e "cbesk_wrap_e"(double, double complex) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_cbesk_wrap_e_real "cbesk_wrap_e_real"(double, double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_log1p "log1p"(double) nogil
 from ._cunity cimport clog1p as _func_clog1p
 ctypedef double complex _proto_clog1p_t(double complex) nogil
 cdef _proto_clog1p_t *_proto_clog1p_t_var = &_func_clog1p
 cdef extern from "_ufuncs_defs.h":
+    cdef double _func_log1p "log1p"(double) nogil
+cdef extern from "_ufuncs_defs.h":
     cdef double _func_log_ndtr "log_ndtr"(double) nogil
-from ._loggamma cimport loggamma as _func_loggamma
-ctypedef double complex _proto_loggamma_t(double complex) nogil
-cdef _proto_loggamma_t *_proto_loggamma_t_var = &_func_loggamma
 from ._loggamma cimport loggamma_real as _func_loggamma_real
 ctypedef double _proto_loggamma_real_t(double) nogil
 cdef _proto_loggamma_real_t *_proto_loggamma_real_t_var = &_func_loggamma_real
+from ._loggamma cimport loggamma as _func_loggamma
+ctypedef double complex _proto_loggamma_t(double complex) nogil
+cdef _proto_loggamma_t *_proto_loggamma_t_var = &_func_loggamma
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_logit "logit"(double) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef long double _func_logitl "logitl"(long double) nogil
-cdef extern from "_ufuncs_defs.h":
     cdef float _func_logitf "logitf"(float) nogil
+cdef extern from "_ufuncs_defs.h":
+    cdef long double _func_logitl "logitl"(long double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_pmv_wrap "pmv_wrap"(double, double, double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1766,21 +1766,21 @@ cdef extern from "_ufuncs_defs.h":
     cdef int _func_modified_fresnel_plus_wrap "modified_fresnel_plus_wrap"(double, double complex *, double complex *) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_struve_l "struve_l"(double, double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_nbdtr "nbdtr"(int, int, double) nogil
 from ._legacy cimport nbdtr_unsafe as _func_nbdtr_unsafe
 ctypedef double _proto_nbdtr_unsafe_t(double, double, double) nogil
 cdef _proto_nbdtr_unsafe_t *_proto_nbdtr_unsafe_t_var = &_func_nbdtr_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_nbdtrc "nbdtrc"(int, int, double) nogil
+    cdef double _func_nbdtr "nbdtr"(int, int, double) nogil
 from ._legacy cimport nbdtrc_unsafe as _func_nbdtrc_unsafe
 ctypedef double _proto_nbdtrc_unsafe_t(double, double, double) nogil
 cdef _proto_nbdtrc_unsafe_t *_proto_nbdtrc_unsafe_t_var = &_func_nbdtrc_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_nbdtri "nbdtri"(int, int, double) nogil
+    cdef double _func_nbdtrc "nbdtrc"(int, int, double) nogil
 from ._legacy cimport nbdtri_unsafe as _func_nbdtri_unsafe
 ctypedef double _proto_nbdtri_unsafe_t(double, double, double) nogil
 cdef _proto_nbdtri_unsafe_t *_proto_nbdtri_unsafe_t_var = &_func_nbdtri_unsafe
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_nbdtri "nbdtri"(int, int, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_cdfnbn2_wrap "cdfnbn2_wrap"(double, double, double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1833,21 +1833,21 @@ cdef extern from "_ufuncs_defs.h":
     cdef int _func_pbvv_wrap "pbvv_wrap"(double, double, double *, double *) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef int _func_pbwa_wrap "pbwa_wrap"(double, double, double *, double *) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_pdtr "pdtr"(int, double) nogil
 from ._legacy cimport pdtr_unsafe as _func_pdtr_unsafe
 ctypedef double _proto_pdtr_unsafe_t(double, double) nogil
 cdef _proto_pdtr_unsafe_t *_proto_pdtr_unsafe_t_var = &_func_pdtr_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_pdtrc "pdtrc"(int, double) nogil
+    cdef double _func_pdtr "pdtr"(int, double) nogil
 from ._legacy cimport pdtrc_unsafe as _func_pdtrc_unsafe
 ctypedef double _proto_pdtrc_unsafe_t(double, double) nogil
 cdef _proto_pdtrc_unsafe_t *_proto_pdtrc_unsafe_t_var = &_func_pdtrc_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_pdtri "pdtri"(int, double) nogil
+    cdef double _func_pdtrc "pdtrc"(int, double) nogil
 from ._legacy cimport pdtri_unsafe as _func_pdtri_unsafe
 ctypedef double _proto_pdtri_unsafe_t(double, double) nogil
 cdef _proto_pdtri_unsafe_t *_proto_pdtri_unsafe_t_var = &_func_pdtri_unsafe
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_pdtri "pdtri"(int, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_cdfpoi2_wrap "cdfpoi2_wrap"(double, double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1887,39 +1887,39 @@ cdef extern from "_ufuncs_defs.h":
     cdef double _func_rgamma "rgamma"(double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_round "round"(double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef int _func_shichi "shichi"(double, double *, double *) nogil
 from ._sici cimport cshichi as _func_cshichi
 ctypedef int _proto_cshichi_t(double complex, double complex *, double complex *) nogil
 cdef _proto_cshichi_t *_proto_cshichi_t_var = &_func_cshichi
 cdef extern from "_ufuncs_defs.h":
-    cdef int _func_sici "sici"(double, double *, double *) nogil
+    cdef int _func_shichi "shichi"(double, double *, double *) nogil
 from ._sici cimport csici as _func_csici
 ctypedef int _proto_csici_t(double complex, double complex *, double complex *) nogil
 cdef _proto_csici_t *_proto_csici_t_var = &_func_csici
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_sindg "sindg"(double) nogil
+    cdef int _func_sici "sici"(double, double *, double *) nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_smirnov "smirnov"(int, double) nogil
+    cdef double _func_sindg "sindg"(double) nogil
 from ._legacy cimport smirnov_unsafe as _func_smirnov_unsafe
 ctypedef double _proto_smirnov_unsafe_t(double, double) nogil
 cdef _proto_smirnov_unsafe_t *_proto_smirnov_unsafe_t_var = &_func_smirnov_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_smirnovi "smirnovi"(int, double) nogil
+    cdef double _func_smirnov "smirnov"(int, double) nogil
 from ._legacy cimport smirnovi_unsafe as _func_smirnovi_unsafe
 ctypedef double _proto_smirnovi_unsafe_t(double, double) nogil
 cdef _proto_smirnovi_unsafe_t *_proto_smirnovi_unsafe_t_var = &_func_smirnovi_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef double _func_spence "spence"(double) nogil
+    cdef double _func_smirnovi "smirnovi"(int, double) nogil
 from ._spence cimport cspence as _func_cspence
 ctypedef double complex _proto_cspence_t(double complex) nogil
 cdef _proto_cspence_t *_proto_cspence_t_var = &_func_cspence
-from .sph_harm cimport sph_harmonic as _func_sph_harmonic
-ctypedef double complex _proto_sph_harmonic_t(int, int, double, double) nogil
-cdef _proto_sph_harmonic_t *_proto_sph_harmonic_t_var = &_func_sph_harmonic
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_spence "spence"(double) nogil
 from ._legacy cimport sph_harmonic_unsafe as _func_sph_harmonic_unsafe
 ctypedef double complex _proto_sph_harmonic_unsafe_t(double, double, double, double) nogil
 cdef _proto_sph_harmonic_unsafe_t *_proto_sph_harmonic_unsafe_t_var = &_func_sph_harmonic_unsafe
+from .sph_harm cimport sph_harmonic as _func_sph_harmonic
+ctypedef double complex _proto_sph_harmonic_t(int, int, double, double) nogil
+cdef _proto_sph_harmonic_t *_proto_sph_harmonic_t_var = &_func_sph_harmonic
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_cdft1_wrap "cdft1_wrap"(double, double) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1939,20 +1939,20 @@ from ._xlogy cimport xlog1py as _func_xlog1py
 ctypedef double complex _proto_xlog1py_double_complex__t(double complex, double complex) nogil
 cdef _proto_xlog1py_double_complex__t *_proto_xlog1py_double_complex__t_var = &_func_xlog1py[double_complex]
 from ._xlogy cimport xlogy as _func_xlogy
-ctypedef double complex _proto_xlogy_double_complex__t(double complex, double complex) nogil
-cdef _proto_xlogy_double_complex__t *_proto_xlogy_double_complex__t_var = &_func_xlogy[double_complex]
-from ._xlogy cimport xlogy as _func_xlogy
 ctypedef double _proto_xlogy_double__t(double, double) nogil
 cdef _proto_xlogy_double__t *_proto_xlogy_double__t_var = &_func_xlogy[double]
+from ._xlogy cimport xlogy as _func_xlogy
+ctypedef double complex _proto_xlogy_double_complex__t(double complex, double complex) nogil
+cdef _proto_xlogy_double_complex__t *_proto_xlogy_double_complex__t_var = &_func_xlogy[double_complex]
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_y0 "y0"(double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_y1 "y1"(double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef double _func_yn "yn"(int, double) nogil
 from ._legacy cimport yn_unsafe as _func_yn_unsafe
 ctypedef double _proto_yn_unsafe_t(double, double) nogil
 cdef _proto_yn_unsafe_t *_proto_yn_unsafe_t_var = &_func_yn_unsafe
+cdef extern from "_ufuncs_defs.h":
+    cdef double _func_yn "yn"(int, double) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_cbesy_wrap "cbesy_wrap"(double, double complex) nogil
 cdef extern from "_ufuncs_defs.h":
@@ -3608,7 +3608,7 @@ cdef char ufunc_btdtr_types[8]
 cdef char *ufunc_btdtr_doc = (
     "btdtr(a, b, x)\n"
     "\n"
-    "Cumulative density function of the beta distribution.\n"
+    "Cumulative distribution function of the beta distribution.\n"
     "\n"
     "Returns the integral from zero to `x` of the beta probability density\n"
     "function,\n"
@@ -3630,8 +3630,8 @@ cdef char *ufunc_btdtr_doc = (
     "Returns\n"
     "-------\n"
     "I : ndarray\n"
-    "    Cumulative density function of the beta distribution with parameters\n"
-    "    `a` and `b` at `x`.\n"
+    "    Cumulative distribution function of the beta distribution with\n"
+    "    parameters `a` and `b` at `x`.\n"
     "\n"
     "See Also\n"
     "--------\n"
@@ -3761,7 +3761,7 @@ cdef char *ufunc_btdtria_doc = (
     "\n"
     "See Also\n"
     "--------\n"
-    "btdtr : Cumulative density function of the beta distribution.\n"
+    "btdtr : Cumulative distribution function of the beta distribution.\n"
     "btdtri : Inverse with respect to `x`.\n"
     "btdtrib : Inverse with respect to `b`.\n"
     "\n"
@@ -3832,7 +3832,7 @@ cdef char *ufunc_btdtrib_doc = (
     "\n"
     "See Also\n"
     "--------\n"
-    "btdtr : Cumulative density function of the beta distribution.\n"
+    "btdtr : Cumulative distribution function of the beta distribution.\n"
     "btdtri : Inverse with respect to `x`.\n"
     "btdtria : Inverse with respect to `a`.\n"
     "\n"
@@ -4307,7 +4307,32 @@ cdef char *ufunc_ellipe_doc = (
     "       http://www.netlib.org/cephes/\n"
     ".. [2] Milton Abramowitz and Irene A. Stegun, eds.\n"
     "       Handbook of Mathematical Functions with Formulas,\n"
-    "       Graphs, and Mathematical Tables. New York: Dover, 1972.")
+    "       Graphs, and Mathematical Tables. New York: Dover, 1972.\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "This function is used in finding the circumference of an\n"
+    "ellipse with semi-major axis `a` and semi-minor axis `b`.\n"
+    "\n"
+    ">>> from scipy import special\n"
+    "\n"
+    ">>> a = 3.5\n"
+    ">>> b = 2.1\n"
+    ">>> e_sq = 1.0 - b**2/a**2  # eccentricity squared\n"
+    "\n"
+    "Then the circumference is found using the following:\n"
+    "\n"
+    ">>> C = 4*a*special.ellipe(e_sq)  # circumference formula\n"
+    ">>> C\n"
+    "17.868899204378693\n"
+    "\n"
+    "When `a` and `b` are the same (meaning eccentricity is 0),\n"
+    "this reduces to the circumference of a circle.\n"
+    "\n"
+    ">>> 4*a*special.ellipe(0.0)  # formula for ellipse with a = b\n"
+    "21.991148575128552\n"
+    ">>> 2*np.pi*a  # formula for circle of radius a\n"
+    "21.991148575128552")
 ufunc_ellipe_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_ellipe_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_ellipe_types[0] = <char>NPY_FLOAT
@@ -4416,7 +4441,7 @@ cdef char *ufunc_ellipj_doc = (
     "\n"
     "        sn(u|m), cn(u|m), dn(u|m)\n"
     "\n"
-    "    The value `ph` is such that if `u = ellipk(ph, m)`,\n"
+    "    The value `ph` is such that if `u = ellipkinc(ph, m)`,\n"
     "    then `sn(u|m) = sin(ph)` and `cn(u|m) = cos(ph)`.\n"
     "\n"
     "Notes\n"
@@ -4426,7 +4451,7 @@ cdef char *ufunc_ellipj_doc = (
     "These functions are periodic, with quarter-period on the real axis\n"
     "equal to the complete elliptic integral `ellipk(m)`.\n"
     "\n"
-    "Relation to incomplete elliptic integral: If `u = ellipk(phi,m)`, then\n"
+    "Relation to incomplete elliptic integral: If `u = ellipkinc(phi,m)`, then\n"
     "`sn(u|m) = sin(phi)`, and `cn(u|m) = cos(phi)`.  The `phi` is called\n"
     "the amplitude of `u`.\n"
     "\n"
@@ -4436,7 +4461,8 @@ cdef char *ufunc_ellipj_doc = (
     "\n"
     "See also\n"
     "--------\n"
-    "ellipk : Complete elliptic integral of the first kind.\n"
+    "ellipk : Complete elliptic integral of the first kind\n"
+    "ellipkinc : Incomplete elliptic integral of the first kind\n"
     "\n"
     "References\n"
     "----------\n"
@@ -6437,7 +6463,7 @@ cdef char *ufunc_fdtr_doc = (
     "\n"
     "F cumulative distribution function.\n"
     "\n"
-    "Returns the value of the cumulative density function of the\n"
+    "Returns the value of the cumulative distribution function of the\n"
     "F-distribution, also known as Snedecor's F-distribution or the\n"
     "Fisher-Snedecor distribution.\n"
     "\n"
@@ -7019,7 +7045,7 @@ cdef char ufunc_gdtr_types[8]
 cdef char *ufunc_gdtr_doc = (
     "gdtr(a, b, x)\n"
     "\n"
-    "Gamma distribution cumulative density function.\n"
+    "Gamma distribution cumulative distribution function.\n"
     "\n"
     "Returns the integral from zero to `x` of the gamma probability density\n"
     "function,\n"
@@ -9641,7 +9667,7 @@ cdef char *ufunc_kolmogi_doc = (
     "Kolmogorov-Smirnov Goodness of Fit test. For historial reasons this\n"
     "function is exposed in `scpy.special`, but the recommended way to achieve\n"
     "the most accurate CDF/SF/PDF/PPF/ISF computations is to use the\n"
-    "`stats.kstwobign` distrubution.\n"
+    "`stats.kstwobign` distribution.\n"
     "\n"
     "See Also\n"
     "--------\n"
@@ -9715,7 +9741,7 @@ cdef char *ufunc_kolmogorov_doc = (
     "Show the probability of a gap at least as big as 0, 0.5 and 1.0.\n"
     "\n"
     ">>> from scipy.special import kolmogorov\n"
-    ">>> from scipy.stats import kstwobign \n"
+    ">>> from scipy.stats import kstwobign\n"
     ">>> kolmogorov([0, 0.5, 1.0])\n"
     "array([ 1.        ,  0.96394524,  0.26999967])\n"
     "\n"
@@ -11821,7 +11847,7 @@ cdef char *ufunc_nrdtrisd_doc = (
     "\n"
     "See Also\n"
     "--------\n"
-    "nrdtristd, ndtr")
+    "ndtr")
 ufunc_nrdtrisd_loops[0] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
 ufunc_nrdtrisd_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
 ufunc_nrdtrisd_types[0] = <char>NPY_FLOAT
@@ -13568,7 +13594,7 @@ cdef char ufunc_stdtr_types[6]
 cdef char *ufunc_stdtr_doc = (
     "stdtr(df, t)\n"
     "\n"
-    "Student t distribution cumulative density function\n"
+    "Student t distribution cumulative distribution function\n"
     "\n"
     "Returns the integral from minus infinity to t of the Student t\n"
     "distribution with df > 0 degrees of freedom::\n"

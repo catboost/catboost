@@ -18,7 +18,7 @@ from numpy import (allclose, angle, arange, argsort, array, asarray,
                    atleast_1d, atleast_2d, cast, dot, exp, expand_dims,
                    iscomplexobj, mean, ndarray, newaxis, ones, pi,
                    poly, polyadd, polyder, polydiv, polymul, polysub, polyval,
-                   product, r_, ravel, real_if_close, reshape,
+                   prod, r_, ravel, real_if_close, reshape,
                    roots, sort, take, transpose, unique, where, zeros,
                    zeros_like)
 import numpy as np
@@ -520,8 +520,8 @@ def _reverse_and_conj(x):
 def _np_conv_ok(volume, kernel, mode):
     """
     See if numpy supports convolution of `volume` and `kernel` (i.e. both are
-    1D ndarrays and of the appropriate shape).  Numpy's 'same' mode uses the
-    size of the larger input, while Scipy's uses the size of the first input.
+    1D ndarrays and of the appropriate shape).  NumPy's 'same' mode uses the
+    size of the larger input, while SciPy's uses the size of the first input.
 
     Invalid mode strings will return False and be caught by the calling func.
     """
@@ -882,7 +882,7 @@ def medfilt(volume, kernel_size=None):
     Perform a median filter on an N-dimensional array.
 
     Apply a median filter to the input array using a local window-size
-    given by `kernel_size`.
+    given by `kernel_size`. The array will automatically be zero-padded.
 
     Parameters
     ----------
@@ -900,6 +900,14 @@ def medfilt(volume, kernel_size=None):
         An array the same size as input containing the median filtered
         result.
 
+    See also
+    --------
+    scipy.ndimage.median_filter
+
+    Notes
+    -------
+    The more general function `scipy.ndimage.median_filter` has a more
+    efficient implementation of a median filter and therefore runs much faster.
     """
     volume = atleast_1d(volume)
     if kernel_size is None:
@@ -914,7 +922,7 @@ def medfilt(volume, kernel_size=None):
 
     domain = ones(kernel_size)
 
-    numels = product(kernel_size, axis=0)
+    numels = prod(kernel_size, axis=0)
     order = numels // 2
     return sigtools._order_filterND(volume, domain, order)
 
@@ -952,11 +960,11 @@ def wiener(im, mysize=None, noise=None):
         mysize = np.repeat(mysize.item(), im.ndim)
 
     # Estimate the local mean
-    lMean = correlate(im, ones(mysize), 'same') / product(mysize, axis=0)
+    lMean = correlate(im, ones(mysize), 'same') / prod(mysize, axis=0)
 
     # Estimate the local variance
     lVar = (correlate(im ** 2, ones(mysize), 'same') /
-            product(mysize, axis=0) - lMean ** 2)
+            prod(mysize, axis=0) - lMean ** 2)
 
     # Estimate the noise power if needed.
     if noise is None:
@@ -1159,7 +1167,8 @@ def medfilt2d(input, kernel_size=3):
     Median filter a 2-dimensional array.
 
     Apply a median filter to the `input` array using a local window-size
-    given by `kernel_size` (must be odd).
+    given by `kernel_size` (must be odd). The array is zero-padded
+    automatically.
 
     Parameters
     ----------
@@ -1178,6 +1187,14 @@ def medfilt2d(input, kernel_size=3):
         An array the same size as input containing the median filtered
         result.
 
+    See also
+    --------
+    scipy.ndimage.median_filter
+
+    Notes
+    -------
+    The more general function `scipy.ndimage.median_filter` has a more
+    efficient implementation of a median filter and therefore runs much faster.
     """
     image = asarray(input)
     if kernel_size is None:
@@ -2499,7 +2516,7 @@ def vectorstrength(events, period):
     return strength, phase
 
 
-def detrend(data, axis=-1, type='linear', bp=0):
+def detrend(data, axis=-1, type='linear', bp=0, overwrite_data=False):
     """
     Remove linear trend along axis from data.
 
@@ -2519,6 +2536,8 @@ def detrend(data, axis=-1, type='linear', bp=0):
         A sequence of break points. If given, an individual linear fit is
         performed for each part of `data` between two break points.
         Break points are specified as indices into `data`.
+    overwrite_data : bool, optional
+        If True, perform in place detrending and avoid a copy. Default is False
 
     Returns
     -------
@@ -2561,7 +2580,8 @@ def detrend(data, axis=-1, type='linear', bp=0):
         newdims = r_[axis, 0:axis, axis + 1:rnk]
         newdata = reshape(transpose(data, tuple(newdims)),
                           (N, _prod(dshape) // N))
-        newdata = newdata.copy()  # make sure we have a copy
+        if not overwrite_data:
+            newdata = newdata.copy()  # make sure we have a copy
         if newdata.dtype.char not in 'dfDF':
             newdata = newdata.astype(dtype)
         # Find leastsq fit and remove it for each piece
@@ -3183,7 +3203,7 @@ def _validate_pad(padtype, padlen, x, axis, ntaps):
 
     # x's 'axis' dimension must be bigger than edge.
     if x.shape[axis] <= edge:
-        raise ValueError("The length of the input vector x must be at least "
+        raise ValueError("The length of the input vector x must be greater than "
                          "padlen, which is %d." % edge)
 
     if padtype is not None and edge > 0:

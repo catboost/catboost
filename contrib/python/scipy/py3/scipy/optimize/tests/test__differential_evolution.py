@@ -1,17 +1,28 @@
 """
 Unit tests for the differential global minimization algorithm.
 """
+import gc
 import multiprocessing
+import sys
 
-from scipy.optimize import _differentialevolution
 from scipy.optimize._differentialevolution import DifferentialEvolutionSolver
 from scipy.optimize import differential_evolution
-import numpy as np
+from scipy.optimize._constraints import (Bounds, NonlinearConstraint,
+                                         LinearConstraint)
 from scipy.optimize import rosen
+from scipy._lib._numpy_compat import suppress_warnings
+
+import numpy as np
 from numpy.testing import (assert_equal, assert_allclose,
                            assert_almost_equal,
                            assert_string_equal, assert_)
+import pytest
 from pytest import raises as assert_raises, warns
+
+
+knownfail_on_py38 = pytest.mark.xfail(
+    sys.version_info >= (3, 8), run=False,
+    reason='Python 3.8 hangs when cleaning up MapWrapper')
 
 
 class TestDifferentialEvolutionSolver(object):
@@ -266,11 +277,6 @@ class TestDifferentialEvolutionSolver(object):
     def test_bounds_checking(self):
         # test that the bounds checking works
         func = rosen
-        bounds = [(-3, None)]
-        assert_raises(ValueError,
-                          differential_evolution,
-                          func,
-                          bounds)
         bounds = [(-3)]
         assert_raises(ValueError,
                           differential_evolution,
@@ -281,6 +287,10 @@ class TestDifferentialEvolutionSolver(object):
                           differential_evolution,
                           func,
                           bounds)
+
+        # test that we can use a new-type Bounds object
+        result = differential_evolution(rosen, Bounds([0, 0], [2, 2]))
+        assert_almost_equal(result.x, (1., 1.))
 
     def test_select_samples(self):
         # select_samples should return 5 separate random numbers.
@@ -390,7 +400,15 @@ class TestDifferentialEvolutionSolver(object):
         # Because we do not care about solving the optimization problem in
         # this test, we use maxiter=1 to reduce the testing time.
         bounds = [(-5, 5), (-5, 5)]
-        result = differential_evolution(rosen, bounds, popsize=1815, maxiter=1)
+        # result = differential_evolution(rosen, bounds, popsize=1815,
+        #                                 maxiter=1)
+
+        # the original issue arose because of rounding error in arange, with
+        # linspace being a much better solution. 1815 is quite a large popsize
+        # to use and results in a long test time (~13s). I used the original
+        # issue to figure out the lowest number of samples that would cause
+        # this rounding error to occur, 49.
+        differential_evolution(rosen, bounds, popsize=49, maxiter=1)
 
     def test_calculate_population_energies(self):
         # if popsize is 3 then the overall generation has size (6,)
@@ -419,13 +437,14 @@ class TestDifferentialEvolutionSolver(object):
 
         # check a proper minimisation can be done by an iterable solver
         solver = DifferentialEvolutionSolver(rosen, self.bounds)
+        x_prev, fun_prev = next(solver)
         for i, soln in enumerate(solver):
             x_current, fun_current = soln
+            assert(fun_prev >= fun_current)
+            x_prev, fun_prev = x_current, fun_current
             # need to have this otherwise the solver would never stop.
-            if i == 1000:
+            if i == 50:
                 break
-
-        assert_almost_equal(fun_current, 0)
 
     def test_convergence(self):
         solver = DifferentialEvolutionSolver(rosen, self.bounds, tol=0.2,
@@ -508,12 +527,13 @@ class TestDifferentialEvolutionSolver(object):
 
     def test_deferred_updating(self):
         # check setting of deferred updating, with default workers
-        bounds = [(0., 2.), (0., 2.), (0, 2), (0, 2)]
+        bounds = [(0., 2.), (0., 2.)]
         solver = DifferentialEvolutionSolver(rosen, bounds, updating='deferred')
         assert_(solver._updating == 'deferred')
         assert_(solver._mapwrapper._mapfunc is map)
         solver.solve()
 
+    @knownfail_on_py38
     def test_immediate_updating(self):
         # check setting of immediate updating, with default workers
         bounds = [(0., 2.), (0., 2.)]
@@ -524,27 +544,27 @@ class TestDifferentialEvolutionSolver(object):
         # is being overriden by the workers keyword
         with warns(UserWarning):
             solver = DifferentialEvolutionSolver(rosen, bounds, workers=2)
-            assert_(solver._updating == 'deferred')
+        assert_(solver._updating == 'deferred')
+        del solver
+        gc.collect()  # ensure MapWrapper cleans up properly
 
+    @knownfail_on_py38
     def test_parallel(self):
         # smoke test for parallelisation with deferred updating
         bounds = [(0., 2.), (0., 2.)]
-        try:
-            p = multiprocessing.Pool(2)
-            with DifferentialEvolutionSolver(rosen, bounds,
-                                             updating='deferred',
-                                             workers=p.map) as solver:
-                assert_(solver._mapwrapper.pool is not None)
-                assert_(solver._updating == 'deferred')
-                solver.solve()
-        finally:
-            p.close()
+        with multiprocessing.Pool(2) as p, DifferentialEvolutionSolver(
+                rosen, bounds, updating='deferred', workers=p.map) as solver:
+            assert_(solver._mapwrapper.pool is not None)
+            assert_(solver._updating == 'deferred')
+            solver.solve()
 
         with DifferentialEvolutionSolver(rosen, bounds, updating='deferred',
                                          workers=2) as solver:
             assert_(solver._mapwrapper.pool is not None)
             assert_(solver._updating == 'deferred')
             solver.solve()
+        del solver
+        gc.collect()  # ensure MapWrapper cleans up properly
 
     def test_converged(self):
         solver = DifferentialEvolutionSolver(rosen, [(0, 2), (0, 2)])

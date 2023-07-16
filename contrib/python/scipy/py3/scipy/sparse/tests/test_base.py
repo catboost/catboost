@@ -2143,6 +2143,8 @@ class _TestGetSet(object):
                 for j in range(-N, N):
                     assert_equal(A[i,j], D[i,j])
 
+            assert_equal(type(A[1,1]), dtype)
+
             for ij in [(0,3),(-1,3),(4,0),(4,3),(4,-1), (1, 2, 3)]:
                 assert_raises((IndexError, TypeError), A.__getitem__, ij)
 
@@ -2762,6 +2764,15 @@ class _TestFancyIndexing(object):
         mat = self.spmatrix(array([[1, 0], [0, 1]]))
         assert_raises(ValueError, mat.__setitem__, (0, 0), np.array([1,2]))
 
+    def test_fancy_indexing_2d_assign(self):
+        # regression test for gh-10695
+        mat = self.spmatrix(array([[1, 0], [2, 3]]))
+        with suppress_warnings() as sup:
+            sup.filter(SparseEfficiencyWarning,
+                       "Changing the sparsity structure")
+            mat[[0, 1], [1, 1]] = mat[[1, 0], [0, 0]]
+        assert_equal(todense(mat), array([[1, 2], [2, 1]]))
+
     def test_fancy_indexing_empty(self):
         B = asmatrix(arange(50).reshape(5,10))
         B[1,:] = 0
@@ -3029,15 +3040,16 @@ class _TestFancyMultidimAssign(object):
         D = asmatrix(np.random.rand(5, 7))
         S = self.spmatrix(D)
 
-        I = [[1, 2, 3], [3, 4, 2]]
-        J = [[5, 6, 3], [2, 3, 1]]
+        I = [1, 2, 3, 3, 4, 2]
+        J = [5, 6, 3, 2, 3, 1]
 
-        I_bad = [[ii + 5 for ii in i] for i in I]
-        J_bad = [[jj + 7 for jj in j] for j in J]
+        I_bad = [ii + 5 for ii in I]
+        J_bad = [jj + 7 for jj in J]
 
-        C = [1, 2, 3, 4, 5, 6, 7]
-        assert_raises(IndexError, S.__setitem__, (I_bad, slice(None)), C)
-        assert_raises(IndexError, S.__setitem__, (slice(None), J_bad), C)
+        C1 = [1, 2, 3, 4, 5, 6, 7]
+        C2 = np.arange(5)[:, None]
+        assert_raises(IndexError, S.__setitem__, (I_bad, slice(None)), C1)
+        assert_raises(IndexError, S.__setitem__, (slice(None), J_bad), C2)
 
 
 class _TestArithmetic(object):
@@ -3626,6 +3638,14 @@ class TestCSR(sparse_test_class()):
         for x in [a, b, c, d, e, f]:
             x + x
 
+    def test_binop_explicit_zeros(self):
+        # Check that binary ops don't introduce spurious explicit zeros.
+        # See gh-9619 for context.
+        a = csr_matrix([0, 1, 0])
+        b = csr_matrix([1, 1, 0])
+        assert (a + b).nnz == 2
+        assert a.multiply(b).nnz == 1
+
 
 TestCSR.init_class()
 
@@ -4033,6 +4053,14 @@ class TestCOO(sparse_test_class(getset=False,
         coo = coo_matrix(mat)
         assert_array_equal(coo.todense(),mat.reshape(1,-1))
 
+        # error if second arg interpreted as shape (gh-9919)
+        with pytest.raises(TypeError, match=r'object cannot be interpreted'):
+            coo_matrix([0, 11, 22, 33], ([0, 1, 2, 3], [0, 0, 0, 0]))
+
+        # error if explicit shape arg doesn't match the dense matrix
+        with pytest.raises(ValueError, match=r'inconsistent shapes'):
+            coo_matrix([0, 11, 22, 33], shape=(4, 4))
+
     @pytest.mark.xfail(run=False, reason='COO does not have a __getitem__')
     def test_iterator(self):
         pass
@@ -4240,6 +4268,30 @@ class TestBSR(sparse_test_class(getset=False,
         asp.eliminate_zeros()
         assert_array_equal(asp.nnz, 3*4)
         assert_array_equal(asp.todense(),bsp.todense())
+
+    # github issue #9687
+    def test_eliminate_zeros_all_zero(self):
+        np.random.seed(0)
+        m = bsr_matrix(np.random.random((12, 12)), blocksize=(2, 3))
+
+        # eliminate some blocks, but not all
+        m.data[m.data <= 0.9] = 0
+        m.eliminate_zeros()
+        assert_equal(m.nnz, 66)
+        assert_array_equal(m.data.shape, (11, 2, 3))
+
+        # eliminate all remaining blocks
+        m.data[m.data <= 1.0] = 0
+        m.eliminate_zeros()
+        assert_equal(m.nnz, 0)
+        assert_array_equal(m.data.shape, (0, 2, 3))
+        assert_array_equal(m.todense(), np.zeros((12,12)))
+
+        # test fast path
+        m.eliminate_zeros()
+        assert_equal(m.nnz, 0)
+        assert_array_equal(m.data.shape, (0, 2, 3))
+        assert_array_equal(m.todense(), np.zeros((12,12)))
 
     def test_bsr_matvec(self):
         A = bsr_matrix(arange(2*3*4*5).reshape(2*4,3*5), blocksize=(4,5))

@@ -115,7 +115,8 @@ class spmatrix(object):
 
         See Also
         --------
-        np.matrix.reshape : NumPy's implementation of 'reshape' for matrices
+        numpy.matrix.reshape : NumPy's implementation of 'reshape' for
+                               matrices
         """
         # If the shape already matches, don't bother doing an actual reshape
         # Otherwise, the default is to convert to COO and use its reshape
@@ -708,8 +709,8 @@ class spmatrix(object):
 
         See Also
         --------
-        np.matrix.transpose : NumPy's implementation of 'transpose'
-                              for matrices
+        numpy.matrix.transpose : NumPy's implementation of 'transpose'
+                                 for matrices
         """
         return self.tocsr(copy=copy).transpose(axes=axes, copy=False)
 
@@ -747,7 +748,7 @@ class spmatrix(object):
 
         See Also
         --------
-        np.matrix.getH : NumPy's implementation of `getH` for matrices
+        numpy.matrix.getH : NumPy's implementation of `getH` for matrices
         """
         return self.transpose().conj()
 
@@ -983,7 +984,7 @@ class spmatrix(object):
 
         See Also
         --------
-        np.matrix.sum : NumPy's implementation of 'sum' for matrices
+        numpy.matrix.sum : NumPy's implementation of 'sum' for matrices
 
         """
         validateaxis(axis)
@@ -1054,7 +1055,7 @@ class spmatrix(object):
 
         See Also
         --------
-        np.matrix.mean : NumPy's implementation of 'mean' for matrices
+        numpy.matrix.mean : NumPy's implementation of 'mean' for matrices
 
         """
         def _is_integral(dtype):

@@ -38,20 +38,38 @@ class VisitingDistribution(object):
         Parameter for visiting distribution. Default value is 2.62.
         Higher values give the visiting distribution a heavier tail, this
         makes the algorithm jump to a more distant region.
-        The value range is (0, 3].
-    rand_state : RandomState object
-        A numpy.random.RandomState object for using the current state of the
-        created random generator container.
+        The value range is (0, 3]. It's value is fixed for the life of the
+        object.
+    rand_state : `~numpy.random.mtrand.RandomState` object
+        A `~numpy.random.mtrand.RandomState` object for using the current state
+        of the created random generator container.
     """
     TAIL_LIMIT = 1.e8
     MIN_VISIT_BOUND = 1.e-10
 
     def __init__(self, lb, ub, visiting_param, rand_state):
-        self.visiting_param = visiting_param
+        # if you wish to make _visiting_param adjustable during the life of
+        # the object then _factor2, _factor3, _factor5, _d1, _factor6 will
+        # have to be dynamically calculated in `visit_fn`. They're factored
+        # out here so they don't need to be recalculated all the time.
+        self._visiting_param = visiting_param
         self.rand_state = rand_state
         self.lower = lb
         self.upper = ub
         self.bound_range = ub - lb
+
+        # these are invariant numbers unless visiting_param changes
+        self._factor2 = np.exp((4.0 - self._visiting_param) * np.log(
+            self._visiting_param - 1.0))
+        self._factor3 = np.exp((2.0 - self._visiting_param) * np.log(2.0)
+                               / (self._visiting_param - 1.0))
+        self._factor4_p = np.sqrt(np.pi) * self._factor2 / (self._factor3 * (
+            3.0 - self._visiting_param))
+
+        self._factor5 = 1.0 / (self._visiting_param - 1.0) - 0.5
+        self._d1 = 2.0 - self._factor5
+        self._factor6 = np.pi * (1.0 - self._factor5) / np.sin(
+            np.pi * (1.0 - self._factor5)) / np.exp(gammaln(self._d1))
 
     def visiting(self, x, step, temperature):
         """ Based on the step in the strategy chain, new coordinated are
@@ -60,9 +78,8 @@ class VisitingDistribution(object):
         """
         dim = x.size
         if step < dim:
-            # Changing all coordinates with a new visting value
-            visits = np.array([self.visit_fn(
-                temperature) for _ in range(dim)])
+            # Changing all coordinates with a new visiting value
+            visits = self.visit_fn(temperature, dim)
             upper_sample = self.rand_state.random_sample()
             lower_sample = self.rand_state.random_sample()
             visits[visits > self.TAIL_LIMIT] = self.TAIL_LIMIT * upper_sample
@@ -77,7 +94,7 @@ class VisitingDistribution(object):
             # Changing only one coordinate at a time based on strategy
             # chain step
             x_visit = np.copy(x)
-            visit = self.visit_fn(temperature)
+            visit = self.visit_fn(temperature, 1)
             if visit > self.TAIL_LIMIT:
                 visit = self.TAIL_LIMIT * self.rand_state.random_sample()
             elif visit < -self.TAIL_LIMIT:
@@ -93,26 +110,20 @@ class VisitingDistribution(object):
                 x_visit[index] += self.MIN_VISIT_BOUND
         return x_visit
 
-    def visit_fn(self, temperature):
+    def visit_fn(self, temperature, dim):
         """ Formula Visita from p. 405 of reference [2] """
-        factor1 = np.exp(np.log(temperature) / (self.visiting_param - 1.0))
-        factor2 = np.exp((4.0 - self.visiting_param) * np.log(
-            self.visiting_param - 1.0))
-        factor3 = np.exp((2.0 - self.visiting_param) * np.log(2.0) / (
-            self.visiting_param - 1.0))
-        factor4 = np.sqrt(np.pi) * factor1 * factor2 / (factor3 * (
-            3.0 - self.visiting_param))
-        factor5 = 1.0 / (self.visiting_param - 1.0) - 0.5
-        d1 = 2.0 - factor5
-        factor6 = np.pi * (1.0 - factor5) / np.sin(
-            np.pi * (1.0 - factor5)) / np.exp(gammaln(d1))
-        sigmax = np.exp(-(self.visiting_param - 1.0) * np.log(
-            factor6 / factor4) / (3.0 - self.visiting_param))
-        x = sigmax * self.rand_state.normal()
-        y = self.rand_state.normal()
-        den = np.exp(
-            (self.visiting_param - 1.0) * np.log((np.fabs(y))) / (
-                3.0 - self.visiting_param))
+        x, y = self.rand_state.normal(size=(dim, 2)).T
+
+        factor1 = np.exp(np.log(temperature) / (self._visiting_param - 1.0))
+        factor4 = self._factor4_p * factor1
+
+        # sigmax
+        x *= np.exp(-(self._visiting_param - 1.0) * np.log(
+            self._factor6 / factor4) / (3.0 - self._visiting_param))
+
+        den = np.exp((self._visiting_param - 1.0) * np.log(np.fabs(y)) /
+                     (3.0 - self._visiting_param))
+
         return x / den
 
 
@@ -217,9 +228,9 @@ class StrategyChain(object):
         Instance of `ObjectiveFunWrapper` class.
     minimizer_wrapper: LocalSearchWrapper
         Instance of `LocalSearchWrapper` class.
-    rand_state : RandomState object
-        A numpy.random.RandomState object for using the current state of the
-        created random generator container.
+    rand_state : `~numpy.random.mtrand.RandomState` object
+        A `~numpy.random.mtrand.RandomState` object for using the current state
+        of the created random generator container.
     energy_state: EnergyState
         Instance of `EnergyState` class.
     """
@@ -319,8 +330,8 @@ class StrategyChain(object):
         do_ls = False
         if self.K < 90 * len(self.energy_state.current_location):
             pls = np.exp(self.K * (
-                self.energy_state.ebest - self.energy_state.current_energy
-                ) / self.temperature_step)
+                self.energy_state.ebest - self.energy_state.current_energy) /
+                self.temperature_step)
             if pls >= self._rand_state.random_sample():
                 do_ls = True
         # Global energy not improved, let's see what LS gives
@@ -465,9 +476,9 @@ def dual_annealing(func, bounds, args=(), maxiter=1000,
         algorithm is in the middle of a local search, this number will be
         exceeded, the algorithm will stop just after the local search is
         done. Default value is 1e7.
-    seed : {int or `numpy.random.RandomState` instance}, optional
-        If `seed` is not specified the `numpy.random.RandomState` singleton is
-        used.
+    seed : {int or `~numpy.random.mtrand.RandomState` instance}, optional
+        If `seed` is not specified the `~numpy.random.mtrand.RandomState`
+        singleton is used.
         If `seed` is an int, a new ``RandomState`` instance is used,
         seeded with `seed`.
         If `seed` is already a ``RandomState`` instance, then that
@@ -492,7 +503,7 @@ def dual_annealing(func, bounds, args=(), maxiter=1000,
 
         If the callback implementation returns True, the algorithm will stop.
     x0 : ndarray, shape(n,), optional
-        Coordinates of a single n-dimensional starting point. 
+        Coordinates of a single n-dimensional starting point.
 
     Returns
     -------
@@ -587,7 +598,7 @@ def dual_annealing(func, bounds, args=(), maxiter=1000,
      -6.29151648e-09 -6.53145322e-09 -3.93616815e-09 -6.55623025e-09
     -6.05775280e-09 -5.00668935e-09], f(xmin) = 0.000000
 
-    """
+    """  # noqa: E501
     if x0 is not None and not len(x0) == len(bounds):
         raise ValueError('Bounds size does not match x0')
 
@@ -625,12 +636,17 @@ def dual_annealing(func, bounds, args=(), maxiter=1000,
     visit_dist = VisitingDistribution(lower, upper, visit, rand_state)
     # Strategy chain instance
     strategy_chain = StrategyChain(accept, visit_dist, func_wrapper,
-                               minimizer_wrapper, rand_state, energy_state)
-    # Run the search loop
+                                   minimizer_wrapper, rand_state, energy_state)
     need_to_stop = False
     iteration = 0
     message = []
+    # OptimizeResult object to be returned
+    optimize_res = OptimizeResult()
+    optimize_res.success = True
+    optimize_res.status = 0
+
     t1 = np.exp((visit - 1) * np.log(2.0)) - 1.0
+    # Run the search loop
     while(not need_to_stop):
         for i in range(maxiter):
             # Compute temperature for this step
@@ -650,6 +666,7 @@ def dual_annealing(func, bounds, args=(), maxiter=1000,
             if val is not None:
                 message.append(val)
                 need_to_stop = True
+                optimize_res.success = False
                 break
             # Possible local search at the end of the strategy chain
             if not no_local_search:
@@ -657,16 +674,16 @@ def dual_annealing(func, bounds, args=(), maxiter=1000,
                 if val is not None:
                     message.append(val)
                     need_to_stop = True
+                    optimize_res.success = False
                     break
             iteration += 1
 
-    # Return the OptimizeResult
-    res = OptimizeResult()
-    res.x = energy_state.xbest
-    res.fun = energy_state.ebest
-    res.nit = iteration
-    res.nfev = func_wrapper.nfev
-    res.njev = func_wrapper.ngev
-    res.nhev = func_wrapper.nhev
-    res.message = message
-    return res
+    # Setting the OptimizeResult values
+    optimize_res.x = energy_state.xbest
+    optimize_res.fun = energy_state.ebest
+    optimize_res.nit = iteration
+    optimize_res.nfev = func_wrapper.nfev
+    optimize_res.njev = func_wrapper.ngev
+    optimize_res.nhev = func_wrapper.nhev
+    optimize_res.message = message
+    return optimize_res

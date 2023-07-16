@@ -9,7 +9,7 @@
 #  Date: 2004-08-09
 #
 #  Modified: 2005-02-10 by Robert Kern.
-#              Contributed to Scipy
+#              Contributed to SciPy
 #            2005-10-07 by Robert Kern.
 #              Some fixes to match the new scipy_core
 #
@@ -22,7 +22,7 @@ from __future__ import division, print_function, absolute_import
 # Standard library imports.
 import warnings
 
-# Scipy imports.
+# SciPy imports.
 from scipy._lib.six import callable, string_types
 from scipy import linalg, special
 from scipy.special import logsumexp
@@ -259,7 +259,7 @@ class gaussian_kde(object):
                 energy = sum(diff * diff, axis=0) / 2.0
                 result[i] = sum(exp(-energy)*self.weights, axis=0)
 
-        result = result * self.n / self._norm_factor
+        result = result / self._norm_factor
 
         return result
 
@@ -457,16 +457,30 @@ class gaussian_kde(object):
             size = int(self.neff)
 
         norm = transpose(multivariate_normal(zeros((self.d,), float),
-                         self.covariance, size=size))
+                                             self.covariance, size=size))
         indices = choice(self.n, size=size, p=self.weights)
         means = self.dataset[:, indices]
 
         return means + norm
 
     def scotts_factor(self):
+        """Compute Scott's factor.
+
+        Returns
+        -------
+        s : float
+            Scott's factor.
+        """
         return power(self.neff, -1./(self.d+4))
 
     def silverman_factor(self):
+        """Compute the Silverman factor.
+
+        Returns
+        -------
+        s : float
+            The silverman factor.
+        """
         return power(self.neff*(self.d+2.0)/4.0, -1./(self.d+4))
 
     #  Default method to calculate bandwidth, can be overwritten by subclass
@@ -553,7 +567,7 @@ class gaussian_kde(object):
 
         self.covariance = self._data_covariance * self.factor**2
         self.inv_cov = self._data_inv_cov / self.factor**2
-        self._norm_factor = sqrt(linalg.det(2*pi*self.covariance)) * self.n
+        self._norm_factor = sqrt(linalg.det(2*pi*self.covariance))
 
     def pdf(self, x):
         """
@@ -585,8 +599,6 @@ class gaussian_kde(object):
                     self.d)
                 raise ValueError(msg)
 
-        result = zeros((m,), dtype=float)
-
         if m >= self.n:
             # there are more points than data, so loop over data
             energy = zeros((self.n, m), dtype=float)
@@ -594,17 +606,17 @@ class gaussian_kde(object):
                 diff = self.dataset[:, i, newaxis] - points
                 tdiff = dot(self.inv_cov, diff)
                 energy[i] = sum(diff*tdiff, axis=0) / 2.0
-            result = logsumexp(-energy,
-                               b=self.weights[i]*self.n/self._norm_factor,
-                               axis=0)
+            result = logsumexp(-energy.T,
+                               b=self.weights / self._norm_factor, axis=1)
         else:
             # loop over points
+            result = zeros((m,), dtype=float)
             for i in range(m):
                 diff = self.dataset - points[:, i, newaxis]
                 tdiff = dot(self.inv_cov, diff)
                 energy = sum(diff * tdiff, axis=0) / 2.0
-                result[i] = logsumexp(-energy,
-                                      b=self.weights*self.n/self._norm_factor)
+                result[i] = logsumexp(-energy, b=self.weights / 
+                                      self._norm_factor)
 
         return result
 
