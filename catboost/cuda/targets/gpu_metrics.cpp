@@ -258,7 +258,7 @@ namespace NCatboostCuda {
                     RMSEWithUncertaintyValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
                                           &tmp, (TVec*)nullptr);
                     const double sum = ReadReduce(tmp)[0];
-                    CB_ENSURE(IsFinite(sum), "Numrical overflow in RMSEWithUncertainty");
+                    CB_ENSURE(IsFinite(sum), "Numerical overflow in RMSEWithUncertainty");
                     return MakeSimpleAdditiveStatistic(-sum, totalWeight);
                 }
                 case ELossFunction::MultiClass: {
