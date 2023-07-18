@@ -212,6 +212,7 @@ public:
     std::vector<double> CalcFlat(const std::vector<std::vector<float>>& features) const {
         std::vector<double> result(features.size() * DimensionsCount);
         std::vector<const float*> ptrsVector;
+        ptrsVector.reserve(features.size());
         size_t flatVecSize = 0;
         for (const auto& flatVec : features) {
             flatVecSize = flatVec.size();
@@ -219,6 +220,28 @@ public:
             ptrsVector.push_back(flatVec.data());
         }
         if (!CalcModelPredictionFlat(CalcerHolder.get(), features.size(), ptrsVector.data(), flatVecSize, result.data(), result.size())) {
+            throw std::runtime_error(GetErrorString());
+        }
+        return result;
+    }
+
+    /**
+     * Evaluate model on transposed dataset layout.
+     * **WARNING** currently supports only singleclass models.
+     * @param transposedFeatures
+     * @return vector of raw prediction values
+     */
+    std::vector<double> CalcFlatTransposed(const std::vector<std::vector<float>>& transposedFeatures) const {
+        std::vector<const float*> ptrsVector;
+        ptrsVector.reserve(transposedFeatures.size());
+        size_t docCount = 0;
+        for (const auto& feature : transposedFeatures) {
+            docCount = feature.size();
+            // TODO(kirillovs): add check that all docCount are equal
+            ptrsVector.push_back(feature.data());
+        }
+        std::vector<double> result(docCount * DimensionsCount);
+        if (!CalcModelPredictionFlatTransposed(CalcerHolder.get(), docCount, ptrsVector.data(), transposedFeatures.size(), result.data(), result.size())) {
             throw std::runtime_error(GetErrorString());
         }
         return result;

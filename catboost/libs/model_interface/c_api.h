@@ -138,7 +138,7 @@ CATBOOST_API bool SetPredictionTypeString(ModelCalcerHandle* modelHandle, const 
  * Flat here means that float features and categorical feature are in the same float array.
  * @param calcer model handle
  * @param docCount number of objects
- * @param floatFeatures array of array of float (first dimension is object index, second if feature index)
+ * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
  * @param floatFeaturesSize float values array size
  * @param result pointer to user allocated results vector
  * @param resultSize Result size should be equal to modelApproxDimension * docCount
@@ -146,6 +146,25 @@ CATBOOST_API bool SetPredictionTypeString(ModelCalcerHandle* modelHandle, const 
  * @return false if error occured
  */
 CATBOOST_API bool CalcModelPredictionFlat(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    double* result, size_t resultSize);
+
+
+/**
+ * **Use this method only if you really understand what you want.**
+ * Calculate raw model predictions on transposed dataset layout
+ * @param calcer model handle
+ * @param docCount number of objects
+ * @param floatFeatures array of array of float (first dimension is feature index, second is object index)
+ * @param floatFeaturesSize float values array size
+ * @param result pointer to user allocated results vector
+ * @param resultSize Result size should be equal to modelApproxDimension * docCount
+ * (e.g. for non multiclass models should be equal to docCount)
+ * @return false if error occured
+ */
+CATBOOST_API bool CalcModelPredictionFlatTransposed(
     ModelCalcerHandle* modelHandle,
     size_t docCount,
     const float** floatFeatures, size_t floatFeaturesSize,

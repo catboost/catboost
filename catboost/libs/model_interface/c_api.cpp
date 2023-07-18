@@ -361,6 +361,20 @@ CATBOOST_API bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t
     return true;
 }
 
+CATBOOST_API bool CalcModelPredictionFlatTransposed(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
+    try {
+        TVector<TConstArrayRef<float>> featuresVec(floatFeaturesSize);
+        for (size_t i = 0; i < floatFeaturesSize; ++i) {
+            featuresVec[i] = TConstArrayRef<float>(floatFeatures[i], docCount);
+        }
+        FULL_MODEL_PTR(modelHandle)->CalcFlatTransposed(featuresVec, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
 CATBOOST_API bool CalcModelPrediction(
         ModelCalcerHandle* modelHandle,
         size_t docCount,
