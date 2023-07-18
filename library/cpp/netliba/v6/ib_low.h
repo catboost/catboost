@@ -2,7 +2,7 @@
 
 #include "udp_address.h"
 
-#if defined(_linux_) && !defined(CATBOOST_OPENSOURCE)
+#if defined(_linux_)
 #include <contrib/libs/ibdrv/include/infiniband/verbs.h>
 #include <contrib/libs/ibdrv/include/rdma/rdma_cma.h>
 #endif
@@ -22,7 +22,7 @@ namespace NNetliba {
     const size_t MAX_INLINE_DATA_SIZE = 16;
     const int MAX_OUTSTANDING_RDMA = 10;
 
-#if defined(_linux_) && !defined(CATBOOST_OPENSOURCE)
+#if defined(_linux_)
     class TIBContext: public TThrRefBase, TNonCopyable {
         ibv_context* Context;
         ibv_pd* ProtDomain;

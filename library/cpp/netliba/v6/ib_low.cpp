@@ -8,7 +8,7 @@ namespace NNetliba {
         EnableROCEFlag = f;
     }
 
-#if defined _linux_ && !defined CATBOOST_OPENSOURCE
+#if defined(_linux_)
     static TMutex IBPortMutex;
     static TIntrusivePtr<TIBPort> IBPort;
     static bool IBWasInitialized;
