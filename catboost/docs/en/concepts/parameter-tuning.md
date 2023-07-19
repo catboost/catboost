@@ -35,9 +35,9 @@ Usually one-hot encoding does not significantly improve the quality of the model
 
 It is recommended to check that there is no obvious underfitting or overfitting before tuning any other parameters. In order to do this it is necessary to analyze the metric value on the validation dataset and select the appropriate number of iterations.
 
-This can be done by setting the number of [iterations](#iterations) to a large value, using the [overfitting detector](#overfitting-detection-settings) parameters and turning the [use best model](#use-best-model) options on. In this case the resulting model contains only the first `k` best iterations, where `k` is the iteration with the best loss value on the validation dataset.
+This can be done by setting the number of [iterations](../references/training-parameters/common.md#iterations) to a large value, using the [overfitting detector](../concepts/overfitting-detector.md) parameters and turning the [use best model](../references/training-parameters/common.md#use_best_model) options on. In this case the resulting model contains only the first `k` best iterations, where `k` is the iteration with the best loss value on the validation dataset.
 
-Also, the metric for choosing the best model may differ from the one used for optimizing the objective value. For example, it is possible to set the optimized function to {{ error-function--Logit }} and use the {{ error-function--AUC }} function for the overfitting detector. To do so, use the [evaluation metric](#evaluation-metric) parameter.
+Also, the metric for choosing the best model may differ from the one used for optimizing the objective value. For example, it is possible to set the optimized function to {{ error-function--Logit }} and use the {{ error-function--AUC }} function for the overfitting detector. To do so, use the [evaluation metric](../references/training-parameters/common.md#eval_metric) parameter.
 
 
 {% cut "{{ dl--parameters }}" %}
