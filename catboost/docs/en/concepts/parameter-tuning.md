@@ -37,7 +37,7 @@ It is recommended to check that there is no obvious underfitting or overfitting 
 
 This can be done by setting the number of [iterations](../references/training-parameters/common.md#iterations) to a large value, using the [overfitting detector](../concepts/overfitting-detector.md) parameters and turning the [use best model](../references/training-parameters/common.md#use_best_model) options on. In this case the resulting model contains only the first `k` best iterations, where `k` is the iteration with the best loss value on the validation dataset.
 
-Also, the metric for choosing the best model may differ from the one used for optimizing the objective value. For example, it is possible to set the optimized function to {{ error-function--Logit }} and use the {{ error-function--AUC }} function for the overfitting detector. To do so, use the [evaluation metric](../references/training-parameters/common.md#use_best_model#eval_metric) parameter.
+Also, the metric for choosing the best model may differ from the one used for optimizing the objective value. For example, it is possible to set the optimized function to {{ error-function--Logit }} and use the {{ error-function--AUC }} function for the overfitting detector. To do so, use the [evaluation metric](../references/training-parameters/common.md#eval_metric) parameter.
 
 
 {% cut "{{ dl--parameters }}" %}
