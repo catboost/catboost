@@ -44,8 +44,18 @@ def get_compiler_info(compiler):
             compiler_ver_cmd.append('--version')
         env = os.environ.copy()
         env['LOCALE'] = 'C'
-        compiler_ver_out = subprocess.Popen(compiler_ver_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env).stdout.read().decode('utf-8')
-    return "\n".join(['{}{}'.format(indent * 2, line.strip()) for line in compiler_ver_out.splitlines() if line.strip()])
+        compiler_ver_out = (
+            subprocess.Popen(compiler_ver_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+                .stdout.read()
+                .decode('utf-8')
+        )
+    return "\n".join(
+        # fmt: off
+        f'{indent * 2}{line.strip()}'
+        for line in compiler_ver_out.splitlines()
+        if line.strip()
+        # fmt: on
+    )
 
 
 def filterflags(flags_str):
@@ -64,6 +74,7 @@ def filterflags(flags_str):
             if flag.split('=', 1)[0] in badflgs:
                 continue
             yield flag
+
     return ' '.join(flags_iter())
 
 
@@ -79,6 +90,7 @@ def main():
         print(escaped_define("BUILD_COMPILER", cxx_compiler), file=result)
         print(escaped_define("BUILD_COMPILER_VERSION", get_compiler_info(cxx_compiler)), file=result)
         print(escaped_define("BUILD_COMPILER_FLAGS", cxx_flags), file=result)
+
 
 if __name__ == "__main__":
     main()
