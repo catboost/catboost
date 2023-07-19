@@ -695,6 +695,7 @@ def py_execute(
     wait=True,
     process_progress_listener=None,
     close_fds=False,
+    text=False,
 ):
     """
     Executes a command with the arcadia python
@@ -710,6 +711,7 @@ def py_execute(
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
     :param process_progress_listener=object that is polled while execution is in progress
+    :param text: Return original str
     :return _Execution: Execution object
     """
     if isinstance(command, six.string_types):
