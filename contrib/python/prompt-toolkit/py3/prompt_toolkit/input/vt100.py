@@ -9,18 +9,7 @@ import io
 import termios
 import tty
 from asyncio import AbstractEventLoop, get_running_loop
-from typing import (
-    Callable,
-    ContextManager,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Set,
-    TextIO,
-    Tuple,
-    Union,
-)
+from typing import Callable, ContextManager, Generator, TextIO
 
 from ..key_binding import KeyPress
 from .base import Input
@@ -176,7 +165,7 @@ def _attached_input(
         loop.add_reader(fd, callback_wrapper)
     except PermissionError:
         # For `EPollSelector`, adding /dev/null to the event loop will raise
-        # `PermisisonError` (that doesn't happen for `SelectSelector`
+        # `PermissionError` (that doesn't happen for `SelectSelector`
         # apparently). Whenever we get a `PermissionError`, we can raise
         # `EOFError`, because there's not more to be read anyway. `EOFError` is
         # an exception that people expect in

@@ -6,9 +6,8 @@ from __future__ import annotations
 import asyncio
 import contextvars
 import socket
-import sys
 from asyncio import get_running_loop
-from typing import Any, Awaitable, Callable, List, Optional, Set, TextIO, Tuple, cast
+from typing import Awaitable, Callable, TextIO, cast
 
 from prompt_toolkit.application.current import create_app_session, get_app
 from prompt_toolkit.application.run_in_terminal import run_in_terminal
@@ -65,7 +64,7 @@ def _initialize_telnet(connection: socket.socket) -> None:
     connection.send(IAC + DO + NAWS)
 
     # Negotiate terminal type
-    # Assume the client will accept the negociation with `IAC +  WILL + TTYPE`
+    # Assume the client will accept the negotiation with `IAC +  WILL + TTYPE`
     connection.send(IAC + DO + TTYPE)
 
     # We can then select the first terminal type supported by the client,

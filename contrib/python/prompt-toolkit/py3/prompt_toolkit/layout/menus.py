@@ -2,18 +2,7 @@ from __future__ import annotations
 
 import math
 from itertools import zip_longest
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Dict,
-    Iterable,
-    Optional,
-    Sequence,
-    Tuple,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Callable, Iterable, Sequence, Tuple, TypeVar, cast
 from weakref import WeakKeyDictionary
 
 from prompt_toolkit.application.current import get_app
@@ -300,7 +289,7 @@ class CompletionsMenu(ConditionalContainer):
             ),
             # Show when there are completions but not at the point we are
             # returning the input.
-            filter=has_completions & ~is_done & extra_filter,
+            filter=extra_filter & has_completions & ~is_done,
         )
 
 
@@ -658,7 +647,7 @@ class MultiColumnCompletionsMenu(HSplit):
 
         # Display filter: show when there are completions but not at the point
         # we are returning the input.
-        full_filter = has_completions & ~is_done & extra_filter
+        full_filter = extra_filter & has_completions & ~is_done
 
         @Condition
         def any_completion_has_meta() -> bool:
@@ -687,7 +676,7 @@ class MultiColumnCompletionsMenu(HSplit):
 
         meta_window = ConditionalContainer(
             content=Window(content=_SelectedCompletionMetaControl()),
-            filter=show_meta & full_filter & any_completion_has_meta,
+            filter=full_filter & show_meta & any_completion_has_meta,
         )
 
         # Initialise split.

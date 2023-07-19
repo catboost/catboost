@@ -1,7 +1,7 @@
 Python Prompt Toolkit
 =====================
 
-|Build Status|  |AppVeyor|  |PyPI|  |RTD|  |License|  |Codecov|
+|AppVeyor|  |PyPI|  |RTD|  |License|  |Codecov|
 
 .. image :: https://github.com/prompt-toolkit/python-prompt-toolkit/raw/master/docs/images/logo_400px.png
 
@@ -9,14 +9,6 @@ Python Prompt Toolkit
 
 Read the `documentation on readthedocs
 <http://python-prompt-toolkit.readthedocs.io/en/stable/>`_.
-
-NOTICE: prompt_toolkit 3.0
-**************************
-
-Please notice that this branch is the ``prompt_toolkit`` **3.0** branch. For most
-users, it should be compatible with ``prompt_toolkit`` **2.0**, but it requires at
-least **Python 3.6**. On the plus side, ``prompt_toolkit`` **3.0** is completely type
-annotated and uses asyncio natively.
 
 
 Gallery
@@ -135,9 +127,6 @@ Special thanks to
 
 - `Pygments <http://pygments.org/>`_: Syntax highlighter.
 - `wcwidth <https://github.com/jquast/wcwidth>`_: Determine columns needed for a wide characters.
-
-.. |Build Status| image:: https://api.travis-ci.org/prompt-toolkit/python-prompt-toolkit.svg?branch=master
-    :target: https://travis-ci.org/prompt-toolkit/python-prompt-toolkit#
 
 .. |PyPI| image:: https://img.shields.io/pypi/v/prompt_toolkit.svg
     :target: https://pypi.python.org/pypi/prompt-toolkit/

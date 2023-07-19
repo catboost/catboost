@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, Any, Generator, Optional
+from typing import TYPE_CHECKING, Any, Generator
 
 if TYPE_CHECKING:
     from prompt_toolkit.input.base import Input
@@ -35,7 +35,7 @@ class AppSession:
 
     :param input: Use this as a default input for all applications
         running in this session, unless an input is passed to the `Application`
-        explicitely.
+        explicitly.
     :param output: Use this as a default output.
     """
 

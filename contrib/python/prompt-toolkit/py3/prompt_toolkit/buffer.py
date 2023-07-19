@@ -15,21 +15,7 @@ import tempfile
 from collections import deque
 from enum import Enum
 from functools import wraps
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Coroutine,
-    Deque,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import Any, Awaitable, Callable, Coroutine, Deque, Iterable, TypeVar, cast
 
 from .application.current import get_app
 from .application.run_in_terminal import run_in_terminal
@@ -1603,12 +1589,12 @@ class Buffer:
                 # (We need to use `run_in_terminal`, because not all editors go to
                 # the alternate screen buffer, and some could influence the cursor
                 # position.)
-                succes = await run_in_terminal(
+                success = await run_in_terminal(
                     lambda: self._open_file_in_editor(filename), in_executor=True
                 )
 
                 # Read content again.
-                if succes:
+                if success:
                     with open(filename, "rb") as f:
                         text = f.read().decode("utf-8")
 

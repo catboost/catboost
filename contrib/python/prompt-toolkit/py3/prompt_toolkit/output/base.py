@@ -4,7 +4,7 @@ Interface for an output.
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Optional, TextIO
+from typing import TextIO
 
 from prompt_toolkit.cursor_shapes import CursorShape
 from prompt_toolkit.data_structures import Size
@@ -206,7 +206,7 @@ class Output(metaclass=ABCMeta):
         """
         Get default color depth for this output.
 
-        This value will be used if no color depth was explicitely passed to the
+        This value will be used if no color depth was explicitly passed to the
         `Application`.
 
         .. note::

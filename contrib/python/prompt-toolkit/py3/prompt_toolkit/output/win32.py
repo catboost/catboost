@@ -15,7 +15,7 @@ if not SPHINX_AUTODOC_RUNNING:
     from ctypes import windll
 
 from ctypes.wintypes import DWORD, HANDLE
-from typing import Callable, Dict, List, Optional, TextIO, Tuple, Type, TypeVar, Union
+from typing import Callable, TextIO, TypeVar
 
 from prompt_toolkit.cursor_shapes import CursorShape
 from prompt_toolkit.data_structures import Size
@@ -375,7 +375,7 @@ class Win32Output(Output):
             self.LOG.flush()
 
         # Print characters one by one. This appears to be the best solution
-        # in oder to avoid traces of vertical lines when the completion
+        # in order to avoid traces of vertical lines when the completion
         # menu disappears.
         for b in data:
             written = DWORD()

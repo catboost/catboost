@@ -7,17 +7,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Callable, Sequence, Union, cast
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.cache import SimpleCache
@@ -2375,7 +2365,7 @@ class Window(Container):
             self.vertical_scroll_2 = min(
                 text_before_height - 1,  # Keep the cursor visible.
                 line_height
-                - height,  # Avoid blank lines at the bottom when scolling up again.
+                - height,  # Avoid blank lines at the bottom when scrolling up again.
                 self.vertical_scroll_2,
             )
             self.vertical_scroll_2 = max(
