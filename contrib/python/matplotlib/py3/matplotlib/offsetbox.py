@@ -253,7 +253,7 @@ class OffsetBox(martist.Artist):
 
         Parameters
         ----------
-        mouseevent : `matplotlib.backend_bases.MouseEvent`
+        mouseevent : `~matplotlib.backend_bases.MouseEvent`
 
         Returns
         -------
@@ -1399,11 +1399,15 @@ or callable, default: value of *xycoords*
         # docstring inherited
         if renderer is None:
             renderer = self.figure._get_renderer()
+        self.update_positions(renderer)
         return Bbox.union([child.get_window_extent(renderer)
                            for child in self.get_children()])
 
     def get_tightbbox(self, renderer=None):
         # docstring inherited
+        if renderer is None:
+            renderer = self.figure._get_renderer()
+        self.update_positions(renderer)
         return Bbox.union([child.get_tightbbox(renderer)
                            for child in self.get_children()])
 
@@ -1506,15 +1510,22 @@ class DraggableBase:
             ref_artist.set_picker(True)
         self.got_artist = False
         self._use_blit = use_blit and self.canvas.supports_blit
-        self.cids = [
-            self.canvas.callbacks._connect_picklable(
-                'pick_event', self.on_pick),
-            self.canvas.callbacks._connect_picklable(
-                'button_release_event', self.on_release),
+        callbacks = ref_artist.figure._canvas_callbacks
+        self._disconnectors = [
+            functools.partial(
+                callbacks.disconnect, callbacks._connect_picklable(name, func))
+            for name, func in [
+                ("pick_event", self.on_pick),
+                ("button_release_event", self.on_release),
+                ("motion_notify_event", self.on_motion),
+            ]
         ]
 
     # A property, not an attribute, to maintain picklability.
     canvas = property(lambda self: self.ref_artist.figure.canvas)
+
+    cids = property(lambda self: [
+        disconnect.args[0] for disconnect in self._disconnectors[:2]])
 
     def on_motion(self, evt):
         if self._check_still_parented() and self.got_artist:
@@ -1542,16 +1553,12 @@ class DraggableBase:
                 self.ref_artist.draw(
                     self.ref_artist.figure._get_renderer())
                 self.canvas.blit()
-            self._c1 = self.canvas.callbacks._connect_picklable(
-                "motion_notify_event", self.on_motion)
             self.save_offset()
 
     def on_release(self, event):
         if self._check_still_parented() and self.got_artist:
             self.finalize_offset()
             self.got_artist = False
-            self.canvas.mpl_disconnect(self._c1)
-
             if self._use_blit:
                 self.ref_artist.set_animated(False)
 
@@ -1564,14 +1571,8 @@ class DraggableBase:
 
     def disconnect(self):
         """Disconnect the callbacks."""
-        for cid in self.cids:
-            self.canvas.mpl_disconnect(cid)
-        try:
-            c1 = self._c1
-        except AttributeError:
-            pass
-        else:
-            self.canvas.mpl_disconnect(c1)
+        for disconnector in self._disconnectors:
+            disconnector()
 
     def save_offset(self):
         pass

@@ -188,6 +188,8 @@ class Button(AxesWidget):
         useblit : bool, default: True
             Use blitting for faster drawing if supported by the backend.
             See the tutorial :doc:`/tutorials/advanced/blitting` for details.
+
+            .. versionadded:: 3.7
         """
         super().__init__(ax)
 
@@ -1029,6 +1031,8 @@ class CheckButtons(AxesWidget):
         useblit : bool, default: True
             Use blitting for faster drawing if supported by the backend.
             See the tutorial :doc:`/tutorials/advanced/blitting` for details.
+
+            .. versionadded:: 3.7
         label_props : dict, optional
             Dictionary of `.Text` properties to be used for the labels.
 
@@ -1346,7 +1350,7 @@ class TextBox(AxesWidget):
     ----------
     ax : `~matplotlib.axes.Axes`
         The parent Axes for the widget.
-    label : `.Text`
+    label : `~matplotlib.text.Text`
 
     color : color
         The color of the text box when not hovering.
@@ -1634,6 +1638,8 @@ class RadioButtons(AxesWidget):
         useblit : bool, default: True
             Use blitting for faster drawing if supported by the backend.
             See the tutorial :doc:`/tutorials/advanced/blitting` for details.
+
+            .. versionadded:: 3.7
         label_props : dict or list of dict, optional
             Dictionary of `.Text` properties to be used for the labels.
 
@@ -1944,7 +1950,7 @@ class Cursor(AxesWidget):
 
     Parameters
     ----------
-    ax : `matplotlib.axes.Axes`
+    ax : `~matplotlib.axes.Axes`
         The `~.axes.Axes` to attach the cursor to.
     horizOn : bool, default: True
         Whether to draw the horizontal line.
@@ -2542,7 +2548,7 @@ class SpanSelector(_SelectorWidget):
 
     Parameters
     ----------
-    ax : `matplotlib.axes.Axes`
+    ax : `~matplotlib.axes.Axes`
 
     onselect : callable
         A callback function that is called after a release event and the
@@ -2967,7 +2973,7 @@ class ToolLineHandles:
 
     Parameters
     ----------
-    ax : `matplotlib.axes.Axes`
+    ax : `~matplotlib.axes.Axes`
         Matplotlib Axes where tool handles are displayed.
     positions : 1D array
         Positions of handles in data coordinates.
@@ -3078,7 +3084,7 @@ class ToolHandles:
 
     Parameters
     ----------
-    ax : `matplotlib.axes.Axes`
+    ax : `~matplotlib.axes.Axes`
         Matplotlib Axes where tool handles are displayed.
     x, y : 1D arrays
         Coordinates of control handles.

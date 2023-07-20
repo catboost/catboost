@@ -83,6 +83,8 @@ def _get_running_interactive_framework():
                 if frame.f_code in codes:
                     return "tk"
                 frame = frame.f_back
+        # premetively break reference cycle between locals and the frame
+        del frame
     macosx = sys.modules.get("matplotlib.backends._macosx")
     if macosx and macosx.event_loop_is_running():
         return "macosx"
@@ -206,9 +208,11 @@ class CallbackRegistry:
                           for s, d in self.callbacks.items()},
             # It is simpler to reconstruct this from callbacks in __setstate__.
             "_func_cid_map": None,
+            "_cid_gen": next(self._cid_gen)
         }
 
     def __setstate__(self, state):
+        cid_count = state.pop('_cid_gen')
         vars(self).update(state)
         self.callbacks = {
             s: {cid: _weak_or_strong_ref(func, self._remove_proxy)
@@ -217,6 +221,7 @@ class CallbackRegistry:
         self._func_cid_map = {
             s: {proxy: cid for cid, proxy in d.items()}
             for s, d in self.callbacks.items()}
+        self._cid_gen = itertools.count(cid_count)
 
     def connect(self, signal, func):
         """Register *func* to be called when signal *signal* is generated."""
@@ -1674,13 +1679,13 @@ def safe_first_element(obj):
 
 def _safe_first_finite(obj, *, skip_nonfinite=True):
     """
-    Return the first non-None (and optionally finite) element in *obj*.
+    Return the first finite element in *obj* if one is available and skip_nonfinite is
+    True. Otherwise return the first element.
 
     This is a method for internal use.
 
-    This is a type-independent way of obtaining the first non-None element,
-    supporting both index access and the iterator protocol.
-    The first non-None element will be obtained when skip_none is True.
+    This is a type-independent way of obtaining the first finite element, supporting
+    both index access and the iterator protocol.
     """
     def safe_isfinite(val):
         if val is None:
@@ -1712,7 +1717,7 @@ def _safe_first_finite(obj, *, skip_nonfinite=True):
         raise RuntimeError("matplotlib does not "
                            "support generators as input")
     else:
-        return next(val for val in obj if safe_isfinite(val))
+        return next((val for val in obj if safe_isfinite(val)), safe_first_element(obj))
 
 
 def sanitize_sequence(data):
