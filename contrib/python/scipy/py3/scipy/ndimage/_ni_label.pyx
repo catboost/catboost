@@ -211,7 +211,7 @@ cpdef _label(np.ndarray input,
         ("Shapes must match for input and output,"
          "{} != {}".format((<object> input).shape, (<object> output).shape))
 
-    structure = np.asanyarray(structure, dtype=np.int).copy()
+    structure = np.asanyarray(structure, dtype=int).copy()
     assert input.ndim == structure.ndim, \
         ("Structuring element must have same "
          "# of dimensions as input, "
@@ -230,9 +230,9 @@ cpdef _label(np.ndarray input,
     assert input.ndim > 0 and input.size > 0, "Cannot label scalars or empty arrays"
 
     # if we're handed booleans, we treat them as uint8s
-    if input.dtype == np.bool:
+    if input.dtype == bool:
         input = input.view(dtype=np.uint8)
-    if output.dtype == np.bool:
+    if output.dtype == bool:
         # XXX - trigger special check for bit depth?
         output = output.view(dtype=np.uint8)
 
