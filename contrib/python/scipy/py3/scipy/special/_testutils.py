@@ -8,6 +8,7 @@ import functools
 
 import numpy as np
 from numpy.testing import assert_
+import pytest
 
 import scipy.special as sc
 
@@ -24,7 +25,6 @@ class MissingModule(object):
 
 
 def check_version(module, min_ver):
-    import pytest
     if type(module) == MissingModule:
         return pytest.mark.skip(reason="{} is not installed".format(module.name))
     return pytest.mark.skipif(LooseVersion(module.__version__) < LooseVersion(min_ver),
@@ -176,7 +176,6 @@ class FuncData(object):
         """Check the special function against the data."""
 
         if self.knownfailure:
-            import pytest
             pytest.xfail(reason=self.knownfailure)
 
         if data is None:
