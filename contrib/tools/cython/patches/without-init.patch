@@ -1,0 +1,66 @@
+--- contrib/tools/cython/Cython/Compiler/Main.py	(b77cbecdf03a4bc1fd125fecb66a5e8e8ce8cc5e)
++++ contrib/tools/cython/Cython/Compiler/Main.py	(71a3090d95d1027557404facb18ee15edc4090fc)
+@@ -827,27 +827,15 @@ def search_include_directories(dirs, qualified_name, suffix, pos, include=False)
+         if os.path.exists(path):
+             return path
+ 
++        # Arcadia-specific lookup: search for packages in include paths,
++        # ignoring existence of __init__.py files as packages markers
++        # (they are not required by Arcadia build system)
+         if not include:
+-            package_dir = Utils.check_package_dir(dirname, package_names)
+-            if package_dir is not None:
+-                path = os.path.join(package_dir, module_filename)
+-                if os.path.exists(path):
+-                    return path
+-                path = os.path.join(package_dir, module_name,
+-                                    package_filename)
+-                if os.path.exists(path):
+-                    return path
+-
+-    # Arcadia-specific lookup: search for packages in include paths,
+-    # ignoring existence of __init__.py files as packages markers
+-    # (they are not required by Arcadia build system)
+-    if not include:
+-        for dir in dirs:
+-            package_dir = os.path.join(dir, *package_names)
++            package_dir = os.path.join(dirname, *package_names)
+             path = os.path.join(package_dir, module_filename)
+             if os.path.exists(path):
+                 return path
+-            path = os.path.join(dir, package_dir, module_name,
++            path = os.path.join(dirname, package_dir, module_name,
+                                 package_filename)
+             if os.path.exists(path):
+                 return path
+--- contrib/tools/cython/Cython/Compiler/Nodes.py	(b77cbecdf03a4bc1fd125fecb66a5e8e8ce8cc5e)
++++ contrib/tools/cython/Cython/Compiler/Nodes.py	(71a3090d95d1027557404facb18ee15edc4090fc)
+@@ -7992,7 +7992,7 @@ class FromCImportStatNode(StatNode):
+         if self.relative_level and self.relative_level > env.qualified_name.count('.'):
+             error(self.pos, "relative cimport beyond main package is not allowed")
+             return
+-        module_scope = env.find_module(self.module_name, self.pos, relative_level=self.relative_level)
++        module_scope = env.find_module(self.module_name, self.pos, relative_level=self.relative_level, need_pxd=0)
+         module_name = module_scope.qualified_name
+         env.add_imported_module(module_scope)
+         for pos, name, as_name, kind in self.imported_names:
+--- contrib/tools/cython/Cython/Compiler/Symtab.py	(b77cbecdf03a4bc1fd125fecb66a5e8e8ce8cc5e)
++++ contrib/tools/cython/Cython/Compiler/Symtab.py	(71a3090d95d1027557404facb18ee15edc4090fc)
+@@ -1250,7 +1250,7 @@ class ModuleScope(Scope):
+         entry.qualified_name = self.builtin_scope().qualify_name(name)
+         return entry
+ 
+-    def find_module(self, module_name, pos, relative_level=-1):
++    def find_module(self, module_name, pos, relative_level=-1, need_pxd=1):
+         # Find a module in the import namespace, interpreting
+         # relative imports relative to this module's parent.
+         # Finds and parses the module's .pxd file if the module
+@@ -1271,7 +1271,7 @@ class ModuleScope(Scope):
+ 
+         module_scope = self.global_scope()
+         return module_scope.context.find_module(
+-            module_name, relative_to=relative_to, pos=pos, absolute_fallback=absolute_fallback)
++            module_name, relative_to=relative_to, pos=pos, absolute_fallback=absolute_fallback, need_pxd=need_pxd)
+ 
+     def find_submodule(self, name):
+         # Find and return scope for a submodule of this module,

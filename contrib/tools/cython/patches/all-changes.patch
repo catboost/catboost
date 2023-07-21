@@ -1,0 +1,937 @@
+--- contrib/tools/cython/Cython/Compiler/Annotate.py	(index)
++++ contrib/tools/cython/Cython/Compiler/Annotate.py	(working tree)
+@@ -10,7 +10,10 @@ import textwrap
+ from datetime import datetime
+ from functools import partial
+ from collections import defaultdict
+-from xml.sax.saxutils import escape as html_escape
++try:
++    from xml.sax.saxutils import escape as html_escape
++except ImportError:
++    pass
+ try:
+     from StringIO import StringIO
+ except ImportError:
+--- contrib/tools/cython/Cython/Compiler/CmdLine.py	(index)
++++ contrib/tools/cython/Cython/Compiler/CmdLine.py	(working tree)
+@@ -152,6 +152,10 @@ def parse_command_line(args):
+             elif option == "--lenient":
+                 Options.error_on_unknown_names = False
+                 Options.error_on_uninitialized = False
++            elif option == '--init-suffix':
++                options.init_suffix = pop_arg()
++            elif option == '--source-root':
++                Options.source_root = pop_arg()
+             elif option == '-2':
+                 options.language_level = 2
+             elif option == '-3':
+--- contrib/tools/cython/Cython/Compiler/ExprNodes.py	(index)
++++ contrib/tools/cython/Cython/Compiler/ExprNodes.py	(working tree)
+@@ -9543,6 +9543,8 @@ class CodeObjectNode(ExprNode):
+             func.name, identifier=True, is_str=False, unicode_value=func.name)
+         # FIXME: better way to get the module file path at module init time? Encoding to use?
+         file_path = StringEncoding.bytes_literal(func.pos[0].get_filenametable_entry().encode('utf8'), 'utf8')
++        # XXX Use get_description() to set arcadia root relative filename
++        file_path = StringEncoding.bytes_literal(func.pos[0].get_description().encode('utf8'), 'utf8')
+         file_path_const = code.get_py_string_const(file_path, identifier=False, is_str=True)
+ 
+         # This combination makes CPython create a new dict for "frame.f_locals" (see GH #1836).
+--- contrib/tools/cython/Cython/Compiler/Main.py	(index)
++++ contrib/tools/cython/Cython/Compiler/Main.py	(working tree)
+@@ -206,9 +206,7 @@ class Context(object):
+             if not pxd_pathname:
+                 if debug_find_module:
+                     print("...looking for pxd file")
+-                # Only look in sys.path if we are explicitly looking
+-                # for a .pxd file.
+-                pxd_pathname = self.find_pxd_file(qualified_name, pos, sys_path=need_pxd)
++                pxd_pathname = self.find_pxd_file(qualified_name, pos)
+                 if debug_find_module:
+                     print("......found %s" % pxd_pathname)
+                 if not pxd_pathname and need_pxd:
+@@ -228,6 +226,8 @@ class Context(object):
+                     rel_path = module_name.replace('.', os.sep) + os.path.splitext(pxd_pathname)[1]
+                     if not pxd_pathname.endswith(rel_path):
+                         rel_path = pxd_pathname  # safety measure to prevent printing incorrect paths
++                    if Options.source_root:
++                        rel_path = os.path.relpath(pxd_pathname, Options.source_root)
+                     source_desc = FileSourceDescriptor(pxd_pathname, rel_path)
+                     err, result = self.process_pxd(source_desc, scope, qualified_name)
+                     if err:
+@@ -238,7 +238,7 @@ class Context(object):
+                     pass
+         return scope
+ 
+-    def find_pxd_file(self, qualified_name, pos, sys_path=True):
++    def find_pxd_file(self, qualified_name, pos, sys_path=False):
+         # Search include path (and sys.path if sys_path is True) for
+         # the .pxd file corresponding to the given fully-qualified
+         # module name.
+@@ -481,7 +481,7 @@ def run_pipeline(source, options, full_module_name=None, context=None):
+     # Set up source object
+     cwd = os.getcwd()
+     abs_path = os.path.abspath(source)
+-    full_module_name = full_module_name or context.extract_module_name(source, options)
++    full_module_name = full_module_name or options.module_name or context.extract_module_name(source, options)
+ 
+     Utils.raise_error_if_module_name_forbidden(full_module_name)
+ 
+@@ -491,6 +491,8 @@ def run_pipeline(source, options, full_module_name=None, context=None):
+             rel_path = source # safety measure to prevent printing incorrect paths
+     else:
+         rel_path = abs_path
++    if Options.source_root:
++        rel_path = os.path.relpath(abs_path, Options.source_root)
+     source_desc = FileSourceDescriptor(abs_path, rel_path)
+     source = CompilationSource(source_desc, full_module_name, cwd)
+ 
+@@ -835,6 +837,21 @@ def search_include_directories(dirs, qualified_name, suffix, pos, include=False)
+                                     package_filename)
+                 if os.path.exists(path):
+                     return path
++
++    # Arcadia-specific lookup: search for packages in include paths,
++    # ignoring existence of __init__.py files as packages markers
++    # (they are not required by Arcadia build system)
++    if not include:
++        for dir in dirs:
++            package_dir = os.path.join(dir, *package_names)
++            path = os.path.join(package_dir, module_filename)
++            if os.path.exists(path):
++                return path
++            path = os.path.join(dir, package_dir, module_name,
++                                package_filename)
++            if os.path.exists(path):
++                return path
++
+     return None
+ 
+ 
+@@ -903,6 +920,7 @@ default_options = dict(
+     language_level = None,  # warn but default to 2
+     formal_grammar = False,
+     gdb_debug = False,
++    init_suffix = None,
+     compile_time_env = None,
+     common_utility_include_dir = None,
+     output_dir=None,
+--- contrib/tools/cython/Cython/Compiler/ModuleNode.py	(index)
++++ contrib/tools/cython/Cython/Compiler/ModuleNode.py	(working tree)
+@@ -208,9 +208,10 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+             h_code.putln("/* It now returns a PyModuleDef instance instead of a PyModule instance. */")
+             h_code.putln("")
+             h_code.putln("#if PY_MAJOR_VERSION < 3")
+-            h_code.putln("PyMODINIT_FUNC init%s(void);" % env.module_name)
++            init_name = 'init' + (options.init_suffix or env.module_name)
++            h_code.putln("PyMODINIT_FUNC %s(void);" % init_name)
+             h_code.putln("#else")
+-            h_code.putln("PyMODINIT_FUNC %s(void);" % self.mod_init_func_cname('PyInit', env))
++            h_code.putln("PyMODINIT_FUNC %s(void);" % self.mod_init_func_cname('PyInit', env, options))
+             h_code.putln("#endif")
+             h_code.putln("")
+             h_code.putln("#endif /* !%s */" % h_guard)
+@@ -389,13 +390,13 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         self.generate_method_table(env, code)
+         if env.has_import_star:
+             self.generate_import_star(env, code)
+-        self.generate_pymoduledef_struct(env, code)
++        self.generate_pymoduledef_struct(env, options, code)
+ 
+         # initialise the macro to reduce the code size of one-time functionality
+         code.putln(UtilityCode.load_as_string("SmallCodeConfig", "ModuleSetupCode.c")[0].strip())
+ 
+         # init_globals is inserted before this
+-        self.generate_module_init_func(modules[:-1], env, globalstate['init_module'])
++        self.generate_module_init_func(modules[:-1], env, options, globalstate['init_module'])
+         self.generate_module_cleanup_func(env, globalstate['cleanup_module'])
+         if Options.embed:
+             self.generate_main_method(env, globalstate['main_method'])
+@@ -782,6 +783,9 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         if code.globalstate.filename_list:
+             for source_desc in code.globalstate.filename_list:
+                 file_path = source_desc.get_filenametable_entry()
++                if Options.source_root:
++                    # If source root specified, dump description - it's source root relative filename
++                    file_path = source_desc.get_description()
+                 if isabs(file_path):
+                     file_path = basename(file_path)  # never include absolute paths
+                 escaped_filename = file_path.replace("\\", "\\\\").replace('"', r'\"')
+@@ -928,6 +932,8 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+             constructor = None
+             destructor = None
+             for attr in scope.var_entries:
++                if attr.type.is_cfunction:
++                    code.put("inline ")
+                 if attr.type.is_cfunction and attr.type.is_static_method:
+                     code.put("static ")
+                 elif attr.name == "<init>":
+@@ -2308,14 +2314,15 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         code.putln(UtilityCode.load_as_string("ImportStar", "ImportExport.c")[1])
+         code.exit_cfunc_scope()  # done with labels
+ 
+-    def generate_module_init_func(self, imported_modules, env, code):
++    def generate_module_init_func(self, imported_modules, env, options, code):
+         subfunction = self.mod_init_subfunction(self.pos, self.scope, code)
+ 
+         code.enter_cfunc_scope(self.scope)
+         code.putln("")
+         code.putln(UtilityCode.load_as_string("PyModInitFuncType", "ModuleSetupCode.c")[0])
+-        header2 = "__Pyx_PyMODINIT_FUNC init%s(void)" % env.module_name
+-        header3 = "__Pyx_PyMODINIT_FUNC %s(void)" % self.mod_init_func_cname('PyInit', env)
++        init_name = 'init' + (options.init_suffix or env.module_name)
++        header2 = "__Pyx_PyMODINIT_FUNC %s(void)" % init_name
++        header3 = "__Pyx_PyMODINIT_FUNC %s(void)" % self.mod_init_func_cname('PyInit', env, options)
+         code.putln("#if PY_MAJOR_VERSION < 3")
+         # Optimise for small code size as the module init function is only executed once.
+         code.putln("%s CYTHON_SMALL_CODE; /*proto*/" % header2)
+@@ -2412,7 +2419,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         code.putln("#endif")
+ 
+         code.putln("/*--- Module creation code ---*/")
+-        self.generate_module_creation_code(env, code)
++        self.generate_module_creation_code(env, options, code)
+ 
+         code.putln("/*--- Initialize various global constants etc. ---*/")
+         code.put_error_if_neg(self.pos, "__Pyx_InitGlobals()")
+@@ -2737,10 +2744,10 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+                 main_method=Options.embed,
+                 wmain_method=wmain))
+ 
+-    def mod_init_func_cname(self, prefix, env):
+-        return '%s_%s' % (prefix, env.module_name)
++    def mod_init_func_cname(self, prefix, env, options=None):
++        return '%s_%s' % (prefix, options and options.init_suffix or env.module_name)
+ 
+-    def generate_pymoduledef_struct(self, env, code):
++    def generate_pymoduledef_struct(self, env, options, code):
+         if env.doc:
+             doc = "%s" % code.get_string_const(env.doc)
+         else:
+@@ -2768,7 +2775,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         code.putln("")
+         code.putln("static struct PyModuleDef %s = {" % Naming.pymoduledef_cname)
+         code.putln("  PyModuleDef_HEAD_INIT,")
+-        code.putln('  "%s",' % env.module_name)
++        code.putln('  "%s",' % (options.module_name or env.module_name))
+         code.putln("  %s, /* m_doc */" % doc)
+         code.putln("#if CYTHON_PEP489_MULTI_PHASE_INIT")
+         code.putln("  0, /* m_size */")
+@@ -2787,7 +2794,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         code.putln("};")
+         code.putln("#endif")
+ 
+-    def generate_module_creation_code(self, env, code):
++    def generate_module_creation_code(self, env, options, code):
+         # Generate code to create the module object and
+         # install the builtins.
+         if env.doc:
+@@ -2805,7 +2812,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+         code.putln(
+             '%s = Py_InitModule4("%s", %s, %s, 0, PYTHON_API_VERSION); Py_XINCREF(%s);' % (
+                 env.module_cname,
+-                env.module_name,
++                options.module_name or env.module_name,
+                 env.method_table_cname,
+                 doc,
+                 env.module_cname))
+--- contrib/tools/cython/Cython/Compiler/Nodes.py	(index)
++++ contrib/tools/cython/Cython/Compiler/Nodes.py	(working tree)
+@@ -4170,7 +4170,7 @@ class GeneratorBodyDefNode(DefNode):
+         self.declare_generator_body(env)
+ 
+     def generate_function_header(self, code, proto=False):
+-        header = "static PyObject *%s(__pyx_CoroutineObject *%s, CYTHON_UNUSED PyThreadState *%s, PyObject *%s)" % (
++        header = "static PyObject *%s(PyObject *%s_obj, CYTHON_UNUSED PyThreadState *%s, PyObject *%s)" % (
+             self.entry.func_cname,
+             Naming.generator_cname,
+             Naming.local_tstate_cname,
+@@ -4196,6 +4196,7 @@ class GeneratorBodyDefNode(DefNode):
+         # ----- Function header
+         code.putln("")
+         self.generate_function_header(code)
++        code.putln("__pyx_CoroutineObject *%s = (__pyx_CoroutineObject *)%s_obj;" % (Naming.generator_cname, Naming.generator_cname))
+         closure_init_code = code.insertion_point()
+         # ----- Local variables
+         code.putln("PyObject *%s = NULL;" % Naming.retval_cname)
+--- contrib/tools/cython/Cython/Compiler/Options.py	(index)
++++ contrib/tools/cython/Cython/Compiler/Options.py	(working tree)
+@@ -150,6 +150,9 @@ buffer_max_dims = 8
+ #: Number of function closure instances to keep in a freelist (0: no freelists)
+ closure_freelist_size = 8
+ 
++# Arcadia specific
++source_root = None
++
+ 
+ def get_directive_defaults():
+     # To add an item to this list, all accesses should be changed to use the new
+--- contrib/tools/cython/Cython/Compiler/Parsing.py	(index)
++++ contrib/tools/cython/Cython/Compiler/Parsing.py	(working tree)
+@@ -2046,7 +2046,12 @@ def p_include_statement(s, ctx):
+         if include_file_path:
+             s.included_files.append(include_file_name)
+             with Utils.open_source_file(include_file_path) as f:
+-                source_desc = FileSourceDescriptor(include_file_path)
++                if Options.source_root:
++                    import os
++                    rel_path = os.path.relpath(include_file_path, Options.source_root)
++                else:
++                    rel_path = None
++                source_desc = FileSourceDescriptor(include_file_path, rel_path)
+                 s2 = PyrexScanner(f, source_desc, s, source_encoding=f.encoding, parse_comments=s.parse_comments)
+                 tree = p_statement_list(s2, ctx)
+             return tree
+@@ -3696,6 +3701,9 @@ def p_module(s, pxd, full_module_name, ctx=Ctx):
+     s.parse_comments = False
+ 
+     if s.context.language_level is None:
++        s.context.set_language_level(2)  # Arcadia default.
++
++    if s.context.language_level is None:
+         s.context.set_language_level(2)
+         if pos[0].filename:
+             import warnings
+--- contrib/tools/cython/Cython/Compiler/PyrexTypes.py	(index)
++++ contrib/tools/cython/Cython/Compiler/PyrexTypes.py	(working tree)
+@@ -3483,7 +3483,7 @@ class CStructOrUnionType(CType):
+             return expr_code
+         return super(CStructOrUnionType, self).cast_code(expr_code)
+ 
+-cpp_string_conversions = ("std::string",)
++cpp_string_conversions = ("std::string", "TString", "TStringBuf")
+ 
+ builtin_cpp_conversions = {
+     # type                element template params
+@@ -3495,6 +3495,11 @@ builtin_cpp_conversions = {
+     "std::map":           2,
+     "std::unordered_map": 2,
+     "std::complex":       1,
++    # arcadia_cpp_conversions
++    "TMaybe":             1,
++    "TVector":            1,
++    "THashMap":           2,
++    "TMap":               2,
+ }
+ 
+ class CppClassType(CType):
+@@ -3524,7 +3529,7 @@ class CppClassType(CType):
+         self.templates = templates
+         self.template_type = template_type
+         self.num_optional_templates = sum(is_optional_template_param(T) for T in templates or ())
+-        if templates:
++        if templates and False:  # https://github.com/cython/cython/issues/1868
+             self.specializations = {tuple(zip(templates, templates)): self}
+         else:
+             self.specializations = {}
+@@ -3570,8 +3575,10 @@ class CppClassType(CType):
+             if self.cname in cpp_string_conversions:
+                 cls = 'string'
+                 tags = type_identifier(self),
+-            else:
++            elif self.cname.startswith('std::'):
+                 cls = self.cname[5:]
++            else:
++                cls = 'arcadia_' + self.cname
+             cname = '__pyx_convert_%s_from_py_%s' % (cls, '__and_'.join(tags))
+             context.update({
+                 'cname': cname,
+@@ -3594,7 +3601,6 @@ class CppClassType(CType):
+                     return False
+             return True
+ 
+-
+     def create_to_py_utility_code(self, env):
+         if self.to_py_function is not None:
+             return True
+@@ -3614,9 +3620,12 @@ class CppClassType(CType):
+                 cls = 'string'
+                 prefix = 'PyObject_'  # gets specialised by explicit type casts in CoerceToPyTypeNode
+                 tags = type_identifier(self),
+-            else:
++            elif self.cname.startswith('std::'):
+                 cls = self.cname[5:]
+                 prefix = ''
++            else:
++                cls = 'arcadia_' + self.cname
++                prefix = ''
+             cname = "__pyx_convert_%s%s_to_py_%s" % (prefix, cls, "____".join(tags))
+             context.update({
+                 'cname': cname,
+--- contrib/tools/cython/Cython/Compiler/Scanning.py	(index)
++++ contrib/tools/cython/Cython/Compiler/Scanning.py	(working tree)
+@@ -245,6 +245,8 @@ class FileSourceDescriptor(SourceDescriptor):
+         return lines
+ 
+     def get_description(self):
++        # Dump path_description, it's already arcadia root relative (required for proper file matching in coverage)
++        return self.path_description
+         try:
+             return os.path.relpath(self.path_description)
+         except ValueError:
+--- contrib/tools/cython/Cython/Coverage.py	(index)
++++ contrib/tools/cython/Cython/Coverage.py	(working tree)
+@@ -65,10 +65,14 @@ class Plugin(CoveragePlugin):
+         """
+         Try to find a C source file for a file path found by the tracer.
+         """
++        # TODO We need to pxd-files to the include map. For more info see pybuild.py
++        # Currently skip such files, because they are not supported in Arcadia pybuild with coverage.
++        if os.path.splitext(filename)[-1] not in ('.pyx', '.pxi'):
++            return None
+         if filename.startswith('<') or filename.startswith('memory:'):
+             return None
+         c_file = py_file = None
+-        filename = canonical_filename(os.path.abspath(filename))
++        filename = canonical_filename(filename)
+         if self._c_files_map and filename in self._c_files_map:
+             c_file = self._c_files_map[filename][0]
+ 
+@@ -98,16 +102,21 @@ class Plugin(CoveragePlugin):
+         #    from coverage.python import PythonFileReporter
+         #    return PythonFileReporter(filename)
+ 
+-        filename = canonical_filename(os.path.abspath(filename))
++        filename = canonical_filename(filename)
+         if self._c_files_map and filename in self._c_files_map:
+             c_file, rel_file_path, code = self._c_files_map[filename]
+         else:
+             c_file, _ = self._find_source_files(filename)
+             if not c_file:
++                if standalone():
++                    raise AssertionError(filename)
+                 return None  # unknown file
+             rel_file_path, code = self._read_source_lines(c_file, filename)
+             if code is None:
++                if standalone():
++                    raise AssertionError(filename)
+                 return None  # no source found
++
+         return CythonModuleReporter(c_file, filename, rel_file_path, code)
+ 
+     def _find_source_files(self, filename):
+@@ -132,6 +141,8 @@ class Plugin(CoveragePlugin):
+             self._find_c_source_files(os.path.dirname(filename), filename)
+             if filename in self._c_files_map:
+                 return self._c_files_map[filename][0], None
++            if standalone():
++                raise AssertionError(filename)
+         else:
+             # none of our business
+             return None, None
+@@ -152,8 +163,8 @@ class Plugin(CoveragePlugin):
+                 py_source_file = None
+ 
+             try:
+-                with open(c_file, 'rb') as f:
+-                    if b'/* Generated by Cython ' not in f.read(30):
++                with OpenFile(c_file) as f:
++                    if '/* Generated by Cython ' not in f.read(30):
+                         return None, None  # not a Cython file
+             except (IOError, OSError):
+                 c_file = None
+@@ -165,6 +176,20 @@ class Plugin(CoveragePlugin):
+         Desperately parse all C files in the directory or its package parents
+         (not re-descending) to find the (included) source file in one of them.
+         """
++        if standalone():
++            if os.environ.get('PYTHON_COVERAGE_CYTHON_BUILD_ROOT'):
++                broot = os.environ['PYTHON_COVERAGE_CYTHON_BUILD_ROOT']
++                iter_files = lambda: (os.path.join(root, filename) for root, _, files in os.walk(broot) for filename in files)
++            else:
++                import library.python.resource
++                iter_files = library.python.resource.resfs_files
++            for c_file in iter_files():
++                if os.path.splitext(c_file)[1] in C_FILE_EXTENSIONS:
++                    self._read_source_lines(c_file, source_file)
++                    if source_file in self._c_files_map:
++                        return
++            raise AssertionError((source_file, os.environ.get('PYTHON_COVERAGE_CYTHON_BUILD_ROOT')))
++
+         if not os.path.isdir(dir_path):
+             return
+         splitext = os.path.splitext
+@@ -223,7 +248,7 @@ class Plugin(CoveragePlugin):
+         executable_lines = defaultdict(set)
+         current_filename = None
+ 
+-        with open(c_file) as lines:
++        with OpenFile(c_file) as lines:
+             lines = iter(lines)
+             for line in lines:
+                 match = match_source_path_line(line)
+@@ -280,7 +305,10 @@ class CythonModuleTracer(FileTracer):
+             return self._file_path_map[source_file]
+         except KeyError:
+             pass
+-        abs_path = _find_dep_file_path(filename, source_file)
++        if standalone():
++            abs_path = self.module_file
++        else:
++            abs_path = _find_dep_file_path(filename, source_file)
+ 
+         if self.py_file and source_file[-3:].lower() == '.py':
+             # always let coverage.py handle this case itself
+@@ -303,6 +331,7 @@ class CythonModuleReporter(FileReporter):
+         self.name = rel_file_path
+         self.c_file = c_file
+         self._code = code
++        self._abs_filename = self._find_abs_filename()
+ 
+     def lines(self):
+         """
+@@ -323,8 +352,8 @@ class CythonModuleReporter(FileReporter):
+         """
+         Return the source code of the file as a string.
+         """
+-        if os.path.exists(self.filename):
+-            with open_source_file(self.filename) as f:
++        if os.path.exists(self._abs_filename):
++            with open_source_file(self._abs_filename) as f:
+                 return f.read()
+         else:
+             return '\n'.join(
+@@ -335,14 +364,119 @@ class CythonModuleReporter(FileReporter):
+         """
+         Iterate over the source code tokens.
+         """
+-        if os.path.exists(self.filename):
+-            with open_source_file(self.filename) as f:
++        if os.path.exists(self._abs_filename):
++            with open_source_file(self._abs_filename) as f:
+                 for line in f:
+                     yield [('txt', line.rstrip('\n'))]
+         else:
+             for line in self._iter_source_tokens():
+-                yield [('txt', line)]
++                yield line
++
++    def _find_abs_filename(self):
++        for root in [
++            os.environ.get('PYTHON_COVERAGE_ARCADIA_SOURCE_ROOT'),
++            os.environ.get('PYTHON_COVERAGE_CYTHON_BUILD_ROOT'),
++        ]:
++            if root:
++                abs_path = os.path.join(root, self.filename)
++                if root and os.path.exists(abs_path):
++                    return abs_path
++        return self.filename
+ 
+ 
+ def coverage_init(reg, options):
+     reg.add_file_tracer(Plugin())
++
++
++# ========================== Arcadia specific =================================
++
++def standalone():
++    return getattr(sys, 'is_standalone_binary', False)
++
++
++class OpenFile(object):
++
++    def __init__(self, filename, mode='r'):
++        assert 'r' in mode, ('Read-only', mode)
++        self.filename = filename
++        self.mode = mode
++        self.file = None
++        self.build_root = os.environ.get('PYTHON_COVERAGE_CYTHON_BUILD_ROOT')
++
++    def __enter__(self):
++        # See redefined _find_c_source() description for more info
++        if self.build_root:
++            self.file = open(os.path.join(self.build_root, self.filename), self.mode)
++            return self.file
++        elif standalone():
++            import library.python.resource
++            from six import StringIO
++
++            content = library.python.resource.resfs_read(self.filename, builtin=True)
++            assert content, (self.filename, os.environ.items())
++            return StringIO(content.decode())
++        else:
++            self.file = open(self.filename, self.mode)
++            return self.file
++
++    def __exit__(self, exc_type, exc_val, exc_tb):
++        if self.file:
++            self.file.close()
++
++# ======================= Redefine some methods ===============================
++
++if standalone():
++    import itertools
++    import json
++
++    CYTHON_INCLUDE_MAP = {'undef': True}
++
++
++    def _find_c_source(base_path):
++        '''
++        There are two different coverage stages when c source file might be required:
++         * trace - python calls c_tracefunc on every line and CythonModuleTracer needs to match
++            pyd and pxi files with source files. This is test's runtime and tests' clean environment might
++            doesn't contain required sources and generated files (c, cpp), that's why we get files from resfs_src.
++         * report - coverage data contains only covered data and CythonModuleReporter needs to
++            parse source files to obtain missing lines and branches. This is test_tool's resolve/build_report step.
++            test_tools doesn't have compiled in sources, however, it can extract required files
++            from binary and set PYTHON_COVERAGE_CYTHON_BUILD_ROOT to guide coverage.
++        '''
++        if os.environ.get('PYTHON_COVERAGE_CYTHON_BUILD_ROOT'):
++            # Report stage (resolve)
++            def exists(filename):
++                return os.path.exists(os.path.join(os.environ['PYTHON_COVERAGE_CYTHON_BUILD_ROOT'], filename))
++        else:
++            # Trace stage (test's runtime)
++            def exists(filename):
++                import library.python.resource
++                return library.python.resource.resfs_src(filename, resfs_file=True)
++
++        if os.environ.get('PYTHON_COVERAGE_CYTHON_INCLUDE_MAP'):
++            if CYTHON_INCLUDE_MAP.get('undef'):
++                with open(os.environ['PYTHON_COVERAGE_CYTHON_INCLUDE_MAP']) as afile:
++                    data = json.load(afile)
++                    data = {os.path.splitext(k)[0]: v for k, v in data.items()}
++
++                CYTHON_INCLUDE_MAP.clear()
++                CYTHON_INCLUDE_MAP.update(data)
++
++            if base_path in CYTHON_INCLUDE_MAP:
++                # target file was included and should be sought inside another pyx file
++                base_path = CYTHON_INCLUDE_MAP[base_path]
++
++        # TODO (', '.py3', '.py2') -> ('.py3', '.py2'), when https://a.yandex-team.ru/review/3511262 is merged
++        suffixes = [''.join(x) for x in itertools.product(('.pyx',), ('', '.py3', '.py2'), ('.cpp', '.c'))]
++        suffixes += C_FILE_EXTENSIONS
++
++        for suffix in suffixes:
++            if exists(base_path + suffix):
++                return base_path + suffix
++
++        return None
++
++
++    def _find_dep_file_path(main_file, file_path, relative_path_search=False):
++        # file_path is already arcadia root relative
++        return canonical_filename(file_path)
+--- contrib/tools/cython/Cython/Utility/CppConvert.pyx	(index)
++++ contrib/tools/cython/Cython/Utility/CppConvert.pyx	(working tree)
+@@ -235,3 +235,150 @@ cdef object {{cname}}(const std_complex[X]& z):
+     tmp.real = <double>z.real()
+     tmp.imag = <double>z.imag()
+     return tmp
++
++
++#################### arcadia_TMaybe.from_py ####################
++
++cdef extern from *:
++    cdef cppclass TMaybe [T]:
++        TMaybe()
++        TMaybe(T&)
++        TMaybe& operator =(T&)
++
++@cname("{{cname}}")
++cdef TMaybe[X] {{cname}}(object o) except *:
++    cdef TMaybe[X] result
++    if o is not None:
++        result = <X>o
++    return result
++
++#################### arcadia_TMaybe.to_py ####################
++
++cdef extern from *:
++    cdef cppclass TMaybe [T]:
++        bint Defined()
++        T& GetRef()
++
++@cname("{{cname}}")
++cdef object {{cname}}(const TMaybe[X]& s):
++    if s.Defined():
++        return s.GetRef()
++    return None
++
++
++#################### arcadia_TVector.from_py ####################
++
++cdef extern from *:
++    cdef cppclass TVector [T]:
++        void push_back(T&)
++
++@cname("{{cname}}")
++cdef TVector[X] {{cname}}(object o) except *:
++    cdef TVector[X] v
++    for item in o:
++        v.push_back(<X>item)
++    return v
++
++
++#################### arcadia_TVector.to_py ####################
++
++cdef extern from *:
++    cdef cppclass TVector [T]:
++        size_t size()
++        T& operator[](size_t)
++
++@cname("{{cname}}")
++cdef object {{cname}}(const TVector[X]& v):
++    return [v[i] for i in range(v.size())]
++
++
++#################### arcadia_THashMap.from_py ####################
++
++cdef extern from *:
++    cdef cppclass pair "std::pair" [T, U]:
++        pair(T&, U&)
++    cdef cppclass THashMap [T, U]:
++        void insert(pair[T, U]&)
++
++
++@cname("{{cname}}")
++cdef THashMap[X,Y] {{cname}}(object o) except *:
++    cdef dict d = o
++    cdef THashMap[X,Y] m
++    for key, value in d.iteritems():
++        m.insert(pair[X,Y](<X>key, <Y>value))
++    return m
++
++
++#################### arcadia_THashMap.to_py ####################
++
++cimport cython
++
++cdef extern from *:
++    cdef cppclass THashMap [T, U]:
++        cppclass value_type:
++            T first
++            U second
++        cppclass const_iterator:
++            value_type& operator*()
++            const_iterator operator++()
++            bint operator!=(const_iterator)
++        const_iterator begin()
++        const_iterator end()
++
++@cname("{{cname}}")
++cdef dict {{cname}}(const THashMap[X,Y]& s):
++    cdef dict result = {}
++    cdef const THashMap[X,Y].value_type *key_value
++    cdef THashMap[X,Y].const_iterator iter = s.begin()
++    while iter != s.end():
++        key_value = &cython.operator.dereference(iter)
++        result[key_value.first] = key_value.second
++        cython.operator.preincrement(iter)
++    return result
++
++
++#################### arcadia_TMap.from_py ####################
++
++cdef extern from *:
++    cdef cppclass pair "std::pair" [T, U]:
++        pair(T&, U&)
++    cdef cppclass TMap [T, U]:
++        void insert(pair[T, U]&)
++
++
++@cname("{{cname}}")
++cdef TMap[X,Y] {{cname}}(object o) except *:
++    cdef dict d = o
++    cdef TMap[X,Y] m
++    for key, value in d.iteritems():
++        m.insert(pair[X,Y](<X>key, <Y>value))
++    return m
++
++
++#################### arcadia_TMap.to_py ####################
++
++cimport cython
++
++cdef extern from *:
++    cdef cppclass TMap [T, U]:
++        cppclass value_type:
++            T first
++            U second
++        cppclass const_iterator:
++            value_type& operator*()
++            const_iterator operator++()
++            bint operator!=(const_iterator)
++        const_iterator begin()
++        const_iterator end()
++
++@cname("{{cname}}")
++cdef dict {{cname}}(const TMap[X,Y]& s):
++    cdef dict result = {}
++    cdef const TMap[X,Y].value_type *key_value
++    cdef TMap[X,Y].const_iterator iter = s.begin()
++    while iter != s.end():
++        key_value = &cython.operator.dereference(iter)
++        result[key_value.first] = key_value.second
++        cython.operator.preincrement(iter)
++    return result
+--- contrib/tools/cython/Cython/Utility/Embed.c	(index)
++++ contrib/tools/cython/Cython/Utility/Embed.c	(working tree)
+@@ -5,6 +5,8 @@
+ #endif
+ 
+ #if PY_MAJOR_VERSION < 3
++void Py_InitArgcArgv(int argc, char **argv);
++
+ int %(main_method)s(int argc, char** argv) {
+ #elif defined(WIN32) || defined(MS_WINDOWS)
+ int %(wmain_method)s(int argc, wchar_t **argv) {
+@@ -22,8 +28,10 @@ static int __Pyx_main(int argc, wchar_t **argv) {
+     m = fpgetmask();
+     fpsetmask(m & ~FP_X_OFL);
+ #endif
+-    if (argc && argv)
++    if (argc && argv) {
++        Py_InitArgcArgv(argc, argv);
+         Py_SetProgramName(argv[0]);
++    }
+     Py_Initialize();
+     if (argc && argv)
+         PySys_SetArgv(argc, argv);
+--- contrib/tools/cython/Cython/Utility/ModuleSetupCode.c	(index)
++++ contrib/tools/cython/Cython/Utility/ModuleSetupCode.c	(working tree)
+@@ -1,5 +1,15 @@
+ /////////////// CModulePreamble ///////////////
+ 
++#if defined(__GNUC__) || defined(__clang__)
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wshadow"
++#pragma GCC diagnostic ignored "-Wunused-function"
++#if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
++// Ignore tp_print initializer. Need for ya make -DUSE_SYSTEM_PYTHON=3.8
++#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
++#endif
++#endif
++
+ #include <stddef.h> /* For offsetof */
+ #ifndef offsetof
+   #define offsetof(type, member) ( (size_t) & ((type*)0) -> member )
+--- contrib/tools/cython/Cython/Utility/Optimize.c	(index)
++++ contrib/tools/cython/Cython/Utility/Optimize.c	(working tree)
+@@ -886,7 +886,7 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, CYTHON_UNUSED
+             }
+             return PyInt_FromLong(x);
+         {{elif op == 'Lshift'}}
+-            if (likely(b < (long) (sizeof(long)*8) && a == (a << b) >> b) || !a) {
++            if (likely(b < (int)(sizeof(long)*8) && a == (a << b) >> b) || !a) {
+                 return PyInt_FromLong(a {{c_op}} b);
+             }
+         {{else}}
+@@ -980,12 +980,12 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, CYTHON_UNUSED
+                 x = a {{c_op}} b;
+                 {{if op == 'Lshift'}}
+ #ifdef HAVE_LONG_LONG
+-                if (unlikely(!(b < (long) (sizeof(long)*8) && a == x >> b)) && a) {
++                if (unlikely(!(b < (int)(sizeof(long)*8) && a == x >> b)) && a) {
+                     ll{{ival}} = {{ival}};
+                     goto long_long;
+                 }
+ #else
+-                if (likely(b < (long) (sizeof(long)*8) && a == x >> b) || !a) /* execute return statement below */
++                if (likely(b < (int)(sizeof(long)*8) && a == x >> b) || !a) /* execute return statement below */
+ #endif
+                 {{endif}}
+             {{endif}}
+@@ -1039,9 +1039,9 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, CYTHON_UNUSED
+             }
+             {{endif}}
+             // copied from floatobject.c in Py3.5:
+-            PyFPE_START_PROTECT("{{op.lower() if not op.endswith('Divide') else 'divide'}}", return NULL)
++//            PyFPE_START_PROTECT("{{op.lower() if not op.endswith('Divide') else 'divide'}}", return NULL)
+             result = ((double)a) {{c_op}} (double)b;
+-            PyFPE_END_PROTECT(result)
++//            PyFPE_END_PROTECT(result)
+             return PyFloat_FromDouble(result);
+         {{endif}}
+     }
+@@ -1178,7 +1178,7 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, double floatv
+     {{else}}
+         // copied from floatobject.c in Py3.5:
+         {{if order == 'CObj' and c_op in '%/'}}{{zerodiv_check('b')}}{{endif}}
+-        PyFPE_START_PROTECT("{{op.lower() if not op.endswith('Divide') else 'divide'}}", return NULL)
++//        PyFPE_START_PROTECT("{{op.lower() if not op.endswith('Divide') else 'divide'}}", return NULL)
+         {{if c_op == '%'}}
+         result = fmod(a, b);
+         if (result)
+@@ -1188,7 +1188,7 @@ static {{c_ret_type}} {{cfunc_name}}(PyObject *op1, PyObject *op2, double floatv
+         {{else}}
+         result = a {{c_op}} b;
+         {{endif}}
+-        PyFPE_END_PROTECT(result)
++//        PyFPE_END_PROTECT(result)
+         return PyFloat_FromDouble(result);
+     {{endif}}
+ }
+--- contrib/tools/cython/Cython/Utility/Profile.c	(index)
++++ contrib/tools/cython/Cython/Utility/Profile.c	(working tree)
+@@ -235,6 +235,8 @@
+   #ifdef WITH_THREAD
+   #define __Pyx_TraceLine(lineno, nogil, goto_error)                                       \
+   if (likely(!__Pyx_use_tracing)); else {                                                  \
++      // mark error label as used to avoid compiler warnings                               \
++      if ((1)); else goto_error;                                                           \
+       if (nogil) {                                                                         \
+           if (CYTHON_TRACE_NOGIL) {                                                        \
+               int ret = 0;                                                                 \
+@@ -245,23 +247,28 @@
+                   ret = __Pyx_call_line_trace_func(tstate, $frame_cname, lineno);          \
+               }                                                                            \
+               PyGILState_Release(state);                                                   \
+-              if (unlikely(ret)) goto_error;                                               \
++              // XXX https://github.com/cython/cython/issues/2274                          \
++              if (unlikely(ret)) { fprintf(stderr, "cython: line_trace_func returned %d\n", ret); } \
+           }                                                                                \
+       } else {                                                                             \
+           PyThreadState* tstate = __Pyx_PyThreadState_Current;                             \
+           if (__Pyx_IsTracing(tstate, 0, 0) && tstate->c_tracefunc && $frame_cname->f_trace) { \
+               int ret = __Pyx_call_line_trace_func(tstate, $frame_cname, lineno);          \
+-              if (unlikely(ret)) goto_error;                                               \
++              // XXX https://github.com/cython/cython/issues/2274                          \
++              if (unlikely(ret)) { fprintf(stderr, "cython: line_trace_func returned %d\n", ret); } \
+           }                                                                                \
+       }                                                                                    \
+   }
+   #else
+   #define __Pyx_TraceLine(lineno, nogil, goto_error)                                       \
+   if (likely(!__Pyx_use_tracing)); else {                                                  \
++      // mark error label as used to avoid compiler warnings                               \
++      if ((1)); else goto_error;                                                           \
+       PyThreadState* tstate = __Pyx_PyThreadState_Current;                                 \
+       if (__Pyx_IsTracing(tstate, 0, 0) && tstate->c_tracefunc && $frame_cname->f_trace) { \
+           int ret = __Pyx_call_line_trace_func(tstate, $frame_cname, lineno);              \
+-          if (unlikely(ret)) goto_error;                                                   \
++          // XXX https://github.com/cython/cython/issues/2274                              \
++          if (unlikely(ret)) { fprintf(stderr, "cython: line_trace_func returned %d\n", ret); } \
+       }                                                                                    \
+   }
+   #endif
+--- contrib/tools/cython/Cython/Utility/StringTools.c	(index)
++++ contrib/tools/cython/Cython/Utility/StringTools.c	(working tree)
+@@ -454,7 +454,7 @@ static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16BE(const char *s, Py_s
+ //@requires: decode_c_bytes
+ 
+ static CYTHON_INLINE PyObject* __Pyx_decode_cpp_string(
+-         std::string cppstring, Py_ssize_t start, Py_ssize_t stop,
++         std::string_view cppstring, Py_ssize_t start, Py_ssize_t stop,
+          const char* encoding, const char* errors,
+          PyObject* (*decode_func)(const char *s, Py_ssize_t size, const char *errors)) {
+     return __Pyx_decode_c_bytes(
+--- contrib/tools/cython/cython.py	(index)
++++ contrib/tools/cython/cython.py	(working tree)
+@@ -1,5 +1,7 @@
+ #!/usr/bin/env python
+ 
++# Change content of this file to change uids for cython programs - cython
++
+ #
+ #   Cython -- Main Program, generic
+ #
+@@ -8,6 +10,7 @@ if __name__ == '__main__':
+ 
+     import os
+     import sys
++    sys.dont_write_bytecode = True
+ 
+     # Make sure we import the right Cython
+     cythonpath, _ = os.path.split(os.path.realpath(__file__))

@@ -33,17 +33,6 @@ from __future__ import absolute_import
 
 import re
 import sys
-try:
-    import cgi
-except ImportError:
-    pass
-try:
-    from urllib import quote as url_quote
-except ImportError:  # Py3
-    try:
-        from urllib.parse import quote as url_quote
-    except ImportError:
-        pass
 import os
 import tokenize
 from io import StringIO
@@ -51,8 +40,7 @@ from io import StringIO
 from ._looper import looper
 from .compat3 import bytes, unicode_, basestring_, next, is_unicode, coerce_text
 
-__all__ = ['TemplateError', 'Template', 'sub', 'HTMLTemplate',
-           'sub_html', 'html', 'bunch']
+__all__ = ['TemplateError', 'Template', 'sub', 'bunch']
 
 in_re = re.compile(r'\s+in\s+')
 var_re = re.compile(r'^[a-z_][a-z0-9_]*$', re.I)
@@ -150,9 +138,8 @@ class Template(object):
 
     def from_filename(cls, filename, namespace=None, encoding=None,
                       default_inherit=None, get_template=get_file_template):
-        f = open(filename, 'rb')
-        c = f.read()
-        f.close()
+        with open(filename, 'rb') as f:
+            c = f.read()
         if encoding:
             c = c.decode(encoding)
         return cls(content=c, name=filename, namespace=namespace,
@@ -416,91 +403,6 @@ class bunch(dict):
         return '<%s %s>' % (
             self.__class__.__name__,
             ' '.join(['%s=%r' % (k, v) for k, v in sorted(self.items())]))
-
-############################################################
-## HTML Templating
-############################################################
-
-
-class html(object):
-
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return self.value
-
-    def __html__(self):
-        return self.value
-
-    def __repr__(self):
-        return '<%s %r>' % (
-            self.__class__.__name__, self.value)
-
-
-def html_quote(value, force=True):
-    if not force and hasattr(value, '__html__'):
-        return value.__html__()
-    if value is None:
-        return ''
-    if not isinstance(value, basestring_):
-        value = coerce_text(value)
-    if sys.version >= "3" and isinstance(value, bytes):
-        value = cgi.escape(value.decode('latin1'), 1)
-        value = value.encode('latin1')
-    else:
-        value = cgi.escape(value, 1)
-    if sys.version < "3":
-        if is_unicode(value):
-            value = value.encode('ascii', 'xmlcharrefreplace')
-    return value
-
-
-def url(v):
-    v = coerce_text(v)
-    if is_unicode(v):
-        v = v.encode('utf8')
-    return url_quote(v)
-
-
-def attr(**kw):
-    parts = []
-    for name, value in sorted(kw.items()):
-        if value is None:
-            continue
-        if name.endswith('_'):
-            name = name[:-1]
-        parts.append('%s="%s"' % (html_quote(name), html_quote(value)))
-    return html(' '.join(parts))
-
-
-class HTMLTemplate(Template):
-
-    default_namespace = Template.default_namespace.copy()
-    default_namespace.update(dict(
-        html=html,
-        attr=attr,
-        url=url,
-        html_quote=html_quote,
-        ))
-
-    def _repr(self, value, pos):
-        if hasattr(value, '__html__'):
-            value = value.__html__()
-            quote = False
-        else:
-            quote = True
-        plain = Template._repr(self, value, pos)
-        if quote:
-            return html_quote(plain)
-        else:
-            return plain
-
-
-def sub_html(content, **kw):
-    name = kw.get('__name')
-    tmpl = HTMLTemplate(content, name=name)
-    return tmpl.substitute(kw)
 
 
 class TemplateDef(object):
@@ -1137,11 +1039,6 @@ def fill_command(args=None):
         metavar="FILENAME",
         help="File to write output to (default stdout)")
     parser.add_option(
-        '--html',
-        dest='use_html',
-        action='store_true',
-        help="Use HTML style filling (including automatic HTML quoting)")
-    parser.add_option(
         '--env',
         dest='use_env',
         action='store_true',
@@ -1168,19 +1065,13 @@ def fill_command(args=None):
         template_content = sys.stdin.read()
         template_name = '<stdin>'
     else:
-        f = open(template_name, 'rb')
-        template_content = f.read()
-        f.close()
-    if options.use_html:
-        TemplateClass = HTMLTemplate
-    else:
-        TemplateClass = Template
-    template = TemplateClass(template_content, name=template_name)
+        with open(template_name, 'rb') as f:
+            template_content = f.read()
+    template = Template(template_content, name=template_name)
     result = template.substitute(vars)
     if options.output:
-        f = open(options.output, 'wb')
-        f.write(result)
-        f.close()
+        with open(options.output, 'wb') as f:
+            f.write(result)
     else:
         sys.stdout.write(result)
 

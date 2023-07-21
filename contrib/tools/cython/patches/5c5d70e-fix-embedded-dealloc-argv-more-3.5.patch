@@ -1,0 +1,17 @@
+--- contrib/tools/cython/Cython/Utility/Embed.c	(index)
++++ contrib/tools/cython/Cython/Utility/Embed.c	(working tree)
+@@ -234,7 +234,12 @@ int
+         res = 0;
+         setlocale(LC_ALL, "");
+         for (i = 0; i < argc; i++) {
+-            argv_copy2[i] = argv_copy[i] = __Pyx_char2wchar(argv[i]);
++            argv_copy2[i] = argv_copy[i] =
++#if PY_VERSION_HEX < 0x03050000
++                __Pyx_char2wchar(argv[i]);
++#else
++                Py_DecodeLocale(argv[i], NULL);
++#endif
+             if (!argv_copy[i]) res = 1;  /* failure, but continue to simplify cleanup */
+         }
+         setlocale(LC_ALL, oldloc);
+         free(oldloc);

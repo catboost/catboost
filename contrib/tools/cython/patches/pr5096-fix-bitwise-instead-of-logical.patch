@@ -1,0 +1,39 @@
+commit 6a52786492ecae0f590136de76d078257d60c52d
+merge: fea299b0c0bdcef400863015439b859f2251e5dc a6f39a4bfec4c4fbdaf8708ec84ce5b98f92732c
+author: shadchin
+date: 2023-01-10T10:47:25+03:00
+revision: 10630852
+
+    IGNIETFERRO-2000 Update Python from 3.10.9 to 3.11.1
+    
+    REVIEW: 2519151
+
+--- contrib/tools/cython/Cython/Compiler/ModuleNode.py	(fea299b0c0bdcef400863015439b859f2251e5dc)
++++ contrib/tools/cython/Cython/Compiler/ModuleNode.py	(6a52786492ecae0f590136de76d078257d60c52d)
+@@ -1353,10 +1353,10 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+                 if is_final_type:
+                     type_safety_check = ''
+                 else:
+-                    type_safety_check = ' & ((t->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)) == 0)'
++                    type_safety_check = ' & (int)((t->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)) == 0)'
+                 obj_struct = type.declaration_code("", deref=True)
+                 code.putln(
+-                    "if (CYTHON_COMPILING_IN_CPYTHON && likely((%s > 0) & (t->tp_basicsize == sizeof(%s))%s)) {" % (
++                    "if (CYTHON_COMPILING_IN_CPYTHON & likely((int)(%s > 0) & (int)(t->tp_basicsize == sizeof(%s))%s)) {" % (
+                         freecount_name, obj_struct, type_safety_check))
+                 code.putln("o = (PyObject*)%s[--%s];" % (
+                     freelist_name, freecount_name))
+@@ -1545,11 +1545,11 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
+                     type_safety_check = ''
+                 else:
+                     type_safety_check = (
+-                        ' & ((Py_TYPE(o)->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)) == 0)')
++                        ' & (int)((Py_TYPE(o)->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)) == 0)')
+ 
+                 type = scope.parent_type
+                 code.putln(
+-                    "if (CYTHON_COMPILING_IN_CPYTHON && ((%s < %d) & (Py_TYPE(o)->tp_basicsize == sizeof(%s))%s)) {" % (
++                    "if (CYTHON_COMPILING_IN_CPYTHON & ((int)(%s < %d) & (int)(Py_TYPE(o)->tp_basicsize == sizeof(%s))%s)) {" % (
+                         freecount_name,
+                         freelist_size,
+                         type.declaration_code("", deref=True),

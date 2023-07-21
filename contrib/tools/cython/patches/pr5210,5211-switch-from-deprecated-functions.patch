@@ -1,0 +1,52 @@
+https://github.com/cython/cython/pull/5210
+https://github.com/cython/cython/pull/5211
+
+--- contrib/tools/cython/Cython/Utility/Embed.c	(19fe9379d5dd7e26afd2405b1890080712d1892c)
++++ contrib/tools/cython/Cython/Utility/Embed.c	(bdf71953ac311b76dcfb2ffd7ec4b71a018ed416)
+@@ -28,6 +28,7 @@ static int __Pyx_main(int argc, wchar_t **argv) {
+     m = fpgetmask();
+     fpsetmask(m & ~FP_X_OFL);
+ #endif
++#if PY_VERSION_HEX < 0x03080000
+     if (argc && argv) {
+         Py_InitArgcArgv(argc, argv);
+         Py_SetProgramName(argv[0]);
+@@ -35,6 +36,38 @@ static int __Pyx_main(int argc, wchar_t **argv) {
+     Py_Initialize();
+     if (argc && argv)
+         PySys_SetArgv(argc, argv);
++#else
++    {
++        PyStatus status;
++
++        PyConfig config;
++        PyConfig_InitPythonConfig(&config);
++        // Disable parsing command line arguments
++        config.parse_argv = 0;
++
++        if (argc && argv) {
++            status = PyConfig_SetString(&config, &config.program_name, argv[0]);
++            if (PyStatus_Exception(status)) {
++                PyConfig_Clear(&config);
++                return 1;
++            }
++
++            status = PyConfig_SetArgv(&config, argc, argv);
++            if (PyStatus_Exception(status)) {
++                PyConfig_Clear(&config);
++                return 1;
++            }
++        }
++
++        status = Py_InitializeFromConfig(&config);
++        if (PyStatus_Exception(status)) {
++            PyConfig_Clear(&config);
++            return 1;
++        }
++
++        PyConfig_Clear(&config);
++    }
++#endif
+     { /* init module '%(module_name)s' as '__main__' */
+       PyObject* m = NULL;
+       %(module_is_main)s = 1;
