@@ -2,6 +2,7 @@
 #include "http_ex.h"
 
 #include <library/cpp/threading/equeue/equeue.h>
+#include <library/cpp/threading/equeue/fast.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/intrlist.h>
@@ -405,8 +406,8 @@ public:
         : TImpl(
               parent,
               cb,
-              MakeThreadPool<TSimpleThreadPool>(factory, options.UseElasticQueues, cb, options.RequestsThreadName),
-              MakeThreadPool<TThreadPool>(factory, options.UseElasticQueues, nullptr, options.FailRequestsThreadName),
+              MakeThreadPool<TSimpleThreadPool>(factory, options, cb, options.RequestsThreadName),
+              MakeThreadPool<TThreadPool>(factory, options, nullptr, options.FailRequestsThreadName),
               options) {
     }
 
@@ -456,21 +457,30 @@ public:
 
 private:
     template <class TThreadPool_>
-    static THolder<IThreadPool> MakeThreadPool(IThreadFactory* factory, bool elastic, ICallBack* callback = nullptr, const TString& threadName = {}) {
+    static THolder<IThreadPool> MakeThreadPool(ICallBack* callback, const IThreadPool::TParams& params) {
+        if (callback) {
+            return MakeHolder<TThreadPoolBinder<TThreadPool_, THttpServer::ICallBack>>(callback, params);
+        } else {
+            return  MakeHolder<TThreadPool_>(params);
+        }
+    }
+
+    template <class TThreadPool_>
+    static THolder<IThreadPool> MakeThreadPool(IThreadFactory* factory, const TOptions& options, ICallBack* callback = nullptr, const TString& threadName = {}) {
         if (!factory) {
             factory = SystemThreadFactory();
         }
 
         THolder<IThreadPool> pool;
         const auto params = IThreadPool::TParams().SetFactory(factory).SetThreadName(threadName);
-        if (callback) {
-            pool = MakeHolder<TThreadPoolBinder<TThreadPool_, THttpServer::ICallBack>>(callback, params);
-        } else {
-            pool = MakeHolder<TThreadPool_>(params);
-        }
 
-        if (elastic) {
-            pool = MakeHolder<TElasticQueue>(std::move(pool));
+        if (options.UseFastElasticQueues) {
+            pool = MakeThreadPool<TFastElasticQueue>(callback, params);
+        } else {
+            pool = MakeThreadPool<TThreadPool_>(callback, params);
+            if (options.UseElasticQueues) {
+                pool = MakeHolder<TElasticQueue>(std::move(pool));
+            }
         }
 
         return pool;

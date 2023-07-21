@@ -131,6 +131,11 @@ public:
         return *this;
     }
 
+    inline THttpServerOptions& EnableFastElasticQueues(bool enable) noexcept {
+        UseFastElasticQueues = enable;
+
+        return *this;
+    }
     inline THttpServerOptions& SetThreadsName(const TString& listenThreadName, const TString& requestsThreadName, const TString& failRequestsThreadName) noexcept {
         ListenThreadName = listenThreadName;
         RequestsThreadName = requestsThreadName;
@@ -167,6 +172,7 @@ public:
     ui64 MaxInputContentLength = sizeof(size_t) <= 4 ? 2_GB : 64_GB;
     size_t MaxRequestsPerConnection = 0;  // If keep-alive is enabled, request limit before connection is closed
     bool UseElasticQueues = false;
+    bool UseFastElasticQueues = false;
 
     TDuration PollTimeout; // timeout of TSocketPoller::WaitT call
     TDuration ExpirationTimeout; // drop inactive connections after ExpirationTimeout (should be > 0)
