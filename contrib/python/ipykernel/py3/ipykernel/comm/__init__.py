@@ -1,2 +1,4 @@
-from .comm import *  # noqa
-from .manager import *  # noqa
+__all__ = ["Comm", "CommManager"]
+
+from .comm import Comm
+from .manager import CommManager

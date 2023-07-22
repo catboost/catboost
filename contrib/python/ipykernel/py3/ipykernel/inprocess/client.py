@@ -184,7 +184,7 @@ class InProcessKernelClient(KernelClient):
         stream = kernel.shell_stream
         self.session.send(stream, msg)
         msg_parts = stream.recv_multipart()
-        if run_sync:
+        if run_sync is not None:
             dispatch_shell = run_sync(kernel.dispatch_shell)
             dispatch_shell(msg_parts)
         else:

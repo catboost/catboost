@@ -9,7 +9,7 @@ import sys
 from functools import partial
 
 import zmq
-from packaging.version import Version as V
+from packaging.version import Version as V  # noqa
 from traitlets.config.application import Application
 
 

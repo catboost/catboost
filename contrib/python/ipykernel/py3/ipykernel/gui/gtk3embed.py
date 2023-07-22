@@ -12,6 +12,9 @@
 # -----------------------------------------------------------------------------
 # stdlib
 import sys
+import warnings
+
+warnings.warn("The Gtk3 event loop for ipykernel is deprecated", category=DeprecationWarning)
 
 # Third-party
 import gi

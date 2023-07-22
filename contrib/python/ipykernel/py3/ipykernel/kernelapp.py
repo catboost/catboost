@@ -168,7 +168,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
     trio_loop = Bool(False, help="Set main event loop.").tag(config=True)
     quiet = Bool(True, help="Only send stdout/stderr to output stream").tag(config=True)
     outstream_class = DottedObjectName(
-        "ipykernel.iostream.OutStream", help="The importstring for the OutStream factory"
+        "ipykernel.iostream.OutStream",
+        help="The importstring for the OutStream factory",
+        allow_none=True,
     ).tag(config=True)
     displayhook_class = DottedObjectName(
         "ipykernel.displayhook.ZMQDisplayHook", help="The importstring for the DisplayHook factory"
@@ -465,7 +467,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
 
                         handler.stream = TextIOWrapper(
                             FileIO(
-                                sys.stderr._original_stdstream_copy,  # type:ignore[attr-defined]
+                                sys.stderr._original_stdstream_copy,
                                 "w",
                             )
                         )
@@ -623,10 +625,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
             import asyncio
 
             try:
-                from asyncio import (
-                    WindowsProactorEventLoopPolicy,
-                    WindowsSelectorEventLoopPolicy,
-                )
+                from asyncio import WindowsProactorEventLoopPolicy, WindowsSelectorEventLoopPolicy
             except ImportError:
                 pass
                 # not affected
@@ -642,7 +641,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
         With the non-interruptible version, stopping pdb() locks up the kernel in a
         non-recoverable state.
         """
-        import pdb
+        import pdb  # noqa
 
         from IPython.core import debugger
 
@@ -717,7 +716,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
 launch_new_instance = IPKernelApp.launch_instance
 
 
-def main():
+def main():  # pragma: no cover
     """Run an IPKernel as an application"""
     app = IPKernelApp.instance()
     app.initialize()

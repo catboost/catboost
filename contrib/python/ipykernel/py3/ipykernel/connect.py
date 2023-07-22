@@ -120,7 +120,7 @@ def connect_qtconsole(connection_file=None, argv=None):
         stdout=PIPE,
         stderr=PIPE,
         close_fds=(sys.platform != "win32"),
-        **kwargs
+        **kwargs,
     )
 
 

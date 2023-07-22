@@ -5,16 +5,19 @@ import builtins
 import getpass
 import signal
 import sys
+import threading
 import typing as t
 from contextlib import contextmanager
 from functools import partial
 
+import comm
 from IPython.core import release
 from IPython.utils.tokenutil import line_at_cursor, token_at_cursor
-from traitlets import Any, Bool, Instance, List, Type, observe, observe_compat
+from traitlets import Any, Bool, HasTraits, Instance, List, Type, observe, observe_compat
 from zmq.eventloop.zmqstream import ZMQStream
 
-from .comm import CommManager
+from .comm.comm import BaseComm
+from .comm.manager import CommManager
 from .compiler import XCachingCompiler
 from .debugger import Debugger, _is_debugpy_available
 from .eventloops import _use_appnope
@@ -37,6 +40,30 @@ except ImportError:
 
 
 _EXPERIMENTAL_KEY_NAME = "_jupyter_types_experimental"
+
+
+def _create_comm(*args, **kwargs):
+    """Create a new Comm."""
+    return BaseComm(*args, **kwargs)
+
+
+# there can only be one comm manager in a ipykernel process
+_comm_lock = threading.Lock()
+_comm_manager: t.Optional[CommManager] = None
+
+
+def _get_comm_manager(*args, **kwargs):
+    """Create a new CommManager."""
+    global _comm_manager
+    if _comm_manager is None:
+        with _comm_lock:
+            if _comm_manager is None:
+                _comm_manager = CommManager(*args, **kwargs)
+    return _comm_manager
+
+
+comm.create_comm = _create_comm
+comm.get_comm_manager = _get_comm_manager
 
 
 class IPythonKernel(KernelBase):
@@ -101,8 +128,9 @@ class IPythonKernel(KernelBase):
         self.shell.display_pub.session = self.session
         self.shell.display_pub.pub_socket = self.iopub_socket
 
-        self.comm_manager = CommManager(parent=self, kernel=self)
+        self.comm_manager = comm.get_comm_manager()
 
+        assert isinstance(self.comm_manager, HasTraits)
         self.shell.configurables.append(self.comm_manager)
         comm_msg_types = ["comm_open", "comm_msg", "comm_close"]
         for msg_type in comm_msg_types:
@@ -243,7 +271,7 @@ class IPythonKernel(KernelBase):
 
         getpass.getpass = self._save_getpass
 
-    @property  # type:ignore[override]
+    @property
     def execution_count(self):
         return self.shell.execution_count
 
@@ -451,7 +479,6 @@ class IPythonKernel(KernelBase):
             cursor_pos = len(code)
         line, offset = line_at_cursor(code, cursor_pos)
         line_cursor = cursor_pos - offset
-
         txt, matches = self.shell.complete("", line, line_cursor)
         return {
             "matches": matches,
@@ -580,14 +607,16 @@ class IPythonKernel(KernelBase):
         return r
 
     def do_apply(self, content, bufs, msg_id, reply_metadata):
-        from .serialize import serialize_object, unpack_apply_message
+        try:
+            from ipyparallel.serialize import serialize_object, unpack_apply_message
+        except ImportError:
+            from .serialize import serialize_object, unpack_apply_message  # type:ignore
 
         shell = self.shell
         try:
             working = shell.user_ns
 
             prefix = "_" + str(msg_id).replace("-", "") + "_"
-
             f, args, kwargs = unpack_apply_message(bufs, working, copy=False)
 
             fname = getattr(f, "__name__", "f")
@@ -602,7 +631,7 @@ class IPythonKernel(KernelBase):
             working.update(ns)
             code = f"{resultname} = {fname}(*{argname},**{kwargname})"
             try:
-                exec(code, shell.user_global_ns, shell.user_ns)
+                exec(code, shell.user_global_ns, shell.user_ns)  # noqa
                 result = working.get(resultname)
             finally:
                 for key in ns:
@@ -650,7 +679,7 @@ class IPythonKernel(KernelBase):
 
 
 class Kernel(IPythonKernel):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # pragma: no cover
         import warnings
 
         warnings.warn(

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipykernel
-Version: 6.17.1
+Version: 6.19.4
 Summary: IPython Kernel for Jupyter
 Project-URL: Homepage, https://ipython.org
 Author-email: IPython Development Team <ipython-dev@scipy.org>
@@ -79,6 +79,7 @@ Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Requires-Python: >=3.8
 Requires-Dist: appnope; platform_system == 'Darwin'
+Requires-Dist: comm>=0.1.1
 Requires-Dist: debugpy>=1.0
 Requires-Dist: ipython>=7.23.1
 Requires-Dist: jupyter-client>=6.1.12
@@ -88,7 +89,13 @@ Requires-Dist: packaging
 Requires-Dist: psutil
 Requires-Dist: pyzmq>=17
 Requires-Dist: tornado>=6.1
-Requires-Dist: traitlets>=5.1.0
+Requires-Dist: traitlets>=5.4.0
+Provides-Extra: cov
+Requires-Dist: coverage[toml]; extra == 'cov'
+Requires-Dist: curio; extra == 'cov'
+Requires-Dist: matplotlib; extra == 'cov'
+Requires-Dist: pytest-cov; extra == 'cov'
+Requires-Dist: trio; extra == 'cov'
 Provides-Extra: docs
 Requires-Dist: myst-parser; extra == 'docs'
 Requires-Dist: pydata-sphinx-theme; extra == 'docs'
@@ -98,12 +105,17 @@ Provides-Extra: test
 Requires-Dist: flaky; extra == 'test'
 Requires-Dist: ipyparallel; extra == 'test'
 Requires-Dist: pre-commit; extra == 'test'
+Requires-Dist: pytest-asyncio; extra == 'test'
 Requires-Dist: pytest-cov; extra == 'test'
 Requires-Dist: pytest-timeout; extra == 'test'
 Requires-Dist: pytest>=7.0; extra == 'test'
 Description-Content-Type: text/markdown
 
 # IPython Kernel for Jupyter
+
+[![Build Status](https://github.com/ipython/ipykernel/actions/workflows/ci.yml/badge.svg?query=branch%3Amain++)](https://github.com/ipython/ipykernel/actions/workflows/ci.yml/badge.svg?query=branch%3Amain++)
+[![codecov](https://codecov.io/gh/ipython/ipykernel/branch/main/graph/badge.svg?token=SyksDOcIJa)](https://codecov.io/gh/ipython/ipykernel)
+[![Documentation Status](https://readthedocs.org/projects/ipython/badge/?version=latest)](http://ipython.readthedocs.io/en/latest/?badge=latest)
 
 This package provides the IPython kernel for Jupyter.
 

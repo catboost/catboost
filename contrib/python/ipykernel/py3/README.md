@@ -1,5 +1,9 @@
 # IPython Kernel for Jupyter
 
+[![Build Status](https://github.com/ipython/ipykernel/actions/workflows/ci.yml/badge.svg?query=branch%3Amain++)](https://github.com/ipython/ipykernel/actions/workflows/ci.yml/badge.svg?query=branch%3Amain++)
+[![codecov](https://codecov.io/gh/ipython/ipykernel/branch/main/graph/badge.svg?token=SyksDOcIJa)](https://codecov.io/gh/ipython/ipykernel)
+[![Documentation Status](https://readthedocs.org/projects/ipython/badge/?version=latest)](http://ipython.readthedocs.io/en/latest/?badge=latest)
+
 This package provides the IPython kernel for Jupyter.
 
 ## Installation from source

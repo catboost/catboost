@@ -264,7 +264,7 @@ class BackgroundSocket:
         super().__getattr__(attr)  # type:ignore[misc]
 
     def __setattr__(self, attr, value):
-        if attr == "io_thread" or (attr.startswith("__" and attr.endswith("__"))):
+        if attr == "io_thread" or (attr.startswith("__") and attr.endswith("__")):
             super().__setattr__(attr, value)
         else:
             warnings.warn(

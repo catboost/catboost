@@ -202,8 +202,6 @@ class KernelMagics(Magics):
     # the magics which this class needs to implement differently from the base
     # class, or that are unique to it.
 
-    _find_edit_target = CodeMagics._find_edit_target
-
     @line_magic
     def edit(self, parameter_s="", last_call=None):
         """Bring up an editor and execute the resulting code.
@@ -326,7 +324,8 @@ class KernelMagics(Magics):
         if arg_s.endswith(".py"):
             cont = self.shell.pycolorize(openpy.read_py_file(arg_s, skip_encoding_cookie=False))
         else:
-            cont = open(arg_s).read()
+            with open(arg_s) as fid:
+                cont = fid.read()
         page.page(cont)
 
     more = line_magic("more")(less)
@@ -482,6 +481,9 @@ class ZMQInteractiveShell(InteractiveShell):
         # These two ensure 'ls' produces nice coloring on BSD-derived systems
         env["TERM"] = "xterm-color"
         env["CLICOLOR"] = "1"
+        # These two add terminal color in tools that support it.
+        env["FORCE_COLOR"] = "1"
+        env["CLICOLOR_FORCE"] = "1"
         # Since normal pagers don't work at all (over pexpect we don't have
         # single-key control of the subprocess), try to disable paging in
         # subprocesses as much as possible.

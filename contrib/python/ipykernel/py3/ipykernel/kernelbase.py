@@ -102,7 +102,7 @@ class Kernel(SingletonConfigurable):
     banner: str
 
     @default("shell_streams")
-    def _shell_streams_default(self):
+    def _shell_streams_default(self):  # pragma: no cover
         warnings.warn(
             "Kernel.shell_streams is deprecated in ipykernel 6.0. Use Kernel.shell_stream",
             DeprecationWarning,
@@ -114,7 +114,7 @@ class Kernel(SingletonConfigurable):
             return []
 
     @observe("shell_streams")
-    def _shell_streams_changed(self, change):
+    def _shell_streams_changed(self, change):  # pragma: no cover
         warnings.warn(
             "Kernel.shell_streams is deprecated in ipykernel 6.0. Use Kernel.shell_stream",
             DeprecationWarning,
@@ -683,7 +683,6 @@ class Kernel(SingletonConfigurable):
 
     async def execute_request(self, stream, ident, parent):
         """handle an execute_request"""
-
         try:
             content = parent["content"]
             code = content["code"]
@@ -872,7 +871,7 @@ class Kernel(SingletonConfigurable):
         if hasattr(self, "comm_manager"):
             comms = {
                 k: dict(target_name=v.target_name)
-                for (k, v) in self.comm_manager.comms.items()  # type:ignore[attr-defined]
+                for (k, v) in self.comm_manager.comms.items()
                 if v.target_name == target_name or target_name is None
             }
         else:
@@ -947,7 +946,6 @@ class Kernel(SingletonConfigurable):
 
     async def debug_request(self, stream, ident, parent):
         content = parent["content"]
-
         reply_content = self.do_debug_request(content)
         if inspect.isawaitable(reply_content):
             reply_content = await reply_content
@@ -1006,7 +1004,7 @@ class Kernel(SingletonConfigurable):
     # Engine methods (DEPRECATED)
     # ---------------------------------------------------------------------------
 
-    async def apply_request(self, stream, ident, parent):
+    async def apply_request(self, stream, ident, parent):  # pragma: no cover
         self.log.warning("apply_request is deprecated in kernel_base, moving to ipyparallel.")
         try:
             content = parent["content"]
@@ -1044,7 +1042,7 @@ class Kernel(SingletonConfigurable):
     # Control messages (DEPRECATED)
     # ---------------------------------------------------------------------------
 
-    async def abort_request(self, stream, ident, parent):
+    async def abort_request(self, stream, ident, parent):  # pragma: no cover
         """abort a specific msg by id"""
         self.log.warning(
             "abort_request is deprecated in kernel_base. It is only part of IPython parallel"
@@ -1063,7 +1061,7 @@ class Kernel(SingletonConfigurable):
         )
         self.log.debug("%s", reply_msg)
 
-    async def clear_request(self, stream, idents, parent):
+    async def clear_request(self, stream, idents, parent):  # pragma: no cover
         """Clear our namespace."""
         self.log.warning(
             "clear_request is deprecated in kernel_base. It is only part of IPython parallel"

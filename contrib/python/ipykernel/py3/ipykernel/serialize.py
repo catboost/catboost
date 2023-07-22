@@ -29,14 +29,14 @@ try:
 except ImportError:
     # Deprecated since ipykernel 4.3.0
     from ipykernel.pickleutil import (
-        can,
-        uncan,
-        can_sequence,
-        uncan_sequence,
+        PICKLE_PROTOCOL,
         CannedObject,
+        can,
+        can_sequence,
         istype,
         sequence_types,
-        PICKLE_PROTOCOL,
+        uncan,
+        uncan_sequence,
     )
 
 from jupyter_client.session import MAX_BYTES, MAX_ITEMS
