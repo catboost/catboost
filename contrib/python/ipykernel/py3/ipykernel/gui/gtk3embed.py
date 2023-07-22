@@ -4,7 +4,7 @@
 #  Copyright (C) 2010-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
+#  the file LICENSE, distributed as part of this software.
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -32,6 +32,7 @@ class GTKEmbed:
     """A class to embed a kernel into the GTK main event loop."""
 
     def __init__(self, kernel):
+        """Initialize the embed."""
         self.kernel = kernel
         # These two will later store the real gtk functions when we hijack them
         self.gtk_main = None
@@ -63,6 +64,7 @@ class GTKEmbed:
         return True
 
     def stop(self):
+        """Stop the embed."""
         # FIXME: this one isn't getting called because we have no reliable
         # kernel shutdown.  We need to fix that: once the kernel has a
         # shutdown mechanism, it can call this.
@@ -86,6 +88,7 @@ class GTKEmbed:
         """
 
         def dummy(*args, **kw):
+            """No-op."""
             pass
 
         # save and trap main and main_quit from gtk

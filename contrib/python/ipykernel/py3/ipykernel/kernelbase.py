@@ -68,6 +68,7 @@ def _accepts_cell_id(meth):
 
 
 class Kernel(SingletonConfigurable):
+    """The base kernel class."""
 
     # ---------------------------------------------------------------------------
     # Kernel interface
@@ -251,7 +252,8 @@ class Kernel(SingletonConfigurable):
         "apply_request",
     ]
     # add deprecated ipyparallel control messages
-    control_msg_types = msg_types + [
+    control_msg_types = [
+        *msg_types,
         "clear_request",
         "abort_request",
         "debug_request",
@@ -259,6 +261,7 @@ class Kernel(SingletonConfigurable):
     ]
 
     def __init__(self, **kwargs):
+        """Initialize the kernel."""
         super().__init__(**kwargs)
         # Build dict of handlers for message types
         self.shell_handlers = {}
@@ -542,10 +545,7 @@ class Kernel(SingletonConfigurable):
 
         self.control_stream.on_recv(self.dispatch_control, copy=False)
 
-        if self.control_thread:
-            control_loop = self.control_thread.io_loop
-        else:
-            control_loop = self.io_loop
+        control_loop = self.control_thread.io_loop if self.control_thread else self.io_loop
 
         asyncio.run_coroutine_threadsafe(self.poll_control_queue(), control_loop.asyncio_loop)
 
@@ -769,6 +769,7 @@ class Kernel(SingletonConfigurable):
         raise NotImplementedError
 
     async def complete_request(self, stream, ident, parent):
+        """Handle a completion request."""
         content = parent["content"]
         code = content["code"]
         cursor_pos = content["cursor_pos"]
@@ -791,6 +792,7 @@ class Kernel(SingletonConfigurable):
         }
 
     async def inspect_request(self, stream, ident, parent):
+        """Handle an inspect request."""
         content = parent["content"]
 
         reply_content = self.do_inspect(
@@ -812,6 +814,7 @@ class Kernel(SingletonConfigurable):
         return {"status": "ok", "data": {}, "metadata": {}, "found": False}
 
     async def history_request(self, stream, ident, parent):
+        """Handle a history request."""
         content = parent["content"]
 
         reply_content = self.do_history(**content)
@@ -838,10 +841,8 @@ class Kernel(SingletonConfigurable):
         return {"status": "ok", "history": []}
 
     async def connect_request(self, stream, ident, parent):
-        if self._recorded_ports is not None:
-            content = self._recorded_ports.copy()
-        else:
-            content = {}
+        """Handle a connect request."""
+        content = self._recorded_ports.copy() if self._recorded_ports is not None else {}
         content["status"] = "ok"
         msg = self.session.send(stream, "connect_reply", content, parent, ident)
         self.log.debug("%s", msg)
@@ -858,12 +859,14 @@ class Kernel(SingletonConfigurable):
         }
 
     async def kernel_info_request(self, stream, ident, parent):
+        """Handle a kernel info request."""
         content = {"status": "ok"}
         content.update(self.kernel_info)
         msg = self.session.send(stream, "kernel_info_reply", content, parent, ident)
         self.log.debug("%s", msg)
 
     async def comm_info_request(self, stream, ident, parent):
+        """Handle a comm info request."""
         content = parent["content"]
         target_name = content.get("target_name", None)
 
@@ -880,7 +883,7 @@ class Kernel(SingletonConfigurable):
         msg = self.session.send(stream, "comm_info_reply", reply_content, parent, ident)
         self.log.debug("%s", msg)
 
-    def _send_interupt_children(self):
+    def _send_interrupt_children(self):
         if os.name == "nt":
             self.log.error("Interrupt message not supported on Windows")
         else:
@@ -891,21 +894,32 @@ class Kernel(SingletonConfigurable):
             if pgid and pgid == pid and hasattr(os, "killpg"):
                 try:
                     os.killpg(pgid, SIGINT)
-                    return
                 except OSError:
-                    pass
-            try:
+                    os.kill(pid, SIGINT)
+                    raise
+            else:
                 os.kill(pid, SIGINT)
-            except OSError:
-                pass
 
     async def interrupt_request(self, stream, ident, parent):
-        self._send_interupt_children()
-        content = parent["content"]
+        """Handle an interrupt request."""
+        content: t.Dict[str, t.Any] = {"status": "ok"}
+        try:
+            self._send_interrupt_children()
+        except OSError as err:
+            import traceback
+
+            content = {
+                "status": "error",
+                "traceback": traceback.format_stack(),
+                "ename": str(type(err).__name__),
+                "evalue": str(err),
+            }
+
         self.session.send(stream, "interrupt_reply", content, parent, ident=ident)
         return
 
     async def shutdown_request(self, stream, ident, parent):
+        """Handle a shutdown request."""
         content = self.do_shutdown(parent["content"]["restart"])
         if inspect.isawaitable(content):
             content = await content
@@ -930,6 +944,7 @@ class Kernel(SingletonConfigurable):
         return {"status": "ok", "restart": restart}
 
     async def is_complete_request(self, stream, ident, parent):
+        """Handle an is_complete request."""
         content = parent["content"]
         code = content["code"]
 
@@ -945,6 +960,7 @@ class Kernel(SingletonConfigurable):
         return {"status": "unknown"}
 
     async def debug_request(self, stream, ident, parent):
+        """Handle a debug request."""
         content = parent["content"]
         reply_content = self.do_debug_request(content)
         if inspect.isawaitable(reply_content):
@@ -954,6 +970,7 @@ class Kernel(SingletonConfigurable):
         self.log.debug("%s", reply_msg)
 
     def get_process_metric_value(self, process, name, attribute=None):
+        """Get the process metric value."""
         try:
             metric_value = getattr(process, name)()
             if attribute is not None:  # ... a named tuple
@@ -966,9 +983,10 @@ class Kernel(SingletonConfigurable):
             return None
 
     async def usage_request(self, stream, ident, parent):
+        """Handle a usage request."""
         reply_content = {"hostname": socket.gethostname(), "pid": os.getpid()}
         current_process = psutil.Process()
-        all_processes = [current_process] + current_process.children(recursive=True)
+        all_processes = [current_process, *current_process.children(recursive=True)]
         # Ensure 1) self.processes is updated to only current subprocesses
         # and 2) we reuse processes when possible (needed for accurate CPU)
         self.processes = {
@@ -1005,6 +1023,7 @@ class Kernel(SingletonConfigurable):
     # ---------------------------------------------------------------------------
 
     async def apply_request(self, stream, ident, parent):  # pragma: no cover
+        """Handle an apply request."""
         self.log.warning("apply_request is deprecated in kernel_base, moving to ipyparallel.")
         try:
             content = parent["content"]
@@ -1131,9 +1150,8 @@ class Kernel(SingletonConfigurable):
     def _no_raw_input(self):
         """Raise StdinNotImplementedError if active frontend doesn't support
         stdin."""
-        raise StdinNotImplementedError(
-            "raw_input was called, but this frontend does not support stdin."
-        )
+        msg = "raw_input was called, but this frontend does not support stdin."
+        raise StdinNotImplementedError(msg)
 
     def getpass(self, prompt="", stream=None):
         """Forward getpass to frontends
@@ -1143,9 +1161,8 @@ class Kernel(SingletonConfigurable):
         StdinNotImplementedError if active frontend doesn't support stdin.
         """
         if not self._allow_stdin:
-            raise StdinNotImplementedError(
-                "getpass was called, but this frontend does not support input requests."
-            )
+            msg = "getpass was called, but this frontend does not support input requests."
+            raise StdinNotImplementedError(msg)
         if stream is not None:
             import warnings
 
@@ -1169,9 +1186,8 @@ class Kernel(SingletonConfigurable):
         StdinNotImplementedError if active frontend doesn't support stdin.
         """
         if not self._allow_stdin:
-            raise StdinNotImplementedError(
-                "raw_input was called, but this frontend does not support input requests."
-            )
+            msg = "raw_input was called, but this frontend does not support input requests."
+            raise StdinNotImplementedError(msg)
         return self._input_request(
             str(prompt),
             self._parent_ident["shell"],
@@ -1214,7 +1230,8 @@ class Kernel(SingletonConfigurable):
                         break
             except KeyboardInterrupt:
                 # re-raise KeyboardInterrupt, to truncate traceback
-                raise KeyboardInterrupt("Interrupted by user") from None
+                msg = "Interrupted by user"
+                raise KeyboardInterrupt(msg) from None
             except Exception:
                 self.log.warning("Invalid Message:", exc_info=True)
 

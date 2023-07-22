@@ -190,6 +190,7 @@ class IOPubThread:
             event_pipe.close()
 
     def close(self):
+        """Close the IOPub thread."""
         if self.closed:
             return
         self.socket.close()
@@ -233,7 +234,7 @@ class IOPubThread:
             # new context/socket for every pipe-out
             # since forks don't teardown politely, use ctx.term to ensure send has completed
             ctx, pipe_out = self._setup_pipe_out()
-            pipe_out.send_multipart([self._pipe_uuid] + msg, *args, **kwargs)
+            pipe_out.send_multipart([self._pipe_uuid, *msg], *args, **kwargs)
             pipe_out.close()
             ctx.term()
 
@@ -244,6 +245,7 @@ class BackgroundSocket:
     io_thread = None
 
     def __init__(self, io_thread):
+        """Initialize the socket."""
         self.io_thread = io_thread
 
     def __getattr__(self, attr):
@@ -264,6 +266,7 @@ class BackgroundSocket:
         super().__getattr__(attr)  # type:ignore[misc]
 
     def __setattr__(self, attr, value):
+        """Set an attribute on the socket."""
         if attr == "io_thread" or (attr.startswith("__") and attr.endswith("__")):
             super().__setattr__(attr, value)
         else:
@@ -278,6 +281,7 @@ class BackgroundSocket:
             setattr(self.io_thread.socket, attr, value)
 
     def send(self, msg, *args, **kwargs):
+        """Send a message to the socket."""
         return self.send_multipart([msg], *args, **kwargs)
 
     def send_multipart(self, *args, **kwargs):
@@ -308,7 +312,8 @@ class OutStream(TextIOBase):
         if getattr(self, "_original_stdstream_copy", None) is not None:
             return self._original_stdstream_copy
         else:
-            raise io.UnsupportedOperation("fileno")
+            msg = "fileno"
+            raise io.UnsupportedOperation(msg)
 
     def _watch_pipe_fd(self):
         """
@@ -396,6 +401,7 @@ class OutStream(TextIOBase):
         self._buffer = StringIO()
         self.echo = None
         self._isatty = bool(isatty)
+        self._should_watch = False
 
         if (
             watchfd
@@ -411,7 +417,8 @@ class OutStream(TextIOBase):
             if hasattr(echo, "read") and hasattr(echo, "write"):
                 self.echo = echo
             else:
-                raise ValueError("echo argument must be a file like object")
+                msg = "echo argument must be a file like object"
+                raise ValueError(msg)
 
     def isatty(self):
         """Return a bool indicating whether this is an 'interactive' stream.
@@ -438,10 +445,12 @@ class OutStream(TextIOBase):
         return os.getpid() == self._master_pid
 
     def set_parent(self, parent):
+        """Set the parent header."""
         self.parent_header = extract_header(parent)
 
     def close(self):
-        if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
+        """Close the stream."""
+        if self._should_watch:
             self._should_watch = False
             self.watch_fd_thread.join()
         if self._exc:
@@ -534,7 +543,8 @@ class OutStream(TextIOBase):
         """
 
         if not isinstance(string, str):
-            raise TypeError(f"write() argument must be str, not {type(string)}")
+            msg = f"write() argument must be str, not {type(string)}"
+            raise TypeError(msg)
 
         if self.echo is not None:
             try:
@@ -544,9 +554,9 @@ class OutStream(TextIOBase):
                     print(f"Write failed: {e}", file=sys.__stderr__)
 
         if self.pub_thread is None:
-            raise ValueError("I/O operation on closed file")
+            msg = "I/O operation on closed file"
+            raise ValueError(msg)
         else:
-
             is_child = not self._is_master_process()
             # only touch the buffer in the IO thread to avoid races
             with self._buffer_lock:
@@ -565,13 +575,16 @@ class OutStream(TextIOBase):
         return len(string)
 
     def writelines(self, sequence):
+        """Write lines to the stream."""
         if self.pub_thread is None:
-            raise ValueError("I/O operation on closed file")
+            msg = "I/O operation on closed file"
+            raise ValueError(msg)
         else:
             for string in sequence:
                 self.write(string)
 
     def writable(self):
+        """Test whether the stream is writable."""
         return True
 
     def _flush_buffer(self):

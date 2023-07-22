@@ -1,3 +1,4 @@
+"""Compiler helpers for the debugger."""
 import os
 import sys
 import tempfile
@@ -6,6 +7,7 @@ from IPython.core.compilerop import CachingCompiler
 
 
 def murmur2_x86(data, seed):
+    """Get the murmur2 hash."""
     m = 0x5BD1E995
     data = [chr(d) for d in str.encode(data, "utf8")]
     length = len(data)
@@ -70,17 +72,20 @@ if sys.platform == "win32":
 
 
 def get_tmp_directory():
+    """Get a temp directory."""
     tmp_dir = convert_to_long_pathname(tempfile.gettempdir())
     pid = os.getpid()
     return tmp_dir + os.sep + "ipykernel_" + str(pid)
 
 
 def get_tmp_hash_seed():
+    """Get a temp hash seed."""
     hash_seed = 0xC70F6907
     return hash_seed
 
 
 def get_file_name(code):
+    """Get a file name."""
     cell_name = os.environ.get("IPYKERNEL_CELL_NAME")
     if cell_name is None:
         name = murmur2_x86(code, get_tmp_hash_seed())
@@ -89,9 +94,13 @@ def get_file_name(code):
 
 
 class XCachingCompiler(CachingCompiler):
+    """A custom caching compiler."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize the compiler."""
         super().__init__(*args, **kwargs)
         self.log = None
 
     def get_code_name(self, raw_code, code, number):
+        """Get the code name."""
         return get_file_name(raw_code)

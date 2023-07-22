@@ -25,11 +25,11 @@ from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import UsageError
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.magic import Magics, line_magic, magics_class
-from IPython.core.magics import CodeMagics, MacroToEdit
+from IPython.core.magics import CodeMagics, MacroToEdit  # type:ignore[attr-defined]
 from IPython.core.usage import default_banner
-from IPython.display import Javascript, display
+from IPython.display import Javascript, display  # type:ignore[attr-defined]
 from IPython.utils import openpy
-from IPython.utils.process import arg_split, system
+from IPython.utils.process import arg_split, system  # type:ignore[attr-defined]
 from jupyter_client.session import Session, extract_header
 from jupyter_core.paths import jupyter_runtime_dir
 from traitlets import Any, CBool, CBytes, Dict, Instance, Type, default, observe
@@ -194,6 +194,8 @@ class ZMQDisplayPublisher(DisplayPublisher):
 
 @magics_class
 class KernelMagics(Magics):
+    """Kernel magics."""
+
     # ------------------------------------------------------------------------
     # Magic overrides
     # ------------------------------------------------------------------------
@@ -294,6 +296,7 @@ class KernelMagics(Magics):
         filename = os.path.abspath(filename)
 
         payload = {"source": "edit_magic", "filename": filename, "line_number": lineno}
+        assert self.shell is not None
         self.shell.payload_manager.write_payload(payload)
 
     # A few magics that are adapted to the specifics of using pexpect and a
@@ -302,6 +305,7 @@ class KernelMagics(Magics):
     @line_magic
     def clear(self, arg_s):
         """Clear the terminal."""
+        assert self.shell is not None
         if os.name == "posix":
             self.shell.system("clear")
         else:
@@ -319,9 +323,11 @@ class KernelMagics(Magics):
 
         Files ending in .py are syntax-highlighted."""
         if not arg_s:
-            raise UsageError("Missing filename.")
+            msg = "Missing filename."
+            raise UsageError(msg)
 
         if arg_s.endswith(".py"):
+            assert self.shell is not None
             cont = self.shell.pycolorize(openpy.read_py_file(arg_s, skip_encoding_cookie=False))
         else:
             with open(arg_s) as fid:
@@ -336,6 +342,7 @@ class KernelMagics(Magics):
         @line_magic
         def man(self, arg_s):
             """Find the man page for the given command and display in pager."""
+            assert self.shell is not None
             page.page(self.shell.getoutput("man %s | col -b" % arg_s, split=False))
 
     @line_magic
@@ -428,7 +435,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
     displayhook_class = Type(ZMQShellDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
-    data_pub_class = Any()
+    data_pub_class = Any()  # type:ignore[assignment]
     kernel = Any()
     parent_header = Any()
 
@@ -467,6 +474,7 @@ class ZMQInteractiveShell(InteractiveShell):
     # Over ZeroMQ, GUI control isn't done with PyOS_InputHook as there is no
     # interactive input being read; we provide event loop support in ipkernel
     def enable_gui(self, gui):
+        """Enable a given guil."""
         from .eventloops import enable_gui as real_enable_gui
 
         try:
@@ -491,6 +499,7 @@ class ZMQInteractiveShell(InteractiveShell):
         env["GIT_PAGER"] = "cat"
 
     def init_hooks(self):
+        """Initialize hooks."""
         super().init_hooks()
         self.set_hook("show_in_pager", page.as_hook(payloadpage.page), 99)
 
@@ -507,7 +516,7 @@ class ZMQInteractiveShell(InteractiveShell):
                 stacklevel=2,
             )
 
-            self._data_pub = self.data_pub_class(parent=self)
+            self._data_pub = self.data_pub_class(parent=self)  # type:ignore[has-type]
             self._data_pub.session = self.display_pub.session
             self._data_pub.pub_socket = self.display_pub.pub_socket
         return self._data_pub
@@ -526,6 +535,7 @@ class ZMQInteractiveShell(InteractiveShell):
         self.payload_manager.write_payload(payload)
 
     def run_cell(self, *args, **kwargs):
+        """Run a cell."""
         self._last_traceback = None
         return super().run_cell(*args, **kwargs)
 
@@ -586,14 +596,17 @@ class ZMQInteractiveShell(InteractiveShell):
             pass
 
     def get_parent(self):
+        """Get the parent header."""
         return self.parent_header
 
     def init_magics(self):
+        """Initialize magics."""
         super().init_magics()
         self.register_magics(KernelMagics)
         self.magics_manager.register_alias("ed", "edit")
 
     def init_virtualenv(self):
+        """Initialize virtual environment."""
         # Overridden not to do virtualenv detection, because it's probably
         # not appropriate in a kernel. To use a kernel in a virtualenv, install
         # it inside the virtualenv.
@@ -616,7 +629,8 @@ class ZMQInteractiveShell(InteractiveShell):
             # pexpect or pipes to read from.  Users can always just call
             # os.system() or use ip.system=ip.system_raw
             # if they really want a background process.
-            raise OSError("Background processes not supported.")
+            msg = "Background processes not supported."
+            raise OSError(msg)
 
         # we explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.

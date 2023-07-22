@@ -28,6 +28,7 @@ from jupyter_client.session import Session, extract_header
 
 
 class ZMQDataPublisher(Configurable):
+    """A zmq data publisher."""
 
     topic = topic = CBytes(b"datapub")
     session = Instance(Session, allow_none=True)

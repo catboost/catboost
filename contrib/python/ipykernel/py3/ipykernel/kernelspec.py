@@ -168,11 +168,13 @@ class InstallIPythonKernelSpecApp(Application):
     name = Unicode("ipython-kernel-install")
 
     def initialize(self, argv=None):
+        """Initialize the app."""
         if argv is None:
             argv = sys.argv[1:]
         self.argv = argv
 
     def start(self):
+        """Start the app."""
         import argparse
 
         parser = argparse.ArgumentParser(

@@ -24,6 +24,7 @@ from .socket import DummySocket
 
 
 class InProcessKernel(IPythonKernel):
+    """An in-process kernel."""
 
     # -------------------------------------------------------------------------
     # InProcessKernel interface
@@ -67,6 +68,7 @@ class InProcessKernel(IPythonKernel):
     stdin_socket = Instance(DummySocket, ())  # type:ignore[assignment]
 
     def __init__(self, **traits):
+        """Initialize the kernel."""
         super().__init__(**traits)
 
         self._underlying_iopub_socket.observe(self._io_dispatch, names=["message_sent"])
@@ -163,6 +165,7 @@ class InProcessKernel(IPythonKernel):
 
 
 class InProcessInteractiveShell(ZMQInteractiveShell):
+    """An in-process interactive shell."""
 
     kernel: InProcessKernel = Instance(
         "ipykernel.inprocess.ipkernel.InProcessKernel", allow_none=True

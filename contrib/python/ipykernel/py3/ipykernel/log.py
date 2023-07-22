@@ -1,3 +1,4 @@
+"""A PUB log handler."""
 import warnings
 
 from zmq.log.handlers import PUBHandler
@@ -15,6 +16,7 @@ class EnginePUBHandler(PUBHandler):
     engine = None
 
     def __init__(self, engine, *args, **kwargs):
+        """Initialize the handler."""
         PUBHandler.__init__(self, *args, **kwargs)
         self.engine = engine
 

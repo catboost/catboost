@@ -26,7 +26,8 @@ def get_connection_file(app=None):
         from ipykernel.kernelapp import IPKernelApp
 
         if not IPKernelApp.initialized():
-            raise RuntimeError("app not specified, and not in a running Kernel")
+            msg = "app not specified, and not in a running Kernel"
+            raise RuntimeError(msg)
 
         app = IPKernelApp.instance()
     return filefind(app.connection_file, [".", app.connection_dir])
@@ -116,7 +117,7 @@ def connect_qtconsole(connection_file=None, argv=None):
     kwargs["start_new_session"] = True
 
     return Popen(
-        [sys.executable, "-c", cmd, "--existing", cf] + argv,
+        [sys.executable, "-c", cmd, "--existing", cf, *argv],
         stdout=PIPE,
         stderr=PIPE,
         close_fds=(sys.platform != "win32"),

@@ -20,6 +20,7 @@ class ZMQDisplayHook:
     topic = b"execute_result"
 
     def __init__(self, session, pub_socket):
+        """Initialize the hook."""
         self.session = session
         self.pub_socket = pub_socket
         self.parent_header = {}
@@ -29,6 +30,7 @@ class ZMQDisplayHook:
         return 0
 
     def __call__(self, obj):
+        """Handle a hook call."""
         if obj is None:
             return
 
@@ -45,6 +47,7 @@ class ZMQDisplayHook:
         )
 
     def set_parent(self, parent):
+        """Set the parent header."""
         self.parent_header = extract_header(parent)
 
 
@@ -64,6 +67,7 @@ class ZMQShellDisplayHook(DisplayHook):
         self.parent_header = extract_header(parent)
 
     def start_displayhook(self):
+        """Start the display hook."""
         self.msg = self.session.msg(
             "execute_result",
             {
@@ -78,6 +82,7 @@ class ZMQShellDisplayHook(DisplayHook):
         self.msg["content"]["execution_count"] = self.prompt_count
 
     def write_format_data(self, format_dict, md_dict=None):
+        """Write format data to the message."""
         self.msg["content"]["data"] = json_clean(encode_images(format_dict))
         self.msg["content"]["metadata"] = md_dict
 

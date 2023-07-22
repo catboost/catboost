@@ -42,15 +42,18 @@ class InProcessKernelManager(KernelManager):
     # --------------------------------------------------------------------------
 
     def start_kernel(self, **kwds):
+        """Start the kernel."""
         from ipykernel.inprocess.ipkernel import InProcessKernel
 
         self.kernel = InProcessKernel(parent=self, session=self.session)
 
     def shutdown_kernel(self):
+        """Shutdown the kernel."""
         self.kernel.iopub_thread.stop()
         self._kill_kernel()
 
     def restart_kernel(self, now=False, **kwds):
+        """Restart the kernel."""
         self.shutdown_kernel()
         self.start_kernel(**kwds)
 
@@ -62,15 +65,21 @@ class InProcessKernelManager(KernelManager):
         self.kernel = None
 
     def interrupt_kernel(self):
-        raise NotImplementedError("Cannot interrupt in-process kernel.")
+        """Interrupt the kernel."""
+        msg = "Cannot interrupt in-process kernel."
+        raise NotImplementedError(msg)
 
     def signal_kernel(self, signum):
-        raise NotImplementedError("Cannot signal in-process kernel.")
+        """Send a signal to the kernel."""
+        msg = "Cannot signal in-process kernel."
+        raise NotImplementedError(msg)
 
     def is_alive(self):
+        """Test if the kernel is alive."""
         return self.kernel is not None
 
     def client(self, **kwargs):
+        """Get a client for the kernel."""
         kwargs["kernel"] = self.kernel
         return super().client(**kwargs)
 

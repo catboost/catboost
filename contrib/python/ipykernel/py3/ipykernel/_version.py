@@ -5,7 +5,7 @@ import re
 from typing import List
 
 # Version string must appear intact for hatch versioning
-__version__ = "6.19.4"
+__version__ = "6.21.3"
 
 # Build up version_info tuple for backwards compatibility
 pattern = r"(?P<major>\d+).(?P<minor>\d+).(?P<patch>\d+)(?P<rest>.*)"

@@ -1,3 +1,4 @@
+"""A parent poller for unix."""
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
@@ -22,10 +23,12 @@ class ParentPollerUnix(Thread):
     """
 
     def __init__(self):
+        """Initialize the poller."""
         super().__init__()
         self.daemon = True
 
     def run(self):
+        """Run the poller."""
         # We cannot use os.waitpid because it works only for child processes.
         from errno import EINTR
 
@@ -63,7 +66,8 @@ class ParentPollerWindows(Thread):
         assert interrupt_handle or parent_handle
         super().__init__()
         if ctypes is None:
-            raise ImportError("ParentPollerWindows requires ctypes")
+            msg = "ParentPollerWindows requires ctypes"
+            raise ImportError(msg)
         self.daemon = True
         self.interrupt_handle = interrupt_handle
         self.parent_handle = parent_handle

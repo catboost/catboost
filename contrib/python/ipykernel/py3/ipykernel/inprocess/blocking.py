@@ -8,7 +8,7 @@ import sys
 #  Copyright (C) 2012  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING.txt, distributed as part of this software.
+#  the file LICENSE, distributed as part of this software.
 # -----------------------------------------------------------------------------
 from queue import Empty, Queue
 
@@ -21,11 +21,15 @@ from .client import InProcessKernelClient
 
 
 class BlockingInProcessChannel(InProcessChannel):
+    """A blocking in-process channel."""
+
     def __init__(self, *args, **kwds):
+        """Initialize the channel."""
         super().__init__(*args, **kwds)
         self._in_queue: Queue[object] = Queue()
 
     def call_handlers(self, msg):
+        """Call the handlers for a message."""
         self._in_queue.put(msg)
 
     def get_msg(self, block=True, timeout=None):
@@ -52,6 +56,8 @@ class BlockingInProcessChannel(InProcessChannel):
 
 
 class BlockingInProcessStdInChannel(BlockingInProcessChannel):
+    """A blocking in-process stdin channel."""
+
     def call_handlers(self, msg):
         """Overridden for the in-process channel.
 
@@ -67,6 +73,7 @@ class BlockingInProcessStdInChannel(BlockingInProcessChannel):
 
 
 class BlockingInProcessKernelClient(InProcessKernelClient):
+    """A blocking in-process kernel client."""
 
     # The classes to use for the various channels.
     shell_channel_class = Type(BlockingInProcessChannel)
@@ -74,7 +81,7 @@ class BlockingInProcessKernelClient(InProcessKernelClient):
     stdin_channel_class = Type(BlockingInProcessStdInChannel)
 
     def wait_for_ready(self):
-        # Wait for kernel info reply on shell channel
+        """Wait for kernel info reply on shell channel."""
         while True:
             self.kernel_info()
             try:

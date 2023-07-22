@@ -5,7 +5,7 @@
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
+#  the file LICENSE, distributed as part of this software.
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -29,6 +29,7 @@ class Heartbeat(Thread):
     """A simple ping-pong style heartbeat that runs in a thread."""
 
     def __init__(self, context, addr=None):
+        """Initialize the heartbeat thread."""
         if addr is None:
             addr = ("tcp", localhost(), 0)
         Thread.__init__(self, name="Heartbeat")
@@ -44,6 +45,7 @@ class Heartbeat(Thread):
         self.name = "Heartbeat"
 
     def pick_port(self):
+        """Pick a port for the heartbeat."""
         if self.transport == "tcp":
             s = socket.socket()
             # '*' means all interfaces to 0MQ, which is '' to socket.socket
@@ -89,6 +91,7 @@ class Heartbeat(Thread):
                 return
 
     def run(self):
+        """Run the heartbeat thread."""
         self.name = "Heartbeat"
         self.socket = self.context.socket(zmq.ROUTER)
         self.socket.linger = 1000

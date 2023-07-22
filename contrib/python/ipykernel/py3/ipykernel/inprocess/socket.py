@@ -28,9 +28,11 @@ class DummySocket(HasTraits):
     # -------------------------------------------------------------------------
 
     def recv_multipart(self, flags=0, copy=True, track=False):
+        """Recv a multipart message."""
         return self.queue.get_nowait()
 
     def send_multipart(self, msg_parts, flags=0, copy=True, track=False):
+        """Send a multipart message."""
         msg_parts = list(map(zmq.Message, msg_parts))
         self.queue.put_nowait(msg_parts)
         self.message_sent += 1

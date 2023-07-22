@@ -1,3 +1,4 @@
+"""Debugger implementation for the IPython kernel."""
 import os
 import re
 import sys
@@ -44,13 +45,19 @@ ROUTING_ID = getattr(zmq, "ROUTING_ID", None) or zmq.IDENTITY
 
 
 class _FakeCode:
+    """Fake code class."""
+
     def __init__(self, co_filename, co_name):
+        """Init."""
         self.co_filename = co_filename
         self.co_name = co_name
 
 
 class _FakeFrame:
+    """Fake frame class."""
+
     def __init__(self, f_code, f_globals, f_locals):
+        """Init."""
         self.f_code = f_code
         self.f_globals = f_globals
         self.f_locals = f_locals
@@ -58,28 +65,37 @@ class _FakeFrame:
 
 
 class _DummyPyDB:
+    """Fake PyDb class."""
+
     def __init__(self):
+        """Init."""
         from _pydevd_bundle.pydevd_api import PyDevdAPI
 
         self.variable_presentation = PyDevdAPI.VariablePresentation()
 
 
 class VariableExplorer:
+    """A variable explorer."""
+
     def __init__(self):
+        """Initialize the explorer."""
         self.suspended_frame_manager = SuspendedFramesManager()
         self.py_db = _DummyPyDB()
         self.tracker = _FramesTracker(self.suspended_frame_manager, self.py_db)
         self.frame = None
 
     def track(self):
+        """Start tracking."""
         var = get_ipython().user_ns
         self.frame = _FakeFrame(_FakeCode("<module>", get_file_name("sys._getframe()")), var, var)
         self.tracker.track("thread1", pydevd_frame_utils.create_frames_list_from_frame(self.frame))
 
     def untrack_all(self):
+        """Stop tracking."""
         self.tracker.untrack_all()
 
     def get_children_variables(self, variable_ref=None):
+        """Get the child variables for a variable reference."""
         var_ref = variable_ref
         if not var_ref:
             var_ref = id(self.frame)
@@ -88,6 +104,7 @@ class VariableExplorer:
 
 
 class DebugpyMessageQueue:
+    """A debugpy message queue."""
 
     HEADER = "Content-Length: "
     HEADER_LENGTH = 16
@@ -95,6 +112,7 @@ class DebugpyMessageQueue:
     SEPARATOR_LENGTH = 4
 
     def __init__(self, event_callback, log):
+        """Init the queue."""
         self.tcp_buffer = ""
         self._reset_tcp_pos()
         self.event_callback = event_callback
@@ -120,6 +138,7 @@ class DebugpyMessageQueue:
             self.message_queue.put_nowait(msg)
 
     def put_tcp_frame(self, frame):
+        """Put a tcp frame in the queue."""
         self.tcp_buffer += frame
 
         self.log.debug("QUEUE - received frame")
@@ -166,11 +185,15 @@ class DebugpyMessageQueue:
                 self._reset_tcp_pos()
 
     async def get_message(self):
+        """Get a message from the queue."""
         return await self.message_queue.get()
 
 
 class DebugpyClient:
+    """A client for debugpy."""
+
     def __init__(self, log, debugpy_stream, event_callback):
+        """Initialize the client."""
         self.log = log
         self.debugpy_stream = debugpy_stream
         self.event_callback = event_callback
@@ -237,6 +260,7 @@ class DebugpyClient:
         return attach_rep
 
     def get_host_port(self):
+        """Get the host debugpy port."""
         if self.debugpy_port == -1:
             socket = self.debugpy_stream.socket
             socket.bind_to_random_port("tcp://" + self.debugpy_host)
@@ -247,10 +271,12 @@ class DebugpyClient:
         return self.debugpy_host, self.debugpy_port
 
     def connect_tcp_socket(self):
+        """Connect to the tcp socket."""
         self.debugpy_stream.socket.connect(self._get_endpoint())
         self.routing_id = self.debugpy_stream.socket.getsockopt(ROUTING_ID)
 
     def disconnect_tcp_socket(self):
+        """Disconnect from the tcp socket."""
         self.debugpy_stream.socket.disconnect(self._get_endpoint())
         self.routing_id = None
         self.init_event = Event()
@@ -258,9 +284,11 @@ class DebugpyClient:
         self.wait_for_attach = True
 
     def receive_dap_frame(self, frame):
+        """Receive a dap frame."""
         self.message_queue.put_tcp_frame(frame)
 
     async def send_dap_request(self, msg):
+        """Send a dap request."""
         self._send_request(msg)
         if self.wait_for_attach and msg["command"] == "attach":
             rep = await self._handle_init_sequence()
@@ -274,6 +302,7 @@ class DebugpyClient:
 
 
 class Debugger:
+    """The debugger class."""
 
     # Requests that requires that the debugger has started
     started_debug_msg_types = [
@@ -287,11 +316,18 @@ class Debugger:
     ]
 
     # Requests that can be handled even if the debugger is not running
-    static_debug_msg_types = ["debugInfo", "inspectVariables", "richInspectVariables", "modules"]
+    static_debug_msg_types = [
+        "debugInfo",
+        "inspectVariables",
+        "richInspectVariables",
+        "modules",
+        "copyToGlobals",
+    ]
 
     def __init__(
         self, log, debugpy_stream, event_callback, shell_socket, session, just_my_code=True
     ):
+        """Initialize the debugger."""
         self.log = log
         self.debugpy_client = DebugpyClient(log, debugpy_stream, self._handle_event)
         self.shell_socket = shell_socket
@@ -361,6 +397,7 @@ class Debugger:
         return thread_name not in forbid_list
 
     async def handle_stopped_event(self):
+        """Handle a stopped event."""
         # Wait for a stopped event message in the stopped queue
         # This message is used for triggering the 'threads' request
         event = await self.stopped_queue.get()
@@ -376,6 +413,7 @@ class Debugger:
         return self.debugpy_client
 
     def start(self):
+        """Start the debugger."""
         if not self.debugpy_initialized:
             tmp_dir = get_tmp_directory()
             if not os.path.exists(tmp_dir):
@@ -405,6 +443,7 @@ class Debugger:
         return self.debugpy_initialized
 
     def stop(self):
+        """Stop the debugger."""
         self.debugpy_client.disconnect_tcp_socket()
 
         # Restore remove cleanup transformers
@@ -414,6 +453,7 @@ class Debugger:
             cleanup_transforms.insert(index, func)
 
     async def dumpCell(self, message):
+        """Handle a dump cell message."""
         code = message["arguments"]["code"]
         file_name = get_file_name(code)
 
@@ -430,11 +470,13 @@ class Debugger:
         return reply
 
     async def setBreakpoints(self, message):
+        """Handle a set breakpoints message."""
         source = message["arguments"]["source"]["path"]
         self.breakpoint_list[source] = message["arguments"]["breakpoints"]
         return await self._forward_message(message)
 
     async def source(self, message):
+        """Handle a source message."""
         reply = {"type": "response", "request_seq": message["seq"], "command": message["command"]}
         source_path = message["arguments"]["source"]["path"]
         if os.path.isfile(source_path):
@@ -449,6 +491,7 @@ class Debugger:
         return reply
 
     async def stackTrace(self, message):
+        """Handle a stack trace message."""
         reply = await self._forward_message(message)
         # The stackFrames array can have the following content:
         # { frames from the notebook}
@@ -470,6 +513,7 @@ class Debugger:
         return reply
 
     def accept_variable(self, variable_name):
+        """Accept a variable by name."""
         forbid_list = [
             "__name__",
             "__doc__",
@@ -498,6 +542,7 @@ class Debugger:
         return cond
 
     async def variables(self, message):
+        """Handle a variables message."""
         reply = {}
         if not self.stopped_threads:
             variables = self.variable_explorer.get_children_variables(
@@ -513,6 +558,7 @@ class Debugger:
         return reply
 
     async def attach(self, message):
+        """Handle an attach message."""
         host, port = self.debugpy_client.get_host_port()
         message["arguments"]["connect"] = {"host": host, "port": port}
         message["arguments"]["logToFile"] = True
@@ -525,6 +571,7 @@ class Debugger:
         return await self._forward_message(message)
 
     async def configurationDone(self, message):
+        """Handle a configuration done message."""
         reply = {
             "seq": message["seq"],
             "type": "response",
@@ -535,6 +582,7 @@ class Debugger:
         return reply
 
     async def debugInfo(self, message):
+        """Handle a debug info message."""
         breakpoint_list = []
         for key, value in self.breakpoint_list.items():
             breakpoint_list.append({"source": key, "breakpoints": value})
@@ -558,6 +606,7 @@ class Debugger:
         return reply
 
     async def inspectVariables(self, message):
+        """Handle an insepct variables message."""
         self.variable_explorer.untrack_all()
         # looks like the implementation of untrack_all in ptvsd
         # destroys objects we nee din track. We have no choice but
@@ -568,6 +617,7 @@ class Debugger:
         return self._build_variables_response(message, variables)
 
     async def richInspectVariables(self, message):
+        """Handle a rich inspect variables message."""
         reply = {
             "type": "response",
             "sequence_seq": message["seq"],
@@ -618,7 +668,28 @@ class Debugger:
         reply["success"] = True
         return reply
 
+    async def copyToGlobals(self, message):
+        dst_var_name = message["arguments"]["dstVariableName"]
+        src_var_name = message["arguments"]["srcVariableName"]
+        src_frame_id = message["arguments"]["srcFrameId"]
+
+        expression = f"globals()['{dst_var_name}']"
+        seq = message["seq"]
+        return await self._forward_message(
+            {
+                "type": "request",
+                "command": "setExpression",
+                "seq": seq + 1,
+                "arguments": {
+                    "expression": expression,
+                    "value": src_var_name,
+                    "frameId": src_frame_id,
+                },
+            }
+        )
+
     async def modules(self, message):
+        """Handle a modules message."""
         modules = list(sys.modules.values())
         startModule = message.get("startModule", 0)
         moduleCount = message.get("moduleCount", len(modules))
@@ -633,6 +704,7 @@ class Debugger:
         return reply
 
     async def process_request(self, message):
+        """Process a request."""
         reply = {}
 
         if message["command"] == "initialize":

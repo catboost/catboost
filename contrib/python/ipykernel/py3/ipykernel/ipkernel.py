@@ -3,6 +3,7 @@
 import asyncio
 import builtins
 import getpass
+import os
 import signal
 import sys
 import threading
@@ -26,9 +27,9 @@ from .kernelbase import _accepts_cell_id
 from .zmqshell import ZMQInteractiveShell
 
 try:
-    from IPython.core.interactiveshell import _asyncio_runner
+    from IPython.core.interactiveshell import _asyncio_runner  # type:ignore[attr-defined]
 except ImportError:
-    _asyncio_runner = None
+    _asyncio_runner = None  # type:ignore
 
 try:
     from IPython.core.completer import provisionalcompleter as _provisionalcompleter
@@ -67,6 +68,8 @@ comm.get_comm_manager = _get_comm_manager
 
 
 class IPythonKernel(KernelBase):
+    """The IPython Kernel class."""
+
     shell = Instance("IPython.core.interactiveshell.InteractiveShellABC", allow_none=True)
     shell_class = Type(ZMQInteractiveShell)
 
@@ -100,6 +103,7 @@ class IPythonKernel(KernelBase):
     _sys_eval_input = Any()
 
     def __init__(self, **kwargs):
+        """Initialize the kernel."""
         super().__init__(**kwargs)
 
         # Initialize the Debugger
@@ -123,6 +127,11 @@ class IPythonKernel(KernelBase):
             compiler_class=XCachingCompiler,
         )
         self.shell.displayhook.session = self.session
+
+        jupyter_session_name = os.environ.get('JPY_SESSION_NAME')
+        if jupyter_session_name:
+            self.shell.user_ns['__session__'] = jupyter_session_name
+
         self.shell.displayhook.pub_socket = self.iopub_socket
         self.shell.displayhook.topic = self._topic("execute_result")
         self.shell.display_pub.session = self.session
@@ -200,10 +209,12 @@ class IPythonKernel(KernelBase):
         return self.shell.banner
 
     async def poll_stopped_queue(self):
+        """Poll the stopped queue."""
         while True:
             await self.debugger.handle_stopped_event()
 
     def start(self):
+        """Start the kernel."""
         self.shell.exit_now = False
         if self.debugpy_stream is None:
             self.log.warning("debugpy_stream undefined, debugging will not be enabled")
@@ -335,6 +346,7 @@ class IPythonKernel(KernelBase):
         *,
         cell_id=None,
     ):
+        """Handle code execution."""
         shell = self.shell  # we'll need this a lot here
 
         self._forward_input(allow_stdin)
@@ -354,7 +366,6 @@ class IPythonKernel(KernelBase):
 
             with_cell_id = _accepts_cell_id(shell.run_cell)
         try:
-
             # default case: runner is asyncio and asyncio is already running
             # TODO: this should check every case for "are we inside the runner",
             # not just asyncio
@@ -419,10 +430,7 @@ class IPythonKernel(KernelBase):
         finally:
             self._restore_input()
 
-        if res.error_before_exec is not None:
-            err = res.error_before_exec
-        else:
-            err = res.error_in_exec
+        err = res.error_before_exec if res.error_before_exec is not None else res.error_in_exec
 
         if res.success:
             reply_content["status"] = "ok"
@@ -469,6 +477,7 @@ class IPythonKernel(KernelBase):
         return reply_content
 
     def do_complete(self, code, cursor_pos):
+        """Handle code completion."""
         if _use_experimental_60_completion and self.use_experimental_completions:
             return self._experimental_do_complete(code, cursor_pos)
 
@@ -489,6 +498,7 @@ class IPythonKernel(KernelBase):
         }
 
     async def do_debug_request(self, msg):
+        """Handle a debug request."""
         if _is_debugpy_available:
             return await self.debugger.process_request(msg)
 
@@ -532,6 +542,7 @@ class IPythonKernel(KernelBase):
         }
 
     def do_inspect(self, code, cursor_pos, detail_level=0, omit_sections=()):
+        """Handle code inspection."""
         name = token_at_cursor(code, cursor_pos)
 
         reply_content: t.Dict[str, t.Any] = {"status": "ok"}
@@ -569,6 +580,7 @@ class IPythonKernel(KernelBase):
         pattern=None,
         unique=False,
     ):
+        """Handle code history."""
         if hist_access_type == "tail":
             hist = self.shell.history_manager.get_tail(
                 n, raw=raw, output=output, include_latest=True
@@ -592,10 +604,12 @@ class IPythonKernel(KernelBase):
         }
 
     def do_shutdown(self, restart):
+        """Handle kernel shutdown."""
         self.shell.exit_now = True
         return dict(status="ok", restart=restart)
 
     def do_is_complete(self, code):
+        """Handle an is_complete request."""
         transformer_manager = getattr(self.shell, "input_transformer_manager", None)
         if transformer_manager is None:
             # input_splitter attribute is deprecated
@@ -607,10 +621,11 @@ class IPythonKernel(KernelBase):
         return r
 
     def do_apply(self, content, bufs, msg_id, reply_metadata):
+        """Handle an apply request."""
         try:
             from ipyparallel.serialize import serialize_object, unpack_apply_message
         except ImportError:
-            from .serialize import serialize_object, unpack_apply_message  # type:ignore
+            from .serialize import serialize_object, unpack_apply_message
 
         shell = self.shell
         try:
@@ -671,6 +686,7 @@ class IPythonKernel(KernelBase):
         return reply_content, result_buf
 
     def do_clear(self):
+        """Clear the kernel."""
         self.shell.reset(False)
         return dict(status="ok")
 
@@ -679,7 +695,10 @@ class IPythonKernel(KernelBase):
 
 
 class Kernel(IPythonKernel):
+    """DEPRECATED.  An alias for the IPython kernel class."""
+
     def __init__(self, *args, **kwargs):  # pragma: no cover
+        """DEPRECATED."""
         import warnings
 
         warnings.warn(
