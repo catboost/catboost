@@ -115,7 +115,7 @@ private:
                 memset(m, 0, i);
             }
 
-            pool.ClearKeepFirstChunk();
+            UNIT_ASSERT_VALUES_EQUAL(pool.ClearReturnUsedChunkCount(true), 11);
 
             UNIT_ASSERT_VALUES_EQUAL(memalloc - 8, pool.MemoryAllocated());
             UNIT_ASSERT_VALUES_EQUAL(memwaste + 8, pool.MemoryWaste());
@@ -127,7 +127,7 @@ private:
                 memset(m, 0, i);
             }
 
-            pool.Clear();
+            UNIT_ASSERT_VALUES_EQUAL(pool.ClearReturnUsedChunkCount(false), 12);
 
             UNIT_ASSERT_VALUES_EQUAL(0, pool.MemoryAllocated());
             UNIT_ASSERT_VALUES_EQUAL(0, pool.MemoryWaste());
