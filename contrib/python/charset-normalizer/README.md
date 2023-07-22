@@ -1,15 +1,15 @@
-<h1 align="center">Charset Detection, for Everyone 👋 <a href="https://twitter.com/intent/tweet?text=The%20Real%20First%20Universal%20Charset%20%26%20Language%20Detector&url=https://www.github.com/Ousret/charset_normalizer&hashtags=python,encoding,chardet,developers"><img src="https://img.shields.io/twitter/url/http/shields.io.svg?style=social"/></a></h1>
+<h1 align="center">Charset Detection, for Everyone 👋</h1>
 
 <p align="center">
   <sup>The Real First Universal Charset Detector</sup><br>
   <a href="https://pypi.org/project/charset-normalizer">
     <img src="https://img.shields.io/pypi/pyversions/charset_normalizer.svg?orange=blue" />
   </a>
-  <a href="https://codecov.io/gh/Ousret/charset_normalizer">
-      <img src="https://codecov.io/gh/Ousret/charset_normalizer/branch/master/graph/badge.svg" />
-  </a>
   <a href="https://pepy.tech/project/charset-normalizer/">
     <img alt="Download Count Total" src="https://pepy.tech/badge/charset-normalizer/month" />
+  </a>
+  <a href="https://bestpractices.coreinfrastructure.org/projects/7297">
+    <img src="https://bestpractices.coreinfrastructure.org/projects/7297/badge">
   </a>
 </p>
 
@@ -33,8 +33,8 @@ This project offers you an alternative to **Universal Charset Encoding Detector*
 | `Native Python`                                  |                       ✅                       |                                                   ✅                                                    |                        ❌                        |
 | `Detect spoken language`                         |                       ❌                       |                                                   ✅                                                    |                       N/A                       |
 | `UnicodeDecodeError Safety`                      |                       ❌                       |                                                   ✅                                                    |                        ❌                        |
-| `Whl Size`                                       |                   193.6 kB                    |                                                39.5 kB                                                 |                     ~200 kB                     |
-| `Supported Encoding`                             |                      33                       | :tada: [90](https://charset-normalizer.readthedocs.io/en/latest/user/support.html#supported-encodings) |                       40                        |
+| `Whl Size`                                       |                   193.6 kB                    |                                                 40 kB                                                  |                     ~200 kB                     |
+| `Supported Encoding`                             |                      33                       | 🎉 [90](https://charset-normalizer.readthedocs.io/en/latest/user/support.html#supported-encodings) |                       40                        |
 
 <p align="center">
 <img src="https://i.imgflip.com/373iay.gif" alt="Reading Normalized Text" width="226"/><img src="https://media.tenor.com/images/c0180f70732a18b4965448d33adba3d0/tenor.gif" alt="Cat Reading Text" width="200"/>
@@ -42,10 +42,6 @@ This project offers you an alternative to **Universal Charset Encoding Detector*
 *\*\* : They are clearly using specific code for a specific encoding even if covering most of used one*<br> 
 Did you got there because of the logs? See [https://charset-normalizer.readthedocs.io/en/latest/user/miscellaneous.html](https://charset-normalizer.readthedocs.io/en/latest/user/miscellaneous.html)
 
-## ⭐ Your support
-
-*Fork, test-it, star-it, submit your ideas! We do listen.*
-  
 ## ⚡ Performance
 
 This package offer better performance than its counterpart Chardet. Here are some numbers.
@@ -70,7 +66,8 @@ Chardet's performance on larger file (1MB+) are very poor. Expect huge differenc
 
 ## ✨ Installation
 
-Using PyPi for latest stable
+Using pip:
+
 ```sh
 pip install charset-normalizer -U
 ```
@@ -115,7 +112,7 @@ optional arguments:
 normalizer ./data/sample.1.fr.srt
 ```
 
-:tada: Since version 1.4.0 the CLI produce easily usable stdout result in JSON format.
+🎉 Since version 1.4.0 the CLI produce easily usable stdout result in JSON format.
 
 ```json
 {
@@ -229,7 +226,7 @@ Characters frequencies used in this project © 2012 [Denny Vrandečić](http://s
 ## 💼 For Enterprise
 
 Professional support for charset-normalizer is available as part of the [Tidelift
-Subscription][1].  Tidelift gives software development teams a single source for
+Subscription][1]. Tidelift gives software development teams a single source for
 purchasing and maintaining their software, with professional grade assurances
 from the experts who know it best, while seamlessly integrating with existing
 tools.
