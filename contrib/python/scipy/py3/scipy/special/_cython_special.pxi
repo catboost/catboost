@@ -7,7 +7,9 @@ from numpy cimport (
     NPY_CFLOAT, NPY_CDOUBLE, NPY_CLONGDOUBLE,
     NPY_INT, NPY_LONG)
 
-cdef extern int wrap_PyUFunc_getfperrg()
+cdef extern from "numpy/ufuncobject.h":
+    int PyUFunc_getfperr() nogil
+
 
 cdef extern from "numpy/npy_math.h":
     double NPY_NAN

@@ -17,7 +17,9 @@ from numpy cimport (
 
 ctypedef double complex double_complex
 
-cdef extern int wrap_PyUFunc_getfperrg()
+cdef extern from "numpy/ufuncobject.h":
+    int PyUFunc_getfperr() nogil
+
 
 cimport libc
 
