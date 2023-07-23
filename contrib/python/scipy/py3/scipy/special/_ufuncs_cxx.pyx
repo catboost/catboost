@@ -35,9 +35,15 @@ cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_faddeeva_ndtr "faddeeva_ndtr"(double complex) nogil
 cdef void *_export_faddeeva_ndtr = <void*>_func_faddeeva_ndtr
 cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_faddeeva_voigt_profile "faddeeva_voigt_profile"(double, double, double) nogil
+cdef void *_export_faddeeva_voigt_profile = <void*>_func_faddeeva_voigt_profile
+cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_faddeeva_w "faddeeva_w"(double complex) nogil
 cdef void *_export_faddeeva_w = <void*>_func_faddeeva_w
 cdef extern from "_ufuncs_cxx_defs.h":
     cdef double complex _func_wrightomega "wrightomega"(double complex) nogil
 cdef void *_export_wrightomega = <void*>_func_wrightomega
+cdef extern from "_ufuncs_cxx_defs.h":
+    cdef double _func_wrightomega_real "wrightomega_real"(double) nogil
+cdef void *_export_wrightomega_real = <void*>_func_wrightomega_real
 # distutils: language = c++

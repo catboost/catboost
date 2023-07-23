@@ -11,6 +11,7 @@ Run tests if scipy is installed:
 """
 
 import itertools
+import platform
 import numpy as np
 from numpy.testing import (assert_equal, assert_almost_equal,
                            assert_array_almost_equal, assert_array_equal,
@@ -31,7 +32,7 @@ from scipy.linalg.lapack import dgbtrf, dgbtrs, zgbtrf, zgbtrs, \
 from scipy.linalg.misc import norm
 from scipy.linalg._decomp_qz import _select_function
 
-from numpy import array, transpose, diag, ones, linalg, \
+from numpy import array, transpose, diag, ones, full, linalg, \
      argsort, zeros, arange, float32, complex64, dot, conj, identity, \
      ravel, sqrt, iscomplex, shape, sort, conjugate, sign, \
      asarray, isfinite, ndarray, outer, eye, dtype, empty,\
@@ -283,7 +284,7 @@ class TestEig(object):
         # Compare homogeneous and nonhomogeneous versions
         assert_allclose(sort(wh), sort(w[np.isfinite(w)]))
 
-    @pytest.mark.xfail(reason="See gh-2254.")
+    @pytest.mark.xfail(reason="See gh-2254")
     def test_singular(self):
         # Example taken from
         # https://web.archive.org/web/20040903121217/http://www.cs.umu.se/research/nla/singular_pairs/guptri/matlab.html
@@ -396,24 +397,24 @@ class TestEigBanded(object):
         self.KU = 2   # number of superdiagonals (above the diagonal)
 
         # symmetric band matrix
-        self.sym_mat = (diag(1.0*ones(N))
-                     + diag(-1.0*ones(N-1), -1) + diag(-1.0*ones(N-1), 1)
-                     + diag(-2.0*ones(N-2), -2) + diag(-2.0*ones(N-2), 2))
+        self.sym_mat = (diag(full(N, 1.0))
+                     + diag(full(N-1, -1.0), -1) + diag(full(N-1, -1.0), 1)
+                     + diag(full(N-2, -2.0), -2) + diag(full(N-2, -2.0), 2))
 
         # hermitian band matrix
-        self.herm_mat = (diag(-1.0*ones(N))
-                     + 1j*diag(1.0*ones(N-1), -1) - 1j*diag(1.0*ones(N-1), 1)
-                     + diag(-2.0*ones(N-2), -2) + diag(-2.0*ones(N-2), 2))
+        self.herm_mat = (diag(full(N, -1.0))
+                     + 1j*diag(full(N-1, 1.0), -1) - 1j*diag(full(N-1, 1.0), 1)
+                     + diag(full(N-2, -2.0), -2) + diag(full(N-2, -2.0), 2))
 
         # general real band matrix
-        self.real_mat = (diag(1.0*ones(N))
-                     + diag(-1.0*ones(N-1), -1) + diag(-3.0*ones(N-1), 1)
-                     + diag(2.0*ones(N-2), -2) + diag(-2.0*ones(N-2), 2))
+        self.real_mat = (diag(full(N, 1.0))
+                     + diag(full(N-1, -1.0), -1) + diag(full(N-1, -3.0), 1)
+                     + diag(full(N-2, 2.0), -2) + diag(full(N-2, -2.0), 2))
 
         # general complex band matrix
-        self.comp_mat = (1j*diag(1.0*ones(N))
-                     + diag(-1.0*ones(N-1), -1) + 1j*diag(-3.0*ones(N-1), 1)
-                     + diag(2.0*ones(N-2), -2) + diag(-2.0*ones(N-2), 2))
+        self.comp_mat = (1j*diag(full(N, 1.0))
+                     + diag(full(N-1, -1.0), -1) + 1j*diag(full(N-1, -3.0), 1)
+                     + diag(full(N-2, 2.0), -2) + diag(full(N-2, -2.0), 2))
 
         # Eigenvalues and -vectors from linalg.eig
         ew, ev = linalg.eig(self.sym_mat)
@@ -662,8 +663,8 @@ class TestEigTridiagonal(object):
         N = 10
 
         # symmetric band matrix
-        self.d = 1.0*ones(N)
-        self.e = -1.0*ones(N-1)
+        self.d = full(N, 1.0)
+        self.e = full(N-1, -1.0)
         self.full_mat = (diag(self.d) + diag(self.e, -1) + diag(self.e, 1))
 
         ew, ev = linalg.eig(self.full_mat)
@@ -2468,6 +2469,8 @@ def test_aligned_mem_float():
     eig(z.T, overwrite_a=True)
 
 
+@pytest.mark.xfail(platform.machine() == 'ppc64le',
+                   reason="fails on ppc64le")
 def test_aligned_mem():
     """Check linalg works with non-aligned memory"""
     # Allocate 804 bytes of memory (allocated on boundary)

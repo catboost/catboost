@@ -14,6 +14,7 @@ ctypedef fused dl_number_t:
     double
     long
 
+cpdef double voigt_profile(double x0, double x1, double x2) nogil
 cpdef double agm(double x0, double x1) nogil
 cdef void airy(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1, Dd_number_t *y2, Dd_number_t *y3) nogil
 cdef void airye(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1, Dd_number_t *y2, Dd_number_t *y3) nogil
@@ -56,6 +57,7 @@ cpdef double ellipeinc(double x0, double x1) nogil
 cdef void ellipj(double x0, double x1, double *y0, double *y1, double *y2, double *y3) nogil
 cpdef double ellipkinc(double x0, double x1) nogil
 cpdef double ellipkm1(double x0) nogil
+cpdef double ellipk(double x0) nogil
 cpdef double entr(double x0) nogil
 cpdef Dd_number_t erf(Dd_number_t x0) nogil
 cpdef Dd_number_t erfc(Dd_number_t x0) nogil
@@ -108,10 +110,7 @@ cpdef double complex hankel2e(double x0, double complex x1) nogil
 cpdef double huber(double x0, double x1) nogil
 cpdef Dd_number_t hyp0f1(double x0, Dd_number_t x1) nogil
 cpdef Dd_number_t hyp1f1(double x0, double x1, Dd_number_t x2) nogil
-cdef void hyp1f2(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil
-cdef void hyp2f0(double x0, double x1, double x2, dl_number_t x3, double *y0, double *y1) nogil
 cpdef Dd_number_t hyp2f1(double x0, double x1, double x2, Dd_number_t x3) nogil
-cdef void hyp3f0(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil
 cpdef double hyperu(double x0, double x1, double x2) nogil
 cpdef double i0(double x0) nogil
 cpdef double i0e(double x0) nogil
@@ -193,8 +192,8 @@ cpdef double owens_t(double x0, double x1) nogil
 cdef void pbdv(double x0, double x1, double *y0, double *y1) nogil
 cdef void pbvv(double x0, double x1, double *y0, double *y1) nogil
 cdef void pbwa(double x0, double x1, double *y0, double *y1) nogil
-cpdef double pdtr(dl_number_t x0, double x1) nogil
-cpdef double pdtrc(dl_number_t x0, double x1) nogil
+cpdef double pdtr(double x0, double x1) nogil
+cpdef double pdtrc(double x0, double x1) nogil
 cpdef double pdtri(dl_number_t x0, double x1) nogil
 cpdef double pdtrik(double x0, double x1) nogil
 cpdef double poch(double x0, double x1) nogil
@@ -225,7 +224,7 @@ cpdef double struve(double x0, double x1) nogil
 cpdef double tandg(double x0) nogil
 cpdef double tklmbda(double x0, double x1) nogil
 cpdef double complex wofz(double complex x0) nogil
-cpdef double complex wrightomega(double complex x0) nogil
+cpdef Dd_number_t wrightomega(Dd_number_t x0) nogil
 cpdef Dd_number_t xlog1py(Dd_number_t x0, Dd_number_t x1) nogil
 cpdef Dd_number_t xlogy(Dd_number_t x0, Dd_number_t x1) nogil
 cpdef double y0(double x0) nogil

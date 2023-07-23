@@ -332,12 +332,12 @@ class TestRelationalAttributeLong(object):
         assert_array_equal(self.data["attr_relational"][0],
                            expected)
 
-     
+
 class TestQuotedNominal(object):
     """
     Regression test for issue #10232 : Exception in loadarff with quoted nominal attributes.
     """
-    
+
     def setup_method(self):
         self.data, self.meta = loadarff(test_quoted_nominal)
 
@@ -353,7 +353,7 @@ class TestQuotedNominal(object):
         assert_equal(smoker.values, ['yes', 'no'])
 
     def test_data(self):
-        
+
         age_dtype_instance = np.float_
         smoker_dtype_instance = '<S3'
 
@@ -365,7 +365,7 @@ class TestQuotedNominal(object):
             89,
             11,
         ], dtype=age_dtype_instance)
-        
+
         smoker_expected = np.array([
             'no',
             'yes',
@@ -383,7 +383,7 @@ class TestQuotedNominalSpaces(object):
     """
     Regression test for issue #10232 : Exception in loadarff with quoted nominal attributes.
     """
-    
+
     def setup_method(self):
         self.data, self.meta = loadarff(test_quoted_nominal_spaces)
 
@@ -399,7 +399,7 @@ class TestQuotedNominalSpaces(object):
         assert_equal(smoker.values, ['  yes', 'no  '])
 
     def test_data(self):
-        
+
         age_dtype_instance = np.float_
         smoker_dtype_instance = '<S5'
 
@@ -411,7 +411,7 @@ class TestQuotedNominalSpaces(object):
             89,
             11,
         ], dtype=age_dtype_instance)
-        
+
         smoker_expected = np.array([
             'no  ',
             '  yes',

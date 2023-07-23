@@ -30,6 +30,10 @@ cannot emit warnings like their counterparts in ``scipy.special``.
 Available Functions
 -------------------
 
+- :py:func:`~scipy.special.voigt_profile`::
+
+        double voigt_profile(double, double, double)
+
 - :py:func:`~scipy.special.agm`::
 
         double agm(double, double)
@@ -203,6 +207,10 @@ Available Functions
 - :py:func:`~scipy.special.ellipkm1`::
 
         double ellipkm1(double)
+
+- :py:func:`~scipy.special.ellipk`::
+
+        double ellipk(double)
 
 - :py:func:`~scipy.special.entr`::
 
@@ -449,26 +457,13 @@ Available Functions
 
 - :py:func:`~scipy.special.hyp1f1`::
 
-        double complex hyp1f1(double, double, double complex)
         double hyp1f1(double, double, double)
-
-- :py:func:`~scipy.special.hyp1f2`::
-
-        void hyp1f2(double, double, double, double, double *, double *)
-
-- :py:func:`~scipy.special.hyp2f0`::
-
-        void hyp2f0(double, double, double, double, double *, double *)
-        void hyp2f0(double, double, double, long, double *, double *)
+        double complex hyp1f1(double, double, double complex)
 
 - :py:func:`~scipy.special.hyp2f1`::
 
         double hyp2f1(double, double, double, double)
         double complex hyp2f1(double, double, double, double complex)
-
-- :py:func:`~scipy.special.hyp3f0`::
-
-        void hyp3f0(double, double, double, double, double *, double *)
 
 - :py:func:`~scipy.special.hyperu`::
 
@@ -813,12 +808,10 @@ Available Functions
 - :py:func:`~scipy.special.pdtr`::
 
         double pdtr(double, double)
-        double pdtr(long, double)
 
 - :py:func:`~scipy.special.pdtrc`::
 
         double pdtrc(double, double)
-        double pdtrc(long, double)
 
 - :py:func:`~scipy.special.pdtri`::
 
@@ -952,6 +945,7 @@ Available Functions
 - :py:func:`~scipy.special.wrightomega`::
 
         double complex wrightomega(double complex)
+        double wrightomega(double)
 
 - :py:func:`~scipy.special.xlog1py`::
 
@@ -1094,6 +1088,9 @@ cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_ellik "ellik"(npy_double, npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_ellpk "ellpk"(npy_double)nogil
+from ._ellipk cimport ellipk as _func_ellipk
+ctypedef double _proto_ellipk_t(double) nogil
+cdef _proto_ellipk_t *_proto_ellipk_t_var = &_func_ellipk
 from ._convex_analysis cimport entr as _func_entr
 ctypedef double _proto_entr_t(double) nogil
 cdef _proto_entr_t *_proto_entr_t_var = &_func_entr
@@ -1311,25 +1308,18 @@ cdef _proto__hyp0f1_cmplx_t *_proto__hyp0f1_cmplx_t_var = &_func__hyp0f1_cmplx
 from ._hyp0f1 cimport _hyp0f1_real as _func__hyp0f1_real
 ctypedef double _proto__hyp0f1_real_t(double, double) nogil
 cdef _proto__hyp0f1_real_t *_proto__hyp0f1_real_t_var = &_func__hyp0f1_real
+from ._hypergeometric cimport hyp1f1 as _func_hyp1f1
+ctypedef double _proto_hyp1f1_t(double, double, double) nogil
+cdef _proto_hyp1f1_t *_proto_hyp1f1_t_var = &_func_hyp1f1
 cdef extern from "_ufuncs_defs.h":
     cdef npy_cdouble _func_chyp1f1_wrap "chyp1f1_wrap"(npy_double, npy_double, npy_cdouble)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_hyp1f1_wrap "hyp1f1_wrap"(npy_double, npy_double, npy_double)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_onef2 "onef2"(npy_double, npy_double, npy_double, npy_double, npy_double *)nogil
-from ._legacy cimport hyp2f0_unsafe as _func_hyp2f0_unsafe
-ctypedef double _proto_hyp2f0_unsafe_t(double, double, double, double, double *) nogil
-cdef _proto_hyp2f0_unsafe_t *_proto_hyp2f0_unsafe_t_var = &_func_hyp2f0_unsafe
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_hyp2f0 "hyp2f0"(npy_double, npy_double, npy_double, npy_int, npy_double *)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_hyp2f1 "hyp2f1"(npy_double, npy_double, npy_double, npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_cdouble _func_chyp2f1_wrap "chyp2f1_wrap"(npy_double, npy_double, npy_double, npy_cdouble)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_threef0 "threef0"(npy_double, npy_double, npy_double, npy_double, npy_double *)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_hypU_wrap "hypU_wrap"(npy_double, npy_double, npy_double)nogil
+from ._hypergeometric cimport hyperu as _func_hyperu
+ctypedef double _proto_hyperu_t(double, double, double) nogil
+cdef _proto_hyperu_t *_proto_hyperu_t_var = &_func_hyperu
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_i0 "i0"(npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1528,16 +1518,10 @@ cdef extern from "_ufuncs_defs.h":
     cdef npy_int _func_pbvv_wrap "pbvv_wrap"(npy_double, npy_double, npy_double *, npy_double *)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_int _func_pbwa_wrap "pbwa_wrap"(npy_double, npy_double, npy_double *, npy_double *)nogil
-from ._legacy cimport pdtr_unsafe as _func_pdtr_unsafe
-ctypedef double _proto_pdtr_unsafe_t(double, double) nogil
-cdef _proto_pdtr_unsafe_t *_proto_pdtr_unsafe_t_var = &_func_pdtr_unsafe
 cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_pdtr "pdtr"(npy_int, npy_double)nogil
-from ._legacy cimport pdtrc_unsafe as _func_pdtrc_unsafe
-ctypedef double _proto_pdtrc_unsafe_t(double, double) nogil
-cdef _proto_pdtrc_unsafe_t *_proto_pdtrc_unsafe_t_var = &_func_pdtrc_unsafe
+    cdef npy_double _func_pdtr "pdtr"(npy_double, npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_pdtrc "pdtrc"(npy_int, npy_double)nogil
+    cdef npy_double _func_pdtrc "pdtrc"(npy_double, npy_double)nogil
 from ._legacy cimport pdtri_unsafe as _func_pdtri_unsafe
 ctypedef double _proto_pdtri_unsafe_t(double, double) nogil
 cdef _proto_pdtri_unsafe_t *_proto_pdtri_unsafe_t_var = &_func_pdtri_unsafe
@@ -1658,6 +1642,10 @@ cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_cbesy_wrap_e_real "cbesy_wrap_e_real"(npy_double, npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_zetac "zetac"(npy_double)nogil
+
+cpdef double voigt_profile(double x0, double x1, double x2) nogil:
+    """See the documentation for scipy.special.voigt_profile"""
+    return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_faddeeva_voigt_profile)(x0, x1, x2)
 
 cpdef double agm(double x0, double x1) nogil:
     """See the documentation for scipy.special.agm"""
@@ -1917,6 +1905,10 @@ cpdef double ellipkinc(double x0, double x1) nogil:
 cpdef double ellipkm1(double x0) nogil:
     """See the documentation for scipy.special.ellipkm1"""
     return _func_ellpk(x0)
+
+cpdef double ellipk(double x0) nogil:
+    """See the documentation for scipy.special.ellipk"""
+    return _func_ellipk(x0)
 
 cpdef double entr(double x0) nogil:
     """See the documentation for scipy.special.entr"""
@@ -2363,41 +2355,15 @@ cpdef Dd_number_t hyp0f1(double x0, Dd_number_t x1) nogil:
 
 cpdef Dd_number_t hyp1f1(double x0, double x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.hyp1f1"""
-    if Dd_number_t is double_complex:
+    if Dd_number_t is double:
+        return _func_hyp1f1(x0, x1, x2)
+    elif Dd_number_t is double_complex:
         return _complexstuff.double_complex_from_npy_cdouble(_func_chyp1f1_wrap(x0, x1, _complexstuff.npy_cdouble_from_double_complex(x2)))
-    elif Dd_number_t is double:
-        return _func_hyp1f1_wrap(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
             return NPY_NAN
         else:
             return NPY_NAN
-
-cdef void hyp1f2(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
-    """See the documentation for scipy.special.hyp1f2"""
-    y0[0] = _func_onef2(x0, x1, x2, x3, y1)
-
-def _hyp1f2_pywrap(double x0, double x1, double x2, double x3):
-    cdef double y0
-    cdef double y1
-    hyp1f2(x0, x1, x2, x3, &y0, &y1)
-    return y0, y1
-
-cdef void hyp2f0(double x0, double x1, double x2, dl_number_t x3, double *y0, double *y1) nogil:
-    """See the documentation for scipy.special.hyp2f0"""
-    if dl_number_t is double:
-        y0[0] = _func_hyp2f0_unsafe(x0, x1, x2, x3, y1)
-    elif dl_number_t is long:
-        y0[0] = _func_hyp2f0(x0, x1, x2, x3, y1)
-    else:
-        y0[0] = NPY_NAN
-        y1[0] = NPY_NAN
-
-def _hyp2f0_pywrap(double x0, double x1, double x2, dl_number_t x3):
-    cdef double y0
-    cdef double y1
-    hyp2f0(x0, x1, x2, x3, &y0, &y1)
-    return y0, y1
 
 cpdef Dd_number_t hyp2f1(double x0, double x1, double x2, Dd_number_t x3) nogil:
     """See the documentation for scipy.special.hyp2f1"""
@@ -2411,19 +2377,9 @@ cpdef Dd_number_t hyp2f1(double x0, double x1, double x2, Dd_number_t x3) nogil:
         else:
             return NPY_NAN
 
-cdef void hyp3f0(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
-    """See the documentation for scipy.special.hyp3f0"""
-    y0[0] = _func_threef0(x0, x1, x2, x3, y1)
-
-def _hyp3f0_pywrap(double x0, double x1, double x2, double x3):
-    cdef double y0
-    cdef double y1
-    hyp3f0(x0, x1, x2, x3, &y0, &y1)
-    return y0, y1
-
 cpdef double hyperu(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.hyperu"""
-    return _func_hypU_wrap(x0, x1, x2)
+    return _func_hyperu(x0, x1, x2)
 
 cpdef double i0(double x0) nogil:
     """See the documentation for scipy.special.i0"""
@@ -3015,23 +2971,13 @@ def _pbwa_pywrap(double x0, double x1):
     pbwa(x0, x1, &y0, &y1)
     return y0, y1
 
-cpdef double pdtr(dl_number_t x0, double x1) nogil:
+cpdef double pdtr(double x0, double x1) nogil:
     """See the documentation for scipy.special.pdtr"""
-    if dl_number_t is double:
-        return _func_pdtr_unsafe(x0, x1)
-    elif dl_number_t is long:
-        return _func_pdtr(x0, x1)
-    else:
-        return NPY_NAN
+    return _func_pdtr(x0, x1)
 
-cpdef double pdtrc(dl_number_t x0, double x1) nogil:
+cpdef double pdtrc(double x0, double x1) nogil:
     """See the documentation for scipy.special.pdtrc"""
-    if dl_number_t is double:
-        return _func_pdtrc_unsafe(x0, x1)
-    elif dl_number_t is long:
-        return _func_pdtrc(x0, x1)
-    else:
-        return NPY_NAN
+    return _func_pdtrc(x0, x1)
 
 cpdef double pdtri(dl_number_t x0, double x1) nogil:
     """See the documentation for scipy.special.pdtri"""
@@ -3265,9 +3211,17 @@ cpdef double complex wofz(double complex x0) nogil:
     """See the documentation for scipy.special.wofz"""
     return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_w)(x0)
 
-cpdef double complex wrightomega(double complex x0) nogil:
+cpdef Dd_number_t wrightomega(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.wrightomega"""
-    return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_wrightomega)(x0)
+    if Dd_number_t is double_complex:
+        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_wrightomega)(x0)
+    elif Dd_number_t is double:
+        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_wrightomega_real)(x0)
+    else:
+        if Dd_number_t is double_complex:
+            return NPY_NAN
+        else:
+            return NPY_NAN
 
 cpdef Dd_number_t xlog1py(Dd_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.xlog1py"""

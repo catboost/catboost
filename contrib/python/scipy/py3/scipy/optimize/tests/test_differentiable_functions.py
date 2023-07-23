@@ -132,6 +132,37 @@ class TestScalarFunction(TestCase):
         assert_array_almost_equal(f_analit, f_approx)
         assert_array_almost_equal(g_analit, g_approx)
 
+    def test_fun_and_grad(self):
+        ex = ExScalarFunction()
+
+        def fg_allclose(x, y):
+            assert_allclose(x[0], y[0])
+            assert_allclose(x[1], y[1])
+
+        # with analytic gradient
+        x0 = [2.0, 0.3]
+        analit = ScalarFunction(ex.fun, x0, (), ex.grad,
+                                ex.hess, None, (-np.inf, np.inf))
+
+        fg = ex.fun(x0), ex.grad(x0)
+        fg_allclose(analit.fun_and_grad(x0), fg)
+
+        x0[1] = 1.
+        fg = ex.fun(x0), ex.grad(x0)
+        fg_allclose(analit.fun_and_grad(x0), fg)
+
+        # with finite difference gradient
+        x0 = [2.0, 0.3]
+        sf = ScalarFunction(ex.fun, x0, (), '3-point',
+                                ex.hess, None, (-np.inf, np.inf))
+
+        fg = ex.fun(x0), ex.grad(x0)
+        fg_allclose(sf.fun_and_grad(x0), fg)
+
+        x0[1] = 1.
+        fg = ex.fun(x0), ex.grad(x0)
+        fg_allclose(sf.fun_and_grad(x0), fg)
+
     def test_finite_difference_hess_linear_operator(self):
         ex = ExScalarFunction()
         nfev = 0

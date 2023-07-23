@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import copy
+import platform
 
 import numpy as np
 from numpy.testing import (
@@ -149,18 +150,18 @@ class TestRidgeLines(object):
 
     def test_empty(self):
         test_matr = np.zeros([20, 100])
-        lines = _identify_ridge_lines(test_matr, 2*np.ones(20), 1)
+        lines = _identify_ridge_lines(test_matr, np.full(20, 2), 1)
         assert_(len(lines) == 0)
 
     def test_minimal(self):
         test_matr = np.zeros([20, 100])
         test_matr[0, 10] = 1
-        lines = _identify_ridge_lines(test_matr, 2*np.ones(20), 1)
+        lines = _identify_ridge_lines(test_matr, np.full(20, 2), 1)
         assert_(len(lines) == 1)
 
         test_matr = np.zeros([20, 100])
         test_matr[0:2, 10] = 1
-        lines = _identify_ridge_lines(test_matr, 2*np.ones(20), 1)
+        lines = _identify_ridge_lines(test_matr, np.full(20, 2), 1)
         assert_(len(lines) == 1)
 
     def test_single_pass(self):
@@ -170,7 +171,7 @@ class TestRidgeLines(object):
         length = 12
         line = _gen_ridge_line([0, 25], test_matr.shape, length, distances, gaps)
         test_matr[line[0], line[1]] = 1
-        max_distances = max(distances)*np.ones(20)
+        max_distances = np.full(20, max(distances))
         identified_lines = _identify_ridge_lines(test_matr, max_distances, max(gaps) + 1)
         assert_array_equal(identified_lines, [line])
 
@@ -182,7 +183,7 @@ class TestRidgeLines(object):
         line = _gen_ridge_line([0, 25], test_matr.shape, length, distances, gaps)
         test_matr[line[0], line[1]] = 1
         max_dist = 3
-        max_distances = max_dist*np.ones(20)
+        max_distances = np.full(20, max_dist)
         #This should get 2 lines, since the distance is too large
         identified_lines = _identify_ridge_lines(test_matr, max_distances, max(gaps) + 1)
         assert_(len(identified_lines) == 2)
@@ -203,7 +204,7 @@ class TestRidgeLines(object):
         line = _gen_ridge_line([0, 25], test_matr.shape, length, distances, gaps)
         test_matr[line[0], line[1]] = 1
         max_dist = 6
-        max_distances = max_dist*np.ones(20)
+        max_distances = np.full(20, max_dist)
         #This should get 2 lines, since the gap is too large
         identified_lines = _identify_ridge_lines(test_matr, max_distances, max_gap)
         assert_(len(identified_lines) == 2)
@@ -224,7 +225,7 @@ class TestRidgeLines(object):
         line = _gen_ridge_line([0, 25], test_matr.shape, length, distances, gaps)
         test_matr[line[0], line[1]] = 1
         max_dist = 1
-        max_distances = max_dist*np.ones(50)
+        max_distances = np.full(50, max_dist)
         #This should get 3 lines, since the gaps are too large
         identified_lines = _identify_ridge_lines(test_matr, max_distances, max_gap)
         assert_(len(identified_lines) == 3)
@@ -775,6 +776,9 @@ class TestFindPeaks(object):
 
 class TestFindPeaksCwt(object):
 
+    @pytest.mark.skipif(np.dtype(np.intp).itemsize < 8 and 
+                        platform.system() == 'Linux',
+                        reason="gh-11095")
     def test_find_peaks_exact(self):
         """
         Generate a series of gaussians and attempt to find the peak locations.
@@ -788,6 +792,9 @@ class TestFindPeaksCwt(object):
         np.testing.assert_array_equal(found_locs, act_locs,
                         "Found maximum locations did not equal those expected")
 
+    @pytest.mark.skipif(np.dtype(np.intp).itemsize < 8 and 
+                        platform.system() == 'Linux',
+                        reason="gh-11095")
     def test_find_peaks_withnoise(self):
         """
         Verify that peak locations are (approximately) found

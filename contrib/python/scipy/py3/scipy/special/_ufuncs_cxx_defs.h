@@ -11,7 +11,9 @@ npy_double faddeeva_erfi(npy_double);
 npy_cdouble faddeeva_erfi_complex(npy_cdouble);
 npy_cdouble faddeeva_log_ndtr(npy_cdouble);
 npy_cdouble faddeeva_ndtr(npy_cdouble);
+npy_double faddeeva_voigt_profile(npy_double, npy_double, npy_double);
 npy_cdouble faddeeva_w(npy_cdouble);
 #include "_wright.h"
 npy_cdouble wrightomega(npy_cdouble);
+npy_double wrightomega_real(npy_double);
 #endif

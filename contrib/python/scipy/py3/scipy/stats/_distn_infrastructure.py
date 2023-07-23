@@ -4,7 +4,7 @@
 #
 from __future__ import division, print_function, absolute_import
 
-from scipy._lib.six import string_types, exec_, PY3
+from scipy._lib.six import string_types, exec_, PY2
 from scipy._lib._util import getargspec_no_self as _getargspec
 
 import sys
@@ -12,6 +12,7 @@ import keyword
 import re
 import types
 import warnings
+from itertools import zip_longest
 
 from scipy._lib import doccer
 from ._distr_params import distcont, distdiscrete
@@ -37,11 +38,11 @@ import numpy as np
 
 from ._constants import _XMAX
 
-if PY3:
+if PY2:
+    instancemethod = types.MethodType
+else:
     def instancemethod(func, obj, cls):
         return types.MethodType(func, obj)
-else:
-    instancemethod = types.MethodType
 
 
 # These are the docstring parts used for substitution in specific
@@ -426,10 +427,9 @@ class rv_frozen(object):
         # create a new instance
         self.dist = dist.__class__(**dist._updated_ctor_param())
 
-        # a, b may be set in _argcheck, depending on *args, **kwds. Ouch.
         shapes, _, _ = self.dist._parse_args(*args, **kwds)
         self.dist._argcheck(*shapes)
-        self.a, self.b = self.dist.a, self.dist.b
+        self.a, self.b = self.dist._get_support(*shapes)
 
     @property
     def random_state(self):
@@ -777,7 +777,9 @@ class rv_generic(object):
     def _stats(self, *args, **kwds):
         return None, None, None, None
 
-    #  Central moments
+    # Noncentral moments (also known as the moment about the origin).
+    # Expressed in LaTeX, munp would be $\mu'_{n}$, i.e. "mu-sub-n-prime".
+    # The primed mu is a widely used notation for the noncentral moment.
     def _munp(self, n, *args):
         # Silence floating point warnings from integration.
         olderr = np.seterr(all='ignore')
@@ -871,7 +873,7 @@ class rv_generic(object):
             cond = logical_and(cond, (asarray(arg) > 0))
         return cond
 
-    def _get_support(self, *args):
+    def _get_support(self, *args, **kwargs):
         """Return the support of the (unscaled, unshifted) distribution.
 
         *Must* be overridden by distributions which have support dependent
@@ -912,13 +914,15 @@ class rv_generic(object):
         return Y
 
     def _logcdf(self, x, *args):
-        return log(self._cdf(x, *args))
+        with np.errstate(divide='ignore'):
+            return log(self._cdf(x, *args))
 
     def _sf(self, x, *args):
         return 1.0-self._cdf(x, *args)
 
     def _logsf(self, x, *args):
-        return log(self._sf(x, *args))
+        with np.errstate(divide='ignore'):
+            return log(self._sf(x, *args))
 
     def _ppf(self, q, *args):
         return self._ppfvec(q, *args)
@@ -1091,7 +1095,6 @@ class rv_generic(object):
                         mu3p = self._munp(3, *goodargs)
                         with np.errstate(invalid='ignore'):
                             mu3 = (-mu * mu - 3 * mu2) * mu + mu3p
-                            mu3 = mu3p - 3 * mu * mu2 - mu**3
                     with np.errstate(invalid='ignore'):
                         mu4 = ((-mu**2 - 6*mu2) * mu - 4*mu3)*mu + mu4p
                         g2 = mu4 / mu2**2.0 - 3.0
@@ -1346,6 +1349,23 @@ class rv_generic(object):
         args, loc, scale = self._parse_args(*args, **kwargs)
         _a, _b = self._get_support(*args)
         return _a * scale + loc, _b * scale + loc
+
+
+def _get_fixed_fit_value(kwds, names):
+    """
+    Given names such as `['f0', 'fa', 'fix_a']`, check that there is
+    at most one non-None value in `kwds` associaed with those names.
+    Return that value, or None if none of the names occur in `kwds`.
+    As a side effect, all occurrences of those names in `kwds` are
+    removed.
+    """
+    vals = [(name, kwds.pop(name)) for name in names if name in kwds]
+    if len(vals) > 1:
+        repeated = [name for name, val in vals]
+        raise ValueError("fit method got multiple keyword arguments to "
+                         "specify the same fixed parameter: " +
+                         ', '.join(repeated))
+    return vals[0][1] if vals else None
 
 
 ##  continuous random variables: implement maybe later
@@ -1804,7 +1824,7 @@ class rv_continuous(rv_generic):
         x = np.asarray((x - loc)/scale, dtype=dtyp)
         cond0 = self._argcheck(*args) & (scale > 0)
         cond1 = self._open_support_mask(x, *args) & (scale > 0)
-        cond2 = (x >= _b) & cond0
+        cond2 = (x >= np.asarray(_b)) & cond0
         cond = cond0 & cond1
         output = zeros(shape(cond), dtyp)
         place(output, (1-cond0)+np.isnan(x), self.badvalue)
@@ -2100,22 +2120,23 @@ class rv_continuous(rv_generic):
         loc, scale = self._fit_loc_scale_support(data, *args)
         return args + (loc, scale)
 
-    # Return the (possibly reduced) function to optimize in order to find MLE
-    #  estimates for the .fit method
     def _reduce_func(self, args, kwds):
-        # First of all, convert fshapes params to fnum: eg for stats.beta,
-        # shapes='a, b'. To fix `a`, can specify either `f1` or `fa`.
-        # Convert the latter into the former.
+        """
+        Return the (possibly reduced) function to optimize in order to find MLE
+        estimates for the .fit method.
+        """
+        # Convert fixed shape parameters to the standard numeric form: e.g. for
+        # stats.beta, shapes='a, b'. To fix `a`, the caller can give a value
+        # for `f0`, `fa` or 'fix_a'.  The following converts the latter two
+        # into the first (numeric) form.
         if self.shapes:
             shapes = self.shapes.replace(',', ' ').split()
             for j, s in enumerate(shapes):
-                val = kwds.pop('f' + s, None) or kwds.pop('fix_' + s, None)
+                key = 'f' + str(j)
+                names = [key, 'f' + s, 'fix_' + s]
+                val = _get_fixed_fit_value(kwds, names)
                 if val is not None:
-                    key = 'f%d' % j
-                    if key in kwds:
-                        raise ValueError("Duplicate entry for %s." % key)
-                    else:
-                        kwds[key] = val
+                    kwds[key] = val
 
         args = list(args)
         Nargs = len(args)
@@ -2211,6 +2232,8 @@ class rv_continuous(rv_generic):
         penalty applied for samples outside of range of the distribution. The
         returned answer is not guaranteed to be the globally optimal MLE, it
         may only be locally optimal, or the optimization may fail altogether.
+        If the data contain any of np.nan, np.inf, or -np.inf, the fit routine
+        will throw a RuntimeError.
 
         Examples
         --------
@@ -2253,6 +2276,9 @@ class rv_continuous(rv_generic):
         Narg = len(args)
         if Narg > self.numargs:
             raise TypeError("Too many input arguments.")
+
+        if not np.isfinite(data).all():
+            raise RuntimeError("The data contains non-finite values.")
 
         start = [None]*2
         if (Narg < self.numargs) or not ('loc' in kwds and
@@ -2470,6 +2496,7 @@ class rv_continuous(rv_generic):
         --------
 
         To understand the effect of the bounds of integration consider
+        
         >>> from scipy.stats import expon
         >>> expon(1).expect(lambda x: 1, lb=0.0, ub=2.0)
         0.6321205588285578
@@ -2582,14 +2609,14 @@ def _drv2_ppfsingle(self, q, *args):  # Use basic bisection algorithm
             return c
 
 
-def entropy(pk, qk=None, base=None):
+def entropy(pk, qk=None, base=None, axis=0):
     """Calculate the entropy of a distribution for given probability values.
 
     If only probabilities `pk` are given, the entropy is calculated as
-    ``S = -sum(pk * log(pk), axis=0)``.
+    ``S = -sum(pk * log(pk), axis=axis)``.
 
     If `qk` is not None, then compute the Kullback-Leibler divergence
-    ``S = sum(pk * log(pk / qk), axis=0)``.
+    ``S = sum(pk * log(pk / qk), axis=axis)``.
 
     This routine will normalize `pk` and `qk` if they don't sum to 1.
 
@@ -2603,24 +2630,47 @@ def entropy(pk, qk=None, base=None):
         the same format as `pk`.
     base : float, optional
         The logarithmic base to use, defaults to ``e`` (natural logarithm).
+    axis: int, optional
+        The axis along which the entropy is calculated. Default is 0.
 
     Returns
     -------
     S : float
         The calculated entropy.
 
+    Examples
+    --------
+
+    >>> from scipy.stats import entropy
+
+    Bernoulli trial with different p.
+    The outcome of a fair coin is the most uncertain:
+
+    >>> entropy([1/2, 1/2], base=2)
+    1.0
+
+    The outcome of a biased coin is less uncertain:
+
+    >>> entropy([9/10, 1/10], base=2)
+    0.46899559358928117
+
+    Relative entropy:
+
+    >>> entropy([1/2, 1/2], qk=[9/10, 1/10])
+    0.5108256237659907
+
     """
     pk = asarray(pk)
-    pk = 1.0*pk / np.sum(pk, axis=0)
+    pk = 1.0*pk / np.sum(pk, axis=axis, keepdims=True)
     if qk is None:
         vec = entr(pk)
     else:
         qk = asarray(qk)
-        if len(qk) != len(pk):
-            raise ValueError("qk and pk must have same length.")
-        qk = 1.0*qk / np.sum(qk, axis=0)
+        if qk.shape != pk.shape:
+            raise ValueError("qk and pk must have same shape.")
+        qk = 1.0*qk / np.sum(qk, axis=axis, keepdims=True)
         vec = rel_entr(pk, qk)
-    S = np.sum(vec, axis=0)
+    S = np.sum(vec, axis=axis)
     if base is not None:
         S /= log(base)
     return S
@@ -3512,6 +3562,44 @@ class rv_sample(rv_discrete):
     def generic_moment(self, n):
         n = asarray(n)
         return np.sum(self.xk**n[np.newaxis, ...] * self.pk, axis=0)
+
+
+def _check_shape(argshape, size):
+    """
+    This is a utility function used by `_rvs()` in the class geninvgauss_gen.
+    It compares the tuple argshape to the tuple size.
+
+    Parameters
+    ----------
+    argshape : tuple of integers
+        Shape of the arguments.
+    size : tuple of integers or integer
+        Size argument of rvs().
+
+    Returns
+    -------
+    The function returns two tuples, scalar_shape and bc.
+
+    scalar_shape : tuple
+        Shape to which the 1-d array of random variates returned by
+        _rvs_scalar() is converted when it is copied into the
+        output array of _rvs().
+
+    bc : tuple of booleans
+        bc is an tuple the same length as size. bc[j] is True if the data
+        associated with that index is generated in one call of _rvs_scalar().
+
+    """
+    scalar_shape = []
+    bc = []
+    for argdim, sizedim in zip_longest(argshape[::-1], size[::-1],
+                                       fillvalue=1):
+        if sizedim > argdim or (argdim == sizedim == 1):
+            scalar_shape.append(sizedim)
+            bc.append(True)
+        else:
+            bc.append(False)
+    return tuple(scalar_shape[::-1]), tuple(bc[::-1])
 
 
 def get_distribution_names(namespace_pairs, rv_base_class):

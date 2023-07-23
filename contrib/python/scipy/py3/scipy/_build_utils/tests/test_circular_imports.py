@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import, print_function
 
+import os
 import sys
 import subprocess
 
@@ -9,6 +10,7 @@ PUBLIC_SUBMODULES = [
     'cluster.hierarchy',
     'cluster.vq',
     'constants',
+    'fft',
     'fftpack',
     'fftpack.convolve',
     'integrate',
@@ -38,10 +40,11 @@ PUBLIC_SUBMODULES = [
 
 def test_importing_submodules():
     # Regression test for gh-6793.
+    env = os.environ.copy()
+    env['Y_PYTHON_ENTRY_POINT'] = ':main'
     for name in PUBLIC_SUBMODULES:
         try:
             cmd = [sys.executable, '-c', 'import scipy.{0}'.format(name)]
-            subprocess.check_output(cmd)
+            subprocess.check_output(cmd, env=env)
         except subprocess.CalledProcessError:
             raise AssertionError('Importing scipy.{0} failed'.format(name))
-
