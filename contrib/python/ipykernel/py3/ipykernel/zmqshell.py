@@ -363,7 +363,7 @@ class KernelMagics(Magics):
             connection_file = get_connection_file()
             info = get_connection_info(unpack=False)
         except Exception as e:
-            warnings.warn("Could not get connection info: %r" % e)
+            warnings.warn("Could not get connection info: %r" % e, stacklevel=2)
             return
 
         # if it's in the default dir, truncate to basename
@@ -399,7 +399,7 @@ class KernelMagics(Magics):
         try:
             connect_qtconsole(argv=arg_split(arg_s, os.name == "posix"))
         except Exception as e:
-            warnings.warn("Could not start qtconsole: %r" % e)
+            warnings.warn("Could not start qtconsole: %r" % e, stacklevel=2)
             return
 
     @line_magic

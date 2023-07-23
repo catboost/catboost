@@ -3,6 +3,7 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+import asyncio
 import atexit
 import io
 import os
@@ -13,8 +14,8 @@ import warnings
 from binascii import b2a_hex
 from collections import deque
 from io import StringIO, TextIOBase
-from typing import Any, Callable, Deque, Optional
-from weakref import WeakSet
+from threading import local
+from typing import Any, Callable, Deque, Dict, Optional
 
 import zmq
 from jupyter_client.session import extract_header
@@ -27,6 +28,8 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 MASTER = 0
 CHILD = 1
+
+PIPE_BUFFER_SIZE = 1000
 
 # -----------------------------------------------------------------------------
 # IO classes
@@ -62,7 +65,10 @@ class IOPubThread:
             self._setup_pipe_in()
         self._local = threading.local()
         self._events: Deque[Callable[..., Any]] = deque()
-        self._event_pipes: WeakSet[Any] = WeakSet()
+        self._event_pipes: Dict[threading.Thread, Any] = {}
+        self._event_pipe_gc_lock: threading.Lock = threading.Lock()
+        self._event_pipe_gc_seconds: float = 10
+        self._event_pipe_gc_task: Optional[asyncio.Task] = None
         self._setup_event_pipe()
         self.thread = threading.Thread(target=self._thread_main, name="IOPub")
         self.thread.daemon = True
@@ -72,7 +78,18 @@ class IOPubThread:
 
     def _thread_main(self):
         """The inner loop that's actually run in a thread"""
+
+        def _start_event_gc():
+            self._event_pipe_gc_task = asyncio.ensure_future(self._run_event_pipe_gc())
+
+        self.io_loop.run_sync(_start_event_gc)
         self.io_loop.start()
+        if self._event_pipe_gc_task is not None:
+            # cancel gc task to avoid pending task warnings
+            async def _cancel():
+                self._event_pipe_gc_task.cancel()  # type:ignore
+
+            self.io_loop.run_sync(_cancel)
         self.io_loop.close(all_fds=True)
 
     def _setup_event_pipe(self):
@@ -87,6 +104,26 @@ class IOPubThread:
         self._event_puller = ZMQStream(pipe_in, self.io_loop)
         self._event_puller.on_recv(self._handle_event)
 
+    async def _run_event_pipe_gc(self):
+        """Task to run event pipe gc continuously"""
+        while True:
+            await asyncio.sleep(self._event_pipe_gc_seconds)
+            try:
+                await self._event_pipe_gc()
+            except Exception as e:
+                print(f"Exception in IOPubThread._event_pipe_gc: {e}", file=sys.__stderr__)
+
+    async def _event_pipe_gc(self):
+        """run a single garbage collection on event pipes"""
+        if not self._event_pipes:
+            # don't acquire the lock if there's nothing to do
+            return
+        with self._event_pipe_gc_lock:
+            for thread, socket in list(self._event_pipes.items()):
+                if not thread.is_alive():
+                    socket.close()
+                    del self._event_pipes[thread]
+
     @property
     def _event_pipe(self):
         """thread-local event pipe for signaling events that should be processed in the thread"""
@@ -99,9 +136,11 @@ class IOPubThread:
             event_pipe.linger = 0
             event_pipe.connect(self._event_interface)
             self._local.event_pipe = event_pipe
-            # WeakSet so that event pipes will be closed by garbage collection
-            # when their threads are terminated
-            self._event_pipes.add(event_pipe)
+            # associate event pipes to their threads
+            # so they can be closed explicitly
+            # implicit close on __del__ throws a ResourceWarning
+            with self._event_pipe_gc_lock:
+                self._event_pipes[threading.current_thread()] = event_pipe
         return event_pipe
 
     def _handle_event(self, msg):
@@ -134,7 +173,8 @@ class IOPubThread:
         except zmq.ZMQError as e:
             warnings.warn(
                 "Couldn't bind IOPub Pipe to 127.0.0.1: %s" % e
-                + "\nsubprocess output will be unavailable."
+                + "\nsubprocess output will be unavailable.",
+                stacklevel=2,
             )
             self._pipe_flag = False
             pipe_in.close()
@@ -186,7 +226,7 @@ class IOPubThread:
         # close *all* event pipes, created in any thread
         # event pipes can only be used from other threads while self.thread.is_alive()
         # so after thread.join, this should be safe
-        for event_pipe in self._event_pipes:
+        for _thread, event_pipe in self._event_pipes.items():
             event_pipe.close()
 
     def close(self):
@@ -329,11 +369,11 @@ class OutStream(TextIOBase):
         """
 
         try:
-            bts = os.read(self._fid, 1000)
+            bts = os.read(self._fid, PIPE_BUFFER_SIZE)
             while bts and self._should_watch:
-                self.write(bts.decode())
+                self.write(bts.decode(errors='replace'))
                 os.write(self._original_stdstream_copy, bts)
-                bts = os.read(self._fid, 1000)
+                bts = os.read(self._fid, PIPE_BUFFER_SIZE)
         except Exception:
             self._exc = sys.exc_info()
 
@@ -362,7 +402,7 @@ class OutStream(TextIOBase):
         echo : bool
             whether to echo output
         watchfd : bool (default, True)
-            Watch the file descripttor corresponding to the replaced stream.
+            Watch the file descriptor corresponding to the replaced stream.
             This is useful if you know some underlying code will write directly
             the file descriptor by its number. It will spawn a watching thread,
             that will swap the give file descriptor for a pipe, read from the
@@ -402,22 +442,43 @@ class OutStream(TextIOBase):
         self.echo = None
         self._isatty = bool(isatty)
         self._should_watch = False
+        self._local = local()
 
         if (
             watchfd
-            and (sys.platform.startswith("linux") or sys.platform.startswith("darwin"))
-            and ("PYTEST_CURRENT_TEST" not in os.environ)
+            and (
+                (sys.platform.startswith("linux") or sys.platform.startswith("darwin"))
+                # Pytest set its own capture. Don't redirect from within pytest.
+                and ("PYTEST_CURRENT_TEST" not in os.environ)
+            )
+            # allow forcing watchfd (mainly for tests)
+            or watchfd == "force"
         ):
-            # Pytest set its own capture. Dont redirect from within pytest.
-
             self._should_watch = True
             self._setup_stream_redirects(name)
 
         if echo:
             if hasattr(echo, "read") and hasattr(echo, "write"):
+                # make sure we aren't trying to echo on the FD we're watching!
+                # that would cause an infinite loop, always echoing on itself
+                if self._should_watch:
+                    try:
+                        echo_fd = echo.fileno()
+                    except Exception:
+                        echo_fd = None
+
+                    if echo_fd is not None and echo_fd == self._original_stdstream_fd:
+                        # echo on the _copy_ we made during
+                        # this is the actual terminal FD now
+                        echo = io.TextIOWrapper(
+                            io.FileIO(
+                                self._original_stdstream_copy,
+                                "w",
+                            )
+                        )
                 self.echo = echo
             else:
-                msg = "echo argument must be a file like object"
+                msg = "echo argument must be a file-like object"
                 raise ValueError(msg)
 
     def isatty(self):
@@ -430,7 +491,7 @@ class OutStream(TextIOBase):
 
     def _setup_stream_redirects(self, name):
         pr, pw = os.pipe()
-        fno = getattr(sys, name).fileno()
+        fno = self._original_stdstream_fd = getattr(sys, name).fileno()
         self._original_stdstream_copy = os.dup(fno)
         os.dup2(pw, fno)
 
@@ -452,7 +513,13 @@ class OutStream(TextIOBase):
         """Close the stream."""
         if self._should_watch:
             self._should_watch = False
+            # thread won't wake unless there's something to read
+            # writing something after _should_watch will not be echoed
+            os.write(self._original_stdstream_fd, b'\0')
             self.watch_fd_thread.join()
+            # restore original FDs
+            os.dup2(self._original_stdstream_copy, self._original_stdstream_fd)
+            os.close(self._original_stdstream_copy)
         if self._exc:
             etype, value, tb = self._exc
             traceback.print_exception(etype, value, tb)
@@ -524,11 +591,19 @@ class OutStream(TextIOBase):
             # There should be a better way to do this.
             self.session.pid = os.getpid()
             content = {"name": self.name, "text": data}
+            msg = self.session.msg("stream", content, parent=self.parent_header)
+
+            # Each transform either returns a new
+            # message or None. If None is returned,
+            # the message has been 'used' and we return.
+            for hook in self._hooks:
+                msg = hook(msg)
+                if msg is None:
+                    return
+
             self.session.send(
                 self.pub_thread,
-                "stream",
-                content=content,
-                parent=self.parent_header,
+                msg,
                 ident=self.topic,
             )
 
@@ -600,3 +675,49 @@ class OutStream(TextIOBase):
             old_buffer = self._buffer
             self._buffer = StringIO()
         return old_buffer
+
+    @property
+    def _hooks(self):
+        if not hasattr(self._local, "hooks"):
+            # create new list for a new thread
+            self._local.hooks = []
+        return self._local.hooks
+
+    def register_hook(self, hook):
+        """
+        Registers a hook with the thread-local storage.
+
+        Parameters
+        ----------
+        hook : Any callable object
+
+        Returns
+        -------
+        Either a publishable message, or `None`.
+        The hook callable must return a message from
+        the __call__ method if they still require the
+        `session.send` method to be called after transformation.
+        Returning `None` will halt that execution path, and
+        session.send will not be called.
+        """
+        self._hooks.append(hook)
+
+    def unregister_hook(self, hook):
+        """
+        Un-registers a hook with the thread-local storage.
+
+        Parameters
+        ----------
+        hook : Any callable object which has previously been
+            registered as a hook.
+
+        Returns
+        -------
+        bool - `True` if the hook was removed, `False` if it wasn't
+            found.
+        """
+        try:
+            self._hooks.remove(hook)
+            return True
+        except ValueError:
+            return False

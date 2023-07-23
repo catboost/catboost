@@ -121,9 +121,11 @@ class InProcessKernel(IPythonKernel):
     def _redirected_io(self):
         """Temporarily redirect IO to the kernel."""
         sys_stdout, sys_stderr = sys.stdout, sys.stderr
-        sys.stdout, sys.stderr = self.stdout, self.stderr
-        yield
-        sys.stdout, sys.stderr = sys_stdout, sys_stderr
+        try:
+            sys.stdout, sys.stderr = self.stdout, self.stderr
+            yield
+        finally:
+            sys.stdout, sys.stderr = sys_stdout, sys_stderr
 
     # ------ Trait change handlers --------------------------------------------
 

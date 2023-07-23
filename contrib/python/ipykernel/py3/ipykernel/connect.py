@@ -117,7 +117,7 @@ def connect_qtconsole(connection_file=None, argv=None):
     kwargs["start_new_session"] = True
 
     return Popen(
-        [sys.executable, "-c", cmd, "--existing", cf, *argv],
+        [sys.executable, "-c", cmd, "--existing", cf, *argv],  # noqa
         stdout=PIPE,
         stderr=PIPE,
         close_fds=(sys.platform != "win32"),

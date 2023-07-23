@@ -115,6 +115,7 @@ class ParentPollerWindows(Thread):
                     """Parent poll failed.  If the frontend dies,
                 the kernel may be left running.  Please let us know
                 about your system (bitness, Python, etc.) at
-                ipython-dev@scipy.org"""
+                ipython-dev@scipy.org""",
+                    stacklevel=2,
                 )
                 return

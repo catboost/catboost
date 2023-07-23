@@ -260,6 +260,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
     def write_connection_file(self):
         """write connection info to JSON file"""
         cf = self.abs_connection_file
+        if os.path.exists(cf):
+            self.log.debug("Connection file %s already exists", cf)
+            return
         self.log.debug("Writing connection file: %s", cf)
         write_connection_file(
             cf,
@@ -449,9 +452,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp, ConnectionFileMix
         if self.no_stdout or self.no_stderr:
             blackhole = open(os.devnull, "w")  # noqa
             if self.no_stdout:
-                sys.stdout = sys.__stdout__ = blackhole
+                sys.stdout = sys.__stdout__ = blackhole  # type:ignore
             if self.no_stderr:
-                sys.stderr = sys.__stderr__ = blackhole
+                sys.stderr = sys.__stderr__ = blackhole  # type:ignore
 
     def init_io(self):
         """Redirect input streams and set a display hook."""

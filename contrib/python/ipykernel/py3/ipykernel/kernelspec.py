@@ -227,7 +227,7 @@ class InstallIPythonKernelSpecApp(Application):
         )
         opts = parser.parse_args(self.argv)
         if opts.env:
-            opts.env = {k: v for (k, v) in opts.env}
+            opts.env = dict(opts.env)
         try:
             dest = install(
                 user=opts.user,

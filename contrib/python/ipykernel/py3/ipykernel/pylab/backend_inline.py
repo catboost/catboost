@@ -11,4 +11,5 @@ warnings.warn(
     "`ipykernel.pylab.backend_inline` is deprecated, directly "
     "use `matplotlib_inline.backend_inline`",
     DeprecationWarning,
+    stacklevel=2,
 )

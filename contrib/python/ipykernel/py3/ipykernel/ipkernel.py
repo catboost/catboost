@@ -55,7 +55,7 @@ _comm_manager: t.Optional[CommManager] = None
 
 def _get_comm_manager(*args, **kwargs):
     """Create a new CommManager."""
-    global _comm_manager
+    global _comm_manager  # noqa
     if _comm_manager is None:
         with _comm_lock:
             if _comm_manager is None:
@@ -675,7 +675,6 @@ class IPythonKernel(KernelBase):
                 "error",
                 reply_content,
                 ident=self._topic("error"),
-                channel="shell",
             )
             self.log.info("Exception in apply request:\n%s", "\n".join(reply_content["traceback"]))
             result_buf = []
@@ -704,5 +703,6 @@ class Kernel(IPythonKernel):
         warnings.warn(
             "Kernel is a deprecated alias of ipykernel.ipkernel.IPythonKernel",
             DeprecationWarning,
+            stacklevel=2,
         )
         super().__init__(*args, **kwargs)

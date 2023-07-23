@@ -22,7 +22,7 @@ class TrioRunner:
         kernel.shell.set_trio_runner(self)
         kernel.shell.run_line_magic("autoawait", "trio")
         kernel.shell.magics_manager.magics["line"]["autoawait"] = lambda _: warnings.warn(
-            "Autoawait isn't allowed in Trio background loop mode."
+            "Autoawait isn't allowed in Trio background loop mode.", stacklevel=2
         )
         self._interrupted = False
         bg_thread = threading.Thread(target=io_loop.start, daemon=True, name="TornadoBackground")

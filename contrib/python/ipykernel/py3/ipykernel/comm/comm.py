@@ -5,6 +5,7 @@
 
 import uuid
 from typing import Optional
+from warnings import warn
 
 import comm.base_comm
 import traitlets.config
@@ -37,7 +38,7 @@ class BaseComm(comm.base_comm.BaseComm):
             msg_type,
             content,
             metadata=json_clean(metadata),
-            parent=self.kernel.get_parent("shell"),
+            parent=self.kernel.get_parent(),
             ident=self.topic,
             buffers=buffers,
         )
@@ -70,8 +71,18 @@ class Comm(BaseComm, traitlets.config.LoggingConfigurable):
     def _default_comm_id(self):
         return uuid.uuid4().hex
 
-    def __init__(self, target_name='', data=None, metadata=None, buffers=None, **kwargs):
+    def __init__(
+        self, target_name='', data=None, metadata=None, buffers=None, show_warning=True, **kwargs
+    ):
         """Initialize a comm."""
+        if show_warning:
+            warn(
+                "The `ipykernel.comm.Comm` class has been deprecated. Please use the `comm` module instead."
+                "For creating comms, use the function `from comm import create_comm`.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         # Handle differing arguments between base classes.
         had_kernel = 'kernel' in kwargs
         kernel = kwargs.pop('kernel', None)
