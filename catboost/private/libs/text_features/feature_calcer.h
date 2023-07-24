@@ -48,14 +48,33 @@ namespace NCB {
 
     class TOutputFloatIterator {
     public:
-        TOutputFloatIterator(float* data, ui64 size);
-        TOutputFloatIterator(float* data, ui64 step, ui64 size);
+        inline TOutputFloatIterator(float* data, ui64 size)
+            : DataPtr(data)
+            , EndPtr(data + size)
+            , Step(1) {}
 
-        float& operator*();
-        TOutputFloatIterator& operator++();
-        const TOutputFloatIterator operator++(int);
+        inline TOutputFloatIterator(float* data, ui64 step, ui64 size)
+            : DataPtr(data)
+            , EndPtr(data + size)
+            , Step(step) {}
 
-        bool IsValid();
+        inline float& operator*() {
+            Y_ASSERT(IsValid());
+            return *DataPtr;
+        }
+        inline TOutputFloatIterator& operator++() {
+            Y_ASSERT(IsValid());
+            DataPtr += Step;
+            return *this;
+        }
+        inline const TOutputFloatIterator operator++(int) {
+            TOutputFloatIterator tmp(*this);
+            operator++();
+            return tmp;
+        }
+        inline bool IsValid() const {
+            return DataPtr < EndPtr;
+        }
 
     private:
         float* DataPtr;
@@ -128,7 +147,7 @@ namespace NCB {
         };
 
         template <class F>
-        void ForEachActiveFeature(F&& func) const {
+        inline void ForEachActiveFeature(F&& func) const {
             for (ui32 featureId: GetActiveFeatureIndices()) {
                 func(featureId);
             }

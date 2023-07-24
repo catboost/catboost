@@ -153,7 +153,7 @@ namespace NCB {
             ui64 docCount,
             TArrayRef<float> features) const {
 
-            auto outputFeaturesIterator = TOutputFloatIterator(
+            TOutputFloatIterator outputFeaturesIterator(
                 features.data() + docId,
                 docCount,
                 features.size()

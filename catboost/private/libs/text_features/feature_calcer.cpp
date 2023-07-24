@@ -116,35 +116,4 @@ namespace NCB {
         return MakeConstArrayRef(ActiveFeatureIndices);
     }
 
-    TOutputFloatIterator::TOutputFloatIterator(float* data, ui64 size)
-        : DataPtr(data)
-        , EndPtr(data + size)
-        , Step(1) {}
-
-    TOutputFloatIterator::TOutputFloatIterator(float* data, ui64 step, ui64 size)
-        : DataPtr(data)
-        , EndPtr(data + size)
-        , Step(step) {}
-
-    const TOutputFloatIterator TOutputFloatIterator::operator++(int) {
-        TOutputFloatIterator tmp(*this);
-        operator++();
-        return tmp;
-    }
-
-    bool TOutputFloatIterator::IsValid() {
-        return DataPtr < EndPtr;
-    }
-
-    TOutputFloatIterator& TOutputFloatIterator::operator++() {
-        Y_ASSERT(IsValid());
-        DataPtr += Step;
-        return *this;
-    }
-
-    float& TOutputFloatIterator::operator*() {
-        Y_ASSERT(IsValid());
-        return *DataPtr;
-    }
-
 }
