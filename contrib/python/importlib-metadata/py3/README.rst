@@ -39,7 +39,7 @@ were contributed to different versions in the standard library:
 
    * - importlib_metadata
      - stdlib
-   * - 5.0
+   * - 6.5
      - 3.12
    * - 4.13
      - 3.11

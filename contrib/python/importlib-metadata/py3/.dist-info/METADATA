@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: importlib-metadata
-Version: 6.5.0
+Version: 6.6.0
 Summary: Read metadata from Python packages
 Home-page: https://github.com/python/importlib_metadata
 Author: Jason R. Coombs
@@ -78,7 +78,7 @@ were contributed to different versions in the standard library:
 
    * - importlib_metadata
      - stdlib
-   * - 5.0
+   * - 6.5
      - 3.12
    * - 4.13
      - 3.11
