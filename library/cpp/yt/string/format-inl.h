@@ -71,20 +71,26 @@ inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBu
 
     bool singleQuotes = false;
     bool doubleQuotes = false;
+    bool escape = false;
     while (current < format.end()) {
-        if (*current == 'q') {
-            singleQuotes = true;
-        } else if (*current == 'Q') {
-            doubleQuotes = true;
+        switch (*current++) {
+            case 'q':
+                singleQuotes = true;
+                break;
+            case 'Q':
+                doubleQuotes = true;
+                break;
+            case 'h':
+                escape =  true;
+                break;
         }
-        ++current;
     }
 
     if (padLeft) {
         builder->AppendChar(' ', padding);
     }
 
-    if (singleQuotes || doubleQuotes) {
+    if (singleQuotes || doubleQuotes || escape) {
         for (const char* valueCurrent = value.begin(); valueCurrent < value.end(); ++valueCurrent) {
             char ch = *valueCurrent;
             if (ch == '\n') {
@@ -592,10 +598,15 @@ void FormatImpl(
                 *argFormatEnd != 'p' &&
                 *argFormatEnd != 'n')
             {
-                if (*argFormatEnd == 'q') {
-                    singleQuotes = true;
-                } else if (*argFormatEnd == 'Q') {
-                    doubleQuotes = true;
+                switch (*argFormatEnd) {
+                    case 'q':
+                        singleQuotes = true;
+                        break;
+                    case 'Q':
+                        doubleQuotes = true;
+                        break;
+                    case 'h':
+                        break;
                 }
                 ++argFormatEnd;
             }

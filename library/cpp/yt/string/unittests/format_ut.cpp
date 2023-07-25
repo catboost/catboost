@@ -157,6 +157,17 @@ TEST(TFormatTest, Quotes)
     EXPECT_EQ("\"\\\"\"", Format("%Qv", '\"'));
 }
 
+TEST(TFormatTest, Escape)
+{
+    EXPECT_EQ("\'\"", Format("%hv", "\'\""));
+    EXPECT_EQ("\\x01", Format("%hv", "\x1"));
+    EXPECT_EQ("\\x1b", Format("%hv", '\x1b'));
+    EXPECT_EQ("\\\\", Format("%hv", '\\'));
+    EXPECT_EQ("\\n", Format("%hv", '\n'));
+    EXPECT_EQ("\\t", Format("%hv", '\t'));
+    EXPECT_EQ("\'", Format("%hv", '\''));
+}
+
 TEST(TFormatTest, Nullable)
 {
     EXPECT_EQ("1", Format("%v", std::make_optional<int>(1)));
