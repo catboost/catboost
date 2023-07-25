@@ -1,4 +1,4 @@
-from ._compat import Protocol
+from typing import Protocol
 from typing import Any, Dict, Iterator, List, Optional, TypeVar, Union, overload
 
 
