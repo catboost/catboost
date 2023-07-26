@@ -23,6 +23,7 @@ target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-cxxsupp
   yutil
   ZLIB::ZLIB
+  cpp-sanitizer-include
 )
 target_sources(contrib-libs-protobuf PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.cc
@@ -170,6 +171,7 @@ target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-cxxsupp
   yutil
   ZLIB::ZLIB
+  cpp-sanitizer-include
 )
 target_sources(contrib-libs-protobuf.global PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_util.cc

@@ -19,6 +19,7 @@ target_link_libraries(contrib-libs-snappy PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  cpp-sanitizer-include
 )
 target_sources(contrib-libs-snappy PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/snappy/snappy-c.cc
