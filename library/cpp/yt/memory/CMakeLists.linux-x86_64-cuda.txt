@@ -15,6 +15,7 @@ target_link_libraries(cpp-yt-memory PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  cpp-sanitizer-include
   cpp-yt-assert
   cpp-yt-misc
   cpp-yt-malloc
