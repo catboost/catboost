@@ -22,6 +22,7 @@ target_include_directories(contrib-libs-libunwind PRIVATE
 )
 target_link_libraries(contrib-libs-libunwind PUBLIC
   contrib-libs-linux-headers
+  cpp-sanitizer-include
 )
 target_sources(contrib-libs-libunwind PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-EHABI.cpp

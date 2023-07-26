@@ -6,8 +6,8 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(catboost)
-add_subdirectory(contrib)
-add_subdirectory(library)
-add_subdirectory(util)
-add_subdirectory(tools)
+
+add_library(cpp-sanitizer-include INTERFACE)
+target_include_directories(cpp-sanitizer-include INTERFACE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/clang14-rt/include
+)
