@@ -14,7 +14,6 @@ import sys
 import os
 
 from gevent.hub import _get_hub_noargs as get_hub
-from gevent._compat import PY2
 from gevent._compat import integer_types
 from gevent._compat import reraise
 from gevent._compat import fspath
@@ -393,18 +392,12 @@ class OpenDescriptor(object): # pylint:disable=too-many-instance-attributes
 
         if not self.binary:
             # Either native or text at this point.
-            if PY2 and self.native:
-                # Neither text mode nor binary mode specified.
-                if self.universal:
-                    # universal was requested, e.g., 'rU'
-                    result = UniversalNewlineBytesWrapper(result, line_buffering)
-            else:
-                # Python 2 and text mode, or Python 3 and either text or native (both are the same)
-                if not isinstance(raw, io.TextIOBase):
-                    # Avoid double-wrapping a TextIOBase in another TextIOWrapper.
-                    # That tends not to work. See https://github.com/gevent/gevent/issues/1542
-                    result = io.TextIOWrapper(result, self.encoding, self.errors, self.newline,
-                                              line_buffering)
+            # Python 2 and text mode, or Python 3 and either text or native (both are the same)
+            if not isinstance(raw, io.TextIOBase):
+                # Avoid double-wrapping a TextIOBase in another TextIOWrapper.
+                # That tends not to work. See https://github.com/gevent/gevent/issues/1542
+                result = io.TextIOWrapper(result, self.encoding, self.errors, self.newline,
+                                          line_buffering)
 
         if result is not raw or self._raw_object_is_new(raw):
             # Set the mode, if possible, but only if we created a new
@@ -476,6 +469,7 @@ class FileObjectBase(object):
         'readline',
         'readlines',
         'read1',
+        'readinto',
 
         # Write.
         # Note that we do not extend WriteallMixin,

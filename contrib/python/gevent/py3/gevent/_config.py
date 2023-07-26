@@ -390,7 +390,7 @@ class Loop(ImportableSetting, Setting):
         'libev-cffi',
     ]
 
-    shortname_map = {
+    shortname_map = { # pylint:disable=dict-init-mutate
         'libev-cext': 'gevent.libev.corecext.loop',
         'libev-cffi': 'gevent.libev.corecffi.loop',
         'libuv-cffi': 'gevent.libuv.loop.loop',

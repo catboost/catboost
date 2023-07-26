@@ -89,7 +89,7 @@ class HostsFile(object):
         try:
             load_time = os.stat(self.fname).st_mtime
             needs_load = load_time > self._last_load
-        except (IOError, OSError):
+        except OSError:
             from gevent import get_hub
             get_hub().handle_error(self, *sys.exc_info())
             needs_load = False

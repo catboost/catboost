@@ -31,12 +31,11 @@ class callback(object):
     # 'pending' has the same meaning as libev watchers: it is cleared before actually
     # running the callback
 
-    def __nonzero__(self):
+    def __bool__(self):
         # it's nonzero if it's pending or currently executing
         # NOTE: This depends on loop._run_callbacks setting the args property
         # to None.
         return self.args is not None
-    __bool__ = __nonzero__
 
     @property
     def pending(self):

@@ -178,20 +178,20 @@ class AbstractCallbacks(object):
             # Keep it around so we can close it later.
             the_watcher.loop._keepaliveset.add(the_watcher)
             return -1
-        else:
-            if (the_watcher.loop is not None
-                    and the_watcher in the_watcher.loop._keepaliveset
-                    and the_watcher._watcher is orig_ffi_watcher):
-                # It didn't stop itself, *and* it didn't stop itself, reset
-                # its watcher, and start itself again. libuv's io watchers
-                # multiplex and may do this.
 
-                # The normal, expected scenario when we find the watcher still
-                # in the keepaliveset is that it is still active at the event loop
-                # level, so we don't expect that python_stop gets called.
-                #_dbg("The watcher has not stopped itself, possibly still active", the_watcher)
-                return 1
-            return 2 # it stopped itself
+        if (the_watcher.loop is not None
+                and the_watcher in the_watcher.loop._keepaliveset
+                and the_watcher._watcher is orig_ffi_watcher):
+            # It didn't stop itself, *and* it didn't stop itself, reset
+            # its watcher, and start itself again. libuv's io watchers
+            # multiplex and may do this.
+
+            # The normal, expected scenario when we find the watcher still
+            # in the keepaliveset is that it is still active at the event loop
+            # level, so we don't expect that python_stop gets called.
+            #_dbg("The watcher has not stopped itself, possibly still active", the_watcher)
+            return 1
+        return 2 # it stopped itself
 
     def python_handle_error(self, handle, _revents):
         _dbg("Handling error for handle", handle)

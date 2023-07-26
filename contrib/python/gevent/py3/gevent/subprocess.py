@@ -59,14 +59,10 @@ from gevent.hub import linkproxy
 from gevent.hub import sleep
 from gevent.hub import getcurrent
 from gevent._compat import integer_types, string_types, xrange
-from gevent._compat import PY3
-from gevent._compat import PY35
-from gevent._compat import PY36
-from gevent._compat import PY37
-from gevent._compat import PY38
+
 from gevent._compat import PY311
 from gevent._compat import PYPY
-from gevent._compat import reraise
+
 from gevent._compat import fsdecode
 from gevent._compat import fsencode
 from gevent._compat import PathLike
@@ -85,7 +81,7 @@ __implements__ = [
     'check_call',
     'check_output',
 ]
-if PY3 and not sys.platform.startswith('win32'):
+if not sys.platform.startswith('win32'):
     __implements__.append("_posixsubprocess")
     _posixsubprocess = None
 
@@ -142,74 +138,69 @@ __extra__ = [
     'CompletedProcess',
 ]
 
-if PY3:
-    __imports__ += [
-        'DEVNULL',
-        'getstatusoutput',
-        'getoutput',
-        'SubprocessError',
-        'TimeoutExpired',
-    ]
-else:
-    __extra__.append("TimeoutExpired")
+__imports__ += [
+    'DEVNULL',
+    'getstatusoutput',
+    'getoutput',
+    'SubprocessError',
+    'TimeoutExpired',
+]
+
+# Became standard in 3.5
+__extra__.remove('run')
+__extra__.remove('CompletedProcess')
+__implements__.append('run')
+__implements__.append('CompletedProcess')
+
+# Removed in Python 3.5; this is the exact code that was removed:
+# https://hg.python.org/cpython/rev/f98b0a5e5ef5
+__extra__.remove('MAXFD')
+try:
+    MAXFD = os.sysconf("SC_OPEN_MAX")
+except:
+    MAXFD = 256
 
 
-if PY35:
-    __extra__.remove('run')
-    __extra__.remove('CompletedProcess')
-    __implements__.append('run')
-    __implements__.append('CompletedProcess')
+# This was added to __all__ for windows in 3.6
+__extra__.remove('STARTUPINFO')
+__imports__.append('STARTUPINFO')
 
-    # Removed in Python 3.5; this is the exact code that was removed:
-    # https://hg.python.org/cpython/rev/f98b0a5e5ef5
-    __extra__.remove('MAXFD')
-    try:
-        MAXFD = os.sysconf("SC_OPEN_MAX")
-    except:
-        MAXFD = 256
+__imports__.extend([
+    'ABOVE_NORMAL_PRIORITY_CLASS', 'BELOW_NORMAL_PRIORITY_CLASS',
+    'HIGH_PRIORITY_CLASS', 'IDLE_PRIORITY_CLASS',
+    'NORMAL_PRIORITY_CLASS',
+    'REALTIME_PRIORITY_CLASS',
+    'CREATE_NO_WINDOW', 'DETACHED_PROCESS',
+    'CREATE_DEFAULT_ERROR_MODE',
+    'CREATE_BREAKAWAY_FROM_JOB'
+])
 
-if PY36:
-    # This was added to __all__ for windows in 3.6
-    __extra__.remove('STARTUPINFO')
-    __imports__.append('STARTUPINFO')
 
-if PY37:
-    __imports__.extend([
-        'ABOVE_NORMAL_PRIORITY_CLASS', 'BELOW_NORMAL_PRIORITY_CLASS',
-        'HIGH_PRIORITY_CLASS', 'IDLE_PRIORITY_CLASS',
-        'NORMAL_PRIORITY_CLASS',
-        'REALTIME_PRIORITY_CLASS',
-        'CREATE_NO_WINDOW', 'DETACHED_PROCESS',
-        'CREATE_DEFAULT_ERROR_MODE',
-        'CREATE_BREAKAWAY_FROM_JOB'
-    ])
+# Using os.posix_spawn() to start subprocesses
+# bypasses our child watchers on certain operating systems,
+# and with certain library versions. Possibly the right
+# fix is to monkey-patch os.posix_spawn like we do os.fork?
+# These have no effect, they're just here to match the stdlib.
+# TODO: When available, given a monkey patch on them, I think
+# we ought to be able to use them if the stdlib has identified them
+# as suitable.
+__implements__.extend([
+    '_use_posix_spawn',
+])
 
-if PY38:
-    # Using os.posix_spawn() to start subprocesses
-    # bypasses our child watchers on certain operating systems,
-    # and with certain library versions. Possibly the right
-    # fix is to monkey-patch os.posix_spawn like we do os.fork?
-    # These have no effect, they're just here to match the stdlib.
-    # TODO: When available, given a monkey patch on them, I think
-    # we ought to be able to use them if the stdlib has identified them
-    # as suitable.
+def _use_posix_spawn():
+    return False
+
+_USE_POSIX_SPAWN = False
+
+if __subprocess__._USE_POSIX_SPAWN:
     __implements__.extend([
-        '_use_posix_spawn',
+        '_USE_POSIX_SPAWN',
     ])
-
-    def _use_posix_spawn():
-        return False
-
-    _USE_POSIX_SPAWN = False
-
-    if __subprocess__._USE_POSIX_SPAWN:
-        __implements__.extend([
-            '_USE_POSIX_SPAWN',
-        ])
-    else:
-        __imports__.extend([
-            '_USE_POSIX_SPAWN',
-        ])
+else:
+    __imports__.extend([
+        '_USE_POSIX_SPAWN',
+    ])
 
 if PY311:
     # Python 3.11 added some module-level attributes to control the
@@ -270,26 +261,25 @@ for _x in ('run', 'CompletedProcess', 'TimeoutExpired'):
 mswindows = sys.platform == 'win32'
 if mswindows:
     import msvcrt # pylint: disable=import-error
-    if PY3:
-        class Handle(int):
-            closed = False
+    class Handle(int):
+        closed = False
 
-            def Close(self):
-                if not self.closed:
-                    self.closed = True
-                    _winapi.CloseHandle(self)
+        def Close(self):
+            if not self.closed:
+                self.closed = True
+                _winapi.CloseHandle(self)
 
-            def Detach(self):
-                if not self.closed:
-                    self.closed = True
-                    return int(self)
-                raise ValueError("already closed")
+        def Detach(self):
+            if not self.closed:
+                self.closed = True
+                return int(self)
+            raise ValueError("already closed")
 
-            def __repr__(self):
-                return "Handle(%d)" % int(self)
+        def __repr__(self):
+            return "Handle(%d)" % int(self)
 
-            __del__ = Close
-            __str__ = __repr__
+        __del__ = Close
+        __str__ = __repr__
 else:
     import fcntl
     import pickle
@@ -478,14 +468,6 @@ def FileObject(*args, **kwargs):
     # Defer importing FileObject until we need it
     # to allow it to be configured more easily.
     from gevent.fileobject import FileObject as _FileObject
-    if not PY3:
-        # Make write behave like the old Python 2 file
-        # write and loop to consume output, even when not
-        # buffered.
-        __FileObject = _FileObject
-        def _FileObject(*args, **kwargs):
-            kwargs['atomic_write'] = True
-            return __FileObject(*args, **kwargs)
     globals()['FileObject'] = _FileObject
     return _FileObject(*args)
 
@@ -553,7 +535,7 @@ class _CommunicatingGreenlets(object):
                 if hasattr(fobj, 'flush'):
                     # 3.6 started expecting flush to be called.
                     fobj.flush()
-        except (OSError, IOError, BrokenPipeError) as ex:
+        except (OSError, BrokenPipeError) as ex:
             # Test cases from the stdlib can raise BrokenPipeError
             # without setting an errno value. This matters because
             # Python 2 doesn't have a BrokenPipeError.
@@ -666,13 +648,13 @@ class Popen(object):
     _communicate_empty_value = b''
 
     def __init__(self, args,
-                 bufsize=-1 if PY3 else 0,
+                 bufsize=-1,
                  executable=None,
                  stdin=None, stdout=None, stderr=None,
                  preexec_fn=None, close_fds=_PLATFORM_DEFAULT_CLOSE_FDS, shell=False,
                  cwd=None, env=None, universal_newlines=None,
                  startupinfo=None, creationflags=0,
-                 restore_signals=PY3, start_new_session=False,
+                 restore_signals=True, start_new_session=False,
                  pass_fds=(),
                  # Added in 3.6. These are kept as ivars
                  encoding=None, errors=None,
@@ -696,7 +678,7 @@ class Popen(object):
         if bufsize is None:
             # Python 2 doesn't allow None at all, but Python 3 treats
             # it the same as the default. We do as well.
-            bufsize = -1 if PY3 else 0
+            bufsize = -1
         if not isinstance(bufsize, integer_types):
             raise TypeError("bufsize must be an integer")
 
@@ -704,20 +686,10 @@ class Popen(object):
             if preexec_fn is not None:
                 raise ValueError("preexec_fn is not supported on Windows "
                                  "platforms")
-            if PY37:
-                if close_fds is _PLATFORM_DEFAULT_CLOSE_FDS:
-                    close_fds = True
-            else:
-                any_stdio_set = (stdin is not None or stdout is not None or
-                                 stderr is not None)
-                if close_fds is _PLATFORM_DEFAULT_CLOSE_FDS:
-                    if any_stdio_set:
-                        close_fds = False
-                    else:
-                        close_fds = True
-                elif close_fds and any_stdio_set:
-                    raise ValueError("close_fds is not supported on Windows "
-                                     "platforms if you redirect stdin/stdout/stderr")
+
+            if close_fds is _PLATFORM_DEFAULT_CLOSE_FDS:
+                close_fds = True
+
             if threadpool is None:
                 threadpool = hub.threadpool
             self.threadpool = threadpool
@@ -726,10 +698,7 @@ class Popen(object):
             # POSIX
             if close_fds is _PLATFORM_DEFAULT_CLOSE_FDS:
                 # close_fds has different defaults on Py3/Py2
-                if PY3: # pylint: disable=simplifiable-if-statement
-                    close_fds = True
-                else:
-                    close_fds = False
+                close_fds = True
 
             if pass_fds and not close_fds:
                 import warnings
@@ -791,7 +760,7 @@ class Popen(object):
             if errread != -1:
                 errread = msvcrt.open_osfhandle(errread.Detach(), 0)
 
-        text_mode = PY3 and (self.encoding or self.errors or universal_newlines or text)
+        text_mode = self.encoding or self.errors or universal_newlines or text
         if text_mode or universal_newlines:
             # Always a native str in universal_newlines mode, even when that
             # str type is bytes. Additionally, text_mode is only true under
@@ -801,7 +770,7 @@ class Popen(object):
         uid, gid, gids = self.__handle_uids(user, group, extra_groups)
 
         if p2cwrite != -1:
-            if PY3 and text_mode:
+            if text_mode:
                 # Under Python 3, if we left on the 'b' we'd get different results
                 # depending on whether we used FileObjectPosix or FileObjectThread
                 self.stdin = FileObject(p2cwrite, 'w', bufsize,
@@ -811,25 +780,20 @@ class Popen(object):
 
         if c2pread != -1:
             if universal_newlines or text_mode:
-                if PY3:
-                    self.stdout = FileObject(c2pread, 'r', bufsize,
-                                             encoding=self.encoding, errors=self.errors)
-                    # NOTE: Universal Newlines are broken on Windows/Py3, at least
-                    # in some cases. This is true in the stdlib subprocess module
-                    # as well; the following line would fix the test cases in
-                    # test__subprocess.py that depend on python_universal_newlines,
-                    # but would be inconsistent with the stdlib:
-                else:
-                    self.stdout = FileObject(c2pread, 'rU', bufsize)
+                self.stdout = FileObject(c2pread, 'r', bufsize,
+                                         encoding=self.encoding, errors=self.errors)
+                # NOTE: Universal Newlines are broken on Windows/Py3, at least
+                # in some cases. This is true in the stdlib subprocess module
+                # as well; the following line would fix the test cases in
+                # test__subprocess.py that depend on python_universal_newlines,
+                # but would be inconsistent with the stdlib:
+
             else:
                 self.stdout = FileObject(c2pread, 'rb', bufsize)
         if errread != -1:
             if universal_newlines or text_mode:
-                if PY3:
-                    self.stderr = FileObject(errread, 'r', bufsize,
-                                             encoding=encoding, errors=errors)
-                else:
-                    self.stderr = FileObject(errread, 'rU', bufsize)
+                self.stderr = FileObject(errread, 'r', bufsize,
+                                         encoding=encoding, errors=errors)
             else:
                 self.stderr = FileObject(errread, 'rb', bufsize)
 
@@ -853,12 +817,10 @@ class Popen(object):
             # (gevent: New in python3, but reported as gevent bug in #347.
             # Note that under Py2, any error raised below will replace the
             # original error so we have to use reraise)
-            if not PY3:
-                exc_info = sys.exc_info()
             for f in filter(None, (self.stdin, self.stdout, self.stderr)):
                 try:
                     f.close()
-                except (OSError, IOError):
+                except OSError:
                     pass  # Ignore EBADF or other errors.
 
             if not self._closed_child_pipe_fds:
@@ -874,13 +836,8 @@ class Popen(object):
                 for fd in to_close:
                     try:
                         os.close(fd)
-                    except (OSError, IOError):
+                    except OSError:
                         pass
-            if not PY3:
-                try:
-                    reraise(*exc_info)
-                finally:
-                    del exc_info
             raise
 
     def __handle_uids(self, user, group, extra_groups):
@@ -1074,7 +1031,7 @@ class Popen(object):
             # blocks forever.
             self.wait()
 
-    def _gevent_result_wait(self, timeout=None, raise_exc=PY3):
+    def _gevent_result_wait(self, timeout=None, raise_exc=True):
         result = self.result.wait(timeout=timeout)
         if raise_exc and timeout is not None and not self.result.ready():
             raise TimeoutExpired(self.args, timeout)
@@ -1108,13 +1065,11 @@ class Popen(object):
                 p2cread = GetStdHandle(STD_INPUT_HANDLE)
                 if p2cread is None:
                     p2cread, _ = CreatePipe(None, 0)
-                    if PY3:
-                        p2cread = Handle(p2cread)
-                        _winapi.CloseHandle(_)
+                    p2cread = Handle(p2cread)
+                    _winapi.CloseHandle(_)
             elif stdin == PIPE:
                 p2cread, p2cwrite = CreatePipe(None, 0)
-                if PY3:
-                    p2cread, p2cwrite = Handle(p2cread), Handle(p2cwrite)
+                p2cread, p2cwrite = Handle(p2cread), Handle(p2cwrite)
             elif stdin == _devnull:
                 p2cread = msvcrt.get_osfhandle(self._get_devnull())
             elif isinstance(stdin, int):
@@ -1128,13 +1083,11 @@ class Popen(object):
                 c2pwrite = GetStdHandle(STD_OUTPUT_HANDLE)
                 if c2pwrite is None:
                     _, c2pwrite = CreatePipe(None, 0)
-                    if PY3:
-                        c2pwrite = Handle(c2pwrite)
-                        _winapi.CloseHandle(_)
+                    c2pwrite = Handle(c2pwrite)
+                    _winapi.CloseHandle(_)
             elif stdout == PIPE:
                 c2pread, c2pwrite = CreatePipe(None, 0)
-                if PY3:
-                    c2pread, c2pwrite = Handle(c2pread), Handle(c2pwrite)
+                c2pread, c2pwrite = Handle(c2pread), Handle(c2pwrite)
             elif stdout == _devnull:
                 c2pwrite = msvcrt.get_osfhandle(self._get_devnull())
             elif isinstance(stdout, int):
@@ -1148,13 +1101,11 @@ class Popen(object):
                 errwrite = GetStdHandle(STD_ERROR_HANDLE)
                 if errwrite is None:
                     _, errwrite = CreatePipe(None, 0)
-                    if PY3:
-                        errwrite = Handle(errwrite)
-                        _winapi.CloseHandle(_)
+                    errwrite = Handle(errwrite)
+                    _winapi.CloseHandle(_)
             elif stderr == PIPE:
                 errread, errwrite = CreatePipe(None, 0)
-                if PY3:
-                    errread, errwrite = Handle(errread), Handle(errwrite)
+                errread, errwrite = Handle(errread), Handle(errwrite)
             elif stderr == STDOUT:
                 errwrite = c2pwrite
             elif stderr == _devnull:
@@ -1223,7 +1174,7 @@ class Popen(object):
             if isinstance(args, str):
                 pass
             elif isinstance(args, bytes):
-                if shell and PY3:
+                if shell:
                     raise TypeError('bytes args is not allowed on Windows')
                 args = list2cmdline([args])
             elif isinstance(args, PathLike):
@@ -1317,7 +1268,7 @@ class Popen(object):
             # CreateProcess call on PyPy. Currently we don't test PyPy3 on Windows,
             # so we don't know for sure if it's built into CreateProcess there.
             if PYPY:
-                def _check_nul(s, err_kind=(ValueError if PY3 else TypeError)):
+                def _check_nul(s, err_kind=ValueError):
                     if not s:
                         return
                     nul = b'\0' if isinstance(s, bytes) else '\0'
@@ -1347,14 +1298,13 @@ class Popen(object):
                                                  env,
                                                  cwd, # fsdecode handled earlier
                                                  startupinfo)
-            except IOError as e: # From 2.6 on, pywintypes.error was defined as IOError
-                # Translate pywintypes.error to WindowsError, which is
-                # a subclass of OSError.  FIXME: We should really
-                # translate errno using _sys_errlist (or similar), but
-                # how can this be done from Python?
-                if PY3:
-                    raise # don't remap here
-                raise WindowsError(*e.args)
+            # except IOError as e: # From 2.6 on, pywintypes.error was defined as IOError
+            #     # Translate pywintypes.error to WindowsError, which is
+            #     # a subclass of OSError.  FIXME: We should really
+            #     # translate errno using _sys_errlist (or similar), but
+            #     # how can this be done from Python?
+            #     raise # don't remap here
+            #     raise WindowsError(*e.args)
             finally:
                 # Child is launched. Close the parent's copy of those pipe
                 # handles that only the child should have open.  You need
@@ -1408,7 +1358,7 @@ class Popen(object):
         def _wait(self):
             self.threadpool.spawn(self._blocking_wait).rawlink(self.result)
 
-        def wait(self, timeout=None, _raise_exc=PY3):
+        def wait(self, timeout=None, _raise_exc=True):
             """Wait for child process to terminate.  Returns returncode
             attribute."""
             if self.returncode is None:
@@ -1628,9 +1578,7 @@ class Popen(object):
                            start_new_session, process_group):
             """Execute program (POSIX version)"""
 
-            if PY3 and isinstance(args, (str, bytes)):
-                args = [args]
-            elif not PY3 and isinstance(args, string_types):
+            if isinstance(args, (str, bytes)):
                 args = [args]
             elif isinstance(args, PathLike):
                 if shell:
@@ -1728,9 +1676,9 @@ class Popen(object):
 
                             # Close pipe fds.  Make sure we don't close the
                             # same fd more than once, or standard fds.
-                            if not PY3:
+                            if not True:
                                 closed = set([None])
-                                for fd in [p2cread, c2pwrite, errwrite]:
+                                for fd in (p2cread, c2pwrite, errwrite):
                                     if fd not in closed and fd > 2:
                                         os.close(fd)
                                         closed.add(fd)
@@ -1785,17 +1733,16 @@ class Popen(object):
                             if env is None:
                                 os.execvp(executable, args)
                             else:
-                                if PY3:
-                                    # Python 3.6 started testing for
-                                    # bytes values in the env; it also
-                                    # started encoding strs using
-                                    # fsencode and using a lower-level
-                                    # API that takes a list of keys
-                                    # and values. We don't have access
-                                    # to that API, so we go the reverse direction.
-                                    env = {os.fsdecode(k) if isinstance(k, bytes) else k:
-                                           os.fsdecode(v) if isinstance(v, bytes) else v
-                                           for k, v in env.items()}
+                                # Python 3.6 started testing for
+                                # bytes values in the env; it also
+                                # started encoding strs using
+                                # fsencode and using a lower-level
+                                # API that takes a list of keys
+                                # and values. We don't have access
+                                # to that API, so we go the reverse direction.
+                                env = {os.fsdecode(k) if isinstance(k, bytes) else k:
+                                       os.fsdecode(v) if isinstance(v, bytes) else v
+                                       for k, v in env.items()}
                                 os.execvpe(executable, args, env)
 
                         except:
@@ -1893,7 +1840,7 @@ class Popen(object):
                         sleep(0.00001)
             return self.returncode
 
-        def wait(self, timeout=None, _raise_exc=PY3):
+        def wait(self, timeout=None, _raise_exc=True):
             """
             Wait for child process to terminate.  Returns :attr:`returncode`
             attribute.

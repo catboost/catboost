@@ -9,7 +9,7 @@ Python 3 socket module.
 from __future__ import absolute_import
 import io
 import os
-import sys
+
 
 from gevent import _socketcommon
 from gevent._util import copy_globals
@@ -51,7 +51,7 @@ class _closedsocket(object):
 
     detach = fileno
 
-    def _dummy(*args, **kwargs): # pylint:disable=no-method-argument,unused-argument
+    def _dummy(*args, **kwargs): # pylint:disable=no-method-argument,unused-argument,no-self-argument
         raise OSError(EBADF, 'Bad file descriptor')
     # All _delegate_methods must also be initialized here.
     send = recv = recv_into = sendto = recvfrom = recvfrom_into = _dummy
@@ -110,31 +110,21 @@ class socket(_socketcommon.SocketMixin):
     # don't subclass it. This lets code that needs the raw _sock (not tied to the hub)
     # get it. This shows up in tests like test__example_udp_server.
 
-    if sys.version_info[:2] < (3, 7):
-        def __init__(self, family=AF_INET, type=SOCK_STREAM, proto=0, fileno=None):
-            super().__init__()
-            self._closed = False
-            self._sock = self._gevent_sock_class(family, type, proto, fileno)
-            self.timeout = None
-            self.__init_common()
-    else:
-        # In 3.7, socket changed to auto-detecting family, type, and proto
-        # when given a fileno.
-        def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
-            super().__init__()
-            self._closed = False
-            if fileno is None:
-                if family == -1:
-                    family = AF_INET
-                if type == -1:
-                    type = SOCK_STREAM
-                if proto == -1:
-                    proto = 0
-            self._sock = self._gevent_sock_class(family, type, proto, fileno)
-            self.timeout = None
-            self.__init_common()
+    # In 3.7, socket changed to auto-detecting family, type, and proto
+    # when given a fileno.
+    def __init__(self, family=-1, type=-1, proto=-1, fileno=None):
+        super().__init__()
+        self._closed = False
+        if fileno is None:
+            if family == -1:
+                family = AddressFamily.AF_INET
+            if type == -1:
+                type = SOCK_STREAM
+            if proto == -1:
+                proto = 0
+        self._sock = self._gevent_sock_class(family, type, proto, fileno)
+        self.timeout = None
 
-    def __init_common(self):
         self._io_refs = 0
         _socket.socket.setblocking(self._sock, False)
         fileno = _socket.socket.fileno(self._sock)
@@ -321,6 +311,7 @@ class socket(_socketcommon.SocketMixin):
         # Break any reference to the loop.io objects. Our fileno,
         # which they were tied to, is about to be free to be reused, so these
         # objects are no longer functional.
+        # pylint:disable-next=superfluous-parens
         self._drop_events_and_close(closefd=(reason == 'closed'))
 
         self._sock = _closedsocket(family, type, proto, fileno, reason)

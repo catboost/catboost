@@ -53,12 +53,12 @@ try:
 except ImportError:
     from collections import Mapping # pylint:disable=deprecated-class
 
-from gevent._compat import PY37
+
 from gevent._util import _NONE
 from gevent.local import local
 
 __stdlib_expected__ = __all__
-__implements__ = __stdlib_expected__ if PY37 else None
+__implements__ = __stdlib_expected__
 
 # In the reference implementation, the interpreter level OS thread state
 # is modified to contain a pointer to the current context. Obviously we can't

@@ -149,8 +149,7 @@ def _is_addr(host, parse=_ipv4_inet_aton):
         parse(host)
     except AddressSyntaxError:
         return False
-    else:
-        return True
+    return True
 
 # Return True if host is a valid IPv4 address
 is_ipv4_addr = _is_addr

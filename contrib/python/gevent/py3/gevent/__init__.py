@@ -27,7 +27,7 @@ version_info = _version_info(20, 0, 0, 'dev', 0) # XXX: Remove me
 #: Use ``pkg_resources.parse_version(__version__)`` or
 #: ``packaging.version.Version(__version__)`` to get a machine-usable
 #: value.
-__version__ = '22.10.2'
+__version__ = '23.7.0'
 
 
 __all__ = [
@@ -62,25 +62,11 @@ if sys.platform == 'win32':
     import socket  # pylint:disable=unused-import,useless-suppression
     del socket
 
-try:
-    # Floating point number, in number of seconds,
-    # like time.time
-    getswitchinterval = sys.getswitchinterval
-    setswitchinterval = sys.setswitchinterval
-except AttributeError:
-    # Running on Python 2
-    _switchinterval = 0.005
 
-    def getswitchinterval():
-        return _switchinterval
-
-    def setswitchinterval(interval):
-        # Weed out None and non-numbers. This is not
-        # exactly exception compatible with the Python 3
-        # versions.
-        if interval > 0:
-            global _switchinterval
-            _switchinterval = interval
+# Floating point number, in number of seconds,
+# like time.time
+getswitchinterval = sys.getswitchinterval
+setswitchinterval = sys.setswitchinterval
 
 from gevent._config import config
 from gevent._hub_local import get_hub

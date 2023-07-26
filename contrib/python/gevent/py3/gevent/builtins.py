@@ -5,25 +5,14 @@ from __future__ import absolute_import
 import weakref
 
 from gevent.lock import RLock
-from gevent._compat import PY3
 from gevent._compat import imp_acquire_lock
 from gevent._compat import imp_release_lock
 
 
-# Normally we'd have the "expected" case inside the try
-# (Python 3, because Python 3 is the way forward). But
-# under Python 2, the popular `future` library *also* provides
-# a `builtins` module---which lacks the __import__ attribute.
-# So we test for the old, deprecated version first
 
-try: # Py2
-    import __builtin__ as __gbuiltins__
-    _allowed_module_name_types = (basestring,) # pylint:disable=undefined-variable
-    __target__ = '__builtin__'
-except ImportError:
-    import builtins as __gbuiltins__ # pylint: disable=import-error
-    _allowed_module_name_types = (str,)
-    __target__ = 'builtins'
+import builtins as __gbuiltins__
+_allowed_module_name_types = (str,)
+__target__ = 'builtins'
 
 _import = __gbuiltins__.__import__
 
@@ -121,11 +110,9 @@ def _lock_imports():
     global __lock_imports
     __lock_imports = True
 
-if PY3:
-    __implements__ = []
-    __import__ = _import
-else:
-    __implements__ = ['__import__']
+
+__implements__ = []
+__import__ = _import
 __all__ = __implements__
 
 

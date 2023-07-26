@@ -25,7 +25,6 @@ from gevent._compat import string_types
 from gevent._compat import text_type
 from gevent._compat import hostname_types
 from gevent._compat import integer_types
-from gevent._compat import PY3
 from gevent._compat import PYPY
 from gevent._compat import MAC
 
@@ -98,7 +97,7 @@ def _resolve_special(hostname, family):
 
 class AbstractResolver(object):
 
-    HOSTNAME_ENCODING = 'idna' if PY3 else 'ascii'
+    HOSTNAME_ENCODING = 'idna'
 
     _LOCAL_HOSTNAMES = (
         b'localhost',

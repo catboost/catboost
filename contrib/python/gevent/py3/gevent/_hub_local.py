@@ -9,7 +9,7 @@ from __future__ import division
 from __future__ import print_function
 
 
-from gevent._compat import thread_mod_name
+import _thread
 
 __all__ = [
     'get_hub',
@@ -21,13 +21,34 @@ __all__ = [
 # not monkey-patched.
 # We are imported early enough (by gevent/__init__) that
 # we can rely on not being monkey-patched in any way yet.
-class _Threadlocal(__import__(thread_mod_name)._local):
+assert 'gevent' not in str(_thread._local)
+class _Threadlocal(_thread._local):
 
     def __init__(self):
         # Use a class with an initializer so that we can test
         # for 'is None' instead of catching AttributeError, making
         # the code cleaner and possibly solving some corner cases
-        # (like #687)
+        # (like #687).
+        #
+        # However, under some weird circumstances, it _seems_ like the
+        # __init__ method doesn't get called properly ("seems" is the
+        # keyword). We've seen at least one instance
+        # (https://github.com/gevent/gevent/issues/1961) of
+        # ``AttributeError: '_Threadlocal' object has no attribute # 'hub'``
+        # which should be impossible unless:
+        #
+        # - Someone manually deletes the attribute
+        # - The _threadlocal object itself is in the process of being
+        #   deleted. The C ``tp_clear`` slot for it deletes the ``__dict__``
+        #   of each instance in each thread (and/or the ``tp_clear`` of ``dict`` itself
+        #   clears the instance). Now, how we could be getting
+        #   cleared while still being used is unclear, but clearing is part of
+        #   circular garbage collection, and in the bug report it looks like we're inside a
+        #   weakref finalizer or ``__del__`` method, which could suggest that
+        #   garbage collection is happening.
+        #
+        # See https://github.com/gevent/gevent/issues/1961
+        # and ``get_hub_if_exists()``
         super(_Threadlocal, self).__init__()
         self.Hub = None
         self.loop = None
@@ -51,7 +72,7 @@ def set_default_hub_class(hubtype):
     global Hub
     Hub = hubtype
 
-def get_hub(*args, **kwargs): # pylint:disable=unused-argument
+def get_hub():
     """
     Return the hub for the current thread.
 
@@ -66,26 +87,54 @@ def get_hub(*args, **kwargs): # pylint:disable=unused-argument
 
     .. versionchanged:: 1.5a3
        The *args* and *kwargs* arguments are now completely ignored.
+
+    .. versionchanged:: 23.7.0
+       The long-deprecated ``args`` and ``kwargs`` parameters are no
+       longer accepted.
     """
+    # See get_hub_if_exists
+    try:
+        hub = _threadlocal.hub
+    except AttributeError:
+        hub = None
+    if hub is None:
+        hubtype = get_hub_class()
+        hub = _threadlocal.hub = hubtype()
+    return hub
 
-    return get_hub_noargs()
-
+# For Cython purposes, we need to duplicate get_hub into this function so it
+# can be directly called.
 def get_hub_noargs():
-    # Just like get_hub, but cheaper to call because it
-    # takes no arguments or kwargs. See also a copy in
-    # gevent/greenlet.py
-    hub = _threadlocal.hub
+    # See get_hub_if_exists
+    try:
+        hub = _threadlocal.hub
+    except AttributeError:
+        hub = None
     if hub is None:
         hubtype = get_hub_class()
         hub = _threadlocal.hub = hubtype()
     return hub
 
 def get_hub_if_exists():
-    """Return the hub for the current thread.
+    """
+    Return the hub for the current thread.
 
     Return ``None`` if no hub has been created yet.
     """
-    return _threadlocal.hub
+    # Attempt a band-aid for the poorly-understood behaviour
+    # seen in https://github.com/gevent/gevent/issues/1961
+    # where the ``hub`` attribute has gone missing.
+    try:
+        return _threadlocal.hub
+    except AttributeError:
+        # XXX: I'd really like to report this, but I'm not sure how
+        # that can be done safely (because I don't know how we get
+        # here in the first place). We may be in a place where imports
+        # are unsafe, or the interpreter is shutting down, or the
+        # thread is exiting, or...
+        return None
+
+
 
 
 def set_hub(hub):

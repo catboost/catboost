@@ -30,11 +30,16 @@ from cpython.ref cimport Py_INCREF
 from cpython.ref cimport Py_DECREF
 from cpython.mem cimport PyMem_Malloc
 from cpython.mem cimport PyMem_Free
+from cpython.object cimport PyObject
+from cpython.exc cimport PyErr_NormalizeException
+from cpython.exc cimport PyErr_WriteUnraisable
 from libc.errno cimport errno
 
 cdef extern from "Python.h":
     int    Py_ReprEnter(object)
     void   Py_ReprLeave(object)
+
+    int PyException_SetTraceback(PyObject* ex, PyObject* tb) except *
 
 import sys
 import os
@@ -1387,12 +1392,15 @@ cdef public void gevent_handle_error(loop loop, object context):
     # If it was set, this will clear it, and we will own
     # the references.
     PyErr_Fetch(&typep, &valuep, &tracebackp)
-    # TODO: Should we call PyErr_Normalize? There's code in
-    # Hub.handle_error that works around what looks like an
-    # unnormalized exception.
-
     if not typep:
         return
+
+    PyErr_NormalizeException(&typep, &valuep, &tracebackp)
+
+
+    if tracebackp:
+        PyException_SetTraceback(valuep, tracebackp)
+
     # This assignment will do a Py_INCREF
     # on the value. We already own the reference
     # returned from PyErr_Fetch,
@@ -1410,7 +1418,15 @@ cdef public void gevent_handle_error(loop loop, object context):
     # If this method fails by raising an exception,
     # cython will print it for us because we don't return a
     # Python object and we don't declare an `except` clause.
-    loop.handle_error(context, type, value, traceback)
+    # Prior to Cython 3.<something>, we relied on Cython printing an
+    # uncaught exception here (because we don't return a Python object, and
+    # we have no except clause). It seems that as-of 3.0b3 at least,
+    # that no longer happens by default; if we want un caught, unraisable exception to be
+    # reported, we need to do so ourself.
+    try:
+        loop.handle_error(context, type, value, traceback)
+    except:
+        PyErr_WriteUnraisable(context)
 
 cdef public tuple _empty_tuple = ()
 

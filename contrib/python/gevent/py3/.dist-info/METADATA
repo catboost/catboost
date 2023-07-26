@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: gevent
-Version: 22.10.2
+Version: 23.7.0
 Summary: Coroutine-based network library
 Home-page: http://www.gevent.org/
 Author: Denis Bilenko
@@ -13,13 +13,12 @@ Project-URL: Source Code, https://github.com/gevent/gevent/
 Project-URL: Documentation, http://www.gevent.org
 Keywords: greenlet coroutine cooperative multitasking light threads monkey
 Classifier: License :: OSI Approved :: MIT License
-Classifier: Programming Language :: Python :: 2.7
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Operating System :: MacOS :: MacOS X
@@ -29,20 +28,22 @@ Classifier: Topic :: Internet
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Intended Audience :: Developers
 Classifier: Development Status :: 4 - Beta
-Requires-Python: >=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5
+Requires-Python: >=3.8
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 License-File: NOTICE
 License-File: AUTHORS
 Requires-Dist: zope.event
 Requires-Dist: zope.interface
-Requires-Dist: setuptools
-Requires-Dist: greenlet (>=2.0.0) ; platform_python_implementation == "CPython"
+Requires-Dist: greenlet (>=2.0.0) ; platform_python_implementation == "CPython" and python_version < "3.12"
+Requires-Dist: greenlet (>=3.0a1) ; platform_python_implementation == "CPython" and python_version >= "3.12"
 Requires-Dist: cffi (>=1.12.2) ; platform_python_implementation == "CPython" and sys_platform == "win32"
 Provides-Extra: dnspython
 Requires-Dist: dnspython (<2.0,>=1.16.0) ; (python_version < "3.10") and extra == 'dnspython'
 Requires-Dist: idna ; (python_version < "3.10") and extra == 'dnspython'
 Provides-Extra: docs
+Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: furo ; extra == 'docs'
 Requires-Dist: repoze.sphinx.autointerface ; extra == 'docs'
 Requires-Dist: sphinxcontrib-programoutput ; extra == 'docs'
 Requires-Dist: zope.schema ; extra == 'docs'
@@ -53,22 +54,15 @@ Provides-Extra: recommended
 Requires-Dist: cffi (>=1.12.2) ; (platform_python_implementation == "CPython") and extra == 'recommended'
 Requires-Dist: dnspython (<2.0,>=1.16.0) ; (python_version < "3.10") and extra == 'recommended'
 Requires-Dist: idna ; (python_version < "3.10") and extra == 'recommended'
-Requires-Dist: selectors2 ; (python_version == "2.7") and extra == 'recommended'
-Requires-Dist: backports.socketpair ; (python_version == "2.7" and sys_platform == "win32") and extra == 'recommended'
 Requires-Dist: psutil (>=5.7.0) ; (sys_platform != "win32" or platform_python_implementation == "CPython") and extra == 'recommended'
 Provides-Extra: test
 Requires-Dist: requests ; extra == 'test'
 Requires-Dist: objgraph ; extra == 'test'
+Requires-Dist: setuptools ; extra == 'test'
 Requires-Dist: cffi (>=1.12.2) ; (platform_python_implementation == "CPython") and extra == 'test'
 Requires-Dist: dnspython (<2.0,>=1.16.0) ; (python_version < "3.10") and extra == 'test'
 Requires-Dist: idna ; (python_version < "3.10") and extra == 'test'
-Requires-Dist: selectors2 ; (python_version == "2.7") and extra == 'test'
-Requires-Dist: futures ; (python_version == "2.7") and extra == 'test'
-Requires-Dist: mock ; (python_version == "2.7") and extra == 'test'
-Requires-Dist: backports.socketpair ; (python_version == "2.7" and sys_platform == "win32") and extra == 'test'
-Requires-Dist: contextvars (==2.4) ; (python_version > "3.0" and python_version < "3.7") and extra == 'test'
 Requires-Dist: coverage (>=5.0) ; (sys_platform != "win32") and extra == 'test'
-Requires-Dist: coveralls (>=1.7.0) ; (sys_platform != "win32") and extra == 'test'
 Requires-Dist: psutil (>=5.7.0) ; (sys_platform != "win32" or platform_python_implementation == "CPython") and extra == 'test'
 
 ========
@@ -118,9 +112,11 @@ gevent`_.
 gevent was written by `Denis Bilenko <http://denisbilenko.com/>`_.
 
 Since version 1.1, gevent is maintained by Jason Madden for
-`NextThought <https://nextthought.com>`_ with help from the
-`contributors <https://github.com/gevent/gevent/graphs/contributors>`_
-and is licensed under the MIT license.
+`NextThought <https://nextthought.com>`_ (through gevent 21) and
+`Institutional Shareholder Services <https://www.issgovernance.com>`_
+with help from the `contributors
+<https://github.com/gevent/gevent/graphs/contributors>`_ and is
+licensed under the MIT license.
 
 See `what's new`_ in the latest major release.
 
@@ -168,15 +164,16 @@ information on the blog_ and `twitter (@gevent)`_.
 Supported Platforms
 ===================
 
-This version of gevent runs on Python 2.7.9 and up, and many versions
-of Python 3 (for exact details, see the classifiers on the PyPI page
-or in ``setup.py``). gevent requires the `greenlet <https://greenlet.readthedocs.io>`_
-library and will install the `cffi`_ library by default on Windows.
-The cffi library will become the default on all platforms in a future
-release of gevent.
+This version of gevent runs on Python 3.8 and up, (for exact details
+of tested versions, see the classifiers on the PyPI page or in
+``setup.py``). gevent requires the `greenlet
+<https://greenlet.readthedocs.io>`_ library and will install the
+`cffi`_ library by default on Windows. The cffi library will become
+the default on all platforms in a future release of gevent.
 
-This version of gevent also runs on PyPy 7.3.7 (7.3.6 for PyPy2) or
-above. On PyPy, there are no external dependencies.
+This version of gevent is also tested on on PyPy 3.10 (7.3.12); it
+should run on PyPy 3.9 and above. On PyPy, there are no external
+dependencies.
 
 gevent is tested on Windows, macOS, and Linux, and should run on most
 other Unix-like operating systems (e.g., FreeBSD, Solaris, etc.)
@@ -226,6 +223,12 @@ supported.
 |       |       |
 |       |       |
 +-------+-------+
+|2.7.9 -|       |
+|2.7.18,| 22.10 |
+|3.6,   |       |
+|3.7    |       |
+|       |       |
++-------+-------+
 
 Installation
 ============
@@ -255,10 +258,10 @@ distributed as binary `wheels`_.
 
 .. tip::
 
-   Binary wheels cannot be installed on non-manylinux2010 compatible
-   Linux systems, such as those that use `musl
-   <https://musl.libc.org>`_, including `Alpine Linux
-   <https://alpinelinux.org>`_. Those systems must install from source.
+   While the x86-64 binaries are considered production quality, they
+   are built with relatively low optimization levels and no hardware
+   specific optimizations. Serious production users are encouraged to
+   install from source with appropriate compiler flags.
 
 .. tip::
 
@@ -273,6 +276,11 @@ distributed as binary `wheels`_.
    Beginning with gevent 22.10.0, ppc64le binaries are distributed on
    PyPI. The same caveats apply as for 64-bit ARM binaries. Using them
    for anything other than local development is discouraged.
+
+   Beginning with gevent 23, muslinux aarch64 and S390X binaries
+   are distributed on PyPI. The same caveats apply as for 64-bit ARM
+   binaries. Using them for anything other than local development is
+   discouraged.
 
 
 Installing From Source
@@ -309,7 +317,7 @@ dnspython
     includes `idna <https://pypi.org/project/idna>`_. They can be
     installed with the ``dnspython`` extra.
 
-    .. note:: This is not compatible with Python 3.10 or dnspython 2.
+    .. note:: This is not compatible with Python 3.10+ or dnspython 2.
 
 monitor
     Enhancements to gevent's self-monitoring capabilities. This
@@ -319,12 +327,9 @@ monitor
 
 recommended
     A shortcut for installing suggested extras together. This includes
-    the non-test extras defined here, plus:
-
-    - `backports.socketpair
-      <https://pypi.org/project/backports.socketpair/>`_ on Python
-      2/Windows (beginning with release 20.6.0);
-    - `selectors2 <https://pypi.org/project/selectors2/>`_ on Python 2 (beginning with release 20.6.0).
+    the non-test extras defined here, plus additions that improve
+    gevent's operation on certain platforms (for example, in the past,
+    it has included backports of newer APIs).
 
 test
     Everything needed to run the complete gevent test suite.

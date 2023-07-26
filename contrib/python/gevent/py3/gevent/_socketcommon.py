@@ -51,9 +51,6 @@ __imports__ = [
     'setdefaulttimeout',
     # Windows:
     'errorTab',
-]
-
-__py3_imports__ = [
     # Python 3
     'AddressFamily',
     'SocketKind',
@@ -64,15 +61,15 @@ __py3_imports__ = [
     'if_nameindex',
     'if_nametoindex',
     'sethostname',
+    'create_server',
+    'has_dualstack_ipv6',
 ]
 
-__imports__.extend(__py3_imports__)
 
 import time
 
 from gevent._hub_local import get_hub_noargs as get_hub
-from gevent._compat import string_types, integer_types, PY3
-from gevent._compat import PY38
+from gevent._compat import string_types, integer_types
 from gevent._compat import PY39
 from gevent._compat import WIN as is_windows
 from gevent._compat import OSX as is_macos
@@ -83,11 +80,6 @@ from gevent._hub_primitives import wait_on_socket as _wait_on_socket
 
 from gevent.timeout import Timeout
 
-if PY38:
-    __imports__.extend([
-        'create_server',
-        'has_dualstack_ipv6',
-    ])
 
 if PY39:
     __imports__.extend([
@@ -210,8 +202,7 @@ def gethostbyname_ex(hostname):
     """
     return get_hub().resolver.gethostbyname_ex(hostname)
 
-
-def getaddrinfo(host, port, family=0, socktype=0, proto=0, flags=0):
+def getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
     """
     Resolve host and port into list of address info entries.
 
@@ -228,40 +219,25 @@ def getaddrinfo(host, port, family=0, socktype=0, proto=0, flags=0):
 
     .. seealso:: :doc:`/dns`
     """
-    return get_hub().resolver.getaddrinfo(host, port, family, socktype, proto, flags)
+    # Also, on Python 3, we need to translate into the special enums.
+    # Our lower-level resolvers, including the thread and blocking, which use _socket,
+    # function simply with integers.
+    addrlist = get_hub().resolver.getaddrinfo(host, port, family, type, proto, flags)
+    result = [
+        # pylint:disable=undefined-variable
+        (_intenum_converter(af, AddressFamily),
+         _intenum_converter(socktype, SocketKind),
+         proto, canonname, sa)
+        for af, socktype, proto, canonname, sa
+        in addrlist
+    ]
+    return result
 
-if PY3:
-    # The name of the socktype param changed to type in Python 3.
-    # See https://github.com/gevent/gevent/issues/960
-    # Using inspect here to directly detect the condition is painful because we have to
-    # wrap it with a try/except TypeError because not all Python 2
-    # versions can get the args of a builtin; we also have to use a with to suppress
-    # the deprecation warning.
-    d = getaddrinfo.__doc__
-
-    def getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
-        # pylint:disable=function-redefined, undefined-variable
-        # Also, on Python 3, we need to translate into the special enums.
-        # Our lower-level resolvers, including the thread and blocking, which use _socket,
-        # function simply with integers.
-        addrlist = get_hub().resolver.getaddrinfo(host, port, family, type, proto, flags)
-        result = [
-            (_intenum_converter(af, AddressFamily),
-             _intenum_converter(socktype, SocketKind),
-             proto, canonname, sa)
-            for af, socktype, proto, canonname, sa
-            in addrlist
-        ]
-        return result
-
-    getaddrinfo.__doc__ = d
-    del d
-
-    def _intenum_converter(value, enum_klass):
-        try:
-            return enum_klass(value)
-        except ValueError: # pragma: no cover
-            return value
+def _intenum_converter(value, enum_klass):
+    try:
+        return enum_klass(value)
+    except ValueError: # pragma: no cover
+        return value
 
 
 def gethostbyaddr(ip_address):
@@ -295,10 +271,16 @@ def getfqdn(name=''):
     First the hostname returned by gethostbyaddr() is checked, then
     possibly existing aliases. In case no FQDN is available, hostname
     from gethostname() is returned.
+
+    .. versionchanged:: 23.7.0
+       The IPv6 generic address '::' now returns the result of
+       ``gethostname``, like the IPv4 address '0.0.0.0'.
     """
     # pylint: disable=undefined-variable
     name = name.strip()
-    if not name or name == '0.0.0.0':
+    # IPv6 added in a late Python 3.10/3.11 patch release.
+    # https://github.com/python/cpython/issues/100374
+    if not name or name in ('0.0.0.0', '::'):
         name = gethostname()
     try:
         hostname, aliases, _ = gethostbyaddr(name)
@@ -546,8 +528,10 @@ class SocketMixin(object):
             self.hub.cancel_wait(self._write_event, cancel_wait_ex)
         self._sock.shutdown(how)
 
-    family = property(lambda self: self._sock.family)
-    type = property(lambda self: self._sock.type)
+    # pylint:disable-next=undefined-variable
+    family = property(lambda self: _intenum_converter(self._sock.family, AddressFamily))
+    # pylint:disable-next=undefined-variable
+    type = property(lambda self: _intenum_converter(self._sock.type, SocketKind))
     proto = property(lambda self: self._sock.proto)
 
     def fileno(self):
@@ -597,6 +581,49 @@ class SocketMixin(object):
             it will be used instead of ignored, if the platform supplies
             :func:`socket.inet_pton`.
         """
+        # In the standard library, ``connect`` and ``connect_ex`` are implemented
+        # in C, and they both call a C function ``internal_connect`` to do the real
+        # work. This means that it is a visible behaviour difference to have our
+        # Python implementation of ``connect_ex`` simply call ``connect``:
+        # it could be overridden in a subclass or at runtime! Because of our exception handling,
+        # this can make a difference for known subclasses like SSLSocket.
+        self._internal_connect(address)
+
+    def connect_ex(self, address):
+        """
+        Connect to *address*, returning a result code.
+
+        .. versionchanged:: 23.7.0
+           No longer uses an overridden ``connect`` method on
+           this object. Instead, like the standard library, this method always
+           uses a non-replacable internal connection function.
+        """
+        try:
+            return self._internal_connect(address) or 0
+        except __socket__.timeout:
+            return EAGAIN
+        except __socket__.gaierror: # pylint:disable=try-except-raise
+            # gaierror/overflowerror/typerror is not silenced by connect_ex;
+            # gaierror extends error so catch it first
+            raise
+        except _SocketError as ex:
+            # Python 3: error is now OSError and it has various subclasses.
+            # Only those that apply to actually connecting are silenced by
+            # connect_ex.
+            # On Python 3, we want to check ex.errno; on Python 2
+            # there is no such attribute, we need to look at the first
+            # argument.
+            try:
+                err = ex.errno
+            except AttributeError:
+                err = ex.args[0]
+            if err:
+                return err
+            raise
+
+    def _internal_connect(self, address):
+        # Like the C function ``internal_connect``, not meant to be overridden,
+        # but exposed for testing.
         if self.timeout == 0.0:
             return self._sock.connect(address)
         address = _resolve_addr(self._sock, address)
@@ -626,30 +653,6 @@ class SocketMixin(object):
                         # that. The normal connect just calls connect_ex much like we do.
                         result = ECONNREFUSED
                     raise _SocketError(result, strerror(result))
-
-    def connect_ex(self, address):
-        try:
-            return self.connect(address) or 0
-        except __socket__.timeout:
-            return EAGAIN
-        except __socket__.gaierror: # pylint:disable=try-except-raise
-            # gaierror/overflowerror/typerror is not silenced by connect_ex;
-            # gaierror extends error so catch it first
-            raise
-        except _SocketError as ex:
-            # Python 3: error is now OSError and it has various subclasses.
-            # Only those that apply to actually connecting are silenced by
-            # connect_ex.
-            # On Python 3, we want to check ex.errno; on Python 2
-            # there is no such attribute, we need to look at the first
-            # argument.
-            try:
-                err = ex.errno
-            except AttributeError:
-                err = ex.args[0]
-            if err:
-                return err
-            raise
 
     def recv(self, *args):
         while 1:

@@ -228,7 +228,7 @@ class Queue(object):
         """
         return True
 
-    def __nonzero__(self):
+    def __nonzero__(self): # pylint:disable=bad-dunder-name
         # Py2.
         # For Cython; __bool__ becomes a special method that we can't
         # get by name.

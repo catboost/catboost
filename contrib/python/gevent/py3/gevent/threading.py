@@ -50,8 +50,7 @@ from gevent.thread import get_ident as _get_ident
 from gevent.hub import sleep as _sleep, getcurrent
 from gevent.lock import RLock
 
-from gevent._compat import PY3
-from gevent._compat import PYPY
+
 from gevent._util import LazyOnClass
 
 # Exports, prevent unused import warnings.
@@ -168,46 +167,45 @@ else:
 
         return main_threads[0]
 
-if PY3:
-    # XXX: Issue 18808 breaks us on Python 3.4+.
-    # Thread objects now expect a callback from the interpreter itself
-    # (threadmodule.c:release_sentinel) when the C-level PyThreadState
-    # object is being deallocated. Because this never happens
-    # when a greenlet exits, join() and friends will block forever.
-    # Fortunately this is easy to fix: just ensure that the allocation of the
-    # lock, _set_sentinel, creates a *gevent* lock, and release it when
-    # we're done. The main _shutdown code is in Python and deals with
-    # this gracefully.
 
-    class Thread(__threading__.Thread):
+# XXX: Issue 18808 breaks us on Python 3.4+.
+# Thread objects now expect a callback from the interpreter itself
+# (threadmodule.c:release_sentinel) when the C-level PyThreadState
+# object is being deallocated. Because this never happens
+# when a greenlet exits, join() and friends will block forever.
+# Fortunately this is easy to fix: just ensure that the allocation of the
+# lock, _set_sentinel, creates a *gevent* lock, and release it when
+# we're done. The main _shutdown code is in Python and deals with
+# this gracefully.
 
-        def _set_tstate_lock(self):
-            super(Thread, self)._set_tstate_lock()
-            greenlet = getcurrent()
-            greenlet.rawlink(self.__greenlet_finished)
+class Thread(__threading__.Thread):
 
-        def __greenlet_finished(self, _):
-            if self._tstate_lock:
-                self._tstate_lock.release()
-                self._stop()
+    def _set_tstate_lock(self):
+        super(Thread, self)._set_tstate_lock()
+        greenlet = getcurrent()
+        greenlet.rawlink(self.__greenlet_finished)
 
-    __implements__.append('Thread')
+    def __greenlet_finished(self, _):
+        if self._tstate_lock:
+            self._tstate_lock.release()
+            self._stop()
 
-    class Timer(Thread, __threading__.Timer): # pylint:disable=abstract-method,inherit-non-class
-        pass
+__implements__.append('Thread')
 
-    __implements__.append('Timer')
+class Timer(Thread, __threading__.Timer): # pylint:disable=abstract-method,inherit-non-class
+    pass
 
-    _set_sentinel = allocate_lock
-    __implements__.append('_set_sentinel')
-    # The main thread is patched up with more care
-    # in _gevent_will_monkey_patch
+__implements__.append('Timer')
 
-if PY3:
-    __implements__.remove('_get_ident')
-    __implements__.append('get_ident')
-    get_ident = _get_ident
-    __implements__.remove('_sleep')
+_set_sentinel = allocate_lock
+__implements__.append('_set_sentinel')
+# The main thread is patched up with more care
+# in _gevent_will_monkey_patch
+
+__implements__.remove('_get_ident')
+__implements__.append('get_ident')
+get_ident = _get_ident
+__implements__.remove('_sleep')
 
 if hasattr(__threading__, '_CRLock'):
     # Python 3 changed the implementation of threading.RLock
@@ -219,7 +217,6 @@ if hasattr(__threading__, '_CRLock'):
     # if the imported _CRLock is None; this arranges for that to be the case.
 
     # This was also backported to PyPy 2.7-7.0
-    assert PY3 or PYPY, "Unsupported Python version"
     _CRLock = None
     __implements__.append('_CRLock')
 

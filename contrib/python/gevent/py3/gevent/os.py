@@ -44,11 +44,10 @@ to manage child processes.
 from __future__ import absolute_import
 
 import os
-import sys
+
 from gevent.hub import _get_hub_noargs as get_hub
 from gevent.hub import reinit
 from gevent._config import config
-from gevent._compat import PY3
 from gevent._util import copy_globals
 import errno
 
@@ -102,8 +101,6 @@ if fcntl:
                 except OSError as e:
                     if e.errno not in ignored_errors:
                         raise
-                    if not PY3:
-                        sys.exc_clear()
                 if hub is None:
                     hub = get_hub()
                     event = hub.loop.io(fd, 1)
@@ -133,8 +130,6 @@ if fcntl:
                 except OSError as e:
                     if e.errno not in ignored_errors:
                         raise
-                    if not PY3:
-                        sys.exc_clear()
                 if hub is None:
                     hub = get_hub()
                     event = hub.loop.io(fd, 2)

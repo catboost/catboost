@@ -84,7 +84,7 @@ def events_to_str(event_field, all_events):
         c_flag = flag
         if event_field & c_flag:
             result.append(string)
-            event_field = event_field & (~c_flag)
+            event_field &=  (~c_flag)
         if not event_field:
             break
     if event_field:

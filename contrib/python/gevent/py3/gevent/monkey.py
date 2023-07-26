@@ -149,20 +149,7 @@ __all__ = [
     'main',
 ]
 
-
-if sys.version_info[0] >= 3:
-    string_types = (str,)
-    PY3 = True
-    PY2 = False
-else:
-    import __builtin__ # pylint:disable=import-error
-    string_types = (__builtin__.basestring,)
-    PY3 = False
-    PY2 = True
-
 WIN = sys.platform.startswith("win")
-PY36 = sys.version_info[:2] >= (3, 6)
-PY37 = sys.version_info[:2] >= (3, 7)
 
 class _BadImplements(AttributeError):
     """
@@ -280,8 +267,8 @@ def get_original(mod_name, item_name):
              ``item_name`` or a sequence of original values if a
              sequence was passed.
     """
-    mod_names = [mod_name] if isinstance(mod_name, string_types) else mod_name
-    if isinstance(item_name, string_types):
+    mod_names = [mod_name] if isinstance(mod_name, str) else mod_name
+    if isinstance(item_name, str):
         item_names = [item_name]
         unpack = True
     else:
@@ -333,7 +320,6 @@ def __call_module_hook(gevent_module, name, module, items, _warnings):
 
 class _GeventDoPatchRequest(object):
 
-    PY3 = PY3
     get_original = staticmethod(get_original)
 
     def __init__(self,
@@ -513,7 +499,7 @@ def _patch_sys_std(name):
         patch_item(sys, name, FileObjectThread(orig))
 
 @_ignores_DoNotPatch
-def patch_sys(stdin=True, stdout=True, stderr=True):
+def patch_sys(stdin=True, stdout=True, stderr=True): # pylint:disable=unused-argument
     """
     Patch sys.std[in,out,err] to use a cooperative IO via a
     threadpool.
@@ -529,29 +515,11 @@ def patch_sys(stdin=True, stdout=True, stderr=True):
     time leads to a hang.
 
     .. _`misinterpreting control keys`: https://github.com/gevent/gevent/issues/274
+
+    .. deprecated:: 23.7.0
+       Does nothing on any supported version.
     """
-    # test__issue6.py demonstrates the hang if these lines are removed;
-    # strangely enough that test passes even without monkey-patching sys
-    if PY3:
-        items = None
-    else:
-        items = set([('stdin' if stdin else None),
-                     ('stdout' if stdout else None),
-                     ('stderr' if stderr else None)])
-        items.discard(None)
-        items = list(items)
-
-    if not items:
-        return
-
-    from gevent import events
-    _notify_patch(events.GeventWillPatchModuleEvent('sys', None, sys,
-                                                    items))
-
-    for item in items:
-        _patch_sys_std(item)
-
-    _notify_patch(events.GeventDidPatchModuleEvent('sys', None, sys))
+    return
 
 @_ignores_DoNotPatch
 def patch_os():
@@ -612,21 +580,11 @@ def patch_contextvars():
        natively handles switching context vars when greenlets are switched.
        Older versions of Python that have the backport installed will
        still be patched.
+
+    .. deprecated:: 23.7.0
+       Does nothing on any supported version.
     """
-    if PY37:
-        return
-    try:
-        __import__('contextvars')
-    except ImportError:
-        pass
-    else:
-        try:
-            _patch_module('contextvars')
-        except _BadImplements:
-            # Prior to Python 3.7, but the backport must be installed.
-            # *Assume* it has the same things as the standard library would.
-            import gevent.contextvars
-            _patch_module('contextvars', gevent.contextvars.__stdlib_expected__)
+    return
 
 
 def _patch_existing_locks(threading):
@@ -853,103 +811,101 @@ def patch_thread(threading=True, _threading_local=True, Event=True, logging=True
                 continue
             thread.join = make_join_func(thread, None)
 
-    if PY3:
+    # Issue 18808 changes the nature of Thread.join() to use
+    # locks. This means that a greenlet spawned in the main thread
+    # (which is already running) cannot wait for the main thread---it
+    # hangs forever. We patch around this if possible. See also
+    # gevent.threading.
+    greenlet = __import__('greenlet')
+    already_patched = is_object_patched('threading', '_shutdown')
+    orig_shutdown = threading_mod._shutdown
 
-        # Issue 18808 changes the nature of Thread.join() to use
-        # locks. This means that a greenlet spawned in the main thread
-        # (which is already running) cannot wait for the main thread---it
-        # hangs forever. We patch around this if possible. See also
-        # gevent.threading.
-        greenlet = __import__('greenlet')
-        already_patched = is_object_patched('threading', '_shutdown')
-        orig_shutdown = threading_mod._shutdown
+    if orig_current_thread == threading_mod.main_thread() and not already_patched:
+        main_thread = threading_mod.main_thread()
+        _greenlet = main_thread._greenlet = greenlet.getcurrent()
+        main_thread.__real_tstate_lock = main_thread._tstate_lock
+        assert main_thread.__real_tstate_lock is not None
+        # The interpreter will call threading._shutdown
+        # when the main thread exits and is about to
+        # go away. It is called *in* the main thread. This
+        # is a perfect place to notify other greenlets that
+        # the main thread is done. We do this by overriding the
+        # lock of the main thread during operation, and only restoring
+        # it to the native blocking version at shutdown time
+        # (the interpreter also has a reference to this lock in a
+        # C data structure).
+        main_thread._tstate_lock = threading_mod.Lock()
+        main_thread._tstate_lock.acquire()
 
-        if orig_current_thread == threading_mod.main_thread() and not already_patched:
-            main_thread = threading_mod.main_thread()
-            _greenlet = main_thread._greenlet = greenlet.getcurrent()
-            main_thread.__real_tstate_lock = main_thread._tstate_lock
-            assert main_thread.__real_tstate_lock is not None
-            # The interpreter will call threading._shutdown
-            # when the main thread exits and is about to
-            # go away. It is called *in* the main thread. This
-            # is a perfect place to notify other greenlets that
-            # the main thread is done. We do this by overriding the
-            # lock of the main thread during operation, and only restoring
-            # it to the native blocking version at shutdown time
-            # (the interpreter also has a reference to this lock in a
-            # C data structure).
-            main_thread._tstate_lock = threading_mod.Lock()
-            main_thread._tstate_lock.acquire()
+        def _shutdown():
+            # Release anyone trying to join() me,
+            # and let us switch to them.
+            if not main_thread._tstate_lock:
+                return
 
-            def _shutdown():
-                # Release anyone trying to join() me,
-                # and let us switch to them.
-                if not main_thread._tstate_lock:
-                    return
+            main_thread._tstate_lock.release()
+            from gevent import sleep
+            try:
+                sleep()
+            except: # pylint:disable=bare-except
+                # A greenlet could have .kill() us
+                # or .throw() to us. I'm the main greenlet,
+                # there's no where else for this to go.
+                from gevent  import get_hub
+                get_hub().print_exception(_greenlet, *sys.exc_info())
 
-                main_thread._tstate_lock.release()
-                from gevent import sleep
-                try:
-                    sleep()
-                except: # pylint:disable=bare-except
-                    # A greenlet could have .kill() us
-                    # or .throw() to us. I'm the main greenlet,
-                    # there's no where else for this to go.
-                    from gevent  import get_hub
-                    get_hub().print_exception(_greenlet, *sys.exc_info())
+            # Now, this may have resulted in us getting stopped
+            # if some other greenlet actually just ran there.
+            # That's not good, we're not supposed to be stopped
+            # when we enter _shutdown.
+            main_thread._is_stopped = False
+            main_thread._tstate_lock = main_thread.__real_tstate_lock
+            main_thread.__real_tstate_lock = None
+            # The only truly blocking native shutdown lock to
+            # acquire should be our own (hopefully), and the call to
+            # _stop that orig_shutdown makes will discard it.
 
-                # Now, this may have resulted in us getting stopped
-                # if some other greenlet actually just ran there.
-                # That's not good, we're not supposed to be stopped
-                # when we enter _shutdown.
-                main_thread._is_stopped = False
-                main_thread._tstate_lock = main_thread.__real_tstate_lock
-                main_thread.__real_tstate_lock = None
-                # The only truly blocking native shutdown lock to
-                # acquire should be our own (hopefully), and the call to
-                # _stop that orig_shutdown makes will discard it.
+            orig_shutdown()
+            patch_item(threading_mod, '_shutdown', orig_shutdown)
 
-                orig_shutdown()
-                patch_item(threading_mod, '_shutdown', orig_shutdown)
+        patch_item(threading_mod, '_shutdown', _shutdown)
 
-            patch_item(threading_mod, '_shutdown', _shutdown)
+        # We create a bit of a reference cycle here,
+        # so main_thread doesn't get to be collected in a timely way.
+        # Not good. Take it out of dangling so we don't get
+        # warned about it.
+        threading_mod._dangling.remove(main_thread)
 
-            # We create a bit of a reference cycle here,
-            # so main_thread doesn't get to be collected in a timely way.
-            # Not good. Take it out of dangling so we don't get
-            # warned about it.
-            threading_mod._dangling.remove(main_thread)
+        # Patch up the ident of the main thread to match. This
+        # matters if threading was imported before monkey-patching
+        # thread
+        oldid = main_thread.ident
+        main_thread._ident = threading_mod.get_ident()
+        if oldid in threading_mod._active:
+            threading_mod._active[main_thread.ident] = threading_mod._active[oldid]
+        if oldid != main_thread.ident:
+            del threading_mod._active[oldid]
+    elif not already_patched:
+        _queue_warning("Monkey-patching not on the main thread; "
+                       "threading.main_thread().join() will hang from a greenlet",
+                       _warnings)
 
-            # Patch up the ident of the main thread to match. This
-            # matters if threading was imported before monkey-patching
-            # thread
-            oldid = main_thread.ident
+        main_thread = threading_mod.main_thread()
+        def _shutdown():
+            # We've patched get_ident but *did not* patch the
+            # main_thread.ident value. Beginning in Python 3.9.8
+            # and then later releases (3.10.1, probably), the
+            # _main_thread object is only _stop() if the ident of
+            # the current thread (the *real* main thread) matches
+            # the ident of the _main_thread object. But without doing that,
+            # the main thread's shutdown lock (threading._shutdown_locks) is never
+            # removed *or released*, thus hanging the interpreter.
+            # XXX: There's probably a better way to do this. Probably need to take a
+            # step back and look at the whole picture.
             main_thread._ident = threading_mod.get_ident()
-            if oldid in threading_mod._active:
-                threading_mod._active[main_thread.ident] = threading_mod._active[oldid]
-            if oldid != main_thread.ident:
-                del threading_mod._active[oldid]
-        elif not already_patched:
-            _queue_warning("Monkey-patching not on the main thread; "
-                           "threading.main_thread().join() will hang from a greenlet",
-                           _warnings)
-
-            main_thread = threading_mod.main_thread()
-            def _shutdown():
-                # We've patched get_ident but *did not* patch the
-                # main_thread.ident value. Beginning in Python 3.9.8
-                # and then later releases (3.10.1, probably), the
-                # _main_thread object is only _stop() if the ident of
-                # the current thread (the *real* main thread) matches
-                # the ident of the _main_thread object. But without doing that,
-                # the main thread's shutdown lock (threading._shutdown_locks) is never
-                # removed *or released*, thus hanging the interpreter.
-                # XXX: There's probably a better way to do this. Probably need to take a
-                # step back and look at the whole picture.
-                main_thread._ident = threading_mod.get_ident()
-                orig_shutdown()
-                patch_item(threading_mod, '_shutdown', orig_shutdown)
-            patch_item(threading_mod, '_shutdown', _shutdown)
+            orig_shutdown()
+            patch_item(threading_mod, '_shutdown', orig_shutdown)
+        patch_item(threading_mod, '_shutdown', _shutdown)
 
     from gevent import events
     _notify_patch(events.GeventDidPatchModuleEvent('thread', gevent_thread_mod, thread_mod))
@@ -1031,7 +987,6 @@ def patch_ssl(_warnings=None, _first_time=True):
     """
     may_need_warning = (
         _first_time
-        and PY36
         and 'ssl' in sys.modules
         and hasattr(sys.modules['ssl'], 'SSLContext'))
     # Previously, we didn't warn on Python 2 if pkg_resources has been imported
@@ -1145,9 +1100,10 @@ def patch_builtins():
 
     .. _greenlet safe: https://github.com/gevent/gevent/issues/108
 
+    .. deprecated:: 23.7.0
+       Does nothing on any supported platform.
     """
-    if PY2:
-        _patch_module('builtins')
+
 
 @_ignores_DoNotPatch
 def patch_signal():

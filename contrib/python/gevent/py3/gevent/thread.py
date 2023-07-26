@@ -9,7 +9,6 @@ Implementation of the standard :mod:`thread` module that spawns greenlets.
     :class:`gevent.Greenlet` class or :func:`gevent.spawn`.
 """
 from __future__ import absolute_import
-import sys
 
 __implements__ = [
     'allocate_lock',
@@ -22,32 +21,27 @@ __implements__ = [
 ]
 
 __imports__ = ['error']
-if sys.version_info[0] == 2:
-    import thread as __thread__ # pylint:disable=import-error
-    PY2 = True
-    PY3 = False
-    # Name the `future` backport that might already have been imported;
-    # Importing `pkg_resources` imports this, for example.
-    __alternate_targets__ = ('_thread',)
-else:
-    import _thread as __thread__ # pylint:disable=import-error
-    PY2 = False
-    PY3 = True
-    __target__ = '_thread'
-    __imports__ += [
-        'TIMEOUT_MAX',
-        'allocate',
-        'exit_thread',
-        'interrupt_main',
-        'start_new'
-    ]
-    if sys.version_info[:2] >= (3, 8):
-        # We can't actually produce a value that "may be used
-        # to identify this particular thread system-wide", right?
-        # Even if we could, I imagine people will want to pass this to
-        # non-Python (native) APIs, so we shouldn't mess with it.
-        __imports__.append('get_native_id')
 
+import _thread as __thread__ # pylint:disable=import-error
+
+__target__ = '_thread'
+__imports__ += [
+    'TIMEOUT_MAX',
+    'allocate',
+    'exit_thread',
+    'interrupt_main',
+    'start_new'
+]
+
+# We can't actually produce a value that "may be used
+# to identify this particular thread system-wide", right?
+# Even if we could, I imagine people will want to pass this to
+# non-Python (native) APIs, so we shouldn't mess with it.
+__imports__.append('get_native_id')
+
+# Added to 3.12
+if hasattr(__thread__, 'daemon_threads_allowed'):
+    __imports__.append('daemon_threads_allowed')
 
 error = __thread__.error
 
@@ -63,7 +57,6 @@ from gevent.local import local as _local
 from gevent.exceptions import LoopExit
 
 if hasattr(__thread__, 'RLock'):
-    assert PY3 or PYPY
     # Added in Python 3.4, backported to PyPy 2.7-7.0
     __imports__.append("RLock")
 
@@ -88,13 +81,11 @@ class LockType(BoundedSemaphore):
     # and any other API changes we need to make to match behaviour
     _OVER_RELEASE_ERROR = __thread__.error
 
-    if PYPY and PY3:
+    if PYPY:
         _OVER_RELEASE_ERROR = RuntimeError
 
-    if PY3:
-        _TIMEOUT_MAX = __thread__.TIMEOUT_MAX # python 2: pylint:disable=no-member
-    else:
-        _TIMEOUT_MAX = 9223372036.0
+
+    _TIMEOUT_MAX = __thread__.TIMEOUT_MAX # pylint:disable=no-member
 
     def acquire(self, blocking=True, timeout=-1):
         # This is the Python 3 signature.

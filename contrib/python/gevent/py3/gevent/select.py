@@ -70,8 +70,7 @@ def get_fileno(obj):
         if not isinstance(obj, integer_types):
             raise TypeError('argument must be an int, or have a fileno() method: %r' % (obj,))
         return obj
-    else:
-        return fileno_f()
+    return fileno_f()
 
 
 class SelectResult(object):
@@ -140,7 +139,7 @@ class SelectResult(object):
 
 
 def select(rlist, wlist, xlist, timeout=None): # pylint:disable=unused-argument
-    """An implementation of :meth:`select.select` that blocks only the current greenlet.
+    """An implementation of :obj:`select.select` that blocks only the current greenlet.
 
     .. caution:: *xlist* is ignored.
 
@@ -222,7 +221,9 @@ class PollResult(object):
 
 class poll(object):
     """
-    An implementation of :class:`select.poll` that blocks only the current greenlet.
+    An implementation of :obj:`select.poll` that blocks only the current greenlet.
+
+    With only one exception, the interface is the same as the standard library interface.
 
     .. caution:: ``POLLPRI`` data is not supported.
 
@@ -241,6 +242,20 @@ class poll(object):
         self.loop = get_hub().loop
 
     def register(self, fd, eventmask=_NONE):
+        """
+        Register a file descriptor *fd* with the polling object.
+
+        Future calls to the :meth:`poll`` method will then check
+        whether the file descriptor has any pending I/O events. *fd* can
+        be either an integer, or an object with a ``fileno()`` method that
+        returns an integer. File objects implement ``fileno()``, so they
+        can also be used as the argument (but remember that regular
+        files are usually always ready).
+
+        *eventmask* is an optional bitmask describing the type of events
+        you want to check for, and can be a combination of the
+        constants ``POLLIN``, and ``POLLOUT`` (``POLLPRI`` is not supported).
+        """
         if eventmask is _NONE:
             flags = _EV_READ | _EV_WRITE
         else:
@@ -256,6 +271,9 @@ class poll(object):
         self.fds[fileno] = flags
 
     def modify(self, fd, eventmask):
+        """
+        Change the set of events being watched on *fd*.
+        """
         self.register(fd, eventmask)
 
     def _get_started_watchers(self, watcher_cb):

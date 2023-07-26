@@ -154,7 +154,7 @@ class GreenFileDescriptorIO(RawIOBase):
         while 1:
             try:
                 return _read(self._fileno, n)
-            except (IOError, OSError) as ex:
+            except OSError as ex:
                 if ex.args[0] not in ignored_errors:
                     raise
             wait_on_watcher(self._read_watcher, None, None, self.hub)
@@ -192,7 +192,7 @@ class GreenFileDescriptorIO(RawIOBase):
         while True:
             try:
                 return _write(self._fileno, b)
-            except (IOError, OSError) as ex:
+            except OSError as ex:
                 if ex.args[0] not in ignored_errors:
                     raise
             wait_on_watcher(self._write_watcher, None, None, self.hub)

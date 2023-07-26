@@ -31,13 +31,10 @@ from gevent import socket
 import gevent
 from gevent.server import StreamServer
 from gevent.hub import GreenletExit
-from gevent._compat import PY3, reraise
+from gevent._compat import reraise
 
 from functools import partial
-if PY3:
-    unquote_latin1 = partial(unquote, encoding='latin-1')
-else:
-    unquote_latin1 = unquote
+unquote_latin1 = partial(unquote, encoding='latin-1')
 
 _no_undoc_members = True # Don't put undocumented things into sphinx
 
@@ -89,8 +86,7 @@ def format_date_time(timestamp):
     #  Return a byte string, not a native string
     year, month, day, hh, mm, ss, wd, _y, _z = time.gmtime(timestamp)
     value = "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (_WEEKDAYNAME[wd], day, _MONTHNAME[month], year, hh, mm, ss)
-    if PY3:
-        value = value.encode("latin-1")
+    value = value.encode("latin-1")
     return value
 
 
@@ -392,13 +388,9 @@ class WSGIHandler(object):
     # pylint:disable=too-many-instance-attributes
 
     protocol_version = 'HTTP/1.1'
-    if PY3:
-        # if we do like Py2, then headers_factory unconditionally
-        # becomes a bound method, meaning the fp argument becomes WSGIHandler
-        def MessageClass(self, *args):
-            return headers_factory(*args)
-    else:
-        MessageClass = headers_factory
+
+    def MessageClass(self, *args):
+        return headers_factory(*args)
 
     # Attributes reset at various times for each request; not public
     # documented. Class attributes to keep the constructor fast
@@ -562,10 +554,10 @@ class WSGIHandler(object):
 
         if self.request_version == "HTTP/1.1":
             conntype = self.headers.get("Connection", "").lower()
-            self.close_connection = (conntype == 'close')
+            self.close_connection = (conntype == 'close') # pylint:disable=superfluous-parens
         elif self.request_version == 'HTTP/1.0':
             conntype = self.headers.get("Connection", "close").lower()
-            self.close_connection = (conntype != 'keep-alive')
+            self.close_connection = (conntype != 'keep-alive') # pylint:disable=superfluous-parens
         else:
             # XXX: HTTP 0.9. We should drop support
             self.close_connection = True
@@ -606,8 +598,7 @@ class WSGIHandler(object):
         latin-1).
         """
         line = self.rfile.readline(MAX_REQUEST_LINE)
-        if PY3:
-            line = line.decode('latin-1')
+        line = line.decode('latin-1')
         return line
 
     def handle_one_request(self):
@@ -659,7 +650,7 @@ class WSGIHandler(object):
         try:
             self.requestline = self.read_requestline()
             # Account for old subclasses that haven't done this
-            if PY3 and isinstance(self.requestline, bytes):
+            if isinstance(self.requestline, bytes):
                 self.requestline = self.requestline.decode('latin-1')
         except socket.error:
             # "Connection reset by peer" or other socket errors aren't interesting here
@@ -720,8 +711,7 @@ class WSGIHandler(object):
                 if hasattr(self.result, '__len__'):
                     total_len = sum(len(chunk) for chunk in self.result)
                     total_len_str = str(total_len)
-                    if PY3:
-                        total_len_str = total_len_str.encode("latin-1")
+                    total_len_str = total_len_str.encode("latin-1")
                     self.response_headers.append((b'Content-Length', total_len_str))
                 else:
                     self.response_use_chunked = (
@@ -856,8 +846,8 @@ class WSGIHandler(object):
                 # Note: Some Python 2 implementations, like Jython, may allow non-octet (above 255) values
                 # in their str implementation; this is mentioned in the WSGI spec, but we don't
                 # run on any platform like that so we can assume that a str value is pure bytes.
-                response_headers.append((header if not PY3 else header.encode("latin-1"),
-                                         value if not PY3 else value.encode("latin-1")))
+                response_headers.append((header.encode("latin-1"),
+                                         value.encode("latin-1")))
         except UnicodeEncodeError:
             # If we get here, we're guaranteed to have a header and value
             raise UnicodeError("Non-latin1 header", repr(header), repr(value))
@@ -871,7 +861,7 @@ class WSGIHandler(object):
         # code
         code = int(status.split(' ', 1)[0])
 
-        self.status = status if not PY3 else status.encode("latin-1")
+        self.status = status.encode("latin-1")
         self._orig_status = status # Preserve the native string for logging
         self.response_headers = response_headers
         self.code = code
@@ -898,8 +888,7 @@ class WSGIHandler(object):
         if self.code in (304, 204):
             if self.provided_content_length is not None and self.provided_content_length != '0':
                 msg = 'Invalid Content-Length for %s response: %r (must be absent or zero)' % (self.code, self.provided_content_length)
-                if PY3:
-                    msg = msg.encode('latin-1')
+                msg = msg.encode('latin-1')
                 raise self.ApplicationError(msg)
 
         return self.write
@@ -1000,7 +989,7 @@ class WSGIHandler(object):
             finally:
                 try:
                     self.wsgi_input._discard()
-                except (socket.error, IOError):
+                except socket.error:
                     # Don't let exceptions during discarding
                     # input override any exception that may have been
                     # raised by the application, such as our own _InvalidClientInput.
@@ -1012,8 +1001,6 @@ class WSGIHandler(object):
         except socket.error as ex:
             if ex.args[0] in self.ignored_socket_errors:
                 # See description of self.ignored_socket_errors.
-                if not PY3:
-                    sys.exc_clear()
                 self.close_connection = True
             else:
                 self.handle_error(*sys.exc_info())
@@ -1032,8 +1019,6 @@ class WSGIHandler(object):
                 self.start_response(status, headers[:])
                 self.write(body)
             except socket.error:
-                if not PY3:
-                    sys.exc_clear()
                 self.close_connection = True
 
     def _log_error(self, t, v, tb):
@@ -1558,7 +1543,7 @@ class WSGIServer(StreamServer):
                     name = socket.getfqdn(address[0])
                 except socket.error:
                     name = str(address[0])
-                if PY3 and not isinstance(name, str):
+                if not isinstance(name, str):
                     name = name.decode('ascii')
                 self.environ['SERVER_NAME'] = name
             self.environ.setdefault('SERVER_PORT', str(address[1]))

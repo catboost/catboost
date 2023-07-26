@@ -249,9 +249,9 @@ def iwait_on_objects(objects, timeout=None, count=None):
 
 def wait_on_objects(objects=None, timeout=None, count=None):
     """
-    Wait for ``objects`` to become ready or for event loop to finish.
+    Wait for *objects* to become ready or for event loop to finish.
 
-    If ``objects`` is provided, it must be a list containing objects
+    If *objects* is provided, it must be a list containing objects
     implementing the wait protocol (rawlink() and unlink() methods):
 
     - :class:`gevent.Greenlet` instance
@@ -259,21 +259,21 @@ def wait_on_objects(objects=None, timeout=None, count=None):
     - :class:`gevent.lock.Semaphore` instance
     - :class:`gevent.subprocess.Popen` instance
 
-    If ``objects`` is ``None`` (the default), ``wait()`` blocks until
-    the current event loop has nothing to do (or until ``timeout`` passes):
+    If *objects* is ``None`` (the default), ``wait()`` blocks until
+    the current event loop has nothing to do (or until *timeout* passes):
 
     - all greenlets have finished
     - all servers were stopped
     - all event loop watchers were stopped.
 
-    If ``count`` is ``None`` (the default), wait for all ``objects``
+    If *count* is ``None`` (the default), wait for all *objects*
     to become ready.
 
-    If ``count`` is a number, wait for (up to) ``count`` objects to become
+    If *count* is a number, wait for (up to) *count* objects to become
     ready. (For example, if count is ``1`` then the function exits
     when any object in the list is ready).
 
-    If ``timeout`` is provided, it specifies the maximum number of
+    If *timeout* is provided, it specifies the maximum number of
     seconds ``wait()`` will block.
 
     Returns the list of ready objects, in the order in which they were
@@ -332,12 +332,12 @@ def wait_on_watcher(watcher, timeout=None, timeout_exc=_NONE, hub=None):
     If *timeout* is non-negative, then *timeout_exc* is raised after
     *timeout* second has passed.
 
-    If :func:`cancel_wait` is called on *io* by another greenlet,
+    If :func:`cancel_wait` is called on *watcher* by another greenlet,
     raise an exception in this blocking greenlet
     (``socket.error(EBADF, 'File descriptor was closed in another
     greenlet')`` by default).
 
-    :param io: An event loop watcher, most commonly an IO watcher obtained from
+    :param watcher: An event loop watcher, most commonly an IO watcher obtained from
         :meth:`gevent.core.loop.io`
     :keyword timeout_exc: The exception to raise if the timeout expires.
         By default, a :class:`socket.timeout` exception is raised.

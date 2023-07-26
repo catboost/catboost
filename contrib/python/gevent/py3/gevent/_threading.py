@@ -9,8 +9,6 @@ from collections import deque
 
 from gevent import monkey
 from gevent._compat import thread_mod_name
-from gevent._compat import PY3
-
 
 __all__ = [
     'Lock',
@@ -33,21 +31,10 @@ start_new_thread, Lock, get_thread_ident, = monkey.get_original(thread_mod_name,
 #
 #
 # In all cases, a timeout value of -1 means "infinite". Sigh.
-if PY3:
-    def acquire_with_timeout(lock, timeout=-1):
-        globals()['acquire_with_timeout'] = type(lock).acquire
-        return lock.acquire(timeout=timeout)
-else:
-    def acquire_with_timeout(lock, timeout=-1,
-                             _time=monkey.get_original('time', 'time'),
-                             _sleep=monkey.get_original('time', 'sleep')):
-        deadline = _time() + timeout if timeout != -1 else None
-        while 1:
-            if lock.acquire(False): # Can we acquire non-blocking?
-                return True
-            if deadline is not None and _time() >= deadline:
-                return False
-            _sleep(0.005)
+def acquire_with_timeout(lock, timeout=-1):
+    globals()['acquire_with_timeout'] = type(lock).acquire
+    return lock.acquire(timeout=timeout)
+
 
 class _Condition(object):
     # We could use libuv's ``uv_cond_wait`` to implement this whole

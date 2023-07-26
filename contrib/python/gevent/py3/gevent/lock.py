@@ -12,7 +12,7 @@ from __future__ import print_function
 
 from gevent.hub import getcurrent
 from gevent._compat import PURE_PYTHON
-from gevent._compat import PY2
+
 # This is the one exception to the rule of where to
 # import Semaphore, obviously
 from gevent import monkey
@@ -180,8 +180,6 @@ def _fixup_docstrings():
         assert c.__doc__ == b.__doc__
         for m in 'acquire', 'release', 'wait':
             c_meth = getattr(c, m)
-            if PY2:
-                c_meth = c_meth.__func__
             b_meth = getattr(b, m)
             c_meth.__doc__ = b_meth.__doc__
 
@@ -324,7 +322,7 @@ class RLock(object):
         """
         me = getcurrent()
         if self._owner is me:
-            self._count = self._count + 1
+            self._count += 1
             return 1
         rc = self._block.acquire(blocking, timeout)
         if rc:
@@ -346,7 +344,7 @@ class RLock(object):
             raise RuntimeError("cannot release un-acquired lock. Owner: %r Current: %r" % (
                 self._owner, getcurrent()
             ))
-        self._count = count = self._count - 1
+        self._count = count = self._count - 1 # pylint:disable=consider-using-augmented-assign
         if not count:
             self._owner = None
             self._block.release()

@@ -23,105 +23,15 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ####
 
-# cpython.py
-
-"""
-Taken verbatim from Jinja2.
-
-https://github.com/mitsuhiko/jinja2/blob/master/jinja2/debug.py#L267
-"""
-# pylint:disable=consider-using-dict-comprehension
-#import platform # XXX: gevent cannot import platform at the top level; interferes with monkey patching
-import sys
-
-
-def _init_ugly_crap():
-    """This function implements a few ugly things so that we can patch the
-    traceback objects.  The function returned allows resetting `tb_next` on
-    any python traceback object.  Do not attempt to use this on non cpython
-    interpreters
-    """
-    import ctypes
-    from types import TracebackType
-
-    # figure out side of _Py_ssize_t
-    if hasattr(ctypes.pythonapi, 'Py_InitModule4_64'):
-        _Py_ssize_t = ctypes.c_int64
-    else:
-        _Py_ssize_t = ctypes.c_int
-
-    # regular python
-    class _PyObject(ctypes.Structure):
-        pass
-
-    _PyObject._fields_ = [
-        ('ob_refcnt', _Py_ssize_t),
-        ('ob_type', ctypes.POINTER(_PyObject))
-    ]
-
-    # python with trace
-    if hasattr(sys, 'getobjects'):
-        class _PyObject(ctypes.Structure):
-            pass
-
-        _PyObject._fields_ = [
-            ('_ob_next', ctypes.POINTER(_PyObject)),
-            ('_ob_prev', ctypes.POINTER(_PyObject)),
-            ('ob_refcnt', _Py_ssize_t),
-            ('ob_type', ctypes.POINTER(_PyObject))
-        ]
-
-    class _Traceback(_PyObject):
-        pass
-
-    _Traceback._fields_ = [
-        ('tb_next', ctypes.POINTER(_Traceback)),
-        ('tb_frame', ctypes.POINTER(_PyObject)),
-        ('tb_lasti', ctypes.c_int),
-        ('tb_lineno', ctypes.c_int)
-    ]
-
-    def tb_set_next(tb, next):
-        """Set the tb_next attribute of a traceback object."""
-        if not (isinstance(tb, TracebackType) and (next is None or isinstance(next, TracebackType))):
-            raise TypeError('tb_set_next arguments must be traceback objects')
-        obj = _Traceback.from_address(id(tb))
-        if tb.tb_next is not None:
-            old = _Traceback.from_address(id(tb.tb_next))
-            old.ob_refcnt -= 1
-        if next is None:
-            obj.tb_next = ctypes.POINTER(_Traceback)()
-        else:
-            next = _Traceback.from_address(id(next))
-            next.ob_refcnt += 1
-            obj.tb_next = ctypes.pointer(next)
-
-    return tb_set_next
-
-
-tb_set_next = None
-#try:
-#    if platform.python_implementation() == 'CPython':
-#        tb_set_next = _init_ugly_crap()
-#except Exception as exc:
-#    sys.stderr.write("Failed to initialize cpython support: {!r}".format(exc))
-#del _init_ugly_crap
 
 # __init__.py
 import re
+import sys
 from types import CodeType
-from types import FrameType
-from types import TracebackType
 
-try:
-    from __pypy__ import tproxy
-except ImportError:
-    tproxy = None
+__version__ = '2.0.0'
+__all__ = 'Traceback', 'TracebackParseError', 'Frame', 'Code'
 
-__version__ = '1.3.0'
-__all__ = ('Traceback',)
-
-PY3 = sys.version_info[0] >= 3
 FRAME_RE = re.compile(r'^\s*File "(?P<co_filename>.+)", line (?P<tb_lineno>\d+)(, in (?P<co_name>.+))?$')
 
 
@@ -132,7 +42,7 @@ class _AttrDict(dict):
         try:
             return self[name]
         except KeyError:
-            raise AttributeError(name)
+            raise AttributeError(name) from None
 
 
 # noinspection PyPep8Naming
@@ -144,60 +54,49 @@ class TracebackParseError(Exception):
     pass
 
 
-class Code(object):
+class Code:
+    """
+    Class that replicates just enough of the builtin Code object to enable serialization and traceback rendering.
+    """
+
+    co_code = None
+
     def __init__(self, code):
         self.co_filename = code.co_filename
         self.co_name = code.co_name
         self.co_argcount = 0
         self.co_kwonlyargcount = 0
         self.co_varnames = ()
-        # gevent: copy more attributes
-        self.co_nlocals = code.co_nlocals
-        self.co_stacksize = code.co_stacksize
-        self.co_flags = code.co_flags
-        self.co_firstlineno = code.co_firstlineno
-
-    def __reduce__(self):
-        return Code, (_AttrDict(self.__dict__),)
-
-    # noinspection SpellCheckingInspection
-    def __tproxy__(self, operation, *args, **kwargs):
-        if operation in ('__getattribute__', '__getattr__'):
-            return getattr(self, args[0])
-        else:
-            return getattr(self, operation)(*args, **kwargs)
+        self.co_nlocals = 0
+        self.co_stacksize = 0
+        self.co_flags = 64
+        self.co_firstlineno = 0
 
 
-class Frame(object):
+class Frame:
+    """
+    Class that replicates just enough of the builtin Frame object to enable serialization and traceback rendering.
+    """
+
     def __init__(self, frame):
         self.f_locals = {}
-        self.f_globals = dict([
-            (k, v)
-            for k, v in frame.f_globals.items()
-            if k in ("__file__", "__name__")
-        ])
+        self.f_globals = {k: v for k, v in frame.f_globals.items() if k in ('__file__', '__name__')}
         self.f_code = Code(frame.f_code)
         self.f_lineno = frame.f_lineno
 
     def clear(self):
-        # For compatibility with PyPy 3.5;
-        # clear was added to frame in Python 3.4
-        # and is called by traceback.clear_frames(), which
-        # in turn is called by unittest.TestCase.assertRaises
-        pass
-
-    # noinspection SpellCheckingInspection
-    def __tproxy__(self, operation, *args, **kwargs):
-        if operation in ('__getattribute__', '__getattr__'):
-            if args[0] == 'f_code':
-                return tproxy(CodeType, self.f_code.__tproxy__)
-            else:
-                return getattr(self, args[0])
-        else:
-            return getattr(self, operation)(*args, **kwargs)
+        """
+        For compatibility with PyPy 3.5;
+        clear() was added to frame in Python 3.4
+        and is called by traceback.clear_frames(), which
+        in turn is called by unittest.TestCase.assertRaises
+        """
 
 
-class Traceback(object):
+class Traceback:
+    """
+    Class that wraps builtin Traceback objects.
+    """
 
     tb_next = None
 
@@ -219,48 +118,46 @@ class Traceback(object):
             tb = tb.tb_next
 
     def as_traceback(self):
-        if tproxy:
-            return tproxy(TracebackType, self.__tproxy__)
-        if not tb_set_next:
-            raise RuntimeError("Cannot re-create traceback !")
-
+        """
+        Convert to a builtin Traceback object that is usable for raising or rendering a stacktrace.
+        """
         current = self
         top_tb = None
         tb = None
         while current:
             f_code = current.tb_frame.f_code
             code = compile('\n' * (current.tb_lineno - 1) + 'raise __traceback_maker', current.tb_frame.f_code.co_filename, 'exec')
-            if hasattr(code, "replace"):
+            if hasattr(code, 'replace'):
                 # Python 3.8 and newer
-                code = code.replace(co_argcount=0,
-                                    co_filename=f_code.co_filename, co_name=f_code.co_name,
-                                    co_freevars=(), co_cellvars=())
-            elif PY3:
-                code = CodeType(
-                    0, code.co_kwonlyargcount,
-                    code.co_nlocals, code.co_stacksize, code.co_flags,
-                    code.co_code, code.co_consts, code.co_names, code.co_varnames,
-                    f_code.co_filename, f_code.co_name,
-                    code.co_firstlineno, code.co_lnotab, (), ()
-                )
+                code = code.replace(co_argcount=0, co_filename=f_code.co_filename, co_name=f_code.co_name, co_freevars=(), co_cellvars=())
             else:
                 code = CodeType(
                     0,
-                    code.co_nlocals, code.co_stacksize, code.co_flags,
-                    code.co_code, code.co_consts, code.co_names, code.co_varnames,
-                    f_code.co_filename.encode(), f_code.co_name.encode(),
-                    code.co_firstlineno, code.co_lnotab, (), ()
+                    code.co_kwonlyargcount,
+                    code.co_nlocals,
+                    code.co_stacksize,
+                    code.co_flags,
+                    code.co_code,
+                    code.co_consts,
+                    code.co_names,
+                    code.co_varnames,
+                    f_code.co_filename,
+                    f_code.co_name,
+                    code.co_firstlineno,
+                    code.co_lnotab,
+                    (),
+                    (),
                 )
 
             # noinspection PyBroadException
             try:
-                exec(code, dict(current.tb_frame.f_globals), {})
-            except:
+                exec(code, dict(current.tb_frame.f_globals), {})  # noqa: S102
+            except Exception:
                 next_tb = sys.exc_info()[2].tb_next
                 if top_tb is None:
                     top_tb = next_tb
                 if tb is not None:
-                    tb_set_next(tb, next_tb)
+                    tb.tb_next = next_tb
                 tb = next_tb
                 del next_tb
 
@@ -270,23 +167,14 @@ class Traceback(object):
         finally:
             del top_tb
             del tb
+
     to_traceback = as_traceback
 
-
-    # noinspection SpellCheckingInspection
-    def __tproxy__(self, operation, *args, **kwargs):
-        if operation in ('__getattribute__', '__getattr__'):
-            if args[0] == 'tb_next':
-                return self.tb_next and self.tb_next.as_traceback()
-            elif args[0] == 'tb_frame':
-                return tproxy(FrameType, self.tb_frame.__tproxy__)
-            else:
-                return getattr(self, args[0])
-        else:
-            return getattr(self, operation)(*args, **kwargs)
-
     def as_dict(self):
-        """Convert a Traceback into a dictionary representation"""
+        """
+        Converts to a dictionary representation. You can serialize the result to JSON as it only has
+        builtin objects like dicts, lists, ints or strings.
+        """
         if self.tb_next is None:
             tb_next = None
         else:
@@ -306,10 +194,14 @@ class Traceback(object):
             'tb_lineno': self.tb_lineno,
             'tb_next': tb_next,
         }
+
     to_dict = as_dict
 
     @classmethod
     def from_dict(cls, dct):
+        """
+        Creates an instance from a dictionary with the same structure as ``.as_dict()`` returns.
+        """
         if dct['tb_next']:
             tb_next = cls.from_dict(dct['tb_next'])
         else:
@@ -333,6 +225,10 @@ class Traceback(object):
 
     @classmethod
     def from_string(cls, string, strict=True):
+        """
+        Creates an instance by parsing a stacktrace. Strict means that parsing stops when lines are not indented by at least two spaces
+        anymore.
+        """
         frames = []
         header = strict
 
@@ -368,9 +264,22 @@ class Traceback(object):
                 )
             return cls(previous)
         else:
-            raise TracebackParseError("Could not find any frames in %r." % string)
+            raise TracebackParseError('Could not find any frames in %r.' % string)
 
 # pickling_support.py
+# gevent: Trying the dict support, so maybe we don't even need this
+# at all.
+
+import sys
+from types import TracebackType
+#from . import Frame # gevent
+#from . import Traceback # gevent
+
+# gevent: defer
+# if sys.version_info.major >= 3:
+#     import copyreg
+# else:
+#     import copy_reg as copyreg
 
 
 def unpickle_traceback(tb_frame, tb_lineno, tb_next):
@@ -385,92 +294,83 @@ def pickle_traceback(tb):
     return unpickle_traceback, (Frame(tb.tb_frame), tb.tb_lineno, tb.tb_next and Traceback(tb.tb_next))
 
 
-def install():
-    try:
-        import copy_reg
-    except ImportError:
-        import copyreg as copy_reg
-
-    copy_reg.pickle(TracebackType, pickle_traceback)
-
-# Added by gevent
-
-# We have to defer the initialization, and especially the import of platform,
-# until runtime. If we're monkey patched, we need to be sure to use
-# the original __import__ to avoid switching through the hub due to
-# import locks on Python 2. See also builtins.py for details.
+def unpickle_exception(func, args, cause, tb):
+    inst = func(*args)
+    inst.__cause__ = cause
+    inst.__traceback__ = tb
+    return inst
 
 
-def _unlocked_imports(f):
-    def g(a):
-        if sys is None: # pragma: no cover
-            # interpreter shutdown on Py2
-            return
+def pickle_exception(obj):
+    # All exceptions, unlike generic Python objects, define __reduce_ex__
+    # __reduce_ex__(4) should be no different from __reduce_ex__(3).
+    # __reduce_ex__(5) could bring benefits in the unlikely case the exception
+    # directly contains buffers, but PickleBuffer objects will cause a crash when
+    # running on protocol=4, and there's no clean way to figure out the current
+    # protocol from here. Note that any object returned by __reduce_ex__(3) will
+    # still be pickled with protocol 5 if pickle.dump() is running with it.
+    rv = obj.__reduce_ex__(3)
+    if isinstance(rv, str):
+        raise TypeError('str __reduce__ output is not supported')
+    assert isinstance(rv, tuple)
+    assert len(rv) >= 2
 
-        gb = None
-        if 'gevent.builtins' in sys.modules:
-            gb = sys.modules['gevent.builtins']
-            gb._unlock_imports()
-        try:
-            return f(a)
-        finally:
-            if gb is not None:
-                gb._lock_imports()
-    g.__name__ = f.__name__
-    g.__module__ = f.__module__
-    return g
+    return (unpickle_exception, rv[:2] + (obj.__cause__, obj.__traceback__)) + rv[2:]
 
 
-def _import_dump_load():
-    global dumps
-    global loads
-    try:
-        import cPickle as pickle
-    except ImportError:
-        import pickle
-    dumps = pickle.dumps
-    loads = pickle.loads
-
-dumps = loads = None
-
-_installed = False
+def _get_subclasses(cls):
+    # Depth-first traversal of all direct and indirect subclasses of cls
+    to_visit = [cls]
+    while to_visit:
+        this = to_visit.pop()
+        yield this
+        to_visit += list(this.__subclasses__())
 
 
-def _init():
-    global _installed
-    global tb_set_next
-    if _installed:
+def install(*exc_classes_or_instances):
+    import copyreg
+    copyreg.pickle(TracebackType, pickle_traceback)
+
+    if sys.version_info.major < 3:
+        # Dummy decorator?
+        if len(exc_classes_or_instances) == 1:
+            exc = exc_classes_or_instances[0]
+            if isinstance(exc, type) and issubclass(exc, BaseException):
+                return exc
         return
 
-    _installed = True
-    import platform
-    try:
-        if platform.python_implementation() == 'CPython':
-            tb_set_next = _init_ugly_crap()
-    except Exception as exc:
-        sys.stderr.write("Failed to initialize cpython support: {!r}".format(exc))
+    if not exc_classes_or_instances:
+        for exception_cls in _get_subclasses(BaseException):
+            copyreg.pickle(exception_cls, pickle_exception)
+        return
 
-    try:
-        from __pypy__ import tproxy
-    except ImportError:
-        tproxy = None
+    for exc in exc_classes_or_instances:
+        if isinstance(exc, BaseException):
+            while exc is not None:
+                copyreg.pickle(type(exc), pickle_exception)
+                exc = exc.__cause__
+        elif isinstance(exc, type) and issubclass(exc, BaseException):
+            copyreg.pickle(exc, pickle_exception)
+            # Allow using @install as a decorator for Exception classes
+            if len(exc_classes_or_instances) == 1:
+                return exc
+        else:
+            raise TypeError('Expected subclasses or instances of BaseException, got %s' % (type(exc)))
 
-    if not tb_set_next and not tproxy:
-        raise ImportError("Cannot use tblib. Runtime not supported.")
-    _import_dump_load()
-    install()
-
-
-@_unlocked_imports
+# gevent API
+_installed = False
 def dump_traceback(tb):
-    # Both _init and dump/load have to be unlocked, because
-    # copy_reg and pickle can do imports to resolve class names; those
-    # class names are in this module and greenlet safe though
-    _init()
-    return dumps(tb)
+    from pickle import dumps
+    if tb is None:
+        return dumps(None)
+    tb = Traceback(tb)
+    return dumps(tb.to_dict())
 
 
-@_unlocked_imports
 def load_traceback(s):
-    _init()
-    return loads(s)
+    from pickle import loads
+    as_dict = loads(s)
+    if as_dict is None:
+        return None
+    tb = Traceback.from_dict(as_dict)
+    return tb.as_traceback()

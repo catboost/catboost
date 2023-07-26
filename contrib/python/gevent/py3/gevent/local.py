@@ -366,7 +366,7 @@ class local(object):
     """
     __slots__ = tuple(_local_attrs - {'__class__', '__cinit__'})
 
-    def __cinit__(self, *args, **kw):
+    def __cinit__(self, *args, **kw): # pylint:disable=bad-dunder-name
         if args or kw:
             if type(self).__init__ == object.__init__: # pylint:disable=comparison-with-callable
                 raise TypeError("Initialization arguments are not supported", args, kw)
@@ -597,24 +597,10 @@ if local.__module__ == 'gevent.local':
     # module has a different name than the pure-Python version and we can check for that.
     # It's not as direct, but it works.
     # So here we're not compiled
-    from gevent._compat import PYPY
-    from gevent._compat import PY2
-    if PYPY and PY2:
-        # The behaviour changed with no warning between PyPy2 7.3.2 and 7.3.3.
-        local.__new__ = __new__
-        try:
-            local() # <= 7.3.2
-        except TypeError:
-            # >= 7.3.3
-            local.__new__ = classmethod(__new__)
-    else:
-        local.__new__ = classmethod(__new__)
-
-    del PYPY
-    del PY2
+    local.__new__ = classmethod(__new__)
 else: # pragma: no cover
     # Make sure we revisit in case of changes to the (accelerator) module names.
-    if local.__module__ != 'gevent._gevent_clocal':
+    if local.__module__ != 'gevent._gevent_clocal': # pylint:disable=else-if-used
         raise AssertionError("Module names changed (local: %r; __name__: %r); revisit this code" % (
             local.__module__, __name__) )
 

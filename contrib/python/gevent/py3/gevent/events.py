@@ -20,6 +20,10 @@ much higher-level, flexible system. If you are using one of these
 systems, you generally will not want to directly modify `subscribers`.
 
 .. versionadded:: 1.3b1
+
+.. versionchanged:: 23.7.0
+   Now uses :mod:`importlib.metadata` instead of :mod:`pkg_resources`
+   to locate entry points.
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -71,7 +75,7 @@ from zope.interface import implementer
 from zope.event import subscribers
 from zope.event import notify
 
-from pkg_resources import iter_entry_points
+
 
 #: Applications may register for notification of events by appending a
 #: callable to the ``subscribers`` list.
@@ -100,7 +104,36 @@ finally:
 
 def notify_and_call_entry_points(event):
     notify(event)
-    for plugin in iter_entry_points(event.ENTRY_POINT_NAME):
+    from importlib import metadata
+    import sys
+    # This used to use the  old ``pkg_resources.iter_entry_points(group,name=None)``
+    # API, passing it just the first argument, ``group=event.ENTRY_POINT_NAME``.
+    # In other words, we don't care about the ``name``.
+    if sys.version_info[:2] >= (3, 10):
+        # pylint:disable-next=unexpected-keyword-arg
+        # The only thing you can do with this is iterate it to get
+        # EntryPoint objects. (e.g., accessing by index raises a warning)
+        entry_points = metadata.entry_points(group=event.ENTRY_POINT_NAME)
+    else:
+        # Prior to 3.10, we have to do this all manually (keyword selection
+        # was introduced in 3.10; in 3.9 and before, entry_points returns a plain
+        # ``dict``). Using it like this is deprecated in 3.10, so to avoid warnings
+        # we have to write it twice.
+        #
+        # Prior to 3.9, there is no ``.module`` attribute, so if we
+        # needed that we'd have to look at the complete ``.value``
+        # attribute.
+        ep_dict = metadata.entry_points()
+        __traceback_info__ = ep_dict
+        # On Python 3.8, we can get duplicate EntryPoint objects; it is unclear
+        # why. Drop them into a set to make sure we only get one.
+        entry_points = set(
+            ep
+            for ep
+            in ep_dict.get(event.ENTRY_POINT_NAME, ())
+        )
+
+    for plugin in entry_points:
         subscriber = plugin.load()
         subscriber(event)
 

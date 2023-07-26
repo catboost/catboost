@@ -8,8 +8,7 @@ cpdef set_hub(SwitchOutGreenletWithLoop hub)
 cpdef get_loop()
 cpdef set_loop(loop)
 
-# We can't cdef this, it won't do varargs.
-# cpdef WaitOperationsGreenlet get_hub(*args, **kwargs)
+cpdef SwitchOutGreenletWithLoop get_hub()
 
 # XXX: TODO: Move the definition of TrackedRawGreenlet
 # into a file that can be cython compiled so get_hub can

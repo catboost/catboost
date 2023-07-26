@@ -50,6 +50,9 @@ class _MonitorEntry(object):
     def __eq__(self, other):
         return self.function == other.function and self.period == other.period
 
+    def __hash__(self):
+        return hash((self.function, self.period))
+
     def __repr__(self):
         return repr((self.function, self.period, self.last_run_time))
 

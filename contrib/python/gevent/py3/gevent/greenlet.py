@@ -378,7 +378,7 @@ class Greenlet(greenlet):
         hub = get_my_hub(self) # pylint:disable=undefined-variable
         return hub.loop
 
-    def __nonzero__(self):
+    def __nonzero__(self): # pylint:disable=bad-dunder-name
         return self._start_event is not None and self._exc_info is None
     try:
         __bool__ = __nonzero__ # Python 3
