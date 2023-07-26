@@ -27,6 +27,7 @@ target_link_libraries(abseil-cpp-absl-container PUBLIC
   abseil-cpp-absl-synchronization
   abseil-cpp-absl-time
   abseil-cpp-absl-types
+  cpp-sanitizer-include
 )
 target_sources(abseil-cpp-absl-container PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler.cc

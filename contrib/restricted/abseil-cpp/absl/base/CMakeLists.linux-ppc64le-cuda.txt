@@ -17,6 +17,7 @@ target_include_directories(abseil-cpp-absl-base PUBLIC
 target_link_libraries(abseil-cpp-absl-base PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
+  cpp-sanitizer-include
 )
 target_sources(abseil-cpp-absl-base PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/cycleclock.cc

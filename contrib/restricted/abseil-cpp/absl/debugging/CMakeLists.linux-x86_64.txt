@@ -18,6 +18,7 @@ target_link_libraries(abseil-cpp-absl-debugging PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
+  cpp-sanitizer-include
 )
 target_sources(abseil-cpp-absl-debugging PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/failure_signal_handler.cc
