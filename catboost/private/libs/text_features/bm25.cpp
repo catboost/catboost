@@ -37,6 +37,12 @@ static inline double Score(double termFreq, double k, double b, double meanLengt
     return termFreq * (k + 1.0) / (termFreq + k * (1.0 - b + b * meanLength / classLength));
 }
 
+static void InitTruncatedInvClassFreq(ui32 numClasses, double truncateBorder, TArrayRef<double> truncatedInvClassFreq) {
+    for (auto classFreq : xrange(numClasses + 1)) {
+        truncatedInvClassFreq[classFreq] = CalcTruncatedInvClassFreq(numClasses, classFreq, truncateBorder);
+    }
+}
+
 TBM25::TBM25(
     const TGuid& calcerId,
     ui32 numClasses,
@@ -54,9 +60,7 @@ TBM25::TBM25(
     , Frequencies(numClasses)
 {
     TruncatedInvClassFreq.resize(NumClasses + 1);
-    for (auto classFreq : xrange(NumClasses + 1)) {
-        TruncatedInvClassFreq[classFreq] = CalcTruncatedInvClassFreq(NumClasses, classFreq, TruncateBorder);
-    }
+    InitTruncatedInvClassFreq(numClasses, truncateBorder, TruncatedInvClassFreq);
 }
 
 void TBM25::Compute(const TText& text, TOutputFloatIterator iterator) const {
@@ -88,10 +92,6 @@ TTextFeatureCalcer::TFeatureCalcerFbs TBM25::SaveParametersToFB(flatbuffers::Fla
         reinterpret_cast<const uint64_t*>(ClassTotalTokens.data()),
         ClassTotalTokens.size()
     );
-    auto fbTruncatedInvClassFreq = builder.CreateVector(
-        reinterpret_cast<const double*>(TruncatedInvClassFreq.data()),
-        TruncatedInvClassFreq.size()
-    );
     const auto& fbBm25 = CreateTBM25(
         builder,
         NumClasses,
@@ -99,8 +99,7 @@ TTextFeatureCalcer::TFeatureCalcerFbs TBM25::SaveParametersToFB(flatbuffers::Fla
         B,
         TruncateBorder,
         TotalTokens,
-        fbClassTotalTokens,
-        fbTruncatedInvClassFreq
+        fbClassTotalTokens
     );
     return TFeatureCalcerFbs(TAnyFeatureCalcer_TBM25, fbBm25.Union());
 }
@@ -113,8 +112,8 @@ void TBM25::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {
     TruncateBorder = fbBm25->TruncateBorder();
     TotalTokens = fbBm25->TotalTokens();
 
-    auto truncatedInvClassFreq = fbBm25->TruncatedInvClassFreq();
-    TruncatedInvClassFreq.assign(truncatedInvClassFreq->begin(), truncatedInvClassFreq->end());
+    TruncatedInvClassFreq.resize(NumClasses + 1);
+    InitTruncatedInvClassFreq(NumClasses, TruncateBorder, TruncatedInvClassFreq);
 
     auto classTotalTokens = fbBm25->ClassTotalTokens();
     ClassTotalTokens.yresize(classTotalTokens->size());

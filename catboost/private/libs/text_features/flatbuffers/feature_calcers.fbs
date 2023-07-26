@@ -9,7 +9,6 @@ table TBM25 {
     TruncateBorder: float;
     TotalTokens: ulong;
     ClassTotalTokens: [ulong];
-    TruncatedInvClassFreq: [double];
 }
 
 table TNaiveBayes {
