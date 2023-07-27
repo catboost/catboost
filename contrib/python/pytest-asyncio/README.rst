@@ -5,7 +5,7 @@ pytest-asyncio
     :target: https://pypi.python.org/pypi/pytest-asyncio
 .. image:: https://github.com/pytest-dev/pytest-asyncio/workflows/CI/badge.svg
     :target: https://github.com/pytest-dev/pytest-asyncio/actions?workflow=CI
-.. image:: https://codecov.io/gh/pytest-dev/pytest-asyncio/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/pytest-dev/pytest-asyncio/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/pytest-dev/pytest-asyncio
 .. image:: https://img.shields.io/pypi/pyversions/pytest-asyncio.svg
     :target: https://github.com/pytest-dev/pytest-asyncio
@@ -31,7 +31,7 @@ are advised to use `unittest.IsolatedAsyncioTestCase <https://docs.python.org/3/
 or an async framework such as `asynctest <https://asynctest.readthedocs.io/en/latest>`__.
 
 
-pytest-asyncio is available under the `Apache License 2.0 <https://github.com/pytest-dev/pytest-asyncio/blob/master/LICENSE>`_.
+pytest-asyncio is available under the `Apache License 2.0 <https://github.com/pytest-dev/pytest-asyncio/blob/main/LICENSE>`_.
 
 
 Installation
