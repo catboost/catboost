@@ -239,7 +239,7 @@ ttLib.getTableClass("gasp").mergeMap = lambda self, lst: first(
 
 @add_method(ttLib.getTableClass("CFF "))
 def merge(self, m, tables):
-    if any(hasattr(table, "FDSelect") for table in tables):
+    if any(hasattr(table.cff[0], "FDSelect") for table in tables):
         raise NotImplementedError("Merging CID-keyed CFF tables is not supported yet")
 
     for table in tables:

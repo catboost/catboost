@@ -1,4 +1,4 @@
-from fontTools.varLib.models import supportScalar, normalizeValue
+from fontTools.varLib.models import supportScalar
 from fontTools.misc.fixedTools import MAX_F2DOT14
 from functools import lru_cache
 
@@ -12,7 +12,7 @@ def _reverse_negate(v):
 
 
 def _solve(tent, axisLimit, negative=False):
-    axisMin, axisDef, axisMax = axisLimit
+    axisMin, axisDef, axisMax, _distanceNegative, _distancePositive = axisLimit
     lower, peak, upper = tent
 
     # Mirror the problem such that axisDef <= peak
@@ -20,7 +20,9 @@ def _solve(tent, axisLimit, negative=False):
         return [
             (scalar, _reverse_negate(t) if t is not None else None)
             for scalar, t in _solve(
-                _reverse_negate(tent), _reverse_negate(axisLimit), not negative
+                _reverse_negate(tent),
+                axisLimit.reverse_negate(),
+                not negative,
             )
         ]
     # axisDef <= peak
@@ -98,9 +100,8 @@ def _solve(tent, axisLimit, negative=False):
     #                           |
     #                      crossing
     if gain > outGain:
-
         # Crossing point on the axis.
-        crossing = peak + ((1 - gain) * (upper - peak) / (1 - outGain))
+        crossing = peak + (1 - gain) * (upper - peak)
 
         loc = (axisDef, peak, crossing)
         scalar = 1
@@ -116,7 +117,7 @@ def _solve(tent, axisLimit, negative=False):
         # the drawing above.
         if upper >= axisMax:
             loc = (crossing, axisMax, axisMax)
-            scalar = supportScalar({"tag": axisMax}, {"tag": tent})
+            scalar = outGain
 
             out.append((scalar - gain, loc))
 
@@ -147,84 +148,73 @@ def _solve(tent, axisLimit, negative=False):
 
             # Eternity justify.
             loc2 = (upper, axisMax, axisMax)
-            scalar2 = supportScalar({"tag": axisMax}, {"tag": tent})
+            scalar2 = 0
 
             out.append((scalar1 - gain, loc1))
             out.append((scalar2 - gain, loc2))
 
-    # Case 3: Outermost limit still fits within F2Dot14 bounds;
-    # we keep deltas as is and only scale the axes bounds. Deltas beyond -1.0
-    # or +1.0 will never be applied as implementations must clamp to that range.
-    #
-    # A second tent is needed for cases when gain is positive, though we add it
-    # unconditionally and it will be dropped because scalar ends up 0.
-    #
-    # TODO: See if we can just move upper closer to adjust the slope, instead of
-    # second tent.
-    #
-    #            |           peak |
-    #  1.........|............o...|..................
-    #            |           /x\  |
-    #            |          /xxx\ |
-    #            |         /xxxxx\|
-    #            |        /xxxxxxx+
-    #            |       /xxxxxxxx|\
-    #  0---|-----|------oxxxxxxxxx|xo---------------1
-    #    axisMin |  lower         | upper
-    #            |                |
-    #          axisDef          axisMax
-    #
-    elif axisDef + (axisMax - axisDef) * 2 >= upper:
-
-        if not negative and axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper:
-            # we clamp +2.0 to the max F2Dot14 (~1.99994) for convenience
-            upper = axisDef + (axisMax - axisDef) * MAX_F2DOT14
-            assert peak < upper
-
+    else:
         # Special-case if peak is at axisMax.
         if axisMax == peak:
             upper = peak
 
-        loc1 = (max(axisDef, lower), peak, upper)
-        scalar1 = 1
+        # Case 3:
+        # We keep delta as is and only scale the axis upper to achieve
+        # the desired new tent if feasible.
+        #
+        #                        peak
+        #  1.....................o....................
+        #                       / \_|
+        #  ..................../....+_.........outGain
+        #                     /     | \
+        #  gain..............+......|..+_.............
+        #                   /|      |  | \
+        #  0---|-----------o |      |  |  o----------1
+        #    axisMin    lower|      |  |   upper
+        #                    |      |  newUpper
+        #              axisDef      axisMax
+        #
+        newUpper = peak + (1 - gain) * (upper - peak)
+        assert axisMax <= newUpper  # Because outGain >= gain
+        if newUpper <= axisDef + (axisMax - axisDef) * 2:
+            upper = newUpper
+            if not negative and axisDef + (axisMax - axisDef) * MAX_F2DOT14 < upper:
+                # we clamp +2.0 to the max F2Dot14 (~1.99994) for convenience
+                upper = axisDef + (axisMax - axisDef) * MAX_F2DOT14
+                assert peak < upper
 
-        loc2 = (peak, upper, upper)
-        scalar2 = 0
+            loc = (max(axisDef, lower), peak, upper)
+            scalar = 1
 
-        # Don't add a dirac delta!
-        if axisDef < upper:
+            out.append((scalar - gain, loc))
+
+        # Case 4: New limit doesn't fit; we need to chop into two tents,
+        # because the shape of a triangle with part of one side cut off
+        # cannot be represented as a triangle itself.
+        #
+        #            |   peak |
+        #  1.........|......o.|....................
+        #  ..........|...../x\|.............outGain
+        #            |    |xxy|\_
+        #            |   /xxxy|  \_
+        #            |  |xxxxy|    \_
+        #            |  /xxxxy|      \_
+        #  0---|-----|-oxxxxxx|        o----------1
+        #    axisMin | lower  |        upper
+        #            |        |
+        #          axisDef  axisMax
+        #
+        else:
+            loc1 = (max(axisDef, lower), peak, axisMax)
+            scalar1 = 1
+
+            loc2 = (peak, axisMax, axisMax)
+            scalar2 = outGain
+
             out.append((scalar1 - gain, loc1))
-        if peak < upper:
-            out.append((scalar2 - gain, loc2))
-
-    # Case 4: New limit doesn't fit; we need to chop into two tents,
-    # because the shape of a triangle with part of one side cut off
-    # cannot be represented as a triangle itself.
-    #
-    #            |   peak |
-    #  1.........|......o.|...................
-    #            |     /x\|
-    #            |    |xxy|\_
-    #            |   /xxxy|  \_
-    #            |  |xxxxy|    \_
-    #            |  /xxxxy|      \_
-    #  0---|-----|-oxxxxxx|        o----------1
-    #    axisMin | lower  |        upper
-    #            |        |
-    #          axisDef  axisMax
-    #
-    else:
-
-        loc1 = (max(axisDef, lower), peak, axisMax)
-        scalar1 = 1
-
-        loc2 = (peak, axisMax, axisMax)
-        scalar2 = supportScalar({"tag": axisMax}, {"tag": tent})
-
-        out.append((scalar1 - gain, loc1))
-        # Don't add a dirac delta!
-        if peak < axisMax:
-            out.append((scalar2 - gain, loc2))
+            # Don't add a dirac delta!
+            if peak < axisMax:
+                out.append((scalar2 - gain, loc2))
 
     # Now, the negative side
 
@@ -295,7 +285,7 @@ def rebaseTent(tent, axisLimit):
     If tent value is None, that is a special deltaset that should
     be always-enabled (called "gain")."""
 
-    axisMin, axisDef, axisMax = axisLimit
+    axisMin, axisDef, axisMax, _distanceNegative, _distancePositive = axisLimit
     assert -1 <= axisMin <= axisDef <= axisMax <= +1
 
     lower, peak, upper = tent
@@ -305,7 +295,7 @@ def rebaseTent(tent, axisLimit):
 
     sols = _solve(tent, axisLimit)
 
-    n = lambda v: normalizeValue(v, axisLimit, extrapolate=True)
+    n = lambda v: axisLimit.renormalizeValue(v)
     sols = [
         (scalar, (n(v[0]), n(v[1]), n(v[2])) if v is not None else None)
         for scalar, v in sols

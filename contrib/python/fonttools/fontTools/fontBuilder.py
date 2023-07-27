@@ -132,6 +132,7 @@ fb.save("test.otf")
 from .ttLib import TTFont, newTable
 from .ttLib.tables._c_m_a_p import cmap_classes
 from .ttLib.tables._g_l_y_f import flagCubic
+from .ttLib.tables.O_S_2f_2 import Panose
 from .misc.timeTools import timestampNow
 import struct
 from collections import OrderedDict
@@ -263,18 +264,7 @@ _nameIDs = dict(
 # to insert in setupNameTable doc string:
 # print("\n".join(("%s (nameID %s)" % (k, v)) for k, v in sorted(_nameIDs.items(), key=lambda x: x[1])))
 
-_panoseDefaults = dict(
-    bFamilyType=0,
-    bSerifStyle=0,
-    bWeight=0,
-    bProportion=0,
-    bContrast=0,
-    bStrokeVariation=0,
-    bArmStyle=0,
-    bLetterForm=0,
-    bMidline=0,
-    bXHeight=0,
-)
+_panoseDefaults = Panose()
 
 _OS2Defaults = dict(
     version=3,
@@ -707,7 +697,7 @@ class FontBuilder(object):
 
         addFvar(self.font, axes, instances)
 
-    def setupAvar(self, axes):
+    def setupAvar(self, axes, mappings=None):
         """Adds an axis variations table to the font.
 
         Args:
@@ -715,7 +705,12 @@ class FontBuilder(object):
         """
         from .varLib import _add_avar
 
-        _add_avar(self.font, OrderedDict(enumerate(axes)))  # Only values are used
+        if "fvar" not in self.font:
+            raise KeyError("'fvar' table is missing; can't add 'avar'.")
+
+        axisTags = [axis.axisTag for axis in self.font["fvar"].axes]
+        axes = OrderedDict(enumerate(axes))  # Only values are used
+        _add_avar(self.font, axes, mappings, axisTags)
 
     def setupGvar(self, variations):
         gvar = self.font["gvar"] = newTable("gvar")
@@ -966,6 +961,8 @@ def addFvar(font, axes, instances):
                 axis_def.maximum,
                 axis_def.name,
             )
+            if axis_def.hidden:
+                axis.flags = 0x0001  # HIDDEN_AXIS
 
         if isinstance(name, str):
             name = dict(en=name)

@@ -204,8 +204,8 @@ class AxisTriple(Sequence):
         default = None
         if n == 2:
             minimum, maximum = v
-        elif n == 3:
-            minimum, default, maximum = v
+        elif n >= 3:
+            return cls(*v)
         else:
             raise ValueError(f"expected sequence of 2 or 3; got {n}: {v!r}")
         return cls(minimum, default, maximum)
@@ -249,6 +249,70 @@ class NormalizedAxisTriple(AxisTriple):
                 "Normalized axis values not in -1..+1 range; got "
                 f"minimum={self.minimum:g}, default={self.default:g}, maximum={self.maximum:g})"
             )
+
+
+@dataclasses.dataclass(frozen=True, order=True, repr=False)
+class NormalizedAxisTripleAndDistances(AxisTriple):
+    """A triple of (min, default, max) normalized axis values,
+    with distances between min and default, and default and max,
+    in the *pre-normalized* space."""
+
+    minimum: float
+    default: float
+    maximum: float
+    distanceNegative: Optional[float] = 1
+    distancePositive: Optional[float] = 1
+
+    def __post_init__(self):
+        if self.default is None:
+            object.__setattr__(self, "default", max(self.minimum, min(self.maximum, 0)))
+        if not (-1.0 <= self.minimum <= self.default <= self.maximum <= 1.0):
+            raise ValueError(
+                "Normalized axis values not in -1..+1 range; got "
+                f"minimum={self.minimum:g}, default={self.default:g}, maximum={self.maximum:g})"
+            )
+
+    def reverse_negate(self):
+        v = self
+        return self.__class__(-v[2], -v[1], -v[0], v[4], v[3])
+
+    def renormalizeValue(self, v, extrapolate=True):
+        """Renormalizes a normalized value v to the range of this axis,
+        considering the pre-normalized distances as well as the new
+        axis limits."""
+
+        lower, default, upper, distanceNegative, distancePositive = self
+        assert lower <= default <= upper
+
+        if not extrapolate:
+            v = max(lower, min(upper, v))
+
+        if v == default:
+            return 0
+
+        if default < 0:
+            return -self.reverse_negate().renormalizeValue(-v, extrapolate=extrapolate)
+
+        # default >= 0 and v != default
+
+        if v > default:
+            return (v - default) / (upper - default)
+
+        # v < default
+
+        if lower >= 0:
+            return (v - default) / (default - lower)
+
+        # lower < 0 and v < default
+
+        totalDistance = distanceNegative * -lower + distancePositive * default
+
+        if v >= 0:
+            vDistance = (default - v) * distancePositive
+        else:
+            vDistance = -v * distanceNegative + distancePositive * default
+
+        return -vDistance / totalDistance
 
 
 class _BaseAxisLimits(Mapping[str, AxisTriple]):
@@ -334,8 +398,13 @@ class AxisLimits(_BaseAxisLimits):
         normalizedLimits = {}
 
         for axis_tag, triple in axes.items():
+            distanceNegative = triple[1] - triple[0]
+            distancePositive = triple[2] - triple[1]
+
             if self[axis_tag] is None:
-                normalizedLimits[axis_tag] = NormalizedAxisTriple(0, 0, 0)
+                normalizedLimits[axis_tag] = NormalizedAxisTripleAndDistances(
+                    0, 0, 0, distanceNegative, distancePositive
+                )
                 continue
 
             minV, defaultV, maxV = self[axis_tag]
@@ -344,8 +413,10 @@ class AxisLimits(_BaseAxisLimits):
                 defaultV = triple[1]
 
             avarMapping = avarSegments.get(axis_tag, None)
-            normalizedLimits[axis_tag] = NormalizedAxisTriple(
-                *(normalize(v, triple, avarMapping) for v in (minV, defaultV, maxV))
+            normalizedLimits[axis_tag] = NormalizedAxisTripleAndDistances(
+                *(normalize(v, triple, avarMapping) for v in (minV, defaultV, maxV)),
+                distanceNegative,
+                distancePositive,
             )
 
         return NormalizedAxisLimits(normalizedLimits)
@@ -358,7 +429,7 @@ class NormalizedAxisLimits(_BaseAxisLimits):
         self._data = data = {}
         for k, v in dict(*args, **kwargs).items():
             try:
-                triple = NormalizedAxisTriple.expand(v)
+                triple = NormalizedAxisTripleAndDistances.expand(v)
             except ValueError as e:
                 raise ValueError(f"Invalid axis limits for {k!r}: {v!r}") from e
             data[k] = triple
@@ -442,7 +513,7 @@ def changeTupleVariationsAxisLimits(variations, axisLimits):
 
 
 def changeTupleVariationAxisLimit(var, axisTag, axisLimit):
-    assert isinstance(axisLimit, NormalizedAxisTriple)
+    assert isinstance(axisLimit, NormalizedAxisTripleAndDistances)
 
     # Skip when current axis is missing (i.e. doesn't participate),
     lower, peak, upper = var.axes.get(axisTag, (-1, 0, 1))
@@ -505,7 +576,7 @@ def _instantiateGvarGlyph(
                         "Instancing accross VarComposite axes with variation is not supported."
                     )
                 limits = axisLimits[tag]
-                loc = normalizeValue(loc, limits)
+                loc = limits.renormalizeValue(loc, extrapolate=False)
                 newLocation[tag] = loc
             component.location = newLocation
 
@@ -925,15 +996,21 @@ def instantiateAvar(varfont, axisLimits):
             mappedMax = floatToFixedToFloat(
                 piecewiseLinearMap(axisRange.maximum, mapping), 14
             )
+            mappedAxisLimit = NormalizedAxisTripleAndDistances(
+                mappedMin,
+                mappedDef,
+                mappedMax,
+                axisRange.distanceNegative,
+                axisRange.distancePositive,
+            )
             newMapping = {}
             for fromCoord, toCoord in mapping.items():
-
                 if fromCoord < axisRange.minimum or fromCoord > axisRange.maximum:
                     continue
-                fromCoord = normalizeValue(fromCoord, axisRange)
+                fromCoord = axisRange.renormalizeValue(fromCoord)
 
                 assert mappedMin <= toCoord <= mappedMax
-                toCoord = normalizeValue(toCoord, (mappedMin, mappedDef, mappedMax))
+                toCoord = mappedAxisLimit.renormalizeValue(toCoord)
 
                 fromCoord = floatToFixedToFloat(fromCoord, 14)
                 toCoord = floatToFixedToFloat(toCoord, 14)

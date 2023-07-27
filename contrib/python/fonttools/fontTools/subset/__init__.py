@@ -15,6 +15,7 @@ from fontTools.subset.util import _add_method, _uniq_sort
 from fontTools.subset.cff import *
 from fontTools.subset.svg import *
 from fontTools.varLib import varStore  # for subset_varidxes
+from fontTools.ttLib.tables._n_a_m_e import NameRecordVisitor
 import sys
 import struct
 import array
@@ -2585,25 +2586,10 @@ def prune_post_subset(self, font, options):
 
     if self.version == 1:
         kept_labels = []
-        dropped_labels = []
         for i, label in enumerate(self.paletteEntryLabels):
             if i in retained_palette_indices:
                 kept_labels.append(label)
-            else:
-                dropped_labels.append(label)
         self.paletteEntryLabels = kept_labels
-        # Remove dropped labels from the name table.
-        name_table = font["name"]
-        name_table.names = [
-            n
-            for n in name_table.names
-            if (
-                n.nameID not in dropped_labels
-                # Only remove nameIDs in the user range and if they're not explicitly kept
-                or n.nameID < 256
-                or n.nameID in options.name_IDs
-            )
-        ]
     return bool(self.numPaletteEntries)
 
 
@@ -2915,32 +2901,10 @@ def prune_pre_subset(self, font, options):
 
 
 @_add_method(ttLib.getTableClass("name"))
-def prune_pre_subset(self, font, options):
-    nameIDs = set(options.name_IDs)
-    fvar = font.get("fvar")
-    if fvar:
-        nameIDs.update([axis.axisNameID for axis in fvar.axes])
-        nameIDs.update([inst.subfamilyNameID for inst in fvar.instances])
-        nameIDs.update(
-            [
-                inst.postscriptNameID
-                for inst in fvar.instances
-                if inst.postscriptNameID != 0xFFFF
-            ]
-        )
-    stat = font.get("STAT")
-    if stat:
-        if stat.table.AxisValueArray:
-            nameIDs.update(
-                [val_rec.ValueNameID for val_rec in stat.table.AxisValueArray.AxisValue]
-            )
-        nameIDs.update(
-            [axis_rec.AxisNameID for axis_rec in stat.table.DesignAxisRecord.Axis]
-        )
-    cpal = font.get("CPAL")
-    if cpal and cpal.version == 1:
-        nameIDs.update(cpal.paletteLabels)
-        nameIDs.update(cpal.paletteEntryLabels)
+def prune_post_subset(self, font, options):
+    visitor = NameRecordVisitor()
+    visitor.visit(font)
+    nameIDs = set(options.name_IDs) | visitor.seen
     if "*" not in options.name_IDs:
         self.names = [n for n in self.names if n.nameID in nameIDs]
     if not options.name_legacy:
@@ -3463,7 +3427,14 @@ class Subsetter(object):
             font.setGlyphOrder(self.new_glyph_order)
 
     def _prune_post_subset(self, font):
-        for tag in font.keys():
+        tableTags = font.keys()
+        # Prune the name table last because when we're pruning the name table,
+        # we visit each table in the font to see what name table records are
+        # still in use.
+        if "name" in tableTags:
+            tableTags.remove("name")
+            tableTags.append("name")
+        for tag in tableTags:
             if tag == "GlyphOrder":
                 continue
             if tag == "OS/2":

@@ -386,6 +386,11 @@ def main(args=None):
         description=main.__doc__,
     )
     parser.add_argument(
+        "--glyphs",
+        action="store",
+        help="Space-separate name of glyphs to check",
+    )
+    parser.add_argument(
         "--json",
         action="store_true",
         help="Output report in JSON format",
@@ -409,10 +414,8 @@ def main(args=None):
     )
 
     args = parser.parse_args(args)
-    glyphs = None
-    # glyphs = ['uni08DB', 'uniFD76']
-    # glyphs = ['uni08DE', 'uni0034']
-    # glyphs = ['uni08DE', 'uni0034', 'uni0751', 'uni0753', 'uni0754', 'uni08A4', 'uni08A4.fina', 'uni08A5.fina']
+
+    glyphs = set(args.glyphs.split()) if args.glyphs else None
 
     from os.path import basename
 

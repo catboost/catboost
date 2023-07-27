@@ -25,6 +25,13 @@ panoseFormat = """
 
 
 class Panose(object):
+    def __init__(self, **kwargs):
+        _, names, _ = sstruct.getformat(panoseFormat)
+        for name in names:
+            setattr(self, name, kwargs.pop(name, 0))
+        for k in kwargs:
+            raise TypeError(f"Panose() got an unexpected keyword argument {k!r}")
+
     def toXML(self, writer, ttFont):
         formatstring, names, fixes = sstruct.getformat(panoseFormat)
         for name in names:

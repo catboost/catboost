@@ -1,5 +1,4 @@
 from fontTools.ttLib.tables import otTables as ot
-from fontTools.varLib.models import normalizeValue
 from copy import deepcopy
 import logging
 
@@ -41,7 +40,9 @@ def _limitFeatureVariationConditionRange(condition, axisLimit):
         # condition invalid or out of range
         return
 
-    return tuple(normalizeValue(v, axisLimit) for v in (minValue, maxValue))
+    return tuple(
+        axisLimit.renormalizeValue(v, extrapolate=False) for v in (minValue, maxValue)
+    )
 
 
 def _instantiateFeatureVariationRecord(
@@ -50,9 +51,9 @@ def _instantiateFeatureVariationRecord(
     applies = True
     shouldKeep = False
     newConditions = []
-    from fontTools.varLib.instancer import NormalizedAxisTriple
+    from fontTools.varLib.instancer import NormalizedAxisTripleAndDistances
 
-    default_triple = NormalizedAxisTriple(-1, 0, +1)
+    default_triple = NormalizedAxisTripleAndDistances(-1, 0, +1)
     for i, condition in enumerate(record.ConditionSet.ConditionTable):
         if condition.Format == 1:
             axisIdx = condition.AxisIndex

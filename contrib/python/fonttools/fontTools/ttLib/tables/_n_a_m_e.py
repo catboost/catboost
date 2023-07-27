@@ -11,6 +11,10 @@ from fontTools.misc.textTools import (
 )
 from fontTools.misc.encodingTools import getEncoding
 from fontTools.ttLib import newTable
+from fontTools.ttLib.ttVisitor import TTVisitor
+from fontTools import ttLib
+import fontTools.ttLib.tables.otTables as otTables
+from fontTools.ttLib.tables import C_P_A_L_
 from . import DefaultTable
 import struct
 import logging
@@ -222,6 +226,28 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
                 argValue != getattr(rec, argName) for argName, argValue in args.items()
             )
         ]
+
+    @staticmethod
+    def removeUnusedNames(ttFont):
+        """Remove any name records which are not in NameID range 0-255 and not utilized
+        within the font itself."""
+        visitor = NameRecordVisitor()
+        visitor.visit(ttFont)
+        toDelete = set()
+        for record in ttFont["name"].names:
+            # Name IDs 26 to 255, inclusive, are reserved for future standard names.
+            # https://learn.microsoft.com/en-us/typography/opentype/spec/name#name-ids
+            if record.nameID < 256:
+                continue
+            if record.nameID not in visitor.seen:
+                toDelete.add(record.nameID)
+
+        if not toDelete:
+            return
+        log.info(f"Deleting name records with NameIDs {toDelete}")
+        for nameID in toDelete:
+            ttFont["name"].removeNames(nameID)
+        return toDelete
 
     def _findUnusedNameID(self, minNameID=256):
         """Finds an unused name id.
@@ -1138,3 +1164,50 @@ _MAC_LANGUAGE_TO_SCRIPT = {
     150: 0,  # langAzerbaijanRoman → smRoman
     151: 0,  # langNynorsk → smRoman
 }
+
+
+class NameRecordVisitor(TTVisitor):
+    def __init__(self):
+        self.seen = set()
+
+
+@NameRecordVisitor.register_attrs(
+    (
+        (otTables.FeatureParamsSize, ("SubfamilyID", "SubfamilyNameID")),
+        (otTables.FeatureParamsStylisticSet, ("UINameID",)),
+        (
+            otTables.FeatureParamsCharacterVariants,
+            (
+                "FeatUILabelNameID",
+                "FeatUITooltipTextNameID",
+                "SampleTextNameID",
+                "FirstParamUILabelNameID",
+            ),
+        ),
+        (otTables.STAT, ("ElidedFallbackNameID",)),
+        (otTables.AxisRecord, ("AxisNameID",)),
+        (otTables.AxisValue, ("ValueNameID",)),
+        (otTables.FeatureName, ("FeatureNameID",)),
+        (otTables.Setting, ("SettingNameID",)),
+    )
+)
+def visit(visitor, obj, attr, value):
+    visitor.seen.add(value)
+
+
+@NameRecordVisitor.register(ttLib.getTableClass("fvar"))
+def visit(visitor, obj):
+    for inst in obj.instances:
+        if inst.postscriptNameID != 0xFFFF:
+            visitor.seen.add(inst.postscriptNameID)
+        visitor.seen.add(inst.subfamilyNameID)
+
+    for axis in obj.axes:
+        visitor.seen.add(axis.axisNameID)
+
+
+@NameRecordVisitor.register(ttLib.getTableClass("CPAL"))
+def visit(visitor, obj):
+    if obj.version == 1:
+        visitor.seen.update(obj.paletteLabels)
+        visitor.seen.update(obj.paletteEntryLabels)

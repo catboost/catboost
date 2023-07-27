@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.40.0
+Version: 4.41.0
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -365,6 +365,22 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.41.0 (released 2023-07-12)
+----------------------------
+
+- [fontBuilder] Fixed bug in setupOS2 with default panose attribute incorrectly being
+  set to a dict instead of a Panose object (#3201).
+- [name] Added method to ``removeUnusedNameRecords`` in the user range (#3185).
+- [varLib.instancer] Fixed issue with L4 instancing (moving default) (#3179).
+- [cffLib] Use latin1 so we can roundtrip non-ASCII in {Full,Font,Family}Name (#3202).
+- [designspaceLib] Mark <source name="..."> as optional in docs (as it is in the code).
+- [glyf-1] Fixed drawPoints() bug whereby last cubic segment becomes quadratic (#3189, #3190).
+- [fontBuilder] Propagate the 'hidden' flag to the fvar Axis instance (#3184).
+- [fontBuilder] Update setupAvar() to also support avar 2, fixing ``_add_avar()`` call
+  site (#3183).
+- Added new ``voltLib.voltToFea`` submodule (originally Tiro Typeworks' "Volto") for
+  converting VOLT OpenType Layout sources to FEA format (#3164).
 
 4.40.0 (released 2023-06-12)
 ----------------------------
