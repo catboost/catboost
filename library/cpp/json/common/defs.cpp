@@ -62,6 +62,7 @@ bool TJsonCallbacks::OnEnd() {
 }
 
 void TJsonCallbacks::OnError(size_t off, TStringBuf reason) {
+    HaveErrors = true;
     if (ThrowException) {
         ythrow TJsonException() << "JSON error at offset " << off << " (" << reason << ")";
     }

@@ -32,7 +32,11 @@ namespace NJson {
         virtual bool OnEnd();
         virtual void OnError(size_t off, TStringBuf reason);
 
+        bool GetHaveErrors() const {
+            return HaveErrors;
+        }
     protected:
         bool ThrowException;
+        bool HaveErrors = false;
     };
 }
