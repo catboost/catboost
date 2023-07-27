@@ -1,5 +1,5 @@
 #include <Python.h>
-#include <contrib/tools/python3/src/Include/internal/pycore_runtime.h>  // _PyRuntime_Initialize()
+#include <contrib/tools/python3/src/Include/internal/pycore_runtime.h> // _PyRuntime_Initialize()
 
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +25,7 @@ void unsetenv(const char* name) {
 }
 #endif
 
-static int RunModule(const char *modname)
+static int RunModule(const char* modname)
 {
     PyObject *module, *runpy, *runmodule, *runargs, *result;
     runpy = PyImport_ImportModule("runpy");
@@ -52,7 +52,7 @@ static int RunModule(const char *modname)
     runargs = Py_BuildValue("(Oi)", module, 0);
     if (runargs == NULL) {
         fprintf(stderr,
-            "Could not create arguments for runpy._run_module_as_main\n");
+                "Could not create arguments for runpy._run_module_as_main\n");
         PyErr_Print();
         Py_DECREF(runpy);
         Py_DECREF(runmodule);
@@ -163,7 +163,7 @@ static int pymain(int argc, char** argv) {
     const char* module_name = entry_point_copy;
     const char* func_name = NULL;
 
-    char *colon = strchr(entry_point_copy, ':');
+    char* colon = strchr(entry_point_copy, ':');
     if (colon != NULL) {
         colon[0] = '\0';
         func_name = colon + 1;

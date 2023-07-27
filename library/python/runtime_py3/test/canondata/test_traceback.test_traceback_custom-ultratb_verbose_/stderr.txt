@@ -2,7 +2,7 @@
 RuntimeError                              Traceback (most recent call last)
 File library/python/runtime_py3/test/traceback/crash.py:42, in main()
      39 time.time = lambda: 1531996624.0  # Freeze time
-     40 sys.executable = '<traceback test>'
+     40 sys.executable = "<traceback test>"
 ---> 42 one()
 
 File library/python/runtime_py3/test/traceback/crash.py:11, in one()
@@ -21,7 +21,7 @@ File library/python/runtime_py3/test/traceback/crash.py:15, in two()
 
 File library/python/runtime_py3/test/traceback/crash.py:19, in three(x=42)
      18 def three(x):
----> 19     raise RuntimeError('Kaboom! I\'m dead: {}'.format(x))
+---> 19     raise RuntimeError(f"Kaboom! I'm dead: {x}")
         x = 42
 
 RuntimeError: Kaboom! I'm dead: 42
