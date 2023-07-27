@@ -213,10 +213,10 @@ namespace NCB {
                     << "}" << comma << '\n';
             }
             Out << --indent << "};" << '\n';
+        } else {
+            Out << indent << "unsigned int BorderCounts[" << model.ModelTrees->GetNumFloatFeatures() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
+            Out << indent << "float Borders[" << binaryFeatureCount << "] = {" << OutputBorders(model, true) << "};" << '\n';
         }
-
-        Out << indent << "unsigned int BorderCounts[" << model.ModelTrees->GetNumFloatFeatures() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
-        Out << indent << "float Borders[" << binaryFeatureCount << "] = {" << OutputBorders(model, true) << "};" << '\n';
 
         Out << '\n';
         Out << indent << "/* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
