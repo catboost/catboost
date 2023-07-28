@@ -141,5 +141,6 @@ TMetricHolder EvalErrorsWithLeaves(
         end = queriesInfo.size();
     }
 
+    CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
     return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, *localExecutor);
 }

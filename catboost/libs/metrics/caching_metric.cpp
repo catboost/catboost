@@ -1677,6 +1677,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
 
         const bool isObjectwise = metric->GetErrorType() == EErrorType::PerObjectError;
         const auto end = isObjectwise ? objectCount : queryCount;
+        CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
 
         const bool isCaching = dynamic_cast<const ICachingSingleTargetEval*>(metric)
                             || dynamic_cast<const ICachingMultiTargetEval*>(metric);

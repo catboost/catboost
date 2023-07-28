@@ -6469,12 +6469,14 @@ TMetricHolder EvalErrors(
         CB_ENSURE(
             end <= approx[0].ysize(),
             "Prediction and label size do not match");
+        CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
         return dynamic_cast<const ISingleTargetEval&>(error).Eval(approx, approxDelta, isExpApprox, target, weight, queriesInfo, begin, end, *localExecutor);
     } else {
         CB_ENSURE(
             error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError,
             "Expected querywise or pairwise metric");
         int queryStartIndex = 0, queryEndIndex = queriesInfo.size();
+        CB_ENSURE(queryEndIndex > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
         return dynamic_cast<const ISingleTargetEval&>(error).Eval(approx, approxDelta, isExpApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
     }
 }

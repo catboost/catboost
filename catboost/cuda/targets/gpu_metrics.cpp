@@ -508,6 +508,7 @@ namespace NCatboostCuda {
         const int start = 0;
         const int end = static_cast<const int>(GetCpuMetric().GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
         CB_ENSURE(approx.size() >= 1);
+        CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
         for (ui32 dim = 0; dim < approx.size(); ++dim) {
             CB_ENSURE(approx[dim].size() == target.size());
         }
