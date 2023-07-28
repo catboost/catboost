@@ -10,7 +10,7 @@ if((NOT DEFINED CATBOOST_COMPONENTS) OR (LIBS IN_LIST CATBOOST_COMPONENTS) OR (l
 
 add_subdirectory(static)
 
-add_library(catboostmodel SHARED)
+add_shared_library(catboostmodel)
 target_link_libraries(catboostmodel PUBLIC
   contrib-libs-cxxsupp
   yutil

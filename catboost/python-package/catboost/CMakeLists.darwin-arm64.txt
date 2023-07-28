@@ -9,7 +9,7 @@
 find_package(Python3 REQUIRED COMPONENTS Development)
 add_subdirectory(no_cuda)
 
-add_library(_catboost SHARED)
+add_shared_library(_catboost)
 target_compile_options(_catboost PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
@@ -19,6 +19,7 @@ target_cython_sources(_catboost PRIVATE
 target_link_libraries(_catboost PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-mimalloc
   Python3::Module
   catboost-libs-cat_feature
   catboost-libs-data
@@ -64,9 +65,6 @@ target_sources(_catboost PRIVATE
 )
 set_python_type_for_cython(_catboost
   PY3
-)
-target_allocator(_catboost
-  cpp-malloc-mimalloc
 )
 target_cython_include_directories(_catboost
   ${CMAKE_BINARY_DIR}

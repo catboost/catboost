@@ -34,6 +34,7 @@ include(cmake/fbs.cmake)
 include(cmake/global_flags.cmake)
 include(cmake/protobuf.cmake)
 include(cmake/recursive_library.cmake)
+include(cmake/shared_libs.cmake)
 include(cmake/swig.cmake)
 include(cmake/global_vars.cmake)
 

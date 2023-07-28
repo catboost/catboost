@@ -10,13 +10,14 @@ if((NOT DEFINED CATBOOST_COMPONENTS) OR (LIBS IN_LIST CATBOOST_COMPONENTS) OR (l
 
 add_subdirectory(static)
 
-add_library(catboostmodel SHARED)
+add_shared_library(catboostmodel)
 target_compile_options(catboostmodel PRIVATE
   -D_WINDLL
 )
 target_link_libraries(catboostmodel PUBLIC
   contrib-libs-cxxsupp
   yutil
+  system_allocator
   catboost-libs-cat_feature
   catboost-libs-data
   catboost-libs-model
@@ -24,9 +25,6 @@ target_link_libraries(catboostmodel PUBLIC
 )
 target_sources(catboostmodel PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/model_interface/c_api.cpp
-)
-target_allocator(catboostmodel
-  system_allocator
 )
 use_export_script(catboostmodel
   ${CMAKE_SOURCE_DIR}/catboost/libs/model_interface/calcer.exports

@@ -9,13 +9,14 @@ if((NOT DEFINED CATBOOST_COMPONENTS) OR (LIBS IN_LIST CATBOOST_COMPONENTS) OR (l
 
 
 
-add_library(catboost_train_interface SHARED)
+add_shared_library(catboost_train_interface)
 set_property(TARGET catboost_train_interface PROPERTY
   OUTPUT_NAME catboost
 )
 target_link_libraries(catboost_train_interface PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-jemalloc
   private-libs-algo
   catboost-libs-column_description
   catboost-libs-data
@@ -43,9 +44,6 @@ target_link_options(catboost_train_interface PRIVATE
 )
 target_sources(catboost_train_interface PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp
-)
-target_allocator(catboost_train_interface
-  cpp-malloc-jemalloc
 )
 use_export_script(catboost_train_interface
   ${CMAKE_SOURCE_DIR}/catboost/libs/train_interface/catboost.exports
